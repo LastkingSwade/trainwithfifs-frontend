@@ -269,7 +269,7 @@
     }
 
     .btn-hero-book:hover, .btn-hero-book:focus-visible {
-      transform: translateY(-2px) scale(1.01);
+      transform: translateY(-2px scale(1.01));
       box-shadow: 0 0 38px rgba(0, 229, 255, 0.95);
       outline: none;
     }
@@ -467,7 +467,7 @@
     }
 
     /* -------------------------------------------------------------
-       TACTICAL NAVIGATION HUB (PREVENTS TEXT BUNCHING ON PHONES)
+       TACTICAL NAVIGATION HUB
        ------------------------------------------------------------- */
     .nav-hub-container {
       background: #10161f;
@@ -767,6 +767,21 @@
       font-weight: bold;
     }
 
+    /* Section Subheaders */
+    .prep-subheading {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #fff;
+      margin: 24px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-left: 3px solid var(--accent-amber);
+      padding-left: 10px;
+    }
+
     /* Target Gallery */
     .gallery-grid-targets {
       display: grid;
@@ -947,20 +962,17 @@
 </head>
 <body>
 
-  <!-- ==============================================================
-       SCREEN 1: HERO LANDING SCREEN
-       ============================================================== -->
+  <!-- SCREEN 1: HERO LANDING SCREEN -->
   <section id="hero-landing" aria-label="Welcome to Train With FIFS">
     
     <div class="hero-bg-layer">
       <img src="https://lh3.googleusercontent.com/d/1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ" 
            onerror="this.src='https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w1920'" 
-           alt="Future Initiative Firearm Services Tactical Artwork" 
+           alt="Future Initiative Firearm Services Background" 
            class="hero-bg-artwork">
       <div class="hero-bg-vignette"></div>
     </div>
 
-    <!-- Top Live HUD Bar -->
     <div class="hero-top-hud">
       <div class="range-live-ticker">
         <span class="pulse-dot"></span>
@@ -970,16 +982,15 @@
 
     <div class="hero-mid-spacer"></div>
 
-    <!-- Interactive Fast-Tap Mission Dock -->
     <div class="hero-command-dock">
-      <div class="hero-dock-header">⚡ Choose Your Path</div>
+      <div class="hero-dock-header">⚡ Choose Your Training Path</div>
       
       <div class="mission-chip-group">
         <button type="button" class="chip-btn" onclick="openAndSwitch('booking')">
           📅 Book a Class
         </button>
         <button type="button" class="chip-btn" onclick="openAndSwitch('prep')">
-          🎒 Range Day Prep
+          🎒 Class Day Prep
         </button>
         <button type="button" class="chip-btn" onclick="openAndSwitch('portal')">
           🎓 After Class
@@ -1003,9 +1014,7 @@
     </div>
   </section>
 
-  <!-- ==============================================================
-       SCREEN 2: MAIN TRAINING PORTAL
-       ============================================================== -->
+  <!-- SCREEN 2: MAIN TRAINING PORTAL -->
   <div id="app-container" class="container">
     <header class="app-header">
       <div class="brand-identity-group">
@@ -1046,7 +1055,7 @@
       </p>
     </div>
 
-    <!-- TACTICAL NAVIGATION HUB (SPACIOUS, UNCLUTTERED, MOBILE-FIRST) -->
+    <!-- TACTICAL NAVIGATION HUB -->
     <div class="nav-hub-container">
       <div class="nav-hub-header">Navigation Hub // Select Portal View</div>
       <div class="nav-hub-grid">
@@ -1056,7 +1065,7 @@
         </button>
         <button type="button" class="nav-hub-btn" id="hub-prep" onclick="switchTab('prep')">
           <span class="hub-icon">🎒</span>
-          <span class="hub-label">Range Day Prep</span>
+          <span class="hub-label">Class Day Prep</span>
         </button>
         <button type="button" class="nav-hub-btn" id="hub-portal" onclick="switchTab('portal')">
           <span class="hub-icon">🎓</span>
@@ -1226,53 +1235,85 @@
     </main>
 
     <!-- ==============================================================
-         TAB 2: RANGE DAY PREP (BOOKED STUDENTS)
+         TAB 2: CLASS DAY PREP (CLASSROOM & RANGE SPLIT)
          ============================================================== -->
     <section id="view-prep" role="tabpanel" class="panel hidden">
       <div class="panel-header">
-        <h3>Range Day Preparation & Packing Checklist</h3>
-        <p>Everything you need to know before stepping onto the range with Instructor Wade.</p>
+        <h3>Class Day & Range Preparation Guide</h3>
+        <p>Complete packing lists and logistics for your classroom instruction and live-fire range qualification.</p>
       </div>
 
-      <!-- Facility & Transport Alert -->
+      <!-- Critical Classroom Safety Mandate -->
       <div style="background: rgba(255, 183, 3, 0.1); border: 1px solid var(--accent-amber); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px;">
-        <h4 style="color: var(--accent-amber); font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 6px;">
-          ⚠ CRITICAL SAFETY & TRANSPORT RULE (MARYLAND LAW)
+        <h4 style="color: var(--accent-amber); font-family: var(--font-display); font-size: 1.15rem; margin-bottom: 6px;">
+          ⚠ ZERO LIVE AMMUNITION IN THE CLASSROOM (STRICT MARYLAND PROTOCOL)
         </h4>
         <p style="font-size: 0.9rem; color: #e2e8f0; line-height: 1.55;">
-          <strong>Zero Live Ammunition in the Classroom:</strong> Absolutely no live ammunition is permitted in classroom instruction areas at any time. All ammunition must remain locked in your vehicle trunk until live-fire qualification.<br>
-          <strong>Firearm Transport:</strong> Handguns brought to class must be completely unloaded, locked in a secure case or trunk, and visually inspected by Instructor Wade prior to range entry.
+          <strong>No Live Ammunition Allowed in Classroom:</strong> Absolutely no live ammunition is permitted in the classroom environment at any time. All ammo must remain locked in your vehicle trunk until the live-fire portion.<br>
+          <strong>Firearm Transport:</strong> Handguns brought to class must be completely unloaded, stored in a locked transport case/box, and visually verified by Instructor Wade upon entry.
         </p>
+      </div>
+
+      <!-- SECTION A: CLASSROOM DAY PREPARATION -->
+      <div class="prep-subheading">
+        <span>📖</span> Part 1: Classroom Day Preparation (Day 1 / Morning Session)
       </div>
 
       <div class="checklist-grid">
         <div class="checklist-box">
-          <h4>📍 Range Location & Arrival</h4>
+          <h4>📝 Required Classroom Items</h4>
           <ul>
-            <li><strong>Primary Range:</strong> Cindy's Hot Shots</li>
-            <li><strong>Address:</strong> 115 Holsum Way, Glen Burnie, MD 21061</li>
-            <li><strong>Arrival:</strong> Arrive 10–15 minutes early to check in at the front counter.</li>
-            <li><strong>Accommodations:</strong> Sessions can be coordinated or relocated across Maryland based on prior scheduling.</li>
+            <li><strong>Government Photo ID:</strong> Valid driver's license or state ID required for enrollment verification.</li>
+            <li><strong>Notepad & Pen:</strong> Essential for taking notes on Maryland statutes (SB 1, CR § 6-411) and de-escalation drills.</li>
+            <li><strong>Personal Handgun (Unloaded):</strong> For dry-fire manipulation and holster fitment (strictly verified empty by instructor).</li>
+            <li><strong>Comfort & Refreshments:</strong> Snacks and beverages (regular 10-minute focus breaks provided).</li>
           </ul>
         </div>
 
         <div class="checklist-box">
-          <h4>🎯 Ammunition & Equipment</h4>
+          <h4>🧠 What We Cover in Class</h4>
           <ul>
-            <li><strong>Ammunition Protocol:</strong> 50–100 rounds of factory target ammo (brass casing recommended; no steel-core).</li>
+            <li><strong>Maryland Firearms Law:</strong> Sensitive locations, home defense / Castle Doctrine, and duty to retreat rules.</li>
+            <li><strong>Use of Force:</strong> The 5 Legal Pillars of Self-Defense and the Threat Assessment Triad (AOI).</li>
+            <li><strong>Safe Storage & Transport:</strong> Child access prevention (Jaelynn's Law) and 72-hour stolen firearm reporting.</li>
+            <li><strong>Dry-Fire Diagnostics:</strong> Sight picture alignment, breath control, and trigger reset fundamentals.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- SECTION B: RANGE DAY PREPARATION -->
+      <div class="prep-subheading">
+        <span>🎯</span> Part 2: Range Day Preparation (Day 2 for 16-Hr Initial // Later That Day for 8-Hr Renewal)
+      </div>
+
+      <div class="checklist-grid">
+        <div class="checklist-box">
+          <h4>📍 Range Schedule & Location</h4>
+          <ul>
+            <li><strong>16-Hour Initial Students:</strong> Live-fire qualification takes place on <strong>Day 2</strong>.</li>
+            <li><strong>8-Hour Renewal Students:</strong> Live-fire qualification takes place <strong>later that same afternoon</strong>.</li>
+            <li><strong>Primary Facility:</strong> Cindy's Hot Shots (115 Holsum Way, Glen Burnie, MD).</li>
+            <li><strong>Arrival:</strong> Arrive 10–15 minutes prior to range time to check in at the front counter.</li>
+          </ul>
+        </div>
+
+        <div class="checklist-box">
+          <h4>🎯 Ammunition & Safety Gear</h4>
+          <ul>
+            <li><strong>Ammunition Count:</strong> Standardized at <strong>50–100 rounds</strong> of factory ammunition (locked in trunk until live fire).</li>
             <li><strong>Eye Protection:</strong> ANSI Z87.1 rated wrap-around safety glasses.</li>
-            <li><strong>Ear Protection:</strong> Quality earmuffs (electronic earmuffs recommended to hear commands).</li>
-            <li><strong>Holster (Wear & Carry):</strong> Sturdy belt and rigid OWB/IWB holster (no flimsy nylon or cross-draw).</li>
+            <li><strong>Ear Protection:</strong> Quality earmuffs (electronic earmuffs recommended to hear commands clearly).</li>
+            <li><strong>Holster (Wear & Carry):</strong> Sturdy belt and rigid holster (OWB or IWB; no floppy nylon).</li>
           </ul>
         </div>
 
         <div class="checklist-box">
           <h4>👕 Required Range Attire</h4>
           <ul>
-            <li><strong>Footwear:</strong> Closed-toe athletic shoes or boots (strictly no sandals or open-toe shoes).</li>
-            <li><strong>Shirt:</strong> Crew-neck shirt or high collar to protect against hot brass casings.</li>
-            <li><strong>Headwear:</strong> Baseball cap strongly recommended to deflect brass.</li>
-            <li><strong>Identification:</strong> Valid government-issued photo ID (driver's license or state ID).</li>
+            <li><strong>Footwear:</strong> Closed-toe athletic shoes or boots (strictly no open-toe shoes or sandals).</li>
+            <li><strong>Shirt:</strong> Crew-neck shirt or high collar to prevent hot brass from going down your shirt.</li>
+            <li><strong>Headwear:</strong> Baseball cap strongly recommended to deflect ejected casings.</li>
+            <li><strong>Weather / Comfort:</strong> Climate-controlled indoor range lanes at Cindy's Hot Shots.</li>
           </ul>
         </div>
       </div>
@@ -1746,7 +1787,7 @@
 
     function triggerSparkSkill(cmd) {
       if (cmd === '/onboarding') {
-        alert("Welcome to Train With FIFS! Select any course tier to start your registration.");
+        alert("Welcome to Train With FIFS! Select any course tier above to start your registration.");
       } else if (cmd === '/assistant') {
         const q = prompt("Ask Assistant (Maryland HQL, CCW rules, or range protocol):");
         if (q) {
