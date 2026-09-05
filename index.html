@@ -41,7 +41,7 @@
       overflow-x: hidden;
     }
 
-    /* HERO LANDING SCREEN (IPAD & MOBILE RESPONSIVE) */
+    /* HERO LANDING SCREEN */
     #hero-landing {
       position: relative;
       width: 100%;
@@ -79,6 +79,7 @@
       pointer-events: none !important;
     }
 
+    /* On iPads, tablets, and widescreen displays, use contain so the full logo, text, tablet, and Glock are never cropped */
     @media (min-width: 601px) {
       .hero-bg-artwork {
         object-fit: contain;
@@ -90,7 +91,7 @@
     .hero-bg-vignette {
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, transparent 0%, transparent 35%, rgba(7, 11, 16, 0.78) 72%, var(--bg-dark-core) 100%);
+      background: linear-gradient(180deg, rgba(7, 11, 16, 0.3) 0%, transparent 28%, rgba(7, 11, 16, 0.65) 70%, var(--bg-dark-core) 100%);
       pointer-events: none !important;
     }
 
@@ -619,8 +620,8 @@
   <!-- SCREEN 1: HERO LANDING SCREEN -->
   <section id="hero-landing" aria-label="Welcome to Train With FIFS">
     <div class="hero-bg-layer">
-      <img src="https://lh3.googleusercontent.com/d/1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ" 
-           onerror="this.src='https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w1920'" 
+      <img src="https://lh3.googleusercontent.com/d/1lG_LMJ9gBJ3e_DZAkuivaEp-sKH2c0wW" 
+           onerror="this.src='https://drive.google.com/thumbnail?id=1lG_LMJ9gBJ3e_DZAkuivaEp-sKH2c0wW&sz=w1920'" 
            alt="Future Initiative Firearm Services Background" 
            class="hero-bg-artwork">
       <div class="hero-bg-vignette"></div>
@@ -1537,7 +1538,7 @@
 
       if (st === 'ENROLLED' || st === 'PREP_PENDING') {
         if (nodes[0]) nodes[0].className = 'track-step-node completed';
-        if (nodes[1]) nodes[1].className = 'track-step-node completed';
+        if (nodes) nodes.className = 'track-step-node completed';
         if (nodes[2]) nodes[2].className = 'track-step-node active';
         if (progressLabel) progressLabel.textContent = "Step 3 of 8 (Preparation)";
         if (heroTitle) heroTitle.textContent = "Complete Your Pre-Class Checklist";
