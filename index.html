@@ -80,23 +80,24 @@
       width: 100%;
       height: 108%;
       object-fit: cover;
-      object-position: center 12%; /* Shifts artwork upward */
+      /* Aligns top/center so 'Future Initiative Firearm Services' sits cleanly above dock */
+      object-position: center 0%;
       display: block;
-      transform: translateY(-2%);
+      transform: translateY(0);
     }
 
-    @media (max-width: 768px), (orientation: portrait) {
+    @media (min-width: 769px) and (orientation: landscape) {
       .hero-bg-artwork {
-        object-position: center 10%;
-        height: 110%;
-        transform: translateY(-3%);
+        object-fit: contain;
+        object-position: center 2%;
+        height: 88vh;
       }
     }
 
     .hero-bg-vignette {
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(7, 11, 16, 0.2) 0%, rgba(7, 11, 16, 0.05) 35%, rgba(7, 11, 16, 0.85) 80%, var(--bg-dark-core) 100%);
+      background: linear-gradient(180deg, rgba(7, 11, 16, 0.15) 0%, rgba(7, 11, 16, 0.05) 30%, rgba(7, 11, 16, 0.85) 75%, var(--bg-dark-core) 100%);
     }
 
     /* Top Live HUD Status Ticker */
@@ -145,25 +146,25 @@
     .hero-mid-spacer {
       pointer-events: none;
       flex: 1;
-      min-height: 25vh;
+      min-height: 28vh;
       z-index: 5;
     }
 
-    /* Bottom Interactive Command Dock */
+    /* Compact Bottom Interactive Command Dock */
     .hero-command-dock {
       width: 100%;
       max-width: 540px;
       background: rgba(11, 15, 20, 0.90);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      padding: 18px 16px 16px;
+      padding: 16px 16px 14px;
       border-radius: 16px;
       border: 1px solid rgba(0, 229, 255, 0.45);
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 229, 255, 0.25);
       position: relative;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       z-index: 10;
       margin-top: auto;
     }
@@ -191,7 +192,7 @@
 
     .hero-dock-header {
       font-family: var(--font-display);
-      font-size: 0.92rem;
+      font-size: 0.90rem;
       font-weight: 700;
       letter-spacing: 2px;
       color: var(--accent-amber);
@@ -210,7 +211,7 @@
       border: 1px solid rgba(0, 229, 255, 0.3);
       color: #e2e8f0;
       font-family: var(--font-display);
-      font-size: 0.86rem;
+      font-size: 0.85rem;
       font-weight: 700;
       letter-spacing: 1px;
       padding: 6px 12px;
@@ -239,17 +240,17 @@
       background: linear-gradient(135deg, #00e5ff 0%, #00a8cc 100%);
       color: #070b10;
       font-family: var(--font-display);
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       font-weight: 800;
       letter-spacing: 2px;
       text-transform: uppercase;
-      padding: 16px 20px;
+      padding: 15px 20px;
       border-radius: 10px;
       border: none;
       cursor: pointer;
-      box-shadow: 0 0 28px var(--accent-cyan-glow);
+      box-shadow: 0 0 26px var(--accent-cyan-glow);
       transition: all 0.25s ease;
-      min-height: 54px;
+      min-height: 52px;
       position: relative;
       overflow: hidden;
     }
@@ -273,7 +274,7 @@
 
     .btn-hero-book:hover, .btn-hero-book:focus-visible {
       transform: translateY(-2px) scale(1.01);
-      box-shadow: 0 0 40px rgba(0, 229, 255, 0.95);
+      box-shadow: 0 0 38px rgba(0, 229, 255, 0.95);
       outline: none;
     }
 
@@ -759,8 +760,9 @@
 </head>
 <body>
 
-  <!-- SCREEN 1: HERO LANDING SCREEN -->
+  <!-- SCREEN 1: HERO LANDING SCREEN (WITH ELEVATED ARTWORK) -->
   <section id="hero-landing" aria-label="Welcome to Future Initiative Firearm Services">
+    
     <div class="hero-bg-layer">
       <img src="https://lh3.googleusercontent.com/d/1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ" 
            onerror="this.src='https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w1920'" 
@@ -776,6 +778,7 @@
       </div>
     </div>
 
+    <!-- Keeps the central artwork unobstructed -->
     <div class="hero-mid-spacer"></div>
 
     <div class="hero-command-dock">
@@ -1109,4 +1112,213 @@
           </div>
 
           <div class="form-group">
-            <label for="rating">Rating <span class
+            <label for="rating">Rating <span class="req">*</span></label>
+            <select id="rating" name="rating" required>
+              <option value="5">★★★★★ (5/5 Excellent Instruction)</option>
+              <option value="4">★★★★☆ (4/5 Solid Session)</option>
+              <option value="3">★★★☆☆ (3/5 Average)</option>
+              <option value="2">★★☆☆☆ (2/5 Needs Improvement)</option>
+              <option value="1">★☆☆☆☆ (1/5 Unsatisfactory)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="testimonialText">First-Hand Experience / Target Commentary <span class="req">*</span></label>
+            <textarea id="testimonialText" name="testimonialText" required placeholder="Describe your progression, range safety, and instruction quality..."></textarea>
+          </div>
+
+          <button type="submit" id="btn-test-submit" class="btn-primary">
+            Submit Testimonial
+          </button>
+
+          <div id="testimonial-status" class="status-msg" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Spark Skill Launcher Dock -->
+    <footer class="spark-dock">
+      <h4 style="font-family: var(--font-display); color: var(--accent-cyan); font-size: 1.1rem;">Gemini Spark Guided Assistant</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">Need real-time course orientation or onboarding?</p>
+      <div class="spark-btn-group">
+        <button type="button" class="btn-spark" onclick="triggerSparkSkill('/onboarding')">Launch /onboarding</button>
+        <button type="button" class="btn-spark" onclick="triggerSparkSkill('/assistant')">Ask /assistant</button>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const BACKEND_API_URL = "https://script.google.com/macros/s/AKfycbz9X2h0o5_pmNafKXRY8hSeGiGpHcrp_JMWIe8wg9FmSir0W3mrZAnkSnw-Zs9xH9BY/exec";
+
+    function openBookingApp() {
+      document.getElementById('hero-landing').style.display = 'none';
+      const app = document.getElementById('app-container');
+      app.style.display = 'block';
+      switchTab('booking');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openTargetGalleryDirect() {
+      document.getElementById('hero-landing').style.display = 'none';
+      const app = document.getElementById('app-container');
+      app.style.display = 'block';
+      switchTab('testimonial');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function quickSelectAndOpen(courseName) {
+      openBookingApp();
+      selectCourse(courseName);
+    }
+
+    function returnToHome() {
+      document.getElementById('app-container').style.display = 'none';
+      const hero = document.getElementById('hero-landing');
+      hero.style.display = 'flex';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function switchTab(tab) {
+      const isBooking = tab === 'booking';
+      document.getElementById('view-booking').classList.toggle('hidden', !isBooking);
+      document.getElementById('view-testimonial').classList.toggle('hidden', isBooking);
+
+      document.getElementById('tab-booking').classList.toggle('active', isBooking);
+      document.getElementById('tab-testimonial').classList.toggle('active', !isBooking);
+    }
+
+    function selectCourse(courseValue) {
+      const selectElem = document.getElementById('courseSelection');
+      selectElem.value = courseValue;
+      selectElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      selectElem.focus();
+    }
+
+    function submitBooking(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-booking-submit');
+      const statusDiv = document.getElementById('booking-status');
+
+      const payload = {
+        courseSelection: document.getElementById('courseSelection').value,
+        fullName: document.getElementById('fullName').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        preferredDates: document.getElementById('preferredDates').value.trim(),
+        groupSize: document.getElementById('groupSize').value,
+        comments: document.getElementById('comments').value.trim()
+      };
+
+      btn.disabled = true;
+      btn.innerText = "Transmitting to Command...";
+      statusDiv.className = "status-msg";
+      statusDiv.style.display = "none";
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            handleBookingResponse(res, btn, statusDiv);
+          })
+          .withFailureHandler(function(err) {
+            handleErrorResponse(err, btn, statusDiv, "Confirm Training Request");
+          })
+          .handleBookingSubmission(payload);
+      } else {
+        fetch(BACKEND_API_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "submitBooking", payload: payload })
+        })
+        .then(response => response.json())
+        .then(res => {
+          handleBookingResponse(res, btn, statusDiv);
+        })
+        .catch(err => {
+          handleErrorResponse(err, btn, statusDiv, "Confirm Training Request");
+        });
+      }
+    }
+
+    function handleBookingResponse(res, btn, statusDiv) {
+      btn.disabled = false;
+      btn.innerText = "Confirm Training Request";
+      statusDiv.textContent = res.message || "Reservation successfully recorded.";
+      statusDiv.className = "status-msg " + (res.status === 'success' ? 'success' : 'error');
+      statusDiv.style.display = "block";
+      if (res.status === 'success') {
+        document.getElementById('booking-form').reset();
+      }
+    }
+
+    function submitTestimonial(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-test-submit');
+      const statusDiv = document.getElementById('testimonial-status');
+
+      const payload = {
+        name: document.getElementById('testName').value.trim(),
+        classAttended: document.getElementById('classAttended').value.trim(),
+        rating: document.getElementById('rating').value,
+        testimonialText: document.getElementById('testimonialText').value.trim()
+      };
+
+      btn.disabled = true;
+      btn.innerText = "Logging Entry...";
+      statusDiv.className = "status-msg";
+      statusDiv.style.display = "none";
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            handleTestimonialResponse(res, btn, statusDiv);
+          })
+          .withFailureHandler(function(err) {
+            handleErrorResponse(err, btn, statusDiv, "Submit Testimonial");
+          })
+          .handleTestimonialSubmission(payload);
+      } else {
+        fetch(BACKEND_API_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "submitTestimonial", payload: payload })
+        })
+        .then(response => response.json())
+        .then(res => {
+          handleTestimonialResponse(res, btn, statusDiv);
+        })
+        .catch(err => {
+          handleErrorResponse(err, btn, statusDiv, "Submit Testimonial");
+        });
+      }
+    }
+
+    function handleTestimonialResponse(res, btn, statusDiv) {
+      btn.disabled = false;
+      btn.innerText = "Submit Testimonial";
+      statusDiv.textContent = res.message || "Testimonial logged.";
+      statusDiv.className = "status-msg " + (res.status === 'success' ? 'success' : 'error');
+      statusDiv.style.display = "block";
+      if (res.status === 'success') {
+        document.getElementById('testimonial-form').reset();
+      }
+    }
+
+    function handleErrorResponse(err, btn, statusDiv, originalText) {
+      btn.disabled = false;
+      btn.innerText = originalText;
+      statusDiv.textContent = "Submission note: " + (err.message || err);
+      statusDiv.className = "status-msg error";
+      statusDiv.style.display = "block";
+    }
+
+    function triggerSparkSkill(cmd) {
+      if (cmd === '/onboarding') {
+        alert("Initializing Spark Onboarding: Select a course tier above to establish your student intake record.");
+      } else if (cmd === '/assistant') {
+        const q = prompt("Ask Assistant (Course tuition, ammo protocol, Maryland wear & carry):");
+        if (q) {
+          alert("Inquiry logged: '" + q + "'. Chief Wade will follow up via your preferred contact channel.");
+        }
+      }
+    }
+  </script>
+</body>
+</html>
