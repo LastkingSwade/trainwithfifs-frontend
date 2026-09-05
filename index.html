@@ -1303,7 +1303,7 @@
       if (dashBox) dashBox.classList.remove('hidden');
 
       const nameElem = document.getElementById('dash-student-name');
-      if (nameElem) nameElem.textContent = student.fullName.split(' ')[0] || student.fullName;
+      if (nameElem) nameElem.textContent = student.fullName.split(' ').slice(0, 1).pop() || student.fullName;
       
       const idElem = document.getElementById('dash-student-id');
       if (idElem) idElem.textContent = "ID: " + student.studentId;
@@ -1312,7 +1312,7 @@
       if (statusElem) statusElem.textContent = formatStatusLabel(student.status);
       
       const courseElem = document.getElementById('dash-student-course');
-      if (courseElem) courseElem.textContent = student.course.split('(')[0].trim();
+      if (courseElem) courseElem.textContent = student.course.split('(').slice(0, 1).pop().trim();
       
       const dateElem = document.getElementById('dash-student-date');
       if (dateElem) dateElem.textContent = student.assignedDate || "To Be Scheduled";
@@ -1331,7 +1331,7 @@
       const tasks = student.prepTasks || {};
       ['transport_law', 'ammo_acquired', 'eye_ear_pro', 'id_ready'].forEach(t => {
         const chk = document.getElementById("chk-" + t);
-        const card = document.getElementById("task-card-" + t.split('_')[0]);
+        const card = document.getElementById("task-card-" + t.replace(/_.*/, ''));
         if (chk) chk.checked = !!tasks[t];
         if (card) card.classList.toggle('is-done', !!tasks[t]);
       });
@@ -1394,29 +1394,37 @@
     }
 
     function updateRoadmapVisual(status, completedTasksCount) {
-      const stepIds =;
-      const nodes = stepIds.map(n => document.getElementById('track-step-' + n));
-      nodes.forEach(n => { if (n) n.className = "track-step-node"; });
+      const stepOne = document.getElementById('track-step-1');
+      const stepTwo = document.getElementById('track-step-2');
+      const stepThree = document.getElementById('track-step-3');
+      const stepFour = document.getElementById('track-step-4');
+      const stepFive = document.getElementById('track-step-5');
+      const stepSix = document.getElementById('track-step-6');
+      const stepSeven = document.getElementById('track-step-7');
+      const stepEight = document.getElementById('track-step-8');
 
-      if (nodes[0]) nodes[0].classList.add('completed');
-      if (nodes) nodes.classList.add('completed');
+      const allNodes = Array.of(stepOne, stepTwo, stepThree, stepFour, stepFive, stepSix, stepSeven, stepEight);
+      allNodes.forEach(function(el) { if (el) el.className = 'track-step-node'; });
+
+      if (stepOne) stepOne.classList.add('completed');
+      if (stepTwo) stepTwo.classList.add('completed');
 
       const labelElem = document.getElementById('dash-progress-label');
 
-      if (status === "QUALIFIED" || status === "COMPLETED") {
-        if (nodes) nodes.classList.add('completed');
-        if (nodes) nodes.classList.add('completed');
-        if (nodes) nodes.classList.add('completed');
-        if (nodes) nodes.classList.add('completed');
-        if (nodes) nodes.classList.add('active');
-        if (labelElem) labelElem.textContent = "Step 7 of 8: MSP Portal";
-      } else if (completedTasksCount === 4 || status === "PREP_COMPLETED") {
-        if (nodes) nodes.classList.add('completed');
-        if (nodes) nodes.classList.add('active');
-        if (labelElem) labelElem.textContent = "Step 4 of 8: Classroom Training";
+      if (status === 'QUALIFIED' || status === 'COMPLETED') {
+        if (stepThree) stepThree.classList.add('completed');
+        if (stepFour) stepFour.classList.add('completed');
+        if (stepFive) stepFive.classList.add('completed');
+        if (stepSix) stepSix.classList.add('completed');
+        if (stepSeven) stepSeven.classList.add('active');
+        if (labelElem) labelElem.textContent = 'Step 7 of 8: MSP Portal';
+      } else if (completedTasksCount === 4 || status === 'PREP_COMPLETED') {
+        if (stepThree) stepThree.classList.add('completed');
+        if (stepFour) stepFour.classList.add('active');
+        if (labelElem) labelElem.textContent = 'Step 4 of 8: Classroom Training';
       } else {
-        if (nodes) nodes.classList.add('active');
-        if (labelElem) labelElem.textContent = "Step 3 of 8: Preparation (" + completedTasksCount + "/4 Tasks)";
+        if (stepThree) stepThree.classList.add('active');
+        if (labelElem) labelElem.textContent = 'Step 3 of 8: Preparation (' + completedTasksCount + '/4 Tasks)';
       }
     }
 
@@ -1429,7 +1437,7 @@
       if (!currentStudent.prepTasks) currentStudent.prepTasks = {};
       currentStudent.prepTasks[taskId] = newVal;
 
-      const card = document.getElementById('task-card-' + taskId.split('_')[0]);
+      const card = document.getElementById('task-card-' + taskId.replace(/_.*/, ''));
       if (card) card.classList.toggle('is-done', newVal);
       evaluateStudentNextStep(currentStudent);
       localStorage.setItem('fifs_student_session', JSON.stringify(currentStudent));
@@ -1543,7 +1551,7 @@
         <tr>
           <td><code style="color: var(--accent-cyan); font-weight:bold;">${s.studentId}</code></td>
           <td><strong>${escapeHtml(s.fullName)}</strong><br><span style="font-size:0.75rem; color: var(--text-muted);">${escapeHtml(s.email)}</span></td>
-          <td style="font-size:0.8rem;">${(s.course || '').split('(')[0]}</td>
+          <td style="font-size:0.8rem;">${(s.course || '').split('(').slice(0, 1).pop()}</td>
           <td style="font-size:0.8rem;">${s.assignedDate}</td>
           <td>
             <select onchange="updateStudentStatusFromAdmin('${s.studentId}', this.value)" style="padding: 4px 6px; font-size: 0.78rem; min-height: 32px;">
