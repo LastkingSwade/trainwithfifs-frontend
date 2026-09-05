@@ -49,7 +49,7 @@
     }
 
     /* -------------------------------------------------------------
-       HERO LANDING SCREEN: ELEVATED ARTWORK & LIVE TELEMETRY
+       HERO LANDING SCREEN
        ------------------------------------------------------------- */
     #hero-landing {
       position: relative;
@@ -149,7 +149,7 @@
 
     .hero-command-dock {
       width: 100%;
-      max-width: 560px;
+      max-width: 540px;
       background: rgba(11, 15, 20, 0.90);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
@@ -467,43 +467,86 @@
     }
 
     /* -------------------------------------------------------------
-       5-TAB LIFECYCLE NAVIGATION BAR
+       TACTICAL NAVIGATION HUB (PREVENTS TEXT BUNCHING ON PHONES)
        ------------------------------------------------------------- */
-    .nav-tabs {
-      display: flex;
-      gap: 6px;
-      background: rgba(16, 22, 31, 0.95);
-      padding: 6px;
-      border-radius: 12px;
+    .nav-hub-container {
+      background: #10161f;
       border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 14px;
       margin-bottom: 24px;
-      overflow-x: auto;
     }
 
-    .tab-btn {
-      flex: 1;
-      min-width: 130px;
-      padding: 12px 6px;
+    .nav-hub-header {
       font-family: var(--font-display);
-      font-size: 0.95rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--accent-amber);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .nav-hub-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .nav-hub-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .nav-hub-btn.full-span-mobile {
+        grid-column: span 2;
+      }
+    }
+
+    .nav-hub-btn {
+      background: #0d121a;
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 10px;
+      padding: 14px 12px;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      font-size: 0.98rem;
       font-weight: 700;
       letter-spacing: 1px;
       text-transform: uppercase;
-      color: var(--text-muted);
-      background: transparent;
-      border: 1px solid transparent;
-      border-radius: 8px;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       text-align: center;
-      transition: all 0.2s ease;
-      white-space: nowrap;
+      transition: all 0.22s ease;
+      min-height: 72px;
     }
 
-    .tab-btn.active {
-      background: var(--bg-dark-core);
-      color: var(--accent-cyan);
+    .nav-hub-btn .hub-icon {
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+
+    .nav-hub-btn .hub-label {
+      line-height: 1.2;
+      color: inherit;
+    }
+
+    .nav-hub-btn:hover {
+      background: rgba(0, 229, 255, 0.12);
       border-color: var(--accent-cyan);
-      box-shadow: 0 0 12px var(--accent-cyan-glow);
+      color: #fff;
+      transform: translateY(-2px);
+    }
+
+    .nav-hub-btn.active {
+      background: rgba(0, 229, 255, 0.18);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      box-shadow: 0 0 16px var(--accent-cyan-glow);
     }
 
     /* Panels */
@@ -904,17 +947,20 @@
 </head>
 <body>
 
-  <!-- SCREEN 1: HERO LANDING SCREEN -->
+  <!-- ==============================================================
+       SCREEN 1: HERO LANDING SCREEN
+       ============================================================== -->
   <section id="hero-landing" aria-label="Welcome to Train With FIFS">
     
     <div class="hero-bg-layer">
       <img src="https://lh3.googleusercontent.com/d/1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ" 
            onerror="this.src='https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w1920'" 
-           alt="Future Initiative Firearm Services Background" 
+           alt="Future Initiative Firearm Services Tactical Artwork" 
            class="hero-bg-artwork">
       <div class="hero-bg-vignette"></div>
     </div>
 
+    <!-- Top Live HUD Bar -->
     <div class="hero-top-hud">
       <div class="range-live-ticker">
         <span class="pulse-dot"></span>
@@ -924,39 +970,42 @@
 
     <div class="hero-mid-spacer"></div>
 
+    <!-- Interactive Fast-Tap Mission Dock -->
     <div class="hero-command-dock">
-      <div class="hero-dock-header">⚡ Select Your Training Goal</div>
+      <div class="hero-dock-header">⚡ Choose Your Path</div>
       
       <div class="mission-chip-group">
-        <button type="button" class="chip-btn" onclick="quickSelectAndOpen('Maryland CCW (Wear & Carry) ($199.99)')">
-          🛡️ Maryland CCW
+        <button type="button" class="chip-btn" onclick="openAndSwitch('booking')">
+          📅 Book a Class
         </button>
-        <button type="button" class="chip-btn" onclick="quickSelectAndOpen('Maryland HQL ($100.00)')">
-          🎯 Maryland HQL
+        <button type="button" class="chip-btn" onclick="openAndSwitch('prep')">
+          🎒 Range Day Prep
         </button>
-        <button type="button" class="chip-btn" onclick="quickSelectAndOpen('Personal One-on-One Class ($125.00 / hr)')">
-          ⚡ 1-on-1 Coaching
+        <button type="button" class="chip-btn" onclick="openAndSwitch('portal')">
+          🎓 After Class
         </button>
       </div>
 
-      <button type="button" class="btn-hero-book" onclick="openBookingApp()">
-        <span>Click to Book Your Training Today</span>
+      <button type="button" class="btn-hero-book" onclick="openAndSwitch('booking')">
+        <span>Enter Training Portal</span>
         <span style="font-size: 1.2rem;">→</span>
       </button>
 
       <div class="hero-sub-actions">
-        <button type="button" onclick="openTargetGalleryDirect()">
-          🎯 View Student Targets
+        <button type="button" onclick="openAndSwitch('testimonial')">
+          🎯 Student Targets
         </button>
         <span>•</span>
-        <a href="https://share.google/7bGi1FjainNaCUYIl" target="_blank" rel="noopener noreferrer">
-          ★ Verified Reviews
-        </a>
+        <button type="button" onclick="openAndSwitch('faq')">
+          ❓ Training FAQ
+        </button>
       </div>
     </div>
   </section>
 
-  <!-- SCREEN 2: MAIN TRAINING PORTAL -->
+  <!-- ==============================================================
+       SCREEN 2: MAIN TRAINING PORTAL
+       ============================================================== -->
   <div id="app-container" class="container">
     <header class="app-header">
       <div class="brand-identity-group">
@@ -965,7 +1014,7 @@
              class="app-nav-logo">
         <div class="app-brand-text">
           <h2>Train With FIFS</h2>
-          <p>Student Portal & Course Overview</p>
+          <p>Student Portal & Resource Center</p>
         </div>
       </div>
       <button type="button" class="btn-return-home" onclick="returnToHome()">
@@ -973,7 +1022,7 @@
       </button>
     </header>
 
-    <!-- Welcoming Headline -->
+    <!-- Welcoming Headline Banner -->
     <div class="hero-welcome-banner">
       <h1>Maryland Firearms Training Without the Intimidation</h1>
       <p>
@@ -997,27 +1046,35 @@
       </p>
     </div>
 
-    <!-- 5-Tab Lifecycle Navigation -->
-    <nav class="nav-tabs" role="tablist">
-      <button class="tab-btn active" id="tab-booking" role="tab" aria-selected="true" onclick="switchTab('booking')">
-        1. Explore & Book
-      </button>
-      <button class="tab-btn" id="tab-prep" role="tab" aria-selected="false" onclick="switchTab('prep')">
-        2. Range Day Prep
-      </button>
-      <button class="tab-btn" id="tab-portal" role="tab" aria-selected="false" onclick="switchTab('portal')">
-        3. After Class / MSP
-      </button>
-      <button class="tab-btn" id="tab-testimonial" role="tab" aria-selected="false" onclick="switchTab('testimonial')">
-        Student Showcase
-      </button>
-      <button class="tab-btn" id="tab-faq" role="tab" aria-selected="false" onclick="switchTab('faq')">
-        FAQ
-      </button>
-    </nav>
+    <!-- TACTICAL NAVIGATION HUB (SPACIOUS, UNCLUTTERED, MOBILE-FIRST) -->
+    <div class="nav-hub-container">
+      <div class="nav-hub-header">Navigation Hub // Select Portal View</div>
+      <div class="nav-hub-grid">
+        <button type="button" class="nav-hub-btn active" id="hub-booking" onclick="switchTab('booking')">
+          <span class="hub-icon">📅</span>
+          <span class="hub-label">Book a Class</span>
+        </button>
+        <button type="button" class="nav-hub-btn" id="hub-prep" onclick="switchTab('prep')">
+          <span class="hub-icon">🎒</span>
+          <span class="hub-label">Range Day Prep</span>
+        </button>
+        <button type="button" class="nav-hub-btn" id="hub-portal" onclick="switchTab('portal')">
+          <span class="hub-icon">🎓</span>
+          <span class="hub-label">After Class Guide</span>
+        </button>
+        <button type="button" class="nav-hub-btn" id="hub-testimonial" onclick="switchTab('testimonial')">
+          <span class="hub-icon">🎯</span>
+          <span class="hub-label">Student Targets</span>
+        </button>
+        <button type="button" class="nav-hub-btn full-span-mobile" id="hub-faq" onclick="switchTab('faq')">
+          <span class="hub-icon">❓</span>
+          <span class="hub-label">Training FAQ</span>
+        </button>
+      </div>
+    </div>
 
     <!-- ==============================================================
-         TAB 1: EXPLORE & BOOK (NEW VISITORS)
+         TAB 1: BOOK A CLASS (NEW STUDENTS)
          ============================================================== -->
     <main id="view-booking" role="tabpanel" class="panel">
       
@@ -1169,7 +1226,7 @@
     </main>
 
     <!-- ==============================================================
-         TAB 2: RANGE DAY PREP (FOR BOOKED STUDENTS)
+         TAB 2: RANGE DAY PREP (BOOKED STUDENTS)
          ============================================================== -->
     <section id="view-prep" role="tabpanel" class="panel hidden">
       <div class="panel-header">
@@ -1189,7 +1246,6 @@
       </div>
 
       <div class="checklist-grid">
-        <!-- Box 1: Facility Logistics -->
         <div class="checklist-box">
           <h4>📍 Range Location & Arrival</h4>
           <ul>
@@ -1200,7 +1256,6 @@
           </ul>
         </div>
 
-        <!-- Box 2: Ammunition & Gear -->
         <div class="checklist-box">
           <h4>🎯 Ammunition & Equipment</h4>
           <ul>
@@ -1211,7 +1266,6 @@
           </ul>
         </div>
 
-        <!-- Box 3: What to Wear -->
         <div class="checklist-box">
           <h4>👕 Required Range Attire</h4>
           <ul>
@@ -1225,7 +1279,7 @@
     </section>
 
     <!-- ==============================================================
-         TAB 3: AFTER CLASS & MSP PORTAL (FOR GRADUATES)
+         TAB 3: AFTER CLASS & MSP PORTAL (GRADUATES)
          ============================================================== -->
     <section id="view-portal" role="tabpanel" class="panel hidden">
       <div class="panel-header">
@@ -1234,7 +1288,6 @@
       </div>
 
       <div class="checklist-grid">
-        <!-- Step 1 -->
         <div class="checklist-box">
           <h4>Step 1: MSP MyLicense Portal</h4>
           <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 10px;">
@@ -1247,7 +1300,6 @@
           </ul>
         </div>
 
-        <!-- Step 2 -->
         <div class="checklist-box">
           <h4>Step 2: LiveScan Fingerprints</h4>
           <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 10px;">
@@ -1260,7 +1312,6 @@
           </ul>
         </div>
 
-        <!-- Step 3 -->
         <div class="checklist-box">
           <h4>Step 3: Upload Certificate</h4>
           <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 10px;">
@@ -1273,7 +1324,6 @@
           </ul>
         </div>
 
-        <!-- Step 4 -->
         <div class="checklist-box">
           <h4>Step 4: 90-Day Renewal Window</h4>
           <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 10px;">
@@ -1287,7 +1337,6 @@
         </div>
       </div>
 
-      <!-- Google Review Callout for Graduates -->
       <div class="cta-review-box" style="margin-top: 20px;">
         <h4 style="font-family: var(--font-display); font-size: 1.3rem; color: #fff; margin-bottom: 6px;">
           Completed Your Training With Instructor Wade?
@@ -1537,25 +1586,12 @@
   <script>
     const BACKEND_API_URL = "https://script.google.com/macros/s/AKfycbz9X2h0o5_pmNafKXRY8hSeGiGpHcrp_JMWIe8wg9FmSir0W3mrZAnkSnw-Zs9xH9BY/exec";
 
-    function openBookingApp() {
+    function openAndSwitch(tabId) {
       document.getElementById('hero-landing').style.display = 'none';
       const app = document.getElementById('app-container');
       app.style.display = 'block';
-      switchTab('booking');
+      switchTab(tabId);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function openTargetGalleryDirect() {
-      document.getElementById('hero-landing').style.display = 'none';
-      const app = document.getElementById('app-container');
-      app.style.display = 'block';
-      switchTab('testimonial');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function quickSelectAndOpen(courseName) {
-      openBookingApp();
-      selectCourse(courseName);
     }
 
     function returnToHome() {
@@ -1566,17 +1602,17 @@
     }
 
     function switchTab(tab) {
-      const tabs = ['booking', 'prep', 'portal', 'testimonial', 'faq'];
-      tabs.forEach(t => {
+      const allTabs = ['booking', 'prep', 'portal', 'testimonial', 'faq'];
+      allTabs.forEach(t => {
         const panel = document.getElementById('view-' + t);
-        const btn = document.getElementById('tab-' + t);
+        const hubBtn = document.getElementById('hub-' + t);
         if (panel) panel.classList.toggle('hidden', t !== tab);
-        if (btn) {
-          btn.classList.toggle('active', t === tab);
-          btn.setAttribute('aria-selected', t === tab);
-        }
+        if (hubBtn) hubBtn.classList.toggle('active', t === tab);
       });
-      window.scrollTo({ top: document.querySelector('.nav-tabs').offsetTop - 20, behavior: 'smooth' });
+      const hubElem = document.querySelector('.nav-hub-container');
+      if (hubElem) {
+        window.scrollTo({ top: hubElem.offsetTop - 15, behavior: 'smooth' });
+      }
     }
 
     function selectCourse(courseValue) {
@@ -1710,7 +1746,7 @@
 
     function triggerSparkSkill(cmd) {
       if (cmd === '/onboarding') {
-        alert("Welcome to Train With FIFS! Select any course tier above to start your registration.");
+        alert("Welcome to Train With FIFS! Select any course tier to start your registration.");
       } else if (cmd === '/assistant') {
         const q = prompt("Ask Assistant (Maryland HQL, CCW rules, or range protocol):");
         if (q) {
