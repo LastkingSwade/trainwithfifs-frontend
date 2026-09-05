@@ -143,7 +143,7 @@
     .hero-mid-spacer {
       pointer-events: none;
       flex: 1;
-      min-height: 26vh;
+      min-height: 28vh;
       z-index: 5;
     }
 
@@ -153,7 +153,7 @@
       background: rgba(11, 15, 20, 0.90);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      padding: 18px 16px 16px;
+      padding: 16px 16px 14px;
       border-radius: 16px;
       border: 1px solid rgba(0, 229, 255, 0.45);
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 229, 255, 0.25);
@@ -305,7 +305,7 @@
     }
 
     /* -------------------------------------------------------------
-       MAIN APPLICATION / STUDENT PORTAL
+       MAIN APPLICATION
        ------------------------------------------------------------- */
     #app-container {
       display: none;
@@ -377,14 +377,13 @@
       border-color: var(--accent-cyan);
     }
 
-    /* Welcoming Headline Banner */
     .hero-welcome-banner {
       background: linear-gradient(135deg, rgba(16, 22, 31, 0.95) 0%, rgba(7, 11, 16, 0.95) 100%);
       border: 1px solid rgba(0, 229, 255, 0.35);
       border-left: 5px solid var(--accent-cyan);
       padding: 24px 22px;
       border-radius: 12px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
     }
 
@@ -403,7 +402,6 @@
       line-height: 1.6;
     }
 
-    /* Humanized Instructor Profile */
     .instructor-profile-card {
       background: #0d131b;
       border: 1px solid rgba(0, 229, 255, 0.3);
@@ -468,144 +466,27 @@
       line-height: 1.6;
     }
 
-    /* "What Happens After You Book?" Roadmap */
-    .roadmap-section {
-      background: #0d121a;
-      border: 1px solid var(--border-subtle);
-      border-radius: 14px;
-      padding: 22px 20px;
-      margin-bottom: 28px;
-    }
-
-    .roadmap-header {
-      font-family: var(--font-display);
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .roadmap-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-    }
-
-    .roadmap-step {
-      background: #10161f;
-      border: 1px solid rgba(0, 229, 255, 0.2);
-      border-radius: 10px;
-      padding: 16px;
-      position: relative;
-    }
-
-    .step-num {
-      font-family: var(--font-display);
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: var(--accent-cyan);
-      margin-bottom: 4px;
-    }
-
-    .step-title {
-      font-family: var(--font-display);
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 6px;
-    }
-
-    .step-desc {
-      font-size: 0.84rem;
-      color: var(--text-muted);
-      line-height: 1.45;
-    }
-
-    /* "Which Course Do I Need?" Quick Matcher */
-    .matcher-box {
-      background: rgba(0, 229, 255, 0.05);
-      border: 1px solid rgba(0, 229, 255, 0.3);
-      border-radius: 12px;
-      padding: 18px 20px;
-      margin-bottom: 24px;
-    }
-
-    .matcher-title {
-      font-family: var(--font-display);
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--accent-cyan);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .matcher-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 12px;
-      font-size: 0.88rem;
-    }
-
-    .matcher-item {
-      background: #0d121a;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border-left: 3px solid var(--accent-amber);
-    }
-
-    .matcher-item strong {
-      color: #fff;
-      display: block;
-      margin-bottom: 2px;
-    }
-
-    /* Range Logistics Card */
-    .logistics-card {
-      background: #0c1118;
-      border: 1px solid rgba(0, 229, 255, 0.3);
-      border-radius: 12px;
-      padding: 16px 18px;
-      margin-bottom: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .logistics-item {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      font-size: 0.88rem;
-    }
-
-    .logistics-icon {
-      color: var(--accent-cyan);
-      font-size: 1.1rem;
-      line-height: 1;
-      margin-top: 2px;
-    }
-
-    /* Navigation Tabs */
+    /* -------------------------------------------------------------
+       5-TAB LIFECYCLE NAVIGATION BAR
+       ------------------------------------------------------------- */
     .nav-tabs {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       background: rgba(16, 22, 31, 0.95);
       padding: 6px;
       border-radius: 12px;
       border: 1px solid var(--border-subtle);
       margin-bottom: 24px;
+      overflow-x: auto;
     }
 
     .tab-btn {
       flex: 1;
-      padding: 12px 8px;
+      min-width: 130px;
+      padding: 12px 6px;
       font-family: var(--font-display);
-      font-size: 1rem;
-      font-weight: 600;
+      font-size: 0.95rem;
+      font-weight: 700;
       letter-spacing: 1px;
       text-transform: uppercase;
       color: var(--text-muted);
@@ -615,6 +496,7 @@
       cursor: pointer;
       text-align: center;
       transition: all 0.2s ease;
+      white-space: nowrap;
     }
 
     .tab-btn.active {
@@ -624,7 +506,36 @@
       box-shadow: 0 0 12px var(--accent-cyan-glow);
     }
 
-    /* Tuition HUD Cards */
+    /* Panels */
+    .panel {
+      background: var(--bg-dark-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 24px 18px;
+      margin-bottom: 24px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+    }
+
+    .panel-header {
+      margin-bottom: 20px;
+      border-left: 3px solid var(--accent-cyan);
+      padding-left: 12px;
+    }
+
+    .panel-header h3 {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+
+    .panel-header p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Tuition Grid */
     .tuition-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -693,34 +604,6 @@
     }
 
     /* Forms */
-    .panel {
-      background: var(--bg-dark-card);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-subtle);
-      border-radius: 16px;
-      padding: 24px 18px;
-      margin-bottom: 24px;
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
-    }
-
-    .panel-header {
-      margin-bottom: 20px;
-      border-left: 3px solid var(--accent-cyan);
-      padding-left: 12px;
-    }
-
-    .panel-header h3 {
-      font-family: var(--font-display);
-      font-size: 1.4rem;
-      letter-spacing: 1px;
-      color: #fff;
-    }
-
-    .panel-header p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-
     .form-group {
       margin-bottom: 16px;
     }
@@ -796,50 +679,52 @@
       color: #fca5a5;
     }
 
-    /* FAQ Section Accordions */
-    .faq-item {
+    /* Structured Checklist & Guide Cards */
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .checklist-box {
       background: #0d131b;
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      margin-bottom: 10px;
-      overflow: hidden;
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 12px;
+      padding: 18px 20px;
     }
 
-    .faq-question {
-      width: 100%;
-      background: none;
-      border: none;
-      padding: 16px 18px;
+    .checklist-box h4 {
       font-family: var(--font-display);
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #fff;
-      text-align: left;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .faq-question:hover {
+      font-size: 1.15rem;
       color: var(--accent-cyan);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .faq-answer {
-      display: none;
-      padding: 0 18px 16px;
+    .checklist-box ul {
+      list-style: none;
       font-size: 0.88rem;
       color: var(--text-muted);
       line-height: 1.6;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      padding-top: 12px;
     }
 
-    .faq-item.active .faq-answer {
-      display: block;
+    .checklist-box li {
+      margin-bottom: 6px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
     }
 
-    /* Student Showcase Gallery Grid */
+    .checklist-box li::before {
+      content: '✔';
+      color: var(--accent-amber);
+      font-weight: bold;
+    }
+
+    /* Target Gallery */
     .gallery-grid-targets {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
@@ -944,6 +829,49 @@
       box-shadow: 0 4px 14px var(--accent-amber-glow);
     }
 
+    /* FAQ */
+    .faq-item {
+      background: #0d131b;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .faq-question {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 16px 18px;
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .faq-question:hover {
+      color: var(--accent-cyan);
+    }
+
+    .faq-answer {
+      display: none;
+      padding: 0 18px 16px;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 12px;
+    }
+
+    .faq-item.active .faq-answer {
+      display: block;
+    }
+
     .spark-dock {
       background: #10161f;
       border: 1px solid var(--accent-cyan);
@@ -976,20 +904,17 @@
 </head>
 <body>
 
-  <!-- ==============================================================
-       SCREEN 1: HERO LANDING SCREEN
-       ============================================================== -->
+  <!-- SCREEN 1: HERO LANDING SCREEN -->
   <section id="hero-landing" aria-label="Welcome to Train With FIFS">
     
     <div class="hero-bg-layer">
       <img src="https://lh3.googleusercontent.com/d/1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ" 
            onerror="this.src='https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w1920'" 
-           alt="Future Initiative Firearm Services Tactical Artwork" 
+           alt="Future Initiative Firearm Services Background" 
            class="hero-bg-artwork">
       <div class="hero-bg-vignette"></div>
     </div>
 
-    <!-- Top Live HUD Bar -->
     <div class="hero-top-hud">
       <div class="range-live-ticker">
         <span class="pulse-dot"></span>
@@ -999,7 +924,6 @@
 
     <div class="hero-mid-spacer"></div>
 
-    <!-- Interactive Fast-Tap Mission Dock -->
     <div class="hero-command-dock">
       <div class="hero-dock-header">⚡ Select Your Training Goal</div>
       
@@ -1032,9 +956,7 @@
     </div>
   </section>
 
-  <!-- ==============================================================
-       SCREEN 2: MAIN TRAINING PORTAL
-       ============================================================== -->
+  <!-- SCREEN 2: MAIN TRAINING PORTAL -->
   <div id="app-container" class="container">
     <header class="app-header">
       <div class="brand-identity-group">
@@ -1051,7 +973,7 @@
       </button>
     </header>
 
-    <!-- Refined Public Headline -->
+    <!-- Welcoming Headline -->
     <div class="hero-welcome-banner">
       <h1>Maryland Firearms Training Without the Intimidation</h1>
       <p>
@@ -1059,7 +981,7 @@
       </p>
     </div>
 
-    <!-- Dedicated Instructor Profile Card -->
+    <!-- Instructor Profile Card -->
     <div class="instructor-profile-card">
       <div class="profile-header">
         <div class="instructor-name">Meet Your Instructor: Kai Wade</div>
@@ -1075,87 +997,47 @@
       </p>
     </div>
 
-    <!-- "What Happens After You Book?" Roadmap -->
-    <section class="roadmap-section">
-      <div class="roadmap-header">
-        <span>📋</span> What Happens After You Book?
-      </div>
-      <div class="roadmap-grid">
-        <div class="roadmap-step">
-          <div class="step-num">01</div>
-          <div class="step-title">Select Your Training</div>
-          <p class="step-desc">Choose the course tier that matches your goals and submit your preferred training dates below.</p>
-        </div>
-        <div class="roadmap-step">
-          <div class="step-num">02</div>
-          <div class="step-title">Automated File Setup</div>
-          <p class="step-desc">Your student profile and intake file are instantly established in our secure training ledger.</p>
-        </div>
-        <div class="roadmap-step">
-          <div class="step-num">03</div>
-          <div class="step-title">Range Prep Packet</div>
-          <p class="step-desc">Receive an instant confirmation email with your gear checklist, range location details, and ammunition protocol.</p>
-        </div>
-        <div class="roadmap-step">
-          <div class="step-num">04</div>
-          <div class="step-title">Show Up Confident</div>
-          <p class="step-desc">Meet Instructor Wade at Cindy's Hot Shots for focused, hands-on classroom instruction and live-fire range qualification.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Range Logistics Alert -->
-    <div class="logistics-card">
-      <div class="logistics-item">
-        <span class="logistics-icon">📍</span>
-        <div>
-          <strong>Primary Range Facility:</strong> Cindy's Hot Shots (115 Holsum Way, Glen Burnie, MD).
-          <span style="color: var(--text-muted); display: block; margin-top: 2px;">Range sessions can be adjusted or relocated across Maryland based on client accommodation and scheduling needs.</span>
-        </div>
-      </div>
-      <div class="logistics-item">
-        <span class="logistics-icon">🎯</span>
-        <div>
-          <strong>Ammunition Protocol:</strong> Standardized at <strong>50–100 rounds</strong> of factory ammunition across all course tiers.
-        </div>
-      </div>
-    </div>
-
-    <!-- Navigation Tabs -->
+    <!-- 5-Tab Lifecycle Navigation -->
     <nav class="nav-tabs" role="tablist">
       <button class="tab-btn active" id="tab-booking" role="tab" aria-selected="true" onclick="switchTab('booking')">
-        Courses & Reservation
+        1. Explore & Book
+      </button>
+      <button class="tab-btn" id="tab-prep" role="tab" aria-selected="false" onclick="switchTab('prep')">
+        2. Range Day Prep
+      </button>
+      <button class="tab-btn" id="tab-portal" role="tab" aria-selected="false" onclick="switchTab('portal')">
+        3. After Class / MSP
       </button>
       <button class="tab-btn" id="tab-testimonial" role="tab" aria-selected="false" onclick="switchTab('testimonial')">
-        Student Showcase & Results
+        Student Showcase
       </button>
       <button class="tab-btn" id="tab-faq" role="tab" aria-selected="false" onclick="switchTab('faq')">
-        Training FAQ
+        FAQ
       </button>
     </nav>
 
-    <!-- View 1: Booking & Official Tuition Schedule -->
+    <!-- ==============================================================
+         TAB 1: EXPLORE & BOOK (NEW VISITORS)
+         ============================================================== -->
     <main id="view-booking" role="tabpanel" class="panel">
       
-      <!-- "Which Course Do I Need?" Quick Matcher -->
-      <div class="matcher-box">
-        <div class="matcher-title">🎯 Not sure which training is right for you?</div>
-        <div class="matcher-list">
-          <div class="matcher-item">
-            <strong>Maryland HQL ($100.00)</strong>
-            Required by Maryland State Police to legally purchase, transfer, or rent a handgun.
+      <!-- Quick Matcher -->
+      <div style="background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px;">
+        <div style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 8px; text-transform: uppercase;">
+          🎯 Not sure which training is right for you?
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; font-size: 0.88rem;">
+          <div style="background: #0d121a; padding: 10px 14px; border-radius: 8px; border-left: 3px solid var(--accent-amber);">
+            <strong style="color: #fff; display: block;">Maryland HQL ($100.00)</strong>
+            Required to legally purchase or transfer a handgun in Maryland.
           </div>
-          <div class="matcher-item">
-            <strong>Maryland CCW ($199.99)</strong>
-            Required to legally carry a concealed handgun in public across Maryland (16-Hr Initial or 8-Hr Renewal).
+          <div style="background: #0d121a; padding: 10px 14px; border-radius: 8px; border-left: 3px solid var(--accent-amber);">
+            <strong style="color: #fff; display: block;">Maryland CCW ($199.99)</strong>
+            Required to legally carry a concealed handgun in public throughout Maryland.
           </div>
-          <div class="matcher-item">
-            <strong>CCW & HQL Combo ($249.99)</strong>
-            The most popular choice for residents who need both purchase eligibility and public carry certification.
-          </div>
-          <div class="matcher-item">
-            <strong>Personal 1-on-1 Coaching ($125/hr)</strong>
-            Customized diagnostic marksmanship, holster draw mechanics, and recoil control.
+          <div style="background: #0d121a; padding: 10px 14px; border-radius: 8px; border-left: 3px solid var(--accent-amber);">
+            <strong style="color: #fff; display: block;">CCW & HQL Combo ($249.99)</strong>
+            The complete dual package for residents wanting both purchase & carry licensing.
           </div>
         </div>
       </div>
@@ -1221,6 +1103,7 @@
         </div>
       </div>
 
+      <!-- Reservation Form -->
       <div style="border-top: 1px solid var(--border-subtle); padding-top: 24px;">
         <div class="panel-header">
           <h3>Reserve Your Training Session</h3>
@@ -1285,7 +1168,142 @@
       </div>
     </main>
 
-    <!-- View 2: Student Showcase & Results -->
+    <!-- ==============================================================
+         TAB 2: RANGE DAY PREP (FOR BOOKED STUDENTS)
+         ============================================================== -->
+    <section id="view-prep" role="tabpanel" class="panel hidden">
+      <div class="panel-header">
+        <h3>Range Day Preparation & Packing Checklist</h3>
+        <p>Everything you need to know before stepping onto the range with Instructor Wade.</p>
+      </div>
+
+      <!-- Facility & Transport Alert -->
+      <div style="background: rgba(255, 183, 3, 0.1); border: 1px solid var(--accent-amber); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px;">
+        <h4 style="color: var(--accent-amber); font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 6px;">
+          ⚠ CRITICAL SAFETY & TRANSPORT RULE (MARYLAND LAW)
+        </h4>
+        <p style="font-size: 0.9rem; color: #e2e8f0; line-height: 1.55;">
+          <strong>Zero Live Ammunition in the Classroom:</strong> Absolutely no live ammunition is permitted in classroom instruction areas at any time. All ammunition must remain locked in your vehicle trunk until live-fire qualification.<br>
+          <strong>Firearm Transport:</strong> Handguns brought to class must be completely unloaded, locked in a secure case or trunk, and visually inspected by Instructor Wade prior to range entry.
+        </p>
+      </div>
+
+      <div class="checklist-grid">
+        <!-- Box 1: Facility Logistics -->
+        <div class="checklist-box">
+          <h4>📍 Range Location & Arrival</h4>
+          <ul>
+            <li><strong>Primary Range:</strong> Cindy's Hot Shots</li>
+            <li><strong>Address:</strong> 115 Holsum Way, Glen Burnie, MD 21061</li>
+            <li><strong>Arrival:</strong> Arrive 10–15 minutes early to check in at the front counter.</li>
+            <li><strong>Accommodations:</strong> Sessions can be coordinated or relocated across Maryland based on prior scheduling.</li>
+          </ul>
+        </div>
+
+        <!-- Box 2: Ammunition & Gear -->
+        <div class="checklist-box">
+          <h4>🎯 Ammunition & Equipment</h4>
+          <ul>
+            <li><strong>Ammunition Protocol:</strong> 50–100 rounds of factory target ammo (brass casing recommended; no steel-core).</li>
+            <li><strong>Eye Protection:</strong> ANSI Z87.1 rated wrap-around safety glasses.</li>
+            <li><strong>Ear Protection:</strong> Quality earmuffs (electronic earmuffs recommended to hear commands).</li>
+            <li><strong>Holster (Wear & Carry):</strong> Sturdy belt and rigid OWB/IWB holster (no flimsy nylon or cross-draw).</li>
+          </ul>
+        </div>
+
+        <!-- Box 3: What to Wear -->
+        <div class="checklist-box">
+          <h4>👕 Required Range Attire</h4>
+          <ul>
+            <li><strong>Footwear:</strong> Closed-toe athletic shoes or boots (strictly no sandals or open-toe shoes).</li>
+            <li><strong>Shirt:</strong> Crew-neck shirt or high collar to protect against hot brass casings.</li>
+            <li><strong>Headwear:</strong> Baseball cap strongly recommended to deflect brass.</li>
+            <li><strong>Identification:</strong> Valid government-issued photo ID (driver's license or state ID).</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==============================================================
+         TAB 3: AFTER CLASS & MSP PORTAL (FOR GRADUATES)
+         ============================================================== -->
+    <section id="view-portal" role="tabpanel" class="panel hidden">
+      <div class="panel-header">
+        <h3>Graduate Guide: Maryland State Police Portal</h3>
+        <p>Step-by-step roadmap to complete your state application after passing your course.</p>
+      </div>
+
+      <div class="checklist-grid">
+        <!-- Step 1 -->
+        <div class="checklist-box">
+          <h4>Step 1: MSP MyLicense Portal</h4>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 10px;">
+            Access the official Maryland State Police licensing portal:
+          </p>
+          <ul>
+            <li>Navigate to <strong>emdsp.mdsp.org/emsp/</strong></li>
+            <li>Create or sign in to your official user account.</li>
+            <li>Select <strong>HGP</strong> for Wear & Carry Permit or <strong>77R</strong> for purchase licensing.</li>
+          </ul>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="checklist-box">
+          <h4>Step 2: LiveScan Fingerprints</h4>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 10px;">
+            Schedule fingerprinting with an authorized Maryland LiveScan provider:
+          </p>
+          <ul>
+            <li>Request a <strong>Maryland Handgun Permit (HGP)</strong> fingerprint background check.</li>
+            <li>Locate the <strong>12-digit Tracking Control Number (TCN)</strong> on your receipt.</li>
+            <li>Accurately transcribe the TCN into your MSP portal application.</li>
+          </ul>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="checklist-box">
+          <h4>Step 3: Upload Certificate</h4>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 10px;">
+            Upload your training completion paperwork issued by Instructor Wade:
+          </p>
+          <ul>
+            <li>Upload a digital scan or clear photo of your signed <strong>MSP Training Certificate</strong>.</li>
+            <li>Include your scored qualification target sheet.</li>
+            <li>Ensure your 2x2 passport-style photo has a pure white/off-white background.</li>
+          </ul>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="checklist-box">
+          <h4>Step 4: 90-Day Renewal Window</h4>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 10px;">
+            Stay compliant and prevent permit lapses in the future:
+          </p>
+          <ul>
+            <li>Maryland Wear & Carry permits require renewal every 2–3 years.</li>
+            <li>Submit your renewal application at least <strong>90 days</strong> before your permit expires.</li>
+            <li>Our 8-Hour Renewal Course is available year-round to fulfill state recertification mandates.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Google Review Callout for Graduates -->
+      <div class="cta-review-box" style="margin-top: 20px;">
+        <h4 style="font-family: var(--font-display); font-size: 1.3rem; color: #fff; margin-bottom: 6px;">
+          Completed Your Training With Instructor Wade?
+        </h4>
+        <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 12px;">
+          Your first-hand review helps guide fellow Maryland residents who are looking for a safe, patient, and professional place to learn.
+        </p>
+        <a href="https://share.google/7bGi1FjainNaCUYIl" target="_blank" rel="noopener noreferrer" class="btn-review">
+          Leave a Google Review
+        </a>
+      </div>
+    </section>
+
+    <!-- ==============================================================
+         TAB 4: STUDENT SHOWCASE & TARGET GALLERY
+         ============================================================== -->
     <section id="view-testimonial" role="tabpanel" class="panel hidden">
       <div class="cta-review-box">
         <p style="font-size: 1rem; font-weight: 600;">★★★★★ Official Verified Student Reviews</p>
@@ -1435,7 +1453,9 @@
       </div>
     </section>
 
-    <!-- View 3: Canonical FAQ Knowledge Base -->
+    <!-- ==============================================================
+         TAB 5: CANONICAL FAQ KNOWLEDGE BASE
+         ============================================================== -->
     <section id="view-faq" role="tabpanel" class="panel hidden">
       <div class="panel-header">
         <h3>Frequently Asked Questions</h3>
@@ -1546,17 +1566,17 @@
     }
 
     function switchTab(tab) {
-      const isBooking = tab === 'booking';
-      const isTestimonial = tab === 'testimonial';
-      const isFaq = tab === 'faq';
-
-      document.getElementById('view-booking').classList.toggle('hidden', !isBooking);
-      document.getElementById('view-testimonial').classList.toggle('hidden', !isTestimonial);
-      document.getElementById('view-faq').classList.toggle('hidden', !isFaq);
-
-      document.getElementById('tab-booking').classList.toggle('active', isBooking);
-      document.getElementById('tab-testimonial').classList.toggle('active', isTestimonial);
-      document.getElementById('tab-faq').classList.toggle('active', isFaq);
+      const tabs = ['booking', 'prep', 'portal', 'testimonial', 'faq'];
+      tabs.forEach(t => {
+        const panel = document.getElementById('view-' + t);
+        const btn = document.getElementById('tab-' + t);
+        if (panel) panel.classList.toggle('hidden', t !== tab);
+        if (btn) {
+          btn.classList.toggle('active', t === tab);
+          btn.setAttribute('aria-selected', t === tab);
+        }
+      });
+      window.scrollTo({ top: document.querySelector('.nav-tabs').offsetTop - 20, behavior: 'smooth' });
     }
 
     function selectCourse(courseValue) {
@@ -1690,7 +1710,7 @@
 
     function triggerSparkSkill(cmd) {
       if (cmd === '/onboarding') {
-        alert("Welcome to Train With FIFS! Select any course tier to start your registration.");
+        alert("Welcome to Train With FIFS! Select any course tier above to start your registration.");
       } else if (cmd === '/assistant') {
         const q = prompt("Ask Assistant (Maryland HQL, CCW rules, or range protocol):");
         if (q) {
