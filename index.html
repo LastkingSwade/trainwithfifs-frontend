@@ -105,13 +105,6 @@
     .btn-hero-aux { background: none; border: none; color: var(--text-muted); font-family: var(--font-display); font-size: 0.88rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: color 0.2s; pointer-events: auto !important; }
     .btn-hero-aux:hover { color: var(--accent-cyan); }
 
-    .admin-secret-lock {
-      position: fixed; bottom: 12px; right: 12px; width: 32px; height: 32px; border-radius: 50%;
-      background: rgba(16, 22, 31, 0.6); border: 1px solid rgba(255, 255, 255, 0.12); color: var(--text-muted);
-      display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; opacity: 0.35; transition: all 0.25s; z-index: 100; pointer-events: auto !important;
-    }
-    .admin-secret-lock:hover { opacity: 1; border-color: var(--accent-cyan); color: var(--accent-cyan); transform: scale(1.1); }
-
     /* ================= SCREEN 2: MAIN APPLICATION CONTAINER ================= */
     #app-container { display: none; width: 100%; max-width: 1080px; margin: 0 auto; padding: 20px 16px 80px; animation: fadeIn 0.35s ease forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -139,6 +132,86 @@
     }
     .btn-sign-out { background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-subtle); color: var(--text-muted); font-family: var(--font-display); font-size: 0.85rem; padding: 6px 14px; border-radius: 6px; cursor: pointer; }
     .btn-sign-out:hover { color: #ff6b6b; border-color: #ff6b6b; background: rgba(255, 107, 107, 0.12); }
+
+    /* Instructor Profile Card */
+    .instructor-hero-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 22px;
+      background: #0d121a;
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 229, 255, 0.12);
+    }
+    @media (min-width: 680px) {
+      .instructor-hero-card {
+        flex-direction: row;
+        align-items: center;
+        text-align: left;
+      }
+    }
+    .instructor-avatar-frame {
+      width: 210px;
+      height: 260px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid var(--accent-cyan);
+      box-shadow: 0 0 22px var(--accent-cyan-glow);
+      background: #070b10;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .instructor-avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 10%; /* Focuses directly on Kai Wade, cutting off background lobby and desk */
+      display: block;
+      transition: transform 0.3s ease;
+    }
+    .instructor-avatar-frame:hover .instructor-avatar-img {
+      transform: scale(1.04);
+    }
+    .instructor-hero-info { flex: 1; }
+    .instructor-badge-tag {
+      display: inline-block;
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .instructor-name {
+      font-family: var(--font-display);
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.15;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+    .instructor-creds-sub {
+      font-size: 0.88rem;
+      color: var(--accent-amber);
+      font-weight: 600;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    .instructor-tagline {
+      font-size: 0.92rem;
+      color: #cbd5e1;
+      font-style: italic;
+      line-height: 1.55;
+    }
 
     /* Panels */
     .panel { background: var(--bg-dark-card); backdrop-filter: blur(12px); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 24px 20px; margin-bottom: 24px; box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45); }
@@ -301,11 +374,6 @@
         <button type="button" class="btn-hero-aux" onclick="openAndSwitch('faq')">❓ Common Questions</button>
       </div>
     </div>
-
-    <!-- Discreet Instructor Command Lock in bottom corner -->
-    <button type="button" class="admin-secret-lock" onclick="openAndSwitch('admin')" title="Instructor Command Access" aria-label="Instructor Login">
-      🔒
-    </button>
   </section>
 
   <!-- ================= SCREEN 2: MAIN TRAINING PORTAL & BUSINESS SYSTEM ================= -->
@@ -330,17 +398,17 @@
     <section id="view-portal" role="tabpanel" class="panel hidden">
       <div id="student-login-box">
         <div class="panel-header">
-          <h3>Student Portal Sign-In</h3>
-          <p>Access your personalized training timeline, preparation tasks, and state licensing certificates.</p>
+          <h3>FIFS Unified Portal Sign-In</h3>
+          <p>Students access training dossiers and checklists. Instructor Wade unlocks the Command Terminal.</p>
         </div>
 
         <div style="background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 12px; padding: 22px; max-width: 500px; margin: 0 auto;">
           <div class="form-group">
-            <label for="studentAuthInput">Email Address or Student ID <span class="req">*</span></label>
-            <input type="text" id="studentAuthInput" placeholder="e.g., alex@example.com or FIFS-4081">
+            <label for="studentAuthInput">Email, Student ID, or Instructor Passcode <span class="req">*</span></label>
+            <input type="text" id="studentAuthInput" placeholder="e.g., student@example.com, FIFS-4081, or Passcode" onkeydown="if(event.key==='Enter') lookupStudentAccount()">
           </div>
           <button type="button" class="btn-primary" onclick="lookupStudentAccount()">
-            Enter Student Dashboard →
+            Sign In to Portal →
           </button>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 0.82rem; color: var(--text-muted);">
             <span>Need to book first? <a href="javascript:void(0)" onclick="switchTab('booking')" style="color: var(--accent-cyan);">View Courses</a></span>
@@ -724,7 +792,7 @@
             <select id="groupSize" name="groupSize" required>
               <option value="1 (Private One-on-One)">1 (Private One-on-One)</option>
               <option value="2 (Paired Session)">2 (Paired Session)</option>
-              <option selection value="3-4 (Small Group / Family)">3-4 (Small Group / Family)</option>
+              <option value="3-4 (Small Group / Family)">3-4 (Small Group / Family)</option>
               <option value="5+ (Private Class Cohort)">5+ (Private Class Cohort)</option>
             </select>
           </div>
@@ -755,6 +823,32 @@
       <div class="panel-header">
         <h3>About Lead Instructor Kai Wade</h3>
         <p>Founder & Chief Instructor, Future Initiative Firearm Services</p>
+      </div>
+
+      <!-- Instructor Kai Wade Clean Focus Profile Card -->
+      <div class="instructor-hero-card">
+        <div class="instructor-avatar-frame">
+          <img src="https://lh3.googleusercontent.com/d/1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa" 
+               onerror="this.src='https://drive.google.com/thumbnail?id=1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa&sz=w1000'" 
+               alt="Chief Kai Wade - Lead Instructor, Future Initiative Firearm Services" 
+               class="instructor-avatar-img">
+        </div>
+        <div class="instructor-hero-info">
+          <div class="instructor-badge-tag">Chief Instructor & Founder</div>
+          <h2 class="instructor-name">Chief Kai Wade</h2>
+          <div class="instructor-creds-sub">
+            MSP Certified Qualified Handgun Instructor (§ 5-101) • NRA Certified Pistol Instructor & RSO
+          </div>
+          <p class="instructor-tagline">
+            "We don't just teach you how to shoot. We build your confidence, knowledge, and accountability from the ground up without intimidation."
+          </p>
+          <div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px;">
+            <span class="meta-chip">NRA Certified</span>
+            <span class="meta-chip">MSP QHIC § 5-101</span>
+            <span class="meta-chip">Emergency Bleeding Control</span>
+            <span class="meta-chip">Range Safety Officer</span>
+          </div>
+        </div>
       </div>
 
       <div style="font-size: 0.95rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 24px;">
@@ -965,9 +1059,9 @@
       if (icon) icon.textContent = item.classList.contains('active') ? '−' : '+';
     };
 
-    // 2. Real range student target photos data
+    // 2. Real range student target photos data (Corrected: No student labeled Lead Instructor)
     const TARGET_PHOTOS_DATA = [
-      { id: "1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO", course: "Range Instruction", score: "Lead Instructor", title: "Diagnostic Range Coaching", desc: "Lead Instructor Kai Wade coaching on the lane at Cindy's Hot Shots. Paced 1-on-1 instruction focused on trigger control.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO", course: "Diagnostic Coaching", score: "1-on-1 Session", title: "Lane Diagnostics & Fundamentals", desc: "Student working through 1-on-1 coaching on the firing line at Cindy's Hot Shots. Paced instruction focused on grip friction and smooth trigger press.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
       { id: "10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps", course: "Wear & Carry", score: "100% Qualified", title: "Center-Mass Cadence Cluster", desc: "Clean vital-zone hits on the official BakerTargets qualification course. Calm coaching built confidence from the first round.", loc: "Certified Range: Cindy's Hot Shots" },
       { id: "1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv", course: "Maryland CCW", score: "Center-X Grouping", title: "B-27 Precision Grouping", desc: "Tight shot placement centered right in the 9, 10, and X rings following holster draw and sight picture coaching.", loc: "Cindy's Hot Shots • Practical Qualification" },
       { id: "1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR", course: "Paired Training", score: "Dual Qualifiers", title: "Dual Student Center Clusters", desc: "Both students qualifying side-by-side with tight vital zone clusters during an intensive live-fire training block.", loc: "Cindy's Hot Shots • Paired Session" },
@@ -1064,13 +1158,27 @@
       }
     }
 
+    // 4. Unified Sign-In: Both Students and Instructor authenticate here
     function lookupStudentAccount() {
       const input = document.getElementById('studentAuthInput');
       const statusDiv = document.getElementById('student-login-status');
       const query = input ? input.value.trim() : '';
 
       if (!query) {
-        showStatus(statusDiv, 'Please enter your Email or Student ID.', 'error');
+        showStatus(statusDiv, 'Please enter your Email, Student ID, or Instructor Passcode.', 'error');
+        return;
+      }
+
+      // Streamlined Instructor Authentication via the same field
+      if (query === '1985' || query.toLowerCase() === 'admin' || query.toLowerCase() === 'chief') {
+        showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
+        setTimeout(function() {
+          switchTab('admin');
+          const adminPassField = document.getElementById('adminPasscode');
+          if (adminPassField) adminPassField.value = '1985';
+          verifyAdminAccess();
+          if (statusDiv) statusDiv.style.display = 'none';
+        }, 350);
         return;
       }
 
@@ -1263,7 +1371,7 @@
 
     function verifyAdminAccess() {
       const pinInput = document.getElementById('adminPasscode');
-      const pin = pinInput ? pinInput.value.trim() : '';
+      const pin = pinInput ? pinInput.value.trim() : '1985';
       const statusDiv = document.getElementById('admin-auth-status');
 
       if (!pin) {
