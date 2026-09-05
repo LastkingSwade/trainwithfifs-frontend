@@ -494,10 +494,450 @@
 
     .hidden { display: none !important; }
 
-/* ================= GOOGLE REVIEWS TICKER ON HERO ================= */
+/* ================= MULTI-STATE CCW RECIPROCITY APP ================= */
+    .portal-reciprocity-wrapper {
+      background: linear-gradient(135deg, rgba(16, 22, 31, 0.98) 0%, rgba(7, 11, 16, 0.99) 100%);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      border-radius: 16px;
+      padding: 24px 20px;
+      margin-top: 28px;
+      margin-bottom: 28px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75), 0 0 20px rgba(0, 229, 255, 0.15);
+      position: relative;
+    }
+    .reciprocity-header-box {
+      border-left: 3px solid var(--accent-cyan);
+      padding-left: 14px;
+      margin-bottom: 20px;
+    }
+    .reciprocity-header-box h3 {
+      font-family: var(--font-display);
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .reciprocity-header-box p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    /* Multi-Permit Selection Bar */
+    .reciprocity-permit-selector {
+      background: #0d121a;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .permit-picker-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .permit-picker-group {
+      flex: 1;
+      min-width: 240px;
+    }
+    .permit-picker-group label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .permit-addons-label {
+      font-size: 0.80rem;
+      font-weight: 700;
+      color: var(--accent-amber);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .permit-chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .permit-chip {
+      background: #070b10;
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .permit-chip:hover {
+      border-color: var(--accent-cyan);
+      color: #fff;
+    }
+    .permit-chip.selected {
+      background: rgba(0, 229, 255, 0.15);
+      border-color: var(--accent-cyan);
+      color: #00e5ff;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+    }
+    .permit-chip.selected::before {
+      content: '✔';
+      color: #10b981;
+      font-weight: bold;
+    }
+
+    /* Live Coverage Scorecard Bar */
+    .reciprocity-scorecard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .scorecard-metric-card {
+      background: #070b10;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .scorecard-metric-card.highlight {
+      border-color: var(--accent-cyan);
+      background: linear-gradient(180deg, rgba(0, 229, 255, 0.08) 0%, #070b10 100%);
+    }
+    .scorecard-val {
+      font-family: var(--font-display);
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      line-height: 1.1;
+    }
+    .scorecard-val.green { color: #10b981; }
+    .scorecard-val.blue { color: #38bdf8; }
+    .scorecard-val.red { color: #ef4444; }
+    .scorecard-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+
+    /* Color Legend */
+    .reciprocity-legend-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: #070b10;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin-bottom: 20px;
+      font-size: 0.80rem;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+    .legend-dot.dot-constitutional {
+      background: #38bdf8;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+    }
+    .legend-dot.dot-honored {
+      background: #10b981;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    }
+    .legend-dot.dot-special {
+      background: #ffb703;
+      box-shadow: 0 0 8px rgba(255, 183, 3, 0.6);
+    }
+    .legend-dot.dot-not-honored {
+      background: #334155;
+      border: 1px solid #64748b;
+    }
+
+    /* Search & Filter Controls */
+    .reciprocity-filter-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .search-state-input {
+      background: #070b10;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: #fff;
+      padding: 8px 14px;
+      font-size: 0.88rem;
+      min-width: 220px;
+    }
+    .search-state-input:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+    }
+    .filter-tabs-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .filter-tab-pill {
+      background: #0d121a;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .filter-tab-pill.active {
+      background: rgba(0, 229, 255, 0.15);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* State Matrix Interactive Grid */
+    .states-matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .state-tile-card {
+      background: #070b10;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.22s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .state-tile-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
+    }
+    .state-tile-card.status-constitutional {
+      border-color: rgba(56, 189, 248, 0.6);
+      background: linear-gradient(180deg, rgba(56, 189, 248, 0.1) 0%, #070b10 100%);
+    }
+    .state-tile-card.status-constitutional:hover {
+      border-color: #38bdf8;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+    }
+    .state-tile-card.status-honored {
+      border-color: rgba(16, 185, 129, 0.6);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.1) 0%, #070b10 100%);
+    }
+    .state-tile-card.status-honored:hover {
+      border-color: #10b981;
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.35);
+    }
+    .state-tile-card.status-not-honored {
+      border-color: rgba(239, 68, 68, 0.3);
+      opacity: 0.65;
+    }
+    .state-tile-card.status-not-honored:hover {
+      border-color: #ef4444;
+      opacity: 1;
+    }
+    .state-tile-code {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+    }
+    .state-tile-name {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+    .state-tile-tag {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-top: 4px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .status-constitutional .state-tile-tag {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+    }
+    .status-honored .state-tile-tag {
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.15);
+    }
+    .status-not-honored .state-tile-tag {
+      color: #94a3b8;
+      background: rgba(100, 116, 139, 0.15);
+    }
+
+    /* Strategic Advisory Box */
+    .reciprocity-advisor-card {
+      background: linear-gradient(135deg, rgba(255, 183, 3, 0.1) 0%, rgba(13, 19, 27, 0.95) 100%);
+      border: 1px solid var(--accent-amber);
+      box-shadow: 0 0 16px var(--accent-amber-glow);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-top: 20px;
+    }
+    .advisor-head {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .advisor-desc {
+      font-size: 0.86rem;
+      color: #e2e8f0;
+      line-height: 1.55;
+    }
+
+    /* State Legal Dossier Modal */
+    .state-dossier-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 7, 11, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .state-dossier-modal-overlay.active {
+      display: flex;
+    }
+    .state-dossier-card {
+      background: #0d131b;
+      border: 1px solid var(--accent-cyan);
+      border-radius: 16px;
+      max-width: 580px;
+      width: 100%;
+      max-height: 88vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.9), 0 0 25px var(--accent-cyan-glow);
+      position: relative;
+    }
+    .dossier-close-btn {
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .dossier-close-btn:hover {
+      color: #fff;
+      border-color: var(--accent-cyan);
+    }
+    .dossier-header-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .dossier-state-code {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      line-height: 1;
+    }
+    .dossier-state-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .dossier-status-pill {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+    .dossier-section {
+      background: #070b10;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .dossier-prop-title {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .dossier-prop-val {
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      line-height: 1.45;
+    }
+
+    /* ================= GOOGLE REVIEWS TICKER ON HERO ================= */
     .hero-logo-spacer {
       width: 100%;
-      height: clamp(170px, 25vh, 270px);
+      height: clamp(260px, 39vh, 430px);
       flex-shrink: 0;
       pointer-events: none !important;
     }
@@ -998,6 +1438,9 @@
           </button>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 0.82rem; color: var(--text-muted);">
             <span>Need to book first? <a href="javascript:void(0)" onclick="switchTab('booking')" style="color: var(--accent-cyan);">View Courses</a></span>
+            <button type="button" onclick="loadDemoStudent(); setTimeout(() => document.getElementById('portal-reciprocity-module').scrollIntoView({behavior:'smooth'}), 400);" style="background: none; border: none; color: var(--accent-cyan); cursor: pointer; text-decoration: underline; font-weight: 700;">
+              🗺️ Open CCW Reciprocity Map
+            </button>
             <button type="button" onclick="loadDemoStudent()" style="background: none; border: none; color: var(--accent-amber); cursor: pointer; text-decoration: underline;">
               Preview Demo Dashboard
             </button>
@@ -1116,7 +1559,140 @@
     </section>
 
 
-    <!-- VIEW 2: INSTRUCTOR ADMIN COMMAND CENTER -->
+    
+        <!-- ================= MULTI-STATE CCW RECIPROCITY APP ================= -->
+        <section class="portal-reciprocity-wrapper" id="portal-reciprocity-module" aria-label="CCW Reciprocity App">
+          <div class="reciprocity-header-box">
+            <h3>🗺️ Multi-State CCW Reciprocity Navigator</h3>
+            <p>Interactive 50-state recognition map powered by Lead Instructor Kai Wade. Input your resident state and non-resident add-ons to see exactly where you can legally carry across the country.</p>
+          </div>
+
+          <!-- Permit Selection & Multi-Addon Bar -->
+          <div class="reciprocity-permit-selector">
+            <div class="permit-picker-row">
+              <div class="permit-picker-group">
+                <label for="resPermitSelect">Primary Resident Permit:</label>
+                <select id="resPermitSelect" onchange="updateReciprocityEngine()" style="background: #070b10; border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 8px 12px; color: #fff; font-family: var(--font-body); width: 100%;">
+                  <option value="MD" selected>Maryland (Resident Permit)</option>
+                  <option value="VA">Virginia (Resident Permit)</option>
+                  <option value="PA">Pennsylvania (Resident Permit)</option>
+                  <option value="FL">Florida (Resident Permit)</option>
+                  <option value="UT">Utah (Resident Permit)</option>
+                  <option value="TX">Texas (Resident Permit)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <span class="permit-addons-label">Add Non-Resident Multiplier Permits:</span>
+              <div class="permit-chip-grid">
+                <div class="permit-chip" id="chip-UT" onclick="toggleNonResPermit('UT')">Utah Non-Resident (+DE, +NV, +MN)</div>
+                <div class="permit-chip" id="chip-FL" onclick="toggleNonResPermit('FL')">Florida Non-Resident (+DE, +NM)</div>
+                <div class="permit-chip" id="chip-AZ" onclick="toggleNonResPermit('AZ')">Arizona Non-Resident</div>
+                <div class="permit-chip" id="chip-VA" onclick="toggleNonResPermit('VA')">Virginia Non-Resident</div>
+                <div class="permit-chip" id="chip-PA" onclick="toggleNonResPermit('PA')">Pennsylvania Non-Resident</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Scorecard -->
+          <div class="reciprocity-scorecard">
+            <div class="scorecard-metric-card highlight">
+              <div class="scorecard-val green" id="scorecardTotalStates">34 / 51</div>
+              <div class="scorecard-label">States Where You Can Carry</div>
+            </div>
+            <div class="scorecard-metric-card">
+              <div class="scorecard-val blue" id="scorecardConstitutional">29</div>
+              <div class="scorecard-label">Constitutional Carry</div>
+            </div>
+            <div class="scorecard-metric-card">
+              <div class="scorecard-val green" id="scorecardReciprocal">5</div>
+              <div class="scorecard-label">Honored Via Permit</div>
+            </div>
+            <div class="scorecard-metric-card">
+              <div class="scorecard-val red" id="scorecardNotHonored">17</div>
+              <div class="scorecard-label">Not Honored / Restricted</div>
+            </div>
+          </div>
+
+          <!-- Category Legend -->
+          <div class="reciprocity-legend-bar">
+            <div class="legend-item"><span class="legend-dot dot-constitutional"></span><span>Constitutional Carry (Permitless 21+)</span></div>
+            <div class="legend-item"><span class="legend-dot dot-honored"></span><span>Permit Honored (Reciprocity)</span></div>
+            <div class="legend-item"><span class="legend-dot dot-special"></span><span>Special Conditions / Resident Only</span></div>
+            <div class="legend-item"><span class="legend-dot dot-not-honored"></span><span>Permit Not Honored</span></div>
+          </div>
+
+          <!-- Search & Filters -->
+          <div class="reciprocity-filter-controls">
+            <input type="text" id="stateSearchInput" class="search-state-input" placeholder="Search state (e.g., Virginia, Delaware)..." oninput="filterReciprocityStates()">
+            <div class="filter-tabs-row">
+              <button type="button" class="filter-tab-pill active" onclick="setReciprocityFilter('all', this)">All (51)</button>
+              <button type="button" class="filter-tab-pill" onclick="setReciprocityFilter('carry_legal', this)">Carry Legal</button>
+              <button type="button" class="filter-tab-pill" onclick="setReciprocityFilter('constitutional', this)">Constitutional</button>
+              <button type="button" class="filter-tab-pill" onclick="setReciprocityFilter('not_honored', this)">Not Honored</button>
+            </div>
+          </div>
+
+          <!-- Interactive State Grid Matrix -->
+          <div class="states-matrix-grid" id="statesMatrixGrid">
+            <!-- 51 State tiles mounted dynamically -->
+          </div>
+
+          <!-- Instructor Multi-State Multiplier Strategy Card -->
+          <div class="reciprocity-advisor-card">
+            <div class="advisor-head">
+              <span>💡</span>
+              <span>Coach Kai Wade's Multi-State Permit Strategy</span>
+            </div>
+            <p class="advisor-desc">
+              Maryland's Wear & Carry permit provides solid coverage, but travelers often hit a legal wall when crossing into <strong>Delaware</strong> or heading into states like <strong>Nevada</strong>. By pairing your Maryland certification with an out-of-state <strong>Utah or Florida Non-Resident</strong> permit, you unlock key transit corridors, pushing your total carry coverage to nearly <strong>40 states</strong>. Future Initiative offers streamlined Utah certification add-on packets—ask Coach Wade during your class session!
+            </p>
+          </div>
+        </section>
+
+        <!-- State Dossier Details Modal -->
+        <div class="state-dossier-modal-overlay" id="stateDossierModal" onclick="if(event.target===this) closeStateDossier()">
+          <div class="state-dossier-card" role="dialog" aria-modal="true" aria-labelledby="dossierStateTitle">
+            <button type="button" class="dossier-close-btn" onclick="closeStateDossier()" aria-label="Close dossier">✕</button>
+            <div class="dossier-header-row">
+              <div class="dossier-state-code" id="dossierStateCode">MD</div>
+              <div>
+                <div class="dossier-state-title" id="dossierStateTitle">Maryland</div>
+                <div class="dossier-status-pill" id="dossierStatusPill">Permit Required</div>
+              </div>
+            </div>
+
+            <div class="dossier-section">
+              <div class="dossier-prop-title">Permit Recognition & Authority:</div>
+              <div class="dossier-prop-val" id="dossierRecognitionVal">Details here...</div>
+            </div>
+
+            <div class="dossier-section">
+              <div class="dossier-prop-title">Duty to Inform Law Enforcement:</div>
+              <div class="dossier-prop-val" id="dossierDutyVal">Details here...</div>
+            </div>
+
+            <div class="dossier-section">
+              <div class="dossier-prop-title">Magazine Capacity Restrictions:</div>
+              <div class="dossier-prop-val" id="dossierMagVal">Details here...</div>
+            </div>
+
+            <div class="dossier-section">
+              <div class="dossier-prop-title">Vehicle Carry Regulations:</div>
+              <div class="dossier-prop-val" id="dossierVehicleVal">Details here...</div>
+            </div>
+
+            <div class="dossier-section">
+              <div class="dossier-prop-title">General Location & Compliance Notes:</div>
+              <div class="dossier-prop-val" id="dossierNotesVal">Details here...</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- VIEW 2: INSTRUCTOR ADMIN COMMAND CENTER -->
     <section id="view-admin" role="tabpanel" class="panel hidden">
       <div id="admin-auth-box">
         <div class="panel-header">
@@ -1707,6 +2283,7 @@
 
     document.addEventListener('DOMContentLoaded', function() {
       mountGoogleReviewsTicker();
+      updateReciprocityEngine();
       bindHeroButtons();
       updateLivePulseTicker();
       setInterval(updateLivePulseTicker, 60000);
@@ -2445,7 +3022,254 @@
       }
     });
 
-  </script>
+  
+    // ================= 50-STATE + DC RECIPROCITY ENGINE DATASET =================
+    const RECIPROCITY_STATES_DATA = {
+      AL: { name: "Alabama", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested by officer", mag: "No magazine capacity limit", vehicle: "Permitless concealed carry in vehicle legal for 21+", notes: "Constitutional Carry state since 2023." },
+      AK: { name: "Alaska", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No magazine capacity limit", vehicle: "Permitless concealed carry in vehicle legal", notes: "First state to adopt modern Constitutional Carry (2003)." },
+      AZ: { name: "Arizona", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested by officer", mag: "No magazine capacity limit", vehicle: "Permitless concealed carry in vehicle legal", notes: "Constitutional carry legal for all lawful 21+ adults." },
+      AR: { name: "Arkansas", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No magazine capacity limit", vehicle: "Permitless concealed carry in vehicle legal", notes: "Permitless carry legal without duty to retreat." },
+      CA: { name: "California", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested", mag: "10-round maximum limit", vehicle: "Unloaded and locked in trunk or locked container only", notes: "Does not honor any out-of-state permits." },
+      CO: { name: "Colorado", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested", mag: "15-round limit", vehicle: "Loaded handgun legal in private vehicle for defense", notes: "Honors resident permits only from reciprocal states (MD not reciprocal)." },
+      CT: { name: "Connecticut", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested", mag: "10-round limit", vehicle: "Must have CT permit for loaded carry; otherwise unloaded & cased", notes: "No out-of-state reciprocity." },
+      DE: { name: "Delaware", constCarry: false, honorsMD: false, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "17-round limit (except 22 LR)", vehicle: "Open carry legal in vehicle; concealed requires recognized permit (Utah/FL)", notes: "Does NOT honor MD, but DOES honor Utah and Florida Non-Resident permits!" },
+      DC: { name: "District of Columbia", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Immediate upon contact", mag: "10-round limit", vehicle: "Strictly unloaded, ammunition separate, locked in trunk", notes: "Does not recognize any other state permits. Requires DC-specific non-resident permit." },
+      FL: { name: "Florida", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested by officer", mag: "No magazine capacity limit", vehicle: "Permitless concealed carry legal in vehicle for 21+", notes: "Permitless concealed carry active for lawful residents and non-residents." },
+      GA: { name: "Georgia", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No magazine capacity limit", vehicle: "Permitless carry legal in vehicle for 21+", notes: "Permitless carry enacted in 2022." },
+      HI: { name: "Hawaii", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested", mag: "10-round limit", vehicle: "Unloaded, enclosed container directly to range", notes: "Zero out-of-state reciprocity." },
+      ID: { name: "Idaho", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless concealed carry in vehicle legal", notes: "Constitutional Carry state." },
+      IL: { name: "Illinois", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested", mag: "15 rounds (handguns)", vehicle: "Non-residents with permits from their home state may carry loaded in their vehicle ONLY", notes: "Vehicle carry safe harbor for out-of-state permitted carriers." },
+      IN: { name: "Indiana", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry legal in vehicle", notes: "Permitless carry active since 2022." },
+      IA: { name: "Iowa", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry legal in vehicle", notes: "Constitutional Carry state." },
+      KS: { name: "Kansas", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry legal in vehicle", notes: "Constitutional Carry state." },
+      KY: { name: "Kentucky", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry legal in vehicle", notes: "Constitutional Carry state." },
+      LA: { name: "Louisiana", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No limit", vehicle: "Permitless carry in vehicle legal (21+)", notes: "Constitutional Carry took effect July 4, 2024." },
+      ME: { name: "Maine", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact (if permitless)", mag: "No limit", vehicle: "Permitless carry legal in vehicle", notes: "Permitless carry active." },
+      MD: { name: "Maryland", constCarry: false, honorsMD: true, honorsUT: false, honorsFL: false, duty: "Only when requested by officer", mag: "10-round purchase limit (carry is unrestricted)", vehicle: "Wear & Carry permit required for loaded vehicle carry; otherwise cased & locked", notes: "Your home state! Requires Maryland Wear & Carry permit." },
+      MA: { name: "Massachusetts", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested", mag: "10-round limit", vehicle: "MA license required; otherwise cased and locked", notes: "No out-of-state reciprocity." },
+      MI: { name: "Michigan", constCarry: false, honorsMD: true, honorsUT: false, honorsFL: false, duty: "Immediate upon contact", mag: "No limit", vehicle: "Honors MD RESIDENT permits only (not non-resident)", notes: "Michigan recognizes resident permits from all states." },
+      MN: { name: "Minnesota", constCarry: false, honorsMD: false, honorsUT: true, honorsFL: false, duty: "Only when requested", mag: "No limit", vehicle: "Permit required for loaded carry in vehicle", notes: "Does not honor MD, but DOES honor Utah Non-Resident permit!" },
+      MS: { name: "Mississippi", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry state." },
+      MO: { name: "Missouri", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry state." },
+      MT: { name: "Montana", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry state." },
+      NE: { name: "Nebraska", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No limit", vehicle: "Permitless carry in vehicle legal (21+)", notes: "Constitutional Carry active since September 2023." },
+      NV: { name: "Nevada", constCarry: false, honorsMD: false, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Loaded handgun legal in vehicle without permit", notes: "Does not honor MD, but honors Utah and Florida Non-Resident permits!" },
+      NH: { name: "New Hampshire", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "No statutory duty", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry state." },
+      NJ: { name: "New Jersey", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Immediate upon contact", mag: "10-round limit", vehicle: "Strictly locked container, separate ammo without NJ permit", notes: "No out-of-state reciprocity." },
+      NM: { name: "New Mexico", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Concealed loaded handgun legal in private vehicle", notes: "Does not honor MD/UT, but honors Florida permit." },
+      NY: { name: "New York", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested", mag: "10-round limit", vehicle: "NY permit required; strictly unloaded and locked in trunk otherwise", notes: "Zero out-of-state reciprocity." },
+      NC: { name: "North Carolina", constCarry: false, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No limit", vehicle: "Honors all out-of-state permits (including MD)", notes: "Full statutory recognition of Maryland permits." },
+      ND: { name: "North Dakota", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No limit", vehicle: "Permitless carry in vehicle legal (21+)", notes: "Permitless carry legal for all US citizens 21+." },
+      OH: { name: "Ohio", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Prompt disclosure when requested by officer", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry active since 2022." },
+      OK: { name: "Oklahoma", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry active." },
+      OR: { name: "Oregon", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested", mag: "No active state limit currently enforced", vehicle: "OR permit required for concealed carry in vehicle", notes: "No out-of-state reciprocity." },
+      PA: { name: "Pennsylvania", constCarry: false, honorsMD: true, honorsUT: true, honorsFL: false, duty: "Only when requested", mag: "No limit", vehicle: "PA permit or recognized reciprocal permit required for loaded vehicle carry", notes: "Statutory reciprocity with Maryland for resident permit holders 21+." },
+      RI: { name: "Rhode Island", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested", mag: "10-round limit", vehicle: "RI permit required; otherwise unloaded in locked case", notes: "No out-of-state reciprocity." },
+      SC: { name: "South Carolina", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry enacted March 2024." },
+      SD: { name: "South Dakota", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry active." },
+      TN: { name: "Tennessee", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal (21+)", notes: "Constitutional Carry active." },
+      TX: { name: "Texas", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No limit", vehicle: "Permitless concealed carry in vehicle legal", notes: "Permitless carry active since 2021." },
+      UT: { name: "Utah", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless concealed carry in vehicle legal", notes: "Constitutional Carry active." },
+      VT: { name: "Vermont", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "No statutory duty", mag: "15 rounds (handguns)", vehicle: "Permitless carry legal in vehicle", notes: "Original constitutional carry state." },
+      VA: { name: "Virginia", constCarry: false, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Honors MD permit; permitless in secured compartment/glovebox", notes: "Full statutory recognition of Maryland permits." },
+      WA: { name: "Washington", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested", mag: "10-round purchase/distribution limit", vehicle: "WA permit required for loaded vehicle carry", notes: "No out-of-state reciprocity for MD/UT." },
+      WV: { name: "West Virginia", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal (21+)", notes: "Constitutional Carry active." },
+      WI: { name: "Wisconsin", constCarry: false, honorsMD: true, honorsUT: true, honorsFL: false, duty: "Only when requested", mag: "No limit", vehicle: "Honors MD & Utah permits; loaded carry legal with permit", notes: "Full statutory recognition of MD and Utah permits." },
+      WY: { name: "Wyoming", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal (21+)", notes: "Constitutional Carry active for all lawful US citizens." }
+    };
+
+    let activeNonResPermits = [];
+    let currentReciprocityFilter = 'all';
+
+    function toggleNonResPermit(stateCode) {
+      const chip = document.getElementById('chip-' + stateCode);
+      const index = activeNonResPermits.indexOf(stateCode);
+      if (index === -1) {
+        activeNonResPermits.push(stateCode);
+        if (chip) chip.classList.add('selected');
+      } else {
+        activeNonResPermits.splice(index, 1);
+        if (chip) chip.classList.remove('selected');
+      }
+      updateReciprocityEngine();
+    }
+
+    function evaluateStateCarry(stateCode, residentState, nonResList) {
+      const state = RECIPROCITY_STATES_DATA[stateCode];
+      if (!state) return { status: 'not_honored', label: 'Not Honored', unlockedBy: 'None' };
+
+      // 1. Constitutional Carry: legal without permit
+      if (state.constCarry) {
+        return {
+          status: 'constitutional',
+          label: 'Constitutional Carry',
+          unlockedBy: 'Permitless Carry Law (21+)'
+        };
+      }
+
+      // 2. Check Resident permit recognition
+      if (residentState === 'MD' && state.honorsMD) {
+        return {
+          status: 'honored',
+          label: 'Permit Honored',
+          unlockedBy: 'Maryland Resident Permit'
+        };
+      }
+
+      // 3. Check Non-Resident addons
+      if (nonResList.includes('UT') && state.honorsUT) {
+        return {
+          status: 'honored',
+          label: 'Permit Honored',
+          unlockedBy: 'Utah Non-Resident Permit'
+        };
+      }
+      if (nonResList.includes('FL') && state.honorsFL) {
+        return {
+          status: 'honored',
+          label: 'Permit Honored',
+          unlockedBy: 'Florida Non-Resident Permit'
+        };
+      }
+
+      return {
+        status: 'not_honored',
+        label: 'Not Honored',
+        unlockedBy: 'Requires In-State / Specific License'
+      };
+    }
+
+    function updateReciprocityEngine() {
+      const resSelect = document.getElementById('resPermitSelect');
+      const residentState = resSelect ? resSelect.value : 'MD';
+      const container = document.getElementById('statesMatrixGrid');
+
+      let totalLegal = 0;
+      let constitutionalCount = 0;
+      let honoredCount = 0;
+      let notHonoredCount = 0;
+
+      const stateEntries = Object.keys(RECIPROCITY_STATES_DATA).map(code => {
+        const state = RECIPROCITY_STATES_DATA[code];
+        const evalRes = evaluateStateCarry(code, residentState, activeNonResPermits);
+
+        if (evalRes.status === 'constitutional') {
+          totalLegal++;
+          constitutionalCount++;
+        } else if (evalRes.status === 'honored') {
+          totalLegal++;
+          honoredCount++;
+        } else {
+          notHonoredCount++;
+        }
+
+        return { code, ...state, eval: evalRes };
+      });
+
+      // Update Scorecard
+      const totalStatesElem = document.getElementById('scorecardTotalStates');
+      const constElem = document.getElementById('scorecardConstitutional');
+      const honoredElem = document.getElementById('scorecardReciprocal');
+      const notHonoredElem = document.getElementById('scorecardNotHonored');
+
+      if (totalStatesElem) totalStatesElem.textContent = totalLegal + ' / 51';
+      if (constElem) constElem.textContent = constitutionalCount;
+      if (honoredElem) honoredElem.textContent = honoredCount;
+      if (notHonoredElem) notHonoredElem.textContent = notHonoredCount;
+
+      renderReciprocityGrid(stateEntries);
+    }
+
+    function renderReciprocityGrid(stateEntries) {
+      const container = document.getElementById('statesMatrixGrid');
+      if (!container) return;
+
+      const searchInput = document.getElementById('stateSearchInput');
+      const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+      const filtered = stateEntries.filter(s => {
+        const matchesQuery = !query || s.code.toLowerCase().includes(query) || s.name.toLowerCase().includes(query);
+        if (!matchesQuery) return false;
+
+        if (currentReciprocityFilter === 'all') return true;
+        if (currentReciprocityFilter === 'carry_legal') return s.eval.status === 'constitutional' || s.eval.status === 'honored';
+        if (currentReciprocityFilter === 'constitutional') return s.eval.status === 'constitutional';
+        if (currentReciprocityFilter === 'not_honored') return s.eval.status === 'not_honored';
+        return true;
+      });
+
+      container.innerHTML = filtered.map(s => `
+        <div class="state-tile-card status-${s.eval.status}" onclick="openStateDossier('${s.code}')" title="Click for ${s.name} legal rules">
+          <div class="state-tile-code">${s.code}</div>
+          <div class="state-tile-name">${s.name}</div>
+          <div class="state-tile-tag">${s.eval.label}</div>
+        </div>
+      `).join('');
+    }
+
+    function filterReciprocityStates() {
+      updateReciprocityEngine();
+    }
+
+    function setReciprocityFilter(filterType, btn) {
+      currentReciprocityFilter = filterType;
+      const pills = document.querySelectorAll('.filter-tab-pill');
+      pills.forEach(p => p.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      updateReciprocityEngine();
+    }
+
+    function openStateDossier(stateCode) {
+      const state = RECIPROCITY_STATES_DATA[stateCode];
+      const resSelect = document.getElementById('resPermitSelect');
+      const residentState = resSelect ? resSelect.value : 'MD';
+      const evalRes = evaluateStateCarry(stateCode, residentState, activeNonResPermits);
+
+      const modal = document.getElementById('stateDossierModal');
+      const codeElem = document.getElementById('dossierStateCode');
+      const titleElem = document.getElementById('dossierStateTitle');
+      const pillElem = document.getElementById('dossierStatusPill');
+      const recVal = document.getElementById('dossierRecognitionVal');
+      const dutyVal = document.getElementById('dossierDutyVal');
+      const magVal = document.getElementById('dossierMagVal');
+      const vehicleVal = document.getElementById('dossierVehicleVal');
+      const notesVal = document.getElementById('dossierNotesVal');
+
+      if (codeElem) codeElem.textContent = stateCode;
+      if (titleElem) titleElem.textContent = state.name;
+
+      if (pillElem) {
+        pillElem.textContent = evalRes.label;
+        if (evalRes.status === 'constitutional') {
+          pillElem.style.background = 'rgba(56, 189, 248, 0.2)';
+          pillElem.style.color = '#38bdf8';
+          pillElem.style.border = '1px solid #38bdf8';
+        } else if (evalRes.status === 'honored') {
+          pillElem.style.background = 'rgba(16, 185, 129, 0.2)';
+          pillElem.style.color = '#10b981';
+          pillElem.style.border = '1px solid #10b981';
+        } else {
+          pillElem.style.background = 'rgba(239, 68, 68, 0.2)';
+          pillElem.style.color = '#ef4444';
+          pillElem.style.border = '1px solid #ef4444';
+        }
+      }
+
+      if (recVal) recVal.textContent = evalRes.unlockedBy + (evalRes.status === 'constitutional' ? ' • Anyone legally able to possess a firearm can carry without a state permit.' : '');
+      if (dutyVal) dutyVal.textContent = state.duty;
+      if (magVal) magVal.textContent = state.mag;
+      if (vehicleVal) vehicleVal.textContent = state.vehicle;
+      if (notesVal) notesVal.textContent = state.notes;
+
+      if (modal) modal.classList.add('active');
+    }
+
+    function closeStateDossier() {
+      const modal = document.getElementById('stateDossierModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    </script>
   <!-- Goal Synopsis Interactive Pop-Up Modal -->
   <div class="goal-modal-overlay" id="goalSynopsisModal" onclick="if(event.target===this) closeGoalSynopsis()">
     <div class="goal-modal-box" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
