@@ -112,7 +112,7 @@
     .range-live-ticker {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       background: rgba(7, 11, 16, 0.90);
       border: 1px solid rgba(0, 229, 255, 0.40);
       padding: 7px 16px;
@@ -126,18 +126,35 @@
       box-shadow: 0 0 18px rgba(0, 229, 255, 0.25);
     }
 
+    /* Dynamic Pulse Indicator */
     .pulse-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 10px #10b981;
-      animation: livePulse 1.8s infinite ease-in-out;
+      display: inline-block;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
     }
 
-    @keyframes livePulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.3); opacity: 0.4; }
+    .pulse-dot.dot-green {
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: livePulseGreen 1.8s infinite ease-in-out;
+    }
+
+    .pulse-dot.dot-red {
+      background: #ef4444;
+      box-shadow: 0 0 10px #ef4444;
+      animation: livePulseRed 1.8s infinite ease-in-out;
+    }
+
+    @keyframes livePulseGreen {
+      0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 10px #10b981; }
+      50% { transform: scale(1.35); opacity: 0.4; box-shadow: 0 0 18px #10b981; }
+    }
+
+    @keyframes livePulseRed {
+      0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 10px #ef4444; }
+      50% { transform: scale(1.35); opacity: 0.4; box-shadow: 0 0 18px #ef4444; }
     }
 
     .hero-mid-spacer {
@@ -974,10 +991,10 @@
       <div class="hero-bg-vignette"></div>
     </div>
 
-    <!-- Official Motto Ticker -->
+    <!-- Official Motto Ticker with Dynamic Eastern Time Pulse Indicator -->
     <div class="hero-top-hud">
       <div class="range-live-ticker">
-        <span class="pulse-dot"></span>
+        <span class="pulse-dot dot-green" id="live-status-dot" title="Checking status..."></span>
         <span>THE FUTURE IS NOW, TAKE THE INITIATIVE!</span>
       </div>
     </div>
@@ -1631,6 +1648,49 @@
 
   <script>
     const BACKEND_API_URL = "https://script.google.com/macros/s/AKfycbz9X2h0o5_pmNafKXRY8hSeGiGpHcrp_JMWIe8wg9FmSir0W3mrZAnkSnw-Zs9xH9BY/exec";
+
+    // Dynamic Eastern Time Status Indicator (9 AM – 5 PM Green // 5 PM – 9 AM Red)
+    function updateLiveStatusDot() {
+      const dot = document.getElementById('live-status-dot');
+      if (!dot) return;
+
+      try {
+        const now = new Date();
+        const nyTimeParts = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'America/New_York',
+          hour12: false,
+          hour: 'numeric',
+          minute: 'numeric'
+        }).formatToParts(now);
+
+        let hour = 0;
+        let minute = 0;
+        nyTimeParts.forEach(p => {
+          if (p.type === 'hour') hour = parseInt(p.value, 10);
+          if (p.type === 'minute') minute = parseInt(p.value, 10);
+        });
+
+        const totalMinutes = hour * 60 + minute;
+        // 9:00 AM (540 min) to 5:00 PM (1020 min)
+        const isLiveHours = totalMinutes >= 540 && totalMinutes < 1020;
+
+        if (isLiveHours) {
+          dot.className = "pulse-dot dot-green";
+          dot.setAttribute("title", "Live Range & Operations Active (9 AM – 5 PM ET)");
+        } else {
+          dot.className = "pulse-dot dot-red";
+          dot.setAttribute("title", "Standby & Off-Range Status (5 PM – 9 AM ET)");
+        }
+      } catch (err) {
+        dot.className = "pulse-dot dot-green";
+      }
+    }
+
+    // Run on load and refresh every 60 seconds
+    document.addEventListener("DOMContentLoaded", function() {
+      updateLiveStatusDot();
+      setInterval(updateLiveStatusDot, 60000);
+    });
 
     function openAndSwitch(tabId) {
       document.getElementById('hero-landing').style.display = 'none';
