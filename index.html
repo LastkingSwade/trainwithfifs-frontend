@@ -95,15 +95,22 @@
     .hero-twin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .btn-hero-twin {
       background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 10px; padding: 12px 10px; color: #fff; cursor: pointer;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; transition: all 0.2s ease; min-height: 64px; text-align: center; pointer-events: auto !important;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; transition: all 0.2s ease; min-height: 64px; text-align: center;
     }
     .btn-hero-twin:hover { background: rgba(0, 229, 255, 0.15); border-color: var(--accent-cyan); box-shadow: 0 0 14px var(--accent-cyan-glow); transform: translateY(-2px); }
     .twin-title { font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #fff; }
     .twin-sub { font-size: 0.72rem; color: var(--accent-cyan); text-transform: uppercase; font-weight: 600; }
 
     .hero-bottom-strip { display: flex; justify-content: center; align-items: center; gap: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 8px; }
-    .btn-hero-aux { background: none; border: none; color: var(--text-muted); font-family: var(--font-display); font-size: 0.88rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: color 0.2s; pointer-events: auto !important; }
+    .btn-hero-aux { background: none; border: none; color: var(--text-muted); font-family: var(--font-display); font-size: 0.88rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: color 0.2s; }
     .btn-hero-aux:hover { color: var(--accent-cyan); }
+
+    .admin-secret-lock {
+      position: fixed; bottom: 12px; right: 12px; width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(16, 22, 31, 0.6); border: 1px solid rgba(255, 255, 255, 0.12); color: var(--text-muted);
+      display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; opacity: 0.35; transition: all 0.25s; z-index: 100;
+    }
+    .admin-secret-lock:hover { opacity: 1; border-color: var(--accent-cyan); color: var(--accent-cyan); transform: scale(1.1); }
 
     /* ================= SCREEN 2: MAIN APPLICATION CONTAINER ================= */
     #app-container { display: none; width: 100%; max-width: 1080px; margin: 0 auto; padding: 20px 16px 80px; animation: fadeIn 0.35s ease forwards; }
@@ -133,6 +140,7 @@
     .btn-sign-out { background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-subtle); color: var(--text-muted); font-family: var(--font-display); font-size: 0.85rem; padding: 6px 14px; border-radius: 6px; cursor: pointer; }
     .btn-sign-out:hover { color: #ff6b6b; border-color: #ff6b6b; background: rgba(255, 107, 107, 0.12); }
 
+    
     /* Instructor Profile Card */
     .instructor-hero-card {
       display: flex;
@@ -222,6 +230,118 @@
       color: #cbd5e1;
       font-style: italic;
       line-height: 1.55;
+    }
+
+    
+    /* View Utility Classes */
+    #hero-landing.hidden-view { display: none !important; }
+    #app-container.active-view { display: block !important; }
+
+    /* Semi-Transparent Neon Arrow Guide */
+    .neon-arrow-guide-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 2px;
+      cursor: pointer;
+      pointer-events: auto !important;
+      animation: neonGuideBounce 2.2s infinite ease-in-out;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    @keyframes neonGuideBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(5px); }
+    }
+
+    .neon-arrow-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 7px 20px;
+      border-radius: 24px;
+      font-family: var(--font-display);
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      pointer-events: auto !important;
+    }
+
+    /* Cyan Operating Mode (Colors of the business logo: #00e5ff) */
+    .neon-arrow-badge.neon-mode-cyan {
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid var(--accent-cyan);
+      color: #00e5ff;
+      box-shadow: 0 0 18px rgba(0, 229, 255, 0.45), inset 0 0 10px rgba(0, 229, 255, 0.2);
+      animation: neonCyanPulse 2s infinite ease-in-out;
+    }
+    .neon-arrow-badge.neon-mode-cyan .neon-arrow-icon {
+      color: #00e5ff;
+      filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.8));
+    }
+    .neon-arrow-badge.neon-mode-cyan:hover {
+      background: rgba(0, 229, 255, 0.22);
+      box-shadow: 0 0 28px rgba(0, 229, 255, 0.8), inset 0 0 16px rgba(0, 229, 255, 0.35);
+      transform: scale(1.02);
+    }
+    @keyframes neonCyanPulse {
+      0%, 100% {
+        box-shadow: 0 0 14px rgba(0, 229, 255, 0.4), inset 0 0 8px rgba(0, 229, 255, 0.18);
+        border-color: rgba(0, 229, 255, 0.7);
+        color: #00e5ff;
+      }
+      50% {
+        box-shadow: 0 0 26px rgba(0, 229, 255, 0.85), inset 0 0 14px rgba(0, 229, 255, 0.35);
+        border-color: #ffffff;
+        color: #ffffff;
+      }
+    }
+
+    /* Red Standby Mode (Off-hours before 9 AM or after 9 PM EST) */
+    .neon-arrow-badge.neon-mode-red {
+      background: rgba(239, 68, 68, 0.14);
+      border: 1px solid #ef4444;
+      color: #ef4444;
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.45), inset 0 0 10px rgba(239, 68, 68, 0.2);
+      animation: neonRedPulse 2s infinite ease-in-out;
+    }
+    .neon-arrow-badge.neon-mode-red .neon-arrow-icon {
+      color: #ef4444;
+      filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.8));
+    }
+    .neon-arrow-badge.neon-mode-red:hover {
+      background: rgba(239, 68, 68, 0.22);
+      box-shadow: 0 0 28px rgba(239, 68, 68, 0.8), inset 0 0 16px rgba(239, 68, 68, 0.35);
+      transform: scale(1.02);
+    }
+    @keyframes neonRedPulse {
+      0%, 100% {
+        box-shadow: 0 0 14px rgba(239, 68, 68, 0.4), inset 0 0 8px rgba(239, 68, 68, 0.18);
+        border-color: rgba(239, 68, 68, 0.7);
+        color: #ef4444;
+      }
+      50% {
+        box-shadow: 0 0 26px rgba(239, 68, 68, 0.85), inset 0 0 14px rgba(239, 68, 68, 0.35);
+        border-color: #fca5a5;
+        color: #ffffff;
+      }
+    }
+
+    .neon-arrow-icon {
+      font-size: 0.95rem;
+      line-height: 1;
+      display: inline-block;
+      animation: chevronDip 1.2s infinite ease-in-out;
+    }
+    @keyframes chevronDip {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(3px); }
     }
 
     /* Panels */
@@ -337,6 +457,49 @@
 
     .hidden { display: none !important; }
   </style>
+  <!-- Immediate Global Navigation Handlers (Guaranteed Availability on Page Load) -->
+  <script>
+    window.openAndSwitch = function(tabId) {
+      try {
+        var hero = document.getElementById('hero-landing');
+        var app = document.getElementById('app-container');
+        if (hero) {
+          hero.style.setProperty('display', 'none', 'important');
+          hero.classList.add('hidden-view');
+        }
+        if (app) {
+          app.style.setProperty('display', 'block', 'important');
+          app.classList.add('active-view');
+        }
+        if (typeof window.switchTab === 'function') {
+          window.switchTab(tabId);
+        } else {
+          window.__pendingTab = tabId;
+        }
+        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+      } catch (err) {
+        console.error('Error opening section:', err);
+      }
+    };
+
+    window.returnToHome = function() {
+      try {
+        var hero = document.getElementById('hero-landing');
+        var app = document.getElementById('app-container');
+        if (app) {
+          app.style.setProperty('display', 'none', 'important');
+          app.classList.remove('active-view');
+        }
+        if (hero) {
+          hero.style.setProperty('display', 'flex', 'important');
+          hero.classList.remove('hidden-view');
+        }
+        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+      } catch (err) {
+        console.error('Error returning home:', err);
+      }
+    };
+  </script>
 </head>
 <body>
 
@@ -362,29 +525,39 @@
 
     <!-- Command Dock Launcher -->
     <div class="hero-command-dock">
-      <button type="button" class="btn-hero-booking-prime" onclick="openAndSwitch('booking')">
+      <!-- Semi-Transparent Neon Arrow Guide (Colors of the business logo: #00e5ff) -->
+      <div class="neon-arrow-guide-wrap" id="wrap-neon-guide" onclick="openAndSwitch('booking')" role="button" tabindex="0" title="New to firearms? Click here to start">
+        <div class="neon-arrow-badge neon-mode-cyan" id="neon-start-guide">
+          <span class="neon-arrow-text">New To Firearms? Start Here</span>
+          <span class="neon-arrow-icon">▼</span>
+        </div>
+      </div>
+
+      <button type="button" class="btn-hero-booking-prime" id="btn-hero-booking" onclick="openAndSwitch('booking')">
         <span class="prime-label">🎯 BOOK YOUR TRAINING NOW</span>
         <span class="prime-sub">Maryland CCW • HQL • Private 1-on-1 Coaching</span>
       </button>
 
       <div class="hero-twin-grid">
-        <button type="button" class="btn-hero-twin" onclick="openAndSwitch('portal')">
+        <button type="button" class="btn-hero-twin" id="btn-hero-portal" onclick="openAndSwitch('portal')">
           <span class="twin-title">⚡ Student Portal</span>
           <span class="twin-sub">My Dashboard • Checklist</span>
         </button>
 
-        <button type="button" class="btn-hero-twin" onclick="openAndSwitch('about')">
+        <button type="button" class="btn-hero-twin" id="btn-hero-about" onclick="openAndSwitch('about')">
           <span class="twin-title">👤 About & Instructor</span>
           <span class="twin-sub">Meet Kai Wade • Mission</span>
         </button>
       </div>
 
       <div class="hero-bottom-strip">
-        <button type="button" class="btn-hero-aux" onclick="openAndSwitch('testimonial')">🎯 Student Targets</button>
+        <button type="button" class="btn-hero-aux" id="btn-hero-targets" onclick="openAndSwitch('testimonial')">🎯 Student Targets</button>
         <span style="color: var(--border-subtle);">•</span>
-        <button type="button" class="btn-hero-aux" onclick="openAndSwitch('faq')">❓ Common Questions</button>
+        <button type="button" class="btn-hero-aux" id="btn-hero-faq" onclick="openAndSwitch('faq')">❓ Common Questions</button>
       </div>
     </div>
+
+    
   </section>
 
   <!-- ================= SCREEN 2: MAIN TRAINING PORTAL & BUSINESS SYSTEM ================= -->
@@ -686,7 +859,7 @@
           <div class="btn-select-course">Select Course</div>
         </div>
 
-        <div class="tuition-card" onclick="selectCourse('Children\'s Firearm Training Class ($199.99)')">
+        <div class="tuition-card" onclick="selectCourse('Children's Firearm Training Class ($199.99)')">
           <div>
             <div class="tuition-title">Children's Safety Class</div>
             <div class="tuition-price">$199.99</div>
@@ -995,7 +1168,7 @@
   </div>
 
   <script>
-    // 1. Core navigation functions attached directly to window for immediate availability
+    // Core navigation functions declared first to guarantee immediate availability
     window.openAndSwitch = function(tabId) {
       try {
         const hero = document.getElementById('hero-landing');
@@ -1021,58 +1194,8 @@
       }
     };
 
-    window.switchTab = function(tab) {
-      try {
-        const allTabs = ['booking', 'portal', 'about', 'testimonial', 'faq', 'admin'];
-        const sectionTitles = {
-          booking: 'Course Enrollment & Tuition',
-          portal: 'Student Operations Portal',
-          about: 'Lead Instructor & Mission',
-          testimonial: 'Student Targets & Range Highlights',
-          faq: 'Frequently Asked Questions',
-          admin: 'Instructor Command Center'
-        };
-        allTabs.forEach(function(t) {
-          const panel = document.getElementById('view-' + t);
-          if (panel) {
-            if (t === tab) panel.classList.remove('hidden');
-            else panel.classList.add('hidden');
-          }
-        });
-        const userTag = document.getElementById('portal-user-tag');
-        const savedSession = localStorage.getItem('fifs_student_session');
-        if (tab !== 'portal' || !savedSession) {
-          if (userTag && sectionTitles[tab]) {
-            userTag.textContent = sectionTitles[tab];
-          }
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } catch (err) {
-        console.error('Error in switchTab:', err);
-      }
-    };
-
-    window.selectCourse = function(courseValue) {
-      switchTab('booking');
-      const selectElem = document.getElementById('courseSelection');
-      if (selectElem) {
-        selectElem.value = courseValue;
-        selectElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        selectElem.focus();
-      }
-    };
-
-    window.toggleFaq = function(btn) {
-      if (!btn || !btn.parentElement) return;
-      const item = btn.parentElement;
-      item.classList.toggle('active');
-      const icon = btn.querySelector('span:last-child');
-      if (icon) icon.textContent = item.classList.contains('active') ? '−' : '+';
-    };
-
-    // 2. Real range student target photos data (Corrected: No student labeled Lead Instructor)
     const TARGET_PHOTOS_DATA = [
-      { id: "1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO", course: "Diagnostic Coaching", score: "1-on-1 Session", title: "Lane Diagnostics & Fundamentals", desc: "Student working through 1-on-1 coaching on the firing line at Cindy's Hot Shots. Paced instruction focused on grip friction and smooth trigger press.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+            { id: "1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO", course: "Diagnostic Coaching", score: "1-on-1 Session", title: "Lane Diagnostics & Fundamentals", desc: "Student working through 1-on-1 coaching on the firing line at Cindy's Hot Shots. Paced instruction focused on grip friction and smooth trigger press.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
       { id: "10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps", course: "Wear & Carry", score: "100% Qualified", title: "Center-Mass Cadence Cluster", desc: "Clean vital-zone hits on the official BakerTargets qualification course. Calm coaching built confidence from the first round.", loc: "Certified Range: Cindy's Hot Shots" },
       { id: "1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv", course: "Maryland CCW", score: "Center-X Grouping", title: "B-27 Precision Grouping", desc: "Tight shot placement centered right in the 9, 10, and X rings following holster draw and sight picture coaching.", loc: "Cindy's Hot Shots • Practical Qualification" },
       { id: "1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR", course: "Paired Training", score: "Dual Qualifiers", title: "Dual Student Center Clusters", desc: "Both students qualifying side-by-side with tight vital zone clusters during an intensive live-fire training block.", loc: "Cindy's Hot Shots • Paired Session" },
@@ -1094,8 +1217,35 @@
       { id: "1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5", course: "Maryland CCW", score: "X-Ring Cluster", title: "Red X-Ring Accuracy", desc: "Dead-center shot placement clustered around the red X-ring on the B-27 qualification target.", loc: "Certified Range • Cindy's Hot Shots" }
     ];
 
-    // 3. Document initialization
+    
+    // Explicit event bindings for landing page buttons
+    function bindHeroButtons() {
+      const bindings = [
+        { id: 'btn-hero-booking', tab: 'booking' },
+        { id: 'wrap-neon-guide', tab: 'booking' },
+        { id: 'neon-start-guide', tab: 'booking' },
+        { id: 'btn-hero-portal', tab: 'portal' },
+        { id: 'btn-hero-about', tab: 'about' },
+        { id: 'btn-hero-targets', tab: 'testimonial' },
+        { id: 'btn-hero-faq', tab: 'faq' }
+      ];
+      bindings.forEach(function(item) {
+        const el = document.getElementById(item.id);
+        if (el) {
+          el.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.openAndSwitch(item.tab);
+          });
+          el.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            window.openAndSwitch(item.tab);
+          });
+        }
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+      bindHeroButtons();
       updateLivePulseTicker();
       setInterval(updateLivePulseTicker, 60000);
       mountStudentTargets();
@@ -1128,48 +1278,106 @@
     function mountStudentTargets() {
       const container = document.getElementById('targets-grid-container');
       if (!container) return;
-      container.innerHTML = TARGET_PHOTOS_DATA.map(function(p) {
-        return `
-          <article class="target-card-student">
-            <div class="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=${p.id}&sz=w800" onerror="this.src='https://lh3.googleusercontent.com/d/${p.id}'" alt="${p.title}" loading="lazy">
-              <span class="badge-course">${p.course}</span>
-              <span class="badge-score">${p.score}</span>
+      container.innerHTML = TARGET_PHOTOS_DATA.map(p => `
+        <article class="target-card-student">
+          <div class="target-img-frame">
+            <img src="https://drive.google.com/thumbnail?id=${p.id}&sz=w800" onerror="this.src='https://lh3.googleusercontent.com/d/${p.id}'" alt="${p.title}" loading="lazy">
+            <span class="badge-course">${p.course}</span>
+            <span class="badge-score">${p.score}</span>
+          </div>
+          <div class="target-content">
+            <div>
+              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">${p.title}</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">${p.desc}</p>
             </div>
-            <div class="target-content">
-              <div>
-                <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">${p.title}</h4>
-                <p style="font-size: 0.82rem; color: var(--text-muted);">${p.desc}</p>
-              </div>
-              <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">${p.loc}</div>
-            </div>
-          </article>
-        `;
-      }).join('');
+            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">${p.loc}</div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    
+    
+    function switchTab(tab) {
+      const allTabs = ['booking', 'portal', 'about', 'testimonial', 'faq', 'admin'];
+      const sectionTitles = {
+        booking: 'Course Enrollment & Tuition',
+        portal: 'Student Operations Portal',
+        about: 'Lead Instructor & Mission',
+        testimonial: 'Student Targets & Range Highlights',
+        faq: 'Frequently Asked Questions',
+        admin: 'Instructor Command Center'
+      };
+      allTabs.forEach(t => {
+        const panel = document.getElementById('view-' + t);
+        if (panel) {
+          if (t === tab) panel.classList.remove('hidden');
+          else panel.classList.add('hidden');
+        }
+      });
+      const userTag = document.getElementById('portal-user-tag');
+      const savedSession = localStorage.getItem('fifs_student_session');
+      if (tab !== 'portal' || !savedSession) {
+        if (userTag && sectionTitles[tab]) {
+          userTag.textContent = sectionTitles[tab];
+        }
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function selectCourse(courseValue) {
+      switchTab('booking');
+      const selectElem = document.getElementById('courseSelection');
+      if (selectElem) {
+        selectElem.value = courseValue;
+        selectElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        selectElem.focus();
+      }
+    }
+
+    function toggleFaq(btn) {
+      const item = btn.parentElement;
+      item.classList.toggle('active');
+      const icon = btn.querySelector('span:last-child');
+      if (icon) icon.textContent = item.classList.contains('active') ? '−' : '+';
     }
 
     function updateLivePulseTicker() {
       const dot = document.getElementById('live-status-dot');
-      if (!dot) return;
+      const arrowGuide = document.getElementById('neon-start-guide');
       try {
         const now = new Date();
         const estOptions = { timeZone: 'America/New_York', hour12: false, hour: 'numeric' };
         const currentHour = parseInt(new Intl.DateTimeFormat('en-US', estOptions).format(now), 10);
-        if (currentHour >= 9 && currentHour < 21) {
-          dot.className = 'pulse-dot';
-          dot.style.background = '#10b981';
-          dot.title = 'Live Range & Student Operations Active (EST)';
+        const isOpen = (currentHour >= 9 && currentHour < 21);
+
+        if (isOpen) {
+          if (dot) {
+            dot.className = 'pulse-dot';
+            dot.style.background = '#10b981';
+            dot.title = 'Live Range & Student Operations Active (EST)';
+          }
+          if (arrowGuide) {
+            arrowGuide.className = 'neon-arrow-badge neon-mode-cyan';
+            arrowGuide.title = 'Live Range Hours • Click to Start Training';
+          }
         } else {
-          dot.className = 'pulse-dot';
-          dot.style.background = '#ef4444';
-          dot.title = 'Range Operations Closed / Standby Mode (EST)';
+          if (dot) {
+            dot.className = 'pulse-dot';
+            dot.style.background = '#ef4444';
+            dot.title = 'Range Operations Closed / Standby Mode (EST)';
+          }
+          if (arrowGuide) {
+            arrowGuide.className = 'neon-arrow-badge neon-mode-red';
+            arrowGuide.title = 'Standby Mode • Online Registration Active 24/7';
+          }
         }
       } catch (e) {
-        dot.className = 'pulse-dot';
+        if (dot) dot.className = 'pulse-dot';
+        if (arrowGuide) arrowGuide.className = 'neon-arrow-badge neon-mode-cyan';
       }
     }
 
-    // 4. Unified Sign-In: Both Students and Instructor authenticate here
     function lookupStudentAccount() {
       const input = document.getElementById('studentAuthInput');
       const statusDiv = document.getElementById('student-login-status');
@@ -1271,7 +1479,7 @@
       }
 
       const tasks = student.prepTasks || {};
-      ['transport_law', 'ammo_acquired', 'eye_ear_pro', 'id_ready'].forEach(function(t) {
+      ['transport_law', 'ammo_acquired', 'eye_ear_pro', 'id_ready'].forEach(t => {
         const chk = document.getElementById('chk-' + t);
         const card = document.getElementById('task-card-' + t.replace(/_.*/, ''));
         if (chk) chk.checked = Boolean(tasks[t]);
@@ -1286,11 +1494,8 @@
 
     function updateStudentProgressNodes(student) {
       const st = (student.trainingStatus || student.status || 'PREP_PENDING').toUpperCase();
-      const nodes = [];
-      for (let i = 1; i <= 8; i++) {
-        nodes.push(document.getElementById('track-step-' + i));
-      }
-      nodes.forEach(function(n) { if (n) n.className = 'track-step-node'; });
+      const nodes = []; for (let i = 1; i <= 8; i++) { nodes.push(document.getElementById('track-step-' + i)); }
+      nodes.forEach(n => { if (n) n.className = 'track-step-node'; });
 
       const heroTitle = document.getElementById('dash-next-step-title');
       const heroDesc = document.getElementById('dash-next-step-desc');
@@ -1307,8 +1512,7 @@
         if (heroBtn) {
           heroBtn.textContent = "Review Preparation Checklist ↓";
           heroBtn.onclick = function() {
-            const list = document.querySelector('.interactive-checklist');
-            if (list) list.scrollIntoView({ behavior: 'smooth' });
+            document.querySelector('.interactive-checklist').scrollIntoView({ behavior: 'smooth' });
           };
         }
       } else if (st === 'PREP_COMPLETED') {
@@ -1382,7 +1586,7 @@
 
     function verifyAdminAccess() {
       const pinInput = document.getElementById('adminPasscode');
-      const pin = pinInput ? pinInput.value.trim() : '1985';
+      const pin = pinInput ? pinInput.value.trim() : '';
       const statusDiv = document.getElementById('admin-auth-status');
 
       if (!pin) {
@@ -1445,7 +1649,7 @@
         return;
       }
 
-      adminCachedStudents.forEach(function(s) {
+      adminCachedStudents.forEach(s => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><strong>${s.studentId}</strong></td>
@@ -1520,7 +1724,7 @@
           })
           .withFailureHandler(function(err) {
             submitBtn.disabled = false;
-            showStatus(statusDiv, 'Error connecting to registration server. Please call (443) 990-1304, 'Error connecting to registration server. Please call (443) 990-1304.', 'error');
+            showStatus(statusDiv, 'Error connecting to registration server. Please call (443) 990-1304.', 'error');
           })
           .handleBookingSubmission(payload);
       } else {
@@ -1546,3 +1750,4 @@
   </script>
 </body>
 </html>
+
