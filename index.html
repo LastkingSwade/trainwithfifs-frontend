@@ -493,23 +493,30 @@
 
 
     .hidden { display: none !important; }
-  
-    
-    /* ================= GOOGLE REVIEWS TICKER ON HERO ================= */
+
+/* ================= GOOGLE REVIEWS TICKER ON HERO ================= */
+    .hero-logo-spacer {
+      width: 100%;
+      height: clamp(170px, 25vh, 270px);
+      flex-shrink: 0;
+      pointer-events: none !important;
+    }
+
     .hero-reviews-marquee-wrap {
       width: 100%;
-      max-width: 640px;
-      margin: 10px auto 0;
-      background: rgba(7, 11, 16, 0.88);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      max-width: 620px;
+      margin: 0 auto;
+      background: rgba(7, 11, 16, 0.90);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       border: 1px solid rgba(0, 229, 255, 0.35);
       border-radius: 12px;
-      padding: 8px 12px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.7), 0 0 12px rgba(0, 229, 255, 0.15);
+      padding: 7px 12px;
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 229, 255, 0.2);
       position: relative;
       overflow: hidden;
       z-index: 25;
+      flex-shrink: 0;
     }
     .reviews-badge-line {
       display: flex;
@@ -541,15 +548,17 @@
       position: relative;
       display: flex;
       width: 100%;
+      cursor: pointer;
     }
-    .reviews-marquee-box:hover .reviews-track {
-      animation-play-state: paused;
+    .reviews-marquee-box:hover .reviews-track,
+    .reviews-marquee-box:active .reviews-track {
+      animation-play-state: paused !important;
     }
     .reviews-track {
       display: inline-flex;
       align-items: center;
       gap: 32px;
-      animation: reviewsScroll 76s linear infinite;
+      animation: reviewsScroll 160s linear infinite;
       will-change: transform;
     }
     @keyframes reviewsScroll {
@@ -583,44 +592,6 @@
       font-size: 0.74rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-    }
-    .guide-download-banner {
-      background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(13, 19, 27, 0.95) 100%);
-      border: 1px solid var(--accent-cyan);
-      box-shadow: 0 0 16px var(--accent-cyan-glow);
-      border-radius: 10px;
-      padding: 12px 16px;
-      margin: 14px 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .guide-banner-text {
-      font-size: 0.85rem;
-      color: #fff;
-    }
-    .btn-download-guide {
-      background: var(--accent-cyan);
-      color: #070b10 !important;
-      font-family: var(--font-display);
-      font-size: 0.88rem;
-      font-weight: 800;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      padding: 8px 14px;
-      border-radius: 6px;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
-    }
-    .btn-download-guide:hover {
-      background: #4deeea;
-      transform: translateY(-1px);
-      box-shadow: 0 0 14px var(--accent-cyan-glow);
     }
 
     /* ================= GOAL SYNOPSIS MODAL POPUP ================= */
@@ -724,6 +695,44 @@
       line-height: 1.6;
       margin-bottom: 20px;
     }
+    .guide-download-banner {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(13, 19, 27, 0.95) 100%);
+      border: 1px solid var(--accent-cyan);
+      box-shadow: 0 0 16px var(--accent-cyan-glow);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin: 14px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .guide-banner-text {
+      font-size: 0.85rem;
+      color: #fff;
+    }
+    .btn-download-guide {
+      background: var(--accent-cyan);
+      color: #070b10 !important;
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 8px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-download-guide:hover {
+      background: #4deeea;
+      transform: translateY(-1px);
+      box-shadow: 0 0 14px var(--accent-cyan-glow);
+    }
     .goal-columns-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -816,7 +825,6 @@
       color: #fff;
       border-color: rgba(255, 255, 255, 0.3);
     }
-
   </style>
   <!-- Immediate Global Navigation Handlers (Guaranteed Availability on Page Load) -->
   <script>
@@ -876,32 +884,34 @@
       <div class="hero-bg-vignette"></div>
     </div>
 
-
     <!-- Official Motto Ticker with Dynamic Blinking Light -->
     <div class="hero-top-hud">
       <div class="range-live-ticker">
         <span class="pulse-dot" id="live-status-dot" title="Checking status..."></span>
         <span>THE FUTURE IS NOW, TAKE THE INITIATIVE!</span>
       </div>
+    </div>
 
-      <!-- Official Google Reviews Infinite Ticker (Positioned above tablet/firearm, below logo) -->
-      <div class="hero-reviews-marquee-wrap" aria-label="Official Google Reviews">
-        <div class="reviews-badge-line">
-          <div class="reviews-badge-left">
-            <span class="gold-stars-cluster">★★★★★</span>
-            <span>5.0 GOOGLE RATING (78 VERIFIED REVIEWS)</span>
-          </div>
-          <span class="reviews-badge-right">Hover to pause</span>
+    <!-- Spacer: Clears the background logo ("Future Initiative Firearm Services") -->
+    <div class="hero-logo-spacer"></div>
+
+    <!-- Official Google Reviews Ticker (Positioned in the red box area: below logo, above tablet & firearm) -->
+    <div class="hero-reviews-marquee-wrap" aria-label="Official Google Reviews">
+      <div class="reviews-badge-line">
+        <div class="reviews-badge-left">
+          <span class="gold-stars-cluster">★★★★★</span>
+          <span>5.0 GOOGLE RATING (78 VERIFIED REVIEWS)</span>
         </div>
-        <div class="reviews-marquee-box">
-          <div class="reviews-track" id="reviewsTrack">
-            <!-- Populated with official 5-star Google reviews -->
-          </div>
+        <span class="reviews-badge-right">Hover or tap to pause</span>
+      </div>
+      <div class="reviews-marquee-box">
+        <div class="reviews-track" id="reviewsTrack">
+          <!-- Populated with official 5-star Google reviews -->
         </div>
       </div>
     </div>
 
-
+    <!-- Spacer: Clears the tablet and firearm on the workbench -->
     <div class="hero-mid-spacer"></div>
 
 
@@ -2263,6 +2273,7 @@
 
     function mountGoogleReviewsTicker() {
       const track = document.getElementById('reviewsTrack');
+      const box = document.querySelector('.reviews-marquee-box');
       if (!track) return;
       // Shuffle reviews randomly
       const shuffled = [...OFFICIAL_GOOGLE_REVIEWS].sort(() => Math.random() - 0.5);
@@ -2276,6 +2287,16 @@
           <span class="review-author-tag">• ${r.author}</span>
         </div>
       `).join('');
+
+      // Enable touch to pause on mobile / iPad touch screens
+      if (box) {
+        box.addEventListener('touchstart', function() {
+          track.style.animationPlayState = 'paused';
+        }, { passive: true });
+        box.addEventListener('touchend', function() {
+          track.style.animationPlayState = 'running';
+        }, { passive: true });
+      }
     }
 
     // ================= GOAL SYNOPSIS INTERACTIVE POPUP LOGIC =================
