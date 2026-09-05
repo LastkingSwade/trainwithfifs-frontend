@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Future Initiative Firearm Services</title>
-  <meta name="description" content="Ready to take your safety into your own hands? At Future Initiative Firearm Services, we deliver premier, certified firearm safety training designed to build real-world confidence. State-approved Maryland HQL and Wear & Carry courses tailored to your pace.">
+  <title>Train With FIFS | Maryland Firearms Training</title>
+  <meta name="description" content="Professional, beginner-friendly firearms instruction in Maryland. State-approved HQL and Wear & Carry permit certification with Lead Instructor Kai Wade. Clear tuition, private coaching, and zero intimidation.">
   
-  <!-- Custom Browser Tab Logo (Favicon) -->
+  <!-- Favicons -->
   <link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w128">
   <link rel="shortcut icon" href="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w128">
   <link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w180">
@@ -22,9 +22,9 @@
       --bg-dark-panel: #10161f;
       --bg-dark-card: rgba(16, 22, 31, 0.94);
       --accent-cyan: #00e5ff;
-      --accent-cyan-glow: rgba(0, 229, 255, 0.5);
+      --accent-cyan-glow: rgba(0, 229, 255, 0.45);
       --accent-amber: #ffb703;
-      --accent-amber-glow: rgba(255, 183, 3, 0.4);
+      --accent-amber-glow: rgba(255, 183, 3, 0.35);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --border-subtle: #1e293b;
@@ -49,7 +49,7 @@
     }
 
     /* -------------------------------------------------------------
-       HERO LANDING: ELEVATED BACKGROUND ARTWORK
+       HERO LANDING SCREEN: ELEVATED ARTWORK & LIVE TELEMETRY
        ------------------------------------------------------------- */
     #hero-landing {
       position: relative;
@@ -143,17 +143,17 @@
     .hero-mid-spacer {
       pointer-events: none;
       flex: 1;
-      min-height: 28vh;
+      min-height: 26vh;
       z-index: 5;
     }
 
     .hero-command-dock {
       width: 100%;
-      max-width: 540px;
+      max-width: 560px;
       background: rgba(11, 15, 20, 0.90);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      padding: 16px 16px 14px;
+      padding: 18px 16px 16px;
       border-radius: 16px;
       border: 1px solid rgba(0, 229, 255, 0.45);
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 229, 255, 0.25);
@@ -305,12 +305,12 @@
     }
 
     /* -------------------------------------------------------------
-       MAIN APPLICATION
+       MAIN APPLICATION / STUDENT PORTAL
        ------------------------------------------------------------- */
     #app-container {
       display: none;
       width: 100%;
-      max-width: 1020px;
+      max-width: 1040px;
       margin: 0 auto;
       padding: 20px 16px 80px;
       animation: fadeIn 0.35s ease forwards;
@@ -377,23 +377,36 @@
       border-color: var(--accent-cyan);
     }
 
-    /* Official Description Banner */
-    .mission-banner {
-      background: rgba(16, 22, 31, 0.88);
-      border-left: 4px solid var(--accent-cyan);
-      padding: 20px 22px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      font-size: 0.95rem;
-      color: var(--text-main);
-      line-height: 1.65;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    /* Welcoming Headline Banner */
+    .hero-welcome-banner {
+      background: linear-gradient(135deg, rgba(16, 22, 31, 0.95) 0%, rgba(7, 11, 16, 0.95) 100%);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      border-left: 5px solid var(--accent-cyan);
+      padding: 24px 22px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
     }
 
-    /* Dedicated Instructor Profile Card */
+    .hero-welcome-banner h1 {
+      font-family: var(--font-display);
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .hero-welcome-banner p {
+      font-size: 0.96rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Humanized Instructor Profile */
     .instructor-profile-card {
       background: #0d131b;
-      border: 1px solid rgba(0, 229, 255, 0.35);
+      border: 1px solid rgba(0, 229, 255, 0.3);
       border-radius: 12px;
       padding: 20px 22px;
       margin-bottom: 24px;
@@ -413,7 +426,7 @@
 
     .instructor-name {
       font-family: var(--font-display);
-      font-size: 1.4rem;
+      font-size: 1.45rem;
       font-weight: 800;
       letter-spacing: 1.5px;
       color: #fff;
@@ -450,11 +463,107 @@
     }
 
     .profile-bio {
-      font-size: 0.90rem;
+      font-size: 0.92rem;
       color: var(--text-muted);
       line-height: 1.6;
     }
 
+    /* "What Happens After You Book?" Roadmap */
+    .roadmap-section {
+      background: #0d121a;
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 22px 20px;
+      margin-bottom: 28px;
+    }
+
+    .roadmap-header {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .roadmap-step {
+      background: #10161f;
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      border-radius: 10px;
+      padding: 16px;
+      position: relative;
+    }
+
+    .step-num {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      margin-bottom: 4px;
+    }
+
+    .step-title {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .step-desc {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* "Which Course Do I Need?" Quick Matcher */
+    .matcher-box {
+      background: rgba(0, 229, 255, 0.05);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 24px;
+    }
+
+    .matcher-title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .matcher-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      font-size: 0.88rem;
+    }
+
+    .matcher-item {
+      background: #0d121a;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border-left: 3px solid var(--accent-amber);
+    }
+
+    .matcher-item strong {
+      color: #fff;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* Range Logistics Card */
     .logistics-card {
       background: #0c1118;
       border: 1px solid rgba(0, 229, 255, 0.3);
@@ -480,6 +589,7 @@
       margin-top: 2px;
     }
 
+    /* Navigation Tabs */
     .nav-tabs {
       display: flex;
       gap: 8px;
@@ -514,7 +624,7 @@
       box-shadow: 0 0 12px var(--accent-cyan-glow);
     }
 
-    /* Tuition HUD Grid */
+    /* Tuition HUD Cards */
     .tuition-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -582,6 +692,7 @@
       color: #070b10;
     }
 
+    /* Forms */
     .panel {
       background: var(--bg-dark-card);
       backdrop-filter: blur(12px);
@@ -685,9 +796,50 @@
       color: #fca5a5;
     }
 
-    /* -------------------------------------------------------------
-       STUDENT SHOWCASE & RANGE RESULTS GALLERY (ALL REAL STUDENT PHOTOS)
-       ------------------------------------------------------------- */
+    /* FAQ Section Accordions */
+    .faq-item {
+      background: #0d131b;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .faq-question {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 16px 18px;
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .faq-question:hover {
+      color: var(--accent-cyan);
+    }
+
+    .faq-answer {
+      display: none;
+      padding: 0 18px 16px;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 12px;
+    }
+
+    .faq-item.active .faq-answer {
+      display: block;
+    }
+
+    /* Student Showcase Gallery Grid */
     .gallery-grid-targets {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
@@ -824,28 +976,32 @@
 </head>
 <body>
 
-  <!-- SCREEN 1: HERO LANDING SCREEN -->
-  <section id="hero-landing" aria-label="Welcome to Future Initiative Firearm Services">
+  <!-- ==============================================================
+       SCREEN 1: HERO LANDING SCREEN
+       ============================================================== -->
+  <section id="hero-landing" aria-label="Welcome to Train With FIFS">
     
     <div class="hero-bg-layer">
       <img src="https://lh3.googleusercontent.com/d/1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ" 
            onerror="this.src='https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w1920'" 
-           alt="Future Initiative Firearm Services Background" 
+           alt="Future Initiative Firearm Services Tactical Artwork" 
            class="hero-bg-artwork">
       <div class="hero-bg-vignette"></div>
     </div>
 
+    <!-- Top Live HUD Bar -->
     <div class="hero-top-hud">
       <div class="range-live-ticker">
         <span class="pulse-dot"></span>
-        <span>RANGE BRIEFING ACTIVE // CINDY'S HOT SHOTS</span>
+        <span>RANGE SCHEDULE ACTIVE // CINDY'S HOT SHOTS</span>
       </div>
     </div>
 
     <div class="hero-mid-spacer"></div>
 
+    <!-- Interactive Fast-Tap Mission Dock -->
     <div class="hero-command-dock">
-      <div class="hero-dock-header">⚡ Select Your Training Objective</div>
+      <div class="hero-dock-header">⚡ Select Your Training Goal</div>
       
       <div class="mission-chip-group">
         <button type="button" class="chip-btn" onclick="quickSelectAndOpen('Maryland CCW (Wear & Carry) ($199.99)')">
@@ -876,7 +1032,9 @@
     </div>
   </section>
 
-  <!-- SCREEN 2: MAIN APPLICATION -->
+  <!-- ==============================================================
+       SCREEN 2: MAIN TRAINING PORTAL
+       ============================================================== -->
   <div id="app-container" class="container">
     <header class="app-header">
       <div class="brand-identity-group">
@@ -884,8 +1042,8 @@
              alt="Future Initiative Logo" 
              class="app-nav-logo">
         <div class="app-brand-text">
-          <h2>Future Initiative</h2>
-          <p>Operational Intake & Student Portal</p>
+          <h2>Train With FIFS</h2>
+          <p>Student Portal & Course Overview</p>
         </div>
       </div>
       <button type="button" class="btn-return-home" onclick="returnToHome()">
@@ -893,27 +1051,60 @@
       </button>
     </header>
 
-    <!-- Official Business Description -->
-    <div class="mission-banner">
-      "Ready to take your safety into your own hands? At Future Initiative Firearm Services, we deliver premier, certified firearm safety training designed to build real-world confidence. Whether you're a first-time handgun owner or looking to level up your everyday carry skills, our state-approved Maryland HQL and Wear & Carry courses are tailored to your pace. We pair strict safety discipline with modern defensive tactics, taking the intimidation out of the process so you can move safe, smart, and fully prepared. Your foundation starts here."
+    <!-- Refined Public Headline -->
+    <div class="hero-welcome-banner">
+      <h1>Maryland Firearms Training Without the Intimidation</h1>
+      <p>
+        Professional, structured firearms training designed for Maryland residents. Whether preparing for state licensing, mastering defensive fundamentals, or introducing family members to firearm safety, each course offers transparent tuition, personalized coaching, and flexible range accommodations.
+      </p>
     </div>
 
-    <!-- Official Instructor Profile Card -->
+    <!-- Dedicated Instructor Profile Card -->
     <div class="instructor-profile-card">
       <div class="profile-header">
-        <div class="instructor-name">Instructor Kai Wade</div>
-        <div class="instructor-title-badge">Lead Instructor & Operations</div>
+        <div class="instructor-name">Meet Your Instructor: Kai Wade</div>
+        <div class="instructor-title-badge">Certified Lead Instructor</div>
       </div>
       <div class="profile-credentials">
         <span class="cred-chip">🛡️ Certified MSP Qualified Handgun Instructor (§ 5-101)</span>
         <span class="cred-chip">🎯 NRA Certified Handgun Instructor</span>
-        <span class="cred-chip">📍 Primary Facility: Cindy's Hot Shots (Glen Burnie)</span>
+        <span class="cred-chip">📍 Cindy's Hot Shots (Glen Burnie)</span>
       </div>
       <p class="profile-bio">
-        Instructor Wade specializes in Maryland Wear & Carry (CCW) permitting, Handgun Qualification License (HQL) training, and private one-on-one diagnostic marksmanship. With a focus on real-world safety fundamentals and personalized coaching, every course is conducted in a structured, zero-intimidation environment designed to develop decisive handling confidence, safe storage compliance, and legal clarity.
+        Instructor Wade specializes in Maryland Wear & Carry (CCW) permitting, Handgun Qualification License (HQL) training, and private one-on-one marksmanship coaching. Dedicated to removing intimidation from firearms education, his courses prioritize safe weapon manipulation, clear legal understanding of Maryland law, and patient, personalized diagnostics. Every student progresses at their own pace in a supportive, safety-first environment.
       </p>
     </div>
 
+    <!-- "What Happens After You Book?" Roadmap -->
+    <section class="roadmap-section">
+      <div class="roadmap-header">
+        <span>📋</span> What Happens After You Book?
+      </div>
+      <div class="roadmap-grid">
+        <div class="roadmap-step">
+          <div class="step-num">01</div>
+          <div class="step-title">Select Your Training</div>
+          <p class="step-desc">Choose the course tier that matches your goals and submit your preferred training dates below.</p>
+        </div>
+        <div class="roadmap-step">
+          <div class="step-num">02</div>
+          <div class="step-title">Automated File Setup</div>
+          <p class="step-desc">Your student profile and intake file are instantly established in our secure training ledger.</p>
+        </div>
+        <div class="roadmap-step">
+          <div class="step-num">03</div>
+          <div class="step-title">Range Prep Packet</div>
+          <p class="step-desc">Receive an instant confirmation email with your gear checklist, range location details, and ammunition protocol.</p>
+        </div>
+        <div class="roadmap-step">
+          <div class="step-num">04</div>
+          <div class="step-title">Show Up Confident</div>
+          <p class="step-desc">Meet Instructor Wade at Cindy's Hot Shots for focused, hands-on classroom instruction and live-fire range qualification.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Range Logistics Alert -->
     <div class="logistics-card">
       <div class="logistics-item">
         <span class="logistics-icon">📍</span>
@@ -930,20 +1121,48 @@
       </div>
     </div>
 
+    <!-- Navigation Tabs -->
     <nav class="nav-tabs" role="tablist">
       <button class="tab-btn active" id="tab-booking" role="tab" aria-selected="true" onclick="switchTab('booking')">
-        Book Training & Tuition
+        Courses & Reservation
       </button>
       <button class="tab-btn" id="tab-testimonial" role="tab" aria-selected="false" onclick="switchTab('testimonial')">
         Student Showcase & Results
+      </button>
+      <button class="tab-btn" id="tab-faq" role="tab" aria-selected="false" onclick="switchTab('faq')">
+        Training FAQ
       </button>
     </nav>
 
     <!-- View 1: Booking & Official Tuition Schedule -->
     <main id="view-booking" role="tabpanel" class="panel">
+      
+      <!-- "Which Course Do I Need?" Quick Matcher -->
+      <div class="matcher-box">
+        <div class="matcher-title">🎯 Not sure which training is right for you?</div>
+        <div class="matcher-list">
+          <div class="matcher-item">
+            <strong>Maryland HQL ($100.00)</strong>
+            Required by Maryland State Police to legally purchase, transfer, or rent a handgun.
+          </div>
+          <div class="matcher-item">
+            <strong>Maryland CCW ($199.99)</strong>
+            Required to legally carry a concealed handgun in public across Maryland (16-Hr Initial or 8-Hr Renewal).
+          </div>
+          <div class="matcher-item">
+            <strong>CCW & HQL Combo ($249.99)</strong>
+            The most popular choice for residents who need both purchase eligibility and public carry certification.
+          </div>
+          <div class="matcher-item">
+            <strong>Personal 1-on-1 Coaching ($125/hr)</strong>
+            Customized diagnostic marksmanship, holster draw mechanics, and recoil control.
+          </div>
+        </div>
+      </div>
+
       <div class="panel-header">
         <h3>Official Course Tuition Schedule</h3>
-        <p>Select any course tier below to populate your intake reservation form automatically.</p>
+        <p>Select any course tier below to populate your reservation form automatically.</p>
       </div>
 
       <div class="tuition-grid">
@@ -951,7 +1170,7 @@
           <div>
             <div class="tuition-title">Maryland HQL</div>
             <div class="tuition-price">$100.00</div>
-            <div class="tuition-desc">State prerequisite for handgun purchase. Covers home firearm safety, statutory compliance, and live-fire orientation.</div>
+            <div class="tuition-desc">State prerequisite for handgun purchase. Covers safe firearm handling, home storage compliance, and live-fire orientation.</div>
           </div>
           <div class="btn-select-course">Select Course</div>
         </div>
@@ -960,7 +1179,7 @@
           <div>
             <div class="tuition-title">Maryland CCW</div>
             <div class="tuition-price">$199.99</div>
-            <div class="tuition-desc">Full Wear & Carry certification. Thorough legal curriculum, use of force pillars, and 25-round practical qualification.</div>
+            <div class="tuition-desc">Full Wear & Carry certification. Thorough legal curriculum, use-of-force pillars, and 25-round practical qualification.</div>
           </div>
           <div class="btn-select-course">Select Course</div>
         </div>
@@ -969,7 +1188,7 @@
           <div>
             <div class="tuition-title">CCW & HQL Combo</div>
             <div class="tuition-price">$249.99</div>
-            <div class="tuition-desc">Comprehensive dual-licensing package meeting all MSP purchase and carry training mandates in a streamlined format.</div>
+            <div class="tuition-desc">Comprehensive dual-licensing package meeting both purchase and carry training mandates in one streamlined format.</div>
           </div>
           <div class="btn-select-course">Select Course</div>
         </div>
@@ -978,7 +1197,7 @@
           <div>
             <div class="tuition-title">Gun Cleaning Class</div>
             <div class="tuition-price">$75.00</div>
-            <div class="tuition-desc">Field-stripping, inspection, ultrasonic cleaning methods, lubrication points, and mechanical safety function checks.</div>
+            <div class="tuition-desc">Field-stripping, ultrasonic inspection methods, lubrication points, and mechanical safety function checks.</div>
           </div>
           <div class="btn-select-course">Select Course</div>
         </div>
@@ -996,7 +1215,7 @@
           <div>
             <div class="tuition-title">Personal 1-on-1</div>
             <div class="tuition-price">$125.00 <span style="font-size: 0.9rem; color: var(--text-muted);">/ hr</span></div>
-            <div class="tuition-desc">Dedicated private diagnostic coaching. Marksmanship refinement, holster draw cadence, and stoppage remediation drills.</div>
+            <div class="tuition-desc">Dedicated private coaching. Marksmanship diagnostics, trigger reset mechanics, and holster draw cadence.</div>
           </div>
           <div class="btn-select-course">Select Course</div>
         </div>
@@ -1004,8 +1223,8 @@
 
       <div style="border-top: 1px solid var(--border-subtle); padding-top: 24px;">
         <div class="panel-header">
-          <h3>Student Intake & Reservation Form</h3>
-          <p>Submit your details to establish your formal student intake file with Instructor Wade.</p>
+          <h3>Reserve Your Training Session</h3>
+          <p>Submit your details to establish your student record with Instructor Wade.</p>
         </div>
 
         <form id="booking-form" onsubmit="submitBooking(event)">
@@ -1066,7 +1285,7 @@
       </div>
     </main>
 
-    <!-- View 2: Student Showcase & Range Results -->
+    <!-- View 2: Student Showcase & Results -->
     <section id="view-testimonial" role="tabpanel" class="panel hidden">
       <div class="cta-review-box">
         <p style="font-size: 1rem; font-weight: 600;">★★★★★ Official Verified Student Reviews</p>
@@ -1082,8 +1301,7 @@
       </div>
 
       <div class="gallery-grid-targets">
-        
-        <!-- Photo 1: IMG_0633 - Student with Black B-27 Target -->
+        <!-- Photo 1: IMG_0633 -->
         <article class="target-card-student">
           <div class="target-img-frame">
             <img src="https://drive.google.com/thumbnail?id=1GKKGtLxhSqGOgfh1-u1_CFNr1af-xFUS&sz=w800" alt="Student holding black silhouette target">
@@ -1093,12 +1311,12 @@
           <div class="target-content">
             <div style="color: var(--accent-amber); font-size: 1.05rem; margin-bottom: 6px;">★★★★★</div>
             <div style="font-family: var(--font-display); font-size: 1.18rem; font-weight: 700; color: #fff; margin-bottom: 6px;">B-27 Center-Mass Groupings</div>
-            <p style="font-size: 0.86rem; color: var(--text-muted); font-style: italic; line-height: 1.5; margin-bottom: 12px;">"Instructor Wade made the range qualification straightforward and stress-free. Every coaching cue on grip pressure helped tighten up my center-ring hits."</p>
+            <p style="font-size: 0.86rem; color: var(--text-muted); font-style: italic; line-height: 1.5; margin-bottom: 12px;">"Instructor Wade made the qualification straightforward and stress-free. Every coaching cue on grip pressure helped tighten up my center-ring hits."</p>
             <div style="font-size: 0.76rem; color: var(--accent-cyan); font-family: var(--font-display); letter-spacing: 1px; text-transform: uppercase; border-top: 1px solid #16202c; padding-top: 8px;">Cindy's Hot Shots Range • MSP Wear & Carry</div>
           </div>
         </article>
 
-        <!-- Photo 2: IMG_4754 - Trio Student Group -->
+        <!-- Photo 2: IMG_4754 -->
         <article class="target-card-student">
           <div class="target-img-frame">
             <img src="https://drive.google.com/thumbnail?id=1XLGG8VZTEOSdnPF5-SXLVGZmeK9m55rR&sz=w800" alt="Three students holding blue silhouette targets">
@@ -1113,7 +1331,7 @@
           </div>
         </article>
 
-        <!-- Photo 3: IMG_3458 - Student with Blue B27 Shield -->
+        <!-- Photo 3: IMG_3458 -->
         <article class="target-card-student">
           <div class="target-img-frame">
             <img src="https://drive.google.com/thumbnail?id=1O5ON4PlVTuCaW-w09a0zzMnOYBMwQ_6k&sz=w800" alt="Student holding blue B27 shield target">
@@ -1128,7 +1346,7 @@
           </div>
         </article>
 
-        <!-- Photo 4: IMG_4750 - Student with Blue Target -->
+        <!-- Photo 4: IMG_4750 -->
         <article class="target-card-student">
           <div class="target-img-frame">
             <img src="https://drive.google.com/thumbnail?id=1-dVzb2ipi3IYNb5dGxUpBCBaEyYJIpZ_&sz=w800" alt="Student holding blue target">
@@ -1143,7 +1361,7 @@
           </div>
         </article>
 
-        <!-- Photo 5: IMG_9707 - Student with Blue Silhouette -->
+        <!-- Photo 5: IMG_9707 -->
         <article class="target-card-student">
           <div class="target-img-frame">
             <img src="https://drive.google.com/thumbnail?id=191TKVFSz48i2NP9T23KKzZcNFIr42Fls&sz=w800" alt="Student smiling holding qualifying blue target">
@@ -1158,7 +1376,7 @@
           </div>
         </article>
 
-        <!-- Photo 6: IMG_3423 - Live Lane Range Action -->
+        <!-- Photo 6: IMG_3423 -->
         <article class="target-card-student">
           <div class="target-img-frame">
             <img src="https://drive.google.com/thumbnail?id=1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV&sz=w800" alt="Shooter live lane qualification at Cindy's Hot Shots">
@@ -1172,44 +1390,13 @@
             <div style="font-size: 0.76rem; color: var(--accent-cyan); font-family: var(--font-display); letter-spacing: 1px; text-transform: uppercase; border-top: 1px solid #16202c; padding-top: 8px;">Cindy's Hot Shots Range • Live Fire Standards</div>
           </div>
         </article>
-
-        <!-- Photo 7: 2025-10-17 - Dual Student Qualifiers -->
-        <article class="target-card-student">
-          <div class="target-img-frame">
-            <img src="https://drive.google.com/thumbnail?id=1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO&sz=w800" alt="Two students holding BakerTargets qualification sheets">
-            <span class="badge-course">Wear & Carry</span>
-            <span class="badge-score">Passed (100%)</span>
-          </div>
-          <div class="target-content">
-            <div style="color: var(--accent-amber); font-size: 1.05rem; margin-bottom: 6px;">★★★★★</div>
-            <div style="font-family: var(--font-display); font-size: 1.18rem; font-weight: 700; color: #fff; margin-bottom: 6px;">Dual-Student Center Clusters</div>
-            <p style="font-size: 0.86rem; color: var(--text-muted); font-style: italic; line-height: 1.5; margin-bottom: 12px;">"Great instruction on lawful use of force, avoidance principles, and a tight 25-round live-fire qualification course of fire."</p>
-            <div style="font-size: 0.76rem; color: var(--accent-cyan); font-family: var(--font-display); letter-spacing: 1px; text-transform: uppercase; border-top: 1px solid #16202c; padding-top: 8px;">Cindy's Hot Shots Range • MSP Wear & Carry</div>
-          </div>
-        </article>
-
-        <!-- Photo 8: 20251025 - Pink Silhouette Target -->
-        <article class="target-card-student">
-          <div class="target-img-frame">
-            <img src="https://drive.google.com/thumbnail?id=1rUcirGX7jLT0upSobd82iJf91Ycv9xlt&sz=w800" alt="Student smiling holding pink silhouette target">
-            <span class="badge-course">1-on-1 Coaching</span>
-            <span class="badge-score">100% Center Hits</span>
-          </div>
-          <div class="target-content">
-            <div style="color: var(--accent-amber); font-size: 1.05rem; margin-bottom: 6px;">★★★★★</div>
-            <div style="font-family: var(--font-display); font-size: 1.18rem; font-weight: 700; color: #fff; margin-bottom: 6px;">Recoil Management Mastery</div>
-            <p style="font-size: 0.86rem; color: var(--text-muted); font-style: italic; line-height: 1.5; margin-bottom: 12px;">"Diagnosed recoil anticipation and taught me a smooth trigger reset. Every round landed dead center in the vital scoring zone."</p>
-            <div style="font-size: 0.76rem; color: var(--accent-cyan); font-family: var(--font-display); letter-spacing: 1px; text-transform: uppercase; border-top: 1px solid #16202c; padding-top: 8px;">Private Diagnostic Coaching • Instructor Wade</div>
-          </div>
-        </article>
-
       </div>
 
       <!-- Testimonial Submission Form -->
       <div style="margin-top: 40px; border-top: 1px solid var(--border-subtle); padding-top: 24px;">
         <div class="panel-header">
-          <h3>Log Your First-Hand Account</h3>
-          <p>Submit your experience to be recorded into the master instructional journal.</p>
+          <h3>Trained With Us? Share Your Experience</h3>
+          <p>Your feedback helps guide new students and is added to our training journal.</p>
         </div>
 
         <form id="testimonial-form" onsubmit="submitTestimonial(event)">
@@ -1235,12 +1422,12 @@
           </div>
 
           <div class="form-group">
-            <label for="testimonialText">First-Hand Experience / Target Commentary <span class="req">*</span></label>
-            <textarea id="testimonialText" name="testimonialText" required placeholder="Describe your progression, range safety, and instruction quality..."></textarea>
+            <label for="testimonialText">Your Training Experience / Feedback <span class="req">*</span></label>
+            <textarea id="testimonialText" name="testimonialText" required placeholder="Share your experience on range safety, instruction quality, and instructor support..."></textarea>
           </div>
 
           <button type="submit" id="btn-test-submit" class="btn-primary">
-            Submit Testimonial
+            Submit Feedback
           </button>
 
           <div id="testimonial-status" class="status-msg" role="status" aria-live="polite"></div>
@@ -1248,10 +1435,78 @@
       </div>
     </section>
 
-    <!-- Spark Skill Launcher Dock -->
+    <!-- View 3: Canonical FAQ Knowledge Base -->
+    <section id="view-faq" role="tabpanel" class="panel hidden">
+      <div class="panel-header">
+        <h3>Frequently Asked Questions</h3>
+        <p>Clear, direct answers about Maryland requirements, range equipment, and scheduling.</p>
+      </div>
+
+      <div class="faq-item">
+        <button type="button" class="faq-question" onclick="toggleFaq(this)">
+          <span>Do I need to own a handgun before taking a class?</span>
+          <span>+</span>
+        </button>
+        <div class="faq-answer">
+          No. You do not need to own a firearm prior to enrolling. If you are taking the Maryland HQL or an introductory session, firearm rental and equipment orientation can be coordinated directly at the range.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button type="button" class="faq-question" onclick="toggleFaq(this)">
+          <span>What is the difference between an HQL and a Wear & Carry Permit?</span>
+          <span>+</span>
+        </button>
+        <div class="faq-answer">
+          A <strong>Handgun Qualification License (HQL)</strong> is required by Maryland law simply to purchase, rent, or receive a handgun. A <strong>Wear & Carry Permit (CCW)</strong> is the comprehensive certification required to legally carry a concealed handgun in public throughout Maryland.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button type="button" class="faq-question" onclick="toggleFaq(this)">
+          <span>Where does live-fire range training take place?</span>
+          <span>+</span>
+        </button>
+        <div class="faq-answer">
+          Our primary facility is <strong>Cindy's Hot Shots</strong> located at 115 Holsum Way, Glen Burnie, MD. However, private and small group sessions can also be adjusted or relocated to partner facilities across Maryland to accommodate your schedule.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button type="button" class="faq-question" onclick="toggleFaq(this)">
+          <span>How much ammunition do I need to bring?</span>
+          <span>+</span>
+        </button>
+        <div class="faq-answer">
+          Our ammunition protocol is standardized at <strong>50 to 100 rounds</strong> of factory ammunition across all class tiers. This covers both diagnostic warmup strings and your official state practical qualification course of fire.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button type="button" class="faq-question" onclick="toggleFaq(this)">
+          <span>What should I wear and bring on range day?</span>
+          <span>+</span>
+        </button>
+        <div class="faq-answer">
+          Please wear comfortable, range-appropriate attire: closed-toe shoes (no sandals), a crew-neck shirt, and a baseball cap (recommended). Bring wrap-around eye protection, hearing protection (electronic recommended), a government-issued photo ID, and your required ammunition.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button type="button" class="faq-question" onclick="toggleFaq(this)">
+          <span>What happens if I need to reschedule?</span>
+          <span>+</span>
+        </button>
+        <div class="faq-answer">
+          We understand that schedules change. Simply reply to your booking confirmation email or contact Instructor Wade directly via phone/text with at least 48 hours notice to transfer your reservation to an alternate training date.
+        </div>
+      </div>
+    </section>
+
+    <!-- Spark Assistant Dock -->
     <footer class="spark-dock">
       <h4 style="font-family: var(--font-display); color: var(--accent-cyan); font-size: 1.1rem;">Gemini Spark Guided Assistant</h4>
-      <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">Need real-time course orientation or onboarding?</p>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">Need immediate answers on scheduling, Maryland HQL, or carry rules?</p>
       <div class="spark-btn-group">
         <button type="button" class="btn-spark" onclick="triggerSparkSkill('/onboarding')">Launch /onboarding</button>
         <button type="button" class="btn-spark" onclick="triggerSparkSkill('/assistant')">Ask /assistant</button>
@@ -1292,11 +1547,16 @@
 
     function switchTab(tab) {
       const isBooking = tab === 'booking';
+      const isTestimonial = tab === 'testimonial';
+      const isFaq = tab === 'faq';
+
       document.getElementById('view-booking').classList.toggle('hidden', !isBooking);
-      document.getElementById('view-testimonial').classList.toggle('hidden', isBooking);
+      document.getElementById('view-testimonial').classList.toggle('hidden', !isTestimonial);
+      document.getElementById('view-faq').classList.toggle('hidden', !isFaq);
 
       document.getElementById('tab-booking').classList.toggle('active', isBooking);
-      document.getElementById('tab-testimonial').classList.toggle('active', !isBooking);
+      document.getElementById('tab-testimonial').classList.toggle('active', isTestimonial);
+      document.getElementById('tab-faq').classList.toggle('active', isFaq);
     }
 
     function selectCourse(courseValue) {
@@ -1304,6 +1564,13 @@
       selectElem.value = courseValue;
       selectElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
       selectElem.focus();
+    }
+
+    function toggleFaq(btn) {
+      const item = btn.parentElement;
+      item.classList.toggle('active');
+      const icon = btn.querySelector('span:last-child');
+      icon.textContent = item.classList.contains('active') ? '−' : '+';
     }
 
     function submitBooking(e) {
@@ -1384,7 +1651,7 @@
             handleTestimonialResponse(res, btn, statusDiv);
           })
           .withFailureHandler(function(err) {
-            handleErrorResponse(err, btn, statusDiv, "Submit Testimonial");
+            handleErrorResponse(err, btn, statusDiv, "Submit Feedback");
           })
           .handleTestimonialSubmission(payload);
       } else {
@@ -1397,15 +1664,15 @@
           handleTestimonialResponse(res, btn, statusDiv);
         })
         .catch(err => {
-          handleErrorResponse(err, btn, statusDiv, "Submit Testimonial");
+          handleErrorResponse(err, btn, statusDiv, "Submit Feedback");
         });
       }
     }
 
     function handleTestimonialResponse(res, btn, statusDiv) {
       btn.disabled = false;
-      btn.innerText = "Submit Testimonial";
-      statusDiv.textContent = res.message || "Testimonial logged.";
+      btn.innerText = "Submit Feedback";
+      statusDiv.textContent = res.message || "Feedback recorded.";
       statusDiv.className = "status-msg " + (res.status === 'success' ? 'success' : 'error');
       statusDiv.style.display = "block";
       if (res.status === 'success') {
@@ -1423,9 +1690,9 @@
 
     function triggerSparkSkill(cmd) {
       if (cmd === '/onboarding') {
-        alert("Initializing Spark Onboarding: Select a course tier above to establish your student intake record.");
+        alert("Welcome to Train With FIFS! Select any course tier to start your registration.");
       } else if (cmd === '/assistant') {
-        const q = prompt("Ask Assistant (Course tuition, ammo protocol, Maryland wear & carry):");
+        const q = prompt("Ask Assistant (Maryland HQL, CCW rules, or range protocol):");
         if (q) {
           alert("Inquiry logged: '" + q + "'. Instructor Wade will follow up via your preferred contact channel.");
         }
