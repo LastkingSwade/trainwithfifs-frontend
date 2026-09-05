@@ -1,680 +1,1472 @@
-/**
- * Future Initiative Firearm Services - Business Operating System & Student API
- * Lead Instructor: Kai Wade • Certified MSP Qualified Instructor (Md. Public Safety § 5-101)
- */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Train With FIFS | Maryland Firearms Training Platform</title>
+  <meta name="description" content="Maryland firearms training platform designed to build knowledge, safety, and confidence without intimidation. State-approved HQL, Wear & Carry (CCW), and private coaching with Lead Instructor Kai Wade.">
+  
+  <link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w128">
+  <link rel="shortcut icon" href="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w128">
+  <link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w180">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-core: #070b10;
+      --bg-panel: #0d121a;
+      --bg-card: rgba(16, 22, 31, 0.94);
+      --accent-cyan: #00e5ff;
+      --accent-cyan-glow: rgba(0, 229, 255, 0.35);
+      --accent-amber: #ffb703;
+      --accent-amber-glow: rgba(255, 183, 3, 0.3);
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-subtle: #1e293b;
+      --border-cyan: rgba(0, 229, 255, 0.3);
+      --font-display: 'Rajdhani', sans-serif;
+      --font-body: 'Inter', system-ui, sans-serif;
+      --nav-height: 72px;
+      --max-w: 1140px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-body); color: var(--text-main); background: var(--bg-core); min-height: 100vh; line-height: 1.6; overflow-x: hidden; }
+    .container { width: 100%; max-width: var(--max-w); margin: 0 auto; padding: 0 20px; }
+    .section-spacing { padding: 76px 0; }
+    @media (max-width: 768px) { .section-spacing { padding: 52px 0; } }
 
-const CONFIG = {
-  APP_TITLE: "Train With FIFS | Student Portal & Operations",
-  LEDGER_SHEET_NAME: "Student_Booking_Ledger",
-  TESTIMONIALS_FOLDER_NAME: "FIFS_Testimonials_Archive",
-  TESTIMONIALS_DOC_NAME: "FIFS_Continuous_Testimonials_Log",
-  STUDENT_PROFILES_FOLDER_NAME: "FIFS_Student_Profiles",
-  BUSINESS_NOTIFICATION_EMAIL: "futureinitiativefs@gmail.com",
-  GOOGLE_REVIEW_URL: "https://share.google/7bGi1FjainNaCUYIl",
-  DEFAULT_TIMEZONE: "America/New_York",
-  PRIMARY_RANGE: "Cindy's Hot Shots (115 Holsum Way, Glen Burnie, MD)",
-  AMMO_PROTOCOL: "50–100 rounds factory target ammunition",
-  ADMIN_PASSCODE: "1985"
-};
+    .section-header { text-align: center; max-width: 760px; margin: 0 auto 44px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-cyan); margin-bottom: 8px; }
+    .section-title { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 800; color: #fff; letter-spacing: 0.5px; line-height: 1.15; margin-bottom: 12px; }
+    .section-desc { font-size: clamp(0.95rem, 1.8vw, 1.05rem); color: var(--text-muted); line-height: 1.65; }
 
-/**
- * Serves the Web App directly if accessed on script.google.com
- */
-function doGet(e) {
-  try {
-    return HtmlService.createTemplateFromFile("index")
-      .evaluate()
-      .setTitle(CONFIG.APP_TITLE)
-      .addMetaTag("viewport", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no")
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-  } catch (err) {
-    return HtmlService.createTemplateFromFile("index.html")
-      .evaluate()
-      .setTitle(CONFIG.APP_TITLE)
-      .addMetaTag("viewport", "width=device-width, initial-scale=1.0")
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-  }
-}
+    /* Nav */
+    .site-header { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-height); background: rgba(7, 11, 16, 0.94); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-subtle); z-index: 1000; }
+    .nav-container { display: flex; justify-content: space-between; align-items: center; height: 100%; }
+    .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; cursor: pointer; }
+    .nav-logo { width: 42px; height: 42px; object-fit: contain; filter: drop-shadow(0 0 8px var(--accent-cyan-glow)); }
+    .brand-title { font-family: var(--font-display); font-size: 1.28rem; font-weight: 800; color: #fff; letter-spacing: 1.5px; line-height: 1.1; text-transform: uppercase; }
+    .brand-sub { font-size: 0.70rem; font-weight: 600; letter-spacing: 1.5px; color: var(--accent-cyan); text-transform: uppercase; }
+    .nav-menu { display: flex; align-items: center; gap: 24px; list-style: none; }
+    .nav-link { color: var(--text-muted); text-decoration: none; font-size: 0.92rem; font-weight: 500; transition: color 0.2s; cursor: pointer; }
+    .nav-link:hover { color: var(--accent-cyan); }
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
 
-/**
- * PRIMARY API DISPATCHER: Handles public bookings, student portal, and admin commands
- */
-function doPost(e) {
-  try {
-    if (!e || !e.postData || !e.postData.contents) {
-      return ContentService.createTextOutput(JSON.stringify({
-        status: "error",
-        message: "No request body provided."
-      })).setMimeType(ContentService.MimeType.JSON);
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 10px 20px; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.25s ease; white-space: nowrap; border: none; }
+    .btn-login-nav { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-subtle); color: var(--text-main); }
+    .btn-login-nav:hover { background: rgba(0, 229, 255, 0.12); border-color: var(--accent-cyan); color: var(--accent-cyan); }
+    .btn-primary-nav { background: linear-gradient(135deg, #00e5ff 0%, #0099cc 100%); color: #070b10 !important; box-shadow: 0 0 16px var(--accent-cyan-glow); }
+    .btn-primary-nav:hover { background: linear-gradient(135deg, #4deeea 0%, #00e5ff 100%); transform: translateY(-1px); box-shadow: 0 0 24px rgba(0, 229, 255, 0.6); }
+    .btn-hero-primary { background: linear-gradient(135deg, #00e5ff 0%, #00a8cc 100%); color: #050d18 !important; font-size: 1.15rem; padding: 16px 32px; border-radius: 10px; font-weight: 800; letter-spacing: 1.5px; box-shadow: 0 0 24px var(--accent-cyan-glow); }
+    .btn-hero-primary:hover { background: linear-gradient(135deg, #fff 0%, #00e5ff 100%); transform: translateY(-2px); box-shadow: 0 0 34px rgba(0, 229, 255, 0.85); }
+    .btn-hero-secondary { background: rgba(13, 18, 26, 0.85); border: 1px solid rgba(0, 229, 255, 0.35); color: #fff; font-size: 1.05rem; padding: 15px 28px; border-radius: 10px; backdrop-filter: blur(8px); }
+    .btn-hero-secondary:hover { background: rgba(0, 229, 255, 0.15); border-color: var(--accent-cyan); color: var(--accent-cyan); transform: translateY(-2px); }
+    .mobile-menu-btn { display: none; background: none; border: 1px solid var(--border-subtle); border-radius: 6px; color: #fff; font-size: 1.4rem; padding: 6px 10px; cursor: pointer; }
+    @media (max-width: 900px) { .nav-menu { display: none; } .mobile-menu-btn { display: block; } }
+
+    .mobile-drawer { display: none; position: fixed; top: var(--nav-height); left: 0; right: 0; background: #0d121a; border-bottom: 1px solid var(--border-subtle); padding: 20px; flex-direction: column; gap: 14px; z-index: 999; }
+    .mobile-drawer.active { display: flex; }
+    .mobile-drawer a { color: #fff; text-decoration: none; font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; text-transform: uppercase; padding: 6px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+
+    /* Hero */
+    .hero-section { position: relative; min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: calc(var(--nav-height) + 24px) 20px 48px; text-align: center; overflow: hidden; }
+    .hero-bg-wrapper { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+    .hero-bg-img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+    @media (min-width: 768px) { .hero-bg-img { object-fit: contain; object-position: center top; } }
+    .hero-vignette { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7, 11, 16, 0.45) 0%, transparent 25%, rgba(7, 11, 16, 0.70) 65%, var(--bg-core) 100%); }
+    .hero-content { position: relative; z-index: 10; max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    .hero-badge-pill { display: inline-flex; align-items: center; gap: 10px; background: rgba(7, 11, 16, 0.85); border: 1px solid rgba(0, 229, 255, 0.35); backdrop-filter: blur(12px); padding: 6px 18px; border-radius: 30px; font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #fff; }
+    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); animation: pulse 1.8s infinite ease-in-out; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.4; } }
+    .hero-headline { font-family: var(--font-display); font-size: clamp(2.5rem, 6.5vw, 4.5rem); font-weight: 800; letter-spacing: 1px; color: #fff; line-height: 1.05; text-transform: uppercase; text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8); }
+    .hero-headline span { color: var(--accent-cyan); text-shadow: 0 0 24px var(--accent-cyan-glow); }
+    .hero-msg { font-size: clamp(1.05rem, 2vw, 1.25rem); color: #e2e8f0; max-width: 660px; line-height: 1.6; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8); }
+    .hero-cta-group { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 8px; }
+    .hero-cats { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent-amber); background: rgba(13, 18, 26, 0.75); border: 1px solid var(--border-subtle); border-radius: 30px; padding: 8px 22px; margin-top: 10px; }
+
+    /* Zero Intimidation */
+    .zi-card { background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 18, 26, 0.95) 100%); border: 1px solid var(--border-cyan); border-radius: 20px; padding: clamp(28px, 5vw, 52px); margin-bottom: 40px; position: relative; }
+    .zi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: linear-gradient(180deg, var(--accent-cyan), var(--accent-amber)); }
+    .zi-quote { font-family: var(--font-display); font-size: clamp(1.35rem, 3vw, 2rem); font-weight: 700; color: #fff; line-height: 1.35; margin-bottom: 18px; }
+    .zi-body { font-size: 1.02rem; color: var(--text-muted); line-height: 1.7; max-width: 820px; }
+    .zi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 28px; }
+    .zi-box { background: rgba(7, 11, 16, 0.6); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 18px; display: flex; gap: 12px; }
+    .zi-box h4 { font-family: var(--font-display); font-size: 1.1rem; color: #fff; margin-bottom: 4px; }
+    .zi-box p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* Pathways & Courses */
+    .pathway-selector { background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 24px; margin-bottom: 44px; }
+    .pathway-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 16px; }
+    .pathway-pill { background: #070b10; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.25s; display: flex; flex-direction: column; justify-content: space-between; }
+    .pathway-pill:hover { border-color: var(--accent-cyan); transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-cyan-glow); }
+    .pathway-intent { font-family: var(--font-display); font-size: 0.86rem; font-weight: 700; color: var(--accent-amber); text-transform: uppercase; margin-bottom: 4px; }
+    .pathway-rec { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
+    .pathway-cta { font-size: 0.78rem; color: var(--accent-cyan); font-weight: 600; text-transform: uppercase; }
+
+    .courses-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
+    .course-card { background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 28px 24px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.25s; position: relative; }
+    .course-card:hover { border-color: var(--accent-cyan); transform: translateY(-3px); box-shadow: 0 12px 36px rgba(0, 229, 255, 0.15); }
+    .course-card.featured { border-color: var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.06) 0%, rgba(13, 18, 26, 0.95) 100%); }
+    .badge-feat { position: absolute; top: -12px; right: 20px; background: var(--accent-amber); color: #070b10; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; }
+    .c-title { font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
+    .c-price { font-family: var(--font-display); font-size: 2.1rem; font-weight: 800; color: var(--accent-cyan); margin-bottom: 12px; }
+    .c-price span { font-size: 0.95rem; font-weight: 600; color: var(--text-muted); }
+    .c-desc { font-size: 0.90rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px; }
+    .c-list { list-style: none; font-size: 0.88rem; color: #cbd5e1; margin-bottom: 24px; display: flex; flex-direction: column; gap: 8px; }
+    .c-list li { display: flex; gap: 10px; align-items: flex-start; }
+    .c-list li::before { content: '✔'; color: var(--accent-amber); font-weight: bold; }
+
+    /* Journey */
+    .journey-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+    .j-card { background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 22px 20px; transition: all 0.2s; }
+    .j-card:hover { border-color: var(--accent-cyan); transform: translateY(-2px); }
+    .j-num { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: rgba(0, 229, 255, 0.25); line-height: 1; margin-bottom: 6px; }
+    .j-title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 6px; text-transform: uppercase; }
+    .j-desc { font-size: 0.86rem; color: var(--text-muted); line-height: 1.55; }
+
+    /* Portal Spotlight */
+    .spotlight-box { background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 18, 26, 0.95) 100%); border: 1px solid var(--border-cyan); border-radius: 20px; padding: clamp(28px, 5vw, 48px); }
+    .spotlight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; align-items: center; }
+    @media (max-width: 860px) { .spotlight-grid { grid-template-columns: 1fr; } }
+    .spotlight-mock { background: #070b10; border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 16px; padding: 20px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8); }
+
+    /* Instructor */
+    .inst-box { background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 20px; padding: clamp(28px, 5vw, 48px); display: grid; grid-template-columns: auto 1fr; gap: 36px; align-items: center; }
+    @media (max-width: 768px) { .inst-box { grid-template-columns: 1fr; text-align: center; } }
+    .inst-img { width: 140px; height: 140px; border-radius: 50%; border: 3px solid var(--accent-cyan); box-shadow: 0 0 20px var(--accent-cyan-glow); object-fit: cover; margin: 0 auto; display: block; }
+    .inst-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .inst-tag { background: #070b10; border: 1px solid var(--border-subtle); color: var(--text-main); font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; }
+
+    /* Target Cards Gallery */
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+    .t-card { background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65); transition: transform 0.25s, border-color 0.25s; }
+    .t-card:hover { transform: translateY(-3px); border-color: var(--accent-cyan); }
+    .t-frame { width: 100%; height: 330px; background: #070b10; position: relative; overflow: hidden; }
+    .t-frame img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; transition: transform 0.3s; }
+    .t-card:hover .t-frame img { transform: scale(1.03); }
+    .t-badge-c { position: absolute; bottom: 10px; left: 10px; background: rgba(7, 11, 16, 0.92); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; }
+    .t-badge-s { position: absolute; top: 10px; right: 10px; background: var(--accent-amber); color: #070b10; font-family: var(--font-display); font-weight: 700; font-size: 0.8rem; padding: 4px 10px; border-radius: 4px; }
+    .t-body { padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .t-name { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .t-desc { font-size: 0.84rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; }
+    .t-loc { font-size: 0.78rem; color: var(--accent-cyan); font-weight: 600; }
+    .rev-box { background: linear-gradient(135deg, rgba(255, 183, 3, 0.12) 0%, rgba(16, 22, 31, 0.95) 100%); border: 1px solid var(--accent-amber); border-radius: 14px; padding: 24px; text-align: center; margin-bottom: 32px; }
+
+    /* FAQ */
+    .faq-row { background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+    .faq-q { width: 100%; background: none; border: none; padding: 18px 20px; font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: #fff; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .faq-a { display: none; padding: 0 20px 18px; font-size: 0.92rem; color: var(--text-muted); line-height: 1.65; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 14px; }
+    .faq-row.active .faq-a { display: block; }
+
+    /* CTA & Footer */
+    .cta-banner { background: linear-gradient(135deg, rgba(0, 229, 255, 0.12) 0%, rgba(13, 18, 26, 0.98) 100%); border: 2px solid var(--accent-cyan); box-shadow: 0 0 30px var(--accent-cyan-glow); border-radius: 20px; padding: clamp(32px, 6vw, 64px); text-align: center; }
+    .footer { background: #05080c; border-top: 1px solid var(--border-subtle); padding: 48px 0 24px; font-size: 0.88rem; color: #64748b; }
+    .f-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 36px; margin-bottom: 36px; }
+    @media (max-width: 768px) { .f-grid { grid-template-columns: 1fr; } }
+
+    /* Booking View */
+    #view-booking { display: none; padding: calc(var(--nav-height) + 20px) 0 80px; min-height: 100vh; }
+    .b-box { max-width: 780px; margin: 0 auto; background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 18px; padding: clamp(24px, 4vw, 40px); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7); }
+    .stepper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+    .s-node { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .s-circ { width: 36px; height: 36px; border-radius: 50%; background: #070b10; border: 2px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; color: var(--text-muted); }
+    .s-node.active .s-circ { border-color: var(--accent-cyan); color: var(--accent-cyan); box-shadow: 0 0 12px var(--accent-cyan-glow); }
+    .s-node.completed .s-circ { background: var(--accent-green); border-color: var(--accent-green); color: #070b10; }
+    .s-lbl { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); }
+
+    .fg { margin-bottom: 20px; }
+    .fl { display: block; font-size: 0.88rem; font-weight: 600; color: #cbd5e1; margin-bottom: 8px; }
+    .fi, .fs, .ft { width: 100%; background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px 14px; color: #fff; font-family: var(--font-body); font-size: 1rem; min-height: 48px; }
+    .fi:focus, .fs:focus, .ft:focus { outline: none; border-color: var(--accent-cyan); box-shadow: 0 0 10px var(--accent-cyan-glow); }
+    .ft { resize: vertical; min-height: 90px; }
+
+    /* Student Portal View */
+    #view-student { display: none; padding: calc(var(--nav-height) + 16px) 0 80px; min-height: 100vh; }
+    .sp-bar { display: flex; justify-content: space-between; align-items: center; background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .sp-chip { background: #070b10; border: 1px solid var(--border-subtle); font-family: var(--font-display); font-size: 0.82rem; font-weight: 700; padding: 3px 10px; border-radius: 4px; text-transform: uppercase; color: var(--text-muted); }
+    .sp-chip.status-act { background: rgba(255, 183, 3, 0.12); border-color: var(--accent-amber); color: var(--accent-amber); }
+
+    .p-hero { background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(13, 18, 26, 0.98) 100%); border: 2px solid var(--accent-cyan); box-shadow: 0 0 28px var(--accent-cyan-glow); border-radius: 18px; padding: 24px; margin-bottom: 28px; }
+    .p-tag { font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; letter-spacing: 1.5px; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 6px; }
+    .p-h3 { font-family: var(--font-display); font-size: clamp(1.4rem, 2.5vw, 1.9rem); font-weight: 800; color: #fff; line-height: 1.2; margin-bottom: 8px; }
+    .p-desc { font-size: 0.95rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 18px; max-width: 740px; }
+
+    .j-track-box { background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px; margin-bottom: 28px; }
+    .j-bar-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-top: 12px; }
+    .j-node { background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 8px; text-align: center; font-size: 0.78rem; color: var(--text-muted); }
+    .j-node.done { border-color: var(--accent-green); background: rgba(16, 185, 129, 0.1); color: var(--accent-green); font-weight: 700; }
+    .j-node.curr { border-color: var(--accent-cyan); background: rgba(0, 229, 255, 0.15); color: var(--accent-cyan); font-weight: 800; box-shadow: 0 0 12px var(--accent-cyan-glow); }
+
+    .sp-tabs { display: flex; gap: 10px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 24px; overflow-x: auto; padding-bottom: 6px; }
+    .sp-tab { background: none; border: none; color: var(--text-muted); font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; text-transform: uppercase; padding: 10px 16px; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+    .sp-tab.active, .sp-tab:hover { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
+
+    .chk-card { background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px 20px; display: flex; align-items: flex-start; gap: 14px; cursor: pointer; margin-bottom: 12px; }
+    .chk-card.checked { background: rgba(16, 185, 129, 0.08); border-color: var(--accent-green); }
+    .chk-input { width: 22px; height: 22px; accent-color: var(--accent-cyan); margin-top: 2px; cursor: pointer; }
+
+    /* Command Center View */
+    #view-command { display: none; padding: calc(var(--nav-height) + 16px) 0 80px; min-height: 100vh; }
+    .cmd-header { background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px; }
+    .cmd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .cmd-metric { background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 18px; text-align: center; }
+    .cmd-val { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-cyan); line-height: 1; margin-bottom: 4px; }
+    .cmd-tbl-box { background: #070b10; border: 1px solid var(--border-subtle); border-radius: 14px; overflow-x: auto; padding: 16px; }
+    .tbl { width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left; }
+    .tbl th, .tbl td { padding: 12px 14px; border-bottom: 1px solid var(--border-subtle); }
+    .tbl th { font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 1px; color: var(--accent-cyan); text-transform: uppercase; background: #0d121a; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.active { display: flex; }
+    .modal-card { background: #0d121a; border: 1px solid var(--border-cyan); border-radius: 18px; width: 100%; max-width: 460px; padding: 32px 28px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9); position: relative; }
+    .m-close { position: absolute; top: 16px; right: 18px; background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    .m-tabs { display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px; }
+    .m-tab { background: none; border: none; color: var(--text-muted); font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; text-transform: uppercase; padding: 8px 12px; cursor: pointer; }
+    .m-tab.active { color: var(--accent-cyan); border-bottom: 2px solid var(--accent-cyan); }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- ================= PUBLIC HEADER ================= -->
+  <header class="site-header">
+    <div class="container nav-container">
+      <a class="nav-brand" onclick="navigateApp('public'); return false;" href="#top">
+        <img src="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w500" alt="FIFS Logo" class="nav-logo">
+        <div class="brand-text">
+          <span class="brand-title">Train With FIFS</span>
+          <span class="brand-sub">Maryland Training Platform</span>
+        </div>
+      </a>
+      <ul class="nav-menu">
+        <li><a class="nav-link" href="#training" onclick="scrollSection('training')">Training</a></li>
+        <li><a class="nav-link" href="#journey" onclick="scrollSection('journey')">How It Works</a></li>
+        <li><a class="nav-link" href="#why-fifs" onclick="scrollSection('why-fifs')">Why FIFS</a></li>
+        <li><a class="nav-link" href="#about" onclick="scrollSection('about')">Instructor</a></li>
+        <li><a class="nav-link" href="#targets" onclick="scrollSection('targets')">Student Targets</a></li>
+        <li><a class="nav-link" href="#faq" onclick="scrollSection('faq')">FAQ</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button type="button" class="btn btn-login-nav" onclick="openLoginModal('student')">Sign In</button>
+        <button type="button" class="btn btn-primary-nav" onclick="startBooking()">Book Training</button>
+        <button type="button" class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Menu">☰</button>
+      </div>
+    </div>
+    <div class="mobile-drawer" id="mobile-drawer">
+      <a href="#training" onclick="toggleMobileMenu(); scrollSection('training')">Training Courses</a>
+      <a href="#journey" onclick="toggleMobileMenu(); scrollSection('journey')">The 8-Step Journey</a>
+      <a href="#why-fifs" onclick="toggleMobileMenu(); scrollSection('why-fifs')">Why FIFS & Safety</a>
+      <a href="#about" onclick="toggleMobileMenu(); scrollSection('about')">Instructor Kai Wade</a>
+      <a href="#targets" onclick="toggleMobileMenu(); scrollSection('targets')">Student Targets</a>
+      <a href="#faq" onclick="toggleMobileMenu(); scrollSection('faq')">Common Questions</a>
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button type="button" class="btn btn-login-nav" style="flex: 1;" onclick="toggleMobileMenu(); openLoginModal('student')">Sign In</button>
+        <button type="button" class="btn btn-primary-nav" style="flex: 1;" onclick="toggleMobileMenu(); startBooking()">Book Class</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= VIEW 1: PUBLIC FIFS ================= -->
+  <div id="view-public">
+    <!-- 1. HERO -->
+    <section class="hero-section" id="top">
+      <div class="hero-bg-wrapper">
+        <img src="https://lh3.googleusercontent.com/d/1lG_LMJ9gBJ3e_DZAkuivaEp-sKH2c0wW" onerror="this.src='https://drive.google.com/thumbnail?id=1lG_LMJ9gBJ3e_DZAkuivaEp-sKH2c0wW&sz=w1920'" alt="Future Initiative Training Background" class="hero-bg-img">
+        <div class="hero-vignette"></div>
+      </div>
+      <div class="hero-content">
+        <div class="hero-badge-pill">
+          <span class="pulse-dot" id="live-est-dot"></span>
+          <span>THE FUTURE IS NOW • TAKE THE INITIATIVE</span>
+        </div>
+        <h1 class="hero-headline">TRAIN WITH <span>CONFIDENCE.</span></h1>
+        <p class="hero-msg">Maryland firearms training designed to build knowledge, safety, and confidence — without intimidation.</p>
+        <div class="hero-cta-group">
+          <button type="button" class="btn btn-hero-primary" onclick="startBooking()">🎯 Book Your Training</button>
+          <button type="button" class="btn btn-hero-secondary" onclick="scrollSection('training')">Explore Training ↓</button>
+        </div>
+        <div class="hero-cats">
+          <span>HQL</span> • <span>Wear & Carry</span> • <span>Private Training</span> • <span>Continuing Education</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. WHY FIFS & ZERO INTIMIDATION -->
+    <section class="section-spacing" id="why-fifs" style="background: #080c12;">
+      <div class="container">
+        <div class="zi-card">
+          <div class="eyebrow">The FIFS Difference</div>
+          <h2 class="zi-quote">"You don't need to be an expert to get started. You don't need to feel intimidated. You don't need to know everything before you arrive."</h2>
+          <p class="zi-body">At Future Initiative Firearm Services, our mission is built on a <strong>zero-intimidation philosophy</strong>. Firearms ownership in Maryland requires legal accountability, mechanical respect, and diagnostic discipline. Whether you are holding a firearm for the very first time or refining your draw cadence, Instructor Kai Wade tailors each block of instruction to your comfort level.</p>
+          <div style="background: rgba(7, 11, 16, 0.7); border-left: 3px solid var(--accent-amber); padding: 14px 20px; border-radius: 0 10px 10px 0; margin-top: 24px;">
+            <strong style="color: #fff; display: block; font-family: var(--font-display); font-size: 1.15rem;">Our Core Promise:</strong>
+            <p style="color: #cbd5e1; font-size: 0.95rem; margin-top: 4px;">We don't just teach you how to handle a firearm. We help you become a safe, knowledgeable, confident, and responsible firearm owner.</p>
+          </div>
+          <div class="zi-grid">
+            <div class="zi-box"><span>🛡️</span><div><h4>Zero Intimidation</h4><p>Paced to foster steady questions, safe muscle memory, and real confidence.</p></div></div>
+            <div class="zi-box"><span>🎯</span><div><h4>Diagnostic Coaching</h4><p>Pinpoint stance, grip friction, and trigger press corrections for tight shot clusters.</p></div></div>
+            <div class="zi-box"><span>⚖️</span><div><h4>Maryland Legal Rigor</h4><p>Practical mastery of State v. Faulkner self-defense pillars and safe storage mandates.</p></div></div>
+            <div class="zi-box"><span>📱</span><div><h4>Long-Term Mentorship</h4><p>Your journey continues past range day with guidance through the MSP portal.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. TRAINING OFFERINGS -->
+    <section class="section-spacing" id="training">
+      <div class="container">
+        <div class="section-header">
+          <div class="eyebrow">Approved Curriculum & Tuition</div>
+          <h2 class="section-title">Maryland Firearms Training Pathways</h2>
+          <p class="section-desc">Transparent pricing, approved state certifications, and structured private instruction. Select a pathway based on your personal defense goals:</p>
+        </div>
+
+        <div class="pathway-selector">
+          <div style="text-align: center; margin-bottom: 16px;">
+            <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff;">Not sure where to begin? Choose your goal:</h3>
+          </div>
+          <div class="pathway-grid">
+            <div class="pathway-pill" onclick="selectCourseAndBook('Maryland HQL ($100.00)')">
+              <div class="pathway-intent">I'm New to Firearms</div>
+              <div class="pathway-rec">Start Here: HQL</div>
+              <div class="pathway-cta">View Details →</div>
+            </div>
+            <div class="pathway-pill" onclick="selectCourseAndBook('Maryland HQL ($100.00)')">
+              <div class="pathway-intent">I Want to Purchase</div>
+              <div class="pathway-rec">Handgun License (HQL)</div>
+              <div class="pathway-cta">$100.00 • 4-Hr →</div>
+            </div>
+            <div class="pathway-pill" onclick="selectCourseAndBook('Maryland CCW (Wear & Carry) ($199.99)')">
+              <div class="pathway-intent">I Want to Carry</div>
+              <div class="pathway-rec">Wear & Carry (CCW)</div>
+              <div class="pathway-cta">$199.99 • 16-Hr →</div>
+            </div>
+            <div class="pathway-pill" onclick="selectCourseAndBook('Maryland CCW & HQL Combo ($249.99)')">
+              <div class="pathway-intent">I Want Both</div>
+              <div class="pathway-rec">CCW & HQL Combo</div>
+              <div class="pathway-cta">Most Popular • $249.99 →</div>
+            </div>
+            <div class="pathway-pill" onclick="selectCourseAndBook('Personal One-on-One Class ($125.00 / hr)')">
+              <div class="pathway-intent">Personalized Focus</div>
+              <div class="pathway-rec">Private 1-on-1 Coaching</div>
+              <div class="pathway-cta">$125.00 / hr →</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="courses-grid">
+          <div class="course-card">
+            <div>
+              <div class="c-title">Maryland HQL</div>
+              <div class="c-price">$100.00</div>
+              <p class="c-desc">The mandatory state prerequisite required to purchase, rent, or receive a handgun in Maryland. Perfect for beginners.</p>
+              <ul class="c-list">
+                <li>Safe firearm handling & home storage rules</li>
+                <li>Live-fire shooting orientation at Cindy's Hot Shots</li>
+                <li>MSP 77R portal application filing guidance</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-primary-nav" style="width: 100%;" onclick="selectCourseAndBook('Maryland HQL ($100.00)')">Register for HQL →</button>
+          </div>
+
+          <div class="course-card">
+            <div>
+              <div class="c-title">Maryland CCW (Wear & Carry)</div>
+              <div class="c-price">$199.99</div>
+              <p class="c-desc">Comprehensive certification required to legally carry a concealed handgun in public throughout Maryland.</p>
+              <ul class="c-list">
+                <li>16-Hour mandatory state curriculum</li>
+                <li>Use of force legal pillars & conflict de-escalation</li>
+                <li>Official 25-round practical qualification on B-27</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-primary-nav" style="width: 100%;" onclick="selectCourseAndBook('Maryland CCW (Wear & Carry) ($199.99)')">Register for CCW →</button>
+          </div>
+
+          <div class="course-card featured">
+            <span class="badge-feat">⭐ Most Popular</span>
+            <div>
+              <div class="c-title">CCW & HQL Combo</div>
+              <div class="c-price">$249.99</div>
+              <p class="c-desc">The ultimate dual-certification package. Satisfies both handgun purchase (HQL) and concealed carry (Wear & Carry) in one curriculum.</p>
+              <ul class="c-list">
+                <li>Dual credential training in one coordinated syllabus</li>
+                <li>Save time and streamline your state documentation</li>
+                <li>Full classroom legal mastery and live-fire qualification</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-hero-primary" style="width: 100%;" onclick="selectCourseAndBook('Maryland CCW & HQL Combo ($249.99)')">Register for Combo →</button>
+          </div>
+
+          <div class="course-card">
+            <div>
+              <div class="c-title">Personal One-on-One Class</div>
+              <div class="c-price">$125.00 <span>/ hr</span></div>
+              <p class="c-desc">Dedicated private range coaching tailored specifically to your individual mechanics, optic zeroing, or concealed draw stroke.</p>
+              <ul class="c-list">
+                <li>100% private focus with Chief Kai Wade</li>
+                <li>Diagnostic trigger press & grip biomechanics</li>
+                <li>Flexible scheduling at Cindy's Hot Shots</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-primary-nav" style="width: 100%;" onclick="selectCourseAndBook('Personal One-on-One Class ($125.00 / hr)')">Book Private 1-on-1 →</button>
+          </div>
+
+          <div class="course-card">
+            <div>
+              <div class="c-title">Gun Cleaning Class</div>
+              <div class="c-price">$75.00</div>
+              <p class="c-desc">Master field-stripping, thorough carbon cleaning, ultrasonic inspection, lubrication points, and mechanical safety checks.</p>
+              <ul class="c-list">
+                <li>Safe clearing and complete field disassembly</li>
+                <li>Lubrication points vs. dry contact areas</li>
+                <li>Reassembly and function check validation</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-primary-nav" style="width: 100%;" onclick="selectCourseAndBook('Gun Cleaning Class ($75.00)')">Book Cleaning Class →</button>
+          </div>
+
+          <div class="course-card">
+            <div>
+              <div class="c-title">Children's Firearm Safety Class</div>
+              <div class="c-price">$199.99</div>
+              <p class="c-desc">Structured, parent-accompanied youth firearm education. Removes dangerous curiosity and replaces it with safety respect.</p>
+              <ul class="c-list">
+                <li>Eddie Eagle: Stop! Don't Touch. Leave. Tell an Adult.</li>
+                <li>Child access prevention (Jaelynn's Law) for parents</li>
+                <li>Mechanical safe storage lockbox demonstration</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-primary-nav" style="width: 100%;" onclick="selectCourseAndBook('Children\'s Firearm Training Class ($199.99)')">Book Safety Class →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. THE 8-STEP JOURNEY -->
+    <section class="section-spacing" id="journey" style="background: #080c12;">
+      <div class="container">
+        <div class="section-header">
+          <div class="eyebrow">Predictable, Transparent Progression</div>
+          <h2 class="section-title">Your 8-Step FIFS Journey</h2>
+          <p class="section-desc">You will always know exactly where you stand and what happens next. From online booking through permit in hand:</p>
+        </div>
+        <div class="journey-grid">
+          <div class="j-card"><div class="j-num">01</div><div class="j-title">Register</div><p class="j-desc">Select your course curriculum online to initialize your official student dossier and Student ID.</p></div>
+          <div class="j-card"><div class="j-num">02</div><div class="j-title">Confirm</div><p class="j-desc">Instructor Kai Wade verifies your preferred date, coordinates logistics, and locks in your range lane.</p></div>
+          <div class="j-card"><div class="j-num">03</div><div class="j-title">Prepare</div><p class="j-desc">Access your Student Portal to complete your pre-class checklist: ammo count, eye/ear pro, and transport rules.</p></div>
+          <div class="j-card"><div class="j-num">04</div><div class="j-title">Classroom</div><p class="j-desc">Engage in thorough instruction covering Maryland self-defense statutes, safe storage, and gun mechanics.</p></div>
+          <div class="j-card"><div class="j-num">05</div><div class="j-title">Live-Fire</div><p class="j-desc">Conduct diagnostic drills and the official Maryland 25-round practical qualification at Cindy's Hot Shots.</p></div>
+          <div class="j-card"><div class="j-num">06</div><div class="j-title">Certificate</div><p class="j-desc">Receive your official MSP Training Certification signed by Certified Instructor Kai Wade.</p></div>
+          <div class="j-card"><div class="j-num">07</div><div class="j-title">MSP Portal</div><p class="j-desc">Follow our step-by-step portal filing guide to upload your LiveScan fingerprints with zero shortages.</p></div>
+          <div class="j-card"><div class="j-num">08</div><div class="j-title">Licensed</div><p class="j-desc">Permit in hand! Continue your journey with continuing education, holster clinics, and renewals.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. STUDENT PORTAL SPOTLIGHT -->
+    <section class="section-spacing">
+      <div class="container">
+        <div class="spotlight-box">
+          <div class="spotlight-grid">
+            <div>
+              <div class="eyebrow">A Better Student Experience</div>
+              <h2 class="section-title" style="text-align: left;">Your Training. Your Progress. Your Next Step.</h2>
+              <p style="color: #cbd5e1; font-size: 1.05rem; line-height: 1.7; margin-bottom: 24px;">Your FIFS experience doesn't end when you book. Your personal student portal keeps your preparation, schedule, training information, documents, progress, and next steps organized in one place.</p>
+              <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px;">
+                <div><span style="color: var(--accent-cyan); font-weight: bold;">⚡ Priority Action Concierge:</span> <span style="color: var(--text-muted); font-size: 0.9rem;">Always highlights the single most important task to do next.</span></div>
+                <div><span style="color: var(--accent-cyan); font-weight: bold;">📋 Interactive Readiness Checklist:</span> <span style="color: var(--text-muted); font-size: 0.9rem;">Verify ammo, eye/ear protection, and Maryland transport rules.</span></div>
+                <div><span style="color: var(--accent-cyan); font-weight: bold;">📄 Cloud Training Dossier:</span> <span style="color: var(--text-muted); font-size: 0.9rem;">Direct access to your official student document in Google Drive.</span></div>
+              </div>
+              <button type="button" class="btn btn-hero-primary" onclick="openLoginModal('student')">Access Student Portal →</button>
+            </div>
+            <div class="spotlight-mock">
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; margin-bottom: 16px;">
+                <div><span style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: #fff;">FIFS Student Portal</span><span style="display: block; font-size: 0.75rem; color: var(--text-muted);">Welcome, Jordan Vance</span></div>
+                <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-green); color: var(--accent-green); font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 4px;">ACTIVE: PREPARATION</span>
+              </div>
+              <div style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(13, 18, 26, 0.9) 100%); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                <div style="font-size: 0.72rem; color: var(--accent-cyan); font-weight: 800; text-transform: uppercase;">🚀 Priority Action Required</div>
+                <div style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: #fff; margin: 4px 0;">Complete Your Range Readiness Tasks</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Confirm your 50–100 rounds factory target ammunition and wrap-around eye protection.</div>
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">8-Step Training Journey (Step 3 of 8):</div>
+              <div style="display: flex; gap: 6px; font-size: 0.72rem; font-family: var(--font-display); overflow-x: auto; padding-bottom: 6px;">
+                <div style="background: #0d121a; border: 1px solid var(--accent-green); color: var(--accent-green); padding: 6px 10px; border-radius: 6px;">1. Register ✔</div>
+                <div style="background: #0d121a; border: 1px solid var(--accent-green); color: var(--accent-green); padding: 6px 10px; border-radius: 6px;">2. Confirm ✔</div>
+                <div style="background: #0d121a; border: 1px solid var(--accent-cyan); color: var(--accent-cyan); padding: 6px 10px; border-radius: 6px;">3. Prepare ⚡</div>
+                <div style="background: #0d121a; border: 1px solid var(--border-subtle); padding: 6px 10px; border-radius: 6px;">4. Classroom</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. INSTRUCTOR -->
+    <section class="section-spacing" id="about" style="background: #080c12;">
+      <div class="container">
+        <div class="inst-box">
+          <img src="https://drive.google.com/thumbnail?id=1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO&sz=w500" alt="Instructor Kai Wade" class="inst-img">
+          <div>
+            <div class="eyebrow">Leadership & Expertise</div>
+            <h3 style="font-family: var(--font-display); font-size: 1.85rem; font-weight: 800; color: #fff; margin-bottom: 4px;">Chief Kai Wade</h3>
+            <div style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 1rem; font-weight: 700; text-transform: uppercase; margin-bottom: 12px;">Founder & Lead Instructor • Future Initiative Firearm Services</div>
+            <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.7;">Kai Wade is an NRA-Certified Firearms Instructor and a Maryland State Police Certified Qualified Handgun Instructor (§ 5-101). He brings an analytical, patient approach to firearms education. Rather than relying on intimidation, Chief Wade focuses on biomechanics, visual diagnostics, trigger press dynamics, and deep mastery of Maryland self-defense statutes.</p>
+            <div class="inst-tags">
+              <span class="inst-tag">🎖️ MSP Qualified Handgun Instructor (§ 5-101)</span>
+              <span class="inst-tag">🎖️ NRA Certified Pistol Instructor</span>
+              <span class="inst-tag">🎖️ NRA Range Safety Officer (RSO)</span>
+              <span class="inst-tag">🎯 Primary Facility: Cindy's Hot Shots (Glen Burnie, MD)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. STUDENT TARGETS & RANGE GALLERY -->
+    <section class="section-spacing" id="targets">
+      <div class="container">
+        <div class="section-header">
+          <div class="eyebrow">Real Range Highlights</div>
+          <h2 class="section-title">Student Targets & Range Highlights</h2>
+          <p class="section-desc">Real students on the firing line at Cindy's Hot Shots building confidence, safe habits, and tight shot groupings.</p>
+        </div>
+        <div class="rev-box">
+          <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; text-transform: uppercase;">Trained with Future Initiative?</h3>
+          <p style="font-size: 0.90rem; color: var(--text-muted); margin: 6px 0 14px;">Help fellow Maryland citizens find quality, zero-intimidation instruction.</p>
+          <a href="https://share.google/7bGi1FjainNaCUYIl" target="_blank" rel="noopener noreferrer" class="btn btn-hero-secondary" style="border-color: var(--accent-amber); color: var(--accent-amber);">⭐ Leave an Official Google Review ↗</a>
+        </div>
+        <div class="gallery-grid" id="gallery-container">
+          <!-- 20 Photo Cards mounted dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. FAQ -->
+    <section class="section-spacing" id="faq" style="background: #080c12;">
+      <div class="container" style="max-width: 860px;">
+        <div class="section-header">
+          <div class="eyebrow">Clear Answers</div>
+          <h2 class="section-title">Frequently Asked Questions</h2>
+          <p class="section-desc">Everything you need to know about Maryland licensing mandates, class logistics, and equipment.</p>
+        </div>
+        <div class="faq-row active">
+          <button type="button" class="faq-q" onclick="toggleFaq(this)"><span>Why should I take a class with Future Initiative?</span><span>+</span></button>
+          <div class="faq-a">Future Initiative Firearm Services is built on a <strong>zero-intimidation, diagnostic coaching philosophy</strong>. Whether you have never touched a firearm before or are looking to refine your draw cadence, Instructor Kai Wade tailors pacing to your individual comfort.</div>
+        </div>
+        <div class="faq-row">
+          <button type="button" class="faq-q" onclick="toggleFaq(this)"><span>What is the strict zero live-ammunition classroom policy?</span><span>+</span></button>
+          <div class="faq-a">Safety is absolute. Under no circumstances is live ammunition permitted inside the classroom environment. All ammunition must remain locked in your vehicle trunk until live-fire qualification on the firing line at Cindy's Hot Shots.</div>
+        </div>
+        <div class="faq-row">
+          <button type="button" class="faq-q" onclick="toggleFaq(this)"><span>Do I need to own a pistol before booking a class?</span><span>+</span></button>
+          <div class="faq-a"><strong>No, absolutely not.</strong> Handgun rentals and safety gear can be coordinated directly at Cindy's Hot Shots. We recommend taking the class first to master safety mechanics before purchasing.</div>
+        </div>
+        <div class="faq-row">
+          <button type="button" class="faq-q" onclick="toggleFaq(this)"><span>What is the difference between an HQL and a Wear & Carry Permit?</span><span>+</span></button>
+          <div class="faq-a">An HQL is required simply to purchase, rent, or receive a handgun in Maryland. A Wear & Carry Permit (CCW) is required to legally carry concealed in public. Our Combo class satisfies both mandates.</div>
+        </div>
+        <div class="faq-row">
+          <button type="button" class="faq-q" onclick="toggleFaq(this)"><span>Where are classes and live-fire range qualifications held?</span><span>+</span></button>
+          <div class="faq-a">Our primary training facility is <strong>Cindy's Hot Shots</strong> at 115 Holsum Way, Glen Burnie, MD. Private sessions can also be coordinated across Anne Arundel, Baltimore, and Howard counties.</div>
+        </div>
+        <div class="faq-row">
+          <button type="button" class="faq-q" onclick="toggleFaq(this)"><span>How long does the Maryland State Police take to process permits?</span><span>+</span></button>
+          <div class="faq-a">HQL applications are typically processed in 14 to 30 days. Wear & Carry applications take 45 to 90 days. We provide complete portal filing checklists inside your Student Portal.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. FINAL CTA -->
+    <section class="section-spacing">
+      <div class="container">
+        <div class="cta-banner">
+          <div class="eyebrow" style="color: var(--accent-amber);">Begin Your Training</div>
+          <h2 class="section-title" style="margin-bottom: 12px;">Ready to Start Your FIFS Journey?</h2>
+          <p style="color: #cbd5e1; font-size: 1.05rem; max-width: 620px; margin: 0 auto 28px;">Join hundreds of Maryland residents who built safe habits, deep legal understanding, and marksmanship confidence with Lead Instructor Kai Wade.</p>
+          <div style="display: flex; flex-wrap: gap: 14px; justify-content: center;">
+            <button type="button" class="btn btn-hero-primary" onclick="startBooking()">🎯 Book Your Training Now</button>
+            <a href="tel:14439901304" class="btn btn-hero-secondary">📞 Call or Text (443) 990-1304</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. FOOTER -->
+    <footer class="footer">
+      <div class="container">
+        <div class="f-grid">
+          <div>
+            <div style="font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; color: #fff; margin-bottom: 8px;">FUTURE INITIATIVE FIREARM SERVICES</div>
+            <p style="color: var(--text-muted); line-height: 1.6;">Maryland State Police Certified Qualified Handgun Instruction (Md. Public Safety Article § 5-101). Professional firearms education built on knowledge, safety, and confidence without intimidation.</p>
+          </div>
+          <div>
+            <div style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 12px; text-transform: uppercase;">Quick Links</div>
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem;">
+              <a href="#training" onclick="scrollSection('training')" style="color: var(--text-muted); text-decoration: none;">Training Curriculum</a>
+              <a href="#journey" onclick="scrollSection('journey')" style="color: var(--text-muted); text-decoration: none;">The 8-Step Journey</a>
+              <a href="#about" onclick="scrollSection('about')" style="color: var(--text-muted); text-decoration: none;">Instructor Credentials</a>
+              <a href="#targets" onclick="scrollSection('targets')" style="color: var(--text-muted); text-decoration: none;">Student Targets</a>
+              <a href="javascript:void(0)" onclick="openLoginModal('student')" style="color: var(--accent-cyan); text-decoration: none;">Student Portal Sign In</a>
+            </div>
+          </div>
+          <div>
+            <div style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 12px; text-transform: uppercase;">Facility & Contact</div>
+            <div style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
+              <p><strong>Range:</strong> Cindy's Hot Shots</p>
+              <p>115 Holsum Way, Glen Burnie, MD</p>
+              <p style="margin-top: 6px;"><strong>Phone/Text:</strong> (443) 990-1304</p>
+              <p><strong>Email:</strong> futureinitiativefs@gmail.com</p>
+            </div>
+          </div>
+        </div>
+        <div style="border-top: 1px solid var(--border-subtle); padding-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 0.78rem;">
+          <div>© 2026 Future Initiative Firearm Services (FIFS). All rights reserved.</div>
+          <div>Chief Kai Wade • Certified MSP Qualified Handgun Instructor</div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ================= VIEW 2: GUIDED BOOKING ================= -->
+  <div id="view-booking">
+    <div class="container">
+      <div class="b-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <button type="button" class="btn btn-login-nav" onclick="navigateApp('public')">← Return to Website</button>
+          <div style="font-family: var(--font-display); font-size: 0.9rem; color: var(--accent-cyan); font-weight: 700; text-transform: uppercase;">Step-by-Step Intake</div>
+        </div>
+
+        <div class="stepper">
+          <div class="s-node active" id="b-node-1"><div class="s-circ">1</div><span class="s-lbl">Course</span></div>
+          <div class="s-node" id="b-node-2"><div class="s-circ">2</div><span class="s-lbl">Schedule</span></div>
+          <div class="s-node" id="b-node-3"><div class="s-circ">3</div><span class="s-lbl">Student</span></div>
+          <div class="s-node" id="b-node-4"><div class="s-circ">4</div><span class="s-lbl">Confirm</span></div>
+        </div>
+
+        <form id="booking-form" onsubmit="submitGuidedBooking(event)">
+          <div id="b-stage-1">
+            <h3 style="font-family: var(--font-display); font-size: 1.5rem; color: #fff; margin-bottom: 6px;">Select Course Curriculum</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 20px;">Choose your approved Maryland training tier:</p>
+            <div class="fg">
+              <label for="b_course" class="fl">Training Tier & Tuition <span style="color: var(--accent-cyan);">*</span></label>
+              <select id="b_course" class="fs" required onchange="updateBookingSummary()">
+                <option value="Maryland HQL ($100.00)">Maryland HQL — $100.00</option>
+                <option value="Maryland CCW (Wear & Carry) ($199.99)">Maryland CCW (Wear & Carry) — $199.99</option>
+                <option value="Maryland CCW & HQL Combo ($249.99)" selected>Maryland CCW & HQL Combo — $249.99</option>
+                <option value="Gun Cleaning Class ($75.00)">Gun Cleaning Class — $75.00</option>
+                <option value="Children's Firearm Training Class ($199.99)">Children's Firearm Safety Class — $199.99</option>
+                <option value="Personal One-on-One Class ($125.00 / hr)">Personal One-on-One Coaching — $125.00 / hr</option>
+              </select>
+            </div>
+            <button type="button" class="btn btn-primary-nav" style="width: 100%; margin-top: 12px;" onclick="goToStage(2)">Continue to Scheduling →</button>
+          </div>
+
+          <div id="b-stage-2" class="hidden">
+            <h3 style="font-family: var(--font-display); font-size: 1.5rem; color: #fff; margin-bottom: 6px;">Preferred Schedule & Format</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 20px;">Indicate your preferred training days and format:</p>
+            <div class="fg">
+              <label for="b_dates" class="fl">Preferred Training Date(s) <span style="color: var(--accent-cyan);">*</span></label>
+              <input type="text" id="b_dates" class="fi" required placeholder="e.g., Saturday Oct 12 Morning, or Flexible Weekdays">
+            </div>
+            <div class="fg">
+              <label for="b_group" class="fl">Training Format / Group Size <span style="color: var(--accent-cyan);">*</span></label>
+              <select id="b_group" class="fs" required>
+                <option value="1 (Private One-on-One)">1 (Private One-on-One)</option>
+                <option value="2 (Paired Session)">2 (Paired Session)</option>
+                <option value="3-4 (Small Group / Family)">3-4 (Small Group / Family)</option>
+                <option value="5+ (Private Class Cohort)">5+ (Private Class Cohort)</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 12px; margin-top: 16px;">
+              <button type="button" class="btn btn-login-nav" style="flex: 1;" onclick="goToStage(1)">← Back</button>
+              <button type="button" class="btn btn-primary-nav" style="flex: 2;" onclick="goToStage(3)">Continue to Details →</button>
+            </div>
+          </div>
+
+          <div id="b-stage-3" class="hidden">
+            <h3 style="font-family: var(--font-display); font-size: 1.5rem; color: #fff; margin-bottom: 6px;">Student Information</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 20px;">Details used to establish your official compliance dossier:</p>
+            <div class="fg"><label for="b_name" class="fl">Full Legal Name <span style="color: var(--accent-cyan);">*</span></label><input type="text" id="b_name" class="fi" required placeholder="e.g., Jordan Vance"></div>
+            <div class="fg"><label for="b_email" class="fl">Email Address <span style="color: var(--accent-cyan);">*</span></label><input type="email" id="b_email" class="fi" required placeholder="jordan@example.com"></div>
+            <div class="fg"><label for="b_phone" class="fl">Phone Number (SMS Enabled) <span style="color: var(--accent-cyan);">*</span></label><input type="tel" id="b_phone" class="fi" required placeholder="(410) 555-0192"></div>
+            <div class="fg"><label for="b_notes" class="fl">Prior Shooting Background or Special Requests</label><textarea id="b_notes" class="ft" placeholder="Firearms owned, prior experience, or accommodation requests..."></textarea></div>
+            <div style="display: flex; gap: 12px; margin-top: 16px;">
+              <button type="button" class="btn btn-login-nav" style="flex: 1;" onclick="goToStage(2)">← Back</button>
+              <button type="button" class="btn btn-primary-nav" style="flex: 2;" onclick="goToStage(4)">Review & Confirm →</button>
+            </div>
+          </div>
+
+          <div id="b-stage-4" class="hidden">
+            <h3 style="font-family: var(--font-display); font-size: 1.5rem; color: #fff; margin-bottom: 6px;">Review & Confirm Registration</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 20px;">Verify your details before establishing your student dossier:</p>
+            <div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 18px; margin-bottom: 20px; font-size: 0.9rem;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: var(--text-muted);">Course:</span><strong style="color: #fff;" id="sum-course">Maryland CCW & HQL Combo</strong></div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: var(--text-muted);">Preferred Dates:</span><span style="color: #fff;" id="sum-dates">Flexible Weekdays</span></div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: var(--text-muted);">Student Name:</span><span style="color: #fff;" id="sum-name">Jordan Vance</span></div>
+              <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Contact:</span><span style="color: #fff;" id="sum-contact">jordan@example.com</span></div>
+            </div>
+            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 10px; padding: 16px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px;">
+              <input type="checkbox" id="b_safe" required style="width: 22px; height: 22px; accent-color: var(--accent-cyan); margin-top: 2px;">
+              <label for="b_safe" style="font-size: 0.84rem; color: #fca5a5; line-height: 1.5; cursor: pointer;">
+                <strong>MANDATORY SAFETY ACKNOWLEDGMENT:</strong> I understand and agree that absolutely <u>ZERO live ammunition</u> is permitted inside the classroom. Ammunition must remain locked in my vehicle trunk until live-fire qualification at Cindy's Hot Shots.
+              </label>
+            </div>
+            <div id="booking-status" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;"></div>
+            <div style="display: flex; gap: 12px;">
+              <button type="button" class="btn btn-login-nav" style="flex: 1;" onclick="goToStage(3)">← Back</button>
+              <button type="submit" id="btn-submit-booking" class="btn btn-hero-primary" style="flex: 2;">Confirm & Initialize Dossier 🎯</button>
+            </div>
+          </div>
+        </form>
+
+        <div id="b-stage-success" style="display: none; text-align: center; padding: 32px 20px;">
+          <div style="font-size: 3.5rem; color: var(--accent-green); margin-bottom: 12px;">🎉</div>
+          <h2 style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff; text-transform: uppercase;">YOU'RE OFFICIALLY REGISTERED.</h2>
+          <p style="color: #cbd5e1; font-size: 1.05rem; margin-top: 6px;">Your FIFS journey begins now. Your personalized student training dossier has been initialized in the system.</p>
+          <div style="display: inline-block; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; padding: 6px 18px; border-radius: 8px; margin: 14px 0 24px;" id="success-id-pill">STUDENT ID: FIFS-4081</div>
+          <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 500px; margin: 0 auto 24px;">Access your student portal below to track your preparation checklist, ammunition count, and training timeline.</p>
+          <button type="button" class="btn btn-hero-primary" style="font-size: 1.2rem; padding: 16px 36px;" onclick="goToPortalAfterBooking()">⚡ Go to My Student Portal →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= VIEW 3: STUDENT PORTAL ================= -->
+  <div id="view-student">
+    <div class="container">
+      <div class="sp-bar">
+        <div>
+          <h2 style="font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: #fff;">Welcome back, <span id="sp-name" style="color: var(--accent-cyan);">Student</span> 👋</h2>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;">
+            <span class="sp-chip" id="sp-id">ID: FIFS-4081</span>
+            <span class="sp-chip status-act" id="sp-status">STATUS: PREPARATION</span>
+            <span class="sp-chip" id="sp-course">Maryland CCW & HQL Combo</span>
+            <span class="sp-chip" id="sp-date">Date: To Be Scheduled</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button type="button" class="btn btn-login-nav" onclick="navigateApp('public')">← Website</button>
+          <button type="button" class="btn btn-login-nav" onclick="studentLogout()" style="color: #ff6b6b; border-color: rgba(239, 68, 68, 0.4);">Sign Out</button>
+        </div>
+      </div>
+
+      <!-- PRIORITY ACTION CONCIERGE -->
+      <div class="p-hero">
+        <div class="p-tag">🚀 Immediate Next Action</div>
+        <h3 class="p-h3" id="p-title">Complete Your Range Readiness Checklist</h3>
+        <p class="p-desc" id="p-desc">Your class session is approaching. Please verify your ammunition count (50–100 rounds factory target ammo), wrap-around eye protection, and Maryland firearm transport compliance prior to arrival at Cindy's Hot Shots.</p>
+        <button type="button" class="btn btn-hero-primary" id="p-btn" onclick="openStudentTab('checklist')">Complete Preparation Checklist ↓</button>
+      </div>
+
+      <!-- 8-STEP TRACKER -->
+      <div class="j-track-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <span style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: #fff;">Your FIFS Training Journey</span>
+          <span style="font-size: 0.82rem; color: var(--accent-cyan); font-weight: 600;" id="j-step-info">Step 3 of 8 (Preparation Phase)</span>
+        </div>
+        <div class="j-bar-row">
+          <div class="j-node done" id="jn-1">1. Register ✔</div>
+          <div class="j-node done" id="jn-2">2. Confirm ✔</div>
+          <div class="j-node curr" id="jn-3">3. Prepare ⚡</div>
+          <div class="j-node" id="jn-4">4. Classroom</div>
+          <div class="j-node" id="jn-5">5. Live-Fire</div>
+          <div class="j-node" id="jn-6">6. Certificate</div>
+          <div class="j-node" id="jn-7">7. MSP Portal</div>
+          <div class="j-node" id="jn-8">8. Licensed</div>
+        </div>
+      </div>
+
+      <!-- Sub Tabs -->
+      <div class="sp-tabs">
+        <button type="button" class="sp-tab active" onclick="switchSpTab('checklist', this)">My Checklist</button>
+        <button type="button" class="sp-tab" onclick="switchSpTab('schedule', this)">My Schedule</button>
+        <button type="button" class="sp-tab" onclick="switchSpTab('training', this)">Training Materials</button>
+        <button type="button" class="sp-tab" onclick="switchSpTab('documents', this)">My Documents</button>
+        <button type="button" class="sp-tab" onclick="switchSpTab('next', this)">What's Next?</button>
+        <button type="button" class="sp-tab" onclick="switchSpTab('help', this)">Help & Support</button>
+      </div>
+
+      <div id="sp-tab-checklist">
+        <div class="chk-card" id="cc-transport" onclick="toggleTask('transport_law')">
+          <input type="checkbox" id="chk-transport_law" class="chk-input" onclick="event.stopPropagation(); syncTask('transport_law', this.checked)">
+          <div>
+            <strong style="color: #fff; font-family: var(--font-display); font-size: 1.1rem; display: block;">Maryland Transport Compliance Confirmed</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Handguns brought to class must be completely unloaded and enclosed in a locked case or vehicle trunk during transit to Cindy's Hot Shots.</p>
+          </div>
+        </div>
+        <div class="chk-card" id="cc-ammo" onclick="toggleTask('ammo_acquired')">
+          <input type="checkbox" id="chk-ammo_acquired" class="chk-input" onclick="event.stopPropagation(); syncTask('ammo_acquired', this.checked)">
+          <div>
+            <strong style="color: #fff; font-family: var(--font-display); font-size: 1.1rem; display: block;">Factory Target Ammunition Acquired (50–100 Rounds)</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Standard brass-cased factory target ammo (no reloads or steel core). Must remain locked in vehicle trunk until live-fire qualification.</p>
+          </div>
+        </div>
+        <div class="chk-card" id="cc-eye" onclick="toggleTask('eye_ear_pro')">
+          <input type="checkbox" id="chk-eye_ear_pro" class="chk-input" onclick="event.stopPropagation(); syncTask('eye_ear_pro', this.checked)">
+          <div>
+            <strong style="color: #fff; font-family: var(--font-display); font-size: 1.1rem; display: block;">Wrap-Around Eye & Hearing Protection Ready</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">ANSI Z87.1 certified wrap-around safety glasses and earmuffs/earplugs. (Can be rented on-site at Cindy's Hot Shots if needed).</p>
+          </div>
+        </div>
+        <div class="chk-card" id="cc-id" onclick="toggleTask('id_ready')">
+          <input type="checkbox" id="chk-id_ready" class="chk-input" onclick="event.stopPropagation(); syncTask('id_ready', this.checked)">
+          <div>
+            <strong style="color: #fff; font-family: var(--font-display); font-size: 1.1rem; display: block;">Government Photo ID Ready</strong>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Valid Driver's License, Passport, or Military ID required for official state student roster verification.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="sp-tab-schedule" class="hidden">
+        <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 24px;">
+          <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-bottom: 12px;">Assigned Training Session</h3>
+          <p><strong>Session Date & Time:</strong> <span id="sp-assigned-date" style="color: var(--accent-cyan); font-weight: 700;">To Be Scheduled</span></p>
+          <p style="margin-top: 6px;"><strong>Course:</strong> <span id="sp-assigned-course">Maryland CCW & HQL Combo</span></p>
+          <p style="margin-top: 6px;"><strong>Primary Facility:</strong> Cindy's Hot Shots (115 Holsum Way, Glen Burnie, MD 21060)</p>
+          <a href="https://maps.google.com/?q=Cindy's+Hot+Shots+Glen+Burnie+MD" target="_blank" rel="noopener noreferrer" class="btn btn-hero-secondary" style="font-size: 0.85rem; padding: 8px 16px; margin-top: 14px;">📍 Google Maps Directions ↗</a>
+        </div>
+      </div>
+
+      <div id="sp-tab-training" class="hidden">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px;">
+          <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 20px;">
+            <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: var(--accent-cyan); margin-bottom: 8px;">The 5 Pillars of Self-Defense (State v. Faulkner)</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">1. Innocence • 2. Imminence • 3. Proportionality • 4. Avoidance (Duty to Retreat outside dwelling) • 5. Reasonableness.</p>
+          </div>
+          <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 20px;">
+            <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: var(--accent-cyan); margin-bottom: 8px;">Safe Storage & Child Access Prevention</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">Under Jaelynn's Law (SB 858), loaded firearms must be secured in lockboxes or tamper-resistant locking systems away from minors under 18.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="sp-tab-documents" class="hidden">
+        <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 24px;">
+          <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-bottom: 8px;">Official Student Records</h3>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 18px;">Your personal cloud training dossier is established upon registration and updated following range qualification.</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+            <a href="#" id="sp-doc-link" target="_blank" rel="noopener noreferrer" class="btn btn-hero-primary" style="font-size: 0.95rem;">📄 Open Student Dossier (Google Doc) ↗</a>
+            <a href="https://msp.maryland.gov" target="_blank" rel="noopener noreferrer" class="btn btn-hero-secondary" style="font-size: 0.95rem;">🌐 Maryland State Police MyLicense Portal ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="sp-tab-next" class="hidden">
+        <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 24px;">
+          <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-bottom: 8px;">Continuing Education & Renewals</h3>
+          <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">Maintain your proficiency through private 1-on-1 draw cadence coaching, gun maintenance workshops, and biennial Wear & Carry renewal classes.</p>
+        </div>
+      </div>
+
+      <div id="sp-tab-help" class="hidden">
+        <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 24px;">
+          <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-bottom: 8px;">Direct Instructor Support</h3>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">Have questions regarding class logistics or Maryland State Police paperwork? Reach out to Instructor Kai Wade:</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+            <a href="tel:14439901304" class="btn btn-hero-primary" style="font-size: 0.95rem;">📞 Call/Text (443) 990-1304</a>
+            <a href="mailto:futureinitiativefs@gmail.com" class="btn btn-hero-secondary" style="font-size: 0.95rem;">✉️ Email Instructor Wade</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= VIEW 4: COMMAND CENTER ================= -->
+  <div id="view-command">
+    <div class="container">
+      <div class="cmd-header">
+        <div>
+          <span style="font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; color: var(--accent-cyan); letter-spacing: 2px; text-transform: uppercase;">Instructor Operations Terminal</span>
+          <h2 style="font-family: var(--font-display); font-size: 1.85rem; font-weight: 800; color: #fff; margin-top: 2px;">FIFS Command Center</h2>
+          <span style="font-size: 0.82rem; color: var(--text-muted);">Authorized: Chief Kai Wade • Live Google Sheets Sync</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn btn-login-nav" onclick="refreshAdminRoster()">🔄 Refresh Roster</button>
+          <button type="button" class="btn btn-login-nav" onclick="instructorLogout()" style="color: #ff6b6b; border-color: rgba(239, 68, 68, 0.4);">Exit Command</button>
+        </div>
+      </div>
+
+      <div class="cmd-grid">
+        <div class="cmd-metric"><div class="cmd-val" id="cm-tot">0</div><div style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Total Enrolled</div></div>
+        <div class="cmd-metric"><div class="cmd-val" id="cm-att" style="color: var(--accent-amber);">0</div><div style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Prep Pending</div></div>
+        <div class="cmd-metric"><div class="cmd-val" id="cm-ses" style="color: #60a5fa;">0</div><div style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Upcoming Classes</div></div>
+        <div class="cmd-metric"><div class="cmd-val" id="cm-gra" style="color: var(--accent-green);">0</div><div style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Certified Graduates</div></div>
+      </div>
+
+      <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px;">
+        <input type="text" id="cmd-search" placeholder="Search by name, email, or Student ID..." class="fi" style="flex: 2; min-width: 240px; min-height: 42px;" oninput="filterRoster()">
+        <select id="cmd-filter" class="fs" style="flex: 1; min-width: 160px; min-height: 42px;" onchange="filterRoster()">
+          <option value="ALL">All Statuses</option>
+          <option value="PREP_PENDING">Prep Pending</option>
+          <option value="PREP_COMPLETED">Prep Completed</option>
+          <option value="QUALIFIED">Qualified</option>
+          <option value="CERTIFIED">Certified</option>
+        </select>
+      </div>
+
+      <div class="cmd-tbl-box">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Student ID</th>
+              <th>Full Name</th>
+              <th>Course Curriculum</th>
+              <th>Session Date</th>
+              <th>Status Action</th>
+              <th>Dossier</th>
+            </tr>
+          </thead>
+          <tbody id="cmd-tbody">
+            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Loading live student records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= UNIFIED LOGIN MODAL ================= -->
+  <div class="modal-overlay" id="loginModal" onclick="if(event.target.id === 'loginModal') closeLoginModal()">
+    <div class="modal-card">
+      <button type="button" class="m-close" onclick="closeLoginModal()">✕</button>
+      <div class="m-tabs">
+        <button type="button" class="m-tab active" id="mt-student" onclick="setLoginRole('student')">Student Portal</button>
+        <button type="button" class="m-tab" id="mt-instructor" onclick="setLoginRole('instructor')">Instructor Command</button>
+      </div>
+      <div id="mf-student">
+        <h3 style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 4px;">Student Portal Sign In</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 18px;">Access your personalized training roadmap, readiness tasks, and official records.</p>
+        <div class="fg">
+          <label for="m-student-input" class="fl">Email Address or Student ID <span style="color: var(--accent-cyan);">*</span></label>
+          <input type="text" id="m-student-input" class="fi" placeholder="e.g., jordan@example.com or FIFS-4081">
+        </div>
+        <button type="button" class="btn btn-hero-primary" style="width: 100%;" onclick="loginStudent()">Enter Student Dashboard →</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 0.82rem;">
+          <span style="color: var(--text-muted);">Need to book? <a href="javascript:void(0)" onclick="closeLoginModal(); startBooking();" style="color: var(--accent-cyan);">View Courses</a></span>
+          <button type="button" onclick="loadDemoSession()" style="background: none; border: none; color: var(--accent-amber); cursor: pointer; text-decoration: underline;">Preview Demo</button>
+        </div>
+        <div id="m-student-status" style="display: none; padding: 10px; border-radius: 6px; margin-top: 12px; font-size: 0.86rem;"></div>
+      </div>
+      <div id="mf-instructor" class="hidden">
+        <h3 style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 4px;">Instructor Command Access</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 18px;">Restricted access for Chief Kai Wade to manage student rosters and operations.</p>
+        <div class="fg">
+          <label for="m-admin-pin" class="fl">Instructor PIN <span style="color: var(--accent-cyan);">*</span></label>
+          <input type="password" id="m-admin-pin" class="fi" placeholder="Enter PIN">
+        </div>
+        <button type="button" class="btn btn-hero-primary" style="width: 100%;" onclick="loginInstructor()">Unlock Command Terminal 🔓</button>
+        <div id="m-admin-status" style="display: none; padding: 10px; border-radius: 6px; margin-top: 12px; font-size: 0.86rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT CONTROLLER ================= -->
+  <script>
+    const ALL_TARGET_PHOTOS = [
+      { id: "1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO", course: "Range Instruction", score: "Lead Instructor", title: "Diagnostic Range Coaching", desc: "Lead Instructor Kai Wade coaching on the lane at Cindy's Hot Shots. Paced 1-on-1 instruction focused on trigger control.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps", course: "Wear & Carry", score: "100% Qualified", title: "Center-Mass Cadence Cluster", desc: "Clean vital-zone hits on official BakerTargets qualification course. Calm coaching built confidence from round one.", loc: "Certified Range: Cindy's Hot Shots" },
+      { id: "1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv", course: "Maryland CCW", score: "Center-X Grouping", title: "B-27 Precision Grouping", desc: "Tight shot placement centered right in 9, 10, and X rings following holster draw and sight picture coaching.", loc: "Cindy's Hot Shots • Practical Qual" },
+      { id: "1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR", course: "Paired Training", score: "Dual Qualifiers", title: "Dual Student Center Clusters", desc: "Both students qualifying side-by-side with tight vital zone clusters during an intensive live-fire training block.", loc: "Cindy's Hot Shots • Paired Session" },
+      { id: "1rUcirGX7jLT0upSobd82iJf91Ycv9xlt", course: "Wear & Carry", score: "Certified Pass", title: "Confidence & Marksmanship", desc: "Solid center-mass spread on silhouette targets, demonstrating steady recoil management and smooth trigger reset.", loc: "Certified Range: Cindy's Hot Shots" },
+      { id: "1Z8VLFy2L1Sd6bASqfpt-BBeRiKpVU9qF", course: "Maryland HQL / CCW", score: "Dead-Center Hits", title: "Precision Vital-Zone Group", desc: "Dead-center vital-zone grouping achieved through individual coaching on grip friction and stance balance.", loc: "Cindy's Hot Shots • Private Coaching" },
+      { id: "1mljZQi7U4-O4vBCldtd5xMqAtbk7xBBl", course: "Range Marksmanship", score: "Center Grouping", title: "Dynamic Range Drills", desc: "Maintaining discipline and tight group consistency across multiple target styles and engagement distances.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "1bQjmsgeIz5AOZbyHLnLe-y84FFmmOQSh", course: "Paired Session", score: "Certified Qualifiers", title: "Paired Class Qualifiers", desc: "Both students achieving passing scores with clean center-mass placement during paired weekend instruction.", loc: "Cindy's Hot Shots • Paired Training" },
+      { id: "1I8SYXbZ8Vs_RoaISP-Oi_yVf8y24wJM_", course: "Small Group", score: "Dual Certified", title: "Small Group Milestone", desc: "Two students completing their Maryland qualification course together with tight clusters and zero intimidation.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV", course: "Firing Line", score: "Live Range", title: "Live Firing Line Perspective", desc: "Active diagnostic shooting and practical qualification downrange at Cindy's Hot Shots in Glen Burnie, MD.", loc: "Primary Range Facility • Cindy's Hot Shots" },
+      { id: "1GKKGtLxhSqGOgfh1-u1_CFNr1af-xFUS", course: "Wear & Carry", score: "100% Qualified", title: "Silhouette Marksmanship", desc: "Focused shot cadence and tight center grouping on B-27 silhouette target during practical qualification.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "1Xr431Fu4IWY2KIhpJJ5REskODfpH-X9M", course: "HQL & Fundamentals", score: "Concentric Hits", title: "Marksmanship Diagnostics", desc: "Target drill emphasizing sight alignment, steady trigger press, and recoil recovery mechanics.", loc: "Diagnostic Coaching • Cindy's Hot Shots" },
+      { id: "1O5ON4PlVTuCaW-w09a0zzMnOYBMwQ_6k", course: "Maryland CCW", score: "Center-Mass Certified", title: "B27 Shield Precision", desc: "Clean vital-zone dispersion on B27 Shield tactical training target during live-fire qualification.", loc: "Cindy's Hot Shots • Practical Qual" },
+      { id: "1-dVzb2ipi3IYNb5dGxUpBCBaEyYJIpZ_", course: "Maryland HQL", score: "100% Passing Score", title: "Vital-Zone Control", desc: "Exceptional recoil management and tight center-ring hits with calm, zero-intimidation instruction.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "1XLGG8VZTEOSdnPF5-SXLVGZmeK9m55rR", course: "Cohort Training", score: "Triple Qualification", title: "Group Class Milestone", desc: "Three students qualifying together with clean, certified blue silhouette target sheets at Cindy's Hot Shots.", loc: "Small Group Cohort • Cindy's Hot Shots" },
+      { id: "1sOye7641V0sTZLrOQ7VHAuEe4wFBdfoL", course: "Wear & Carry Initial", score: "Vital Zone Cluster", title: "BakerTargets Standard", desc: "Dedicated center-mass cluster demonstrating solid trigger reset discipline and sight tracking on the line.", loc: "Maryland Certified • Instructor Wade" },
+      { id: "1bWUFKzFuf-xsE7XSuPEE9mWuyGyVcH_z", course: "CCW Certification", score: "High-Visibility Target", title: "Orange Silhouette Grouping", desc: "Steady cadence and confident gun handling producing tight center-scoring hits during qualification.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "191TKVFSz48i2NP9T23KKzZcNFIr42Fls", course: "Wear & Carry", score: "Certified Passing", title: "Confident Marksmanship", desc: "Clean grouping right in vital scoring rings following 1-on-1 diagnostic coaching with Chief Wade.", loc: "Cindy's Hot Shots • Qualified" },
+      { id: "1-__LG3c5gZA2zAKX-qeX8magmZRBETsY", course: "Paired Session", score: "Dual Qualifiers", title: "Paired Training Cohort", desc: "Two students celebrating successful state qualification following their live-fire practical course of fire.", loc: "Cindy's Hot Shots • Range Exit" },
+      { id: "1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5", course: "Maryland CCW", score: "X-Ring Cluster", title: "Red X-Ring Accuracy", desc: "Dead-center shot placement clustered around red X-ring on the B-27 qualification target.", loc: "Certified Range • Cindy's Hot Shots" }
+    ];
+
+    let currentStudent = null;
+    let cachedAdmin = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+      mountGallery();
+      initTicker();
+
+      const params = new URLSearchParams(window.location.search);
+      const studentP = params.get('student');
+      const viewP = params.get('view');
+
+      if (studentP) {
+        document.getElementById('m-student-input').value = studentP;
+        loginStudent();
+      } else if (viewP === 'portal' || viewP === 'student') {
+        const saved = localStorage.getItem('fifs_student_session');
+        if (saved) {
+          currentStudent = JSON.parse(saved);
+          renderStudentDashboard(currentStudent);
+          navigateApp('student');
+        } else openLoginModal('student');
+      } else if (viewP === 'booking') {
+        startBooking();
+      } else if (viewP === 'command' || viewP === 'admin') {
+        openLoginModal('instructor');
+      }
+    });
+
+    function mountGallery() {
+      const container = document.getElementById('gallery-container');
+      if (!container) return;
+      container.innerHTML = ALL_TARGET_PHOTOS.map(p => `
+        <article class="t-card">
+          <div class="t-frame">
+            <img src="https://drive.google.com/thumbnail?id=${p.id}&sz=w800" onerror="this.src='https://lh3.googleusercontent.com/d/${p.id}'" alt="${p.title}" loading="lazy">
+            <span class="t-badge-c">${p.course}</span><span class="t-badge-s">${p.score}</span>
+          </div>
+          <div class="t-body">
+            <div><h4 class="t-name">${p.title}</h4><p class="t-desc">${p.desc}</p></div>
+            <div class="t-loc">${p.loc}</div>
+          </div>
+        </article>
+      `).join('');
     }
 
-    const postData = JSON.parse(e.postData.contents);
-    let response;
-
-    switch (postData.action) {
-      case "submitBooking":
-        response = handleBookingSubmission(postData.payload);
-        break;
-      case "getStudentPortalData":
-        response = handleGetStudentPortalData(postData.email, postData.studentId);
-        break;
-      case "updateStudentTask":
-        response = handleUpdateStudentTask(postData.studentId, postData.email, postData.taskId, postData.completed);
-        break;
-      case "getAdminDashboardData":
-        response = handleGetAdminDashboardData(postData.passcode);
-        break;
-      case "updateStudentStatus":
-        response = handleUpdateStudentStatus(postData.passcode, postData.studentId, postData.updates);
-        break;
-      case "submitTestimonial":
-        response = handleTestimonialSubmission(postData.payload);
-        break;
-      default:
-        response = { status: "error", message: "Invalid action requested." };
+    function navigateApp(view) {
+      ['view-public', 'view-booking', 'view-student', 'view-command'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = (id === 'view-' + view) ? 'block' : 'none';
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    return ContentService.createTextOutput(JSON.stringify(response))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "error",
-      message: "Server API Error: " + err.message
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-/**
- * Helper: Sanitizes raw form payloads to eliminate any undefined values
- */
-function sanitizeFormData(data) {
-  const safe = data || {};
-  return {
-    fullName: (safe.fullName || "Valued Student").toString().trim(),
-    email: (safe.email || "").toString().trim(),
-    phone: (safe.phone || "Not provided").toString().trim(),
-    courseSelection: (safe.courseSelection || "Maryland Firearm Training Course").toString().trim(),
-    preferredDates: (safe.preferredDates || "Flexible / To Be Scheduled").toString().trim(),
-    groupSize: (safe.groupSize || "1 (Private One-on-One)").toString().trim(),
-    comments: (safe.comments || "None").toString().trim()
-  };
-}
-
-/**
- * Student Registration: Generates unique Student ID and creates profile record
- */
-function handleBookingSubmission(rawPayload) {
-  try {
-    const formData = sanitizeFormData(rawPayload);
-    if (!formData.email) {
-      return { status: "error", message: "Missing valid student email address." };
+    function scrollSection(id) {
+      navigateApp('public');
+      setTimeout(() => {
+        const t = document.getElementById(id);
+        if (t) t.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     }
 
-    const tz = Session.getScriptTimeZone() || CONFIG.DEFAULT_TIMEZONE;
-    const formattedDate = Utilities.formatDate(new Date(), tz, "yyyy-MM-dd HH:mm:ss");
-    const studentId = "FIFS-" + String(Math.floor(1000 + Math.random() * 9000));
-
-    const defaultTasks = {
-      transport_law: false,
-      ammo_acquired: false,
-      eye_ear_pro: false,
-      id_ready: false
-    };
-
-    const sheet = getOrCreateBookingSheet();
-    const rowValues = Array.of(
-      formattedDate,
-      formData.fullName,
-      formData.email,
-      formData.phone,
-      formData.courseSelection,
-      formData.preferredDates,
-      formData.groupSize,
-      formData.comments,
-      "Generating...",
-      studentId,
-      "PREP_PENDING",
-      "PENDING",
-      formData.preferredDates,
-      JSON.stringify(defaultTasks),
-      "",
-      "",
-      "NOT_STARTED",
-      "",
-      "New intake registered online."
-    );
-    sheet.appendRow(rowValues);
-    const lastRowIndex = sheet.getLastRow();
-
-    let profileDocUrl = "#";
-    try {
-      profileDocUrl = createStudentProfileDoc(formData, formattedDate, studentId);
-      sheet.getRange(lastRowIndex, 9).setValue(profileDocUrl);
-    } catch (docErr) {
-      Logger.log("Doc creation warning: " + docErr.toString());
+    function toggleMobileMenu() {
+      const el = document.getElementById('mobile-drawer');
+      if (el) el.classList.toggle('active');
     }
 
-    try {
-      sendStudentConfirmationEmail(formData, profileDocUrl, studentId);
-    } catch (mailErr) {
-      Logger.log("Student confirmation email error: " + mailErr.toString());
+    function toggleFaq(btn) {
+      btn.parentElement.classList.toggle('active');
     }
 
-    try {
-      sendBusinessAlertEmail(formData, profileDocUrl, formattedDate, studentId);
-    } catch (alertErr) {
-      Logger.log("Instructor notification email error: " + alertErr.toString());
+    function initTicker() {
+      const dot = document.getElementById('live-est-dot');
+      if (!dot) return;
+      try {
+        const hr = parseInt(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour12: false, hour: 'numeric' }).format(new Date()), 10);
+        dot.style.background = (hr >= 9 && hr < 21) ? '#10b981' : '#ef4444';
+      } catch (e) { dot.style.background = '#10b981'; }
     }
 
-    return {
-      status: "success",
-      studentId: studentId,
-      message: "Training reservation confirmed. Your personalized student profile is established.",
-      profileUrl: profileDocUrl
-    };
-  } catch (error) {
-    Logger.log("Error in handleBookingSubmission: " + error.toString());
-    return { status: "error", message: error.message };
-  }
-}
-
-/**
- * Student Portal: Looks up student record by email or student ID
- */
-function handleGetStudentPortalData(email, studentId) {
-  try {
-    const sheet = getOrCreateBookingSheet();
-    const data = sheet.getDataRange().getValues();
-    if (data.length <= 1) {
-      return { status: "not_found", message: "No student records found in database." };
-    }
-
-    const searchEmail = (email || "").toString().trim().toLowerCase();
-    const searchId = (studentId || "").toString().trim().toUpperCase();
-
-    let foundStudent = null;
-
-    for (let i = data.length - 1; i >= 1; i--) {
-      const row = data.at(i);
-      const student = parseStudentRow(row);
-
-      const isIdMatch = searchId && student.studentId.toUpperCase() === searchId;
-      const isEmailMatch = searchEmail && student.email.toLowerCase() === searchEmail;
-
-      if (isIdMatch || isEmailMatch) {
-        foundStudent = student;
-        break;
+    /* Booking Logic */
+    function startBooking(course) {
+      navigateApp('booking');
+      goToStage(1);
+      if (course) {
+        document.getElementById('b_course').value = course;
+        updateBookingSummary();
       }
     }
 
-    if (!foundStudent) {
-      return { status: "not_found", message: "No matching student enrollment found." };
+    function selectCourseAndBook(course) {
+      startBooking(course);
     }
 
-    return {
-      status: "success",
-      student: foundStudent
-    };
-  } catch (e) {
-    return { status: "error", message: e.message };
-  }
-}
-
-/**
- * Task Tracker: Updates checklist items and elevates status when all are complete
- */
-function handleUpdateStudentTask(studentId, email, taskId, completed) {
-  try {
-    const sheet = getOrCreateBookingSheet();
-    const data = sheet.getDataRange().getValues();
-    const searchId = (studentId || "").toString().trim().toUpperCase();
-    const searchEmail = (email || "").toString().trim().toLowerCase();
-
-    for (let i = data.length - 1; i >= 1; i--) {
-      const row = data.at(i);
-      const student = parseStudentRow(row);
-
-      const isIdMatch = searchId && student.studentId.toUpperCase() === searchId;
-      const isEmailMatch = searchEmail && student.email.toLowerCase() === searchEmail;
-
-      if (isIdMatch || isEmailMatch) {
-        const tasks = student.prepTasks || {};
-        tasks[taskId] = Boolean(completed);
-
-        sheet.getRange(i + 1, 14).setValue(JSON.stringify(tasks));
-
-        const allDone = Boolean(tasks.transport_law && tasks.ammo_acquired && tasks.eye_ear_pro && tasks.id_ready);
-        if (allDone && student.status === "PREP_PENDING") {
-          sheet.getRange(i + 1, 11).setValue("PREP_COMPLETED");
-          student.status = "PREP_COMPLETED";
+    function goToStage(num) {
+      for (let i = 1; i <= 4; i++) {
+        const el = document.getElementById('b-stage-' + i);
+        const node = document.getElementById('b-node-' + i);
+        if (el) el.classList.toggle('hidden', i !== num);
+        if (node) {
+          node.className = 's-node';
+          if (i === num) node.classList.add('active');
+          else if (i < num) node.classList.add('completed');
         }
+      }
+      if (num === 4) updateBookingSummary();
+      window.scrollTo({ top: document.getElementById('view-booking').offsetTop - 20, behavior: 'smooth' });
+    }
 
-        student.prepTasks = tasks;
-        return {
-          status: "success",
-          student: student
-        };
+    function updateBookingSummary() {
+      document.getElementById('sum-course').textContent = document.getElementById('b_course').value;
+      document.getElementById('sum-dates').textContent = document.getElementById('b_dates').value || 'Flexible';
+      document.getElementById('sum-name').textContent = document.getElementById('b_name').value || 'Valued Student';
+      document.getElementById('sum-contact').textContent = document.getElementById('b_email').value || 'student@example.com';
+    }
+
+    function submitGuidedBooking(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-submit-booking');
+      const st = document.getElementById('booking-status');
+      const payload = {
+        courseSelection: document.getElementById('b_course').value,
+        preferredDates: document.getElementById('b_dates').value.trim(),
+        groupSize: document.getElementById('b_group').value,
+        fullName: document.getElementById('b_name').value.trim(),
+        email: document.getElementById('b_email').value.trim(),
+        phone: document.getElementById('b_phone').value.trim(),
+        comments: document.getElementById('b_notes').value.trim()
+      };
+
+      btn.disabled = true;
+      st.style.display = 'block';
+      st.style.background = 'rgba(0, 229, 255, 0.12)';
+      st.style.color = '#4deeea';
+      st.textContent = 'Establishing student dossier with Instructor Wade...';
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.disabled = false;
+            if (res && res.status === 'success') {
+              showSuccess(res.studentId, payload);
+            } else {
+              st.style.background = 'rgba(239, 68, 68, 0.15)';
+              st.style.color = '#fca5a5';
+              st.textContent = res.message || 'Error booking session.';
+            }
+          })
+          .handleBookingSubmission(payload);
+      } else {
+        setTimeout(function() {
+          btn.disabled = false;
+          showSuccess('FIFS-' + Math.floor(1000 + Math.random() * 9000), payload);
+        }, 600);
       }
     }
-    return { status: "error", message: "Student record not found." };
-  } catch (e) {
-    return { status: "error", message: e.message };
-  }
-}
 
-/**
- * Admin Command Center: Aggregates operational metrics and roster
- */
-function handleGetAdminDashboardData(passcode) {
-  const adminPin = CONFIG.ADMIN_PASSCODE || "1985";
-  if (!passcode || passcode.toString().trim() !== adminPin) {
-    return { status: "unauthorized", message: "Invalid instructor passcode." };
-  }
+    function showSuccess(id, payload) {
+      document.getElementById('booking-form').style.display = 'none';
+      document.getElementById('b-stage-success').style.display = 'block';
+      document.getElementById('success-id-pill').textContent = 'STUDENT ID: ' + id;
 
-  try {
-    const sheet = getOrCreateBookingSheet();
-    const data = sheet.getDataRange().getValues();
-    const students = [];
-
-    let totalStudents = 0;
-    let needsAttention = 0;
-    let upcomingSessions = 0;
-    let graduates = 0;
-    let renewalsPending = 0;
-
-    for (let i = 1; i < data.length; i++) {
-      const student = parseStudentRow(data.at(i));
-      if (!student.fullName) continue;
-
-      totalStudents++;
-      students.push(student);
-
-      if (student.status === "REGISTERED" || student.status === "PREP_PENDING") {
-        needsAttention++;
-      }
-      if (student.status === "ENROLLED" || student.status === "PREP_COMPLETED") {
-        upcomingSessions++;
-      }
-      if (student.status === "QUALIFIED" || student.status === "COMPLETED") {
-        graduates++;
-      }
-      if (student.renewalDueDate) {
-        renewalsPending++;
-      }
+      currentStudent = {
+        studentId: id,
+        fullName: payload.fullName,
+        email: payload.email,
+        phone: payload.phone,
+        course: payload.courseSelection,
+        assignedDate: payload.preferredDates,
+        status: 'PREP_PENDING',
+        prepTasks: { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false },
+        profileDocUrl: '#'
+      };
+      localStorage.setItem('fifs_student_session', JSON.stringify(currentStudent));
     }
 
-    return {
-      status: "success",
-      metrics: {
-        totalStudents: totalStudents,
-        needsAttention: needsAttention,
-        upcomingSessions: upcomingSessions,
-        graduates: graduates,
-        renewalsPending: renewalsPending
-      },
-      students: students.reverse()
-    };
-  } catch (e) {
-    return { status: "error", message: e.message };
-  }
-}
+    function goToPortalAfterBooking() {
+      if (currentStudent) renderStudentDashboard(currentStudent);
+      navigateApp('student');
+    }
 
-/**
- * Admin Status Update: Instructor modifies student status, class date, or score
- */
-function handleUpdateStudentStatus(passcode, studentId, updates) {
-  const adminPin = CONFIG.ADMIN_PASSCODE || "1985";
-  if (!passcode || passcode.toString().trim() !== adminPin) {
-    return { status: "unauthorized", message: "Invalid instructor passcode." };
-  }
+    /* Student Portal Logic */
+    function renderStudentDashboard(s) {
+      currentStudent = s;
+      document.getElementById('sp-name').textContent = (s.fullName || 'Student').split(' ').at(0);
+      document.getElementById('sp-id').textContent = 'ID: ' + s.studentId;
+      document.getElementById('sp-status').textContent = 'STATUS: ' + (s.status || 'PREP_PENDING');
+      document.getElementById('sp-course').textContent = (s.course || '').split('(').at(0).trim();
+      document.getElementById('sp-date').textContent = 'Date: ' + (s.assignedDate || 'To Be Scheduled');
 
-  try {
-    const sheet = getOrCreateBookingSheet();
-    const data = sheet.getDataRange().getValues();
-    const searchId = (studentId || "").toString().trim().toUpperCase();
+      document.getElementById('sp-assigned-date').textContent = s.assignedDate || 'To Be Scheduled';
+      document.getElementById('sp-assigned-course').textContent = s.course;
 
-    for (let i = 1; i < data.length; i++) {
-      const student = parseStudentRow(data.at(i));
-      if (student.studentId.toUpperCase() === searchId) {
-        const rowNum = i + 1;
-        if (updates && updates.status) sheet.getRange(rowNum, 11).setValue(updates.status);
-        if (updates && updates.paymentStatus) sheet.getRange(rowNum, 12).setValue(updates.paymentStatus);
-        if (updates && updates.assignedDate) sheet.getRange(rowNum, 13).setValue(updates.assignedDate);
-        if (updates && updates.qualificationScore) sheet.getRange(rowNum, 15).setValue(updates.qualificationScore);
-        if (updates && updates.notes) sheet.getRange(rowNum, 19).setValue(updates.notes);
+      const dl = document.getElementById('sp-doc-link');
+      if (dl && s.profileDocUrl && s.profileDocUrl !== '#') dl.href = s.profileDocUrl;
 
-        return { status: "success", message: "Student record updated." };
+      updatePriorityHero(s);
+      updateTracker(s);
+
+      const t = s.prepTasks || {};
+      ['transport_law', 'ammo_acquired', 'eye_ear_pro', 'id_ready'].forEach(k => {
+        const c = document.getElementById('chk-' + k);
+        const card = document.getElementById('cc-' + k.replace(/_.*/, ''));
+        if (c) c.checked = Boolean(t[k]);
+        if (card) card.classList.toggle('checked', Boolean(t[k]));
+      });
+    }
+
+    function updatePriorityHero(s) {
+      const st = (s.status || 'PREP_PENDING').toUpperCase();
+      const pt = document.getElementById('p-title');
+      const pd = document.getElementById('p-desc');
+      const pb = document.getElementById('p-btn');
+
+      if (st === 'REGISTERED' || st === 'PREP_PENDING') {
+        pt.textContent = "Complete Your Pre-Class Preparation Checklist";
+        pd.textContent = "Verify your 50–100 rounds factory target ammunition, wrap-around eye protection, and Maryland transport compliance.";
+        pb.textContent = "Complete Preparation Checklist ↓";
+        pb.onclick = () => openStudentTab('checklist');
+      } else if (st === 'PREP_COMPLETED') {
+        pt.textContent = "All Preparation Verified! Review Range Logistics";
+        pd.textContent = "Instructor Kai Wade has verified your readiness. Review range arrival protocol and Cindy's Hot Shots directions.";
+        pb.textContent = "View Schedule & Range Info →";
+        pb.onclick = () => openStudentTab('schedule');
+      } else if (st === 'QUALIFIED' || st === 'CERTIFIED') {
+        pt.textContent = "Live-Fire Qualification Certified! 🎉";
+        pd.textContent = "Chief Wade has certified your score standard. Access your official student training dossier below.";
+        pb.textContent = "Open Student Training Dossier 📄";
+        pb.onclick = () => window.open(s.profileDocUrl, '_blank');
+      } else if (st === 'MSP_SUBMITTED') {
+        pt.textContent = "Application Active with Maryland State Police";
+        pd.textContent = "Inspect your MSP MyLicense portal 'Messages' tab weekly for deficiency notices.";
+        pb.textContent = "Log In to MSP Portal 🌐";
+        pb.onclick = () => window.open('https://msp.maryland.gov', '_blank');
       }
     }
-    return { status: "error", message: "Student ID not found." };
-  } catch (e) {
-    return { status: "error", message: e.message };
-  }
-}
 
-/**
- * Parses raw row using array destructuring (zero bracketed numbers)
- */
-function parseStudentRow(row) {
-  const [
-    colTimestamp = "",
-    colFullName = "",
-    colEmail = "",
-    colPhone = "",
-    colCourse = "",
-    colPreferredDates = "",
-    colGroupSize = "",
-    colComments = "",
-    colProfileDocUrl = "",
-    colStudentId = "FIFS-PENDING",
-    colStatus = "PREP_PENDING",
-    colPaymentStatus = "PENDING",
-    colAssignedDate = "",
-    colTasksJson = "{}",
-    colScore = "",
-    colCertUrl = "",
-    colMspStatus = "NOT_STARTED",
-    colRenewalDate = "",
-    colNotes = ""
-  ] = row || [];
+    function updateTracker(s) {
+      const st = (s.status || 'PREP_PENDING').toUpperCase();
+      const nodes =.map(i => document.getElementById('jn-' + i));
+      nodes.forEach(n => { if (n) n.className = 'j-node'; });
 
-  let prepTasks = { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false };
-  try {
-    if (colTasksJson) prepTasks = Object.assign(prepTasks, JSON.parse(colTasksJson));
-  } catch (e) {}
-
-  return {
-    timestamp: colTimestamp,
-    fullName: colFullName,
-    email: colEmail,
-    phone: colPhone,
-    course: colCourse,
-    preferredDates: colPreferredDates,
-    groupSize: colGroupSize,
-    comments: colComments,
-    profileDocUrl: colProfileDocUrl,
-    studentId: colStudentId,
-    status: colStatus,
-    paymentStatus: colPaymentStatus,
-    assignedDate: colAssignedDate || colPreferredDates || "To Be Scheduled",
-    prepTasks: prepTasks,
-    qualificationScore: colScore,
-    certificateUrl: colCertUrl,
-    mspStatus: colMspStatus,
-    renewalDueDate: colRenewalDate,
-    notes: colNotes
-  };
-}
-
-function getOrCreateBookingSheet() {
-  const props = PropertiesService.getScriptProperties();
-  const cachedSheetId = props.getProperty("BOOKING_SHEET_ID");
-
-  if (cachedSheetId) {
-    try {
-      const ss = SpreadsheetApp.openById(cachedSheetId);
-      const sheet = ss.getSheetByName("Bookings") || ss.getActiveSheet();
-      ensureSheetHeaders(sheet);
-      return sheet;
-    } catch (e) {}
-  }
-
-  const files = DriveApp.getFilesByName(CONFIG.LEDGER_SHEET_NAME);
-  while (files.hasNext()) {
-    const file = files.next();
-    if (!file.isTrashed()) {
-      props.setProperty("BOOKING_SHEET_ID", file.getId());
-      const ss = SpreadsheetApp.open(file);
-      const sheet = ss.getSheetByName("Bookings") || ss.getActiveSheet();
-      ensureSheetHeaders(sheet);
-      return sheet;
-    }
-  }
-
-  const spreadsheet = SpreadsheetApp.create(CONFIG.LEDGER_SHEET_NAME);
-  const sheet = spreadsheet.getActiveSheet();
-  sheet.setName("Bookings");
-  ensureSheetHeaders(sheet);
-  props.setProperty("BOOKING_SHEET_ID", spreadsheet.getId());
-  return sheet;
-}
-
-function ensureSheetHeaders(sheet) {
-  const expectedHeaders = Array.of(
-    "Timestamp", "Full Name", "Email Address", "Phone Number",
-    "Course Curriculum & Tuition", "Preferred Date(s)", "Group Size",
-    "Additional Comments", "Student Profile Document", "Student ID",
-    "Lifecycle Status", "Payment Status", "Assigned Class Date",
-    "Prep Tasks JSON", "Qualification Score", "Certificate URL",
-    "MSP Application Status", "Renewal Due Date", "Instructor Notes"
-  );
-
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(expectedHeaders);
-    sheet.getRange(1, 1, 1, expectedHeaders.length)
-      .setBackground("#121820")
-      .setFontColor("#00E5FF")
-      .setFontWeight("bold");
-    sheet.setFrozenRows(1);
-  } else {
-    const currentCols = sheet.getLastColumn();
-    if (currentCols < expectedHeaders.length) {
-      for (let c = currentCols; c < expectedHeaders.length; c++) {
-        sheet.getRange(1, c + 1).setValue(expectedHeaders.at(c))
-          .setBackground("#121820")
-          .setFontColor("#00E5FF")
-          .setFontWeight("bold");
+      const info = document.getElementById('j-step-info');
+      if (st === 'REGISTERED' || st === 'PREP_PENDING') {
+        if (nodes.at(0)) nodes.at(0).className = 'j-node done';
+        if (nodes.at(1)) nodes.at(1).className = 'j-node done';
+        if (nodes.at(2)) nodes.at(2).className = 'j-node curr';
+        if (info) info.textContent = "Step 3 of 8 (Preparation Phase)";
+      } else if (st === 'PREP_COMPLETED') {
+        for (let i = 0; i <= 2; i++) { if (nodes.at(i)) nodes.at(i).className = 'j-node done'; }
+        if (nodes.at(3)) nodes.at(3).className = 'j-node curr';
+        if (info) info.textContent = "Step 4 of 8 (Classroom Instruction)";
+      } else if (st === 'QUALIFIED' || st === 'CERTIFIED') {
+        for (let i = 0; i <= 4; i++) { if (nodes.at(i)) nodes.at(i).className = 'j-node done'; }
+        if (nodes.at(5)) nodes.at(5).className = 'j-node curr';
+        if (info) info.textContent = "Step 6 of 8 (Certification Issued)";
+      } else if (st === 'MSP_SUBMITTED') {
+        for (let i = 0; i <= 6; i++) { if (nodes.at(i)) nodes.at(i).className = 'j-node done'; }
+        if (nodes.at(7)) nodes.at(7).className = 'j-node curr';
+        if (info) info.textContent = "Step 8 of 8 (MSP Final Review)";
       }
     }
-  }
-}
 
-function getOrCreateFolder(folderName) {
-  const folders = DriveApp.getFoldersByName(folderName);
-  while (folders.hasNext()) {
-    const f = folders.next();
-    if (!f.isTrashed()) return f;
-  }
-  return DriveApp.createFolder(folderName);
-}
-
-function getOrCreateContinuousDoc(parentFolder, docName) {
-  const files = parentFolder.getFilesByName(docName);
-  while (files.hasNext()) {
-    const file = files.next();
-    if (!file.isTrashed()) return DocumentApp.openById(file.getId());
-  }
-
-  const newDoc = DocumentApp.create(docName);
-  DriveApp.getFileById(newDoc.getId()).moveTo(parentFolder);
-  const body = newDoc.getBody();
-  const title = body.appendParagraph("Future Initiative Firearm Services - Master Testimonial Log");
-  title.setHeading(DocumentApp.ParagraphHeading.HEADING1);
-  newDoc.saveAndClose();
-  return DocumentApp.openById(newDoc.getId());
-}
-
-function createStudentProfileDoc(data, dateString, studentId) {
-  const profilesFolder = getOrCreateFolder(CONFIG.STUDENT_PROFILES_FOLDER_NAME);
-  const docTitle = "Student Profile - " + data.fullName + " - " + studentId;
-  const doc = DocumentApp.create(docTitle);
-  DriveApp.getFileById(doc.getId()).moveTo(profilesFolder);
-
-  const body = doc.getBody();
-  const h1 = body.appendParagraph("FUTURE INITIATIVE FIREARM SERVICES");
-  h1.setHeading(DocumentApp.ParagraphHeading.HEADING1);
-  const sub = body.appendParagraph("OFFICIAL STUDENT RECORD // " + studentId);
-  sub.setHeading(DocumentApp.ParagraphHeading.HEADING2);
-  body.appendParagraph("Created: " + dateString + "\n");
-  body.appendHorizontalRule();
-
-  body.appendParagraph("Full Legal Name: " + data.fullName);
-  body.appendParagraph("Email Address: " + data.email);
-  body.appendParagraph("Phone Number: " + data.phone);
-  body.appendParagraph("Course: " + data.courseSelection);
-  body.appendParagraph("Requested Schedule: " + data.preferredDates);
-  body.appendParagraph("Group Format: " + data.groupSize);
-  body.appendParagraph("Primary Facility: " + (CONFIG.PRIMARY_RANGE || "Cindy's Hot Shots (Glen Burnie, MD)"));
-  body.appendParagraph("Ammunition Protocol: " + (CONFIG.AMMO_PROTOCOL || "50–100 rounds factory target ammunition"));
-  body.appendParagraph("Background / Notes:\n" + data.comments + "\n");
-  body.appendHorizontalRule();
-  body.appendParagraph("\nInstructor Range Metrics & Qualifications:");
-  body.appendParagraph("[ ] Dry-fire handling & legal review completed");
-  body.appendParagraph("[ ] Practical qualification score: _____ / 25");
-  body.appendParagraph("[ ] Signed completion certificate issued");
-
-  doc.saveAndClose();
-  return doc.getUrl();
-}
-
-function sendStudentConfirmationEmail(data, profileDocUrl, studentId) {
-  const subject = "Welcome to Train With FIFS | Student ID: " + studentId;
-  const portalUrl = "https://trainwithfifs.com/?id=" + studentId;
-  const safeFacility = CONFIG.PRIMARY_RANGE || "Cindy's Hot Shots (115 Holsum Way, Glen Burnie, MD)";
-  const safeAmmo = CONFIG.AMMO_PROTOCOL || "50–100 rounds factory target ammunition";
-
-  const htmlBody = "" +
-    "<div style='font-family: Arial, sans-serif; background-color: #070b10; color: #e2e8f0; padding: 24px; border-radius: 8px;'>" +
-      "<h2 style='color: #00e5ff; margin-top: 0;'>Welcome, " + escapeHtml(data.fullName) + " 👋</h2>" +
-      "<p>Your official student record has been established with Future Initiative Firearm Services.</p>" +
-      "<div style='background: #10161f; border-left: 4px solid #00e5ff; padding: 14px 18px; margin: 20px 0;'>" +
-        "<p style='margin: 4px 0;'><strong>Student ID:</strong> <code style='color: #ffb703; font-size: 16px;'>" + studentId + "</code></p>" +
-        "<p style='margin: 4px 0;'><strong>Course Selected:</strong> " + escapeHtml(data.courseSelection) + "</p>" +
-        "<p style='margin: 4px 0;'><strong>Scheduled Date:</strong> " + escapeHtml(data.preferredDates) + "</p>" +
-        "<p style='margin: 4px 0;'><strong>Facility:</strong> " + escapeHtml(safeFacility) + "</p>" +
-        "<p style='margin: 4px 0;'><strong>Ammunition Protocol:</strong> " + escapeHtml(safeAmmo) + "</p>" +
-      "</div>" +
-      "<h3 style='color: #ffb703;'>Your Next Step</h3>" +
-      "<p>Log in to your personalized Student Portal to review your 4-step preparation checklist before class day:</p>" +
-      "<p style='margin: 24px 0;'>" +
-        "<a href='" + portalUrl + "' style='background-color: #00e5ff; color: #070b10; text-decoration: none; padding: 12px 24px; font-weight: bold; border-radius: 6px; display: inline-block;'>" +
-          "Open Your Student Dashboard →" +
-        "</a>" +
-      "</p>" +
-      "<p style='font-size: 12px; color: #64748b;'>Remember: Strictly zero live ammunition is permitted in the classroom environment. All ammunition must remain locked in your vehicle trunk until live-fire qualification.</p>" +
-    "</div>";
-
-  try {
-    MailApp.sendEmail({
-      to: data.email,
-      subject: subject,
-      htmlBody: htmlBody
-    });
-  } catch (err1) {
-    try {
-      GmailApp.sendEmail(data.email, subject, "", { htmlBody: htmlBody });
-    } catch (err2) {
-      Logger.log("Mail delivery warning: " + err2.toString());
-    }
-  }
-}
-
-function sendBusinessAlertEmail(data, profileDocUrl, dateString, studentId) {
-  let recipient = "futureinitiativefs@gmail.com";
-  try {
-    recipient = CONFIG.BUSINESS_NOTIFICATION_EMAIL || Session.getEffectiveUser().getEmail() || recipient;
-  } catch (e) {}
-
-  const subject = "[NEW STUDENT ENROLLED] " + studentId + " - " + (data.fullName || "Student");
-  const htmlBody = "" +
-    "<div style='font-family: Arial, sans-serif; padding: 16px; background: #ffffff; color: #1e293b;'>" +
-      "<h2 style='color: #0284c7;'>New Student Enrolled</h2>" +
-      "<p><strong>Student ID:</strong> " + studentId + "</p>" +
-      "<p><strong>Full Name:</strong> " + escapeHtml(data.fullName) + "</p>" +
-      "<p><strong>Email:</strong> " + escapeHtml(data.email) + "</p>" +
-      "<p><strong>Phone:</strong> " + escapeHtml(data.phone) + "</p>" +
-      "<p><strong>Course:</strong> " + escapeHtml(data.courseSelection) + "</p>" +
-      "<p><strong>Schedule:</strong> " + escapeHtml(data.preferredDates) + "</p>" +
-      "<p><strong>Group Format:</strong> " + escapeHtml(data.groupSize) + "</p>" +
-      "<p><strong>Notes:</strong><br>" + escapeHtml(data.comments) + "</p>" +
-      "<hr>" +
-      "<p><strong>Student Profile Document:</strong><br>" +
-         "<a href='" + profileDocUrl + "'>" + profileDocUrl + "</a>" +
-      "</p>" +
-    "</div>";
-
-  try {
-    MailApp.sendEmail({
-      to: recipient,
-      subject: subject,
-      htmlBody: htmlBody
-    });
-  } catch (err1) {
-    try {
-      GmailApp.sendEmail(recipient, subject, "", { htmlBody: htmlBody });
-    } catch (err2) {
-      Logger.log("Instructor alert email warning: " + err2.toString());
-    }
-  }
-}
-
-function handleTestimonialSubmission(rawPayload) {
-  try {
-    const data = rawPayload || {};
-    const name = (data.name || "").toString().trim();
-    const text = (data.testimonialText || "").toString().trim();
-    const classAttended = (data.classAttended || "General Instruction").toString().trim();
-    const rating = Math.max(1, Math.min(5, Number(data.rating) || 5));
-
-    if (!name || !text) {
-      return { status: "error", message: "Please provide your name and feedback." };
+    function switchSpTab(tab, btn) {
+      document.querySelectorAll('.sp-tab').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      ['checklist', 'schedule', 'training', 'documents', 'next', 'help'].forEach(k => {
+        const el = document.getElementById('sp-tab-' + k);
+        if (el) el.classList.toggle('hidden', k !== tab);
+      });
     }
 
-    const tz = Session.getScriptTimeZone() || CONFIG.DEFAULT_TIMEZONE;
-    const formattedDate = Utilities.formatDate(new Date(), tz, "yyyy-MM-dd");
+    function openStudentTab(tab) {
+      const b = document.querySelector(`.sp-tab[onclick*="${tab}"]`);
+      switchSpTab(tab, b);
+      const target = document.getElementById('sp-tab-' + tab);
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    }
 
-    const folder = getOrCreateFolder(CONFIG.TESTIMONIALS_FOLDER_NAME);
-    const doc = getOrCreateContinuousDoc(folder, CONFIG.TESTIMONIALS_DOC_NAME);
-    const body = doc.getBody();
+    function toggleTask(id) {
+      const c = document.getElementById('chk-' + id);
+      if (c) {
+        c.checked = !c.checked;
+        syncTask(id, c.checked);
+      }
+    }
 
-    body.appendHorizontalRule();
-    const ratingStars = "★".repeat(rating);
-    body.appendParagraph("Date: " + formattedDate + " | Rating: " + ratingStars + " (" + rating + "/5)").setHeading(DocumentApp.ParagraphHeading.HEADING3);
-    body.appendParagraph("Student: " + name + " | Course: " + classAttended);
-    body.appendParagraph('"' + text + '"').setItalic(true);
+    function syncTask(id, done) {
+      const card = document.getElementById('cc-' + id.replace(/_.*/, ''));
+      if (card) card.classList.toggle('checked', done);
 
-    doc.saveAndClose();
-    return { status: "success", message: "Thank you! Your testimonial has been logged." };
-  } catch (err) {
-    return { status: "error", message: err.message };
-  }
-}
+      if (currentStudent) {
+        currentStudent.prepTasks = currentStudent.prepTasks || {};
+        currentStudent.prepTasks[id] = done;
+        localStorage.setItem('fifs_student_session', JSON.stringify(currentStudent));
 
-function setAllProjectFilesPublic() {
-  const folderId = "1azzdcMUFtdTJY8I8fCNU-7wOagKJ6RcX";
-  const fileIds = Array.of(
-    "1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ", "1YdIl_pUzIJWVgmI5tD5byl5mCgX1F08L",
-    "127f4SZEb5Pd9DNIGNHj6ef2RGr2vumFO", "1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO",
-    "1RgGmpZ9u6mn7TbJQznz2ay8_v7-5T0XW", "1rUcirGX7jLT0upSobd82iJf91Ycv9xlt",
-    "1Z8VLFy2L1Sd6bASqfpt-BBeRiKpVU9qF", "1GKKGtLxhSqGOgfh1-u1_CFNr1af-xFUS",
-    "1XLGG8VZTEOSdnPF5-SXLVGZmeK9m55rR", "1O5ON4PlVTuCaW-w09a0zzMnOYBMwQ_6k",
-    "1-dVzb2ipi3IYNb5dGxUpBCBaEyYJIpZ_", "191TKVFSz48i2NP9T23KKzZcNFIr42Fls",
-    "1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV"
-  );
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+          google.script.run.handleUpdateStudentTask(currentStudent.studentId, currentStudent.email, id, done);
+        }
+      }
+    }
 
-  try {
-    DriveApp.getFolderById(folderId).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  } catch (e) {}
+    function studentLogout() {
+      localStorage.removeItem('fifs_student_session');
+      currentStudent = null;
+      navigateApp('public');
+    }
 
-  fileIds.forEach(function(id) {
-    try {
-      DriveApp.getFileById(id).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    } catch (e) {}
-  });
+    /* Command Center Logic */
+    function renderCommandCenter(data) {
+      cachedAdmin = data.students || [];
+      document.getElementById('cm-tot').textContent = data.metrics.totalStudents || cachedAdmin.length;
+      document.getElementById('cm-att').textContent = data.metrics.needsAttention || 0;
+      document.getElementById('cm-ses').textContent = data.metrics.upcomingSessions || 0;
+      document.getElementById('cm-gra').textContent = data.metrics.graduates || 0;
+      populateRoster(cachedAdmin);
+    }
 
-  return "Project media files configured for public access.";
-}
+    function populateRoster(list) {
+      const tb = document.getElementById('cmd-tbody');
+      if (!tb) return;
+      if (!list || list.length === 0) {
+        tb.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No student records found.</td></tr>';
+        return;
+      }
+      tb.innerHTML = list.map(s => `
+        <tr>
+          <td><strong>${s.studentId}</strong></td>
+          <td><div style="font-weight: 700; color: #fff;">${s.fullName}</div><div style="font-size: 0.76rem; color: var(--text-muted);">${s.email} • ${s.phone || ''}</div></td>
+          <td>${(s.course || '').split('(').at(0).trim()}</td>
+          <td>${s.assignedDate || s.preferredDates || 'Pending'}</td>
+          <td>
+            <select onchange="updateStatusCmd('${s.studentId}', this.value)" style="padding: 6px; font-size: 0.8rem; background: #0d121a; color: #fff; border: 1px solid var(--border-subtle); border-radius: 6px;">
+              <option value="PREP_PENDING" ${s.status === 'PREP_PENDING' ? 'selected' : ''}>PREP PENDING</option>
+              <option value="PREP_COMPLETED" ${s.status === 'PREP_COMPLETED' ? 'selected' : ''}>PREP COMPLETED</option>
+              <option value="QUALIFIED" ${s.status === 'QUALIFIED' ? 'selected' : ''}>QUALIFIED</option>
+              <option value="CERTIFIED" ${s.status === 'CERTIFIED' ? 'selected' : ''}>CERTIFIED</option>
+            </select>
+          </td>
+          <td><a href="${s.profileDocUrl || '#'}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan);">Dossier ↗</a></td>
+        </tr>
+      `).join('');
+    }
 
-/**
- * Escapes HTML characters to prevent XSS in email rendering
- */
-function escapeHtml(text) {
-  if (text === null || text === undefined) return "";
-  return text.toString()
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+    function filterRoster() {
+      const q = document.getElementById('cmd-search').value.toLowerCase();
+      const st = document.getElementById('cmd-filter').value;
+      const res = cachedAdmin.filter(s => {
+        const mq = !q || s.fullName.toLowerCase().includes(q) || s.studentId.toLowerCase().includes(q) || s.email.toLowerCase().includes(q);
+        const ms = st === 'ALL' || s.status === st;
+        return mq && ms;
+      });
+      populateRoster(res);
+    }
 
+    function updateStatusCmd(id, status) {
+      const pin = localStorage.getItem('fifs_admin_pin') || '1985';
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(refreshAdminRoster).handleUpdateStudentStatus(pin, id, { status: status });
+      }
+    }
+
+    function refreshAdminRoster() {
+      const pin = localStorage.getItem('fifs_admin_pin') || '1985';
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(renderCommandCenter).handleGetAdminDashboardData(pin);
+      }
+    }
+
+    function instructorLogout() {
+      localStorage.removeItem('fifs_admin_pin');
+      navigateApp('public');
+    }
+
+    /* Login Modal Logic */
+    function openLoginModal(role) {
+      document.getElementById('loginModal').classList.add('active');
+      setLoginRole(role || 'student');
+    }
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('active');
+    }
+    function setLoginRole(role) {
+      document.getElementById('mt-student').classList.toggle('active', role === 'student');
+      document.getElementById('mt-instructor').classList.toggle('active', role === 'instructor');
+      document.getElementById('mf-student').classList.toggle('hidden', role !== 'student');
+      document.getElementById('mf-instructor').classList.toggle('hidden', role !== 'instructor');
+    }
+
+    function loginStudent() {
+      const q = document.getElementById('m-student-input').value.trim();
+      const st = document.getElementById('m-student-status');
+      if (!q) { showMsg(st, 'Please enter Email or Student ID.', true); return; }
+      showMsg(st, 'Locating student dossier...', false);
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(res => {
+          if (res && res.status === 'success') {
+            closeLoginModal();
+            localStorage.setItem('fifs_student_session', JSON.stringify(res.student));
+            renderStudentDashboard(res.student);
+            navigateApp('student');
+          } else showMsg(st, res.message || 'No record found.', true);
+        }).handleGetStudentPortalData(q.includes('@') ? q : '', q.includes('@') ? '' : q);
+      } else {
+        setTimeout(() => {
+          const mock = getMockStudent(q);
+          localStorage.setItem('fifs_student_session', JSON.stringify(mock));
+          closeLoginModal();
+          renderStudentDashboard(mock);
+          navigateApp('student');
+        }, 400);
+      }
+    }
+
+    function loadDemoSession() {
+      const mock = getMockStudent('FIFS-DEMO');
+      localStorage.setItem('fifs_student_session', JSON.stringify(mock));
+      closeLoginModal();
+      renderStudentDashboard(mock);
+      navigateApp('student');
+    }
+
+    function loginInstructor() {
+      const pin = document.getElementById('m-admin-pin').value.trim();
+      const st = document.getElementById('m-admin-status');
+      if (!pin) { showMsg(st, 'Passcode required.', true); return; }
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(res => {
+          if (res && res.status === 'success') {
+            localStorage.setItem('fifs_admin_pin', pin);
+            closeLoginModal();
+            renderCommandCenter(res);
+            navigateApp('command');
+          } else showMsg(st, 'Access Denied.', true);
+        }).handleGetAdminDashboardData(pin);
+      } else {
+        if (pin === '1985') {
+          localStorage.setItem('fifs_admin_pin', pin);
+          closeLoginModal();
+          renderCommandCenter({
+            metrics: { totalStudents: 24, needsAttention: 6, upcomingSessions: 8, graduates: 18 },
+            students: [
+              { studentId: 'FIFS-4081', fullName: 'Jordan Vance', email: 'jordan@example.com', phone: '(410) 555-0192', course: 'Maryland CCW & HQL Combo', assignedDate: 'Oct 12, 2026', status: 'PREP_PENDING', profileDocUrl: '#' },
+              { studentId: 'FIFS-1029', fullName: 'Tanae Wade', email: 'tanae@example.com', phone: '(443) 214-9982', course: 'Maryland HQL', assignedDate: 'Oct 19, 2026', status: 'QUALIFIED', profileDocUrl: '#' },
+              { studentId: 'FIFS-8821', fullName: 'Marcus Cole', email: 'mcole@example.com', phone: '(443) 555-8821', course: 'Maryland CCW', assignedDate: 'Nov 02, 2026', status: 'PREP_COMPLETED', profileDocUrl: '#' }
+            ]
+          });
+          navigateApp('command');
+        } else showMsg(st, 'Invalid Passcode.', true);
+      }
+    }
+
+    function showMsg(el, txt, isErr) {
+      el.style.display = 'block';
+      el.style.background = isErr ? 'rgba(239, 68, 68, 0.15)' : 'rgba(0, 229, 255, 0.12)';
+      el.style.color = isErr ? '#fca5a5' : '#4deeea';
+      el.textContent = txt;
+    }
+
+    function getMockStudent(q) {
+      return {
+        studentId: q.startsWith('FIFS') ? q : 'FIFS-4081',
+        fullName: 'Jordan Vance',
+        email: q.includes('@') ? q : 'jordan.vance@example.com',
+        phone: '(410) 555-0192',
+        course: 'Maryland CCW & HQL Combo ($249.99)',
+        assignedDate: 'Saturday, Oct 12 • 9:00 AM',
+        status: 'PREP_PENDING',
+        prepTasks: { transport_law: true, ammo_acquired: true, eye_ear_pro: false, id_ready: true },
+        profileDocUrl: 'https://docs.google.com/document/d/1BA5_XAKvSZ-jxq8vwwjbmHggV1JDankPewhNtJImxMg/edit'
+      };
+    }
+  </script>
+</body>
+</html>
