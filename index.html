@@ -154,12 +154,12 @@
       }
     }
     .instructor-avatar-frame {
-      width: 210px;
-      height: 260px;
-      border-radius: 14px;
+      width: 220px;
+      height: 275px;
+      border-radius: 16px;
       overflow: hidden;
       border: 2px solid var(--accent-cyan);
-      box-shadow: 0 0 22px var(--accent-cyan-glow);
+      box-shadow: 0 0 25px var(--accent-cyan-glow), inset 0 0 20px rgba(0, 0, 0, 0.8);
       background: #070b10;
       flex-shrink: 0;
       position: relative;
@@ -168,12 +168,23 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 10%; /* Focuses directly on Kai Wade, cutting off background lobby and desk */
+      object-position: center top;
+      transform: scale(2.15) translate(0.5%, 19%);
+      transform-origin: center center;
       display: block;
-      transition: transform 0.3s ease;
+      transition: transform 0.35s ease;
     }
     .instructor-avatar-frame:hover .instructor-avatar-img {
-      transform: scale(1.04);
+      transform: scale(2.22) translate(0.5%, 19%);
+    }
+    .instructor-avatar-frame::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      background: radial-gradient(circle at 50% 36%, transparent 50%, rgba(7, 11, 16, 0.72) 100%),
+                  linear-gradient(180deg, transparent 65%, rgba(7, 11, 16, 0.95) 100%);
+      pointer-events: none;
     }
     .instructor-hero-info { flex: 1; }
     .instructor-badge-tag {
@@ -526,7 +537,7 @@
       <div id="admin-auth-box">
         <div class="panel-header">
           <h3>Instructor Command Center Access</h3>
-          <p>Restricted access for Chief Kai Wade to manage student rosters, qualifications, and state submissions.</p>
+          <p>Restricted access for Instructor Kai Wade to manage student rosters, qualifications, and state submissions.</p>
         </div>
 
         <div style="background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 12px; padding: 22px; max-width: 440px; margin: 0 auto;">
@@ -822,7 +833,7 @@
     <section id="view-about" role="tabpanel" class="panel hidden">
       <div class="panel-header">
         <h3>About Lead Instructor Kai Wade</h3>
-        <p>Founder & Chief Instructor, Future Initiative Firearm Services</p>
+        <p>Founder & Lead Instructor, Future Initiative Firearm Services</p>
       </div>
 
       <!-- Instructor Kai Wade Clean Focus Profile Card -->
@@ -830,12 +841,12 @@
         <div class="instructor-avatar-frame">
           <img src="https://lh3.googleusercontent.com/d/1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa" 
                onerror="this.src='https://drive.google.com/thumbnail?id=1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa&sz=w1000'" 
-               alt="Chief Kai Wade - Lead Instructor, Future Initiative Firearm Services" 
+               alt="Instructor Wade - Lead Instructor, Future Initiative Firearm Services" 
                class="instructor-avatar-img">
         </div>
         <div class="instructor-hero-info">
-          <div class="instructor-badge-tag">Chief Instructor & Founder</div>
-          <h2 class="instructor-name">Chief Kai Wade</h2>
+          <div class="instructor-badge-tag">Lead Instructor & Founder</div>
+          <h2 class="instructor-name">Instructor Wade</h2>
           <div class="instructor-creds-sub">
             MSP Certified Qualified Handgun Instructor (§ 5-101) • NRA Certified Pistol Instructor & RSO
           </div>
@@ -856,7 +867,7 @@
           <strong>Kai Wade</strong> is an NRA-Certified Firearms Instructor and a Maryland State Police (MSP) Certified Qualified Handgun Instructor (§ 5-101). He brings an analytical, patient, and modern approach to firearms education. 
         </p>
         <p style="margin-bottom: 14px;">
-          Rather than relying on intimidation or outdated military drill bravado, Chief Wade focuses on biomechanics, visual diagnostics, trigger press dynamics, and deep mastery of Maryland self-defense statutes. Every session emphasizes lawful conflict avoidance, situational awareness, and de-escalation first—with precision marksmanship as the bedrock of accountability.
+          Rather than relying on intimidation or outdated military drill bravado, Instructor Wade focuses on biomechanics, visual diagnostics, trigger press dynamics, and deep mastery of Maryland self-defense statutes. Every session emphasizes lawful conflict avoidance, situational awareness, and de-escalation first—with precision marksmanship as the bedrock of accountability.
         </p>
       </div>
 
@@ -1078,7 +1089,7 @@
       { id: "1XLGG8VZTEOSdnPF5-SXLVGZmeK9m55rR", course: "Cohort Training", score: "Triple Qualification", title: "Group Class Milestone", desc: "Three students qualifying together with clean, certified blue silhouette target sheets at Cindy's Hot Shots.", loc: "Small Group Cohort • Cindy's Hot Shots" },
       { id: "1sOye7641V0sTZLrOQ7VHAuEe4wFBdfoL", course: "Wear & Carry Initial", score: "Vital Zone Cluster", title: "BakerTargets Standard", desc: "Dedicated center-mass cluster demonstrating solid trigger reset discipline and sight tracking on the line.", loc: "Maryland Certified • Instructor Wade" },
       { id: "1bWUFKzFuf-xsE7XSuPEE9mWuyGyVcH_z", course: "CCW Certification", score: "High-Visibility Target", title: "Orange Silhouette Grouping", desc: "Steady cadence and confident gun handling producing tight center-scoring hits during qualification.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
-      { id: "191TKVFSz48i2NP9T23KKzZcNFIr42Fls", course: "Wear & Carry", score: "Certified Passing", title: "Confident Marksmanship", desc: "Clean grouping right in the vital scoring rings following 1-on-1 diagnostic coaching with Chief Wade.", loc: "Cindy's Hot Shots • Qualified" },
+      { id: "191TKVFSz48i2NP9T23KKzZcNFIr42Fls", course: "Wear & Carry", score: "Certified Passing", title: "Confident Marksmanship", desc: "Clean grouping right in the vital scoring rings following 1-on-1 diagnostic coaching with Instructor Wade.", loc: "Cindy's Hot Shots • Qualified" },
       { id: "1-__LG3c5gZA2zAKX-qeX8magmZRBETsY", course: "Paired Session", score: "Dual Qualifiers", title: "Paired Training Cohort", desc: "Two students celebrating successful state qualification following their live-fire practical course of fire.", loc: "Cindy's Hot Shots • Range Exit" },
       { id: "1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5", course: "Maryland CCW", score: "X-Ring Cluster", title: "Red X-Ring Accuracy", desc: "Dead-center shot placement clustered around the red X-ring on the B-27 qualification target.", loc: "Certified Range • Cindy's Hot Shots" }
     ];
@@ -1509,7 +1520,7 @@
           })
           .withFailureHandler(function(err) {
             submitBtn.disabled = false;
-            showStatus(statusDiv, 'Error connecting to registration server. Please call (443) 990-1304.', 'error');
+            showStatus(statusDiv, 'Error connecting to registration server. Please call (443) 990-1304, 'Error connecting to registration server. Please call (443) 990-1304.', 'error');
           })
           .handleBookingSubmission(payload);
       } else {
