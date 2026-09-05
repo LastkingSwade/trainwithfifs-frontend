@@ -498,8 +498,8 @@
     /* ================= GOOGLE REVIEWS TICKER ON HERO ================= */
     .hero-reviews-marquee-wrap {
       width: 100%;
-      max-width: 620px;
-      margin: 0 auto 10px;
+      max-width: 640px;
+      margin: 10px auto 0;
       background: rgba(7, 11, 16, 0.88);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
@@ -549,7 +549,7 @@
       display: inline-flex;
       align-items: center;
       gap: 32px;
-      animation: reviewsScroll 38s linear infinite;
+      animation: reviewsScroll 76s linear infinite;
       will-change: transform;
     }
     @keyframes reviewsScroll {
@@ -883,13 +883,8 @@
         <span class="pulse-dot" id="live-status-dot" title="Checking status..."></span>
         <span>THE FUTURE IS NOW, TAKE THE INITIATIVE!</span>
       </div>
-    </div>
 
-
-    <div class="hero-mid-spacer"></div>
-
-
-          <!-- Official Google Reviews Infinite Ticker -->
+      <!-- Official Google Reviews Infinite Ticker (Positioned above tablet/firearm, below logo) -->
       <div class="hero-reviews-marquee-wrap" aria-label="Official Google Reviews">
         <div class="reviews-badge-line">
           <div class="reviews-badge-left">
@@ -904,6 +899,13 @@
           </div>
         </div>
       </div>
+    </div>
+
+
+    <div class="hero-mid-spacer"></div>
+
+
+    
 
       <!-- Command Dock Launcher -->
     <div class="hero-command-dock">
