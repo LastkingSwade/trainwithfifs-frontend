@@ -100,7 +100,7 @@
 
     .hero-top-hud {
       width: 100%;
-      max-width: 720px;
+      max-width: 760px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -113,17 +113,17 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(7, 11, 16, 0.88);
-      border: 1px solid rgba(0, 229, 255, 0.35);
-      padding: 6px 14px;
+      background: rgba(7, 11, 16, 0.90);
+      border: 1px solid rgba(0, 229, 255, 0.40);
+      padding: 7px 16px;
       border-radius: 20px;
       font-family: var(--font-display);
-      font-size: 0.85rem;
+      font-size: 0.90rem;
       font-weight: 700;
       letter-spacing: 1.5px;
       text-transform: uppercase;
       color: #fff;
-      box-shadow: 0 0 16px rgba(0, 229, 255, 0.2);
+      box-shadow: 0 0 18px rgba(0, 229, 255, 0.25);
     }
 
     .pulse-dot {
@@ -722,7 +722,7 @@
       color: #fca5a5;
     }
 
-    /* Structured Checklist & Guide Cards */
+    /* Structured Checklist Cards */
     .checklist-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -767,7 +767,6 @@
       font-weight: bold;
     }
 
-    /* Section Subheaders */
     .prep-subheading {
       font-family: var(--font-display);
       font-size: 1.25rem;
@@ -962,7 +961,9 @@
 </head>
 <body>
 
-  <!-- SCREEN 1: HERO LANDING SCREEN -->
+  <!-- ==============================================================
+       SCREEN 1: HERO LANDING SCREEN
+       ============================================================== -->
   <section id="hero-landing" aria-label="Welcome to Train With FIFS">
     
     <div class="hero-bg-layer">
@@ -973,15 +974,17 @@
       <div class="hero-bg-vignette"></div>
     </div>
 
+    <!-- Official Motto Ticker -->
     <div class="hero-top-hud">
       <div class="range-live-ticker">
         <span class="pulse-dot"></span>
-        <span>RANGE SCHEDULE ACTIVE // CINDY'S HOT SHOTS</span>
+        <span>THE FUTURE IS NOW, TAKE THE INITIATIVE!</span>
       </div>
     </div>
 
     <div class="hero-mid-spacer"></div>
 
+    <!-- Interactive Fast-Tap Command Dock -->
     <div class="hero-command-dock">
       <div class="hero-dock-header">⚡ Choose Your Training Path</div>
       
@@ -1014,7 +1017,9 @@
     </div>
   </section>
 
-  <!-- SCREEN 2: MAIN TRAINING PORTAL -->
+  <!-- ==============================================================
+       SCREEN 2: MAIN TRAINING PORTAL
+       ============================================================== -->
   <div id="app-container" class="container">
     <header class="app-header">
       <div class="brand-identity-group">
