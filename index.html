@@ -80,24 +80,24 @@
       width: 100%;
       height: 108%;
       object-fit: cover;
-      /* Aligns top/center so 'Future Initiative Firearm Services' sits cleanly above dock */
-      object-position: center 0%;
+      /* Shifts the image upward so hologram, Glock, and tablet sit above the dock */
+      object-position: center 12%;
       display: block;
-      transform: translateY(0);
+      transform: translateY(-2%);
     }
 
-    @media (min-width: 769px) and (orientation: landscape) {
+    @media (max-width: 768px), (orientation: portrait) {
       .hero-bg-artwork {
-        object-fit: contain;
-        object-position: center 2%;
-        height: 88vh;
+        object-position: center 10%;
+        height: 110%;
+        transform: translateY(-3%);
       }
     }
 
     .hero-bg-vignette {
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(7, 11, 16, 0.15) 0%, rgba(7, 11, 16, 0.05) 30%, rgba(7, 11, 16, 0.85) 75%, var(--bg-dark-core) 100%);
+      background: linear-gradient(180deg, rgba(7, 11, 16, 0.2) 0%, rgba(7, 11, 16, 0.05) 35%, rgba(7, 11, 16, 0.85) 80%, var(--bg-dark-core) 100%);
     }
 
     /* Top Live HUD Status Ticker */
@@ -146,7 +146,7 @@
     .hero-mid-spacer {
       pointer-events: none;
       flex: 1;
-      min-height: 28vh;
+      min-height: 25vh;
       z-index: 5;
     }
 
@@ -157,14 +157,14 @@
       background: rgba(11, 15, 20, 0.90);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      padding: 16px 16px 14px;
+      padding: 18px 16px 16px;
       border-radius: 16px;
       border: 1px solid rgba(0, 229, 255, 0.45);
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 229, 255, 0.25);
       position: relative;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
       z-index: 10;
       margin-top: auto;
     }
@@ -192,7 +192,7 @@
 
     .hero-dock-header {
       font-family: var(--font-display);
-      font-size: 0.90rem;
+      font-size: 0.92rem;
       font-weight: 700;
       letter-spacing: 2px;
       color: var(--accent-amber);
@@ -211,7 +211,7 @@
       border: 1px solid rgba(0, 229, 255, 0.3);
       color: #e2e8f0;
       font-family: var(--font-display);
-      font-size: 0.85rem;
+      font-size: 0.86rem;
       font-weight: 700;
       letter-spacing: 1px;
       padding: 6px 12px;
@@ -240,17 +240,17 @@
       background: linear-gradient(135deg, #00e5ff 0%, #00a8cc 100%);
       color: #070b10;
       font-family: var(--font-display);
-      font-size: 1.25rem;
+      font-size: 1.3rem;
       font-weight: 800;
       letter-spacing: 2px;
       text-transform: uppercase;
-      padding: 15px 20px;
+      padding: 16px 20px;
       border-radius: 10px;
       border: none;
       cursor: pointer;
-      box-shadow: 0 0 26px var(--accent-cyan-glow);
+      box-shadow: 0 0 28px var(--accent-cyan-glow);
       transition: all 0.25s ease;
-      min-height: 52px;
+      min-height: 54px;
       position: relative;
       overflow: hidden;
     }
@@ -274,7 +274,7 @@
 
     .btn-hero-book:hover, .btn-hero-book:focus-visible {
       transform: translateY(-2px) scale(1.01);
-      box-shadow: 0 0 38px rgba(0, 229, 255, 0.95);
+      box-shadow: 0 0 40px rgba(0, 229, 255, 0.95);
       outline: none;
     }
 
@@ -309,7 +309,7 @@
     }
 
     /* -------------------------------------------------------------
-       MAIN APPLICATION
+       MAIN APPLICATION CONTAINER
        ------------------------------------------------------------- */
     #app-container {
       display: none;
@@ -623,7 +623,9 @@
       color: #fca5a5;
     }
 
-    /* Target Gallery */
+    /* -------------------------------------------------------------
+       AUTHENTIC STUDENT TARGET GALLERY
+       ------------------------------------------------------------- */
     .gallery-grid-targets {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -760,9 +762,12 @@
 </head>
 <body>
 
-  <!-- SCREEN 1: HERO LANDING SCREEN (WITH ELEVATED ARTWORK) -->
+  <!-- ==============================================================
+       SCREEN 1: HERO LANDING SCREEN (WITH ELEVATED BACKGROUND ARTWORK)
+       ============================================================== -->
   <section id="hero-landing" aria-label="Welcome to Future Initiative Firearm Services">
     
+    <!-- Native Background Artwork Layer (Elevated for Open Viewport) -->
     <div class="hero-bg-layer">
       <img src="https://lh3.googleusercontent.com/d/1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ" 
            onerror="this.src='https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w1920'" 
@@ -771,6 +776,7 @@
       <div class="hero-bg-vignette"></div>
     </div>
 
+    <!-- Top Live HUD Bar -->
     <div class="hero-top-hud">
       <div class="range-live-ticker">
         <span class="pulse-dot"></span>
@@ -778,9 +784,10 @@
       </div>
     </div>
 
-    <!-- Keeps the central artwork unobstructed -->
+    <!-- Flexible spacer keeping central artwork completely open -->
     <div class="hero-mid-spacer"></div>
 
+    <!-- Compact Bottom Command Dock -->
     <div class="hero-command-dock">
       <div class="hero-dock-header">⚡ Select Your Training Objective</div>
       
@@ -813,7 +820,9 @@
     </div>
   </section>
 
-  <!-- SCREEN 2: MAIN APPLICATION -->
+  <!-- ==============================================================
+       SCREEN 2: MAIN APPLICATION
+       ============================================================== -->
   <div id="app-container" class="container">
     <header class="app-header">
       <div class="brand-identity-group">
@@ -1002,7 +1011,7 @@
       </div>
 
       <div class="gallery-grid-targets">
-        <!-- Photo 1: Dual Student CCW Qualifiers -->
+        <!-- Photo 1 -->
         <article class="target-card-student">
           <div class="target-img-frame">
             <img src="https://drive.google.com/thumbnail?id=1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO&sz=w800" alt="Two students holding BakerTargets qualification sheets">
@@ -1017,7 +1026,7 @@
           </div>
         </article>
 
-        <!-- Photo 2: Pink Silhouette Target -->
+        <!-- Photo 2 -->
         <article class="target-card-student">
           <div class="target-img-frame">
             <img src="https://drive.google.com/thumbnail?id=1rUcirGX7jLT0upSobd82iJf91Ycv9xlt&sz=w800" alt="Student smiling holding pink silhouette target">
@@ -1032,7 +1041,7 @@
           </div>
         </article>
 
-        <!-- Photo 3: Holiday Snowman Target -->
+        <!-- Photo 3 -->
         <article class="target-card-student">
           <div class="target-img-frame">
             <img src="https://drive.google.com/thumbnail?id=1mljZQi7U4-O4vBCldtd5xMqAtbk7xBBl&sz=w800" alt="Student holding holiday snowman target with bullet groupings">
@@ -1047,7 +1056,7 @@
           </div>
         </article>
 
-        <!-- Photo 4: Paired CCW & HQL Qualifiers -->
+        <!-- Photo 4 -->
         <article class="target-card-student">
           <div class="target-img-frame">
             <img src="https://drive.google.com/thumbnail?id=1SSmwN_MLOBIfU45i63NY48RfJWA-bc2l&sz=w800" alt="Paired students holding finished qualification targets">
@@ -1062,7 +1071,7 @@
           </div>
         </article>
 
-        <!-- Photo 5: Two Female CCW Qualifiers -->
+        <!-- Photo 5 -->
         <article class="target-card-student">
           <div class="target-img-frame">
             <img src="https://drive.google.com/thumbnail?id=1I8SYXbZ8Vs_RoaISP-Oi_yVf8y24wJM_&sz=w800" alt="Two women holding finished targets after Maryland qualification">
@@ -1077,7 +1086,7 @@
           </div>
         </article>
 
-        <!-- Photo 6: Student Target (1EPxsiOZBmyEE2R1N3Qvl4mZb6PYi19fz) -->
+        <!-- Photo 6 -->
         <article class="target-card-student">
           <div class="target-img-frame">
             <img src="https://drive.google.com/thumbnail?id=1EPxsiOZBmyEE2R1N3Qvl4mZb6PYi19fz&sz=w800" alt="Student with qualifying B-27 target">
