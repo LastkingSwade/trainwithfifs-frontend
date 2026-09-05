@@ -583,8 +583,8 @@
       background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.28); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65); transition: transform 0.25s ease, border-color 0.25s ease;
     }
     .target-card-student:hover { transform: translateY(-3px); border-color: var(--accent-cyan); box-shadow: 0 10px 30px rgba(0, 229, 255, 0.25); }
-    .target-img-frame { width: 100%; height: 330px; background-color: #070b10; position: relative; }
-    .target-img-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .target-img-frame { width: 100%; height: 350px; background-color: #070b10; position: relative; overflow: hidden; }
+    .target-img-frame img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; }
     .badge-course {
       position: absolute; bottom: 10px; left: 10px; background: rgba(7, 11, 16, 0.92); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.82rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; text-transform: uppercase;
     }
@@ -660,7 +660,7 @@
 
       <!-- Quick Showcase & FAQ Row -->
       <div class="hero-bottom-strip">
-        <button type="button" class="btn-hero-aux" onclick="openAndSwitch('testimonial')">🎯 Targets & Proof</button>
+        <button type="button" class="btn-hero-aux" onclick="openAndSwitch('testimonial')">🎯 Student Targets</button>
         <span style="color: var(--border-subtle);">•</span>
         <button type="button" class="btn-hero-aux" onclick="openAndSwitch('faq')">❓ Common Questions</button>
       </div>
@@ -689,6 +689,8 @@
         <span class="home-text">HOME</span>
       </button>
     </header>
+
+    <!-- TOP NAVIGATION LINE REMOVED (Users return to Home screen to navigate) -->
 
     <!-- VIEW 1: AUTHENTICATED STUDENT DASHBOARD -->
     <section id="view-portal" role="tabpanel" class="panel hidden">
@@ -1173,65 +1175,251 @@
       </div>
     </section>
 
-    <!-- VIEW 5: STUDENT SHOWCASE & TARGET PROOF -->
+    <!-- VIEW 5: STUDENT TARGETS & RANGE GALLERY -->
     <section id="view-testimonial" role="tabpanel" class="panel hidden">
       <div class="panel-header">
-        <h3>Real Student Results & Target Proof</h3>
-        <p>Every student receives individualized coaching until they achieve tight shot groupings and state qualification.</p>
+        <h3>Student Targets & Range Highlights</h3>
+        <p>Real students on the firing line at Cindy's Hot Shots building confidence, safe habits, and tight shot groupings.</p>
       </div>
 
       <div class="cta-review-box">
         <h4 style="font-family: var(--font-display); font-size: 1.3rem; color: #fff; text-transform: uppercase;">Trained with Future Initiative?</h4>
         <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 4px;">Help fellow Maryland citizens find quality, zero-intimidation instruction.</p>
-        <a href="https://share.google/7bGi1FjainNaCUYIl" target="_blank" class="btn-review">
+        <a href="https://share.google/7bGi1FjainNaCUYIl" target="_blank" rel="noopener noreferrer" class="btn-review">
           ⭐ Leave an Official Google Review
         </a>
       </div>
 
       <div class="gallery-grid-targets">
-        <!-- Target 1 -->
-        <div class="target-card-student">
+        <!-- Photo 1: Chief Kai Wade on Range Lane -->
+        <article class="target-card-student">
           <div class="target-img-frame">
-            <img src="https://lh3.googleusercontent.com/d/11H6ZzZ3w5WpC0o0j_zW4d3Fh9K_lW_9m" 
-                 onerror="this.src='https://drive.google.com/thumbnail?id=1YdIl_pUzIJWVgmI5tD5byl5mCgX1F08L&sz=w500'" 
-                 alt="Certified Target 1">
-            <span class="badge-course">Maryland CCW Initial</span>
-            <span class="badge-score">Score: 98% (Passing: 70%)</span>
+            <img src="https://drive.google.com/thumbnail?id=1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO&sz=w800" 
+                 onerror="this.src='https://lh3.googleusercontent.com/d/1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO'" 
+                 alt="Instructor Kai Wade on the firing lane at Cindy's Hot Shots" 
+                 loading="lazy">
+            <span class="badge-course">Range Instruction</span>
+            <span class="badge-score">Lead Instructor</span>
           </div>
           <div class="target-content">
             <div>
-              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">First-Time Shooter Qualification</h4>
+              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Diagnostic Range Coaching</h4>
               <p style="font-size: 0.82rem; color: var(--text-muted);">
-                Student entered class with zero handgun experience. After diagnostic stance corrections and trigger press coaching, qualified on the B-27 with a 98% score.
+                Lead Instructor Kai Wade coaching on the lane at Cindy's Hot Shots. Paced, diagnostic 1-on-1 instruction focused on trigger control and grip biomechanics.
               </p>
             </div>
             <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">
-              Certified Range: Cindy's Hot Shots
+              Cindy's Hot Shots • Glen Burnie, MD
             </div>
           </div>
-        </div>
+        </article>
 
-        <!-- Target 2 -->
-        <div class="target-card-student">
+        <!-- Photo 2: Woman Student with BakerTargets Qualification -->
+        <article class="target-card-student">
           <div class="target-img-frame">
-            <img src="https://lh3.googleusercontent.com/d/12K8YyX4w6WpC0o0j_zW4d3Fh9K_lW_8n" 
-                 onerror="this.src='https://drive.google.com/thumbnail?id=1YdIl_pUzIJWVgmI5tD5byl5mCgX1F08L&sz=w500'" 
-                 alt="Certified Target 2">
-            <span class="badge-course">CCW Renewal</span>
-            <span class="badge-score">Score: 100% Grouping</span>
+            <img src="https://drive.google.com/thumbnail?id=10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps&sz=w800" 
+                 onerror="this.src='https://lh3.googleusercontent.com/d/10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps'" 
+                 alt="Student holding BakerTargets qualification sheet" 
+                 loading="lazy">
+            <span class="badge-course">Wear & Carry</span>
+            <span class="badge-score">100% Qualified</span>
           </div>
           <div class="target-content">
             <div>
-              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Wear & Carry Recertification</h4>
+              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Center-Mass Cadence Cluster</h4>
               <p style="font-size: 0.82rem; color: var(--text-muted);">
-                8-hour legal update and live-fire recertification. Perfect center-mass grouping using student's daily carry firearm.
+                Clean vital-zone hits on the official BakerTargets qualification course. Calm, structured coaching built confidence from the first round.
               </p>
             </div>
             <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">
               Certified Range: Cindy's Hot Shots
             </div>
           </div>
-        </div>
+        </article>
+
+        <!-- Photo 3: Young Man with Black B-27 Target -->
+        <article class="target-card-student">
+          <div class="target-img-frame">
+            <img src="https://drive.google.com/thumbnail?id=1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv&sz=w800" 
+                 onerror="this.src='https://lh3.googleusercontent.com/d/1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv'" 
+                 alt="Student holding black silhouette qualification target" 
+                 loading="lazy">
+            <span class="badge-course">Maryland CCW</span>
+            <span class="badge-score">Center-X Grouping</span>
+          </div>
+          <div class="target-content">
+            <div>
+              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">B-27 Precision Grouping</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Tight shot placement centered right in the 9, 10, and X rings following holster draw and sight picture coaching.
+              </p>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">
+              Cindy's Hot Shots • Practical Qualification
+            </div>
+          </div>
+        </article>
+
+        <!-- Photo 4: Two Young Men Holding Targets -->
+        <article class="target-card-student">
+          <div class="target-img-frame">
+            <img src="https://drive.google.com/thumbnail?id=1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR&sz=w800" 
+                 onerror="this.src='https://lh3.googleusercontent.com/d/1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR'" 
+                 alt="Two students holding BakerTargets qualification targets" 
+                 loading="lazy">
+            <span class="badge-course">Paired Training</span>
+            <span class="badge-score">Dual Qualifiers</span>
+          </div>
+          <div class="target-content">
+            <div>
+              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Dual Student Center Clusters</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Both students qualifying side-by-side with tight vital zone clusters during an intensive live-fire training block.
+              </p>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">
+              Cindy's Hot Shots • Paired Session
+            </div>
+          </div>
+        </article>
+
+        <!-- Photo 5: Student with Pink Ribbon Target -->
+        <article class="target-card-student">
+          <div class="target-img-frame">
+            <img src="https://drive.google.com/thumbnail?id=1rUcirGX7jLT0upSobd82iJf91Ycv9xlt&sz=w800" 
+                 onerror="this.src='https://lh3.googleusercontent.com/d/1rUcirGX7jLT0upSobd82iJf91Ycv9xlt'" 
+                 alt="Student smiling holding pink ribbon target" 
+                 loading="lazy">
+            <span class="badge-course">Wear & Carry</span>
+            <span class="badge-score">Certified Pass</span>
+          </div>
+          <div class="target-content">
+            <div>
+              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Confidence & Marksmanship</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Solid center-mass spread on silhouette targets, demonstrating steady recoil management and smooth trigger reset.
+              </p>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">
+              Certified Range: Cindy's Hot Shots
+            </div>
+          </div>
+        </article>
+
+        <!-- Photo 6: Female Student in Black Holding Pink Target -->
+        <article class="target-card-student">
+          <div class="target-img-frame">
+            <img src="https://drive.google.com/thumbnail?id=1Z8VLFy2L1Sd6bASqfpt-BBeRiKpVU9qF&sz=w800" 
+                 onerror="this.src='https://lh3.googleusercontent.com/d/1Z8VLFy2L1Sd6bASqfpt-BBeRiKpVU9qF'" 
+                 alt="Female student holding pink ribbon target" 
+                 loading="lazy">
+            <span class="badge-course">Maryland HQL / CCW</span>
+            <span class="badge-score">Dead-Center Hits</span>
+          </div>
+          <div class="target-content">
+            <div>
+              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Precision Vital-Zone Group</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Dead-center vital-zone grouping achieved through individual coaching on grip friction and stance balance.
+              </p>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">
+              Cindy's Hot Shots • Private Coaching
+            </div>
+          </div>
+        </article>
+
+        <!-- Photo 7: Student with Snowman Target -->
+        <article class="target-card-student">
+          <div class="target-img-frame">
+            <img src="https://drive.google.com/thumbnail?id=1mljZQi7U4-O4vBCldtd5xMqAtbk7xBBl&sz=w800" 
+                 onerror="this.src='https://lh3.googleusercontent.com/d/1mljZQi7U4-O4vBCldtd5xMqAtbk7xBBl'" 
+                 alt="Student holding snowman qualification target" 
+                 loading="lazy">
+            <span class="badge-course">Range Marksmanship</span>
+            <span class="badge-score">Center Grouping</span>
+          </div>
+          <div class="target-content">
+            <div>
+              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Dynamic Range Drills</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Maintaining discipline and tight group consistency across multiple target styles and engagement distances.
+              </p>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">
+              Cindy's Hot Shots • Glen Burnie, MD
+            </div>
+          </div>
+        </article>
+
+        <!-- Photo 8: Paired Session (Woman & Man) -->
+        <article class="target-card-student">
+          <div class="target-img-frame">
+            <img src="https://drive.google.com/thumbnail?id=1bQjmsgeIz5AOZbyHLnLe-y84FFmmOQSh&sz=w800" 
+                 onerror="this.src='https://lh3.googleusercontent.com/d/1bQjmsgeIz5AOZbyHLnLe-y84FFmmOQSh'" 
+                 alt="Paired students holding qualification targets" 
+                 loading="lazy">
+            <span class="badge-course">Paired Session</span>
+            <span class="badge-score">Certified Qualifiers</span>
+          </div>
+          <div class="target-content">
+            <div>
+              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Paired Class Qualifiers</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Both students achieving passing scores with clean center-mass placement during paired weekend instruction.
+              </p>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">
+              Cindy's Hot Shots • Paired Training
+            </div>
+          </div>
+        </article>
+
+        <!-- Photo 9: Two Female Students -->
+        <article class="target-card-student">
+          <div class="target-img-frame">
+            <img src="https://drive.google.com/thumbnail?id=1I8SYXbZ8Vs_RoaISP-Oi_yVf8y24wJM_&sz=w800" 
+                 onerror="this.src='https://lh3.googleusercontent.com/d/1I8SYXbZ8Vs_RoaISP-Oi_yVf8y24wJM_'" 
+                 alt="Two female students holding BakerTargets targets" 
+                 loading="lazy">
+            <span class="badge-course">Small Group</span>
+            <span class="badge-score">Dual Certified</span>
+          </div>
+          <div class="target-content">
+            <div>
+              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Small Group Milestone</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Two students completing their Maryland qualification course together with tight clusters and zero intimidation.
+              </p>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">
+              Cindy's Hot Shots • Glen Burnie, MD
+            </div>
+          </div>
+        </article>
+
+        <!-- Photo 10: Firing Line Downrange Action -->
+        <article class="target-card-student">
+          <div class="target-img-frame">
+            <img src="https://drive.google.com/thumbnail?id=1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV&sz=w800" 
+                 onerror="this.src='https://lh3.googleusercontent.com/d/1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV'" 
+                 alt="Live-fire qualification lane at Cindy's Hot Shots" 
+                 loading="lazy">
+            <span class="badge-course">Firing Line</span>
+            <span class="badge-score">Live Range</span>
+          </div>
+          <div class="target-content">
+            <div>
+              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Live Firing Line Perspective</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Active diagnostic shooting and practical qualification downrange at Cindy's Hot Shots in Glen Burnie, MD.
+              </p>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">
+              Primary Range Facility • Cindy's Hot Shots
+            </div>
+          </div>
+        </article>
       </div>
     </section>
 
@@ -1340,7 +1528,7 @@
         booking: 'Course Enrollment & Tuition',
         portal: 'Student Operations Portal',
         about: 'Lead Instructor & Mission',
-        testimonial: 'Student Performance Showcase',
+        testimonial: 'Student Targets & Range Highlights',
         faq: 'Frequently Asked Questions',
         admin: 'Instructor Command Center'
       };
@@ -1539,7 +1727,7 @@
       if (st === 'ENROLLED' || st === 'PREP_PENDING') {
         if (nodes[0]) nodes[0].className = 'track-step-node completed';
         if (nodes) nodes.className = 'track-step-node completed';
-        if (nodes[2]) nodes[2].className = 'track-step-node active';
+        if (nodes) nodes.className = 'track-step-node active';
         if (progressLabel) progressLabel.textContent = "Step 3 of 8 (Preparation)";
         if (heroTitle) heroTitle.textContent = "Complete Your Pre-Class Checklist";
         if (heroDesc) heroDesc.textContent = "Verify your 50–100 rounds factory target ammunition, wrap-around eye protection, and Maryland transport compliance prior to arrival.";
@@ -1551,7 +1739,7 @@
         }
       } else if (st === 'CLASSROOM_PASSED' || st === 'QUALIFIED') {
         for (let i = 0; i <= 4; i++) { if (nodes[i]) nodes[i].className = 'track-step-node completed'; }
-        if (nodes[5]) nodes[5].className = 'track-step-node active';
+        if (nodes) nodes.className = 'track-step-node active';
         if (progressLabel) progressLabel.textContent = "Step 6 of 8 (Certification)";
         if (heroTitle) heroTitle.textContent = "Live-Fire Qualification Complete! 🎉";
         if (heroDesc) heroDesc.textContent = "Instructor Kai Wade has certified your marksmanship qualification. Access your official student dossier below.";
@@ -1561,7 +1749,7 @@
         }
       } else if (st === 'CERTIFIED' || st === 'MSP_SUBMITTED') {
         for (let i = 0; i <= 6; i++) { if (nodes[i]) nodes[i].className = 'track-step-node completed'; }
-        if (nodes[7]) nodes[7].className = 'track-step-node active';
+        if (nodes) nodes.className = 'track-step-node active';
         if (progressLabel) progressLabel.textContent = "Step 8 of 8 (MSP Final Review)";
         if (heroTitle) heroTitle.textContent = "Application Submitted to Maryland State Police";
         if (heroDesc) heroDesc.textContent = "Remember to inspect your MSP MyLicense portal 'Messages' tab weekly for deficiency notices.";
