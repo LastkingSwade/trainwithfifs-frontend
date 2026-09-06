@@ -2594,7 +2594,7 @@
         <form id="booking-form" onsubmit="submitBooking(event)">
           <div class="form-group">
             <label for="courseSelection">Selected Course Curriculum & Tuition <span class="req">*</span></label>
-            <select id="courseSelection" class="form-select" required>
+            <select id="courseSelection" class="form-select" onchange="updateFormPriceDisplay()" required>
               <option value="Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)">Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)</option>
               <option value="Mid-Atlantic Multi-State Mastery — Base Track ($425.00)">Mid-Atlantic Multi-State Mastery — Base Track ($425.00)</option>
               <option value="Maryland CCW & HQL Combo — VIP Turnkey ($375.00)">Maryland CCW & HQL Combo — VIP Turnkey ($375.00)</option>
@@ -2611,6 +2611,42 @@
               <option value="Children's Safety Class — Base Track ($199.99)">Children's Safety Class — Base Track ($199.99)</option>
             </select>
           </div>
+          <!-- ================= SELECTED COURSE PRICING CLARIFICATION CARD ================= -->
+          <div id="formPriceSummaryCard" style="background: rgba(0, 229, 255, 0.06); border: 1px solid var(--accent-cyan); border-radius: 12px; padding: 16px 18px; margin-top: 12px; margin-bottom: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <span id="formCardCourseTitle" style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; color: #fff; display: block;">Maryland CCW & HQL Combo</span>
+                <span id="formCardTierTag" style="font-size: 0.78rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px;">Standard Base Track Selected</span>
+              </div>
+              <div style="text-align: right;">
+                <span id="formCardActivePrice" style="font-family: var(--font-display); font-size: 1.7rem; font-weight: 800; color: var(--accent-cyan);">$249.99</span>
+              </div>
+            </div>
+
+            <!-- Base vs VIP Clarity Comparison Boxes -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+              <div id="formBoxBase" style="background: #070b10; border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.2s;" onclick="toggleFormTier('base')">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <strong style="color: #fff; font-size: 0.85rem;">Standard Base</strong>
+                  <span id="formPriceBaseVal" style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: #fff;">$249.99</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.74rem; margin-top: 3px; line-height: 1.35;">Self-equipped (Provide own gun, holster & ammo)</p>
+              </div>
+
+              <div id="formBoxVip" style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.2s;" onclick="toggleFormTier('vip')">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <strong style="color: var(--accent-amber); font-size: 0.85rem;">👑 VIP Turnkey</strong>
+                  <span id="formPriceVipVal" style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--accent-amber);">$375.00</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.74rem; margin-top: 3px; line-height: 1.35;">Turnkey (Lane fee, targets, loaner 9mm, ammo & photos)</p>
+              </div>
+            </div>
+
+            <p id="formCardTierDesc" style="font-size: 0.80rem; color: #cbd5e1; margin-top: 10px; line-height: 1.45; border-left: 2px solid var(--accent-cyan); padding-left: 10px;">
+              Self-equipped track. You provide your own reliable handgun, rigid holster, and 50–100 rounds factory target ammo. Range lane fee ($25–$35) paid directly to Cindy's Hot Shots.
+            </p>
+          </div>
+
 
 
           <div class="form-group">
@@ -3048,14 +3084,8 @@
         }, 80);
       }
     }
+    updateFormPriceDisplay();
     window.selectCourse = selectCourse;
-        }
-      }
-      const formWrap = document.getElementById('booking-form-wrap');
-      if (formWrap) {
-        setTimeout(() => formWrap.scrollIntoView({ behavior: 'smooth' }), 100);
-      }
-    }
 
 
     function toggleFaq(btn) {
@@ -3699,7 +3729,8 @@
           "If you only stay inside Maryland and rarely travel out of state, the standard Maryland Wear & Carry course ($199.99 Base / $325 VIP) is all you need.",
           "If your only goal is keeping a firearm at home for protection, choose the Maryland HQL class instead."
         ]
-      }personalized_focus: {
+      },
+      personalized_focus: {
         badge: "100% Private • Custom Pace & Confidential",
         title: "Personalized Coaching / Anxiety & Trauma Relief",
         rec: "Recommended: Private 1-on-1 Coaching ($125.00 / hr)",
@@ -3781,7 +3812,6 @@
       }
     }
     window.closeGoalSynopsis = closeGoalSynopsis;
-    }
 
     // Keyboard support: Close modal on Esc key
     document.addEventListener('keydown', function(e) {
@@ -4302,6 +4332,175 @@
       }
     }
     window.toggleCourseVip = toggleCourseVip;
+
+    
+    // ================= FORM PRICING DUAL-TIER CLARITY LOGIC =================
+    const FORM_COURSE_PRICING = {
+      "Mid-Atlantic Multi-State Mastery": {
+        base: "$425.00",
+        vip: "$550.00",
+        baseDesc: "Self-equipped track. Includes 16-hour instruction + live-fire qualification + documentation for MD, VA, FL, AZ, and PA. Provide own firearm and ammo.",
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
+      },
+      "Maryland CCW & HQL Combo": {
+        base: "$249.99",
+        vip: "$375.00",
+        baseDesc: "Self-equipped track. 16-hour Wear & Carry curriculum + Maryland HQL exemption guide. Provide own handgun, holster, and ammo.",
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
+      },
+      "Maryland Wear & Carry (CCW)": {
+        base: "$199.99",
+        vip: "$325.00",
+        baseDesc: "Self-equipped track. 16-hour Wear & Carry certification and live-fire range qualification. Provide own firearm and ammo.",
+        vipDesc: "👑 VIP Turnkey Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
+      },
+      "Maryland HQL (Purchase License)": {
+        base: "$100.00",
+        vip: "$165.00",
+        baseDesc: "Self-equipped track. 4-hour state prerequisite course with live-fire component.",
+        vipDesc: "👑 VIP Turnkey Track. Includes range fee, loaner handgun, live-fire target ammo, target & portal submission guidance!"
+      },
+      "Personal 1-on-1 Coaching": {
+        base: "$125.00/hr",
+        vip: "$195.00/hr",
+        baseDesc: "Dedicated 1-on-1 private coaching. Custom diagnostic instruction.",
+        vipDesc: "👑 VIP Turnkey Track. Includes private lane fee, diagnostic sensor telemetry (MantisX), loaner firearms & ammunition!"
+      },
+      "Gun Cleaning & Maintenance": {
+        base: "$75.00",
+        vip: "$115.00",
+        baseDesc: "Instructional field-strip, cleaning, and maintenance workshop.",
+        vipDesc: "👑 VIP Turnkey Track. Includes full premium take-home cleaning kit, ultrasonic treatment & specialized solvents!"
+      },
+      "Children's Safety Class": {
+        base: "$199.99",
+        vip: "$265.00",
+        baseDesc: "Family safety and Eddie Eagle accident-prevention curriculum.",
+        vipDesc: "👑 VIP Turnkey Track. Includes certified home cable gun locks, youth workbook & completion certificate!"
+      }
+    };
+
+    function updateFormPriceDisplay() {
+      const selectElem = document.getElementById('courseSelection');
+      if (!selectElem) return;
+
+      const selectedVal = selectElem.value;
+      const isVip = selectedVal.includes('VIP') || selectedVal.includes('Turnkey');
+
+      // Find matching base course name
+      let matchedKey = "Maryland CCW & HQL Combo";
+      for (let k in FORM_COURSE_PRICING) {
+        if (selectedVal.toLowerCase().includes(k.toLowerCase())) {
+          matchedKey = k;
+          break;
+        }
+      }
+
+      const pData = FORM_COURSE_PRICING[matchedKey];
+      if (!pData) return;
+
+      const titleElem = document.getElementById('formCardCourseTitle');
+      const tierTag = document.getElementById('formCardTierTag');
+      const activePrice = document.getElementById('formCardActivePrice');
+      const baseVal = document.getElementById('formPriceBaseVal');
+      const vipVal = document.getElementById('formPriceVipVal');
+      const tierDesc = document.getElementById('formCardTierDesc');
+      const boxBase = document.getElementById('formBoxBase');
+      const boxVip = document.getElementById('formBoxVip');
+
+      if (titleElem) titleElem.textContent = matchedKey;
+      if (baseVal) baseVal.textContent = pData.base;
+      if (vipVal) vipVal.textContent = pData.vip;
+
+      if (isVip) {
+        if (tierTag) {
+          tierTag.textContent = "👑 VIP Turnkey Track Selected";
+          tierTag.style.color = "var(--accent-amber)";
+        }
+        if (activePrice) {
+          activePrice.textContent = pData.vip;
+          activePrice.style.color = "var(--accent-cyan)";
+        }
+        if (tierDesc) {
+          tierDesc.textContent = pData.vipDesc;
+          tierDesc.style.borderLeftColor = "var(--accent-amber)";
+        }
+        if (boxVip) {
+          boxVip.style.borderColor = "var(--accent-amber)";
+          boxVip.style.background = "rgba(255, 183, 3, 0.08)";
+        }
+        if (boxBase) {
+          boxBase.style.borderColor = "var(--border-subtle)";
+          boxBase.style.background = "#070b10";
+        }
+      } else {
+        if (tierTag) {
+          tierTag.textContent = "Standard Base Track Selected";
+          tierTag.style.color = "var(--accent-cyan)";
+        }
+        if (activePrice) {
+          activePrice.textContent = pData.base;
+          activePrice.style.color = "var(--accent-cyan)";
+        }
+        if (tierDesc) {
+          tierDesc.textContent = pData.baseDesc;
+          tierDesc.style.borderLeftColor = "var(--accent-cyan)";
+        }
+        if (boxBase) {
+          boxBase.style.borderColor = "var(--accent-cyan)";
+          boxBase.style.background = "rgba(0, 229, 255, 0.08)";
+        }
+        if (boxVip) {
+          boxVip.style.borderColor = "var(--border-subtle)";
+          boxVip.style.background = "#070b10";
+        }
+      }
+    }
+
+    function toggleFormTier(targetTier) {
+      const selectElem = document.getElementById('courseSelection');
+      if (!selectElem) return;
+
+      const currentVal = selectElem.value;
+      const isCurrentlyVip = currentVal.includes('VIP');
+
+      if (targetTier === 'vip' && !isCurrentlyVip) {
+        // Find matching VIP option in select
+        for (let i = 0; i < selectElem.options.length; i++) {
+          const opt = selectElem.options[i].value;
+          if (opt.includes('VIP') && (
+            (currentVal.includes('Multi-State') && opt.includes('Multi-State')) ||
+            (currentVal.includes('Combo') && opt.includes('Combo')) ||
+            (currentVal.includes('Wear & Carry') && opt.includes('Wear & Carry') && !opt.includes('Combo')) ||
+            (currentVal.includes('HQL') && opt.includes('HQL') && !opt.includes('Combo')) ||
+            (currentVal.includes('1-on-1') && opt.includes('1-on-1')) ||
+            (currentVal.includes('Cleaning') && opt.includes('Cleaning')) ||
+            (currentVal.includes('Children') && opt.includes('Children'))
+          )) {
+            selectElem.selectedIndex = i;
+            break;
+          }
+        }
+      } else if (targetTier === 'base' && isCurrentlyVip) {
+        // Find matching Base option in select
+        for (let i = 0; i < selectElem.options.length; i++) {
+          const opt = selectElem.options[i].value;
+          if (!opt.includes('VIP') && (
+            (currentVal.includes('Multi-State') && opt.includes('Multi-State')) ||
+            (currentVal.includes('Combo') && opt.includes('Combo')) ||
+            (currentVal.includes('Wear & Carry') && opt.includes('Wear & Carry') && !opt.includes('Combo')) ||
+            (currentVal.includes('HQL') && opt.includes('HQL') && !opt.includes('Combo')) ||
+            (currentVal.includes('1-on-1') && opt.includes('1-on-1')) ||
+            (currentVal.includes('Cleaning') && opt.includes('Cleaning')) ||
+            (currentVal.includes('Children') && opt.includes('Children'))
+          )) {
+            selectElem.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      updateFormPriceDisplay();
+    }
 
     </script>
   <!-- Goal Synopsis Interactive Pop-Up Modal -->
