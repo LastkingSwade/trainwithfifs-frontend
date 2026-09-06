@@ -2224,295 +2224,36 @@
           Click any goal below to open an interactive breakdown and find the right path for your needs:
         </p>
         <div class="pathway-grid">
-          <div class="pathway-pill" onclick="openGoalSynopsis('new_to_firearms')" role="button" tabindex="0">
+          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('new_to_firearms')" title="Learn more about starting with HQL">
             <div class="pathway-intent">Brand New to Firearms</div>
             <div class="pathway-rec">Start Here: HQL</div>
             <div class="pathway-cta">Learn More & Free 50-Q Guide →</div>
-          </div>
-          <div class="pathway-pill" onclick="openGoalSynopsis('want_to_purchase')" role="button" tabindex="0">
+          </button>
+          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('want_to_purchase')" title="Learn more about buying a handgun">
             <div class="pathway-intent">Looking to Buy a Pistol</div>
             <div class="pathway-rec">Maryland HQL (Purchase License)</div>
             <div class="pathway-cta">Learn More →</div>
-          </div>
-          <div class="pathway-pill" onclick="openGoalSynopsis('want_to_carry')" role="button" tabindex="0">
+          </button>
+          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('want_to_carry')" title="Learn more about concealed carry">
             <div class="pathway-intent">I Want to Carry in Public</div>
             <div class="pathway-rec">Wear & Carry (CCW Permit)</div>
             <div class="pathway-cta">Learn More →</div>
-          </div>
-          <div class="pathway-pill" onclick="openGoalSynopsis('want_both')" role="button" tabindex="0">
+          </button>
+          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('want_both')" title="Learn more about CCW & HQL combo">
             <div class="pathway-intent">I Want Both: Buy & Carry</div>
             <div class="pathway-rec">CCW & HQL Combo (Best Value)</div>
             <div class="pathway-cta">Learn More & Compare →</div>
-          </div>
-          <div class="pathway-pill" onclick="openGoalSynopsis('personalized_focus')" role="button" tabindex="0">
+          </button>
+          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('personalized_focus')" title="Learn more about 1-on-1 private coaching">
             <div class="pathway-intent">Personalized / Anxiety Relief</div>
             <div class="pathway-rec">Private 1-on-1 Coaching</div>
             <div class="pathway-cta">Learn More →</div>
-          </div>
-          <div class="pathway-pill" onclick="openGoalSynopsis('need_multistate')" style="border-color: var(--accent-amber);" role="button" tabindex="0">
+          </button>
+          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('need_multistate')" style="border-color: var(--accent-amber);" title="Learn more about multi-state carry">
             <div class="pathway-intent" style="color: var(--accent-amber);">Do I Need a Multi-State Permit?</div>
             <div class="pathway-rec">Mid-Atlantic Mastery (MD+VA+FL+AZ+PA)</div>
             <div class="pathway-cta">Learn More & Reciprocity Guide →</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Course Tuition Grid (Interactive Base & 👑 VIP Mode) -->
-      <div style="text-align: center; margin: 36px 0 20px;">
-        <span style="font-family: var(--font-display); font-size: 0.88rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1.5px;">All-Inclusive & Self-Equipped Options</span>
-        <h3 style="font-family: var(--font-display); font-size: 1.95rem; color: #fff; text-transform: uppercase; margin-top: 4px;">Course Catalog & Transparent Pricing</h3>
-        <p style="font-size: 0.92rem; color: var(--text-muted); max-width: 740px; margin: 6px auto 0; line-height: 1.55;">
-          All courses display standard self-equipped Base Pricing by default. Click <strong>"👑 Select VIP"</strong> on any course to preview the all-inclusive turnkey package (lane fees, loaner handguns, ammo, targets & paperwork included)!
-        </p>
-      </div>
-
-      <div class="tuition-grid">
-        <!-- 1. Mid-Atlantic Multi-State Mastery (NEW FLAGSHIP) -->
-        <div class="tuition-card" id="card-course-mastery" style="border: 2px solid var(--accent-amber);">
-          <div class="card-tier-badge" id="badge-course-mastery" style="display: none; background: var(--accent-amber); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP TURNKEY MODE
-          </div>
-          <span class="badge-pop" id="pop-course-mastery" style="background: var(--accent-amber); color: #070b10;">⭐ FLAGSHIP MULTI-STATE</span>
-          <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">Mid-Atlantic Multi-State Mastery</div>
-          
-          <div class="tuition-price" id="price-course-mastery">
-            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$425.00</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
-          </div>
-
-          <div class="tuition-desc">Full 16-hour Maryland Wear & Carry qualification + application preparation for Virginia, Florida, Arizona, and Pennsylvania non-resident carry.</div>
-
-          <div class="tuition-bullets" id="bullets-course-mastery">
-            <div>✔ 16-Hr Maryland State-Approved Class</div>
-            <div>✔ Live-Fire Qualification at Cindy's Hot Shots</div>
-            <div>✔ VA, FL, AZ Documentation & Affidavits</div>
-            <div>✔ PA $20 Non-Resident LTCF Roadmap</div>
-          </div>
-
-          <div class="vip-perks-box" id="vip-box-course-mastery" style="display: none; background: rgba(0, 229, 255, 0.1); border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.84rem; color: #e2e8f0; line-height: 1.5;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 4px;">👑 VIP Turnkey Includes:</strong>
-            Cindy's Hot Shots lane fee included, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards & 2x2 passport photos!
-          </div>
-
-          <div style="display: flex; gap: 8px; margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-mastery" onclick="selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($425)
-            </button>
-            <button type="button" class="btn-toggle-vip" id="btn-vip-course-mastery" onclick="toggleCourseVip('mastery')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
-              👑 Select VIP
-            </button>
-          </div>
-        </div>
-
-        <!-- 2. Maryland CCW & HQL Combo -->
-        <div class="tuition-card highlight-combo" id="card-course-combo">
-          <div class="card-tier-badge" id="badge-course-combo" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP TURNKEY MODE
-          </div>
-          <span class="badge-pop" id="pop-course-combo">🔥 MOST POPULAR COMBO</span>
-          <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">CCW & HQL Combo</div>
-          
-          <div class="tuition-price" id="price-course-combo">
-            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$249.99</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
-          </div>
-
-          <div class="tuition-desc">Comprehensive dual-licensing package meeting both purchase and carry training mandates in one streamlined weekend format.</div>
-
-          <div class="tuition-bullets" id="bullets-course-combo">
-            <div>✔ 16-Hour Wear & Carry Certification</div>
-            <div>✔ HQL Training Exemption Guide ($0 Extra)</div>
-            <div>✔ 25-Round Live-Fire Range Qualification</div>
-          </div>
-
-          <div class="vip-perks-box" id="vip-box-course-combo" style="display: none; background: rgba(0, 229, 255, 0.1); border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.84rem; color: #e2e8f0; line-height: 1.5;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 4px;">👑 VIP Turnkey Includes:</strong>
-            Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rds factory ammo & on-site passport photos!
-          </div>
-
-          <div style="display: flex; gap: 8px; margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-combo" onclick="selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($249.99)
-            </button>
-            <button type="button" class="btn-toggle-vip" id="btn-vip-course-combo" onclick="toggleCourseVip('combo')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
-              👑 Select VIP
-            </button>
-          </div>
-        </div>
-
-        <!-- 3. Maryland Wear & Carry (16-Hr) -->
-        <div class="tuition-card" id="card-course-ccw">
-          <div class="card-tier-badge" id="badge-course-ccw" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP TURNKEY MODE
-          </div>
-          <div class="tuition-title">Maryland Wear & Carry</div>
-          
-          <div class="tuition-price" id="price-course-ccw">
-            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$199.99</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
-          </div>
-
-          <div class="tuition-desc">Full Wear & Carry certification. In-depth legal curriculum (State v. Faulkner, SB 1), and 25-round practical qualification.</div>
-
-          <div class="tuition-bullets" id="bullets-course-ccw">
-            <div>✔ 16-Hour In-Person Training Mandate</div>
-            <div>✔ Faulkner Self-Defense & Castle Doctrine</div>
-            <div>✔ Certified MSP Form 29-14 Score Sheet</div>
-          </div>
-
-          <div class="vip-perks-box" id="vip-box-course-ccw" style="display: none; background: rgba(0, 229, 255, 0.1); border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.84rem; color: #e2e8f0; line-height: 1.5;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 4px;">👑 VIP Turnkey Includes:</strong>
-            Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds ammo & passport photos!
-          </div>
-
-          <div style="display: flex; gap: 8px; margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-ccw" onclick="selectCourse('Maryland Wear & Carry (CCW) — Base Track ($199.99)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($199.99)
-            </button>
-            <button type="button" class="btn-toggle-vip" id="btn-vip-course-ccw" onclick="toggleCourseVip('ccw')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
-              👑 Select VIP
-            </button>
-          </div>
-        </div>
-
-        <!-- 4. Maryland HQL (4-Hour) -->
-        <div class="tuition-card" id="card-course-hql">
-          <div class="card-tier-badge" id="badge-course-hql" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP TURNKEY MODE
-          </div>
-          <div class="tuition-title">Maryland HQL</div>
-          
-          <div class="tuition-price" id="price-course-hql">
-            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$100.00</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
-          </div>
-
-          <div class="tuition-desc">State prerequisite for handgun purchase. Covers safe firearm handling, home storage compliance (Jaelynn's Law), and live-fire orientation.</div>
-
-          <div class="tuition-bullets" id="bullets-course-hql">
-            <div>✔ State-Mandated Purchase Prerequisite</div>
-            <div>✔ Safe Handling & Jaelynn's Law Storage</div>
-            <div>✔ Live-Fire Verification Component</div>
-          </div>
-
-          <div class="vip-perks-box" id="vip-box-course-hql" style="display: none; background: rgba(0, 229, 255, 0.1); border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.84rem; color: #e2e8f0; line-height: 1.5;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 4px;">👑 VIP Turnkey Includes:</strong>
-            Range fee, loaner handgun, live-fire ammo, target & portal submission guidance!
-          </div>
-
-          <div style="display: flex; gap: 8px; margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-hql" onclick="selectCourse('Maryland HQL (Purchase License) — Base Track ($100.00)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($100)
-            </button>
-            <button type="button" class="btn-toggle-vip" id="btn-vip-course-hql" onclick="toggleCourseVip('hql')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
-              👑 Select VIP
-            </button>
-          </div>
-        </div>
-
-        <!-- 5. Personal 1-on-1 Coaching -->
-        <div class="tuition-card" id="card-course-coaching">
-          <div class="card-tier-badge" id="badge-course-coaching" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP TURNKEY MODE
-          </div>
-          <div class="tuition-title">Personal 1-on-1 Coaching</div>
-          
-          <div class="tuition-price" id="price-course-coaching">
-            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$125.00</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">/ hr (Standard Base)</span>
-          </div>
-
-          <div class="tuition-desc">Dedicated private coaching. Diagnostic marksmanship, trigger reset mechanics, and holster draw cadence.</div>
-
-          <div class="tuition-bullets" id="bullets-course-coaching">
-            <div>✔ Tailored 1-on-1 Instruction with Kai Wade</div>
-            <div>✔ Diagnostic Sensor Telemetry (MantisX)</div>
-            <div>✔ Flinch Correction & Recoil Management</div>
-          </div>
-
-          <div class="vip-perks-box" id="vip-box-course-coaching" style="display: none; background: rgba(0, 229, 255, 0.1); border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.84rem; color: #e2e8f0; line-height: 1.5;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 4px;">👑 VIP Turnkey Includes:</strong>
-            Private lane reservation, MantisX sensor telemetry, loaner premium handguns & training ammunition!
-          </div>
-
-          <div style="display: flex; gap: 8px; margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-coaching" onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($125.00/hr)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($125)
-            </button>
-            <button type="button" class="btn-toggle-vip" id="btn-vip-course-coaching" onclick="toggleCourseVip('coaching')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
-              👑 Select VIP
-            </button>
-          </div>
-        </div>
-
-        <!-- 6. Gun Cleaning Class -->
-        <div class="tuition-card" id="card-course-cleaning">
-          <div class="card-tier-badge" id="badge-course-cleaning" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP TURNKEY MODE
-          </div>
-          <div class="tuition-title">Gun Cleaning Class</div>
-          
-          <div class="tuition-price" id="price-course-cleaning">
-            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$75.00</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
-          </div>
-
-          <div class="tuition-desc">Field-stripping, ultrasonic inspection methods, lubrication points, and mechanical safety function checks.</div>
-
-          <div class="tuition-bullets" id="bullets-course-cleaning">
-            <div>✔ Complete Field Strip & Reassembly</div>
-            <div>✔ Proper Solvent & Lubricant Application</div>
-            <div>✔ 8-Step Mechanical Safety Function Check</div>
-          </div>
-
-          <div class="vip-perks-box" id="vip-box-course-cleaning" style="display: none; background: rgba(0, 229, 255, 0.1); border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.84rem; color: #e2e8f0; line-height: 1.5;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 4px;">👑 VIP Turnkey Includes:</strong>
-            Full premium take-home cleaning kit, specialized solvents & sonic cleaning treatment!
-          </div>
-
-          <div style="display: flex; gap: 8px; margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-cleaning" onclick="selectCourse('Gun Cleaning & Maintenance — Base Track ($75.00)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($75)
-            </button>
-            <button type="button" class="btn-toggle-vip" id="btn-vip-course-cleaning" onclick="toggleCourseVip('cleaning')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
-              👑 Select VIP
-            </button>
-          </div>
-        </div>
-
-        <!-- 7. Children's Safety Class -->
-        <div class="tuition-card" id="card-course-children">
-          <div class="card-tier-badge" id="badge-course-children" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP TURNKEY MODE
-          </div>
-          <div class="tuition-title">Children's Safety Class</div>
-          
-          <div class="tuition-price" id="price-course-children">
-            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$199.99</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
-          </div>
-
-          <div class="tuition-desc">Structured, zero-compromise safety education, Eddie Eagle principles, hazard avoidance, and parent-guided instruction.</div>
-
-          <div class="tuition-bullets" id="bullets-course-children">
-            <div>✔ Eddie Eagle 4-Step Safety Rules</div>
-            <div>✔ Safe Home Storage Orientation</div>
-            <div>✔ Parent-Child Safety Covenant</div>
-          </div>
-
-          <div class="vip-perks-box" id="vip-box-course-children" style="display: none; background: rgba(0, 229, 255, 0.1); border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.84rem; color: #e2e8f0; line-height: 1.5;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 4px;">👑 VIP Turnkey Includes:</strong>
-            Certified cable gun locks for home, youth safety workbook & completion certificate!
-          </div>
-
-          <div style="display: flex; gap: 8px; margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-children" onclick="selectCourse('Children\'s Safety Class — Base Track ($199.99)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($199.99)
-            </button>
-            <button type="button" class="btn-toggle-vip" id="btn-vip-course-children" onclick="toggleCourseVip('children')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
-              👑 Select VIP
-            </button>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -2582,6 +2323,293 @@
         </div>
       </section>
 
+
+      <!-- Course Tuition Grid (Interactive Base & 👑 VIP Mode) -->
+      <div style="text-align: center; margin: 36px 0 20px;">
+        <span style="font-family: var(--font-display); font-size: 0.88rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1.5px;">All-Inclusive & Self-Equipped Options</span>
+        <h3 style="font-family: var(--font-display); font-size: 1.95rem; color: #fff; text-transform: uppercase; margin-top: 4px;">Course Catalog & Transparent Pricing</h3>
+        <p style="font-size: 0.92rem; color: var(--text-muted); max-width: 740px; margin: 6px auto 0; line-height: 1.55;">
+          All courses display standard self-equipped Base Pricing by default. Click <strong>"👑 Select VIP"</strong> on any course to preview the all-inclusive turnkey package (lane fees, loaner handguns, ammo, targets & paperwork included)!
+        </p>
+      </div>
+
+      <div class="tuition-grid">
+        <!-- 1. Mid-Atlantic Multi-State Mastery (NEW FLAGSHIP) -->
+        <div class="tuition-card" id="card-course-mastery" style="border: 2px solid var(--accent-amber);">
+          <div class="card-tier-badge" id="badge-course-mastery" style="display: none; background: var(--accent-amber); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
+            👑 VIP TURNKEY MODE
+          </div>
+          <span class="badge-pop" id="pop-course-mastery" style="background: var(--accent-amber); color: #070b10;">⭐ FLAGSHIP MULTI-STATE</span>
+          <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">Mid-Atlantic Multi-State Mastery</div>
+          
+          <div class="tuition-price" id="price-course-mastery">
+            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$425.00</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
+          </div>
+
+          <div class="tuition-desc">Full 16-hour Maryland Wear & Carry qualification + application preparation for Virginia, Florida, Arizona, and Pennsylvania non-resident carry.</div>
+
+          <div class="tuition-bullets" id="bullets-course-mastery">
+            <div>✔ 16-Hr Maryland State-Approved Class</div>
+            <div>✔ Live-Fire Qualification at Cindy's Hot Shots</div>
+            <div>✔ VA, FL, AZ Documentation & Affidavits</div>
+            <div>✔ PA $20 Non-Resident LTCF Roadmap</div>
+          </div>
+
+                    <div class="vip-perks-box" id="vip-box-course-mastery" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Range lane fee included at Cindy's Hot Shots (Save $25–$35)</div>
+            <div>👑 Official B-27 practical qualification targets provided</div>
+            <div>👑 Loaner 9mm semi-automatic handgun provided</div>
+            <div>👑 50 rounds factory brass target ammunition included</div>
+            <div>👑 On-site FD-258 fingerprint cards & 2x2 passport photos!</div>
+            <div>👑 1-on-1 application dossier audit with Instructor Kai Wade</div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-mastery" onclick="selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($425)
+            </button>
+            <button type="button" class="btn-toggle-vip" id="btn-vip-course-mastery" onclick="toggleCourseVip('mastery')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
+              👑 Select VIP
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Maryland CCW & HQL Combo -->
+        <div class="tuition-card highlight-combo" id="card-course-combo">
+          <div class="card-tier-badge" id="badge-course-combo" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
+            👑 VIP TURNKEY MODE
+          </div>
+          <span class="badge-pop" id="pop-course-combo">🔥 MOST POPULAR COMBO</span>
+          <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">CCW & HQL Combo</div>
+          
+          <div class="tuition-price" id="price-course-combo">
+            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$249.99</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
+          </div>
+
+          <div class="tuition-desc">Comprehensive dual-licensing package meeting both purchase and carry training mandates in one streamlined weekend format.</div>
+
+          <div class="tuition-bullets" id="bullets-course-combo">
+            <div>✔ 16-Hour Wear & Carry Certification</div>
+            <div>✔ HQL Training Exemption Guide ($0 Extra)</div>
+            <div>✔ 25-Round Live-Fire Range Qualification</div>
+          </div>
+
+                    <div class="vip-perks-box" id="vip-box-course-combo" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
+            <div>👑 Official B-27 qualification targets provided</div>
+            <div>👑 Loaner 9mm handgun provided for live-fire evolution</div>
+            <div>👑 50 rounds factory brass ammunition included</div>
+            <div>👑 On-site passport-style photos taken & printed</div>
+            <div>👑 Complete dual filing assistance for both CCW and HQL!</div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-combo" onclick="selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($249.99)
+            </button>
+            <button type="button" class="btn-toggle-vip" id="btn-vip-course-combo" onclick="toggleCourseVip('combo')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
+              👑 Select VIP
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Maryland Wear & Carry (16-Hr) -->
+        <div class="tuition-card" id="card-course-ccw">
+          <div class="card-tier-badge" id="badge-course-ccw" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
+            👑 VIP TURNKEY MODE
+          </div>
+          <div class="tuition-title">Maryland Wear & Carry</div>
+          
+          <div class="tuition-price" id="price-course-ccw">
+            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$199.99</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
+          </div>
+
+          <div class="tuition-desc">Full Wear & Carry certification. In-depth legal curriculum (State v. Faulkner, SB 1), and 25-round practical qualification.</div>
+
+          <div class="tuition-bullets" id="bullets-course-ccw">
+            <div>✔ 16-Hour In-Person Training Mandate</div>
+            <div>✔ Faulkner Self-Defense & Castle Doctrine</div>
+            <div>✔ Certified MSP Form 29-14 Score Sheet</div>
+          </div>
+
+                    <div class="vip-perks-box" id="vip-box-course-ccw" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
+            <div>👑 Official B-27 qualification targets provided</div>
+            <div>👑 Loaner 9mm handgun provided</div>
+            <div>👑 50 rounds factory target ammunition included</div>
+            <div>👑 On-site passport photos taken & printed!</div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-ccw" onclick="selectCourse('Maryland Wear & Carry (CCW) — Base Track ($199.99)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($199.99)
+            </button>
+            <button type="button" class="btn-toggle-vip" id="btn-vip-course-ccw" onclick="toggleCourseVip('ccw')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
+              👑 Select VIP
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. Maryland HQL (4-Hour) -->
+        <div class="tuition-card" id="card-course-hql">
+          <div class="card-tier-badge" id="badge-course-hql" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
+            👑 VIP TURNKEY MODE
+          </div>
+          <div class="tuition-title">Maryland HQL</div>
+          
+          <div class="tuition-price" id="price-course-hql">
+            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$100.00</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
+          </div>
+
+          <div class="tuition-desc">State prerequisite for handgun purchase. Covers safe firearm handling, home storage compliance (Jaelynn's Law), and live-fire orientation.</div>
+
+          <div class="tuition-bullets" id="bullets-course-hql">
+            <div>✔ State-Mandated Purchase Prerequisite</div>
+            <div>✔ Safe Handling & Jaelynn's Law Storage</div>
+            <div>✔ Live-Fire Verification Component</div>
+          </div>
+
+                    <div class="vip-perks-box" id="vip-box-course-hql" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Range fee included at Cindy's Hot Shots</div>
+            <div>👑 Loaner handgun provided for live-fire verification</div>
+            <div>👑 Qualifying ammunition included</div>
+            <div>👑 Target provided</div>
+            <div>👑 MSP 77R portal account setup & submission guidance!</div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-hql" onclick="selectCourse('Maryland HQL (Purchase License) — Base Track ($100.00)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($100)
+            </button>
+            <button type="button" class="btn-toggle-vip" id="btn-vip-course-hql" onclick="toggleCourseVip('hql')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
+              👑 Select VIP
+            </button>
+          </div>
+        </div>
+
+        <!-- 5. Personal 1-on-1 Coaching -->
+        <div class="tuition-card" id="card-course-coaching">
+          <div class="card-tier-badge" id="badge-course-coaching" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
+            👑 VIP TURNKEY MODE
+          </div>
+          <div class="tuition-title">Personal 1-on-1 Coaching</div>
+          
+          <div class="tuition-price" id="price-course-coaching">
+            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$125.00</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">/ hr (Standard Base)</span>
+          </div>
+
+          <div class="tuition-desc">Dedicated private coaching. Diagnostic marksmanship, trigger reset mechanics, and holster draw cadence.</div>
+
+          <div class="tuition-bullets" id="bullets-course-coaching">
+            <div>✔ Tailored 1-on-1 Instruction with Kai Wade</div>
+            <div>✔ Diagnostic Sensor Telemetry (MantisX)</div>
+            <div>✔ Flinch Correction & Recoil Management</div>
+          </div>
+
+                    <div class="vip-perks-box" id="vip-box-course-coaching" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Private range lane reservation fee included</div>
+            <div>👑 Diagnostic sensor telemetry (MantisX live analysis)</div>
+            <div>👑 Access to premium loaner handguns (SIG, Glock, etc.)</div>
+            <div>👑 Training ammunition provided</div>
+            <div>👑 High-speed video trigger stroke analysis!</div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-coaching" onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($125.00/hr)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($125)
+            </button>
+            <button type="button" class="btn-toggle-vip" id="btn-vip-course-coaching" onclick="toggleCourseVip('coaching')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
+              👑 Select VIP
+            </button>
+          </div>
+        </div>
+
+        <!-- 6. Gun Cleaning Class -->
+        <div class="tuition-card" id="card-course-cleaning">
+          <div class="card-tier-badge" id="badge-course-cleaning" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
+            👑 VIP TURNKEY MODE
+          </div>
+          <div class="tuition-title">Gun Cleaning Class</div>
+          
+          <div class="tuition-price" id="price-course-cleaning">
+            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$75.00</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
+          </div>
+
+          <div class="tuition-desc">Field-stripping, ultrasonic inspection methods, lubrication points, and mechanical safety function checks.</div>
+
+          <div class="tuition-bullets" id="bullets-course-cleaning">
+            <div>✔ Complete Field Strip & Reassembly</div>
+            <div>✔ Proper Solvent & Lubricant Application</div>
+            <div>✔ 8-Step Mechanical Safety Function Check</div>
+          </div>
+
+                    <div class="vip-perks-box" id="vip-box-course-cleaning" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Complete premium multi-caliber cleaning kit to take home</div>
+            <div>👑 Specialized bore solvents and advanced CLP lubricants</div>
+            <div>👑 Ultrasonic deep cleaning treatment for slide & barrel</div>
+            <div>👑 Comprehensive 8-point mechanical function check!</div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-cleaning" onclick="selectCourse('Gun Cleaning & Maintenance — Base Track ($75.00)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($75)
+            </button>
+            <button type="button" class="btn-toggle-vip" id="btn-vip-course-cleaning" onclick="toggleCourseVip('cleaning')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
+              👑 Select VIP
+            </button>
+          </div>
+        </div>
+
+        <!-- 7. Children's Safety Class -->
+        <div class="tuition-card" id="card-course-children">
+          <div class="card-tier-badge" id="badge-course-children" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
+            👑 VIP TURNKEY MODE
+          </div>
+          <div class="tuition-title">Children's Safety Class</div>
+          
+          <div class="tuition-price" id="price-course-children">
+            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$199.99</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
+          </div>
+
+          <div class="tuition-desc">Structured, zero-compromise safety education, Eddie Eagle principles, hazard avoidance, and parent-guided instruction.</div>
+
+          <div class="tuition-bullets" id="bullets-course-children">
+            <div>✔ Eddie Eagle 4-Step Safety Rules</div>
+            <div>✔ Safe Home Storage Orientation</div>
+            <div>✔ Parent-Child Safety Covenant</div>
+          </div>
+
+                    <div class="vip-perks-box" id="vip-box-course-children" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Certified heavy-duty cable gun locks to take home</div>
+            <div>👑 Youth safe-handling activity workbook packet</div>
+            <div>👑 Safe storage demonstration for parents</div>
+            <div>👑 Official Certificate of Completion for student!</div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-children" onclick="selectCourse('Children\'s Safety Class — Base Track ($199.99)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($199.99)
+            </button>
+            <button type="button" class="btn-toggle-vip" id="btn-vip-course-children" onclick="toggleCourseVip('children')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
+              👑 Select VIP
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- Reservation Booking Form Section -->
       <section id="booking-form-section" style="border-top: 1px solid var(--border-subtle); padding-top: 24px; scroll-margin-top: 80px;">
@@ -2706,6 +2734,63 @@
           <div id="booking-status" class="status-msg"></div>
         </form>
       </section>
+    
+
+      <!-- Goal Synopsis Interactive Pop-Up Modal -->
+  <div class="goal-modal-overlay" id="goalSynopsisModal" onclick="if(event.target===this) closeGoalSynopsis()">
+    <div class="goal-modal-box" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
+      <button type="button" class="goal-modal-close-btn" onclick="closeGoalSynopsis()" aria-label="Close details">✕</button>
+      <div>
+        <span class="goal-header-badge" id="goalModalBadge">Guidance & Course Selection</span>
+      </div>
+      <h3 class="goal-modal-title" id="goalModalTitle">Goal Title</h3>
+      <div class="goal-modal-rec" id="goalModalRec">Recommended Course</div>
+      
+      <div class="goal-synopsis-card" id="goalModalSynopsis">
+        Synopsis text will appear here.
+      </div>
+
+      <!-- Download Free PDF Guide for New Shooters -->
+      <div class="guide-download-banner" id="goalModalGuideBanner" style="display: none;">
+        <div class="guide-banner-text">
+          <strong style="color: var(--accent-cyan); display: block; font-size: 0.92rem;">📘 Free Student Resource: Top 50 Questions New Gun Owners Ask</strong>
+          <span>Comprehensive 6-page Maryland-compliant guide prepared by Instructor Kai Wade.</span>
+        </div>
+        <a href="https://drive.google.com/file/d/1WIoQO00ALNalIuTjSNacZbBNLYIrVHGN/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn-download-guide">
+          <span>📥 View & Download PDF</span>
+        </a>
+      </div>
+
+      <div class="goal-columns-grid">
+        <div class="goal-col-card col-why">
+          <div class="goal-col-head head-why">
+            <span>✔</span>
+            <span>Why Choose This</span>
+          </div>
+          <ul class="goal-bullet-list" id="goalModalWhyList">
+          </ul>
+        </div>
+
+        <div class="goal-col-card col-why-not">
+          <div class="goal-col-head head-why-not">
+            <span>⚡</span>
+            <span>Why You Might NOT Want This</span>
+          </div>
+          <ul class="goal-bullet-list" id="goalModalWhyNotList">
+          </ul>
+        </div>
+      </div>
+
+      <div class="goal-modal-actions">
+        <button type="button" class="btn-primary" id="goalModalAcceptBtn">
+          Choose This Course & Continue →
+        </button>
+        <button type="button" class="btn-secondary-modal" onclick="closeGoalSynopsis()">
+          Explore Other Goals
+        </button>
+      </div>
+    </div>
+  </div>
     </main>
 
 
@@ -4503,63 +4588,6 @@
     }
 
     </script>
-  <!-- Goal Synopsis Interactive Pop-Up Modal -->
-  <div class="goal-modal-overlay" id="goalSynopsisModal" onclick="if(event.target===this) closeGoalSynopsis()">
-    <div class="goal-modal-box" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
-      <button type="button" class="goal-modal-close-btn" onclick="closeGoalSynopsis()" aria-label="Close details">✕</button>
-      <div>
-        <span class="goal-header-badge" id="goalModalBadge">Guidance & Course Selection</span>
-      </div>
-      <h3 class="goal-modal-title" id="goalModalTitle">Goal Title</h3>
-      <div class="goal-modal-rec" id="goalModalRec">Recommended Course</div>
-      
-      <div class="goal-synopsis-card" id="goalModalSynopsis">
-        Synopsis text will appear here.
-      </div>
-
-      <!-- Download Free PDF Guide for New Shooters -->
-      <div class="guide-download-banner" id="goalModalGuideBanner" style="display: none;">
-        <div class="guide-banner-text">
-          <strong style="color: var(--accent-cyan); display: block; font-size: 0.92rem;">📘 Free Student Resource: Top 50 Questions New Gun Owners Ask</strong>
-          <span>Comprehensive 6-page Maryland-compliant guide prepared by Instructor Kai Wade.</span>
-        </div>
-        <a href="https://drive.google.com/file/d/1WIoQO00ALNalIuTjSNacZbBNLYIrVHGN/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn-download-guide">
-          <span>📥 View & Download PDF</span>
-        </a>
-      </div>
-
-      <div class="goal-columns-grid">
-        <div class="goal-col-card col-why">
-          <div class="goal-col-head head-why">
-            <span>✔</span>
-            <span>Why Choose This</span>
-          </div>
-          <ul class="goal-bullet-list" id="goalModalWhyList">
-          </ul>
-        </div>
-
-        <div class="goal-col-card col-why-not">
-          <div class="goal-col-head head-why-not">
-            <span>⚡</span>
-            <span>Why You Might NOT Want This</span>
-          </div>
-          <ul class="goal-bullet-list" id="goalModalWhyNotList">
-          </ul>
-        </div>
-      </div>
-
-      <div class="goal-modal-actions">
-        <button type="button" class="btn-primary" id="goalModalAcceptBtn">
-          Choose This Course & Continue →
-        </button>
-        <button type="button" class="btn-secondary-modal" onclick="closeGoalSynopsis()">
-          Explore Other Goals
-        </button>
-      </div>
-    </div>
-  </div>
-
-
   <!-- ================= DEDICATED RECIPROCITY & TRAVEL HUB MODAL ================= -->
   <div class="reciprocity-hub-modal-overlay" id="reciprocityHubModal" style="display: none; position: fixed; inset: 0; background: rgba(4, 7, 11, 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); z-index: 9999; overflow-y: auto; padding: 24px 16px;">
     <div style="max-width: 1040px; margin: 0 auto; position: relative;">
