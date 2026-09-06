@@ -3090,6 +3090,7 @@
 
     document.addEventListener('DOMContentLoaded', function() {
       mountGoogleReviewsTicker();
+      updateFormPriceDisplay();
       updateReciprocityEngine();
       bindHeroButtons();
       updateLivePulseTicker();
@@ -3223,6 +3224,10 @@
       }
 
       // Smooth scroll directly to the booking form
+      // Update the pricing summary card in the form
+      updateFormPriceDisplay();
+
+      // Smooth scroll directly to the booking form
       const targetSection = document.getElementById('booking-form-section') || document.getElementById('booking-form');
       if (targetSection) {
         setTimeout(function() {
@@ -3230,7 +3235,6 @@
         }, 80);
       }
     }
-    updateFormPriceDisplay();
     window.selectCourse = selectCourse;
 
 
