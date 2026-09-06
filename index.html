@@ -494,7 +494,210 @@
 
     .hidden { display: none !important; }
 
-/* ================= MULTI-STATE CCW RECIPROCITY APP ================= */
+/* ================= INTERACTIVE SVG US MAP STYLING ================= */
+    .reciprocity-map-container {
+      width: 100%;
+      background: #070b10;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      text-align: center;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+    }
+    .svg-us-map {
+      width: 100%;
+      max-width: 900px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      user-select: none;
+    }
+    .svg-state-node {
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .svg-state-node rect {
+      stroke-width: 1.5;
+      rx: 6;
+      ry: 6;
+      transition: all 0.2s ease;
+    }
+    .svg-state-node:hover rect {
+      stroke-width: 2.5;
+      filter: brightness(1.25) drop-shadow(0 0 10px rgba(0, 229, 255, 0.8));
+    }
+    .svg-state-node.state-constitutional rect {
+      fill: #0c4a6e;
+      stroke: #38bdf8;
+    }
+    .svg-state-node.state-honored rect {
+      fill: #064e3b;
+      stroke: #10b981;
+    }
+    .svg-state-node.state-not-honored rect {
+      fill: #1e293b;
+      stroke: #475569;
+      opacity: 0.65;
+    }
+    .svg-state-node text.state-code-label {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+      fill: #ffffff;
+      pointer-events: none;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+    .svg-state-node text.state-sub-label {
+      font-family: var(--font-body);
+      font-size: 8px;
+      font-weight: 700;
+      fill: #cbd5e1;
+      pointer-events: none;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    /* Car Travel Corridor Strip */
+    .car-travel-corridor-box {
+      background: #0d121a;
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .corridor-header {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .corridor-desc {
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .corridor-routes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 12px;
+    }
+    .corridor-route-card {
+      background: #070b10;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .corridor-route-title {
+      font-family: var(--font-display);
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      margin-bottom: 4px;
+    }
+    .corridor-route-flow {
+      font-size: 0.80rem;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+
+    /* ================= FLYING WITH A FIREARM MODULE ================= */
+    .flying-firearm-module {
+      background: linear-gradient(135deg, rgba(16, 22, 31, 0.95) 0%, rgba(7, 11, 16, 0.98) 100%);
+      border: 1px solid var(--accent-amber);
+      box-shadow: 0 0 24px var(--accent-amber-glow);
+      border-radius: 16px;
+      padding: 24px 20px;
+      margin-top: 24px;
+      margin-bottom: 28px;
+    }
+    .flying-header-box {
+      border-left: 3px solid var(--accent-amber);
+      padding-left: 14px;
+      margin-bottom: 18px;
+    }
+    .flying-header-box h3 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .flying-header-box p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .flying-steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .flying-step-card {
+      background: #070b10;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 16px;
+      position: relative;
+    }
+    .flying-step-num {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: rgba(255, 183, 3, 0.35);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .flying-step-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .flying-step-desc {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+    .flying-warning-banner {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid #ef4444;
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .flying-warning-icon {
+      font-size: 1.6rem;
+      color: #ef4444;
+      flex-shrink: 0;
+    }
+    .flying-warning-text h4 {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: #fff;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .flying-warning-text p {
+      font-size: 0.85rem;
+      color: #fca5a5;
+      line-height: 1.55;
+    }
+
+    /* ================= MULTI-STATE CCW RECIPROCITY APP ================= */
     .portal-reciprocity-wrapper {
       background: linear-gradient(135deg, rgba(16, 22, 31, 0.98) 0%, rgba(7, 11, 16, 0.99) 100%);
       border: 1px solid rgba(0, 229, 255, 0.35);
@@ -937,7 +1140,7 @@
     /* ================= GOOGLE REVIEWS TICKER ON HERO ================= */
     .hero-logo-spacer {
       width: 100%;
-      height: clamp(260px, 39vh, 430px);
+      height: clamp(210px, 32vh, 320px);
       flex-shrink: 0;
       pointer-events: none !important;
     }
@@ -1438,9 +1641,6 @@
           </button>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 0.82rem; color: var(--text-muted);">
             <span>Need to book first? <a href="javascript:void(0)" onclick="switchTab('booking')" style="color: var(--accent-cyan);">View Courses</a></span>
-            <button type="button" onclick="loadDemoStudent(); setTimeout(() => document.getElementById('portal-reciprocity-module').scrollIntoView({behavior:'smooth'}), 400);" style="background: none; border: none; color: var(--accent-cyan); cursor: pointer; text-decoration: underline; font-weight: 700;">
-              🗺️ Open CCW Reciprocity Map
-            </button>
             <button type="button" onclick="loadDemoStudent()" style="background: none; border: none; color: var(--accent-amber); cursor: pointer; text-decoration: underline;">
               Preview Demo Dashboard
             </button>
@@ -1555,11 +1755,7 @@
             </a>
           </div>
         </div>
-      </div>
-    </section>
 
-
-    
         <!-- ================= MULTI-STATE CCW RECIPROCITY APP ================= -->
         <section class="portal-reciprocity-wrapper" id="portal-reciprocity-module" aria-label="CCW Reciprocity App">
           <div class="reciprocity-header-box">
@@ -1624,6 +1820,51 @@
           </div>
 
           <!-- Search & Filters -->
+          
+          <!-- Interactive Color-Coded SVG US Map for Car Travel & Reciprocity -->
+          <div class="reciprocity-map-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-family: var(--font-display); font-size: 0.85rem; color: var(--accent-cyan);">
+              <span>🗺️ INTERACTIVE U.S. CARRY MAP (CLICK ANY STATE TO INSPECT RULES)</span>
+              <span style="color: var(--text-muted); font-size: 0.74rem;">Live Dynamic Updates</span>
+            </div>
+            <svg class="svg-us-map" viewBox="0 0 940 540" xmlns="http://www.w3.org/2000/svg" id="svgUsMap">
+              <!-- States will be populated dynamically -->
+            </svg>
+          </div>
+
+          <!-- Car Travel & Interstate Highway Corridors Guide -->
+          <div class="car-travel-corridor-box">
+            <div class="corridor-header">
+              <span>🚗</span>
+              <span>Car Travel & Interstate Highway Carry Corridors</span>
+            </div>
+            <p class="corridor-desc">
+              When driving out of Maryland, your legal carry status changes at every state border. Use this travel guide alongside federal safe harbor protection (FOPA 18 U.S.C. § 926A):
+            </p>
+            <div class="corridor-routes-grid">
+              <div class="corridor-route-card">
+                <div class="corridor-route-title">I-95 South (MD ➔ FL Roadtrip)</div>
+                <div class="corridor-route-flow">
+                  <strong>Maryland</strong> (Permit Required) ➔ <strong>Virginia</strong> (Honored) ➔ <strong>North Carolina</strong> (Honored • Immediate Duty to Inform) ➔ <strong>South Carolina</strong> (Constitutional Carry) ➔ <strong>Georgia</strong> (Constitutional Carry) ➔ <strong>Florida</strong> (Constitutional Carry).<br/>
+                  <span style="color: #10b981; font-weight: 700;">Status: 100% Legal Carry Highway Corridor for MD Permit Holders!</span>
+                </div>
+              </div>
+              <div class="corridor-route-card">
+                <div class="corridor-route-title">I-70 / I-68 West (MD ➔ Midwest)</div>
+                <div class="corridor-route-flow">
+                  <strong>Maryland</strong> ➔ <strong>Pennsylvania</strong> (Honored for 21+ MD residents) ➔ <strong>West Virginia</strong> (Constitutional) ➔ <strong>Ohio</strong> (Constitutional) ➔ <strong>Indiana</strong> (Constitutional) ➔ <strong>Illinois</strong> (⚠️ In-Vehicle Carry Safe Harbor only; do not carry outside car) ➔ <strong>Missouri</strong> (Constitutional).
+                </div>
+              </div>
+              <div class="corridor-route-card">
+                <div class="corridor-route-title">I-95 North Warning (DE / PA / NJ / NY)</div>
+                <div class="corridor-route-flow">
+                  <strong>Delaware:</strong> Does NOT honor MD resident permit (Honors Utah & Florida Non-Resident permits).<br/>
+                  <strong>New Jersey & New York:</strong> <span style="color: #ef4444; font-weight: 700;">STRICT NO-CARRY ZONES.</span> Must transport UNLOADED, separate ammo, locked in trunk under federal FOPA safe passage with no non-essential stops!
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="reciprocity-filter-controls">
             <input type="text" id="stateSearchInput" class="search-state-input" placeholder="Search state (e.g., Virginia, Delaware)..." oninput="filterReciprocityStates()">
             <div class="filter-tabs-row">
@@ -1648,6 +1889,77 @@
             <p class="advisor-desc">
               Maryland's Wear & Carry permit provides solid coverage, but travelers often hit a legal wall when crossing into <strong>Delaware</strong> or heading into states like <strong>Nevada</strong>. By pairing your Maryland certification with an out-of-state <strong>Utah or Florida Non-Resident</strong> permit, you unlock key transit corridors, pushing your total carry coverage to nearly <strong>40 states</strong>. Future Initiative offers streamlined Utah certification add-on packets—ask Coach Wade during your class session!
             </p>
+          </div>
+        </section>
+
+        
+        <!-- ================= FLYING WITH A FIREARM MODULE ================= -->
+        <section class="flying-firearm-module" id="flying-firearm-guide" aria-label="Flying with a Firearm Guide">
+          <div class="flying-header-box">
+            <h3>✈️ Flying with a Firearm: Mandatory TSA & Airline Protocols</h3>
+            <p>Federal regulations (49 CFR § 1540.111) and travel procedures every student must follow when flying on commercial airlines with handguns.</p>
+          </div>
+
+          <div class="flying-steps-grid">
+            <div class="flying-step-card">
+              <div class="flying-step-num">01</div>
+              <div class="flying-step-title">Completely Unloaded</div>
+              <div class="flying-step-desc">
+                The firearm must be 100% unloaded. Chamber empty, magazine detached and empty, cylinder empty. Double visual and physical check.
+              </div>
+            </div>
+
+            <div class="flying-step-card">
+              <div class="flying-step-num">02</div>
+              <div class="flying-step-title">Locked Hard-Sided Case</div>
+              <div class="flying-step-desc">
+                Must be secured in a rigid, hard-sided lockbox (Pelican, Nanuk, Vaultek, or sturdy factory case). <strong>The Pry Test:</strong> If the case can be pried open with fingers, TSA will reject it. Lock every available lock hole.
+              </div>
+            </div>
+
+            <div class="flying-step-card">
+              <div class="flying-step-num">03</div>
+              <div class="flying-step-title">Non-TSA Locks Required</div>
+              <div class="flying-step-desc">
+                <strong>Crucial Federal Rule:</strong> Under 49 CFR § 1540.111, ONLY the passenger may retain the key or combination. <strong>Do NOT use TSA-accessible locks</strong> on your firearm case! Use standard key or combination padlocks that only you can open.
+              </div>
+            </div>
+
+            <div class="flying-step-card">
+              <div class="flying-step-num">04</div>
+              <div class="flying-step-title">Ammunition Packaging</div>
+              <div class="flying-step-desc">
+                Ammunition must be packed in the manufacturer's original box or a dedicated plastic/fiber ammo carrier. Never loose in bags. Maximum 11 lbs (5 kg) per passenger. Ammunition can be inside the locked gun case or checked baggage.
+              </div>
+            </div>
+
+            <div class="flying-step-card">
+              <div class="flying-step-num">05</div>
+              <div class="flying-step-title">Declare at Ticket Counter</div>
+              <div class="flying-step-desc">
+                Declare the firearm in person at the airline main check-in counter: <em>"I have an unloaded firearm to declare in my checked baggage."</em> Sign the declaration tag and place it inside your bag. <strong>Never take a firearm to a TSA passenger checkpoint!</strong>
+              </div>
+            </div>
+
+            <div class="flying-step-card">
+              <div class="flying-step-num">06</div>
+              <div class="flying-step-title">Destination Laws Govern</div>
+              <div class="flying-step-desc">
+                The moment you retrieve your baggage at your destination airport, the laws of that destination state apply to you immediately. Only fly with firearms into states where your permit is honored or carry/possession is lawful.
+              </div>
+            </div>
+          </div>
+
+          <!-- Critical Flight Diversion Warning -->
+          <div class="flying-warning-banner">
+            <div class="flying-warning-icon">⚠</div>
+            <div class="flying-warning-text">
+              <h4>CRITICAL LIFE-SAVING TIP: Emergency Flight Diversions (JFK, LGA, Newark, Boston)</h4>
+              <p>
+                If your flight to a legal carry state is diverted due to weather or mechanical issues into an unfriendly airport (such as New York JFK/LaGuardia, Newark NJ, or Boston MA), <strong>DO NOT TAKE PHYSICAL POSSESSION OF YOUR CHECKED LUGGAGE AT BAGGAGE CLAIM!</strong><br/>
+                If the airline attempts to return your bags for an overnight stay, refuse the bag and demand the airline hold and check it through to your final destination. Taking physical possession of a firearm in NY/NJ—even during an unintended airline layover—terminates FOPA safe passage protection and can lead to immediate felony arrest by local airport police.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -1691,8 +2003,12 @@
         </div>
 
       </div>
+      </div>
+    </section>
 
-      <!-- VIEW 2: INSTRUCTOR ADMIN COMMAND CENTER -->
+
+    
+        <!-- VIEW 2: INSTRUCTOR ADMIN COMMAND CENTER -->
     <section id="view-admin" role="tabpanel" class="panel hidden">
       <div id="admin-auth-box">
         <div class="panel-header">
@@ -3178,6 +3494,98 @@
       if (notHonoredElem) notHonoredElem.textContent = notHonoredCount;
 
       renderReciprocityGrid(stateEntries);
+      renderSvgUsMap(stateEntries);
+    }
+
+    
+    // SVG Geographic Coordinates for the 51 US States/Territories (940 x 540 Canvas)
+    const US_MAP_SVG_LAYOUT = {
+      // Row 1
+      AK: { x: 40, y: 30, w: 55, h: 45, name: "Alaska" },
+      WA: { x: 120, y: 30, w: 55, h: 45, name: "Washington" },
+      ID: { x: 185, y: 30, w: 50, h: 45, name: "Idaho" },
+      MT: { x: 245, y: 30, w: 55, h: 45, name: "Montana" },
+      ND: { x: 310, y: 30, w: 55, h: 45, name: "North Dakota" },
+      MN: { x: 375, y: 30, w: 55, h: 45, name: "Minnesota" },
+      WI: { x: 440, y: 30, w: 55, h: 45, name: "Wisconsin" },
+      MI: { x: 505, y: 30, w: 55, h: 45, name: "Michigan" },
+      NY: { x: 690, y: 30, w: 55, h: 45, name: "New York" },
+      VT: { x: 755, y: 30, w: 45, h: 45, name: "Vermont" },
+      NH: { x: 810, y: 30, w: 45, h: 45, name: "New Hampshire" },
+      ME: { x: 865, y: 30, w: 50, h: 45, name: "Maine" },
+
+      // Row 2
+      OR: { x: 120, y: 85, w: 55, h: 45, name: "Oregon" },
+      NV: { x: 185, y: 85, w: 50, h: 45, name: "Nevada" },
+      WY: { x: 245, y: 85, w: 55, h: 45, name: "Wyoming" },
+      SD: { x: 310, y: 85, w: 55, h: 45, name: "South Dakota" },
+      IA: { x: 375, y: 85, w: 55, h: 45, name: "Iowa" },
+      IL: { x: 440, y: 85, w: 55, h: 45, name: "Illinois" },
+      IN: { x: 505, y: 85, w: 55, h: 45, name: "Indiana" },
+      OH: { x: 570, y: 85, w: 55, h: 45, name: "Ohio" },
+      PA: { x: 635, y: 85, w: 55, h: 45, name: "Pennsylvania" },
+      NJ: { x: 700, y: 85, w: 50, h: 45, name: "New Jersey" },
+      MA: { x: 760, y: 85, w: 50, h: 45, name: "Massachusetts" },
+      RI: { x: 820, y: 85, w: 45, h: 45, name: "Rhode Island" },
+      CT: { x: 875, y: 85, w: 45, h: 45, name: "Connecticut" },
+
+      // Row 3
+      CA: { x: 120, y: 140, w: 55, h: 45, name: "California" },
+      UT: { x: 185, y: 140, w: 50, h: 45, name: "Utah" },
+      CO: { x: 245, y: 140, w: 55, h: 45, name: "Colorado" },
+      NE: { x: 310, y: 140, w: 55, h: 45, name: "Nebraska" },
+      MO: { x: 375, y: 140, w: 55, h: 45, name: "Missouri" },
+      KY: { x: 440, y: 140, w: 55, h: 45, name: "Kentucky" },
+      WV: { x: 505, y: 140, w: 55, h: 45, name: "West Virginia" },
+      VA: { x: 570, y: 140, w: 55, h: 45, name: "Virginia" },
+      MD: { x: 635, y: 140, w: 55, h: 45, name: "Maryland" },
+      DE: { x: 700, y: 140, w: 50, h: 45, name: "Delaware" },
+      DC: { x: 760, y: 140, w: 45, h: 45, name: "D.C." },
+
+      // Row 4
+      AZ: { x: 185, y: 195, w: 50, h: 45, name: "Arizona" },
+      NM: { x: 245, y: 195, w: 55, h: 45, name: "New Mexico" },
+      KS: { x: 310, y: 195, w: 55, h: 45, name: "Kansas" },
+      AR: { x: 375, y: 195, w: 55, h: 45, name: "Arkansas" },
+      TN: { x: 440, y: 195, w: 55, h: 45, name: "Tennessee" },
+      NC: { x: 505, y: 195, w: 55, h: 45, name: "North Carolina" },
+      SC: { x: 570, y: 195, w: 55, h: 45, name: "South Carolina" },
+
+      // Row 5
+      OK: { x: 310, y: 250, w: 55, h: 45, name: "Oklahoma" },
+      LA: { x: 375, y: 250, w: 55, h: 45, name: "Louisiana" },
+      MS: { x: 440, y: 250, w: 55, h: 45, name: "Mississippi" },
+      AL: { x: 505, y: 250, w: 55, h: 45, name: "Alabama" },
+      GA: { x: 570, y: 250, w: 55, h: 45, name: "Georgia" },
+
+      // Row 6
+      HI: { x: 120, y: 305, w: 55, h: 45, name: "Hawaii" },
+      TX: { x: 310, y: 305, w: 55, h: 45, name: "Texas" },
+      FL: { x: 635, y: 305, w: 55, h: 45, name: "Florida" }
+    };
+
+    function renderSvgUsMap(stateEntries) {
+      const svg = document.getElementById('svgUsMap');
+      if (!svg) return;
+
+      const stateMap = {};
+      stateEntries.forEach(s => { stateMap[s.code] = s; });
+
+      const nodes = Object.keys(US_MAP_SVG_LAYOUT).map(code => {
+        const pos = US_MAP_SVG_LAYOUT[code];
+        const sData = stateMap[code] || { eval: { status: 'not_honored', label: 'Not Honored' } };
+        const statusClass = 'state-' + sData.eval.status;
+
+        return `
+          <g class="svg-state-node ${statusClass}" onclick="openStateDossier('${code}')" role="button" tabindex="0">
+            <rect x="${pos.x}" y="${pos.y}" width="${pos.w}" height="${pos.h}" />
+            <text x="${pos.x + pos.w / 2}" y="${pos.y + pos.h / 2 - 4}" class="state-code-label">${code}</text>
+            <text x="${pos.x + pos.w / 2}" y="${pos.y + pos.h / 2 + 10}" class="state-sub-label">${sData.eval.status === 'constitutional' ? 'CONST' : (sData.eval.status === 'honored' ? 'HONOR' : 'NO')}</text>
+          </g>
+        `;
+      }).join('');
+
+      svg.innerHTML = nodes;
     }
 
     function renderReciprocityGrid(stateEntries) {
