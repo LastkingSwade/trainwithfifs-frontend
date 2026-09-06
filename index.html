@@ -1677,14 +1677,14 @@
       <div id="student-login-box">
         <div class="panel-header">
           <h3>Future Initiative Firearm Services Student Sign-In</h3>
-          <p>Students access training dossiers and checklists. Instructor Wade unlocks the Command Terminal.</p>
+          <p>Enter your email address or student ID to access your training dossier, preparation checklist, and course resources.</p>
         </div>
 
 
         <div style="background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 12px; padding: 22px; max-width: 500px; margin: 0 auto;">
           <div class="form-group">
-            <label for="studentAuthInput">Email, Student ID, or Instructor Passcode <span class="req">*</span></label>
-            <input type="text" id="studentAuthInput" placeholder="e.g., student@example.com, FIFS-4081, or Passcode" onkeydown="if(event.key==='Enter') lookupStudentAccount()">
+            <label for="studentAuthInput">Email Address or Student ID <span class="req">*</span></label>
+            <input type="text" id="studentAuthInput" placeholder="e.g., student@example.com or FIFS-4081" onkeydown="if(event.key==='Enter') lookupStudentAccount()">
           </div>
           <button type="button" class="btn-primary" onclick="lookupStudentAccount()">
             Sign In to Portal →
@@ -1973,10 +1973,10 @@
                 <th>Student ID</th>
                 <th>Full Name</th>
                 <th>Course</th>
-                <th>Training Schedule</th>
-                <th>8-Step Journey Status</th>
+                <th>Preferred Date</th>
+                <th>Status</th>
                 <th>Dossier</th>
-                <th>Change Journey Step (1-8)</th>
+                <th>Quick Actions</th>
               </tr>
             </thead>
             <tbody id="admin-roster-tbody">
@@ -2644,7 +2644,7 @@
 
 
       if (!query) {
-        showStatus(statusDiv, 'Please enter your Email, Student ID, or Instructor Passcode.', 'error');
+        showStatus(statusDiv, 'Please enter your Email Address or Student ID.', 'error');
         return;
       }
 
@@ -2767,68 +2767,57 @@
     }
 
 
-        function updateStudentProgressNodes(student) {
+    function updateStudentProgressNodes(student) {
       const st = (student.trainingStatus || student.status || 'PREP_PENDING').toUpperCase();
-      const stepNum = getStepNumberFromStatus(st);
+      const nodes = []; for (let i = 1; i <= 8; i++) { nodes.push(document.getElementById('track-step-' + i)); }
+      nodes.forEach(n => { if (n) n.className = 'track-step-node'; });
 
-      const nodes = []; 
-      for (let i = 1; i <= 8; i++) { 
-        nodes.push(document.getElementById('track-step-' + i)); 
-      }
-
-      // Reset and light up nodes based on exact instructor-set stepNum (1 to 8)
-      nodes.forEach((n, idx) => {
-        if (!n) return;
-        const nodeStep = idx + 1;
-        if (nodeStep < stepNum) {
-          n.className = 'track-step-node completed';
-        } else if (nodeStep === stepNum) {
-          n.className = 'track-step-node active';
-        } else {
-          n.className = 'track-step-node';
-        }
-      });
 
       const heroTitle = document.getElementById('dash-next-step-title');
       const heroDesc = document.getElementById('dash-next-step-desc');
       const heroBtn = document.getElementById('dash-next-step-btn');
       const progressLabel = document.getElementById('dash-progress-label');
 
-      if (progressLabel) progressLabel.textContent = "Step " + stepNum + " of 8 (" + formatStepLabel(stepNum).replace(/^[0-9]+\.\s*/, '') + ")";
 
-      // Dynamic guidance matching the active journey step
-      if (stepNum === 1) {
-        if (heroTitle) heroTitle.textContent = "Registration Initialized";
-        if (heroDesc) heroDesc.textContent = "Your registration has been submitted. Instructor Kai Wade is reviewing your course details and scheduling availability.";
-        if (heroBtn) { heroBtn.textContent = "Review Course Details ↓"; heroBtn.onclick = function() { document.getElementById('student-course-packet-card').scrollIntoView({ behavior: 'smooth' }); }; }
-      } else if (stepNum === 2) {
-        if (heroTitle) heroTitle.textContent = "Training Date Confirmed ✔";
-        if (heroDesc) heroDesc.textContent = "Your class schedule is officially locked in for " + (student.assignedDate || 'your selected dates') + ". Begin reviewing your pre-class preparation checklist below.";
-        if (heroBtn) { heroBtn.textContent = "Go to Preparation Checklist ↓"; heroBtn.onclick = function() { document.querySelector('.interactive-checklist').scrollIntoView({ behavior: 'smooth' }); }; }
-      } else if (stepNum === 3) {
-        if (heroTitle) heroTitle.textContent = "Complete Pre-Class Readiness Checklist";
+      if (st === 'REGISTERED' || st === 'PREP_PENDING' || st === 'ENROLLED') {
+        if (nodes.at(0)) nodes.at(0).className = 'track-step-node completed';
+        if (nodes.at(1)) nodes.at(1).className = 'track-step-node completed';
+        if (nodes.at(2)) nodes.at(2).className = 'track-step-node active';
+        if (progressLabel) progressLabel.textContent = "Step 3 of 8 (Preparation)";
+        if (heroTitle) heroTitle.textContent = "Complete Your Pre-Class Checklist";
         if (heroDesc) heroDesc.textContent = "Verify your 50–100 rounds factory target ammunition, wrap-around eye protection, and Maryland transport compliance prior to arrival.";
-        if (heroBtn) { heroBtn.textContent = "Review Preparation Checklist ↓"; heroBtn.onclick = function() { document.querySelector('.interactive-checklist').scrollIntoView({ behavior: 'smooth' }); }; }
-      } else if (stepNum === 4) {
-        if (heroTitle) heroTitle.textContent = "Classroom Instruction Evolution";
-        if (heroDesc) heroDesc.textContent = "Active classroom instruction in progress. Study your student follow-along guide and legal use-of-force standards (State v. Faulkner).";
-        if (heroBtn) { heroBtn.textContent = "Open Follow-Along Packet 📖"; heroBtn.onclick = function() { document.getElementById('packetCardLink').click(); }; }
-      } else if (stepNum === 5) {
-        if (heroTitle) heroTitle.textContent = "Live-Fire Range Qualification";
-        if (heroDesc) heroDesc.textContent = "Live-fire evaluation at Cindy's Hot Shots. Focus on master grip, trigger press, and the 25-round Maryland State Police qualification course.";
-        if (heroBtn) { heroBtn.textContent = "View Official Score Sheet (MSP 29-14) 🎯"; heroBtn.onclick = function() { window.open('https://drive.google.com/file/d/1zKrRHowlg1GSewhLISZFrLvr91gxYQBP/view?usp=sharing', '_blank'); }; }
-      } else if (stepNum === 6) {
-        if (heroTitle) heroTitle.textContent = "Official Qualification Certified! 🎉";
-        if (heroDesc) heroDesc.textContent = "Congratulations! Instructor Kai Wade has certified your marksmanship qualification and completed your training documentation.";
-        if (heroBtn) { heroBtn.textContent = "Open Official Student Dossier 📄"; heroBtn.onclick = function() { window.open(student.profileDocUrl || '#', '_blank'); }; }
-      } else if (stepNum === 7) {
-        if (heroTitle) heroTitle.textContent = "Submit Application to Maryland State Police Portal";
-        if (heroDesc) heroDesc.textContent = "Log in to the official MSP Licensing Portal to upload your signed qualification certificate, passport photo, and LiveScan TCN receipt.";
-        if (heroBtn) { heroBtn.textContent = "Open MSP Licensing Portal 🌐"; heroBtn.onclick = function() { window.open('https://licensingportal.mdsp.maryland.gov/MspBridgeClient/', '_blank'); }; }
-      } else if (stepNum === 8) {
-        if (heroTitle) heroTitle.textContent = "Maryland Carry Permit Active & Licensed 🛡️";
-        if (heroDesc) heroDesc.textContent = "Your Maryland Wear & Carry permit is active. Remember your 90-day renewal cycle and explore our Multi-State Reciprocity Hub for travel compliance.";
-        if (heroBtn) { heroBtn.textContent = "Launch CCW Reciprocity Hub 🗺️"; heroBtn.onclick = function() { toggleReciprocityHubModal(true); }; }
+        if (heroBtn) {
+          heroBtn.textContent = "Review Preparation Checklist ↓";
+          heroBtn.onclick = function() {
+            document.querySelector('.interactive-checklist').scrollIntoView({ behavior: 'smooth' });
+          };
+        }
+      } else if (st === 'PREP_COMPLETED') {
+        for (let i = 0; i <= 2; i++) { if (nodes.at(i)) nodes.at(i).className = 'track-step-node completed'; }
+        if (nodes.at(3)) nodes.at(3).className = 'track-step-node active';
+        if (progressLabel) progressLabel.textContent = "Step 4 of 8 (Classroom Instruction)";
+        if (heroTitle) heroTitle.textContent = "Pre-Class Checklist Verified!";
+        if (heroDesc) heroDesc.textContent = "Instructor Kai Wade has verified your readiness. Prepare for your classroom and live-fire evolution at Cindy's Hot Shots.";
+      } else if (st === 'CLASSROOM_PASSED' || st === 'QUALIFIED') {
+        for (let i = 0; i <= 4; i++) { if (nodes.at(i)) nodes.at(i).className = 'track-step-node completed'; }
+        if (nodes.at(5)) nodes.at(5).className = 'track-step-node active';
+        if (progressLabel) progressLabel.textContent = "Step 6 of 8 (Certification)";
+        if (heroTitle) heroTitle.textContent = "Live-Fire Qualification Certified! 🎉";
+        if (heroDesc) heroDesc.textContent = "Instructor Kai Wade has certified your marksmanship qualification. Access your official student dossier below.";
+        if (heroBtn) {
+          heroBtn.textContent = "Open Student Dossier 📄";
+          heroBtn.onclick = function() { window.open(student.profileDocUrl, '_blank'); };
+        }
+      } else if (st === 'CERTIFIED' || st === 'MSP_SUBMITTED') {
+        for (let i = 0; i <= 6; i++) { if (nodes.at(i)) nodes.at(i).className = 'track-step-node completed'; }
+        if (nodes.at(7)) nodes.at(7).className = 'track-step-node active';
+        if (progressLabel) progressLabel.textContent = "Step 8 of 8 (MSP Final Review)";
+        if (heroTitle) heroTitle.textContent = "Application Submitted to Maryland State Police";
+        if (heroDesc) heroDesc.textContent = "Remember to inspect your MSP MyLicense portal 'Messages' tab weekly for deficiency notices.";
+        if (heroBtn) {
+          heroBtn.textContent = "Log In to MSP Portal 🌐";
+          heroBtn.onclick = function() { window.open('https://msp.maryland.gov', '_blank'); };
+        }
       }
     }
 
@@ -2929,109 +2918,60 @@
     }
 
 
-        function getStepNumberFromStatus(statusStr) {
-      const s = (statusStr || '').toUpperCase();
-      if (s.includes('STEP_8') || s.includes('LICENSED') || (s.includes('COMPLETED') && !s.includes('PREP'))) return 8;
-      if (s.includes('STEP_7') || s.includes('MSP') || s.includes('PORTAL')) return 7;
-      if (s.includes('STEP_6') || s.includes('CERTIF') || s.includes('QUALIF')) return 6;
-      if (s.includes('STEP_5') || s.includes('LIVE_FIRE') || s.includes('RANGE')) return 5;
-      if (s.includes('STEP_4') || s.includes('CLASSROOM')) return 4;
-      if (s.includes('STEP_3') || s.includes('PREP')) return 3;
-      if (s.includes('STEP_2') || s.includes('CONFIRM')) return 2;
-      return 1; // Default to Registration
-    }
-
-    function formatStepLabel(stepNum) {
-      const labels = {
-        1: "1. Registration ✔",
-        2: "2. Confirmation ✔",
-        3: "3. Preparation ⚡",
-        4: "4. Classroom Instruction",
-        5: "5. Live-Fire Range",
-        6: "6. Certification Issued",
-        7: "7. MSP Portal Submitted",
-        8: "8. Licensed & Active 🛡️"
-      };
-      return labels[stepNum] || "Step " + stepNum;
-    }
-
     function renderAdminTerminal(data) {
       document.getElementById('admin-auth-box').classList.add('hidden');
       document.getElementById('admin-command-dashboard').classList.remove('hidden');
 
+
       document.getElementById('metric-total').textContent = data.metrics.totalStudents || (data.students || []).length;
-      document.getElementById('metric-pending').textContent = data.metrics.prepPending || 0;
-      document.getElementById('metric-upcoming').textContent = data.metrics.activeTraining || 0;
-      document.getElementById('metric-completed').textContent = data.metrics.certifiedCount || 0;
+      document.getElementById('metric-pending').textContent = data.metrics.needsAttention || 0;
+      document.getElementById('metric-upcoming').textContent = data.metrics.upcomingSessions || 0;
+      document.getElementById('metric-completed').textContent = data.metrics.graduates || 0;
+
 
       adminCachedStudents = data.students || [];
       const tbody = document.getElementById('admin-roster-tbody');
       if (!tbody) return;
       tbody.innerHTML = '';
 
+
       if (adminCachedStudents.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No student bookings recorded yet.</td></tr>';
         return;
       }
 
+
       adminCachedStudents.forEach(s => {
         const tr = document.createElement('tr');
-        const stepNum = getStepNumberFromStatus(s.status);
         tr.innerHTML = `
           <td><strong>${s.studentId}</strong></td>
           <td>${s.fullName}</td>
           <td>${(s.course || '').split('(').at(0).trim()}</td>
-          <td>${s.assignedDate || s.preferredDates || 'To Be Scheduled'}</td>
+          <td>${s.assignedDate || s.preferredDates || 'Pending'}</td>
+          <td><span class="meta-chip chip-status">${s.status}</span></td>
+          <td><a href="${s.profileDocUrl || '#'}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan);">Dossier ↗</a></td>
           <td>
-            <span class="meta-chip chip-status" id="chip-status-${s.studentId}">${formatStepLabel(stepNum)}</span>
-          </td>
-          <td><a href="${s.profileDocUrl || '#'}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); font-weight: 700;">Dossier ↗</a></td>
-          <td>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <select onchange="updateStudentJourneyStep('${s.studentId}', this.value)" style="padding: 6px 10px; font-size: 0.80rem; min-height: 36px; background: #070b10; color: var(--accent-cyan); border-radius: 6px; border: 1px solid var(--accent-cyan); font-weight: 700; cursor: pointer;">
-                <option value="STEP_1_REGISTERED" ${stepNum === 1 ? 'selected' : ''}>1. Registration</option>
-                <option value="STEP_2_CONFIRMED" ${stepNum === 2 ? 'selected' : ''}>2. Confirmation</option>
-                <option value="STEP_3_PREPARATION" ${stepNum === 3 ? 'selected' : ''}>3. Preparation</option>
-                <option value="STEP_4_CLASSROOM" ${stepNum === 4 ? 'selected' : ''}>4. Classroom</option>
-                <option value="STEP_5_LIVE_FIRE" ${stepNum === 5 ? 'selected' : ''}>5. Live-Fire</option>
-                <option value="STEP_6_CERTIFIED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
-                <option value="STEP_7_MSP_PORTAL" ${stepNum === 7 ? 'selected' : ''}>7. MSP Portal</option>
-                <option value="STEP_8_LICENSED" ${stepNum === 8 ? 'selected' : ''}>8. Licensed</option>
-              </select>
-              <span id="save-ind-${s.studentId}" style="display: none; color: #10b981; font-size: 0.78rem; font-weight: bold;">✔ Saved</span>
-            </div>
+            <select onchange="updateStudentStatusInline('${s.studentId}', this.value)" style="padding: 4px 6px; font-size: 0.78rem; min-height: 32px; background: #10161f; color: #fff; border-radius: 4px; border: 1px solid var(--border-subtle);">
+              <option value="PREP_PENDING" ${s.status === 'PREP_PENDING' ? 'selected' : ''}>PREP PENDING</option>
+              <option value="PREP_COMPLETED" ${s.status === 'PREP_COMPLETED' ? 'selected' : ''}>PREP COMPLETED</option>
+              <option value="QUALIFIED" ${s.status === 'QUALIFIED' ? 'selected' : ''}>QUALIFIED</option>
+              <option value="CERTIFIED" ${s.status === 'CERTIFIED' ? 'selected' : ''}>CERTIFIED</option>
+            </select>
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    function updateStudentJourneyStep(studentId, newStepValue) {
+
+    function updateStudentStatusInline(studentId, newStatus) {
       const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
-      const ind = document.getElementById('save-ind-' + studentId);
-      const chip = document.getElementById('chip-status-' + studentId);
-
-      const stepNum = getStepNumberFromStatus(newStepValue);
-      if (chip) chip.textContent = formatStepLabel(stepNum);
-
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler(function(res) {
-            if (ind) {
-              ind.style.display = 'inline';
-              setTimeout(function() { ind.style.display = 'none'; }, 2000);
-            }
+            verifyAdminAccess();
           })
-          .withFailureHandler(function(err) {
-            alert('Error updating student step: ' + err.message);
-          })
-          .handleUpdateStudentStatus(pin, studentId, { status: newStepValue });
-      } else {
-        // Local simulation / demo
-        if (ind) {
-          ind.style.display = 'inline';
-          setTimeout(function() { ind.style.display = 'none'; }, 2000);
-        }
+          .handleUpdateStudentStatus(pin, studentId, { status: newStatus });
       }
     }
 
