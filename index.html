@@ -1200,19 +1200,16 @@
       width: 100%;
       cursor: pointer;
     }
-    @media (hover: hover) {
-      .reviews-marquee-box:hover .reviews-track {
-        animation-play-state: paused;
-      }
+    .reviews-marquee-box:hover .reviews-track,
+    .reviews-marquee-box:active .reviews-track {
+      animation-play-state: paused !important;
     }
     .reviews-track {
       display: inline-flex;
       align-items: center;
       gap: 32px;
-      animation: reviewsScroll 80s linear infinite !important;
+      animation: reviewsScroll 160s linear infinite;
       will-change: transform;
-      -webkit-transform: translate3d(0, 0, 0);
-      transform: translate3d(0, 0, 0);
     }
     @keyframes reviewsScroll {
       0% { transform: translateX(0); }
@@ -1634,49 +1631,6 @@
       background: var(--accent-cyan);
       color: #070b10;
     }
-  /* Dynamic Business Hours Status (9 AM - 5 PM EST) */
-    .pulse-dot.pulse-red {
-      background: #ef4444 !important;
-      box-shadow: 0 0 12px #ef4444 !important;
-      animation: livePulseRed 1.8s infinite ease-in-out !important;
-    }
-    @keyframes livePulseRed {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(1.3); }
-    }
-    .tier-toggle-switch {
-      display: inline-flex;
-      background: #070b10;
-      border: 1px solid var(--border-subtle);
-      border-radius: 20px;
-      padding: 3px;
-      gap: 4px;
-      margin: 10px 0 14px;
-    }
-    .tier-toggle-option {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-family: var(--font-display);
-      font-size: 0.82rem;
-      font-weight: 700;
-      padding: 6px 14px;
-      border-radius: 16px;
-      cursor: pointer;
-      text-transform: uppercase;
-      transition: all 0.2s ease;
-    }
-    .tier-toggle-option.active {
-      background: var(--accent-cyan);
-      color: #070b10;
-      font-weight: 800;
-      box-shadow: 0 0 12px var(--accent-cyan-glow);
-    }
-    .tier-toggle-option.vip-toggle.active {
-      background: var(--accent-amber);
-      color: #070b10;
-      box-shadow: 0 0 12px var(--accent-amber-glow);
-    }
   </style>
     <!-- Immediate Global Navigation Handlers (Guaranteed Multi-Screen Isolation) -->
   <script>
@@ -1830,7 +1784,7 @@
     <!-- Official Motto Ticker with Dynamic Blinking Light -->
     <div class="hero-top-hud">
       <div class="range-live-ticker">
-        <span class="pulse-dot pulse-red" id="live-status-dot" title="Checking status..."></span>
+        <span class="pulse-dot" id="live-status-dot" title="Checking status..."></span>
         <span>THE FUTURE IS NOW, TAKE THE INITIATIVE!</span>
       </div>
     </div>
@@ -1870,7 +1824,7 @@
     <div class="hero-command-dock">
       <!-- Semi-Transparent Neon Arrow Guide (Colors of the business logo: #00e5ff) -->
       <div class="neon-arrow-guide-wrap" id="wrap-neon-guide" onclick="openAndSwitch('booking')" role="button" tabindex="0" title="New to firearms? Click here to start">
-        <div class="neon-arrow-badge neon-mode-red" id="neon-start-guide">
+        <div class="neon-arrow-badge neon-mode-cyan" id="neon-start-guide">
           <span class="neon-arrow-text">New To Firearms? Start Here</span>
           <span class="neon-arrow-icon">▼</span>
         </div>
@@ -2370,12 +2324,12 @@
       </section>
 
 
-      <!-- Course Catalog & Transparent Pricing Section -->
-      <div style="text-align: center; margin: 36px 0 20px;" id="course-catalog-section">
+      <!-- Course Tuition Grid (Interactive Base & 👑 VIP Mode) -->
+      <div style="text-align: center; margin: 36px 0 20px;">
         <span style="font-family: var(--font-display); font-size: 0.88rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1.5px;">All-Inclusive & Self-Equipped Options</span>
         <h3 style="font-family: var(--font-display); font-size: 1.95rem; color: #fff; text-transform: uppercase; margin-top: 4px;">Course Catalog & Transparent Pricing</h3>
         <p style="font-size: 0.92rem; color: var(--text-muted); max-width: 740px; margin: 6px auto 0; line-height: 1.55;">
-          All courses display standard self-equipped Base Pricing by default. Toggle between <strong>Standard Base</strong> and <strong>👑 VIP Turnkey</strong> on any card to see exactly what is added!
+          All courses display standard self-equipped Base Pricing by default. Click <strong>"👑 Select VIP"</strong> on any course to preview the all-inclusive turnkey package (lane fees, loaner handguns, ammo, targets & paperwork included)!
         </p>
       </div>
 
@@ -2387,13 +2341,12 @@
           </div>
           <span class="badge-pop" id="pop-course-mastery" style="background: var(--accent-amber); color: #070b10;">⭐ FLAGSHIP MULTI-STATE</span>
           <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">Mid-Atlantic Multi-State Mastery</div>
-          
           <!-- Interactive Tier Toggle Switch -->
           <div class="tier-toggle-switch">
             <button type="button" class="tier-toggle-option active" id="tog-base-mastery" onclick="setCardTier('mastery', 'base')">Standard Base</button>
             <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-mastery" onclick="setCardTier('mastery', 'vip')">👑 VIP Turnkey</button>
           </div>
-
+          
           <div class="tuition-price" id="price-course-mastery">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$425.00</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
@@ -2402,13 +2355,13 @@
           <div class="tuition-desc">Full 16-hour Maryland Wear & Carry qualification + application preparation for Virginia, Florida, Arizona, and Pennsylvania non-resident carry.</div>
 
           <div class="tuition-bullets" id="bullets-course-mastery">
-            <div>✔ 16-Hour Maryland State-Approved Class</div>
+            <div>✔ 16-Hr Maryland State-Approved Class</div>
             <div>✔ Live-Fire Qualification at Cindy's Hot Shots</div>
             <div>✔ VA, FL, AZ Documentation & Affidavits</div>
             <div>✔ PA $20 Non-Resident LTCF Roadmap</div>
           </div>
 
-          <div class="vip-perks-box" id="vip-box-course-mastery" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+                    <div class="vip-perks-box" id="vip-box-course-mastery" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
             <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Range lane fee included at Cindy's Hot Shots (Save $25–$35)</div>
             <div>👑 Official B-27 practical qualification targets provided</div>
@@ -2418,9 +2371,12 @@
             <div>👑 1-on-1 application dossier audit with Instructor Kai Wade</div>
           </div>
 
-          <div style="margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-mastery" onclick="selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($425.00) & Reserve Seat →
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-mastery" onclick="selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($425)
+            </button>
+            <button type="button" class="btn-toggle-vip" id="btn-vip-course-mastery" onclick="toggleCourseVip('mastery')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
+              👑 Select VIP
             </button>
           </div>
         </div>
@@ -2432,12 +2388,12 @@
           </div>
           <span class="badge-pop" id="pop-course-combo">🔥 MOST POPULAR COMBO</span>
           <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">CCW & HQL Combo</div>
-          
+          <!-- Interactive Tier Toggle Switch -->
           <div class="tier-toggle-switch">
             <button type="button" class="tier-toggle-option active" id="tog-base-combo" onclick="setCardTier('combo', 'base')">Standard Base</button>
             <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-combo" onclick="setCardTier('combo', 'vip')">👑 VIP Turnkey</button>
           </div>
-
+          
           <div class="tuition-price" id="price-course-combo">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$249.99</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
@@ -2451,7 +2407,7 @@
             <div>✔ 25-Round Live-Fire Range Qualification</div>
           </div>
 
-          <div class="vip-perks-box" id="vip-box-course-combo" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+                    <div class="vip-perks-box" id="vip-box-course-combo" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
             <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
             <div>👑 Official B-27 qualification targets provided</div>
@@ -2461,9 +2417,12 @@
             <div>👑 Complete dual filing assistance for both CCW and HQL!</div>
           </div>
 
-          <div style="margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-combo" onclick="selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($249.99) & Reserve Seat →
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-combo" onclick="selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($249.99)
+            </button>
+            <button type="button" class="btn-toggle-vip" id="btn-vip-course-combo" onclick="toggleCourseVip('combo')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
+              👑 Select VIP
             </button>
           </div>
         </div>
@@ -2474,12 +2433,12 @@
             👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Maryland Wear & Carry</div>
-          
+          <!-- Interactive Tier Toggle Switch -->
           <div class="tier-toggle-switch">
             <button type="button" class="tier-toggle-option active" id="tog-base-ccw" onclick="setCardTier('ccw', 'base')">Standard Base</button>
             <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-ccw" onclick="setCardTier('ccw', 'vip')">👑 VIP Turnkey</button>
           </div>
-
+          
           <div class="tuition-price" id="price-course-ccw">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$199.99</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
@@ -2493,7 +2452,7 @@
             <div>✔ Certified MSP Form 29-14 Score Sheet</div>
           </div>
 
-          <div class="vip-perks-box" id="vip-box-course-ccw" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+                    <div class="vip-perks-box" id="vip-box-course-ccw" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
             <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
             <div>👑 Official B-27 qualification targets provided</div>
@@ -2502,9 +2461,12 @@
             <div>👑 On-site passport photos taken & printed!</div>
           </div>
 
-          <div style="margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-ccw" onclick="selectCourse('Maryland Wear & Carry (CCW) — Base Track ($199.99)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($199.99) & Reserve Seat →
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-ccw" onclick="selectCourse('Maryland Wear & Carry (CCW) — Base Track ($199.99)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($199.99)
+            </button>
+            <button type="button" class="btn-toggle-vip" id="btn-vip-course-ccw" onclick="toggleCourseVip('ccw')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
+              👑 Select VIP
             </button>
           </div>
         </div>
@@ -2515,12 +2477,12 @@
             👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Maryland HQL</div>
-          
+          <!-- Interactive Tier Toggle Switch -->
           <div class="tier-toggle-switch">
             <button type="button" class="tier-toggle-option active" id="tog-base-hql" onclick="setCardTier('hql', 'base')">Standard Base</button>
             <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-hql" onclick="setCardTier('hql', 'vip')">👑 VIP Turnkey</button>
           </div>
-
+          
           <div class="tuition-price" id="price-course-hql">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$100.00</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
@@ -2534,7 +2496,7 @@
             <div>✔ Live-Fire Verification Component</div>
           </div>
 
-          <div class="vip-perks-box" id="vip-box-course-hql" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+                    <div class="vip-perks-box" id="vip-box-course-hql" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
             <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Range fee included at Cindy's Hot Shots</div>
             <div>👑 Loaner handgun provided for live-fire verification</div>
@@ -2543,9 +2505,12 @@
             <div>👑 MSP 77R portal account setup & submission guidance!</div>
           </div>
 
-          <div style="margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-hql" onclick="selectCourse('Maryland HQL (Purchase License) — Base Track ($100.00)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($100.00) & Reserve Seat →
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-hql" onclick="selectCourse('Maryland HQL (Purchase License) — Base Track ($100.00)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($100)
+            </button>
+            <button type="button" class="btn-toggle-vip" id="btn-vip-course-hql" onclick="toggleCourseVip('hql')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
+              👑 Select VIP
             </button>
           </div>
         </div>
@@ -2556,12 +2521,12 @@
             👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Personal 1-on-1 Coaching</div>
-          
+          <!-- Interactive Tier Toggle Switch -->
           <div class="tier-toggle-switch">
             <button type="button" class="tier-toggle-option active" id="tog-base-coaching" onclick="setCardTier('coaching', 'base')">Standard Base</button>
             <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-coaching" onclick="setCardTier('coaching', 'vip')">👑 VIP Turnkey</button>
           </div>
-
+          
           <div class="tuition-price" id="price-course-coaching">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$125.00</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">/ hr (Standard Base)</span>
@@ -2575,18 +2540,21 @@
             <div>✔ Flinch Correction & Recoil Management</div>
           </div>
 
-          <div class="vip-perks-box" id="vip-box-course-coaching" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+                    <div class="vip-perks-box" id="vip-box-course-coaching" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
             <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
-            <div>👑 Private lane reservation fee included</div>
+            <div>👑 Private range lane reservation fee included</div>
             <div>👑 Diagnostic sensor telemetry (MantisX live analysis)</div>
             <div>👑 Access to premium loaner handguns (SIG, Glock, etc.)</div>
             <div>👑 Training ammunition provided</div>
             <div>👑 High-speed video trigger stroke analysis!</div>
           </div>
 
-          <div style="margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-coaching" onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($125.00/hr)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($125/hr) & Reserve Seat →
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-coaching" onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($125.00/hr)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($125)
+            </button>
+            <button type="button" class="btn-toggle-vip" id="btn-vip-course-coaching" onclick="toggleCourseVip('coaching')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
+              👑 Select VIP
             </button>
           </div>
         </div>
@@ -2597,12 +2565,12 @@
             👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Gun Cleaning Class</div>
-          
+          <!-- Interactive Tier Toggle Switch -->
           <div class="tier-toggle-switch">
             <button type="button" class="tier-toggle-option active" id="tog-base-cleaning" onclick="setCardTier('cleaning', 'base')">Standard Base</button>
             <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-cleaning" onclick="setCardTier('cleaning', 'vip')">👑 VIP Turnkey</button>
           </div>
-
+          
           <div class="tuition-price" id="price-course-cleaning">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$75.00</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
@@ -2616,7 +2584,7 @@
             <div>✔ 8-Step Mechanical Safety Function Check</div>
           </div>
 
-          <div class="vip-perks-box" id="vip-box-course-cleaning" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+                    <div class="vip-perks-box" id="vip-box-course-cleaning" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
             <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Complete premium multi-caliber cleaning kit to take home</div>
             <div>👑 Specialized bore solvents and advanced CLP lubricants</div>
@@ -2624,9 +2592,12 @@
             <div>👑 Comprehensive 8-point mechanical function check!</div>
           </div>
 
-          <div style="margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-cleaning" onclick="selectCourse('Gun Cleaning & Maintenance — Base Track ($75.00)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($75.00) & Reserve Seat →
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-cleaning" onclick="selectCourse('Gun Cleaning & Maintenance — Base Track ($75.00)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($75)
+            </button>
+            <button type="button" class="btn-toggle-vip" id="btn-vip-course-cleaning" onclick="toggleCourseVip('cleaning')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
+              👑 Select VIP
             </button>
           </div>
         </div>
@@ -2637,12 +2608,12 @@
             👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Children's Safety Class</div>
-          
+          <!-- Interactive Tier Toggle Switch -->
           <div class="tier-toggle-switch">
             <button type="button" class="tier-toggle-option active" id="tog-base-children" onclick="setCardTier('children', 'base')">Standard Base</button>
             <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-children" onclick="setCardTier('children', 'vip')">👑 VIP Turnkey</button>
           </div>
-
+          
           <div class="tuition-price" id="price-course-children">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$199.99</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
@@ -2656,7 +2627,7 @@
             <div>✔ Parent-Child Safety Covenant</div>
           </div>
 
-          <div class="vip-perks-box" id="vip-box-course-children" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+                    <div class="vip-perks-box" id="vip-box-course-children" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
             <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Certified heavy-duty cable gun locks to take home</div>
             <div>👑 Youth safe-handling activity workbook packet</div>
@@ -2664,9 +2635,12 @@
             <div>👑 Official Certificate of Completion for student!</div>
           </div>
 
-          <div style="margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-children" onclick="selectCourse('Children\'s Safety Class — Base Track ($199.99)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($199.99) & Reserve Seat →
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-children" onclick="selectCourse('Children\'s Safety Class — Base Track ($199.99)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($199.99)
+            </button>
+            <button type="button" class="btn-toggle-vip" id="btn-vip-course-children" onclick="toggleCourseVip('children')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
+              👑 Select VIP
             </button>
           </div>
         </div>
@@ -3223,7 +3197,6 @@
         }, 1800);
       }
 
-      // Smooth scroll directly to the booking form
       // Update the pricing summary card in the form
       updateFormPriceDisplay();
 
@@ -3253,38 +3226,35 @@
         const now = new Date();
         const estOptions = { timeZone: 'America/New_York', hour12: false, hour: 'numeric' };
         const currentHour = parseInt(new Intl.DateTimeFormat('en-US', estOptions).format(now), 10);
-        // Strictly 9:00 AM to 5:00 PM EST (09:00 to 17:00)
-        const isOpen = (currentHour >= 9 && currentHour < 17);
+        const isOpen = (currentHour >= 9 && currentHour < 21);
+
 
         if (isOpen) {
           if (dot) {
             dot.className = 'pulse-dot';
             dot.style.background = '#10b981';
-            dot.style.boxShadow = '0 0 10px #10b981';
-            dot.title = 'Live Training & Student Operations Active (9 AM - 5 PM EST)';
+            dot.title = 'Live Range & Student Operations Active (EST)';
           }
           if (arrowGuide) {
             arrowGuide.className = 'neon-arrow-badge neon-mode-cyan';
-            arrowGuide.title = 'Live Business Hours (9 AM - 5 PM) • Click to Start Training';
+            arrowGuide.title = 'Live Range Hours • Click to Start Training';
           }
         } else {
           if (dot) {
-            dot.className = 'pulse-dot pulse-red';
+            dot.className = 'pulse-dot';
             dot.style.background = '#ef4444';
-            dot.style.boxShadow = '0 0 12px #ef4444';
-            dot.title = 'Range Operations Closed (Opens 9 AM EST) • 24/7 Online Registration Active';
+            dot.title = 'Range Operations Closed / Standby Mode (EST)';
           }
           if (arrowGuide) {
             arrowGuide.className = 'neon-arrow-badge neon-mode-red';
-            arrowGuide.title = 'After Hours (Closed 5 PM - 9 AM) • Online Booking Active 24/7';
+            arrowGuide.title = 'Standby Mode • Online Registration Active 24/7';
           }
         }
       } catch (e) {
-        if (dot) dot.className = 'pulse-dot pulse-red';
-        if (arrowGuide) arrowGuide.className = 'neon-arrow-badge neon-mode-red';
+        if (dot) dot.className = 'pulse-dot';
+        if (arrowGuide) arrowGuide.className = 'neon-arrow-badge neon-mode-cyan';
       }
     }
-    window.updateLivePulseTicker = updateLivePulseTicker;
 
 
     function lookupStudentAccount() {
@@ -3786,7 +3756,15 @@
         </div>
       `).join('');
 
-      // Ticker animates smoothly and continuously across mobile and desktop devices
+      // Enable touch to pause on mobile / iPad touch screens
+      if (box) {
+        box.addEventListener('touchstart', function() {
+          track.style.animationPlayState = 'paused';
+        }, { passive: true });
+        box.addEventListener('touchend', function() {
+          track.style.animationPlayState = 'running';
+        }, { passive: true });
+      }
     }
 
     // ================= GOAL SYNOPSIS INTERACTIVE POPUP LOGIC =================
@@ -4405,7 +4383,7 @@
       }
     };
 
-    function toggleCourseVip(courseKey) {
+    function setCardTier(courseKey, targetTier) {
       const config = COURSE_TIER_CONFIG[courseKey];
       if (!config) return;
 
@@ -4414,17 +4392,18 @@
       const priceElem = document.getElementById('price-course-' + courseKey);
       const vipBox = document.getElementById('vip-box-' + courseKey);
       const btnSelect = document.getElementById('btn-select-course-' + courseKey);
+      const togBase = document.getElementById('tog-base-' + courseKey);
+      const togVip = document.getElementById('tog-vip-' + courseKey);
       const btnVip = document.getElementById('btn-vip-course-' + courseKey);
 
       if (!card) return;
 
-      const isVipNow = card.classList.contains('vip-mode-active');
-
-      if (!isVipNow) {
-        // ACTIVATE VIP MODE (Transforms into business colors!)
+      if (targetTier === 'vip') {
         card.classList.add('vip-mode-active');
         if (badge) badge.style.display = 'block';
         if (vipBox) vipBox.style.display = 'block';
+        if (togVip) togVip.classList.add('active');
+        if (togBase) togBase.classList.remove('active');
 
         if (priceElem) {
           priceElem.innerHTML = `
@@ -4434,7 +4413,7 @@
         }
 
         if (btnSelect) {
-          btnSelect.textContent = "Confirm 👑 VIP (" + config.vipPrice + ")";
+          btnSelect.textContent = "Select 👑 VIP (" + config.vipPrice + ") & Reserve Seat →";
           btnSelect.className = "btn-select-course btn-vip-select";
           btnSelect.onclick = function() {
             selectCourse(config.vipValue);
@@ -4448,10 +4427,11 @@
           btnVip.style.color = "#cbd5e1";
         }
       } else {
-        // RETURN TO BASE MODE
         card.classList.remove('vip-mode-active');
         if (badge) badge.style.display = 'none';
         if (vipBox) vipBox.style.display = 'none';
+        if (togBase) togBase.classList.add('active');
+        if (togVip) togVip.classList.remove('active');
 
         if (priceElem) {
           priceElem.innerHTML = `
@@ -4461,7 +4441,7 @@
         }
 
         if (btnSelect) {
-          btnSelect.textContent = "Select Base (" + config.basePrice + ")";
+          btnSelect.textContent = "Select Base (" + config.basePrice + ") & Reserve Seat →";
           btnSelect.className = "btn-select-course";
           btnSelect.onclick = function() {
             selectCourse(config.baseValue);
@@ -4475,6 +4455,14 @@
           btnVip.style.color = "var(--accent-cyan)";
         }
       }
+    }
+    window.setCardTier = setCardTier;
+
+    function toggleCourseVip(courseKey) {
+      const card = document.getElementById('card-course-' + courseKey);
+      if (!card) return;
+      const isVip = card.classList.contains('vip-mode-active');
+      setCardTier(courseKey, isVip ? 'base' : 'vip');
     }
     window.toggleCourseVip = toggleCourseVip;
 
@@ -4607,6 +4595,7 @@
     }
     window.updateFormPriceDisplay = updateFormPriceDisplay;
 
+
     function toggleFormTier(targetTier) {
       const selectElem = document.getElementById('courseSelection');
       if (!selectElem) return;
@@ -4651,70 +4640,6 @@
       }
       updateFormPriceDisplay();
     }
-
-    
-    // ================= DYNAMIC COURSE CARD TIER TOGGLE SWITCH =================
-    function setCardTier(courseKey, targetTier) {
-      const config = COURSE_TIER_CONFIG[courseKey];
-      if (!config) return;
-
-      const card = document.getElementById('card-course-' + courseKey);
-      const badge = document.getElementById('badge-course-' + courseKey);
-      const priceElem = document.getElementById('price-course-' + courseKey);
-      const vipBox = document.getElementById('vip-box-' + courseKey);
-      const btnSelect = document.getElementById('btn-select-course-' + courseKey);
-      const togBase = document.getElementById('tog-base-' + courseKey);
-      const togVip = document.getElementById('tog-vip-' + courseKey);
-
-      if (!card) return;
-
-      if (targetTier === 'vip') {
-        // ACTIVATE VIP MODE (Turns card into business colors!)
-        card.classList.add('vip-mode-active');
-        if (badge) badge.style.display = 'block';
-        if (vipBox) vipBox.style.display = 'block';
-        if (togVip) togVip.classList.add('active');
-        if (togBase) togBase.classList.remove('active');
-
-        if (priceElem) {
-          priceElem.innerHTML = `
-            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-cyan);">${config.vipPrice}</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>
-          `;
-        }
-
-        if (btnSelect) {
-          btnSelect.textContent = "Select 👑 VIP (" + config.vipPrice + ") & Reserve Seat →";
-          btnSelect.className = "btn-select-course btn-vip-select";
-          btnSelect.onclick = function() {
-            selectCourse(config.vipValue);
-          };
-        }
-      } else {
-        // RETURN TO BASE MODE
-        card.classList.remove('vip-mode-active');
-        if (badge) badge.style.display = 'none';
-        if (vipBox) vipBox.style.display = 'none';
-        if (togBase) togBase.classList.add('active');
-        if (togVip) togVip.classList.remove('active');
-
-        if (priceElem) {
-          priceElem.innerHTML = `
-            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">${config.basePrice}</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
-          `;
-        }
-
-        if (btnSelect) {
-          btnSelect.textContent = "Select Base (" + config.basePrice + ") & Reserve Seat →";
-          btnSelect.className = "btn-select-course";
-          btnSelect.onclick = function() {
-            selectCourse(config.baseValue);
-          };
-        }
-      }
-    }
-    window.setCardTier = setCardTier;
 
     </script>
   <!-- ================= DEDICATED RECIPROCITY & TRAVEL HUB MODAL ================= -->
