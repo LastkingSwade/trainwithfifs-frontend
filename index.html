@@ -1246,12 +1246,12 @@
 
     /* ================= GOAL SYNOPSIS MODAL POPUP ================= */
     .goal-modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(4, 7, 11, 0.88);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      z-index: 9999;
+      position: fixed !important;
+      inset: 0 !important;
+      background: rgba(4, 7, 11, 0.94) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      z-index: 999999 !important;
       display: none;
       align-items: center;
       justify-content: center;
@@ -1260,8 +1260,10 @@
       transition: opacity 0.25s ease;
     }
     .goal-modal-overlay.active {
-      display: flex;
-      opacity: 1;
+      display: flex !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
     }
     .goal-modal-box {
       background: linear-gradient(135deg, rgba(16, 22, 31, 0.98) 0%, rgba(11, 15, 20, 0.99) 100%);
@@ -2223,69 +2225,222 @@
         </div>
       </div>
 
-      <!-- Course Tuition Grid -->
-      <div class="tuition-grid">
-        <div class="tuition-card" onclick="selectCourse('Maryland HQL ($100.00)')">
-          <div>
-            <div class="tuition-title">Maryland HQL</div>
-            <div class="tuition-price">$100.00</div>
-            <div class="tuition-desc">State prerequisite for handgun purchase. Covers safe firearm handling, home storage compliance, and live-fire orientation.</div>
-          </div>
-          <div class="btn-select-course">Select Course</div>
-        </div>
-
-
-        <div class="tuition-card" onclick="selectCourse('Maryland CCW (Wear & Carry) ($199.99)')">
-          <div>
-            <div class="tuition-title">Maryland CCW</div>
-            <div class="tuition-price">$199.99</div>
-            <div class="tuition-desc">Full Wear & Carry certification. Thorough legal curriculum, use-of-force pillars, and 25-round practical qualification.</div>
-          </div>
-          <div class="btn-select-course">Select Course</div>
-        </div>
-
-
-        <div class="tuition-card featured" onclick="selectCourse('Maryland CCW & HQL Combo ($249.99)')">
-          <span style="position: absolute; top: -10px; right: 16px; background: var(--accent-amber); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase;">⭐ Most Popular</span>
-          <div>
-            <div class="tuition-title">CCW & HQL Combo</div>
-            <div class="tuition-price">$249.99</div>
-            <div class="tuition-desc">Comprehensive dual-licensing package meeting both purchase and carry training mandates in one streamlined format.</div>
-          </div>
-          <div class="btn-select-course">Select Course</div>
-        </div>
-
-
-        <div class="tuition-card" onclick="selectCourse('Personal One-on-One Class ($125.00 / hr)')">
-          <div>
-            <div class="tuition-title">Personal 1-on-1</div>
-            <div class="tuition-price">$125.00 <span style="font-size: 0.9rem; color: var(--text-muted);">/ hr</span></div>
-            <div class="tuition-desc">Dedicated private coaching. Marksmanship diagnostics, trigger reset mechanics, and holster draw cadence.</div>
-          </div>
-          <div class="btn-select-course">Select Course</div>
-        </div>
-
-
-        <div class="tuition-card" onclick="selectCourse('Gun Cleaning Class ($75.00)')">
-          <div>
-            <div class="tuition-title">Gun Cleaning Class</div>
-            <div class="tuition-price">$75.00</div>
-            <div class="tuition-desc">Field-stripping, ultrasonic inspection methods, lubrication points, and mechanical safety function checks.</div>
-          </div>
-          <div class="btn-select-course">Select Course</div>
-        </div>
-
-
-        <div class="tuition-card" onclick="selectCourse('Children's Firearm Training Class ($199.99)')">
-          <div>
-            <div class="tuition-title">Children's Safety Class</div>
-            <div class="tuition-price">$199.99</div>
-            <div class="tuition-desc">Structured, zero-compromise safety education, Eddie Eagle principles, hazard avoidance, and parent-accompanied handling.</div>
-          </div>
-          <div class="btn-select-course">Select Course</div>
-        </div>
+      <!-- Course Tuition Grid (Base & 👑 VIP Turnkey Pricing) -->
+      <div style="text-align: center; margin: 36px 0 20px;">
+        <span style="font-family: var(--font-display); font-size: 0.88rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1.5px;">All-Inclusive & Self-Equipped Tracks</span>
+        <h3 style="font-family: var(--font-display); font-size: 1.95rem; color: #fff; text-transform: uppercase; margin-top: 4px;">Course Catalog & Transparent Pricing</h3>
+        <p style="font-size: 0.92rem; color: var(--text-muted); max-width: 740px; margin: 6px auto 0; line-height: 1.55;">
+          Every course offers a self-equipped <strong>Base Track</strong> and an all-inclusive <strong>👑 VIP Turnkey Track</strong> (includes range lane fees, targets, loaner handguns, ammunition, eye/ear protection, and application documentation).
+        </p>
       </div>
 
+      <div class="tuition-grid">
+        <!-- 1. Mid-Atlantic Multi-State Mastery (NEW FLAGSHIP) -->
+        <div class="tuition-card highlight-combo" style="border: 2px solid var(--accent-amber); box-shadow: 0 0 25px var(--accent-amber-glow);">
+          <span class="badge-pop" style="background: var(--accent-amber); color: #070b10;">⭐ FLAGSHIP MULTI-STATE</span>
+          <div class="tuition-name" style="font-size: 1.35rem; color: #fff;">Mid-Atlantic Multi-State Mastery</div>
+          <p class="tuition-desc">Full 16-hour Maryland Wear & Carry qualification + complete application preparation for Virginia, Florida, Arizona, and Pennsylvania non-resident carry.</p>
+          
+          <div class="pricing-dual-grid">
+            <div class="tier-box">
+              <div class="tier-box-label" style="color: var(--text-muted);">Standard Base</div>
+              <div class="tier-box-price">$425.00</div>
+            </div>
+            <div class="tier-box vip-box">
+              <div class="tier-box-label" style="color: var(--accent-cyan);">👑 VIP Turnkey ★</div>
+              <div class="tier-box-price" style="color: var(--accent-cyan);">$550.00</div>
+            </div>
+          </div>
+
+          <div class="tuition-bullets">
+            <div>✔ 16-Hr Maryland State-Approved Class</div>
+            <div>✔ Live-Fire Qualification at Cindy's Hot Shots</div>
+            <div>✔ VA, FL, AZ Documentation & Affidavits</div>
+            <div>✔ PA $20 Non-Resident LTCF Roadmap</div>
+            <div><strong style="color: var(--accent-cyan);">👑 VIP Includes:</strong> Range lane fee, B-27 targets, loaner 9mm handgun, 50 rds ammo, on-site FD-258 fingerprint cards & 2x2 passport photos!</div>
+          </div>
+
+          <div class="tier-btn-row">
+            <button type="button" class="btn-select-tier" onclick="selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)')">Select Base $425</button>
+            <button type="button" class="btn-select-tier btn-vip-select" onclick="selectCourse('Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)')">Select 👑 VIP $550</button>
+          </div>
+        </div>
+
+        <!-- 2. Maryland CCW & HQL Combo -->
+        <div class="tuition-card highlight-combo">
+          <span class="badge-pop">🔥 MOST POPULAR COMBO</span>
+          <div class="tuition-name" style="font-size: 1.35rem; color: #fff;">CCW & HQL Combo</div>
+          <p class="tuition-desc">Comprehensive dual-licensing package meeting both purchase and carry training mandates in one streamlined weekend format.</p>
+          
+          <div class="pricing-dual-grid">
+            <div class="tier-box">
+              <div class="tier-box-label" style="color: var(--text-muted);">Standard Base</div>
+              <div class="tier-box-price">$249.99</div>
+            </div>
+            <div class="tier-box vip-box">
+              <div class="tier-box-label" style="color: var(--accent-cyan);">👑 VIP Turnkey ★</div>
+              <div class="tier-box-price" style="color: var(--accent-cyan);">$375.00</div>
+            </div>
+          </div>
+
+          <div class="tuition-bullets">
+            <div>✔ 16-Hour Wear & Carry Certification</div>
+            <div>✔ HQL Training Exemption Guide ($0 Extra)</div>
+            <div>✔ 25-Round Live-Fire Range Qualification</div>
+            <div><strong style="color: var(--accent-cyan);">👑 VIP Includes:</strong> Lane fee, B-27 targets, loaner 9mm handgun, 50 rds ammo & passport photos!</div>
+          </div>
+
+          <div class="tier-btn-row">
+            <button type="button" class="btn-select-tier" onclick="selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)')">Select Base $249.99</button>
+            <button type="button" class="btn-select-tier btn-vip-select" onclick="selectCourse('Maryland CCW & HQL Combo — VIP Turnkey ($375.00)')">Select 👑 VIP $375</button>
+          </div>
+        </div>
+
+        <!-- 3. Maryland Wear & Carry (16-Hr) -->
+        <div class="tuition-card">
+          <div class="tuition-name">Maryland Wear & Carry</div>
+          <p class="tuition-desc">Full Wear & Carry certification. In-depth legal curriculum (State v. Faulkner, SB 1), and 25-round practical qualification.</p>
+          
+          <div class="pricing-dual-grid">
+            <div class="tier-box">
+              <div class="tier-box-label" style="color: var(--text-muted);">Standard Base</div>
+              <div class="tier-box-price">$199.99</div>
+            </div>
+            <div class="tier-box vip-box">
+              <div class="tier-box-label" style="color: var(--accent-cyan);">👑 VIP Turnkey ★</div>
+              <div class="tier-box-price" style="color: var(--accent-cyan);">$325.00</div>
+            </div>
+          </div>
+
+          <div class="tuition-bullets">
+            <div>✔ 16-Hour In-Person Training Mandate</div>
+            <div>✔ Faulkner Self-Defense & Castle Doctrine</div>
+            <div>✔ Certified MSP Form 29-14 Score Sheet</div>
+            <div><strong style="color: var(--accent-cyan);">👑 VIP Includes:</strong> Range fee, B-27 targets, loaner 9mm handgun, 50 rds ammo & passport photos!</div>
+          </div>
+
+          <div class="tier-btn-row">
+            <button type="button" class="btn-select-tier" onclick="selectCourse('Maryland Wear & Carry (CCW) — Base Track ($199.99)')">Select Base $199.99</button>
+            <button type="button" class="btn-select-tier btn-vip-select" onclick="selectCourse('Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)')">Select 👑 VIP $325</button>
+          </div>
+        </div>
+
+        <!-- 4. Maryland HQL (4-Hour) -->
+        <div class="tuition-card">
+          <div class="tuition-name">Maryland HQL</div>
+          <p class="tuition-desc">State prerequisite for handgun purchase. Covers safe firearm handling, home storage compliance (Jaelynn's Law), and live-fire orientation.</p>
+          
+          <div class="pricing-dual-grid">
+            <div class="tier-box">
+              <div class="tier-box-label" style="color: var(--text-muted);">Standard Base</div>
+              <div class="tier-box-price">$100.00</div>
+            </div>
+            <div class="tier-box vip-box">
+              <div class="tier-box-label" style="color: var(--accent-cyan);">👑 VIP Turnkey ★</div>
+              <div class="tier-box-price" style="color: var(--accent-cyan);">$165.00</div>
+            </div>
+          </div>
+
+          <div class="tuition-bullets">
+            <div>✔ State-Mandated Purchase Prerequisite</div>
+            <div>✔ Safe Handling & Jaelynn's Law Storage</div>
+            <div>✔ Live-Fire Verification Component</div>
+            <div><strong style="color: var(--accent-cyan);">👑 VIP Includes:</strong> Range fee, loaner handgun, live-fire ammo, target & portal submission guidance!</div>
+          </div>
+
+          <div class="tier-btn-row">
+            <button type="button" class="btn-select-tier" onclick="selectCourse('Maryland HQL (Purchase License) — Base Track ($100.00)')">Select Base $100</button>
+            <button type="button" class="btn-select-tier btn-vip-select" onclick="selectCourse('Maryland HQL (Purchase License) — VIP Turnkey ($165.00)')">Select 👑 VIP $165</button>
+          </div>
+        </div>
+
+        <!-- 5. Personal 1-on-1 Coaching -->
+        <div class="tuition-card">
+          <div class="tuition-name">Personal 1-on-1 Coaching</div>
+          <p class="tuition-desc">Dedicated private coaching. Diagnostic marksmanship, trigger reset mechanics, and holster draw cadence.</p>
+          
+          <div class="pricing-dual-grid">
+            <div class="tier-box">
+              <div class="tier-box-label" style="color: var(--text-muted);">Standard Base</div>
+              <div class="tier-box-price">$125.00 <span style="font-size: 0.8rem;">/hr</span></div>
+            </div>
+            <div class="tier-box vip-box">
+              <div class="tier-box-label" style="color: var(--accent-cyan);">👑 VIP Turnkey ★</div>
+              <div class="tier-box-price" style="color: var(--accent-cyan);">$195.00 <span style="font-size: 0.8rem;">/hr</span></div>
+            </div>
+          </div>
+
+          <div class="tuition-bullets">
+            <div>✔ Tailored 1-on-1 Instruction with Kai Wade</div>
+            <div>✔ Diagnostic Sensor Telemetry (MantisX)</div>
+            <div>✔ Flinch Correction & Recoil Management</div>
+            <div><strong style="color: var(--accent-cyan);">👑 VIP Includes:</strong> Private lane fee, premium loaner handguns & training ammunition!</div>
+          </div>
+
+          <div class="tier-btn-row">
+            <button type="button" class="btn-select-tier" onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($125.00/hr)')">Select Base $125</button>
+            <button type="button" class="btn-select-tier btn-vip-select" onclick="selectCourse('Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)')">Select 👑 VIP $195</button>
+          </div>
+        </div>
+
+        <!-- 6. Gun Cleaning Class -->
+        <div class="tuition-card">
+          <div class="tuition-name">Gun Cleaning Class</div>
+          <p class="tuition-desc">Field-stripping, ultrasonic inspection methods, lubrication points, and mechanical safety function checks.</p>
+          
+          <div class="pricing-dual-grid">
+            <div class="tier-box">
+              <div class="tier-box-label" style="color: var(--text-muted);">Standard Base</div>
+              <div class="tier-box-price">$75.00</div>
+            </div>
+            <div class="tier-box vip-box">
+              <div class="tier-box-label" style="color: var(--accent-cyan);">👑 VIP Turnkey ★</div>
+              <div class="tier-box-price" style="color: var(--accent-cyan);">$115.00</div>
+            </div>
+          </div>
+
+          <div class="tuition-bullets">
+            <div>✔ Complete Field Strip & Reassembly</div>
+            <div>✔ Proper Solvent & Lubricant Application</div>
+            <div>✔ 8-Step Mechanical Safety Function Check</div>
+            <div><strong style="color: var(--accent-cyan);">👑 VIP Includes:</strong> Full premium take-home cleaning kit & specialized solvents!</div>
+          </div>
+
+          <div class="tier-btn-row">
+            <button type="button" class="btn-select-tier" onclick="selectCourse('Gun Cleaning & Maintenance — Base Track ($75.00)')">Select Base $75</button>
+            <button type="button" class="btn-select-tier btn-vip-select" onclick="selectCourse('Gun Cleaning & Maintenance — VIP Turnkey ($115.00)')">Select 👑 VIP $115</button>
+          </div>
+        </div>
+
+        <!-- 7. Children's Safety Class -->
+        <div class="tuition-card">
+          <div class="tuition-name">Children's Safety Class</div>
+          <p class="tuition-desc">Structured, zero-compromise safety education, Eddie Eagle principles, hazard avoidance, and parent-guided instruction.</p>
+          
+          <div class="pricing-dual-grid">
+            <div class="tier-box">
+              <div class="tier-box-label" style="color: var(--text-muted);">Standard Base</div>
+              <div class="tier-box-price">$199.99</div>
+            </div>
+            <div class="tier-box vip-box">
+              <div class="tier-box-label" style="color: var(--accent-cyan);">👑 VIP Turnkey ★</div>
+              <div class="tier-box-price" style="color: var(--accent-cyan);">$265.00</div>
+            </div>
+          </div>
+
+          <div class="tuition-bullets">
+            <div>✔ Eddie Eagle 4-Step Safety Rules</div>
+            <div>✔ Safe Home Storage Orientation</div>
+            <div>✔ Parent-Child Safety Covenant</div>
+            <div><strong style="color: var(--accent-cyan);">👑 VIP Includes:</strong> Certified cable gun locks, youth workbook & completion certificate!</div>
+          </div>
+
+          <div class="tier-btn-row">
+            <button type="button" class="btn-select-tier" onclick="selectCourse('Children\'s Safety Class — Base Track ($199.99)')">Select Base $199.99</button>
+            <button type="button" class="btn-select-tier btn-vip-select" onclick="selectCourse('Children\'s Safety Class — VIP Turnkey ($265.00)')">Select 👑 VIP $265</button>
+          </div>
+        </div>
+      </div>
 
       <!-- The 8-Step FIFS Journey -->
       <div style="margin-bottom: 32px;">
@@ -2355,7 +2510,7 @@
 
 
       <!-- Reservation Booking Form Section -->
-      <section style="border-top: 1px solid var(--border-subtle); padding-top: 24px;">
+      <section id="booking-form-section" style="border-top: 1px solid var(--border-subtle); padding-top: 24px; scroll-margin-top: 80px;">
         <div class="panel-header">
           <h3>Reserve Your Training Session</h3>
           <p>Submit your details to establish your student record with Instructor Wade.</p>
@@ -2770,14 +2925,56 @@
       switchTab('booking');
       const selectElem = document.getElementById('courseSelection');
       if (selectElem) {
-        const valLower = (courseValue || '').toLowerCase();
+        const valClean = (courseValue || '').toLowerCase().trim();
+        let matched = false;
+
+        // 1. Exact match check
         for (let i = 0; i < selectElem.options.length; i++) {
-          const optLower = selectElem.options[i].value.toLowerCase();
-          if (optLower.includes(valLower) || valLower.includes(optLower) || 
-              (valLower.includes('multi-state') && optLower.includes('multi-state') && valLower.includes('vip') === optLower.includes('vip'))) {
+          const optVal = selectElem.options[i].value.toLowerCase().trim();
+          if (optVal === valClean) {
             selectElem.selectedIndex = i;
+            matched = true;
             break;
           }
+        }
+
+        // 2. Substring & tier check
+        if (!matched) {
+          const isVip = valClean.includes('vip') || valClean.includes('550') || valClean.includes('375') || valClean.includes('325') || valClean.includes('165') || valClean.includes('195') || valClean.includes('115') || valClean.includes('265');
+          for (let i = 0; i < selectElem.options.length; i++) {
+            const optVal = selectElem.options[i].value.toLowerCase().trim();
+            const optIsVip = optVal.includes('vip');
+
+            if (isVip === optIsVip) {
+              if (valClean.includes('multi-state') && optVal.includes('multi-state')) { selectElem.selectedIndex = i; matched = true; break; }
+              if (valClean.includes('combo') && optVal.includes('combo')) { selectElem.selectedIndex = i; matched = true; break; }
+              if ((valClean.includes('wear & carry') || valClean.includes('ccw')) && !valClean.includes('combo') && !valClean.includes('multi-state') && optVal.includes('wear & carry')) { selectElem.selectedIndex = i; matched = true; break; }
+              if (valClean.includes('hql') && !valClean.includes('combo') && optVal.includes('hql')) { selectElem.selectedIndex = i; matched = true; break; }
+              if (valClean.includes('1-on-1') && optVal.includes('1-on-1')) { selectElem.selectedIndex = i; matched = true; break; }
+              if (valClean.includes('cleaning') && optVal.includes('cleaning')) { selectElem.selectedIndex = i; matched = true; break; }
+              if (valClean.includes('children') && optVal.includes('children')) { selectElem.selectedIndex = i; matched = true; break; }
+            }
+          }
+        }
+
+        // Visual flash indicator on the dropdown so user sees the change
+        selectElem.style.borderColor = 'var(--accent-amber)';
+        selectElem.style.boxShadow = '0 0 16px var(--accent-amber-glow)';
+        setTimeout(function() {
+          selectElem.style.borderColor = '';
+          selectElem.style.boxShadow = '';
+        }, 1800);
+      }
+
+      // Smooth scroll directly to the booking form
+      const targetSection = document.getElementById('booking-form-section') || document.getElementById('booking-form');
+      if (targetSection) {
+        setTimeout(function() {
+          targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+      }
+    }
+    window.selectCourse = selectCourse;
         }
       }
       const formWrap = document.getElementById('booking-form-wrap');
@@ -3449,7 +3646,10 @@
 
     function openGoalSynopsis(goalKey) {
       const data = GOAL_SYNOPSIS_DATA[goalKey];
-      if (!data) return;
+      if (!data) {
+        console.warn('No synopsis data for goalKey:', goalKey);
+        return;
+      }
 
       const modal = document.getElementById('goalSynopsisModal');
       const badge = document.getElementById('goalModalBadge');
@@ -3459,21 +3659,21 @@
       const whyList = document.getElementById('goalModalWhyList');
       const whyNotList = document.getElementById('goalModalWhyNotList');
       const acceptBtn = document.getElementById('goalModalAcceptBtn');
+      const guideBanner = document.getElementById('goalModalGuideBanner');
 
       if (badge) badge.textContent = data.badge;
       if (title) title.textContent = data.title;
       if (rec) rec.textContent = data.rec;
       if (synopsis) synopsis.textContent = data.synopsis;
 
-      if (whyList) {
+      if (whyList && Array.isArray(data.why)) {
         whyList.innerHTML = data.why.map(item => `<li><span class="bullet-icon-why">✔</span><span>${item}</span></li>`).join('');
       }
 
-      if (whyNotList) {
+      if (whyNotList && Array.isArray(data.whyNot)) {
         whyNotList.innerHTML = data.whyNot.map(item => `<li><span class="bullet-icon-why-not">⚡</span><span>${item}</span></li>`).join('');
       }
 
-      const guideBanner = document.getElementById('goalModalGuideBanner');
       if (guideBanner) {
         guideBanner.style.display = data.showGuide ? 'flex' : 'none';
       }
@@ -3486,17 +3686,28 @@
       }
 
       if (modal) {
+        modal.style.display = 'flex';
+        modal.style.opacity = '1';
+        modal.style.visibility = 'visible';
+        modal.style.pointerEvents = 'auto';
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
       }
     }
+    window.openGoalSynopsis = openGoalSynopsis;
 
     function closeGoalSynopsis() {
       const modal = document.getElementById('goalSynopsisModal');
       if (modal) {
+        modal.style.display = 'none';
+        modal.style.opacity = '0';
+        modal.style.visibility = 'hidden';
+        modal.style.pointerEvents = 'none';
         modal.classList.remove('active');
         document.body.style.overflow = '';
       }
+    }
+    window.closeGoalSynopsis = closeGoalSynopsis;
     }
 
     // Keyboard support: Close modal on Esc key
