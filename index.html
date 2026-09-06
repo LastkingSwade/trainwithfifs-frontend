@@ -1475,11 +1475,42 @@
       color: #fff;
       border-color: rgba(255, 255, 255, 0.3);
     }
+  /* Bulletproof Multi-Screen Isolation */
+    body.in-home {
+      overflow-x: hidden;
+    }
+    body.in-home #hero-landing {
+      display: flex !important;
+      visibility: visible !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+    }
+    body.in-home #app-container {
+      display: none !important;
+      visibility: hidden !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      pointer-events: none !important;
+    }
+    body.in-app #hero-landing {
+      display: none !important;
+      visibility: hidden !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      pointer-events: none !important;
+    }
+    body.in-app #app-container {
+      display: block !important;
+      visibility: visible !important;
+      height: auto !important;
+      pointer-events: auto !important;
+    }
   </style>
-  <!-- Immediate Global Navigation Handlers (Guaranteed Availability on Page Load) -->
+    <!-- Immediate Global Navigation Handlers (Guaranteed Multi-Screen Isolation) -->
   <script>
     window.openAndSwitch = function(tabId) {
       try {
+        document.body.className = 'in-app';
         var hero = document.getElementById('hero-landing');
         var app = document.getElementById('app-container');
         if (hero) {
@@ -1495,15 +1526,15 @@
         } else {
           window.__pendingTab = tabId;
         }
-        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+        try { window.scrollTo(0, 0); } catch (e) {}
       } catch (err) {
         console.error('Error opening section:', err);
       }
     };
 
-
     window.returnToHome = function() {
       try {
+        document.body.className = 'in-home';
         var hero = document.getElementById('hero-landing');
         var app = document.getElementById('app-container');
         if (app) {
@@ -1514,14 +1545,20 @@
           hero.style.setProperty('display', 'flex', 'important');
           hero.classList.remove('hidden-view');
         }
-        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+        // Force hide all individual views inside app-container
+        var allTabs = ['booking', 'portal', 'about', 'testimonial', 'faq', 'admin'];
+        allTabs.forEach(function(t) {
+          var panel = document.getElementById('view-' + t);
+          if (panel) panel.classList.add('hidden');
+        });
+        try { window.scrollTo(0, 0); } catch (e) {}
       } catch (err) {
         console.error('Error returning home:', err);
       }
     };
   </script>
 </head>
-<body>
+<body class="in-home">
 
 
   <!-- ================= SCREEN 1: HERO LANDING SCREEN ================= -->
@@ -1759,6 +1796,23 @@
         </div>
 
 
+        
+        <!-- ================= OFFICIAL MARYLAND QUALIFICATION SCORE SHEET ================= -->
+        <div class="portal-score-sheet-card" style="background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <span style="font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; color: var(--accent-cyan); letter-spacing: 1px; text-transform: uppercase;">Official State Police Form</span>
+              <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-top: 2px;">🎯 Maryland State Police Qualification Score Sheet (MSP Form 29-14)</h3>
+              <p style="font-size: 0.86rem; color: #cbd5e1; margin-top: 4px; max-width: 650px;">
+                Review the exact state qualification scorecard used on the firing line at Cindy's Hot Shots. Details the 25-round course of fire (3, 5, 7, and 15 yards), scoring criteria, and instructor certification.
+              </p>
+            </div>
+            <a href="https://drive.google.com/file/d/1zKrRHowlg1GSewhLISZFrLvr91gxYQBP/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn-spark" style="width: auto; padding: 10px 20px; font-size: 0.90rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+              <span>📄 View / Download Score Sheet (PDF) ↗</span>
+            </a>
+          </div>
+        </div>
+
         <!-- Student Documents & Resources -->
         <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 20px;">
           <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 12px;">Official Records & Resources</h4>
@@ -1766,7 +1820,7 @@
             <a href="#" id="dash-doc-link" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
               📄 My Student Training Dossier (Google Doc) ↗
             </a>
-            <a href="https://msp.maryland.gov" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <a href="https://licensingportal.mdsp.maryland.gov/MspBridgeClient/" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
               🌐 Maryland State Police MyLicense Portal ↗
             </a>
           </div>
@@ -3220,7 +3274,7 @@
       OH: { name: "Ohio", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Prompt disclosure when requested by officer", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry active since 2022." },
       OK: { name: "Oklahoma", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry active." },
       OR: { name: "Oregon", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested", mag: "No active state limit currently enforced", vehicle: "OR permit required for concealed carry in vehicle", notes: "No out-of-state reciprocity." },
-      PA: { name: "Pennsylvania", constCarry: false, honorsMD: true, honorsUT: true, honorsFL: false, duty: "Only when requested", mag: "No limit", vehicle: "PA permit or recognized reciprocal permit required for loaded vehicle carry", notes: "Statutory reciprocity with Maryland for resident permit holders 21+." },
+      PA: { name: "Pennsylvania", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested by officer", mag: "No magazine capacity limit", vehicle: "PA LTCF or recognized permit required for loaded concealed carry in vehicle; cased/unloaded under FOPA otherwise", notes: "Pennsylvania does NOT honor Maryland permits directly. However, PA offers a fast, greatly discounted Non-Resident License to Carry (LTCF) for only $20 to Maryland permit holders (issued same-day in counties like York)!" },
       RI: { name: "Rhode Island", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested", mag: "10-round limit", vehicle: "RI permit required; otherwise unloaded in locked case", notes: "No out-of-state reciprocity." },
       SC: { name: "South Carolina", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry enacted March 2024." },
       SD: { name: "South Dakota", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry active." },
@@ -3738,7 +3792,7 @@
               <div class="corridor-route-card">
                 <div class="corridor-route-title">I-70 / I-68 West (MD ➔ Midwest)</div>
                 <div class="corridor-route-flow">
-                  <strong>Maryland</strong> ➔ <strong>Pennsylvania</strong> (Honored for 21+ MD residents) ➔ <strong>West Virginia</strong> (Constitutional) ➔ <strong>Ohio</strong> (Constitutional) ➔ <strong>Indiana</strong> (Constitutional) ➔ <strong>Illinois</strong> (⚠️ In-Vehicle Carry Safe Harbor only; do not carry outside car) ➔ <strong>Missouri</strong> (Constitutional).
+                  <strong>Maryland</strong> ➔ <strong>Pennsylvania</strong> (Requires $20 PA Non-Resident LTCF; unloaded in trunk under FOPA otherwise) ➔ <strong>West Virginia</strong> (Constitutional) ➔ <strong>Ohio</strong> (Constitutional) ➔ <strong>Indiana</strong> (Constitutional) ➔ <strong>Illinois</strong> (⚠️ In-Vehicle Carry Safe Harbor only; do not carry outside car) ➔ <strong>Missouri</strong> (Constitutional).
                 </div>
               </div>
               <div class="corridor-route-card">
