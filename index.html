@@ -33,13 +33,9 @@
     }
 
 
-
-
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     html { scroll-behavior: smooth; }
     body { font-family: var(--font-body); color: var(--text-main); background-color: var(--bg-dark-core); min-height: 100vh; line-height: 1.5; overflow-x: hidden; }
-
-
 
 
     /* ================= SCREEN 1: HERO LANDING ================= */
@@ -62,14 +58,10 @@
     }
 
 
-
-
     .hero-bg-layer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none !important; overflow: hidden; }
     .hero-bg-artwork { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; pointer-events: none !important; }
     @media (min-width: 601px) { .hero-bg-artwork { object-fit: contain; object-position: center top; height: 100%; } }
     .hero-bg-vignette { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7, 11, 16, 0.3) 0%, transparent 28%, rgba(7, 11, 16, 0.65) 70%, var(--bg-dark-core) 100%); pointer-events: none !important; }
-
-
 
 
     /* Blinking Pulse Light & Ticker */
@@ -83,11 +75,7 @@
     @keyframes livePulseGreen { 0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 10px #10b981; } 50% { transform: scale(1.35); opacity: 0.4; box-shadow: 0 0 18px #10b981; } }
 
 
-
-
     .hero-mid-spacer { pointer-events: none !important; flex: 1; min-height: 10px; z-index: 5; }
-
-
 
 
     /* Command Dock */
@@ -102,8 +90,6 @@
     .hero-command-dock::after { bottom: -2px; right: -2px; border-bottom: 2px solid var(--accent-cyan); border-right: 2px solid var(--accent-cyan); border-bottom-right-radius: 8px; }
 
 
-
-
     .btn-hero-booking-prime {
       width: 100%; background: linear-gradient(135deg, #00e5ff 0%, #0099cc 100%); color: #070b10; border: none; border-radius: 12px;
       padding: 16px 18px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
@@ -112,8 +98,6 @@
     .btn-hero-booking-prime:hover { transform: translateY(-2px) scale(1.01); box-shadow: 0 0 34px rgba(0, 229, 255, 0.7); background: linear-gradient(135deg, #4deeea 0%, #00e5ff 100%); }
     .prime-label { font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; line-height: 1.1; }
     .prime-sub { font-family: var(--font-body); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.6px; color: #051622; text-transform: uppercase; }
-
-
 
 
     .hero-twin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -126,13 +110,9 @@
     .twin-sub { font-size: 0.72rem; color: var(--accent-cyan); text-transform: uppercase; font-weight: 600; }
 
 
-
-
     .hero-bottom-strip { display: flex; justify-content: center; align-items: center; gap: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 8px; }
     .btn-hero-aux { background: none; border: none; color: var(--text-muted); font-family: var(--font-display); font-size: 0.88rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: color 0.2s; }
     .btn-hero-aux:hover { color: var(--accent-cyan); }
-
-
 
 
     .admin-secret-lock {
@@ -143,13 +123,9 @@
     .admin-secret-lock:hover { opacity: 1; border-color: var(--accent-cyan); color: var(--accent-cyan); transform: scale(1.1); }
 
 
-
-
     /* ================= SCREEN 2: MAIN APPLICATION CONTAINER ================= */
     #app-container { display: none; width: 100%; max-width: 1080px; margin: 0 auto; padding: 20px 16px 80px; animation: fadeIn 0.35s ease forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-
-
 
 
     .app-header {
@@ -160,8 +136,6 @@
     .app-nav-logo { width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 0 8px var(--accent-cyan-glow)); }
     .app-brand-text h2 { font-family: var(--font-display); font-size: 1.3rem; letter-spacing: 1.5px; color: #fff; line-height: 1.1; }
     .app-brand-text p { font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; text-transform: uppercase; }
-
-
 
 
     /* High-Visibility Luminous Home Button */
@@ -178,8 +152,6 @@
     }
     .btn-sign-out { background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-subtle); color: var(--text-muted); font-family: var(--font-display); font-size: 0.85rem; padding: 6px 14px; border-radius: 6px; cursor: pointer; }
     .btn-sign-out:hover { color: #ff6b6b; border-color: #ff6b6b; background: rgba(255, 107, 107, 0.12); }
-
-
 
 
     
@@ -275,14 +247,10 @@
     }
 
 
-
-
     
     /* View Utility Classes */
     #hero-landing.hidden-view { display: none !important; }
     #app-container.active-view { display: block !important; }
-
-
 
 
     /* Semi-Transparent Neon Arrow Guide */
@@ -303,8 +271,6 @@
     }
 
 
-
-
     .neon-arrow-badge {
       display: inline-flex;
       align-items: center;
@@ -323,8 +289,6 @@
       cursor: pointer;
       pointer-events: auto !important;
     }
-
-
 
 
     /* Cyan Operating Mode (Colors of the business logo: #00e5ff) */
@@ -358,8 +322,6 @@
     }
 
 
-
-
     /* Red Standby Mode (Off-hours before 9 AM or after 9 PM EST) */
     .neon-arrow-badge.neon-mode-red {
       background: rgba(239, 68, 68, 0.14);
@@ -391,8 +353,6 @@
     }
 
 
-
-
     .neon-arrow-icon {
       font-size: 0.95rem;
       line-height: 1;
@@ -405,15 +365,11 @@
     }
 
 
-
-
     /* Panels */
     .panel { background: var(--bg-dark-card); backdrop-filter: blur(12px); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 24px 20px; margin-bottom: 24px; box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45); }
     .panel-header { margin-bottom: 20px; border-left: 3px solid var(--accent-cyan); padding-left: 14px; }
     .panel-header h3 { font-family: var(--font-display); font-size: 1.45rem; letter-spacing: 1px; color: #fff; }
     .panel-header p { font-size: 0.86rem; color: var(--text-muted); }
-
-
 
 
     /* Pathways */
@@ -424,8 +380,6 @@
     .pathway-intent { font-family: var(--font-display); font-size: 0.82rem; font-weight: 700; color: var(--accent-amber); text-transform: uppercase; margin-bottom: 4px; }
     .pathway-rec { font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
     .pathway-cta { font-size: 0.74rem; color: var(--accent-cyan); text-transform: uppercase; font-weight: 600; }
-
-
 
 
     /* Course Cards */
@@ -440,16 +394,12 @@
     .tuition-card:hover .btn-select-course { background: var(--accent-cyan); color: #070b10; }
 
 
-
-
     /* Journey Grid */
     .journey-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
     .j-card { background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; }
     .j-num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: rgba(0, 229, 255, 0.3); line-height: 1; margin-bottom: 4px; }
     .j-title { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: #fff; text-transform: uppercase; margin-bottom: 4px; }
     .j-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; }
-
-
 
 
     /* What to Bring Checklist Boxes */
@@ -459,8 +409,6 @@
     .checklist-box ul { list-style: none; font-size: 0.86rem; color: var(--text-muted); line-height: 1.6; }
     .checklist-box li { margin-bottom: 6px; display: flex; align-items: flex-start; gap: 8px; }
     .checklist-box li::before { content: '✔'; color: var(--accent-amber); font-weight: bold; }
-
-
 
 
     /* Forms */
@@ -474,14 +422,10 @@
     textarea { resize: vertical; min-height: 85px; }
 
 
-
-
     .btn-primary { width: 100%; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; padding: 14px 20px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 0 16px var(--accent-cyan-glow); min-height: 48px; }
     .status-msg { display: none; padding: 12px; border-radius: 8px; margin-top: 14px; font-size: 0.9rem; }
     .status-msg.success { display: block; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); color: #4deeea; }
     .status-msg.error { display: block; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; }
-
-
 
 
     /* Student Portal Styles */
@@ -491,14 +435,10 @@
     .meta-chip.chip-status { background: rgba(255, 183, 3, 0.12); border-color: var(--accent-amber); color: var(--accent-amber); }
 
 
-
-
     .next-step-card { background: linear-gradient(135deg, rgba(0, 229, 255, 0.12) 0%, rgba(16, 22, 31, 0.95) 100%); border: 2px solid var(--accent-cyan); box-shadow: 0 0 24px var(--accent-cyan-glow); border-radius: 14px; padding: 22px 20px; margin-bottom: 24px; }
     .next-step-badge { font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; letter-spacing: 1.5px; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 4px; }
     .next-step-title { font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
     .next-step-desc { font-size: 0.90rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 16px; }
-
-
 
 
     .progress-track-wrapper { background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 16px; margin-bottom: 24px; }
@@ -508,14 +448,10 @@
     .track-step-node.active { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(0, 229, 255, 0.12); font-weight: 700; }
 
 
-
-
     .interactive-checklist { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
     .task-item-card { background: #0d131b; border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 10px; padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: all 0.2s; }
     .task-item-card.is-done { background: rgba(16, 185, 129, 0.08); border-color: #10b981; }
     .task-checkbox { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent-cyan); cursor: pointer; }
-
-
 
 
     /* Admin Styles */
@@ -526,8 +462,6 @@
     .admin-roster-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin-top: 12px; }
     .admin-roster-table th, .admin-roster-table td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--border-subtle); }
     .admin-roster-table th { background: #070b10; color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; }
-
-
 
 
     /* Target Cards */
@@ -541,13 +475,9 @@
     .target-content { padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
 
 
-
-
     /* Review CTA */
     .cta-review-box { background: linear-gradient(135deg, rgba(255, 183, 3, 0.12) 0%, rgba(16, 22, 31, 0.95) 100%); border: 1px solid var(--accent-amber); box-shadow: 0 0 16px var(--accent-amber-glow); border-radius: 14px; padding: 20px; text-align: center; margin-bottom: 24px; }
     .btn-review { display: inline-flex; align-items: center; justify-content: center; background: var(--accent-amber); color: #070b10; font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin-top: 10px; }
-
-
 
 
     /* FAQ */
@@ -557,17 +487,12 @@
     .faq-item.active .faq-answer { display: block; }
 
 
-
-
     .spark-dock { background: #10161f; border: 1px solid var(--accent-cyan); border-radius: 12px; padding: 16px; margin-top: 28px; text-align: center; }
     .spark-btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
     .btn-spark { background: rgba(0, 229, 255, 0.1); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.95rem; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
 
 
-
-
     .hidden { display: none !important; }
-
 
 /* ================= INTERACTIVE SVG US MAP STYLING ================= */
     .reciprocity-map-container {
@@ -641,7 +566,6 @@
       dominant-baseline: central;
     }
 
-
     /* Car Travel Corridor Strip */
     .car-travel-corridor-box {
       background: #0d121a;
@@ -689,7 +613,6 @@
       color: #e2e8f0;
       line-height: 1.5;
     }
-
 
     /* ================= FLYING WITH A FIREARM MODULE ================= */
     .flying-firearm-module {
@@ -780,7 +703,6 @@
       line-height: 1.55;
     }
 
-
     /* ================= MULTI-STATE CCW RECIPROCITY APP ================= */
     .portal-reciprocity-wrapper {
       background: linear-gradient(135deg, rgba(16, 22, 31, 0.98) 0%, rgba(7, 11, 16, 0.99) 100%);
@@ -813,7 +735,6 @@
       margin-top: 4px;
       line-height: 1.5;
     }
-
 
     /* Multi-Permit Selection Bar */
     .reciprocity-permit-selector {
@@ -889,7 +810,6 @@
       font-weight: bold;
     }
 
-
     /* Live Coverage Scorecard Bar */
     .reciprocity-scorecard {
       display: grid;
@@ -926,7 +846,6 @@
       letter-spacing: 0.5px;
       margin-top: 4px;
     }
-
 
     /* Color Legend */
     .reciprocity-legend-bar {
@@ -970,7 +889,6 @@
       background: #334155;
       border: 1px solid #64748b;
     }
-
 
     /* Search & Filter Controls */
     .reciprocity-filter-controls {
@@ -1017,7 +935,6 @@
       border-color: var(--accent-cyan);
       color: var(--accent-cyan);
     }
-
 
     /* State Matrix Interactive Grid */
     .states-matrix-grid {
@@ -1103,7 +1020,6 @@
       background: rgba(100, 116, 139, 0.15);
     }
 
-
     /* Strategic Advisory Box */
     .reciprocity-advisor-card {
       background: linear-gradient(135deg, rgba(255, 183, 3, 0.1) 0%, rgba(13, 19, 27, 0.95) 100%);
@@ -1128,7 +1044,6 @@
       color: #e2e8f0;
       line-height: 1.55;
     }
-
 
     /* State Legal Dossier Modal */
     .state-dossier-modal-overlay {
@@ -1229,7 +1144,6 @@
       line-height: 1.45;
     }
 
-
     /* ================= GOOGLE REVIEWS TICKER ON HERO ================= */
     .hero-logo-spacer {
       width: 100%;
@@ -1237,7 +1151,6 @@
       flex-shrink: 0;
       pointer-events: none !important;
     }
-
 
     .hero-reviews-marquee-wrap {
       width: 100%;
@@ -1334,17 +1247,10 @@
       letter-spacing: 0.5px;
     }
 
-
     /* ================= GOAL SYNOPSIS MODAL POPUP ================= */
     .goal-modal-overlay {
       position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      bottom: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      height: 100dvh !important;
+      inset: 0 !important;
       background: rgba(4, 7, 11, 0.94) !important;
       backdrop-filter: blur(16px) !important;
       -webkit-backdrop-filter: blur(16px) !important;
@@ -1353,29 +1259,14 @@
       align-items: center;
       justify-content: center;
       padding: 16px;
-      box-sizing: border-box;
-      overflow-y: auto;
+      opacity: 0;
+      transition: opacity 0.25s ease;
     }
     .goal-modal-overlay.active {
       display: flex !important;
       opacity: 1 !important;
       visibility: visible !important;
       pointer-events: auto !important;
-    }
-    .goal-modal-box {
-      background: linear-gradient(135deg, rgba(16, 22, 31, 0.98) 0%, rgba(11, 15, 20, 0.99) 100%);
-      border: 1px solid rgba(0, 229, 255, 0.45);
-      border-radius: 18px;
-      max-width: 640px;
-      width: 100%;
-      max-height: 90vh;
-      max-height: 90dvh;
-      overflow-y: auto;
-      padding: 26px 24px;
-      position: relative;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 30px var(--accent-cyan-glow);
-      margin: auto;
-      animation: modalSlideUp 0.3s ease forwards;
     }
     .goal-modal-box {
       background: linear-gradient(135deg, rgba(16, 22, 31, 0.98) 0%, rgba(11, 15, 20, 0.99) 100%);
@@ -1650,7 +1541,6 @@
       pointer-events: auto !important;
     }
 
-
     /* Dual-Tier Pricing Styles */
     .pricing-dual-grid {
       display: grid;
@@ -1744,7 +1634,8 @@
       background: var(--accent-cyan);
       color: #070b10;
     }
-  .pulse-dot.pulse-red {
+  /* Dynamic Business Hours Status (9 AM - 5 PM EST) */
+    .pulse-dot.pulse-red {
       background: #ef4444 !important;
       box-shadow: 0 0 12px #ef4444 !important;
       animation: livePulseRed 1.8s infinite ease-in-out !important;
@@ -1753,50 +1644,92 @@
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.4; transform: scale(1.3); }
     }
-  /* Informative Hover & Tap Pop-Up for Goal Pathways */
-    .pathway-pill {
-      position: relative;
-    }
-    .pathway-hover-pop {
-      position: absolute;
-      bottom: calc(100% + 12px);
-      left: 50%;
-      transform: translateX(-50%) translateY(6px);
-      width: 260px;
+    .tier-toggle-switch {
+      display: inline-flex;
       background: #070b10;
-      border: 1px solid var(--accent-cyan);
-      border-radius: 10px;
-      padding: 12px 14px;
-      font-size: 0.80rem;
-      color: #e2e8f0;
-      line-height: 1.45;
-      text-align: left;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95), 0 0 18px var(--accent-cyan-glow);
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition: opacity 0.25s ease, transform 0.25s ease;
-      z-index: 50;
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 3px;
+      gap: 4px;
+      margin: 10px 0 14px;
     }
-    .pathway-hover-pop::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border-width: 6px;
-      border-style: solid;
-      border-color: var(--accent-cyan) transparent transparent transparent;
+    .tier-toggle-option {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 16px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
     }
-    @media (hover: hover) {
-      .pathway-pill:hover .pathway-hover-pop {
-        opacity: 1;
-        visibility: visible;
-        transform: translateX(-50%) translateY(0);
-      }
+    .tier-toggle-option.active {
+      background: var(--accent-cyan);
+      color: #070b10;
+      font-weight: 800;
+      box-shadow: 0 0 12px var(--accent-cyan-glow);
+    }
+    .tier-toggle-option.vip-toggle.active {
+      background: var(--accent-amber);
+      color: #070b10;
+      box-shadow: 0 0 12px var(--accent-amber-glow);
     }
   </style>
-      <!-- Global Rock-Solid Navigation Handlers -->
+    <!-- Immediate Global Navigation Handlers (Guaranteed Multi-Screen Isolation) -->
+  <script>
+    window.openAndSwitch = function(tabId) {
+      try {
+        document.body.className = 'in-app';
+        var hero = document.getElementById('hero-landing');
+        var app = document.getElementById('app-container');
+        if (hero) {
+          hero.style.setProperty('display', 'none', 'important');
+          hero.classList.add('hidden-view');
+        }
+        if (app) {
+          app.style.setProperty('display', 'block', 'important');
+          app.classList.add('active-view');
+        }
+        if (typeof window.switchTab === 'function') {
+          window.switchTab(tabId);
+        } else {
+          window.__pendingTab = tabId;
+        }
+        try { window.scrollTo(0, 0); } catch (e) {}
+      } catch (err) {
+        console.error('Error opening section:', err);
+      }
+    };
+
+    window.returnToHome = function() {
+      try {
+        document.body.className = 'in-home';
+        var hero = document.getElementById('hero-landing');
+        var app = document.getElementById('app-container');
+        if (app) {
+          app.style.setProperty('display', 'none', 'important');
+          app.classList.remove('active-view');
+        }
+        if (hero) {
+          hero.style.setProperty('display', 'flex', 'important');
+          hero.classList.remove('hidden-view');
+        }
+        // Force hide all individual views inside app-container
+        var allTabs = ['booking', 'portal', 'about', 'testimonial', 'faq', 'admin'];
+        allTabs.forEach(function(t) {
+          var panel = document.getElementById('view-' + t);
+          if (panel) panel.classList.add('hidden');
+        });
+        try { window.scrollTo(0, 0); } catch (e) {}
+      } catch (err) {
+        console.error('Error returning home:', err);
+      }
+    };
+  </script>
+  <!-- Global Unbreakable Navigation Handlers -->
   <script>
     function switchTab(tab) {
       const allTabs = ['booking', 'portal', 'about', 'testimonial', 'faq', 'admin'];
@@ -1827,12 +1760,9 @@
           userTag.textContent = sectionTitles[tab];
         }
       }
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
+      try { window.scrollTo(0, 0); } catch (e) {}
     }
     window.switchTab = switchTab;
-
 
     function openAndSwitch(tabId) {
       try {
@@ -1848,20 +1778,12 @@
           app.classList.add('active-view');
         }
         switchTab(tabId);
-        window.scrollTo(0, 0);
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-        setTimeout(function() {
-          window.scrollTo(0, 0);
-          document.documentElement.scrollTop = 0;
-          document.body.scrollTop = 0;
-        }, 30);
+        try { window.scrollTo(0, 0); } catch (e) {}
       } catch (err) {
-        console.error('Error opening section:', err);
+        console.error('Error in openAndSwitch:', err);
       }
     }
     window.openAndSwitch = openAndSwitch;
-
 
     function returnToHome() {
       try {
@@ -1884,19 +1806,15 @@
             panel.style.display = 'none';
           }
         });
-        window.scrollTo(0, 0);
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
+        try { window.scrollTo(0, 0); } catch (e) {}
       } catch (err) {
-        console.error('Error returning home:', err);
+        console.error('Error in returnToHome:', err);
       }
     }
     window.returnToHome = returnToHome;
   </script>
 </head>
 <body class="in-home">
-
-
 
 
   <!-- ================= SCREEN 1: HERO LANDING SCREEN ================= -->
@@ -1909,7 +1827,6 @@
       <div class="hero-bg-vignette"></div>
     </div>
 
-
     <!-- Official Motto Ticker with Dynamic Blinking Light -->
     <div class="hero-top-hud">
       <div class="range-live-ticker">
@@ -1918,10 +1835,8 @@
       </div>
     </div>
 
-
     <!-- Spacer: Clears the background logo ("Future Initiative Firearm Services") -->
     <div class="hero-logo-spacer"></div>
-
 
     <!-- Official Google Reviews Ticker (Positioned in the red box area: below logo, above tablet & firearm) -->
     <div class="hero-reviews-marquee-wrap" aria-label="Official Google Reviews">
@@ -1945,15 +1860,11 @@
       </div>
     </div>
 
-
     <!-- Spacer: Clears the tablet and firearm on the workbench -->
     <div class="hero-mid-spacer"></div>
 
 
-
-
     
-
 
       <!-- Command Dock Launcher -->
     <div class="hero-command-dock">
@@ -1966,14 +1877,10 @@
       </div>
 
 
-
-
       <button type="button" class="btn-hero-booking-prime" id="btn-hero-booking" onclick="openAndSwitch('booking')">
-        <span class="prime-label">🎯 BOOK YOUR TRAINING NOW</span>
+        <span class="prime-label">🎯 START YOUR JOURNEY</span>
         <span class="prime-sub">Maryland CCW • HQL • Private 1-on-1 Coaching</span>
       </button>
-
-
 
 
       <div class="hero-twin-grid">
@@ -1983,15 +1890,11 @@
         </button>
 
 
-
-
         <button type="button" class="btn-hero-twin" id="btn-hero-about" onclick="openAndSwitch('about')">
           <span class="twin-title">👤 About & Instructor</span>
           <span class="twin-sub">Meet Kai Wade • Mission</span>
         </button>
       </div>
-
-
 
 
       <div class="hero-bottom-strip">
@@ -2002,12 +1905,8 @@
     </div>
 
 
-
-
     
   </section>
-
-
 
 
   <!-- ================= SCREEN 2: MAIN TRAINING PORTAL & BUSINESS SYSTEM ================= -->
@@ -2029,8 +1928,6 @@
     </header>
 
 
-
-
     <!-- VIEW 1: AUTHENTICATED STUDENT DASHBOARD -->
     <section id="view-portal" role="tabpanel" class="panel hidden">
       <div id="student-login-box">
@@ -2038,8 +1935,6 @@
           <h3>Future Initiative Firearm Services Student Sign-In</h3>
           <p>Enter your email address or student ID to access your training dossier, preparation checklist, and course resources.</p>
         </div>
-
-
 
 
         <div style="background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 12px; padding: 22px; max-width: 500px; margin: 0 auto;">
@@ -2061,8 +1956,6 @@
       </div>
 
 
-
-
       <!-- ACTIVE STUDENT DASHBOARD -->
       <div id="student-active-dashboard" class="hidden">
         <div class="student-badge-bar">
@@ -2081,8 +1974,6 @@
         </div>
 
 
-
-
         <!-- Priority Action Concierge Hero Card -->
         <div class="next-step-card">
           <div class="next-step-badge">🚀 Priority Action Required</div>
@@ -2094,8 +1985,6 @@
             Complete Preparation Checklist ↓
           </button>
         </div>
-
-
 
 
         <!-- 8-Step Progress Tracker Roadmap -->
@@ -2120,8 +2009,6 @@
         </div>
 
 
-
-
         <!-- Interactive Pre-Class Checklist -->
         <div style="margin-bottom: 26px;">
           <h4 style="font-family: var(--font-display); font-size: 1.25rem; color: #fff; margin-bottom: 6px;">Pre-Class Readiness Tasks</h4>
@@ -2136,8 +2023,6 @@
             </div>
 
 
-
-
             <div class="task-item-card" id="task-card-ammo" onclick="toggleTaskCheckbox('ammo_acquired')">
               <input type="checkbox" id="chk-ammo_acquired" class="task-checkbox" onclick="event.stopPropagation(); syncTask('ammo_acquired', this.checked)">
               <div>
@@ -2145,8 +2030,6 @@
                 <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">Standard brass-cased factory ammo. Strictly NO live ammo permitted inside classroom—leave locked in vehicle trunk until live-fire.</p>
               </div>
             </div>
-
-
 
 
             <div class="task-item-card" id="task-card-eye" onclick="toggleTaskCheckbox('eye_ear_pro')">
@@ -2158,8 +2041,6 @@
             </div>
 
 
-
-
             <div class="task-item-card" id="task-card-id" onclick="toggleTaskCheckbox('id_ready')">
               <input type="checkbox" id="chk-id_ready" class="task-checkbox" onclick="event.stopPropagation(); syncTask('id_ready', this.checked)">
               <div>
@@ -2169,8 +2050,6 @@
             </div>
           </div>
         </div>
-
-
 
 
         
@@ -2190,7 +2069,6 @@
           </div>
         </div>
 
-
         <!-- Student Documents & Resources -->
         <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 20px;">
           <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 12px;">Official Records & Resources</h4>
@@ -2203,7 +2081,6 @@
             </a>
           </div>
         </div>
-
 
         
         <!-- ================= EXCLUSIVE STUDENT TRAVEL & RECIPROCITY HUB ================= -->
@@ -2221,7 +2098,6 @@
             </button>
           </div>
         </div>
-
 
         <!-- ================= MARYLAND DESIGNATED COLLECTOR APPLICATION ================= -->
         <div class="portal-collector-card" style="background: linear-gradient(135deg, rgba(255, 183, 3, 0.1) 0%, rgba(13, 19, 27, 0.95) 100%); border: 1px solid var(--accent-amber); box-shadow: 0 0 16px var(--accent-amber-glow); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
@@ -2244,7 +2120,6 @@
           </div>
         </div>
 
-
         <!-- ================= DYNAMIC COURSE FOLLOW-ALONG PACKET CARD ================= -->
         <div id="student-course-packet-card" style="background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
@@ -2262,11 +2137,9 @@
         </div>
 
 
-
-
         <!-- State Dossier Details Modal -->
         <div class="state-dossier-modal-overlay" id="stateDossierModal" onclick="if(event.target===this) closeStateDossier()">
-          <div class="state-dossier-card" role="dialog" aria-modal="true" aria-labelledby="dossierStateTitle">
+          <div class="state-dossier-card" role="dialog" aria-modal="true" aria-labelledby="dossierStateTitle" onclick="event.stopPropagation()">
             <button type="button" class="dossier-close-btn" onclick="closeStateDossier()" aria-label="Close dossier">✕</button>
             <div class="dossier-header-row">
               <div class="dossier-state-code" id="dossierStateCode">MD</div>
@@ -2276,30 +2149,25 @@
               </div>
             </div>
 
-
             <div class="dossier-section">
               <div class="dossier-prop-title">Permit Recognition & Authority:</div>
               <div class="dossier-prop-val" id="dossierRecognitionVal">Details here...</div>
             </div>
-
 
             <div class="dossier-section">
               <div class="dossier-prop-title">Duty to Inform Law Enforcement:</div>
               <div class="dossier-prop-val" id="dossierDutyVal">Details here...</div>
             </div>
 
-
             <div class="dossier-section">
               <div class="dossier-prop-title">Magazine Capacity Restrictions:</div>
               <div class="dossier-prop-val" id="dossierMagVal">Details here...</div>
             </div>
 
-
             <div class="dossier-section">
               <div class="dossier-prop-title">Vehicle Carry Regulations:</div>
               <div class="dossier-prop-val" id="dossierVehicleVal">Details here...</div>
             </div>
-
 
             <div class="dossier-section">
               <div class="dossier-prop-title">General Location & Compliance Notes:</div>
@@ -2308,12 +2176,9 @@
           </div>
         </div>
 
-
       </div>
       </div>
     </section>
-
-
 
 
     
@@ -2324,8 +2189,6 @@
           <h3>Instructor Command Center Access</h3>
           <p>Restricted access for Instructor Kai Wade to manage student rosters, qualifications, and state submissions.</p>
         </div>
-
-
 
 
         <div style="background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 12px; padding: 22px; max-width: 440px; margin: 0 auto;">
@@ -2341,8 +2204,6 @@
       </div>
 
 
-
-
       <div id="admin-command-dashboard" class="hidden">
         <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
           <div>
@@ -2353,16 +2214,12 @@
         </div>
 
 
-
-
         <div class="admin-metrics-grid">
           <div class="metric-card"><div class="metric-val" id="metric-total">0</div><div class="metric-name">Total Enrolled</div></div>
           <div class="metric-card"><div class="metric-val" id="metric-pending" style="color: var(--accent-amber);">0</div><div class="metric-name">Prep Pending</div></div>
           <div class="metric-card"><div class="metric-val" id="metric-upcoming" style="color: #60a5fa;">0</div><div class="metric-name">Upcoming Sessions</div></div>
           <div class="metric-card"><div class="metric-val" id="metric-completed" style="color: #10b981;">0</div><div class="metric-name">Certified Graduates</div></div>
         </div>
-
-
 
 
         <div style="overflow-x: auto; background: #070b10; border-radius: 12px; border: 1px solid var(--border-subtle); padding: 12px;">
@@ -2387,16 +2244,12 @@
     </section>
 
 
-
-
     <!-- VIEW 3: DEDICATED COURSE ENROLLMENT & PREPARATION HUB -->
     <main id="view-booking" role="tabpanel" class="panel hidden">
       <div class="panel-header">
         <h3>Train With Confidence — Course Enrollment & Tuition</h3>
         <p>Maryland firearms training designed to build knowledge, safety, and confidence without intimidation.</p>
       </div>
-
-
 
 
       <!-- Core Zero-Intimidation Promise -->
@@ -2410,60 +2263,45 @@
       </div>
 
 
-
-
       <!-- Training Pathways Selector -->
       <div class="pathway-selector-box">
-        <h4 style="font-family: var(--font-display); font-size: 1.3rem; color: #fff; text-align: center;">Not sure where to begin? Choose your goal!</h4>
-        <p style="font-size: 0.88rem; color: var(--text-muted); text-align: center; margin-top: 4px; margin-bottom: 18px;">
-          Click any of the 6 squares below to open an informative breakdown with recommendations, pros, and cons:
+        <h4 style="font-family: var(--font-display); font-size: 1.25rem; color: #fff; text-align: center;">Not sure where to begin? Choose your goal!</h4>
+        <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-top: 4px; margin-bottom: 16px;">
+          Click any goal below to open an interactive breakdown and find the right path for your needs:
         </p>
         <div class="pathway-grid">
           <button type="button" class="pathway-pill" onclick="openGoalSynopsis('new_to_firearms')" title="Learn more about starting with HQL">
             <div class="pathway-intent">Brand New to Firearms</div>
             <div class="pathway-rec">Start Here: HQL</div>
             <div class="pathway-cta">Learn More & Free 50-Q Guide →</div>
-          
-            <div class="pathway-hover-pop"><strong>💡 First-Time Handlers:</strong> Zero-intimidation intro fulfilling Maryland's legal HQL requirement to purchase a handgun. Includes free 50-Q guide!<br/><span style='color: var(--accent-cyan); font-size: 0.74rem; font-weight: 700; display: block; margin-top: 4px;'>Click / Tap to open full breakdown →</span></div>
           </button>
           <button type="button" class="pathway-pill" onclick="openGoalSynopsis('want_to_purchase')" title="Learn more about buying a handgun">
             <div class="pathway-intent">Looking to Buy a Pistol</div>
             <div class="pathway-rec">Maryland HQL (Purchase License)</div>
             <div class="pathway-cta">Learn More →</div>
-          
-            <div class="pathway-hover-pop"><strong>💡 Buying a Handgun:</strong> Maryland HQL 4-hour class required by state law before purchasing or renting any regulated firearm.<br/><span style='color: var(--accent-cyan); font-size: 0.74rem; font-weight: 700; display: block; margin-top: 4px;'>Click / Tap to open full breakdown →</span></div>
           </button>
           <button type="button" class="pathway-pill" onclick="openGoalSynopsis('want_to_carry')" title="Learn more about concealed carry">
             <div class="pathway-intent">I Want to Carry in Public</div>
             <div class="pathway-rec">Wear & Carry (CCW Permit)</div>
             <div class="pathway-cta">Learn More →</div>
-          
-            <div class="pathway-hover-pop"><strong>💡 Concealed Carry:</strong> Comprehensive 16-hour state-mandated training with practical live-fire qualification to legally carry in public.<br/><span style='color: var(--accent-cyan); font-size: 0.74rem; font-weight: 700; display: block; margin-top: 4px;'>Click / Tap to open full breakdown →</span></div>
           </button>
           <button type="button" class="pathway-pill" onclick="openGoalSynopsis('want_both')" title="Learn more about CCW & HQL combo">
             <div class="pathway-intent">I Want Both: Buy & Carry</div>
             <div class="pathway-rec">CCW & HQL Combo (Best Value)</div>
             <div class="pathway-cta">Learn More & Compare →</div>
-          
-            <div class="pathway-hover-pop"><strong>💡 Best Value Package:</strong> Complete Wear & Carry certification and claim an HQL training waiver for free—buy and carry under one tuition!<br/><span style='color: var(--accent-cyan); font-size: 0.74rem; font-weight: 700; display: block; margin-top: 4px;'>Click / Tap to open full breakdown →</span></div>
           </button>
           <button type="button" class="pathway-pill" onclick="openGoalSynopsis('personalized_focus')" title="Learn more about 1-on-1 private coaching">
             <div class="pathway-intent">Personalized / Anxiety Relief</div>
             <div class="pathway-rec">Private 1-on-1 Coaching</div>
             <div class="pathway-cta">Learn More →</div>
-          
-            <div class="pathway-hover-pop"><strong>💡 Private Coaching:</strong> Dedicated 1-on-1 private training with Kai Wade. Tailored pacing, flinch diagnostics, and zero intimidation.<br/><span style='color: var(--accent-cyan); font-size: 0.74rem; font-weight: 700; display: block; margin-top: 4px;'>Click / Tap to open full breakdown →</span></div>
           </button>
           <button type="button" class="pathway-pill" onclick="openGoalSynopsis('need_multistate')" style="border-color: var(--accent-amber);" title="Learn more about multi-state carry">
             <div class="pathway-intent" style="color: var(--accent-amber);">Do I Need a Multi-State Permit?</div>
             <div class="pathway-rec">Mid-Atlantic Mastery (MD+VA+FL+AZ+PA)</div>
             <div class="pathway-cta">Learn More & Reciprocity Guide →</div>
-          
-            <div class="pathway-hover-pop"><strong>💡 Multi-State Travelers:</strong> I-95 commuter package covering legal carry in MD, VA, FL, AZ, and PA without accidental felonies!<br/><span style='color: var(--accent-cyan); font-size: 0.74rem; font-weight: 700; display: block; margin-top: 4px;'>Click / Tap to open full breakdown →</span></div>
           </button>
         </div>
       </div>
-
 
       <!-- The 8-Step FIFS Journey -->
       <div style="margin-bottom: 32px;">
@@ -2484,16 +2322,12 @@
       </div>
 
 
-
-
       <!-- What to Bring & What to Expect Section -->
       <section style="margin-bottom: 30px;">
         <div class="panel-header">
           <h3>What to Bring & What to Expect</h3>
           <p>Important guidelines to ensure your class day is smooth, safe, and stress-free.</p>
         </div>
-
-
 
 
         <div class="checklist-grid">
@@ -2507,8 +2341,6 @@
           </div>
 
 
-
-
           <div class="checklist-box">
             <h4>📦 Ammunition Protocol</h4>
             <ul>
@@ -2518,8 +2350,6 @@
           </div>
 
 
-
-
           <div class="checklist-box">
             <h4>👓 Eye & Ear Protection</h4>
             <ul>
@@ -2527,8 +2357,6 @@
               <li><strong>Hearing Protection:</strong> Earmuffs or foam plugs (electronic noise-canceling earmuffs recommended).</li>
             </ul>
           </div>
-
-
 
 
           <div class="checklist-box">
@@ -2542,46 +2370,46 @@
       </section>
 
 
-
-
-      <!-- Course Tuition Grid (Interactive Base & 👑 VIP Mode) -->
-      <div style="text-align: center; margin: 36px 0 20px;">
+      <!-- Course Catalog & Transparent Pricing Section -->
+      <div style="text-align: center; margin: 36px 0 20px;" id="course-catalog-section">
         <span style="font-family: var(--font-display); font-size: 0.88rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1.5px;">All-Inclusive & Self-Equipped Options</span>
         <h3 style="font-family: var(--font-display); font-size: 1.95rem; color: #fff; text-transform: uppercase; margin-top: 4px;">Course Catalog & Transparent Pricing</h3>
         <p style="font-size: 0.92rem; color: var(--text-muted); max-width: 740px; margin: 6px auto 0; line-height: 1.55;">
-          All courses display standard self-equipped Base Pricing by default. Click <strong>"👑 Select VIP"</strong> on any course to preview the all-inclusive VIP package (lane fees, loaner handguns, ammo, targets & paperwork included)!
+          All courses display standard self-equipped Base Pricing by default. Toggle between <strong>Standard Base</strong> and <strong>👑 VIP Turnkey</strong> on any card to see exactly what is added!
         </p>
       </div>
-
 
       <div class="tuition-grid">
         <!-- 1. Mid-Atlantic Multi-State Mastery (NEW FLAGSHIP) -->
         <div class="tuition-card" id="card-course-mastery" style="border: 2px solid var(--accent-amber);">
           <div class="card-tier-badge" id="badge-course-mastery" style="display: none; background: var(--accent-amber); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP MODE
+            👑 VIP TURNKEY MODE
           </div>
           <span class="badge-pop" id="pop-course-mastery" style="background: var(--accent-amber); color: #070b10;">⭐ FLAGSHIP MULTI-STATE</span>
           <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">Mid-Atlantic Multi-State Mastery</div>
           
+          <!-- Interactive Tier Toggle Switch -->
+          <div class="tier-toggle-switch">
+            <button type="button" class="tier-toggle-option active" id="tog-base-mastery" onclick="setCardTier('mastery', 'base')">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-mastery" onclick="setCardTier('mastery', 'vip')">👑 VIP Turnkey</button>
+          </div>
+
           <div class="tuition-price" id="price-course-mastery">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$425.00</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
           </div>
 
-
           <div class="tuition-desc">Full 16-hour Maryland Wear & Carry qualification + application preparation for Virginia, Florida, Arizona, and Pennsylvania non-resident carry.</div>
 
-
           <div class="tuition-bullets" id="bullets-course-mastery">
-            <div>✔ 16-Hr Maryland State-Approved Class</div>
+            <div>✔ 16-Hour Maryland State-Approved Class</div>
             <div>✔ Live-Fire Qualification at Cindy's Hot Shots</div>
             <div>✔ VA, FL, AZ Documentation & Affidavits</div>
             <div>✔ PA $20 Non-Resident LTCF Roadmap</div>
           </div>
 
-
-                    <div class="vip-perks-box" id="vip-box-course-mastery" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
+          <div class="vip-perks-box" id="vip-box-course-mastery" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Range lane fee included at Cindy's Hot Shots (Save $25–$35)</div>
             <div>👑 Official B-27 practical qualification targets provided</div>
             <div>👑 Loaner 9mm semi-automatic handgun provided</div>
@@ -2590,34 +2418,32 @@
             <div>👑 1-on-1 application dossier audit with Instructor Kai Wade</div>
           </div>
 
-
-          <div style="display: flex; gap: 8px; margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-mastery" onclick="selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($425)
-            </button>
-            <button type="button" class="btn-toggle-vip" id="btn-vip-course-mastery" onclick="toggleCourseVip('mastery')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
-              👑 Select VIP
+          <div style="margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-mastery" onclick="selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($425.00) & Reserve Seat →
             </button>
           </div>
         </div>
 
-
         <!-- 2. Maryland CCW & HQL Combo -->
         <div class="tuition-card highlight-combo" id="card-course-combo">
           <div class="card-tier-badge" id="badge-course-combo" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP MODE
+            👑 VIP TURNKEY MODE
           </div>
           <span class="badge-pop" id="pop-course-combo">🔥 MOST POPULAR COMBO</span>
           <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">CCW & HQL Combo</div>
           
+          <div class="tier-toggle-switch">
+            <button type="button" class="tier-toggle-option active" id="tog-base-combo" onclick="setCardTier('combo', 'base')">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-combo" onclick="setCardTier('combo', 'vip')">👑 VIP Turnkey</button>
+          </div>
+
           <div class="tuition-price" id="price-course-combo">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$249.99</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
           </div>
 
-
           <div class="tuition-desc">Comprehensive dual-licensing package meeting both purchase and carry training mandates in one streamlined weekend format.</div>
-
 
           <div class="tuition-bullets" id="bullets-course-combo">
             <div>✔ 16-Hour Wear & Carry Certification</div>
@@ -2625,9 +2451,8 @@
             <div>✔ 25-Round Live-Fire Range Qualification</div>
           </div>
 
-
-                    <div class="vip-perks-box" id="vip-box-course-combo" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
+          <div class="vip-perks-box" id="vip-box-course-combo" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
             <div>👑 Official B-27 qualification targets provided</div>
             <div>👑 Loaner 9mm handgun provided for live-fire evolution</div>
@@ -2636,33 +2461,31 @@
             <div>👑 Complete dual filing assistance for both CCW and HQL!</div>
           </div>
 
-
-          <div style="display: flex; gap: 8px; margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-combo" onclick="selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($249.99)
-            </button>
-            <button type="button" class="btn-toggle-vip" id="btn-vip-course-combo" onclick="toggleCourseVip('combo')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
-              👑 Select VIP
+          <div style="margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-combo" onclick="selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($249.99) & Reserve Seat →
             </button>
           </div>
         </div>
 
-
         <!-- 3. Maryland Wear & Carry (16-Hr) -->
         <div class="tuition-card" id="card-course-ccw">
           <div class="card-tier-badge" id="badge-course-ccw" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP MODE
+            👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Maryland Wear & Carry</div>
           
+          <div class="tier-toggle-switch">
+            <button type="button" class="tier-toggle-option active" id="tog-base-ccw" onclick="setCardTier('ccw', 'base')">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-ccw" onclick="setCardTier('ccw', 'vip')">👑 VIP Turnkey</button>
+          </div>
+
           <div class="tuition-price" id="price-course-ccw">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$199.99</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
           </div>
 
-
           <div class="tuition-desc">Full Wear & Carry certification. In-depth legal curriculum (State v. Faulkner, SB 1), and 25-round practical qualification.</div>
-
 
           <div class="tuition-bullets" id="bullets-course-ccw">
             <div>✔ 16-Hour In-Person Training Mandate</div>
@@ -2670,9 +2493,8 @@
             <div>✔ Certified MSP Form 29-14 Score Sheet</div>
           </div>
 
-
-                    <div class="vip-perks-box" id="vip-box-course-ccw" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
+          <div class="vip-perks-box" id="vip-box-course-ccw" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
             <div>👑 Official B-27 qualification targets provided</div>
             <div>👑 Loaner 9mm handgun provided</div>
@@ -2680,33 +2502,31 @@
             <div>👑 On-site passport photos taken & printed!</div>
           </div>
 
-
-          <div style="display: flex; gap: 8px; margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-ccw" onclick="selectCourse('Maryland Wear & Carry (CCW) — Base Track ($199.99)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($199.99)
-            </button>
-            <button type="button" class="btn-toggle-vip" id="btn-vip-course-ccw" onclick="toggleCourseVip('ccw')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
-              👑 Select VIP
+          <div style="margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-ccw" onclick="selectCourse('Maryland Wear & Carry (CCW) — Base Track ($199.99)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($199.99) & Reserve Seat →
             </button>
           </div>
         </div>
 
-
         <!-- 4. Maryland HQL (4-Hour) -->
         <div class="tuition-card" id="card-course-hql">
           <div class="card-tier-badge" id="badge-course-hql" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP MODE
+            👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Maryland HQL</div>
           
+          <div class="tier-toggle-switch">
+            <button type="button" class="tier-toggle-option active" id="tog-base-hql" onclick="setCardTier('hql', 'base')">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-hql" onclick="setCardTier('hql', 'vip')">👑 VIP Turnkey</button>
+          </div>
+
           <div class="tuition-price" id="price-course-hql">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$100.00</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
           </div>
 
-
           <div class="tuition-desc">State prerequisite for handgun purchase. Covers safe firearm handling, home storage compliance (Jaelynn's Law), and live-fire orientation.</div>
-
 
           <div class="tuition-bullets" id="bullets-course-hql">
             <div>✔ State-Mandated Purchase Prerequisite</div>
@@ -2714,9 +2534,8 @@
             <div>✔ Live-Fire Verification Component</div>
           </div>
 
-
-                    <div class="vip-perks-box" id="vip-box-course-hql" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
+          <div class="vip-perks-box" id="vip-box-course-hql" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Range fee included at Cindy's Hot Shots</div>
             <div>👑 Loaner handgun provided for live-fire verification</div>
             <div>👑 Qualifying ammunition included</div>
@@ -2724,33 +2543,31 @@
             <div>👑 MSP 77R portal account setup & submission guidance!</div>
           </div>
 
-
-          <div style="display: flex; gap: 8px; margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-hql" onclick="selectCourse('Maryland HQL (Purchase License) — Base Track ($100.00)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($100)
-            </button>
-            <button type="button" class="btn-toggle-vip" id="btn-vip-course-hql" onclick="toggleCourseVip('hql')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
-              👑 Select VIP
+          <div style="margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-hql" onclick="selectCourse('Maryland HQL (Purchase License) — Base Track ($100.00)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($100.00) & Reserve Seat →
             </button>
           </div>
         </div>
 
-
         <!-- 5. Personal 1-on-1 Coaching -->
         <div class="tuition-card" id="card-course-coaching">
           <div class="card-tier-badge" id="badge-course-coaching" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP MODE
+            👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Personal 1-on-1 Coaching</div>
           
+          <div class="tier-toggle-switch">
+            <button type="button" class="tier-toggle-option active" id="tog-base-coaching" onclick="setCardTier('coaching', 'base')">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-coaching" onclick="setCardTier('coaching', 'vip')">👑 VIP Turnkey</button>
+          </div>
+
           <div class="tuition-price" id="price-course-coaching">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$125.00</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">/ hr (Standard Base)</span>
           </div>
 
-
           <div class="tuition-desc">Dedicated private coaching. Diagnostic marksmanship, trigger reset mechanics, and holster draw cadence.</div>
-
 
           <div class="tuition-bullets" id="bullets-course-coaching">
             <div>✔ Tailored 1-on-1 Instruction with Kai Wade</div>
@@ -2758,43 +2575,40 @@
             <div>✔ Flinch Correction & Recoil Management</div>
           </div>
 
-
-                    <div class="vip-perks-box" id="vip-box-course-coaching" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
-            <div>👑 Private range lane reservation fee included</div>
+          <div class="vip-perks-box" id="vip-box-course-coaching" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Private lane reservation fee included</div>
             <div>👑 Diagnostic sensor telemetry (MantisX live analysis)</div>
             <div>👑 Access to premium loaner handguns (SIG, Glock, etc.)</div>
             <div>👑 Training ammunition provided</div>
             <div>👑 High-speed video trigger stroke analysis!</div>
           </div>
 
-
-          <div style="display: flex; gap: 8px; margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-coaching" onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($125.00/hr)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($125)
-            </button>
-            <button type="button" class="btn-toggle-vip" id="btn-vip-course-coaching" onclick="toggleCourseVip('coaching')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
-              👑 Select VIP
+          <div style="margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-coaching" onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($125.00/hr)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($125/hr) & Reserve Seat →
             </button>
           </div>
         </div>
 
-
         <!-- 6. Gun Cleaning Class -->
         <div class="tuition-card" id="card-course-cleaning">
           <div class="card-tier-badge" id="badge-course-cleaning" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP MODE
+            👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Gun Cleaning Class</div>
           
+          <div class="tier-toggle-switch">
+            <button type="button" class="tier-toggle-option active" id="tog-base-cleaning" onclick="setCardTier('cleaning', 'base')">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-cleaning" onclick="setCardTier('cleaning', 'vip')">👑 VIP Turnkey</button>
+          </div>
+
           <div class="tuition-price" id="price-course-cleaning">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$75.00</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
           </div>
 
-
           <div class="tuition-desc">Field-stripping, ultrasonic inspection methods, lubrication points, and mechanical safety function checks.</div>
-
 
           <div class="tuition-bullets" id="bullets-course-cleaning">
             <div>✔ Complete Field Strip & Reassembly</div>
@@ -2802,42 +2616,39 @@
             <div>✔ 8-Step Mechanical Safety Function Check</div>
           </div>
 
-
-                    <div class="vip-perks-box" id="vip-box-course-cleaning" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
+          <div class="vip-perks-box" id="vip-box-course-cleaning" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Complete premium multi-caliber cleaning kit to take home</div>
             <div>👑 Specialized bore solvents and advanced CLP lubricants</div>
             <div>👑 Ultrasonic deep cleaning treatment for slide & barrel</div>
             <div>👑 Comprehensive 8-point mechanical function check!</div>
           </div>
 
-
-          <div style="display: flex; gap: 8px; margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-cleaning" onclick="selectCourse('Gun Cleaning & Maintenance — Base Track ($75.00)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($75)
-            </button>
-            <button type="button" class="btn-toggle-vip" id="btn-vip-course-cleaning" onclick="toggleCourseVip('cleaning')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
-              👑 Select VIP
+          <div style="margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-cleaning" onclick="selectCourse('Gun Cleaning & Maintenance — Base Track ($75.00)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($75.00) & Reserve Seat →
             </button>
           </div>
         </div>
 
-
         <!-- 7. Children's Safety Class -->
         <div class="tuition-card" id="card-course-children">
           <div class="card-tier-badge" id="badge-course-children" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP MODE
+            👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Children's Safety Class</div>
           
+          <div class="tier-toggle-switch">
+            <button type="button" class="tier-toggle-option active" id="tog-base-children" onclick="setCardTier('children', 'base')">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-children" onclick="setCardTier('children', 'vip')">👑 VIP Turnkey</button>
+          </div>
+
           <div class="tuition-price" id="price-course-children">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$199.99</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
           </div>
 
-
           <div class="tuition-desc">Structured, zero-compromise safety education, Eddie Eagle principles, hazard avoidance, and parent-guided instruction.</div>
-
 
           <div class="tuition-bullets" id="bullets-course-children">
             <div>✔ Eddie Eagle 4-Step Safety Rules</div>
@@ -2845,27 +2656,21 @@
             <div>✔ Parent-Child Safety Covenant</div>
           </div>
 
-
-                    <div class="vip-perks-box" id="vip-box-course-children" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
+          <div class="vip-perks-box" id="vip-box-course-children" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Certified heavy-duty cable gun locks to take home</div>
             <div>👑 Youth safe-handling activity workbook packet</div>
             <div>👑 Safe storage demonstration for parents</div>
             <div>👑 Official Certificate of Completion for student!</div>
           </div>
 
-
-          <div style="display: flex; gap: 8px; margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-children" onclick="selectCourse('Children\'s Safety Class — Base Track ($199.99)')" style="flex: 1; padding: 10px; font-family: var(--font-display); font-size: 0.92rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($199.99)
-            </button>
-            <button type="button" class="btn-toggle-vip" id="btn-vip-course-children" onclick="toggleCourseVip('children')" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase;">
-              👑 Select VIP
+          <div style="margin-top: 14px;">
+            <button type="button" class="btn-select-course" id="btn-select-course-children" onclick="selectCourse('Children\'s Safety Class — Base Track ($199.99)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($199.99) & Reserve Seat →
             </button>
           </div>
         </div>
       </div>
-
 
       <!-- Reservation Booking Form Section -->
       <section id="booking-form-section" style="border-top: 1px solid var(--border-subtle); padding-top: 24px; scroll-margin-top: 80px;">
@@ -2875,25 +2680,23 @@
         </div>
 
 
-
-
         <form id="booking-form" onsubmit="submitBooking(event)">
           <div class="form-group">
             <label for="courseSelection">Selected Course Curriculum & Tuition <span class="req">*</span></label>
             <select id="courseSelection" class="form-select" onchange="updateFormPriceDisplay()" required>
-              <option value="Mid-Atlantic Multi-State Mastery — VIP Mode ($550.00)">Mid-Atlantic Multi-State Mastery — VIP Mode ($550.00)</option>
+              <option value="Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)">Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)</option>
               <option value="Mid-Atlantic Multi-State Mastery — Base Track ($425.00)">Mid-Atlantic Multi-State Mastery — Base Track ($425.00)</option>
-              <option value="Maryland CCW & HQL Combo — VIP Mode ($375.00)">Maryland CCW & HQL Combo — VIP Mode ($375.00)</option>
+              <option value="Maryland CCW & HQL Combo — VIP Turnkey ($375.00)">Maryland CCW & HQL Combo — VIP Turnkey ($375.00)</option>
               <option value="Maryland CCW & HQL Combo — Base Track ($249.99)" selected>Maryland CCW & HQL Combo — Base Track ($249.99)</option>
-              <option value="Maryland Wear & Carry (CCW) — VIP Mode ($325.00)">Maryland Wear & Carry (CCW) — VIP Mode ($325.00)</option>
+              <option value="Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)">Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)</option>
               <option value="Maryland Wear & Carry (CCW) — Base Track ($199.99)">Maryland Wear & Carry (CCW) — Base Track ($199.99)</option>
-              <option value="Maryland HQL (Purchase License) — VIP Mode ($165.00)">Maryland HQL (Purchase License) — VIP Mode ($165.00)</option>
+              <option value="Maryland HQL (Purchase License) — VIP Turnkey ($165.00)">Maryland HQL (Purchase License) — VIP Turnkey ($165.00)</option>
               <option value="Maryland HQL (Purchase License) — Base Track ($100.00)">Maryland HQL (Purchase License) — Base Track ($100.00)</option>
-              <option value="Personal 1-on-1 Coaching — VIP Mode ($195.00/hr)">Personal 1-on-1 Coaching — VIP Mode ($195.00/hr)</option>
+              <option value="Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)">Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)</option>
               <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">Personal 1-on-1 Coaching — Base Track ($125.00/hr)</option>
-              <option value="Gun Cleaning & Maintenance — VIP Mode ($115.00)">Gun Cleaning & Maintenance — VIP Mode ($115.00)</option>
+              <option value="Gun Cleaning & Maintenance — VIP Turnkey ($115.00)">Gun Cleaning & Maintenance — VIP Turnkey ($115.00)</option>
               <option value="Gun Cleaning & Maintenance — Base Track ($75.00)">Gun Cleaning & Maintenance — Base Track ($75.00)</option>
-              <option value="Children's Safety Class — VIP Mode ($265.00)">Children's Safety Class — VIP Mode ($265.00)</option>
+              <option value="Children's Safety Class — VIP Turnkey ($265.00)">Children's Safety Class — VIP Turnkey ($265.00)</option>
               <option value="Children's Safety Class — Base Track ($199.99)">Children's Safety Class — Base Track ($199.99)</option>
             </select>
           </div>
@@ -2909,7 +2712,6 @@
               </div>
             </div>
 
-
             <!-- Base vs VIP Clarity Comparison Boxes -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
               <div id="formBoxBase" style="background: #070b10; border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.2s;" onclick="toggleFormTier('base')">
@@ -2920,24 +2722,19 @@
                 <p style="color: var(--text-muted); font-size: 0.74rem; margin-top: 3px; line-height: 1.35;">Self-equipped (Provide own gun, holster & ammo)</p>
               </div>
 
-
               <div id="formBoxVip" style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.2s;" onclick="toggleFormTier('vip')">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <strong style="color: var(--accent-amber); font-size: 0.85rem;">👑 VIP Mode</strong>
+                  <strong style="color: var(--accent-amber); font-size: 0.85rem;">👑 VIP Turnkey</strong>
                   <span id="formPriceVipVal" style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--accent-amber);">$375.00</span>
                 </div>
-                <p style="color: var(--text-muted); font-size: 0.74rem; margin-top: 3px; line-height: 1.35;">VIP Mode (Lane fee, targets, loaner 9mm, ammo & photos)</p>
+                <p style="color: var(--text-muted); font-size: 0.74rem; margin-top: 3px; line-height: 1.35;">Turnkey (Lane fee, targets, loaner 9mm, ammo & photos)</p>
               </div>
             </div>
-
 
             <p id="formCardTierDesc" style="font-size: 0.80rem; color: #cbd5e1; margin-top: 10px; line-height: 1.45; border-left: 2px solid var(--accent-cyan); padding-left: 10px;">
               Self-equipped track. You provide your own reliable handgun, rigid holster, and 50–100 rounds factory target ammo. Range lane fee ($25–$35) paid directly to Cindy's Hot Shots.
             </p>
           </div>
-
-
-
 
 
 
@@ -2947,14 +2744,10 @@
           </div>
 
 
-
-
           <div class="form-group">
             <label for="email">Email Address <span class="req">*</span></label>
             <input type="email" id="email" name="email" required placeholder="jordan@example.com" autocomplete="email">
           </div>
-
-
 
 
           <div class="form-group">
@@ -2963,14 +2756,10 @@
           </div>
 
 
-
-
           <div class="form-group">
             <label for="preferredDates">Preferred Training Date(s) <span class="req">*</span></label>
             <input type="text" id="preferredDates" name="preferredDates" required placeholder="e.g., Saturday Oct 12 Morning, or Flexible Weekdays">
           </div>
-
-
 
 
           <div class="form-group">
@@ -2984,14 +2773,10 @@
           </div>
 
 
-
-
           <div class="form-group">
             <label for="comments">Additional Comments / Prior Experience / Equipment</label>
             <textarea id="comments" name="comments" placeholder="Include your current shooting background, firearm models owned (if any), or scheduling notes..."></textarea>
           </div>
-
-
 
 
           <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; padding: 14px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;">
@@ -3002,20 +2787,15 @@
           </div>
 
 
-
-
           <button type="submit" id="btn-booking-submit" class="btn-primary">
             Confirm Training Request
           </button>
-
-
 
 
           <div id="booking-status" class="status-msg"></div>
         </form>
       </section>
     
-
 
       
     
@@ -3025,7 +2805,7 @@
 
       <!-- Goal Synopsis Interactive Pop-Up Modal -->
   <div class="goal-modal-overlay" id="goalSynopsisModal" onclick="if(event.target===this) closeGoalSynopsis()">
-    <div class="goal-modal-box" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
+    <div class="goal-modal-box" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle" onclick="event.stopPropagation()">
       <button type="button" class="goal-modal-close-btn" onclick="closeGoalSynopsis()" aria-label="Close details">✕</button>
       <div>
         <span class="goal-header-badge" id="goalModalBadge">Guidance & Course Selection</span>
@@ -3036,7 +2816,6 @@
       <div class="goal-synopsis-card" id="goalModalSynopsis">
         Synopsis text will appear here.
       </div>
-
 
       <!-- Download Free PDF Guide for New Shooters -->
       <div class="guide-download-banner" id="goalModalGuideBanner" style="display: none;">
@@ -3049,7 +2828,6 @@
         </a>
       </div>
 
-
       <div class="goal-columns-grid">
         <div class="goal-col-card col-why">
           <div class="goal-col-head head-why">
@@ -3060,7 +2838,6 @@
           </ul>
         </div>
 
-
         <div class="goal-col-card col-why-not">
           <div class="goal-col-head head-why-not">
             <span>⚡</span>
@@ -3070,7 +2847,6 @@
           </ul>
         </div>
       </div>
-
 
       <div class="goal-modal-actions">
         <button type="button" class="btn-primary" id="goalModalAcceptBtn">
@@ -3085,16 +2861,12 @@
     </main>
 
 
-
-
     <!-- VIEW 4: ABOUT INSTRUCTOR KAI WADE -->
     <section id="view-about" role="tabpanel" class="panel hidden">
       <div class="panel-header">
         <h3>About Lead Instructor Kai Wade</h3>
         <p>Founder & Lead Instructor, Future Initiative Firearm Services</p>
       </div>
-
-
 
 
       <!-- Instructor Kai Wade Clean Focus Profile Card -->
@@ -3124,8 +2896,6 @@
       </div>
 
 
-
-
       <div style="font-size: 0.95rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 24px;">
         <p style="margin-bottom: 14px;">
           <strong>Kai Wade</strong> is an NRA-Certified Firearms Instructor and a Maryland State Police (MSP) Certified Qualified Handgun Instructor (§ 5-101). He brings an analytical, patient, and modern approach to firearms education. 
@@ -3134,8 +2904,6 @@
           Rather than relying on intimidation or outdated military drill bravado, Instructor Wade focuses on biomechanics, visual diagnostics, trigger press dynamics, and deep mastery of Maryland self-defense statutes. Every session emphasizes lawful conflict avoidance, situational awareness, and de-escalation first—with precision marksmanship as the bedrock of accountability.
         </p>
       </div>
-
-
 
 
       <div class="checklist-grid">
@@ -3148,8 +2916,6 @@
             <li>Certified in Emergency Medical Protocol & Bleeding Control</li>
           </ul>
         </div>
-
-
 
 
         <div class="checklist-box">
@@ -3165,16 +2931,12 @@
     </section>
 
 
-
-
     <!-- VIEW 5: STUDENT TARGETS & RANGE GALLERY -->
     <section id="view-testimonial" role="tabpanel" class="panel hidden">
       <div class="panel-header">
         <h3>Range Highlights & Student Milestones</h3>
         <p>Real students on the firing line at Cindy's Hot Shots building confidence, safe habits, and celebrating personal marksmanship milestones with Coach Kai Wade.</p>
       </div>
-
-
 
 
       <div class="cta-review-box">
@@ -3186,14 +2948,10 @@
       </div>
 
 
-
-
       <div class="gallery-grid-targets" id="targets-grid-container">
         <!-- 20 Photo Cards mounted cleanly here -->
       </div>
     </section>
-
-
 
 
     <!-- VIEW 6: FREQUENTLY ASKED QUESTIONS -->
@@ -3202,8 +2960,6 @@
         <h3>Frequently Asked Questions</h3>
         <p>Everything you need to know about Maryland firearm permits, training requirements, and range days.</p>
       </div>
-
-
 
 
       <div class="faq-item active">
@@ -3217,8 +2973,6 @@
       </div>
 
 
-
-
       <div class="faq-item">
         <button type="button" class="faq-question" onclick="toggleFaq(this)">
           <span>What is the 100% zero live-ammunition classroom policy?</span>
@@ -3228,8 +2982,6 @@
           Safety is absolute. Under no circumstances is live ammunition brought into the classroom. All live ammunition must remain secured in your vehicle trunk until Instructor Kai Wade conducts the live-fire evolution on the firing line.
         </div>
       </div>
-
-
 
 
       <div class="faq-item">
@@ -3243,8 +2995,6 @@
       </div>
 
 
-
-
       <div class="faq-item">
         <button type="button" class="faq-question" onclick="toggleFaq(this)">
           <span>What is the difference between an HQL and a Wear & Carry Permit?</span>
@@ -3256,8 +3006,6 @@
       </div>
 
 
-
-
       <div class="faq-item">
         <button type="button" class="faq-question" onclick="toggleFaq(this)">
           <span>Where are training sessions and range qualifications conducted?</span>
@@ -3267,8 +3015,6 @@
           Our primary live-fire range is <strong>Cindy's Hot Shots</strong> at 115 Holsum Way, Glen Burnie, MD. Private and paired classes can also be scheduled at partner ranges across Anne Arundel, Baltimore, and Howard counties.
         </div>
       </div>
-
-
 
 
       <div class="faq-item">
@@ -3283,28 +3029,12 @@
     </section>
 
 
-
-
-    <!-- SPARK QUICK NAV DOCK -->
-    <div class="spark-dock">
-      <div style="font-family: var(--font-display); font-size: 1.1rem; color: #fff; font-weight: 700;">TRAIN WITH FUTURE INITIATIVE</div>
-      <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Brooklyn Park & Glen Burnie, MD • Lead Instructor Kai Wade • (443) 990-1304 • info@trainwithfifs.com</p>
-      <div class="spark-btn-group">
-        <button type="button" class="btn-spark" onclick="returnToHome()">🏠 Home Launchpad</button>
-        <button type="button" class="btn-spark" onclick="switchTab('portal')">Student Portal</button>
-        <button type="button" class="btn-spark" onclick="switchTab('booking')">Book Training</button>
-      </div>
     </div>
   </div>
 
 
-
-
   <script>
     // Core navigation functions declared first to guarantee immediate availability
-
-
-
 
 
 
@@ -3332,8 +3062,6 @@
     ];
 
 
-
-
     
     // Explicit event bindings for landing page buttons
         function bindHeroButtons() {
@@ -3357,8 +3085,6 @@
     }
 
 
-
-
     document.addEventListener('DOMContentLoaded', function() {
       mountGoogleReviewsTicker();
       updateReciprocityEngine();
@@ -3368,20 +3094,14 @@
       mountStudentTargets();
 
 
-
-
       const urlParams = new URLSearchParams(window.location.search);
       const studentParam = urlParams.get('student');
       const actionParam = urlParams.get('tab') || urlParams.get('view');
 
 
-
-
       if (actionParam) {
         openAndSwitch(actionParam);
       }
-
-
 
 
       if (studentParam) {
@@ -3400,8 +3120,6 @@
         }
       }
     });
-
-
 
 
     function mountStudentTargets() {
@@ -3426,22 +3144,47 @@
     }
 
 
-
-
     
     
-    
+    function switchTab(tab) {
+      const allTabs = ['booking', 'portal', 'about', 'testimonial', 'faq', 'admin'];
+      const sectionTitles = {
+        booking: 'Course Enrollment & Tuition',
+        portal: 'Student Operations Portal',
+        about: 'Lead Instructor & Mission',
+        testimonial: 'Range Highlights & Student Milestones',
+        faq: 'Frequently Asked Questions',
+        admin: 'Instructor Command Center'
+      };
+      allTabs.forEach(t => {
+        const panel = document.getElementById('view-' + t);
+        if (panel) {
+          if (t === tab) panel.classList.remove('hidden');
+          else panel.classList.add('hidden');
+        }
+      });
+      const userTag = document.getElementById('portal-user-tag');
+      const savedSession = localStorage.getItem('fifs_student_session');
+      if (tab !== 'portal' || !savedSession) {
+        if (userTag && sectionTitles[tab]) {
+          userTag.textContent = sectionTitles[tab];
+        }
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
 
         function selectCourse(courseValue) {
-      switchTab('booking');
+      const bookingPanel = document.getElementById('view-booking');
+      if (!bookingPanel || bookingPanel.classList.contains('hidden')) {
+        switchTab('booking');
+      }
       const selectElem = document.getElementById('courseSelection');
       if (selectElem) {
         const valClean = (courseValue || '').toLowerCase().trim();
         let matched = false;
 
-
-        // Exact match check first
+        // 1. Exact match check
         for (let i = 0; i < selectElem.options.length; i++) {
           const optVal = selectElem.options[i].value.toLowerCase().trim();
           if (optVal === valClean) {
@@ -3451,14 +3194,12 @@
           }
         }
 
-
-        // Substring and VIP tier check
+        // 2. Substring & tier check
         if (!matched) {
           const isVip = valClean.includes('vip') || valClean.includes('550') || valClean.includes('375') || valClean.includes('325') || valClean.includes('165') || valClean.includes('195') || valClean.includes('115') || valClean.includes('265');
           for (let i = 0; i < selectElem.options.length; i++) {
             const optVal = selectElem.options[i].value.toLowerCase().trim();
             const optIsVip = optVal.includes('vip');
-
 
             if (isVip === optIsVip) {
               if (valClean.includes('multi-state') && optVal.includes('multi-state')) { selectElem.selectedIndex = i; matched = true; break; }
@@ -3472,8 +3213,7 @@
           }
         }
 
-
-        // Visual flash highlight on the select element
+        // Visual flash indicator on the dropdown so user sees the change
         selectElem.style.borderColor = 'var(--accent-amber)';
         selectElem.style.boxShadow = '0 0 16px var(--accent-amber-glow)';
         setTimeout(function() {
@@ -3481,11 +3221,6 @@
           selectElem.style.boxShadow = '';
         }, 1800);
       }
-
-
-      // Update the pricing summary card in the form
-      updateFormPriceDisplay();
-
 
       // Smooth scroll directly to the booking form
       const targetSection = document.getElementById('booking-form-section') || document.getElementById('booking-form');
@@ -3498,16 +3233,12 @@
     window.selectCourse = selectCourse;
 
 
-
-
     function toggleFaq(btn) {
       const item = btn.parentElement;
       item.classList.toggle('active');
       const icon = btn.querySelector('span:last-child');
       if (icon) icon.textContent = item.classList.contains('active') ? '−' : '+';
     }
-
-
 
 
     function updateLivePulseTicker() {
@@ -3517,39 +3248,38 @@
         const now = new Date();
         const estOptions = { timeZone: 'America/New_York', hour12: false, hour: 'numeric' };
         const currentHour = parseInt(new Intl.DateTimeFormat('en-US', estOptions).format(now), 10);
+        // Strictly 9:00 AM to 5:00 PM EST (09:00 to 17:00)
         const isOpen = (currentHour >= 9 && currentHour < 17);
-
-
-
 
         if (isOpen) {
           if (dot) {
             dot.className = 'pulse-dot';
             dot.style.background = '#10b981';
-            dot.title = 'Live Range & Student Operations Active (EST)';
+            dot.style.boxShadow = '0 0 10px #10b981';
+            dot.title = 'Live Training & Student Operations Active (9 AM - 5 PM EST)';
           }
           if (arrowGuide) {
             arrowGuide.className = 'neon-arrow-badge neon-mode-cyan';
-            arrowGuide.title = 'Live Range Hours • Click to Start Training';
+            arrowGuide.title = 'Live Business Hours (9 AM - 5 PM) • Click to Start Training';
           }
         } else {
           if (dot) {
-            dot.className = 'pulse-dot';
+            dot.className = 'pulse-dot pulse-red';
             dot.style.background = '#ef4444';
-            dot.title = 'Range Operations Closed / Standby Mode (EST)';
+            dot.style.boxShadow = '0 0 12px #ef4444';
+            dot.title = 'Range Operations Closed (Opens 9 AM EST) • 24/7 Online Registration Active';
           }
           if (arrowGuide) {
             arrowGuide.className = 'neon-arrow-badge neon-mode-red';
-            arrowGuide.title = 'Standby Mode • Online Registration Active 24/7';
+            arrowGuide.title = 'After Hours (Closed 5 PM - 9 AM) • Online Booking Active 24/7';
           }
         }
       } catch (e) {
-        if (dot) dot.className = 'pulse-dot';
-        if (arrowGuide) arrowGuide.className = 'neon-arrow-badge neon-mode-cyan';
+        if (dot) dot.className = 'pulse-dot pulse-red';
+        if (arrowGuide) arrowGuide.className = 'neon-arrow-badge neon-mode-red';
       }
     }
-
-
+    window.updateLivePulseTicker = updateLivePulseTicker;
 
 
     function lookupStudentAccount() {
@@ -3558,14 +3288,10 @@
       const query = input ? input.value.trim() : '';
 
 
-
-
       if (!query) {
         showStatus(statusDiv, 'Please enter your Email Address or Student ID.', 'error');
         return;
       }
-
-
 
 
       // Streamlined Instructor Authentication via the same field
@@ -3582,11 +3308,7 @@
       }
 
 
-
-
       showStatus(statusDiv, 'Locating student dossier...', 'success');
-
-
 
 
       if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -3615,15 +3337,11 @@
     }
 
 
-
-
     function loadDemoStudent() {
       const demo = getMockStudent('FIFS-DEMO');
       localStorage.setItem('fifs_student_session', JSON.stringify(demo));
       renderStudentDashboard(demo);
     }
-
-
 
 
     function getMockStudent(query) {
@@ -3642,8 +3360,6 @@
     }
 
 
-
-
     function renderStudentDashboard(student) {
       updateStudentCoursePacketDisplay(student.course);
       const loginBox = document.getElementById('student-login-box');
@@ -3652,24 +3368,16 @@
       if (activeDash) activeDash.classList.remove('hidden');
 
 
-
-
       const nameElem = document.getElementById('dash-student-name');
       if (nameElem) nameElem.textContent = (student.fullName || 'Student').split(' ').at(0);
-
-
 
 
       const idElem = document.getElementById('dash-student-id');
       if (idElem) idElem.textContent = 'ID: ' + student.studentId;
 
 
-
-
       const statusElem = document.getElementById('dash-student-status');
       if (statusElem) statusElem.textContent = student.trainingStatus || student.status || 'PREP_PENDING';
-
-
 
 
       const courseElem = document.getElementById('dash-student-course');
@@ -3679,8 +3387,6 @@
       if (dateElem) dateElem.textContent = 'Date: ' + (student.assignedDate || 'To Be Scheduled');
 
 
-
-
       const userTag = document.getElementById('portal-user-tag');
       if (userTag) userTag.textContent = "Student: " + student.fullName + " (" + student.studentId + ")";
       
@@ -3688,8 +3394,6 @@
       if (docLink && student.profileDocUrl && student.profileDocUrl !== '#') {
         docLink.href = student.profileDocUrl;
       }
-
-
 
 
       const tasks = student.prepTasks || {};
@@ -3704,24 +3408,18 @@
       });
 
 
-
-
       updateStudentProgressNodes(student);
     }
-
-
 
 
         function updateStudentProgressNodes(student) {
       const st = (student.trainingStatus || student.status || 'PREP_PENDING').toUpperCase();
       const stepNum = getStepNumberFromStatus(st);
 
-
       const nodes = []; 
       for (let i = 1; i <= 8; i++) { 
         nodes.push(document.getElementById('track-step-' + i)); 
       }
-
 
       // Reset and light up nodes based on exact instructor-set stepNum (1 to 8)
       nodes.forEach((n, idx) => {
@@ -3736,15 +3434,12 @@
         }
       });
 
-
       const heroTitle = document.getElementById('dash-next-step-title');
       const heroDesc = document.getElementById('dash-next-step-desc');
       const heroBtn = document.getElementById('dash-next-step-btn');
       const progressLabel = document.getElementById('dash-progress-label');
 
-
       if (progressLabel) progressLabel.textContent = "Step " + stepNum + " of 8 (" + formatStepLabel(stepNum).replace(/^[0-9]+\.\s*/, '') + ")";
-
 
       // Dynamic guidance matching the active journey step
       if (stepNum === 1) {
@@ -3783,8 +3478,6 @@
     }
 
 
-
-
     function toggleTaskCheckbox(taskId) {
       const chk = document.getElementById('chk-' + taskId);
       if (chk) {
@@ -3792,8 +3485,6 @@
         syncTask(taskId, chk.checked);
       }
     }
-
-
 
 
     function syncTask(taskId, isChecked) {
@@ -3804,8 +3495,6 @@
       }
 
 
-
-
       const session = localStorage.getItem('fifs_student_session');
       if (session) {
         const student = JSON.parse(session);
@@ -3814,15 +3503,11 @@
         localStorage.setItem('fifs_student_session', JSON.stringify(student));
 
 
-
-
         if (typeof google !== 'undefined' && google.script && google.script.run) {
           google.script.run.handleUpdateStudentTask(student.studentId, student.email, taskId, isChecked);
         }
       }
     }
-
-
 
 
     function logoutStudent() {
@@ -3836,11 +3521,7 @@
     }
 
 
-
-
     let adminCachedStudents = [];
-
-
 
 
     function verifyAdminAccess() {
@@ -3849,19 +3530,13 @@
       const statusDiv = document.getElementById('admin-auth-status');
 
 
-
-
       if (!pin) {
         showStatus(statusDiv, 'Passcode required.', 'error');
         return;
       }
 
 
-
-
       showStatus(statusDiv, 'Authenticating Instructor Passcode...', 'success');
-
-
 
 
       if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -3899,8 +3574,6 @@
     }
 
 
-
-
         function getStepNumberFromStatus(statusStr) {
       const s = (statusStr || '').toUpperCase();
       if (s.includes('STEP_8') || s.includes('LICENSED') || (s.includes('COMPLETED') && !s.includes('PREP'))) return 8;
@@ -3912,7 +3585,6 @@
       if (s.includes('STEP_2') || s.includes('CONFIRM')) return 2;
       return 1; // Default to Registration
     }
-
 
     function formatStepLabel(stepNum) {
       const labels = {
@@ -3928,29 +3600,24 @@
       return labels[stepNum] || "Step " + stepNum;
     }
 
-
     function renderAdminTerminal(data) {
       document.getElementById('admin-auth-box').classList.add('hidden');
       document.getElementById('admin-command-dashboard').classList.remove('hidden');
-
 
       document.getElementById('metric-total').textContent = data.metrics.totalStudents || (data.students || []).length;
       document.getElementById('metric-pending').textContent = data.metrics.prepPending || 0;
       document.getElementById('metric-upcoming').textContent = data.metrics.activeTraining || 0;
       document.getElementById('metric-completed').textContent = data.metrics.certifiedCount || 0;
 
-
       adminCachedStudents = data.students || [];
       const tbody = document.getElementById('admin-roster-tbody');
       if (!tbody) return;
       tbody.innerHTML = '';
 
-
       if (adminCachedStudents.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No student bookings recorded yet.</td></tr>';
         return;
       }
-
 
       adminCachedStudents.forEach(s => {
         const tr = document.createElement('tr');
@@ -3984,16 +3651,13 @@
       });
     }
 
-
     function updateStudentJourneyStep(studentId, newStepValue) {
       const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
       const ind = document.getElementById('save-ind-' + studentId);
       const chip = document.getElementById('chip-status-' + studentId);
 
-
       const stepNum = getStepNumberFromStatus(newStepValue);
       if (chip) chip.textContent = formatStepLabel(stepNum);
-
 
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
@@ -4017,13 +3681,9 @@
     }
 
 
-
-
     function refreshAdminRoster() {
       verifyAdminAccess();
     }
-
-
 
 
     function submitBooking(e) {
@@ -4031,8 +3691,6 @@
       const form = document.getElementById('booking-form');
       const submitBtn = document.getElementById('btn-booking-submit');
       const statusDiv = document.getElementById('booking-status');
-
-
 
 
       const payload = {
@@ -4046,12 +3704,8 @@
       };
 
 
-
-
       submitBtn.disabled = true;
       showStatus(statusDiv, 'Registering student session with Future Initiative...', 'success');
-
-
 
 
       if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -4091,8 +3745,6 @@
     }
 
 
-
-
     function showStatus(elem, text, type) {
       if (!elem) return;
       elem.textContent = text;
@@ -4112,7 +3764,6 @@
       { text: "Outstanding class environment. Coach Wade takes the time to make sure everyone understands the legal pillars and feels safe on the range.", author: "HQL Student" }
     ];
 
-
     function mountGoogleReviewsTicker() {
       const track = document.getElementById('reviewsTrack');
       const box = document.querySelector('.reviews-marquee-box');
@@ -4130,10 +3781,8 @@
         </div>
       `).join('');
 
-
-      // Marquee runs continuously on mobile and tablet without freezing
+      // Ticker animates smoothly and continuously across mobile and desktop devices
     }
-
 
     // ================= GOAL SYNOPSIS INTERACTIVE POPUP LOGIC =================
     const GOAL_SYNOPSIS_DATA = {
@@ -4208,13 +3857,13 @@
         badge: "Multi-State Travel & I-95 Commuters",
         title: "Do I Need a Multi-State Carry Permit?",
         rec: "Recommended: Mid-Atlantic Multi-State Mastery ($425 Base / $550 VIP)",
-        courseValue: "Mid-Atlantic Multi-State Mastery — VIP Mode ($550.00)",
+        courseValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)",
         showGuide: false,
         synopsis: "Designed for travelers, commuters, and roadtrippers who regularly cross Maryland state borders into Virginia, Pennsylvania, Delaware, the Carolinas, Georgia, or Florida. Maryland's permit alone does NOT honor Pennsylvania or Delaware directly. This course fulfills your 16-hour Maryland requirement while preparing the affidavits and documentation needed for Virginia, Florida, Arizona, and Pennsylvania non-resident carry in a single weekend.",
         why: [
           "You travel along I-95, I-81, or I-70 for work, family, or vacations and want legal carry coverage across multiple states without accidental felony violations.",
           "Knocks out your Maryland Wear & Carry permit plus non-resident application documentation for VA, FL, AZ, and PA in one organized experience.",
-          "VIP Mode option provides everything: range fees, targets, loaner 9mm, factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos."
+          "VIP Turnkey option provides everything: range fees, targets, loaner 9mm, factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos."
         ],
         whyNot: [
           "If you only stay inside Maryland and rarely travel out of state, the standard Maryland Wear & Carry course ($199.99 Base / $325 VIP) is all you need.",
@@ -4239,14 +3888,12 @@
       }
     };
 
-
     function openGoalSynopsis(goalKey) {
       const data = GOAL_SYNOPSIS_DATA[goalKey];
       if (!data) {
         console.warn('No synopsis data for goalKey:', goalKey);
         return;
       }
-
 
       const modal = document.getElementById('goalSynopsisModal');
       const badge = document.getElementById('goalModalBadge');
@@ -4258,27 +3905,22 @@
       const acceptBtn = document.getElementById('goalModalAcceptBtn');
       const guideBanner = document.getElementById('goalModalGuideBanner');
 
-
       if (badge) badge.textContent = data.badge;
       if (title) title.textContent = data.title;
       if (rec) rec.textContent = data.rec;
       if (synopsis) synopsis.textContent = data.synopsis;
 
-
       if (whyList && Array.isArray(data.why)) {
         whyList.innerHTML = data.why.map(item => `<li><span class="bullet-icon-why">✔</span><span>${item}</span></li>`).join('');
       }
-
 
       if (whyNotList && Array.isArray(data.whyNot)) {
         whyNotList.innerHTML = data.whyNot.map(item => `<li><span class="bullet-icon-why-not">⚡</span><span>${item}</span></li>`).join('');
       }
 
-
       if (guideBanner) {
         guideBanner.style.display = data.showGuide ? 'flex' : 'none';
       }
-
 
       if (acceptBtn) {
         acceptBtn.onclick = function() {
@@ -4286,7 +3928,6 @@
           selectCourse(data.courseValue);
         };
       }
-
 
       if (modal) {
         modal.style.display = 'flex';
@@ -4298,7 +3939,6 @@
       }
     }
     window.openGoalSynopsis = openGoalSynopsis;
-
 
     function closeGoalSynopsis() {
       const modal = document.getElementById('goalSynopsisModal');
@@ -4313,14 +3953,12 @@
     }
     window.closeGoalSynopsis = closeGoalSynopsis;
 
-
     // Keyboard support: Close modal on Esc key
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         closeGoalSynopsis();
       }
     });
-
 
   
     // ================= 50-STATE + DC RECIPROCITY ENGINE DATASET =================
@@ -4378,10 +4016,8 @@
       WY: { name: "Wyoming", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal (21+)", notes: "Constitutional Carry active for all lawful US citizens." }
     };
 
-
     let activeNonResPermits = [];
     let currentReciprocityFilter = 'all';
-
 
     function toggleNonResPermit(stateCode) {
       const chip = document.getElementById('chip-' + stateCode);
@@ -4396,11 +4032,9 @@
       updateReciprocityEngine();
     }
 
-
     function evaluateStateCarry(stateCode, residentState, nonResList) {
       const state = RECIPROCITY_STATES_DATA[stateCode];
       if (!state) return { status: 'not_honored', label: 'Not Honored', unlockedBy: 'None' };
-
 
       // 1. Constitutional Carry: legal without permit
       if (state.constCarry) {
@@ -4411,7 +4045,6 @@
         };
       }
 
-
       // 2. Check Resident permit recognition
       if (residentState === 'MD' && state.honorsMD) {
         return {
@@ -4420,7 +4053,6 @@
           unlockedBy: 'Maryland Resident Permit'
         };
       }
-
 
       // 3. Check Non-Resident addons
       if (nonResList.includes('UT') && state.honorsUT) {
@@ -4438,7 +4070,6 @@
         };
       }
 
-
       return {
         status: 'not_honored',
         label: 'Not Honored',
@@ -4446,23 +4077,19 @@
       };
     }
 
-
     function updateReciprocityEngine() {
       const resSelect = document.getElementById('resPermitSelect');
       const residentState = resSelect ? resSelect.value : 'MD';
       const container = document.getElementById('statesMatrixGrid');
-
 
       let totalLegal = 0;
       let constitutionalCount = 0;
       let honoredCount = 0;
       let notHonoredCount = 0;
 
-
       const stateEntries = Object.keys(RECIPROCITY_STATES_DATA).map(code => {
         const state = RECIPROCITY_STATES_DATA[code];
         const evalRes = evaluateStateCarry(code, residentState, activeNonResPermits);
-
 
         if (evalRes.status === 'constitutional') {
           totalLegal++;
@@ -4474,10 +4101,8 @@
           notHonoredCount++;
         }
 
-
         return { code, ...state, eval: evalRes };
       });
-
 
       // Update Scorecard
       const totalStatesElem = document.getElementById('scorecardTotalStates');
@@ -4485,17 +4110,14 @@
       const honoredElem = document.getElementById('scorecardReciprocal');
       const notHonoredElem = document.getElementById('scorecardNotHonored');
 
-
       if (totalStatesElem) totalStatesElem.textContent = totalLegal + ' / 51';
       if (constElem) constElem.textContent = constitutionalCount;
       if (honoredElem) honoredElem.textContent = honoredCount;
       if (notHonoredElem) notHonoredElem.textContent = notHonoredCount;
 
-
       renderReciprocityGrid(stateEntries);
       renderSvgUsMap(stateEntries);
     }
-
 
     
     // SVG Geographic Coordinates for the 51 US States/Territories (940 x 540 Canvas)
@@ -4514,7 +4136,6 @@
       NH: { x: 810, y: 30, w: 45, h: 45, name: "New Hampshire" },
       ME: { x: 865, y: 30, w: 50, h: 45, name: "Maine" },
 
-
       // Row 2
       OR: { x: 120, y: 85, w: 55, h: 45, name: "Oregon" },
       NV: { x: 185, y: 85, w: 50, h: 45, name: "Nevada" },
@@ -4530,7 +4151,6 @@
       RI: { x: 820, y: 85, w: 45, h: 45, name: "Rhode Island" },
       CT: { x: 875, y: 85, w: 45, h: 45, name: "Connecticut" },
 
-
       // Row 3
       CA: { x: 120, y: 140, w: 55, h: 45, name: "California" },
       UT: { x: 185, y: 140, w: 50, h: 45, name: "Utah" },
@@ -4544,7 +4164,6 @@
       DE: { x: 700, y: 140, w: 50, h: 45, name: "Delaware" },
       DC: { x: 760, y: 140, w: 45, h: 45, name: "D.C." },
 
-
       // Row 4
       AZ: { x: 185, y: 195, w: 50, h: 45, name: "Arizona" },
       NM: { x: 245, y: 195, w: 55, h: 45, name: "New Mexico" },
@@ -4554,7 +4173,6 @@
       NC: { x: 505, y: 195, w: 55, h: 45, name: "North Carolina" },
       SC: { x: 570, y: 195, w: 55, h: 45, name: "South Carolina" },
 
-
       // Row 5
       OK: { x: 310, y: 250, w: 55, h: 45, name: "Oklahoma" },
       LA: { x: 375, y: 250, w: 55, h: 45, name: "Louisiana" },
@@ -4562,28 +4180,23 @@
       AL: { x: 505, y: 250, w: 55, h: 45, name: "Alabama" },
       GA: { x: 570, y: 250, w: 55, h: 45, name: "Georgia" },
 
-
       // Row 6
       HI: { x: 120, y: 305, w: 55, h: 45, name: "Hawaii" },
       TX: { x: 310, y: 305, w: 55, h: 45, name: "Texas" },
       FL: { x: 635, y: 305, w: 55, h: 45, name: "Florida" }
     };
 
-
     function renderSvgUsMap(stateEntries) {
       const svg = document.getElementById('svgUsMap');
       if (!svg) return;
 
-
       const stateMap = {};
       stateEntries.forEach(s => { stateMap[s.code] = s; });
-
 
       const nodes = Object.keys(US_MAP_SVG_LAYOUT).map(code => {
         const pos = US_MAP_SVG_LAYOUT[code];
         const sData = stateMap[code] || { eval: { status: 'not_honored', label: 'Not Honored' } };
         const statusClass = 'state-' + sData.eval.status;
-
 
         return `
           <g class="svg-state-node ${statusClass}" onclick="openStateDossier('${code}')" role="button" tabindex="0">
@@ -4594,24 +4207,19 @@
         `;
       }).join('');
 
-
       svg.innerHTML = nodes;
     }
-
 
     function renderReciprocityGrid(stateEntries) {
       const container = document.getElementById('statesMatrixGrid');
       if (!container) return;
 
-
       const searchInput = document.getElementById('stateSearchInput');
       const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-
 
       const filtered = stateEntries.filter(s => {
         const matchesQuery = !query || s.code.toLowerCase().includes(query) || s.name.toLowerCase().includes(query);
         if (!matchesQuery) return false;
-
 
         if (currentReciprocityFilter === 'all') return true;
         if (currentReciprocityFilter === 'carry_legal') return s.eval.status === 'constitutional' || s.eval.status === 'honored';
@@ -4619,7 +4227,6 @@
         if (currentReciprocityFilter === 'not_honored') return s.eval.status === 'not_honored';
         return true;
       });
-
 
       container.innerHTML = filtered.map(s => `
         <div class="state-tile-card status-${s.eval.status}" onclick="openStateDossier('${s.code}')" title="Click for ${s.name} legal rules">
@@ -4630,11 +4237,9 @@
       `).join('');
     }
 
-
     function filterReciprocityStates() {
       updateReciprocityEngine();
     }
-
 
     function setReciprocityFilter(filterType, btn) {
       currentReciprocityFilter = filterType;
@@ -4644,13 +4249,11 @@
       updateReciprocityEngine();
     }
 
-
     function openStateDossier(stateCode) {
       const state = RECIPROCITY_STATES_DATA[stateCode];
       const resSelect = document.getElementById('resPermitSelect');
       const residentState = resSelect ? resSelect.value : 'MD';
       const evalRes = evaluateStateCarry(stateCode, residentState, activeNonResPermits);
-
 
       const modal = document.getElementById('stateDossierModal');
       const codeElem = document.getElementById('dossierStateCode');
@@ -4662,10 +4265,8 @@
       const vehicleVal = document.getElementById('dossierVehicleVal');
       const notesVal = document.getElementById('dossierNotesVal');
 
-
       if (codeElem) codeElem.textContent = stateCode;
       if (titleElem) titleElem.textContent = state.name;
-
 
       if (pillElem) {
         pillElem.textContent = evalRes.label;
@@ -4684,23 +4285,19 @@
         }
       }
 
-
       if (recVal) recVal.textContent = evalRes.unlockedBy + (evalRes.status === 'constitutional' ? ' • Anyone legally able to possess a firearm can carry without a state permit.' : '');
       if (dutyVal) dutyVal.textContent = state.duty;
       if (magVal) magVal.textContent = state.mag;
       if (vehicleVal) vehicleVal.textContent = state.vehicle;
       if (notesVal) notesVal.textContent = state.notes;
 
-
       if (modal) modal.classList.add('active');
     }
-
 
     function closeStateDossier() {
       const modal = document.getElementById('stateDossierModal');
       if (modal) modal.classList.remove('active');
     }
-
 
     
     // ================= DYNAMIC COURSE PACKET & MODAL HANDLERS =================
@@ -4717,18 +4314,15 @@
       }
     };
 
-
     function updateStudentCoursePacketDisplay(courseName) {
       const titleElem = document.getElementById('packetCardTitle');
       const descElem = document.getElementById('packetCardDesc');
       const linkElem = document.getElementById('packetCardLink');
       const c = (courseName || '').toLowerCase();
 
-
       // Check if Renewal vs Initial
       const isRenewal = c.includes('renewal') || c.includes('recertification') || c.includes('8-hour') || c.includes('8 hour');
       const packet = isRenewal ? PACKET_LINKS.renewal : PACKET_LINKS.initial;
-
 
       if (titleElem) titleElem.textContent = packet.title;
       if (descElem) descElem.textContent = packet.desc;
@@ -4737,7 +4331,6 @@
         linkElem.textContent = isRenewal ? "Open 8-Hour Renewal Guide ↗" : "Open 16-Hour Course Guide ↗";
       }
     }
-
 
     function toggleReciprocityHubModal(show) {
       const modal = document.getElementById('reciprocityHubModal');
@@ -4750,18 +4343,15 @@
       }
     }
 
-
     function openCollectorModal() {
       const modal = document.getElementById('collectorInfoModal');
       if (modal) modal.classList.add('active');
     }
 
-
     function closeCollectorModal() {
       const modal = document.getElementById('collectorInfoModal');
       if (modal) modal.classList.remove('active');
     }
-
 
     
     // ================= DYNAMIC COURSE CARD VIP TOGGLE LOGIC =================
@@ -4770,51 +4360,49 @@
         basePrice: "$425.00",
         vipPrice: "$550.00",
         baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($425.00)",
-        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Mode ($550.00)"
+        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)"
       },
       combo: {
         basePrice: "$249.99",
         vipPrice: "$375.00",
         baseValue: "Maryland CCW & HQL Combo — Base Track ($249.99)",
-        vipValue: "Maryland CCW & HQL Combo — VIP Mode ($375.00)"
+        vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($375.00)"
       },
       ccw: {
         basePrice: "$199.99",
         vipPrice: "$325.00",
         baseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
-        vipValue: "Maryland Wear & Carry (CCW) — VIP Mode ($325.00)"
+        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)"
       },
       hql: {
         basePrice: "$100.00",
         vipPrice: "$165.00",
         baseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
-        vipValue: "Maryland HQL (Purchase License) — VIP Mode ($165.00)"
+        vipValue: "Maryland HQL (Purchase License) — VIP Turnkey ($165.00)"
       },
       coaching: {
         basePrice: "$125.00",
         vipPrice: "$195.00",
         baseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
-        vipValue: "Personal 1-on-1 Coaching — VIP Mode ($195.00/hr)"
+        vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
       },
       cleaning: {
         basePrice: "$75.00",
         vipPrice: "$115.00",
         baseValue: "Gun Cleaning & Maintenance — Base Track ($75.00)",
-        vipValue: "Gun Cleaning & Maintenance — VIP Mode ($115.00)"
+        vipValue: "Gun Cleaning & Maintenance — VIP Turnkey ($115.00)"
       },
       children: {
         basePrice: "$199.99",
         vipPrice: "$265.00",
         baseValue: "Children's Safety Class — Base Track ($199.99)",
-        vipValue: "Children's Safety Class — VIP Mode ($265.00)"
+        vipValue: "Children's Safety Class — VIP Turnkey ($265.00)"
       }
     };
-
 
     function toggleCourseVip(courseKey) {
       const config = COURSE_TIER_CONFIG[courseKey];
       if (!config) return;
-
 
       const card = document.getElementById('card-course-' + courseKey);
       const badge = document.getElementById('badge-course-' + courseKey);
@@ -4823,12 +4411,9 @@
       const btnSelect = document.getElementById('btn-select-course-' + courseKey);
       const btnVip = document.getElementById('btn-vip-course-' + courseKey);
 
-
       if (!card) return;
 
-
       const isVipNow = card.classList.contains('vip-mode-active');
-
 
       if (!isVipNow) {
         // ACTIVATE VIP MODE (Transforms into business colors!)
@@ -4836,14 +4421,12 @@
         if (badge) badge.style.display = 'block';
         if (vipBox) vipBox.style.display = 'block';
 
-
         if (priceElem) {
           priceElem.innerHTML = `
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-cyan);">${config.vipPrice}</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Mode)</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>
           `;
         }
-
 
         if (btnSelect) {
           btnSelect.textContent = "Confirm 👑 VIP (" + config.vipPrice + ")";
@@ -4852,7 +4435,6 @@
             selectCourse(config.vipValue);
           };
         }
-
 
         if (btnVip) {
           btnVip.textContent = "↩ View Base";
@@ -4866,14 +4448,12 @@
         if (badge) badge.style.display = 'none';
         if (vipBox) vipBox.style.display = 'none';
 
-
         if (priceElem) {
           priceElem.innerHTML = `
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">${config.basePrice}</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
           `;
         }
-
 
         if (btnSelect) {
           btnSelect.textContent = "Select Base (" + config.basePrice + ")";
@@ -4882,7 +4462,6 @@
             selectCourse(config.baseValue);
           };
         }
-
 
         if (btnVip) {
           btnVip.textContent = "👑 Select VIP";
@@ -4894,7 +4473,6 @@
     }
     window.toggleCourseVip = toggleCourseVip;
 
-
     
     // ================= FORM PRICING DUAL-TIER CLARITY LOGIC =================
     const FORM_COURSE_PRICING = {
@@ -4902,46 +4480,45 @@
         base: "$425.00",
         vip: "$550.00",
         baseDesc: "Self-equipped track. Includes 16-hour instruction + live-fire qualification + documentation for MD, VA, FL, AZ, and PA. Provide own firearm and ammo.",
-        vipDesc: "👑 VIP Mode Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
       },
       "Maryland CCW & HQL Combo": {
         base: "$249.99",
         vip: "$375.00",
         baseDesc: "Self-equipped track. 16-hour Wear & Carry curriculum + Maryland HQL exemption guide. Provide own handgun, holster, and ammo.",
-        vipDesc: "👑 VIP Mode Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
       },
       "Maryland Wear & Carry (CCW)": {
         base: "$199.99",
         vip: "$325.00",
         baseDesc: "Self-equipped track. 16-hour Wear & Carry certification and live-fire range qualification. Provide own firearm and ammo.",
-        vipDesc: "👑 VIP Mode Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
       },
       "Maryland HQL (Purchase License)": {
         base: "$100.00",
         vip: "$165.00",
         baseDesc: "Self-equipped track. 4-hour state prerequisite course with live-fire component.",
-        vipDesc: "👑 VIP Mode Track. Includes range fee, loaner handgun, live-fire target ammo, target & portal submission guidance!"
+        vipDesc: "👑 VIP Turnkey Track. Includes range fee, loaner handgun, live-fire target ammo, target & portal submission guidance!"
       },
       "Personal 1-on-1 Coaching": {
         base: "$125.00/hr",
         vip: "$195.00/hr",
         baseDesc: "Dedicated 1-on-1 private coaching. Custom diagnostic instruction.",
-        vipDesc: "👑 VIP Mode Track. Includes private lane fee, diagnostic sensor telemetry (MantisX), loaner firearms & ammunition!"
+        vipDesc: "👑 VIP Turnkey Track. Includes private lane fee, diagnostic sensor telemetry (MantisX), loaner firearms & ammunition!"
       },
       "Gun Cleaning & Maintenance": {
         base: "$75.00",
         vip: "$115.00",
         baseDesc: "Instructional field-strip, cleaning, and maintenance workshop.",
-        vipDesc: "👑 VIP Mode Track. Includes full premium take-home cleaning kit, ultrasonic treatment & specialized solvents!"
+        vipDesc: "👑 VIP Turnkey Track. Includes full premium take-home cleaning kit, ultrasonic treatment & specialized solvents!"
       },
       "Children's Safety Class": {
         base: "$199.99",
         vip: "$265.00",
         baseDesc: "Family safety and Eddie Eagle accident-prevention curriculum.",
-        vipDesc: "👑 VIP Mode Track. Includes certified home cable gun locks, youth workbook & completion certificate!"
+        vipDesc: "👑 VIP Turnkey Track. Includes certified home cable gun locks, youth workbook & completion certificate!"
       }
     };
-
 
         function getMatchedCourseKey(selectedVal) {
       const v = (selectedVal || '').toLowerCase();
@@ -4954,22 +4531,17 @@
       if (v.includes('children') || v.includes('youth')) return "Children's Safety Class";
       return "Maryland CCW & HQL Combo";
     }
-    window.getMatchedCourseKey = getMatchedCourseKey;
-
 
     function updateFormPriceDisplay() {
       const selectElem = document.getElementById('courseSelection');
       if (!selectElem) return;
 
-
       const selectedVal = selectElem.value;
       const isVip = selectedVal.includes('VIP') || selectedVal.includes('Turnkey');
-
 
       const matchedKey = getMatchedCourseKey(selectedVal);
       const pData = FORM_COURSE_PRICING[matchedKey];
       if (!pData) return;
-
 
       const titleElem = document.getElementById('formCardCourseTitle');
       const tierTag = document.getElementById('formCardTierTag');
@@ -4980,15 +4552,13 @@
       const boxBase = document.getElementById('formBoxBase');
       const boxVip = document.getElementById('formBoxVip');
 
-
       if (titleElem) titleElem.textContent = matchedKey;
       if (baseVal) baseVal.textContent = pData.base;
       if (vipVal) vipVal.textContent = pData.vip;
 
-
       if (isVip) {
         if (tierTag) {
-          tierTag.textContent = "👑 VIP Mode Track Selected";
+          tierTag.textContent = "👑 VIP Turnkey Track Selected";
           tierTag.style.color = "var(--accent-amber)";
         }
         if (activePrice) {
@@ -5032,17 +4602,15 @@
     }
     window.updateFormPriceDisplay = updateFormPriceDisplay;
 
-
     function toggleFormTier(targetTier) {
       const selectElem = document.getElementById('courseSelection');
       if (!selectElem) return;
 
-
       const currentVal = selectElem.value;
       const isCurrentlyVip = currentVal.includes('VIP');
 
-
       if (targetTier === 'vip' && !isCurrentlyVip) {
+        // Find matching VIP option in select
         for (let i = 0; i < selectElem.options.length; i++) {
           const opt = selectElem.options[i].value;
           if (opt.includes('VIP') && (
@@ -5059,6 +4627,7 @@
           }
         }
       } else if (targetTier === 'base' && isCurrentlyVip) {
+        // Find matching Base option in select
         for (let i = 0; i < selectElem.options.length; i++) {
           const opt = selectElem.options[i].value;
           if (!opt.includes('VIP') && (
@@ -5077,69 +4646,50 @@
       }
       updateFormPriceDisplay();
     }
-    window.toggleFormTier = toggleFormTier;
 
-
+    
     // ================= DYNAMIC COURSE CARD TIER TOGGLE SWITCH =================
-        function setCardTier(courseKey, targetTier) {
+    function setCardTier(courseKey, targetTier) {
       const config = COURSE_TIER_CONFIG[courseKey];
       if (!config) return;
 
       const card = document.getElementById('card-course-' + courseKey);
       const badge = document.getElementById('badge-course-' + courseKey);
       const priceElem = document.getElementById('price-course-' + courseKey);
-      const vipBox = document.getElementById('vip-box-course-' + courseKey);
+      const vipBox = document.getElementById('vip-box-' + courseKey);
       const btnSelect = document.getElementById('btn-select-course-' + courseKey);
       const togBase = document.getElementById('tog-base-' + courseKey);
       const togVip = document.getElementById('tog-vip-' + courseKey);
-      const btnVip = document.getElementById('btn-vip-course-' + courseKey);
 
       if (!card) return;
 
       if (targetTier === 'vip') {
-        // ACTIVATE VIP MODE (Turns card into business colors and reveals included package details!)
+        // ACTIVATE VIP MODE (Turns card into business colors!)
         card.classList.add('vip-mode-active');
-        if (badge) {
-          badge.textContent = "👑 VIP MODE";
-          badge.style.display = 'block';
-        }
-        if (vipBox) {
-          vipBox.style.setProperty('display', 'block', 'important');
-        }
+        if (badge) badge.style.display = 'block';
+        if (vipBox) vipBox.style.display = 'block';
         if (togVip) togVip.classList.add('active');
         if (togBase) togBase.classList.remove('active');
 
         if (priceElem) {
           priceElem.innerHTML = `
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-cyan);">${config.vipPrice}</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Mode)</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>
           `;
         }
 
         if (btnSelect) {
-          btnSelect.textContent = "Select 👑 VIP Mode (" + config.vipPrice + ") & Reserve Seat →";
+          btnSelect.textContent = "Select 👑 VIP (" + config.vipPrice + ") & Reserve Seat →";
           btnSelect.className = "btn-select-course btn-vip-select";
           btnSelect.onclick = function() {
             selectCourse(config.vipValue);
-          };
-        }
-
-        if (btnVip) {
-          btnVip.textContent = "↩ View Base";
-          btnVip.style.background = "rgba(255, 255, 255, 0.08)";
-          btnVip.style.borderColor = "var(--border-subtle)";
-          btnVip.style.color = "#cbd5e1";
-          btnVip.onclick = function() {
-            setCardTier(courseKey, 'base');
           };
         }
       } else {
         // RETURN TO BASE MODE
         card.classList.remove('vip-mode-active');
         if (badge) badge.style.display = 'none';
-        if (vipBox) {
-          vipBox.style.setProperty('display', 'none', 'important');
-        }
+        if (vipBox) vipBox.style.display = 'none';
         if (togBase) togBase.classList.add('active');
         if (togVip) togVip.classList.remove('active');
 
@@ -5157,28 +4707,9 @@
             selectCourse(config.baseValue);
           };
         }
-
-        if (btnVip) {
-          btnVip.textContent = "👑 Select VIP";
-          btnVip.style.background = "rgba(0, 229, 255, 0.15)";
-          btnVip.style.borderColor = "var(--accent-cyan)";
-          btnVip.style.color = "var(--accent-cyan)";
-          btnVip.onclick = function() {
-            setCardTier(courseKey, 'vip');
-          };
-        }
       }
     }
     window.setCardTier = setCardTier;
-
-    function toggleCourseVip(courseKey) {
-      const card = document.getElementById('card-course-' + courseKey);
-      if (!card) return;
-      const isVipNow = card.classList.contains('vip-mode-active');
-      setCardTier(courseKey, isVipNow ? 'base' : 'vip');
-    }
-    window.toggleCourseVip = toggleCourseVip;
-
 
     </script>
   <!-- ================= DEDICATED RECIPROCITY & TRAVEL HUB MODAL ================= -->
@@ -5193,14 +4724,12 @@
         </button>
       </div>
 
-
       <!-- ================= MULTI-STATE CCW RECIPROCITY APP ================= -->
         <section class="portal-reciprocity-wrapper" id="portal-reciprocity-module" aria-label="CCW Reciprocity App">
           <div class="reciprocity-header-box">
             <h3>🗺️ Multi-State CCW Reciprocity Navigator</h3>
             <p>Interactive 50-state recognition map powered by Lead Instructor Kai Wade. Input your resident state and non-resident add-ons to see exactly where you can legally carry across the country.</p>
           </div>
-
 
           <!-- Permit Selection & Multi-Addon Bar -->
           <div class="reciprocity-permit-selector">
@@ -5218,7 +4747,6 @@
               </div>
             </div>
 
-
             <div>
               <span class="permit-addons-label">Add Non-Resident Multiplier Permits:</span>
               <div class="permit-chip-grid">
@@ -5230,7 +4758,6 @@
               </div>
             </div>
           </div>
-
 
           <!-- Live Scorecard -->
           <div class="reciprocity-scorecard">
@@ -5252,7 +4779,6 @@
             </div>
           </div>
 
-
           <!-- Category Legend -->
           <div class="reciprocity-legend-bar">
             <div class="legend-item"><span class="legend-dot dot-constitutional"></span><span>Constitutional Carry (Permitless 21+)</span></div>
@@ -5260,7 +4786,6 @@
             <div class="legend-item"><span class="legend-dot dot-special"></span><span>Special Conditions / Resident Only</span></div>
             <div class="legend-item"><span class="legend-dot dot-not-honored"></span><span>Permit Not Honored</span></div>
           </div>
-
 
           <!-- Search & Filters -->
           
@@ -5274,7 +4799,6 @@
               <!-- States will be populated dynamically -->
             </svg>
           </div>
-
 
           <!-- Car Travel & Interstate Highway Corridors Guide -->
           <div class="car-travel-corridor-box">
@@ -5309,7 +4833,6 @@
             </div>
           </div>
 
-
           <div class="reciprocity-filter-controls">
             <input type="text" id="stateSearchInput" class="search-state-input" placeholder="Search state (e.g., Virginia, Delaware)..." oninput="filterReciprocityStates()">
             <div class="filter-tabs-row">
@@ -5320,12 +4843,10 @@
             </div>
           </div>
 
-
           <!-- Interactive State Grid Matrix -->
           <div class="states-matrix-grid" id="statesMatrixGrid">
             <!-- 51 State tiles mounted dynamically -->
           </div>
-
 
           <!-- Instructor Multi-State Multiplier Strategy Card -->
           <div class="reciprocity-advisor-card">
@@ -5339,7 +4860,6 @@
           </div>
         </section>
 
-
         
         <!-- ================= FLYING WITH A FIREARM MODULE ================= -->
         <section class="flying-firearm-module" id="flying-firearm-guide" aria-label="Flying with a Firearm Guide">
@@ -5347,7 +4867,6 @@
             <h3>✈️ Flying with a Firearm: Mandatory TSA & Airline Protocols</h3>
             <p>Federal regulations (49 CFR § 1540.111) and travel procedures every student must follow when flying on commercial airlines with handguns.</p>
           </div>
-
 
           <div class="flying-steps-grid">
             <div class="flying-step-card">
@@ -5358,7 +4877,6 @@
               </div>
             </div>
 
-
             <div class="flying-step-card">
               <div class="flying-step-num">02</div>
               <div class="flying-step-title">Locked Hard-Sided Case</div>
@@ -5366,7 +4884,6 @@
                 Must be secured in a rigid, hard-sided lockbox (Pelican, Nanuk, Vaultek, or sturdy factory case). <strong>The Pry Test:</strong> If the case can be pried open with fingers, TSA will reject it. Lock every available lock hole.
               </div>
             </div>
-
 
             <div class="flying-step-card">
               <div class="flying-step-num">03</div>
@@ -5376,7 +4893,6 @@
               </div>
             </div>
 
-
             <div class="flying-step-card">
               <div class="flying-step-num">04</div>
               <div class="flying-step-title">Ammunition Packaging</div>
@@ -5384,7 +4900,6 @@
                 Ammunition must be packed in the manufacturer's original box or a dedicated plastic/fiber ammo carrier. Never loose in bags. Maximum 11 lbs (5 kg) per passenger. Ammunition can be inside the locked gun case or checked baggage.
               </div>
             </div>
-
 
             <div class="flying-step-card">
               <div class="flying-step-num">05</div>
@@ -5394,7 +4909,6 @@
               </div>
             </div>
 
-
             <div class="flying-step-card">
               <div class="flying-step-num">06</div>
               <div class="flying-step-title">Destination Laws Govern</div>
@@ -5403,7 +4917,6 @@
               </div>
             </div>
           </div>
-
 
           <!-- Critical Flight Diversion Warning -->
           <div class="flying-warning-banner">
@@ -5418,7 +4931,6 @@
           </div>
         </section>
 
-
       <div style="text-align: center; margin: 30px 0 20px;">
         <button type="button" class="btn-return-home" onclick="toggleReciprocityHubModal(false)" style="padding: 12px 28px; font-size: 1.05rem;">
           ← Return to Student Dashboard
@@ -5427,21 +4939,18 @@
     </div>
   </div>
 
-
   <!-- ================= DESIGNATED COLLECTOR INFO MODAL ================= -->
   <div class="state-dossier-modal-overlay" id="collectorInfoModal" onclick="if(event.target===this) closeCollectorModal()">
-    <div class="state-dossier-card" role="dialog" aria-modal="true" style="max-width: 620px;">
+    <div class="state-dossier-card" role="dialog" aria-modal="true" style="max-width: 620px;" onclick="event.stopPropagation()">
       <button type="button" class="dossier-close-btn" onclick="closeCollectorModal()" aria-label="Close modal">✕</button>
       <div style="margin-bottom: 14px;">
         <span style="background: rgba(255, 183, 3, 0.15); border: 1px solid var(--accent-amber); color: var(--accent-amber); font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; padding: 3px 10px; border-radius: 4px; text-transform: uppercase;">Maryland State Police Exemption</span>
         <h3 style="font-family: var(--font-display); font-size: 1.6rem; color: #fff; margin-top: 6px;">Maryland Designated Firearms Collector Status</h3>
       </div>
 
-
       <div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px; margin-bottom: 14px; font-size: 0.88rem; color: #e2e8f0; line-height: 1.55;">
         <p><strong>What it does:</strong> Under Maryland Public Safety § 5-123 and COMAR 29.03.01.29, Maryland limits citizens to one regulated firearm purchase every 30 days. Approval as a <em>Designated Collector</em> completely waives this limit forever—allowing you to buy multiple handguns or receivers at the same time.</p>
       </div>
-
 
       <div style="margin-bottom: 16px;">
         <h4 style="font-family: var(--font-display); font-size: 1.1rem; color: var(--accent-cyan); margin-bottom: 8px;">4 Steps to Become a Designated Collector:</h4>
@@ -5453,7 +4962,6 @@
         </ol>
       </div>
 
-
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         <a href="https://mdsp.maryland.gov/Organization/Pages/CriminalInvestigationBureau/LicensingDivision/Firearms/FirearmsCollectors.aspx" target="_blank" rel="noopener noreferrer" class="btn-primary" style="flex: 1; text-align: center; text-decoration: none;">
           Open MSP Collector Portal Page ↗
@@ -5464,9 +4972,6 @@
       </div>
     </div>
   </div>
-
-
-
 
 
 
@@ -5482,14 +4987,12 @@
         </button>
       </div>
 
-
       <!-- ================= MULTI-STATE CCW RECIPROCITY APP ================= -->
         <section class="portal-reciprocity-wrapper" id="portal-reciprocity-module" aria-label="CCW Reciprocity App">
           <div class="reciprocity-header-box">
             <h3>🗺️ Multi-State CCW Reciprocity Navigator</h3>
             <p>Interactive 50-state recognition map powered by Lead Instructor Kai Wade. Input your resident state and non-resident add-ons to see exactly where you can legally carry across the country.</p>
           </div>
-
 
           <!-- Permit Selection & Multi-Addon Bar -->
           <div class="reciprocity-permit-selector">
@@ -5507,7 +5010,6 @@
               </div>
             </div>
 
-
             <div>
               <span class="permit-addons-label">Add Non-Resident Multiplier Permits:</span>
               <div class="permit-chip-grid">
@@ -5519,7 +5021,6 @@
               </div>
             </div>
           </div>
-
 
           <!-- Live Scorecard -->
           <div class="reciprocity-scorecard">
@@ -5541,7 +5042,6 @@
             </div>
           </div>
 
-
           <!-- Category Legend -->
           <div class="reciprocity-legend-bar">
             <div class="legend-item"><span class="legend-dot dot-constitutional"></span><span>Constitutional Carry (Permitless 21+)</span></div>
@@ -5549,7 +5049,6 @@
             <div class="legend-item"><span class="legend-dot dot-special"></span><span>Special Conditions / Resident Only</span></div>
             <div class="legend-item"><span class="legend-dot dot-not-honored"></span><span>Permit Not Honored</span></div>
           </div>
-
 
           <!-- Search & Filters -->
           
@@ -5563,7 +5062,6 @@
               <!-- States will be populated dynamically -->
             </svg>
           </div>
-
 
           <!-- Car Travel & Interstate Highway Corridors Guide -->
           <div class="car-travel-corridor-box">
@@ -5598,7 +5096,6 @@
             </div>
           </div>
 
-
           <div class="reciprocity-filter-controls">
             <input type="text" id="stateSearchInput" class="search-state-input" placeholder="Search state (e.g., Virginia, Delaware)..." oninput="filterReciprocityStates()">
             <div class="filter-tabs-row">
@@ -5609,12 +5106,10 @@
             </div>
           </div>
 
-
           <!-- Interactive State Grid Matrix -->
           <div class="states-matrix-grid" id="statesMatrixGrid">
             <!-- 51 State tiles mounted dynamically -->
           </div>
-
 
           <!-- Instructor Multi-State Multiplier Strategy Card -->
           <div class="reciprocity-advisor-card">
@@ -5628,7 +5123,6 @@
           </div>
         </section>
 
-
         
         <!-- ================= FLYING WITH A FIREARM MODULE ================= -->
         <section class="flying-firearm-module" id="flying-firearm-guide" aria-label="Flying with a Firearm Guide">
@@ -5636,7 +5130,6 @@
             <h3>✈️ Flying with a Firearm: Mandatory TSA & Airline Protocols</h3>
             <p>Federal regulations (49 CFR § 1540.111) and travel procedures every student must follow when flying on commercial airlines with handguns.</p>
           </div>
-
 
           <div class="flying-steps-grid">
             <div class="flying-step-card">
@@ -5647,7 +5140,6 @@
               </div>
             </div>
 
-
             <div class="flying-step-card">
               <div class="flying-step-num">02</div>
               <div class="flying-step-title">Locked Hard-Sided Case</div>
@@ -5655,7 +5147,6 @@
                 Must be secured in a rigid, hard-sided lockbox (Pelican, Nanuk, Vaultek, or sturdy factory case). <strong>The Pry Test:</strong> If the case can be pried open with fingers, TSA will reject it. Lock every available lock hole.
               </div>
             </div>
-
 
             <div class="flying-step-card">
               <div class="flying-step-num">03</div>
@@ -5665,7 +5156,6 @@
               </div>
             </div>
 
-
             <div class="flying-step-card">
               <div class="flying-step-num">04</div>
               <div class="flying-step-title">Ammunition Packaging</div>
@@ -5673,7 +5163,6 @@
                 Ammunition must be packed in the manufacturer's original box or a dedicated plastic/fiber ammo carrier. Never loose in bags. Maximum 11 lbs (5 kg) per passenger. Ammunition can be inside the locked gun case or checked baggage.
               </div>
             </div>
-
 
             <div class="flying-step-card">
               <div class="flying-step-num">05</div>
@@ -5683,7 +5172,6 @@
               </div>
             </div>
 
-
             <div class="flying-step-card">
               <div class="flying-step-num">06</div>
               <div class="flying-step-title">Destination Laws Govern</div>
@@ -5692,7 +5180,6 @@
               </div>
             </div>
           </div>
-
 
           <!-- Critical Flight Diversion Warning -->
           <div class="flying-warning-banner">
@@ -5707,7 +5194,6 @@
           </div>
         </section>
 
-
       <div style="text-align: center; margin: 30px 0 20px;">
         <button type="button" class="btn-return-home" onclick="toggleReciprocityHubModal(false)" style="padding: 12px 28px; font-size: 1.05rem;">
           ← Return to Student Dashboard
@@ -5716,21 +5202,18 @@
     </div>
   </div>
 
-
   <!-- ================= DESIGNATED COLLECTOR INFO MODAL ================= -->
   <div class="state-dossier-modal-overlay" id="collectorInfoModal" onclick="if(event.target===this) closeCollectorModal()">
-    <div class="state-dossier-card" role="dialog" aria-modal="true" style="max-width: 620px;">
+    <div class="state-dossier-card" role="dialog" aria-modal="true" style="max-width: 620px;" onclick="event.stopPropagation()">
       <button type="button" class="dossier-close-btn" onclick="closeCollectorModal()" aria-label="Close modal">✕</button>
       <div style="margin-bottom: 14px;">
         <span style="background: rgba(255, 183, 3, 0.15); border: 1px solid var(--accent-amber); color: var(--accent-amber); font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; padding: 3px 10px; border-radius: 4px; text-transform: uppercase;">Maryland State Police Exemption</span>
         <h3 style="font-family: var(--font-display); font-size: 1.6rem; color: #fff; margin-top: 6px;">Maryland Designated Firearms Collector Status</h3>
       </div>
 
-
       <div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px; margin-bottom: 14px; font-size: 0.88rem; color: #e2e8f0; line-height: 1.55;">
         <p><strong>What it does:</strong> Under Maryland Public Safety § 5-123 and COMAR 29.03.01.29, Maryland limits citizens to one regulated firearm purchase every 30 days. Approval as a <em>Designated Collector</em> completely waives this limit forever—allowing you to buy multiple handguns or receivers at the same time.</p>
       </div>
-
 
       <div style="margin-bottom: 16px;">
         <h4 style="font-family: var(--font-display); font-size: 1.1rem; color: var(--accent-cyan); margin-bottom: 8px;">4 Steps to Become a Designated Collector:</h4>
@@ -5741,7 +5224,6 @@
           <li><strong>Submit to MSP:</strong> Mail the notarized application to MSP Licensing Division in Pikesville, MD. There is <strong>$0 state filing fee</strong>!</li>
         </ol>
       </div>
-
 
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         <a href="https://mdsp.maryland.gov/Organization/Pages/CriminalInvestigationBureau/LicensingDivision/Firearms/FirearmsCollectors.aspx" target="_blank" rel="noopener noreferrer" class="btn-primary" style="flex: 1; text-align: center; text-decoration: none;">
@@ -5756,11 +5238,7 @@
 
 
 
-
-
-
   
-
 
 </body>
 </html>
