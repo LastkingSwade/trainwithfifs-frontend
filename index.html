@@ -43,7 +43,8 @@
     .goal-modal-overlay,
     .state-dossier-modal-overlay,
     .reciprocity-hub-modal-overlay,
-    .admin-analytics-modal-overlay {
+    .admin-analytics-modal-overlay,
+    .generic-info-modal-overlay {
       position: fixed !important;
       inset: 0 !important;
       background: rgba(4, 7, 11, 0.94) !important;
@@ -61,14 +62,15 @@
     .goal-modal-overlay.active,
     .state-dossier-modal-overlay.active,
     .reciprocity-hub-modal-overlay.active,
-    .admin-analytics-modal-overlay.active {
+    .admin-analytics-modal-overlay.active,
+    .generic-info-modal-overlay.active {
       display: flex !important;
       opacity: 1 !important;
       visibility: visible !important;
       pointer-events: auto !important;
     }
 
-    /* ================= SCREEN 1: HERO LANDING ================= */
+    /* SCREEN 1: HERO LANDING */
     #hero-landing {
       position: relative;
       width: 100%;
@@ -441,6 +443,16 @@
     window.switchTab = switchTab;
 
     function openPortalSelectionModal() {
+      const studentSession = localStorage.getItem('fifs_student_session');
+      const clientSession = localStorage.getItem('fifs_client_profile');
+      if (studentSession) {
+        openAndSwitch('portal');
+        return;
+      }
+      if (clientSession) {
+        openAndSwitch('fi-portal');
+        return;
+      }
       const modal = document.getElementById('fiPortalSelectionModal');
       if (modal) {
         modal.style.setProperty('display', 'flex', 'important');
@@ -481,6 +493,7 @@
     function closeAllOverlays() {
       closePortalSelectionModal();
       closeGoalSynopsis();
+      closeGenericModal();
       toggleReciprocityHubModal(false);
       toggleAdminAnalyticsModal(false);
     }
@@ -674,6 +687,64 @@
                 <strong style="color: #fff; font-family: var(--font-display); font-size: 1.05rem; display: block;">Government Photo Identification Ready</strong>
                 <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">Valid Driver's License or Military ID required for state compliance documentation.</p>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Official MSP Qualification Score Sheet Card with Direct JPEG Viewer -->
+        <div style="background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <span style="font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; color: var(--accent-cyan); letter-spacing: 1px; text-transform: uppercase;">Official State Police Document</span>
+              <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-top: 2px;">🎯 Maryland State Police Qualification Score Sheet (MSP Form 29-14)</h3>
+              <p style="font-size: 0.86rem; color: #cbd5e1; margin-top: 4px; max-width: 650px;">
+                Review the certified 25-round Maryland State Police qualification score sheet used on the line at Cindy's Hot Shots (3, 5, 7, and 15 yards) under Qualified Handgun Instructor § 5-101 authorization.
+              </p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="button" class="btn-primary" onclick="openScoreSheetModal()" style="width: auto; padding: 10px 18px; font-size: 0.90rem;">
+                🔍 View Score Sheet JPEG
+              </button>
+              <a href="https://drive.google.com/file/d/1zKrRHowlg1GSewhLISZFrLvr91gxYQBP/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn-spark" style="width: auto; padding: 10px 18px; font-size: 0.90rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                📄 Download PDF ↗
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student Multi-State Reciprocity Hub Launcher -->
+        <div style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(13, 19, 27, 0.95) 100%); border: 1px solid var(--accent-cyan); box-shadow: 0 0 20px rgba(0, 229, 255, 0.2); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <span style="font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; color: var(--accent-cyan); letter-spacing: 1px; text-transform: uppercase;">Student Portal Exclusive Tool</span>
+              <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-top: 2px;">🗺️ Multi-State CCW Reciprocity Navigator & Travel Hub</h3>
+              <p style="font-size: 0.86rem; color: #cbd5e1; margin-top: 4px; max-width: 650px;">
+                Interactive 50-state recognition map. See where you can carry with your Maryland permit, test Utah/Florida non-resident add-ons, plan interstate car travel corridors, and review mandatory TSA flying rules.
+              </p>
+            </div>
+            <button type="button" class="btn-primary" onclick="toggleReciprocityHubModal(true)" style="width: auto; padding: 12px 24px; font-size: 0.95rem; white-space: nowrap;">
+              Launch Reciprocity Navigator ↗
+            </button>
+          </div>
+        </div>
+
+        <!-- Maryland Designated Collector Card -->
+        <div style="background: linear-gradient(135deg, rgba(255, 183, 3, 0.1) 0%, rgba(13, 19, 27, 0.95) 100%); border: 1px solid var(--accent-amber); box-shadow: 0 0 16px var(--accent-amber-glow); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <span style="font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; color: var(--accent-amber); letter-spacing: 1px; text-transform: uppercase;">Maryland Firearms Exemption</span>
+              <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-top: 2px;">📋 Maryland Designated Collector Application (Bypass 30-Day Limit)</h3>
+              <p style="font-size: 0.86rem; color: #cbd5e1; margin-top: 4px; max-width: 650px;">
+                Under Md. Code Ann., Public Safety § 5-123, residents are restricted to 1 regulated firearm every 30 days. By filing Form 77R-3 for free with MSP, the 30-day limit is completely waived.
+              </p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="button" class="btn-spark" onclick="openGenericModal('📋 Maryland Designated Collector Application (MSP Form 77R-3)', 'Waive the Maryland 30-day handgun purchase limitation', 'Under Md. Code Ann., Public Safety § 5-123 and COMAR 29.03.01.29, Maryland limits citizens to one regulated firearm purchase every 30 days.<br><br><strong>4 Steps to Become a Designated Collector:</strong><br>1. Download MSP Form 77R-3 (1-page affidavit from the MSP Licensing Division).<br>2. Check personal collecting, study, or investment.<br>3. Sign before a Notary Public (Lead Instructor Kai Wade provides notarization).<br>4. Mail to MSP Licensing Division in Pikesville, MD with $0 state filing fee!')" style="padding: 10px 18px; color: var(--accent-amber); border-color: var(--accent-amber);">
+                View 4-Step Guide ℹ
+              </button>
+              <a href="https://mdsp.maryland.gov/Organization/Pages/CriminalInvestigationBureau/LicensingDivision/Firearms/FirearmsCollectors.aspx" target="_blank" rel="noopener noreferrer" class="btn-spark" style="background: var(--accent-amber); color: #070b10; font-weight: 800; padding: 10px 18px; text-decoration: none;">
+                Open MSP Collector Portal ↗
+              </a>
             </div>
           </div>
         </div>
@@ -1107,16 +1178,129 @@
       </section>
     </main>
 
-    <!-- VIEW 3: CLIENT & PERMIT PORTAL -->
+    <!-- VIEW 3: DEDICATED CLIENT & PERMIT PORTAL WITH AUTH GATEWAY -->
     <section id="view-fi-portal" class="panel hidden">
-      <div class="panel-header">
-        <h3>Permit Holder & Client Resource Portal</h3>
-        <p>Comprehensive operational tools for CCW holders and lawful travelers.</p>
+      <div id="client-auth-box">
+        <div class="panel-header">
+          <h3>Future Initiative Client & Permit Holder Access</h3>
+          <p>Sign in or register your permit profile to unlock multi-state reciprocity, travel navigators, and 90-day renewal watches.</p>
+        </div>
+
+        <div style="background: #0d121a; border: 1px solid rgba(255, 183, 3, 0.35); border-radius: 14px; padding: 22px; max-width: 540px; margin: 0 auto 30px;">
+          <div style="display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
+            <button type="button" class="btn-spark" id="btn-tab-client-login" onclick="showClientAuthTab('login')" style="flex: 1; border-color: var(--accent-cyan); color: var(--accent-cyan);">Sign In</button>
+            <button type="button" class="btn-spark" id="btn-tab-client-reg" onclick="showClientAuthTab('register')" style="flex: 1;">Create Profile (Free)</button>
+          </div>
+
+          <!-- CLIENT SIGN IN -->
+          <div id="client-login-subform">
+            <div class="form-group">
+              <label for="clientAuthEmail">Email Address or Client ID <span class="req">*</span></label>
+              <input type="text" id="clientAuthEmail" placeholder="e.g., permit_holder@example.com or FI-8821">
+            </div>
+            <button type="button" class="btn-primary" onclick="lookupClientAccount()">Sign In to Client Portal →</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 0.82rem; color: var(--text-muted);">
+              <span>New permit holder? <a href="javascript:void(0)" onclick="showClientAuthTab('register')" style="color: var(--accent-amber);">Create Watch Profile</a></span>
+              <button type="button" onclick="loadDemoClient()" style="background: none; border: none; color: var(--accent-amber); cursor: pointer; text-decoration: underline;">Preview Client Hub</button>
+            </div>
+          </div>
+
+          <!-- CLIENT REGISTRATION -->
+          <div id="client-register-subform" style="display: none;">
+            <form onsubmit="fiSubmitClientRegistration(event)">
+              <div class="form-group">
+                <label for="fiRegName">Full Legal Name <span class="req">*</span></label>
+                <input type="text" id="fiRegName" required placeholder="e.g., Marcus Vance">
+              </div>
+              <div class="form-group">
+                <label for="fiRegEmail">Email Address <span class="req">*</span></label>
+                <input type="email" id="fiRegEmail" required placeholder="e.g., marcus@example.com">
+              </div>
+              <div class="form-group">
+                <label for="fiRegPermitState">Primary Handgun Permit Jurisdiction <span class="req">*</span></label>
+                <select id="fiRegPermitState" required>
+                  <option value="Maryland Wear & Carry" selected>Maryland Wear & Carry (CCW)</option>
+                  <option value="Maryland HQL Only">Maryland HQL (Purchase Only)</option>
+                  <option value="Virginia Concealed Handgun">Virginia Concealed Handgun Permit</option>
+                  <option value="Pennsylvania LTCF">Pennsylvania LTCF</option>
+                  <option value="Florida Non-Resident">Florida Non-Resident CCW</option>
+                  <option value="Utah Non-Resident">Utah Non-Resident CCW</option>
+                  <option value="Planning to Apply">No Permit Yet (Planning to Apply)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="fiRegExpDate">Permit Expiration Date (If applicable)</label>
+                <input type="date" id="fiRegExpDate">
+              </div>
+              <div class="form-group" style="margin-bottom: 18px;">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #cbd5e1; cursor: pointer;">
+                  <input type="checkbox" id="fiRegOptIn" checked style="width: 18px; height: 18px; accent-color: var(--accent-cyan);">
+                  <span>Activate 90-day renewal countdown watch & 10% FIFS discount alerts.</span>
+                </label>
+              </div>
+              <button type="submit" class="btn-primary" style="background: var(--accent-amber); color: #070b10;">Create Client Account & Enter Hub 🛡️</button>
+            </form>
+          </div>
+          <div id="client-auth-status" class="status-msg"></div>
+        </div>
       </div>
-      <div style="background: #0d121a; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-        <h4 style="color: #fff; margin-bottom: 8px;">🗺️ 50-State CCW Reciprocity Engine</h4>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 14px;">Launch the nationwide map to view where your Maryland permit and non-resident add-ons are honored.</p>
-        <button type="button" class="btn-primary" style="max-width: 280px;" onclick="toggleReciprocityHubModal(true)">Launch Reciprocity Hub →</button>
+
+      <!-- ACTIVE CLIENT DASHBOARD -->
+      <div id="client-active-dashboard" class="hidden">
+        <div class="student-badge-bar" style="border-color: rgba(255, 183, 3, 0.4); background: linear-gradient(135deg, #10161f 0%, #151c27 100%);">
+          <div>
+            <h2>Welcome, <span id="dash-client-name">Client</span> 🛡️</h2>
+            <div class="student-meta-chips" style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
+              <span class="meta-chip" id="dash-client-id" style="border-color: var(--accent-amber); color: var(--accent-amber);">ID: FI-CLIENT-9120</span>
+              <span class="meta-chip" id="dash-client-permit">Maryland Wear & Carry</span>
+              <span class="meta-chip chip-status" id="dash-client-exp">Exp: Active Tracking</span>
+            </div>
+          </div>
+          <button type="button" class="btn-sign-out" onclick="fiLogoutClient()" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); color: var(--text-muted); padding: 6px 14px; border-radius: 6px; cursor: pointer;">Sign Out</button>
+        </div>
+
+        <!-- Permit Expiration Countdown Card -->
+        <div style="background: linear-gradient(135deg, rgba(255, 183, 3, 0.1) 0%, rgba(13, 19, 27, 0.95) 100%); border: 1px solid var(--accent-amber); box-shadow: 0 0 16px var(--accent-amber-glow); border-radius: 14px; padding: 22px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <span style="font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; color: var(--accent-amber); letter-spacing: 1px; text-transform: uppercase;">Automated License Protection</span>
+              <h3 style="font-family: var(--font-display); font-size: 1.45rem; color: #fff; margin-top: 2px;">⏱️ Permit Expiration Countdown & 90-Day Renewal Watch</h3>
+              <p style="font-size: 0.88rem; color: #cbd5e1; margin-top: 4px; max-width: 650px;" id="dash-client-calc-text">
+                Maryland State Police recommend completing your 8-hour renewal training 90 to 120 days prior to expiration.
+              </p>
+            </div>
+            <div style="text-align: center; background: #070b10; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px 20px; min-width: 140px;">
+              <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-amber);" id="dash-client-days-left">--</div>
+              <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Days Remaining</div>
+            </div>
+          </div>
+          <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" class="btn-primary" style="width: auto; padding: 10px 20px; font-size: 0.88rem;" onclick="fiClaimRenewalOffer()">
+              Claim 10% Off Renewal (Promo: RENEWAL10) →
+            </button>
+          </div>
+        </div>
+
+        <!-- 3 Flagship Client Hub Launchers -->
+        <div class="checklist-grid" style="margin-bottom: 24px;">
+          <div class="checklist-box" onclick="toggleReciprocityHubModal(true)" style="border-color: rgba(0, 229, 255, 0.4);">
+            <h4>🗺️ 50-State Reciprocity Hub</h4>
+            <p style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">Interactive color-coded nationwide map. Cross-reference permit recognition, constitutional carry, magazine limits, and officer duty to inform.</p>
+            <span style="color: var(--accent-cyan); font-weight: 800; font-size: 0.82rem; text-transform: uppercase;">Launch 50-State Hub ↗</span>
+          </div>
+
+          <div class="checklist-box" onclick="openGenericModal('🚗 Interstate Vehicle Travel & FOPA § 926A', 'Federal Safe Passage Protection Standards', 'Under the federal Firearm Owners Protection Act (18 U.S.C. § 926A), you can transport firearms through ANY state (even NY/NJ) if:<br><br>1. You are lawful to possess at departure and destination.<br>2. Firearms are completely unloaded.<br>3. Neither firearm nor ammunition is accessible from the passenger cab.<br>4. Locked inside a rigid container in the trunk.<br>5. Travel is continuous and uninterrupted.')" style="border-color: rgba(16, 185, 129, 0.4);">
+            <h4 style="color: #10b981;">🚗 Interstate Vehicle Travel</h4>
+            <p style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">Federal Safe Passage (FOPA 18 U.S.C. § 926A), glovebox rules, trunk storage mandates, and Mid-Atlantic highway corridor advice.</p>
+            <span style="color: #10b981; font-weight: 800; font-size: 0.82rem; text-transform: uppercase;">Read Vehicle Protocols ℹ</span>
+          </div>
+
+          <div class="checklist-box" onclick="openGenericModal('✈️ Flying with Firearms (TSA & Airline Rules)', 'Commercial airline protocols under 49 CFR § 1540.111', 'Critical federal rules when traveling with handguns:<br><br>• Non-TSA Locks: ONLY you may possess the key or combination. Never use TSA-accessible locks on gun cases!<br>• Rigid Case: Must withstand the pry test with zero finger gap.<br>• Ammunition: Max 11 lbs in original manufacturer packaging.<br>• Check-In: Declare at the main ticket counter. Never take firearms to TSA passenger checkpoints!')" style="border-color: rgba(255, 183, 3, 0.4);">
+            <h4 style="color: var(--accent-amber);">✈️ TSA Commercial Flight Hub</h4>
+            <p style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">Federal regulations (49 CFR § 1540.111), non-TSA padlock rules, ammo weight limits, and flight diversion emergency procedures.</p>
+            <span style="color: var(--accent-amber); font-weight: 800; font-size: 0.82rem; text-transform: uppercase;">Review Flight Standards ℹ</span>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1317,7 +1501,7 @@
     </div>
   </div>
 
-  <!-- GOAL SYNOPSIS MODAL -->
+  <!-- GOAL SYNOPSIS MODAL (FOR PATHWAY CARDS ONLY) -->
   <div class="goal-modal-overlay" id="goalSynopsisModal" onclick="if(event.target===this) closeGoalSynopsis()">
     <div class="goal-modal-box" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
       <button type="button" class="goal-modal-close-btn" onclick="closeGoalSynopsis()">✕</button>
@@ -1363,6 +1547,39 @@
     </div>
   </div>
 
+  <!-- CLEAN GENERIC INFO MODAL (FOR 8-STEP JOURNEY & WHAT TO BRING - ONLY CLOSE BUTTON) -->
+  <div class="generic-info-modal-overlay" id="genericInfoModal" onclick="if(event.target===this) closeGenericModal()">
+    <div class="fi-portal-modal-card" role="dialog" aria-modal="true" onclick="event.stopPropagation()" style="max-width: 620px;">
+      <button type="button" class="goal-modal-close-btn" onclick="closeGenericModal()">✕</button>
+      <div class="panel-header">
+        <h3 id="genericModalTitle" style="color: #fff;">Details</h3>
+        <p id="genericModalSubtitle" style="color: var(--accent-cyan); font-weight: 700;"></p>
+      </div>
+      <div id="genericModalContent" style="font-size: 0.92rem; color: #cbd5e1; line-height: 1.65; margin: 18px 0;"></div>
+      <div style="text-align: right; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
+        <button type="button" class="btn-primary" style="width: auto; padding: 10px 24px;" onclick="closeGenericModal()">Close Details</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MSP SCORE SHEET JPEG MODAL VIEWER -->
+  <div class="generic-info-modal-overlay" id="scoreSheetModal" onclick="if(event.target===this) closeScoreSheetModal()">
+    <div class="fi-portal-modal-card" role="dialog" aria-modal="true" onclick="event.stopPropagation()" style="max-width: 760px; text-align: center;">
+      <button type="button" class="goal-modal-close-btn" onclick="closeScoreSheetModal()">✕</button>
+      <div class="panel-header" style="text-align: left;">
+        <h3>🎯 Official Maryland State Police Form 29-14</h3>
+        <p>Certified Handgun Qualification Score Sheet</p>
+      </div>
+      <div style="max-height: 65vh; overflow-y: auto; background: #070b10; border-radius: 8px; padding: 10px; margin: 14px 0;">
+        <img src="https://drive.google.com/thumbnail?id=1zKrRHowlg1GSewhLISZFrLvr91gxYQBP&sz=w1600" onerror="this.src='https://lh3.googleusercontent.com/d/1zKrRHowlg1GSewhLISZFrLvr91gxYQBP'" alt="Maryland State Police Certified Score Sheet" style="max-width: 100%; height: auto; border-radius: 6px; display: block; margin: 0 auto;">
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px;">
+        <a href="https://drive.google.com/file/d/1zKrRHowlg1GSewhLISZFrLvr91gxYQBP/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn-spark">Download High-Res Score Sheet (PDF) ↗</a>
+        <button type="button" class="btn-primary" style="width: auto; padding: 10px 24px;" onclick="closeScoreSheetModal()">Close Viewer</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ADMIN WEBSITE ANALYTICS TRACKER MODAL -->
   <div class="admin-analytics-modal-overlay" id="adminAnalyticsModal" onclick="if(event.target===this) toggleAdminAnalyticsModal(false)">
     <div class="fi-portal-modal-card" role="dialog" aria-modal="true" onclick="event.stopPropagation()" style="max-width: 860px;">
@@ -1391,7 +1608,7 @@
             <strong id="stat-portal-clicks" style="color: var(--accent-amber);">0 taps</strong>
           </div>
           <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px;">
-            <span>👑 VIP Turnkey Package Toggles</span>
+            <span>👑 VIP Package Toggles</span>
             <strong id="stat-vip-clicks" style="color: #10b981;">0 taps</strong>
           </div>
           <div style="display: flex; justify-content: space-between;">
@@ -1615,19 +1832,20 @@
       }
     }
 
-    function openGenericModal(title, subtitle, contentHtml) {
+    function closeGoalSynopsis() {
       const modal = document.getElementById('goalSynopsisModal');
-      document.getElementById('goalModalBadge').textContent = "Detailed Information";
-      document.getElementById('goalModalTitle').textContent = title;
-      document.getElementById('goalModalRec').textContent = subtitle;
-      document.getElementById('goalModalSynopsis').innerHTML = contentHtml;
-      document.getElementById('goalModalGuideBanner').style.display = 'none';
-      document.getElementById('goalModalWhyList').innerHTML = "";
-      document.getElementById('goalModalWhyNotList').innerHTML = "";
-      
-      const acceptBtn = document.getElementById('goalModalAcceptBtn');
-      acceptBtn.textContent = "Close Details";
-      acceptBtn.onclick = function() { closeGoalSynopsis(); };
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+
+    function openGenericModal(title, subtitle, contentHtml) {
+      const modal = document.getElementById('genericInfoModal');
+      document.getElementById('genericModalTitle').textContent = title;
+      document.getElementById('genericModalSubtitle').textContent = subtitle;
+      document.getElementById('genericModalContent').innerHTML = contentHtml;
 
       if (modal) {
         modal.style.display = 'flex';
@@ -1636,8 +1854,26 @@
       }
     }
 
-    function closeGoalSynopsis() {
-      const modal = document.getElementById('goalSynopsisModal');
+    function closeGenericModal() {
+      const modal = document.getElementById('genericInfoModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+
+    function openScoreSheetModal() {
+      const modal = document.getElementById('scoreSheetModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeScoreSheetModal() {
+      const modal = document.getElementById('scoreSheetModal');
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
@@ -1818,6 +2054,126 @@
       }
     }
 
+    /* Client Portal Authentication Handlers */
+    function showClientAuthTab(tab) {
+      const loginForm = document.getElementById('client-login-subform');
+      const regForm = document.getElementById('client-register-subform');
+      const btnLogin = document.getElementById('btn-tab-client-login');
+      const btnReg = document.getElementById('btn-tab-client-reg');
+      if (tab === 'login') {
+        loginForm.style.display = 'block';
+        regForm.style.display = 'none';
+        btnLogin.style.borderColor = 'var(--accent-cyan)';
+        btnLogin.style.color = 'var(--accent-cyan)';
+        btnReg.style.borderColor = 'var(--border-subtle)';
+        btnReg.style.color = 'var(--text-muted)';
+      } else {
+        loginForm.style.display = 'none';
+        regForm.style.display = 'block';
+        btnReg.style.borderColor = 'var(--accent-amber)';
+        btnReg.style.color = 'var(--accent-amber)';
+        btnLogin.style.borderColor = 'var(--border-subtle)';
+        btnLogin.style.color = 'var(--text-muted)';
+      }
+    }
+
+    function lookupClientAccount() {
+      const query = (document.getElementById('clientAuthEmail').value || '').trim();
+      const statusDiv = document.getElementById('client-auth-status');
+      if (!query) {
+        showStatus(statusDiv, 'Please enter your email or Client ID.', 'error');
+        return;
+      }
+      showStatus(statusDiv, 'Locating client profile...', 'success');
+      setTimeout(function() {
+        const demo = {
+          fullName: 'Marcus Vance',
+          clientId: 'FI-CLIENT-8821',
+          email: query,
+          permitState: 'Maryland Wear & Carry',
+          expirationDate: '2026-11-15'
+        };
+        localStorage.setItem('fifs_client_profile', JSON.stringify(demo));
+        renderClientDashboard(demo);
+        statusDiv.style.display = 'none';
+      }, 400);
+    }
+
+    function fiSubmitClientRegistration(e) {
+      e.preventDefault();
+      const name = document.getElementById('fiRegName').value.trim();
+      const email = document.getElementById('fiRegEmail').value.trim();
+      const state = document.getElementById('fiRegPermitState').value;
+      const exp = document.getElementById('fiRegExpDate').value;
+      const statusDiv = document.getElementById('client-auth-status');
+
+      const client = {
+        fullName: name,
+        email: email,
+        clientId: 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000),
+        permitState: state,
+        expirationDate: exp || '2026-12-31'
+      };
+      localStorage.setItem('fifs_client_profile', JSON.stringify(client));
+      showStatus(statusDiv, 'Client Profile Saved! Activating renewal watch...', 'success');
+      setTimeout(function() {
+        renderClientDashboard(client);
+        statusDiv.style.display = 'none';
+      }, 500);
+    }
+
+    function loadDemoClient() {
+      const demo = {
+        fullName: 'Marcus Vance',
+        clientId: 'FI-CLIENT-8821',
+        email: 'marcus.vance@example.com',
+        permitState: 'Maryland Wear & Carry',
+        expirationDate: '2026-11-15'
+      };
+      localStorage.setItem('fifs_client_profile', JSON.stringify(demo));
+      renderClientDashboard(demo);
+    }
+
+    function renderClientDashboard(client) {
+      document.getElementById('client-auth-box').classList.add('hidden');
+      document.getElementById('client-active-dashboard').classList.remove('hidden');
+      document.getElementById('dash-client-name').textContent = client.fullName.split(' ')[0];
+      document.getElementById('dash-client-id').textContent = 'ID: ' + client.clientId;
+      document.getElementById('dash-client-permit').textContent = client.permitState;
+      
+      if (client.expirationDate) {
+        const exp = new Date(client.expirationDate + 'T00:00:00');
+        const now = new Date();
+        now.setHours(0,0,0,0);
+        const days = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+        document.getElementById('dash-client-days-left').textContent = days > 0 ? days : '0';
+        document.getElementById('dash-client-exp').textContent = 'Exp: ' + client.expirationDate;
+        if (days <= 90) {
+          document.getElementById('dash-client-calc-text').textContent = '⚠️ ACTIVE RENEWAL WINDOW (' + days + ' days remaining). Schedule your 8-hour renewal to prevent coverage lapse!';
+        }
+      }
+    }
+
+    function fiLogoutClient() {
+      localStorage.removeItem('fifs_client_profile');
+      document.getElementById('client-active-dashboard').classList.add('hidden');
+      document.getElementById('client-auth-box').classList.remove('hidden');
+    }
+
+    function fiClaimRenewalOffer() {
+      selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($175.00)');
+      const comments = document.getElementById('comments');
+      if (comments) comments.value = 'Applied 10% Client Renewal Discount (Promo: RENEWAL10). ' + (comments.value || '');
+    }
+
+    function fiInitPortal() {
+      const saved = localStorage.getItem('fifs_client_profile');
+      if (saved) {
+        try { renderClientDashboard(JSON.parse(saved)); } catch(e){}
+      }
+    }
+
+    /* Student Portal Handlers */
     function lookupStudentAccount() {
       const input = document.getElementById('studentAuthInput');
       const val = input ? input.value.trim().toLowerCase() : '';
@@ -1827,16 +2183,25 @@
         if (pass) pass.value = 'Ultima';
         verifyAdminAccess();
       } else {
+        const student = {
+          studentId: 'FIFS-4081',
+          fullName: 'Jordan Vance',
+          course: 'Maryland CCW & HQL Combo',
+          assignedDate: 'Saturday, Oct 12 • 9:00 AM'
+        };
+        localStorage.setItem('fifs_student_session', JSON.stringify(student));
         document.getElementById('student-login-box').classList.add('hidden');
         document.getElementById('student-active-dashboard').classList.remove('hidden');
       }
     }
     function loadDemoStudent() { lookupStudentAccount(); }
     function logoutStudent() {
+      localStorage.removeItem('fifs_student_session');
       document.getElementById('student-active-dashboard').classList.add('hidden');
       document.getElementById('student-login-box').classList.remove('hidden');
     }
 
+    /* Admin Operations */
     function verifyAdminAccess() {
       const pinInput = document.getElementById('adminPasscode');
       const pin = pinInput ? pinInput.value.trim() : '';
@@ -1857,9 +2222,7 @@
         if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleGetAdminDashboardData) {
           google.script.run
             .withSuccessHandler(function(res) {
-              if (res && res.status === 'success') {
-                renderAdminTerminal(res);
-              }
+              if (res && res.status === 'success') renderAdminTerminal(res);
             })
             .handleGetAdminDashboardData(pin);
         } else {
@@ -1930,7 +2293,7 @@
       });
     }
 
-    /* Website Analytics Tracking Logic */
+    /* Analytics Telemetry Tracker */
     function trackPageView() {
       let views = parseInt(localStorage.getItem('fifs_stat_views') || '142', 10) + 1;
       let sessions = parseInt(localStorage.getItem('fifs_stat_sessions') || '89', 10);
@@ -1979,6 +2342,13 @@
       loadLiveAnalytics();
     }
 
+    function showStatus(elem, msg, type) {
+      if (!elem) return;
+      elem.textContent = msg;
+      elem.className = 'status-msg ' + type;
+      elem.style.display = 'block';
+    }
+
     function submitBooking(e) {
       e.preventDefault();
       trackMetricClick('hero');
@@ -1993,7 +2363,6 @@
       trackPageView();
       setInterval(updateLivePulseTicker, 60000);
 
-      // Event tracking bindings
       const btnPrime = document.getElementById('btn-hero-booking');
       if (btnPrime) btnPrime.addEventListener('click', function() { trackMetricClick('hero'); });
       const btnPortal = document.getElementById('btn-hero-twin');
