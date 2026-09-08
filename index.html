@@ -38,7 +38,7 @@
     
     .hidden { display: none !important; }
 
-    /* Universal Overlay Logic */
+    /* Universal Modal & Overlay Engine */
     .fi-portal-modal-overlay,
     .goal-modal-overlay,
     .state-dossier-modal-overlay,
@@ -66,7 +66,7 @@
       pointer-events: auto !important;
     }
 
-    /* SCREEN 1: HERO LANDING */
+    /* ================= SCREEN 1: HERO LANDING ================= */
     #hero-landing {
       position: relative;
       width: 100%;
@@ -160,7 +160,7 @@
     body.in-app #hero-landing { display: none !important; visibility: hidden !important; height: 0 !important; overflow: hidden !important; }
     body.in-app #app-container { display: block !important; visibility: visible !important; height: auto !important; }
 
-    /* SCREEN 2: MAIN CONTAINER */
+    /* ================= SCREEN 2: MAIN CONTAINER & PANELS ================= */
     #app-container { display: none; width: 100%; max-width: 1080px; margin: 0 auto; padding: 20px 16px 80px; animation: fadeIn 0.35s ease forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     .app-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--bg-dark-panel); border: 1px solid var(--border-subtle); border-radius: 12px; margin-bottom: 24px; gap: 12px; }
@@ -247,26 +247,6 @@
     .status-msg.success { display: block; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); color: #4deeea; }
     .status-msg.error { display: block; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; }
 
-    /* Student Portal Roster */
-    .student-badge-bar { background: linear-gradient(135deg, #10161f 0%, #0d131b 100%); border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 14px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-    .meta-chip { background: #070b10; border: 1px solid rgba(0, 229, 255, 0.25); color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.82rem; padding: 3px 10px; border-radius: 4px; text-transform: uppercase; font-weight: 700; }
-    .meta-chip.chip-status { background: rgba(255, 183, 3, 0.12); border-color: var(--accent-amber); color: var(--accent-amber); }
-    .next-step-card { background: linear-gradient(135deg, rgba(0, 229, 255, 0.12) 0%, rgba(16, 22, 31, 0.95) 100%); border: 2px solid var(--accent-cyan); box-shadow: 0 0 24px var(--accent-cyan-glow); border-radius: 14px; padding: 22px 20px; margin-bottom: 24px; }
-    .next-step-badge { font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; letter-spacing: 1.5px; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 4px; }
-    .next-step-title { font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
-    .next-step-desc { font-size: 0.90rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 16px; }
-
-    .progress-track-wrapper { background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 16px; margin-bottom: 24px; }
-    .progress-steps-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-top: 10px; }
-    .track-step-node { background: #10161f; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 8px; text-align: center; font-size: 0.75rem; color: var(--text-muted); }
-    .track-step-node.completed { border-color: #10b981; color: #10b981; background: rgba(16, 185, 129, 0.1); }
-    .track-step-node.active { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(0, 229, 255, 0.12); font-weight: 700; }
-
-    .interactive-checklist { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
-    .task-item-card { background: #0d131b; border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 10px; padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: all 0.2s; }
-    .task-item-card.is-done { background: rgba(16, 185, 129, 0.08); border-color: #10b981; }
-    .task-checkbox { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent-cyan); cursor: pointer; }
-
     /* Modals Cards */
     .fi-portal-modal-card, .goal-modal-box, .state-dossier-card {
       background: #0d1219; border: 1px solid rgba(0, 229, 255, 0.45); border-radius: 20px; max-width: 820px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(0, 229, 255, 0.25); padding: 32px 26px; position: relative;
@@ -344,7 +324,6 @@
           if (t === tab) {
             panel.classList.remove('hidden');
             panel.style.display = 'block';
-            if (t === 'fi-portal' && typeof fiInitPortal === 'function') fiInitPortal();
           } else {
             panel.classList.add('hidden');
             panel.style.display = 'none';
@@ -379,6 +358,14 @@
       }
     }
     window.closePortalSelectionModal = closePortalSelectionModal;
+
+    function toggleReciprocityHubModal(show) {
+      const modal = document.getElementById('reciprocityHubModal');
+      if (modal) {
+        modal.style.display = show ? 'block' : 'none';
+        document.body.style.overflow = show ? 'hidden' : '';
+      }
+    }
 
     function closeAllOverlays() {
       closePortalSelectionModal();
@@ -696,19 +683,19 @@
         <span style="font-family: var(--font-display); font-size: 0.88rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1.5px;">All-Inclusive & Self-Equipped Options</span>
         <h3 style="font-family: var(--font-display); font-size: 1.95rem; color: #fff; text-transform: uppercase; margin-top: 4px;">Course Catalog & Transparent Pricing</h3>
         <p style="font-size: 0.92rem; color: var(--text-muted); max-width: 740px; margin: 6px auto 0; line-height: 1.55;">
-          All courses display standard self-equipped Base Pricing by default. Toggle between <strong>Standard Base</strong> and <strong>👑 VIP Turnkey</strong> on any card to see exactly what is added!
+          All courses display standard self-equipped Base Pricing by default. Toggle between <strong>Standard Base</strong> and <strong>👑 VIP</strong> on any card to see exactly what is added!
         </p>
       </div>
 
       <div class="tuition-grid">
         <!-- Course 1: Mid-Atlantic Multi-State Mastery -->
         <div class="tuition-card" id="card-course-mastery" style="border: 2px solid var(--accent-amber);">
-          <div class="card-tier-badge" id="badge-course-mastery" style="display: none; background: var(--accent-amber); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">👑 VIP TURNKEY MODE</div>
+          <div class="card-tier-badge" id="badge-course-mastery" style="display: none; background: var(--accent-amber); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">👑 VIP MODE</div>
           <span class="badge-pop" id="pop-course-mastery" style="background: var(--accent-amber); color: #070b10; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px; width: fit-content;">⭐ FLAGSHIP MULTI-STATE</span>
           <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">Mid-Atlantic Multi-State Mastery</div>
           <div class="tier-toggle-switch">
             <button type="button" class="tier-toggle-option active" id="tog-base-mastery" onclick="setCardTier('mastery', 'base')">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-mastery" onclick="setCardTier('mastery', 'vip')">👑 VIP Turnkey</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-mastery" onclick="setCardTier('mastery', 'vip')">👑 VIP</button>
           </div>
           <div class="tuition-price" id="price-course-mastery">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$425.00</span>
@@ -716,7 +703,7 @@
           </div>
           <div class="tuition-desc">Full 16-hour Maryland Wear & Carry qualification + application preparation for Virginia, Florida, Arizona, and Pennsylvania non-resident carry.</div>
           <div class="vip-perks-box" id="vip-box-course-mastery" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
             <div>👑 Range lane fee included at Cindy's Hot Shots (Save $25–$35)</div>
             <div>👑 Official B-27 practical qualification targets provided</div>
             <div>👑 Loaner 9mm semi-automatic handgun provided</div>
@@ -731,12 +718,12 @@
 
         <!-- Course 2: Maryland CCW & HQL Combo -->
         <div class="tuition-card" id="card-course-combo">
-          <div class="card-tier-badge" id="badge-course-combo" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">👑 VIP TURNKEY MODE</div>
+          <div class="card-tier-badge" id="badge-course-combo" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">👑 VIP MODE</div>
           <span class="badge-pop" id="pop-course-combo" style="background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px; width: fit-content;">🔥 MOST POPULAR COMBO</span>
           <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">CCW & HQL Combo</div>
           <div class="tier-toggle-switch">
             <button type="button" class="tier-toggle-option active" id="tog-base-combo" onclick="setCardTier('combo', 'base')">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-combo" onclick="setCardTier('combo', 'vip')">👑 VIP Turnkey</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-combo" onclick="setCardTier('combo', 'vip')">👑 VIP</button>
           </div>
           <div class="tuition-price" id="price-course-combo">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$249.99</span>
@@ -744,7 +731,7 @@
           </div>
           <div class="tuition-desc">Comprehensive dual-licensing package meeting both purchase and carry training mandates in one streamlined weekend format.</div>
           <div class="vip-perks-box" id="vip-box-course-combo" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
             <div>👑 Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
             <div>👑 Official B-27 qualification targets provided</div>
             <div>👑 Loaner 9mm handgun provided for live-fire evolution</div>
@@ -759,11 +746,11 @@
 
         <!-- Course 3: Maryland Wear & Carry -->
         <div class="tuition-card" id="card-course-ccw">
-          <div class="card-tier-badge" id="badge-course-ccw" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">👑 VIP TURNKEY MODE</div>
+          <div class="card-tier-badge" id="badge-course-ccw" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">👑 VIP MODE</div>
           <div class="tuition-title">Maryland Wear & Carry</div>
           <div class="tier-toggle-switch">
             <button type="button" class="tier-toggle-option active" id="tog-base-ccw" onclick="setCardTier('ccw', 'base')">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-ccw" onclick="setCardTier('ccw', 'vip')">👑 VIP Turnkey</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-ccw" onclick="setCardTier('ccw', 'vip')">👑 VIP</button>
           </div>
           <div class="tuition-price" id="price-course-ccw">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$199.99</span>
@@ -771,7 +758,7 @@
           </div>
           <div class="tuition-desc">Full Wear & Carry certification. In-depth legal curriculum (State v. Faulkner, SB 1), and 25-round practical qualification.</div>
           <div class="vip-perks-box" id="vip-box-course-ccw" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
             <div>👑 Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
             <div>👑 Official B-27 qualification targets provided</div>
             <div>👑 Loaner 9mm handgun provided</div>
@@ -785,11 +772,11 @@
 
         <!-- Course 4: Maryland HQL -->
         <div class="tuition-card" id="card-course-hql">
-          <div class="card-tier-badge" id="badge-course-hql" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">👑 VIP TURNKEY MODE</div>
+          <div class="card-tier-badge" id="badge-course-hql" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">👑 VIP MODE</div>
           <div class="tuition-title">Maryland HQL</div>
           <div class="tier-toggle-switch">
             <button type="button" class="tier-toggle-option active" id="tog-base-hql" onclick="setCardTier('hql', 'base')">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-hql" onclick="setCardTier('hql', 'vip')">👑 VIP Turnkey</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-hql" onclick="setCardTier('hql', 'vip')">👑 VIP</button>
           </div>
           <div class="tuition-price" id="price-course-hql">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$100.00</span>
@@ -797,7 +784,7 @@
           </div>
           <div class="tuition-desc">State prerequisite for handgun purchase. Covers safe firearm handling, home storage compliance (Jaelynn's Law), and live-fire orientation.</div>
           <div class="vip-perks-box" id="vip-box-course-hql" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
             <div>👑 Range fee included at Cindy's Hot Shots</div>
             <div>👑 Loaner handgun provided for live-fire verification</div>
             <div>👑 Qualifying ammunition included</div>
@@ -820,9 +807,13 @@
             <label for="courseSelection">Selected Course Curriculum & Tuition <span class="req">*</span></label>
             <select id="courseSelection" required>
               <option value="Mid-Atlantic Multi-State Mastery — Base Track ($425.00)">Mid-Atlantic Multi-State Mastery — Base Track ($425.00)</option>
+              <option value="Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)">Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)</option>
               <option value="Maryland CCW & HQL Combo — Base Track ($249.99)" selected>Maryland CCW & HQL Combo — Base Track ($249.99)</option>
+              <option value="Maryland CCW & HQL Combo — VIP Turnkey ($375.00)">Maryland CCW & HQL Combo — VIP Turnkey ($375.00)</option>
               <option value="Maryland Wear & Carry (CCW) — Base Track ($199.99)">Maryland Wear & Carry (CCW) — Base Track ($199.99)</option>
+              <option value="Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)">Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)</option>
               <option value="Maryland HQL (Purchase License) — Base Track ($100.00)">Maryland HQL (Purchase License) — Base Track ($100.00)</option>
+              <option value="Maryland HQL (Purchase License) — VIP Turnkey ($165.00)">Maryland HQL (Purchase License) — VIP Turnkey ($165.00)</option>
             </select>
           </div>
           <div class="form-group">
@@ -892,7 +883,7 @@
     <section id="view-testimonial" class="panel hidden">
       <div class="panel-header">
         <h3>Range Highlights & Student Milestones</h3>
-        <p>Real students on the firing line at Cindy's Hot Shots celebrating personal marksmanship milestones.</p>
+        <p>Real students on the firing line at Cindy's Hot Shots celebrating personal marksmanship milestones with Coach Kai Wade.</p>
       </div>
       <div class="gallery-grid-targets" id="targets-grid-container"></div>
     </section>
@@ -961,12 +952,45 @@
   <div class="goal-modal-overlay" id="goalSynopsisModal" onclick="if(event.target===this) closeGoalSynopsis()">
     <div class="goal-modal-box" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
       <button type="button" class="goal-modal-close-btn" onclick="closeGoalSynopsis()">✕</button>
-      <div class="panel-header">
-        <h3 id="goalModalTitle" style="color: #fff;">Course Recommendation</h3>
-        <p id="goalModalRec" style="color: var(--accent-amber); font-weight: 700;"></p>
+      <div>
+        <span class="goal-header-badge" id="goalModalBadge" style="display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; padding: 4px 12px; border-radius: 6px; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); margin-bottom: 8px;">Guidance & Course Selection</span>
       </div>
-      <div id="goalModalSynopsis" style="font-size: 0.92rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 20px;"></div>
-      <button type="button" class="btn-primary" id="goalModalAcceptBtn">Select This Course & Continue →</button>
+      <h3 class="goal-modal-title" id="goalModalTitle" style="font-family: var(--font-display); font-size: 1.65rem; font-weight: 800; color: #fff; line-height: 1.2; margin-bottom: 4px;">Goal Title</h3>
+      <div class="goal-modal-rec" id="goalModalRec" style="font-size: 0.95rem; color: var(--accent-amber); font-weight: 700; margin-bottom: 16px;">Recommended Course</div>
+      
+      <div class="goal-synopsis-card" id="goalModalSynopsis" style="background: #070b10; border: 1px solid var(--border-subtle); border-left: 3px solid var(--accent-cyan); border-radius: 8px; padding: 14px 16px; font-size: 0.92rem; color: #e2e8f0; line-height: 1.6; margin-bottom: 20px;"></div>
+
+      <div class="guide-download-banner" id="goalModalGuideBanner" style="display: none; background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(13, 19, 27, 0.95) 100%); border: 1px solid var(--accent-cyan); box-shadow: 0 0 16px var(--accent-cyan-glow); border-radius: 10px; padding: 12px 16px; margin: 14px 0; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        <div class="guide-banner-text" style="font-size: 0.85rem; color: #fff;">
+          <strong style="color: var(--accent-cyan); display: block; font-size: 0.92rem;">📘 Free Student Resource: Top 50 Questions New Gun Owners Ask</strong>
+          <span>Comprehensive 6-page Maryland-compliant guide prepared by Instructor Kai Wade.</span>
+        </div>
+        <a href="https://drive.google.com/file/d/1WIoQO00ALNalIuTjSNacZbBNLYIrVHGN/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn-spark" style="background: var(--accent-cyan); color: #070b10; font-weight: 800; text-decoration: none; padding: 8px 14px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+          <span>📥 View & Download PDF</span>
+        </a>
+      </div>
+
+      <div class="goal-columns-grid" style="display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 24px;">
+        <div class="goal-col-card col-why" style="background: #0d121a; border-radius: 10px; padding: 16px 14px; border: 1px solid rgba(16, 185, 129, 0.3);">
+          <div class="goal-col-head head-why" style="font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; text-transform: uppercase; color: #10b981; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <span>✔</span>
+            <span>Why Choose This</span>
+          </div>
+          <ul class="goal-bullet-list" id="goalModalWhyList" style="list-style: none; padding: 0; font-size: 0.85rem; color: #cbd5e1; display: flex; flex-direction: column; gap: 8px;"></ul>
+        </div>
+        <div class="goal-col-card col-why-not" style="background: #0d121a; border-radius: 10px; padding: 16px 14px; border: 1px solid rgba(255, 183, 3, 0.3);">
+          <div class="goal-col-head head-why-not" style="font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; text-transform: uppercase; color: var(--accent-amber); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <span>⚡</span>
+            <span>Why You Might NOT Want This</span>
+          </div>
+          <ul class="goal-bullet-list" id="goalModalWhyNotList" style="list-style: none; padding: 0; font-size: 0.85rem; color: #cbd5e1; display: flex; flex-direction: column; gap: 8px;"></ul>
+        </div>
+      </div>
+
+      <div class="goal-modal-actions" style="display: flex; gap: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 16px;">
+        <button type="button" class="btn-primary" id="goalModalAcceptBtn" style="flex: 2;">Choose This Course & Continue →</button>
+        <button type="button" class="btn-spark" onclick="closeGoalSynopsis()" style="flex: 1;">Explore Other Goals</button>
+      </div>
     </div>
   </div>
 
@@ -974,6 +998,8 @@
     const OFFICIAL_GOOGLE_REVIEWS = [
       { text: "Mr. Kai is 100% excellent teaching and is extremely knowledgeable about using firearms and firearms safety.", author: "Verified Google Review" },
       { text: "Got my MD wear and carry from Future Initiatives and I highly recommend Coach Wade!", author: "MD Wear & Carry Student" },
+      { text: "Very informative and detailed explanation on firearm safety, gun ownership and state laws while defending yourself from harm.", author: "State Licensing Graduate" },
+      { text: "Firearm Instructor was very informative of firearm safety and laws. Class was fun to learn and attend! Highly recommended.", author: "Range Student" },
       { text: "Top-tier coaching! Patient instruction on grip, recoil management, and practical qualification at Cindy's Hot Shots.", author: "Wear & Carry Qualifier" }
     ];
 
@@ -990,9 +1016,26 @@
     }
 
     const TARGET_PHOTOS_DATA = [
-      { id: "1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO", course: "Diagnostic Coaching", score: "1-on-1 Session", title: "Lane Diagnostics & Fundamentals", desc: "Paced instruction focused on grip friction and smooth trigger press at Cindy's Hot Shots." },
-      { id: "10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps", course: "Wear & Carry", score: "100% Qualified", title: "Center-Mass Cadence Cluster", desc: "Clean vital-zone hits on the official qualification course." },
-      { id: "1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv", course: "Maryland CCW", score: "Center-X Grouping", title: "B-27 Precision Grouping", desc: "Tight shot placement following holster draw and sight picture coaching." }
+      { id: "1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO", course: "Diagnostic Coaching", score: "1-on-1 Session", title: "Lane Diagnostics & Fundamentals", desc: "Student working through 1-on-1 coaching on the firing line at Cindy's Hot Shots. Paced instruction focused on grip friction and smooth trigger press.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps", course: "Wear & Carry", score: "100% Qualified", title: "Center-Mass Cadence Cluster", desc: "Clean vital-zone hits on the official BakerTargets qualification course. Calm coaching built confidence from the first round.", loc: "Certified Range: Cindy's Hot Shots" },
+      { id: "1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv", course: "Maryland CCW", score: "Center-X Grouping", title: "B-27 Precision Grouping", desc: "Tight shot placement centered right in the 9, 10, and X rings following holster draw and sight picture coaching.", loc: "Cindy's Hot Shots • Practical Qualification" },
+      { id: "1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR", course: "Paired Training", score: "Dual Qualifiers", title: "Dual Student Center Clusters", desc: "Both students qualifying side-by-side with tight vital zone clusters during an intensive live-fire training block.", loc: "Cindy's Hot Shots • Paired Session" },
+      { id: "1rUcirGX7jLT0upSobd82iJf91Ycv9xlt", course: "Wear & Carry", score: "Certified Pass", title: "Confidence & Marksmanship", desc: "Solid center-mass spread on silhouette targets, demonstrating steady recoil management and smooth trigger reset.", loc: "Certified Range: Cindy's Hot Shots" },
+      { id: "1Z8VLFy2L1Sd6bASqfpt-BBeRiKpVU9qF", course: "Maryland HQL / CCW", score: "Dead-Center Hits", title: "Precision Vital-Zone Group", desc: "Dead-center vital-zone grouping achieved through individual coaching on grip friction and stance balance.", loc: "Cindy's Hot Shots • Private Coaching" },
+      { id: "1mljZQi7U4-O4vBCldtd5xMqAtbk7xBBl", course: "Range Marksmanship", score: "Center Grouping", title: "Dynamic Range Drills", desc: "Maintaining discipline and tight group consistency across multiple target styles and engagement distances.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "1bQjmsgeIz5AOZbyHLnLe-y84FFmmOQSh", course: "Paired Session", score: "Certified Qualifiers", title: "Paired Class Qualifiers", desc: "Both students achieving passing scores with clean center-mass placement during paired weekend instruction.", loc: "Cindy's Hot Shots • Paired Training" },
+      { id: "1I8SYXbZ8Vs_RoaISP-Oi_yVf8y24wJM_", course: "Small Group", score: "Dual Certified", title: "Small Group Milestone", desc: "Two students completing their Maryland qualification course together with tight clusters and zero intimidation.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV", course: "Firing Line", score: "Live Range", title: "Live Firing Line Perspective", desc: "Active diagnostic shooting and practical qualification downrange at Cindy's Hot Shots in Glen Burnie, MD.", loc: "Primary Range Facility • Cindy's Hot Shots" },
+      { id: "1GKKGtLxhSqGOgfh1-u1_CFNr1af-xFUS", course: "Wear & Carry", score: "100% Qualified", title: "Silhouette Marksmanship", desc: "Focused shot cadence and tight center grouping on the B-27 black silhouette target during practical qualification.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "1Xr431Fu4IWY2KIhpJJ5REskODfpH-X9M", course: "HQL & Fundamentals", score: "Concentric Hits", title: "Marksmanship Diagnostics", desc: "Target drill emphasizing sight alignment, steady trigger press, and recoil recovery mechanics.", loc: "Diagnostic Coaching • Cindy's Hot Shots" },
+      { id: "1O5ON4PlVTuCaW-w09a0zzMnOYBMwQ_6k", course: "Maryland CCW", score: "Center-Mass Certified", title: "B27 Shield Precision", desc: "Clean vital-zone dispersion on the B27 Shield tactical training target during live-fire qualification.", loc: "Cindy's Hot Shots • Practical Qual" },
+      { id: "1-dVzb2ipi3IYNb5dGxUpBCBaEyYJIpZ_", course: "Maryland HQL", score: "100% Passing Score", title: "Vital-Zone Control", desc: "Exceptional recoil management and tight center-ring hits with calm, zero-intimidation instruction.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "1XLGG8VZTEOSdnPF5-SXLVGZmeK9m55rR", course: "Cohort Training", score: "Triple Qualification", title: "Group Class Milestone", desc: "Three students qualifying together with clean, certified blue silhouette target sheets at Cindy's Hot Shots.", loc: "Small Group Cohort • Cindy's Hot Shots" },
+      { id: "1sOye7641V0sTZLrOQ7VHAuEe4wFBdfoL", course: "Wear & Carry Initial", score: "Vital Zone Cluster", title: "BakerTargets Standard", desc: "Dedicated center-mass cluster demonstrating solid trigger reset discipline and sight tracking on the line.", loc: "Maryland Certified • Instructor Wade" },
+      { id: "1bWUFKzFuf-xsE7XSuPEE9mWuyGyVcH_z", course: "CCW Certification", score: "High-Visibility Target", title: "Orange Silhouette Grouping", desc: "Steady cadence and confident gun handling producing tight center-scoring hits during qualification.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "191TKVFSz48i2NP9T23KKzZcNFIr42Fls", course: "Wear & Carry", score: "Certified Passing", title: "Confident Marksmanship", desc: "Clean grouping right in the vital scoring rings following 1-on-1 diagnostic coaching with Instructor Wade.", loc: "Cindy's Hot Shots • Qualified" },
+      { id: "1-__LG3c5gZA2zAKX-qeX8magmZRBETsY", course: "Paired Session", score: "Dual Qualifiers", title: "Paired Training Cohort", desc: "Two students celebrating successful state qualification following their live-fire practical course of fire.", loc: "Cindy's Hot Shots • Range Exit" },
+      { id: "1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5", course: "Maryland CCW", score: "X-Ring Cluster", title: "Red X-Ring Accuracy", desc: "Dead-center shot placement clustered around the red X-ring on the B-27 qualification target.", loc: "Certified Range • Cindy's Hot Shots" }
     ];
 
     function mountStudentTargets() {
@@ -1008,37 +1051,160 @@
           <div class="target-content">
             <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">${p.title}</h4>
             <p style="font-size: 0.82rem; color: var(--text-muted);">${p.desc}</p>
+            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">${p.loc}</div>
           </div>
         </article>
       `).join('');
     }
 
-    const GOAL_DATA = {
-      new_to_firearms: { title: "Brand New to Firearms", rec: "Maryland HQL (Purchase License)", val: "Maryland HQL (Purchase License) — Base Track ($100.00)", desc: "Fulfills Maryland's legal prerequisite so you can purchase or rent a handgun. Short 4-hour commitment with patient, supportive instruction." },
-      want_to_purchase: { title: "Looking to Buy a Handgun", rec: "Maryland HQL ($100.00)", val: "Maryland HQL (Purchase License) — Base Track ($100.00)", desc: "Mandatory prerequisite required before purchasing a handgun in Maryland. Covers home storage and live-fire verification." },
-      want_to_carry: { title: "I Want to Carry in Public", rec: "Maryland Wear & Carry ($199.99)", val: "Maryland Wear & Carry (CCW) — Base Track ($199.99)", desc: "State-approved 16-hour curriculum and 25-round live-fire qualification for your concealed carry permit." },
-      want_both: { title: "Buy & Carry (Combo)", rec: "Maryland CCW & HQL Combo", val: "Maryland CCW & HQL Combo — Base Track ($249.99)", desc: "Complete your 16-hour Wear & Carry permit and qualify for an exemption on your HQL purchase license in one streamlined format." },
-      personalized_focus: { title: "Private 1-on-1 Coaching", rec: "Personal Coaching ($125/hr)", val: "Maryland Wear & Carry (CCW) — Base Track ($199.99)", desc: "Tailored private instruction designed to build marksmanship diagnostics and conquer shooting anxiety." },
-      need_multistate: { title: "Multi-State Carry Mastery", rec: "Mid-Atlantic Mastery ($425.00)", val: "Mid-Atlantic Multi-State Mastery — Base Track ($425.00)", desc: "Full Maryland Wear & Carry + documentation and affidavits for Virginia, Florida, Arizona, and Pennsylvania non-resident carry." }
+    const GOAL_SYNOPSIS_DATA = {
+      new_to_firearms: {
+        badge: "Beginner Friendly • Zero Pressure",
+        title: "I'm Brand New to Firearms (Start Here)",
+        rec: "Recommended: Maryland HQL (4-Hour Introductory Class)",
+        courseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
+        showGuide: true,
+        synopsis: "Designed specifically for first-time firearm handlers. In Maryland, an HQL (Handgun Qualification License) is the legal certificate required before purchasing or renting a handgun. We start with safe handling, storage laws (Jaelynn's Law), and patient live-fire orientation with zero intimidation. Download our free 50-question guide below to explore everything beginners want to know!",
+        why: [
+          "You have zero experience or feel nervous around firearms and want a patient, supportive instructor who will never yell or talk down to you.",
+          "Fulfills Maryland's legal prerequisite so you can purchase or rent a handgun for home protection.",
+          "Short 4-hour commitment that builds complete foundational confidence before you ever purchase a gun."
+        ],
+        whyNot: [
+          "The HQL is strictly a PURCHASE license—it DOES NOT permit you to carry a concealed firearm in public (you need Wear & Carry).",
+          "If you plan to carry in public anyway, choose the CCW & HQL Combo instead—Maryland lets Wear & Carry graduates get their HQL for free!"
+        ]
+      },
+      want_to_purchase: {
+        badge: "State Legal Prerequisite • Handgun License",
+        title: "Looking to Buy a Handgun (Maryland HQL)",
+        rec: "Recommended: Maryland Handgun Qualification License ($100.00)",
+        courseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
+        showGuide: false,
+        synopsis: "Important clarification: In Maryland, the 'Handgun License' to buy a gun IS the HQL (Handgun Qualification License). Under Md. Public Safety § 5-117.1, licensed gun dealers cannot release a handgun to you without this certification. This class fulfills the training prerequisite required for your state 77R purchase application.",
+        why: [
+          "Your goal is home security, and you want to legally purchase a pistol from a licensed Maryland dealer (FFL).",
+          "Includes step-by-step guidance on creating your Maryland State Police (MSP) portal account and submitting clean paperwork without shortages.",
+          "Completed in half a day with live-fire verification at Cindy's Hot Shots."
+        ],
+        whyNot: [
+          "The HQL does NOT license you to carry a concealed weapon outside your home or business.",
+          "If you might want to carry concealed in the future, taking HQL now means paying for two separate classes later. The CCW Combo covers both."
+        ]
+      },
+      want_to_carry: {
+        badge: "Full Public Carry Authorization • 16-Hour",
+        title: "I Want to Legally Carry Concealed in Public",
+        rec: "Recommended: Maryland CCW (Wear & Carry Permit) ($199.99)",
+        courseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
+        showGuide: false,
+        synopsis: "The mandatory state-certified 16-hour curriculum and 25-round practical qualification required to receive your Maryland Handgun Wear and Carry Permit. Provides in-depth training in defensive marksmanship, holster draw mechanics, and Maryland's strict legal use-of-force standards.",
+        why: [
+          "You want legal authorization to carry a concealed handgun on your person throughout Maryland for personal and family protection.",
+          "Comprehensive self-defense legal education: The 5 Pillars of Lawful Force (State v. Faulkner), Castle Doctrine, and SB 1 sensitive locations.",
+          "Includes the official 25-round Maryland State Police live-fire qualification shoot with Lead Instructor Kai Wade."
+        ],
+        whyNot: [
+          "Requires a 16-hour commitment across two sessions and live-fire range qualification.",
+          "If you only want a pistol locked in your home nightstand for home defense, the 4-hour HQL is all you need."
+        ]
+      },
+      want_both: {
+        badge: "Most Popular • Maximum Value & Efficiency",
+        title: "I Want Both: Purchase & Concealed Carry",
+        rec: "Recommended: Maryland CCW & HQL Combo ($249.99)",
+        courseValue: "Maryland CCW & HQL Combo — Base Track ($249.99)",
+        showGuide: false,
+        synopsis: "The all-inclusive gold standard for Maryland citizens. Complete your full 16-hour Wear & Carry permit certification and qualify for a training exemption on your Maryland HQL application—giving you full carry rights and handgun purchase rights in one streamlined curriculum.",
+        why: [
+          "Maximum efficiency: Once you graduate from Wear & Carry, Maryland allows you to apply for an HQL permit without paying for a separate HQL training class.",
+          "Covers everything from foundational safe gun handling to holster work and dynamic target acquisition.",
+          "Includes complete administrative walk-through for both Maryland State Police portals from start to finish."
+        ],
+        whyNot: [
+          "Requires the full 16-hour schedule. If you have an urgent need to purchase a home-defense firearm immediately, start with the standalone 4-hour HQL first."
+        ]
+      },
+      personalized_focus: {
+        badge: "100% Private • Custom Pace & Confidential",
+        title: "Personalized Coaching / Anxiety & Trauma Relief",
+        rec: "Recommended: Private 1-on-1 Coaching ($125.00 / hr)",
+        courseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
+        showGuide: false,
+        synopsis: "Dedicated one-on-one private instruction tailored exclusively to your personal comfort level, physical capabilities, and schedule with Lead Instructor Kai Wade. Zero classmates, zero judgment, and customized range drills.",
+        why: [
+          "You have anxiety, past trauma, or nervousness and want a quiet, completely controlled setting with supportive attention.",
+          "Advanced diagnostic shooter coaching: recoil control, red-dot optic zeroing, micro-chassis platforms, or sub-second draw mechanics.",
+          "Custom scheduling tailored around your personal availability."
+        ],
+        whyNot: [
+          "Billed at an hourly rate ($125/hr). For standard state permit compliance (Wear & Carry or HQL), our packaged group courses provide the most economical rate."
+        ]
+      },
+      need_multistate: {
+        badge: "Multi-State Travel & I-95 Commuters",
+        title: "Do I Need a Multi-State Carry Permit?",
+        rec: "Recommended: Mid-Atlantic Multi-State Mastery ($425 Base / $550 VIP)",
+        courseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($425.00)",
+        showGuide: false,
+        synopsis: "Designed for travelers, commuters, and roadtrippers who regularly cross Maryland state borders into Virginia, Pennsylvania, Delaware, the Carolinas, Georgia, or Florida. Maryland's permit alone does NOT honor Pennsylvania or Delaware directly.",
+        why: [
+          "You travel along I-95, I-81, or I-70 for work, family, or vacations and want legal carry coverage across multiple states without accidental violations.",
+          "Knocks out your Maryland Wear & Carry permit plus non-resident application documentation for VA, FL, AZ, and PA in one organized experience.",
+          "VIP option provides everything: range fees, targets, loaner 9mm, factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos."
+        ],
+        whyNot: [
+          "If you only stay inside Maryland and rarely travel out of state, the standard Maryland Wear & Carry course ($199.99 Base / $325 VIP) is all you need.",
+          "If your only goal is keeping a firearm at home for protection, choose the Maryland HQL class instead."
+        ]
+      }
     };
 
-    function openGoalSynopsis(goal) {
-      const d = GOAL_DATA[goal];
-      if (!d) return;
-      document.getElementById('goalModalTitle').textContent = d.title;
-      document.getElementById('goalModalRec').textContent = d.rec;
-      document.getElementById('goalModalSynopsis').textContent = d.desc;
-      document.getElementById('goalModalAcceptBtn').onclick = function() {
-        closeGoalSynopsis();
-        selectCourse(d.val);
-      };
-      const m = document.getElementById('goalSynopsisModal');
-      if (m) { m.style.display = 'flex'; m.classList.add('active'); }
+    function openGoalSynopsis(goalKey) {
+      const data = GOAL_SYNOPSIS_DATA[goalKey];
+      if (!data) return;
+
+      const modal = document.getElementById('goalSynopsisModal');
+      document.getElementById('goalModalBadge').textContent = data.badge;
+      document.getElementById('goalModalTitle').textContent = data.title;
+      document.getElementById('goalModalRec').textContent = data.rec;
+      document.getElementById('goalModalSynopsis').textContent = data.synopsis;
+
+      const whyList = document.getElementById('goalModalWhyList');
+      const whyNotList = document.getElementById('goalModalWhyNotList');
+      const guideBanner = document.getElementById('goalModalGuideBanner');
+      const acceptBtn = document.getElementById('goalModalAcceptBtn');
+
+      if (whyList) {
+        whyList.innerHTML = data.why.map(item => `<li><span style="color: #10b981; font-weight: bold; margin-right: 6px;">✔</span><span>${item}</span></li>`).join('');
+      }
+      if (whyNotList) {
+        whyNotList.innerHTML = data.whyNot.map(item => `<li><span style="color: var(--accent-amber); font-weight: bold; margin-right: 6px;">⚡</span><span>${item}</span></li>`).join('');
+      }
+      if (guideBanner) {
+        guideBanner.style.display = data.showGuide ? 'flex' : 'none';
+      }
+      if (acceptBtn) {
+        acceptBtn.onclick = function() {
+          closeGoalSynopsis();
+          selectCourse(data.courseValue);
+        };
+      }
+
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
     }
 
     function closeGoalSynopsis() {
-      const m = document.getElementById('goalSynopsisModal');
-      if (m) { m.classList.remove('active'); m.style.display = 'none'; }
+      const modal = document.getElementById('goalSynopsisModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
     }
 
     function selectCourse(val) {
@@ -1056,30 +1222,80 @@
       if (f) f.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function setCardTier(card, tier) {
-      const c = document.getElementById('card-course-' + card);
-      const b = document.getElementById('badge-course-' + card);
-      const vb = document.getElementById('vip-box-' + card);
-      const togB = document.getElementById('tog-base-' + card);
-      const togV = document.getElementById('tog-vip-' + card);
-      if (!c) return;
-      if (tier === 'vip') {
-        c.classList.add('vip-mode-active');
-        if (b) b.style.display = 'block';
-        if (vb) vb.style.display = 'block';
-        if (togV) togV.classList.add('active');
-        if (togB) togB.classList.remove('active');
-      } else {
-        c.classList.remove('vip-mode-active');
-        if (b) b.style.display = 'none';
-        if (vb) vb.style.display = 'none';
-        if (togB) togB.classList.add('active');
-        if (togV) togV.classList.remove('active');
+    const COURSE_TIER_CONFIG = {
+      mastery: {
+        basePrice: "$425.00",
+        vipPrice: "$550.00",
+        baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($425.00)",
+        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)"
+      },
+      combo: {
+        basePrice: "$249.99",
+        vipPrice: "$375.00",
+        baseValue: "Maryland CCW & HQL Combo — Base Track ($249.99)",
+        vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($375.00)"
+      },
+      ccw: {
+        basePrice: "$199.99",
+        vipPrice: "$325.00",
+        baseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
+        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)"
+      },
+      hql: {
+        basePrice: "$100.00",
+        vipPrice: "$165.00",
+        baseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
+        vipValue: "Maryland HQL (Purchase License) — VIP Turnkey ($165.00)"
       }
-    }
+    };
 
-    function toggleReciprocityHubModal(show) {
-      alert(show ? "Multi-State Reciprocity Hub Active." : "Closing Hub.");
+    function setCardTier(cardKey, tier) {
+      const config = COURSE_TIER_CONFIG[cardKey];
+      if (!config) return;
+      
+      const card = document.getElementById('card-course-' + cardKey);
+      const badge = document.getElementById('badge-course-' + cardKey);
+      const priceElem = document.getElementById('price-course-' + cardKey);
+      const vipBox = document.getElementById('vip-box-course-' + cardKey);
+      const btnSelect = document.getElementById('btn-select-course-' + cardKey);
+      const togBase = document.getElementById('tog-base-' + cardKey);
+      const togVip = document.getElementById('tog-vip-' + cardKey);
+      
+      if (!card) return;
+
+      if (tier === 'vip') {
+        card.classList.add('vip-mode-active');
+        if (badge) { badge.style.display = 'block'; badge.textContent = '👑 VIP MODE'; }
+        if (vipBox) vipBox.style.display = 'block';
+        if (togVip) togVip.classList.add('active');
+        if (togBase) togBase.classList.remove('active');
+        if (priceElem) {
+          priceElem.innerHTML = `
+            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-cyan);">${config.vipPrice}</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP)</span>
+          `;
+        }
+        if (btnSelect) {
+          btnSelect.textContent = "Select 👑 VIP (" + config.vipPrice + ") & Reserve Seat →";
+          btnSelect.onclick = function() { selectCourse(config.vipValue); };
+        }
+      } else {
+        card.classList.remove('vip-mode-active');
+        if (badge) badge.style.display = 'none';
+        if (vipBox) vipBox.style.display = 'none';
+        if (togBase) togBase.classList.add('active');
+        if (togVip) togVip.classList.remove('active');
+        if (priceElem) {
+          priceElem.innerHTML = `
+            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">${config.basePrice}</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
+          `;
+        }
+        if (btnSelect) {
+          btnSelect.textContent = "Select Base (" + config.basePrice + ") & Reserve Seat →";
+          btnSelect.onclick = function() { selectCourse(config.baseValue); };
+        }
+      }
     }
 
     function lookupStudentAccount() {
