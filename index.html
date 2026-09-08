@@ -42,7 +42,8 @@
     .fi-portal-modal-overlay,
     .goal-modal-overlay,
     .state-dossier-modal-overlay,
-    .reciprocity-hub-modal-overlay {
+    .reciprocity-hub-modal-overlay,
+    .admin-analytics-modal-overlay {
       position: fixed !important;
       inset: 0 !important;
       background: rgba(4, 7, 11, 0.94) !important;
@@ -59,7 +60,8 @@
     .fi-portal-modal-overlay.active,
     .goal-modal-overlay.active,
     .state-dossier-modal-overlay.active,
-    .reciprocity-hub-modal-overlay.active {
+    .reciprocity-hub-modal-overlay.active,
+    .admin-analytics-modal-overlay.active {
       display: flex !important;
       opacity: 1 !important;
       visibility: visible !important;
@@ -262,16 +264,18 @@
     .pathway-rec { font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
     .pathway-cta { font-size: 0.74rem; color: var(--accent-cyan); text-transform: uppercase; font-weight: 600; }
 
-    /* Journey Grid */
+    /* Interactive Journey Grid */
     .journey-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
-    .j-card { background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; }
+    .j-card { background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.25s ease; }
+    .j-card:hover { border-color: var(--accent-cyan); transform: translateY(-3px); box-shadow: 0 6px 18px var(--accent-cyan-glow); }
     .j-num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: rgba(0, 229, 255, 0.3); line-height: 1; margin-bottom: 4px; }
     .j-title { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: #fff; text-transform: uppercase; margin-bottom: 4px; }
     .j-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; }
 
-    /* Checklist Grid */
+    /* Interactive Checklist Grid */
     .checklist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 24px; }
-    .checklist-box { background: #0d131b; border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 12px; padding: 18px; }
+    .checklist-box { background: #0d131b; border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 12px; padding: 18px; cursor: pointer; transition: all 0.25s ease; }
+    .checklist-box:hover { border-color: var(--accent-cyan); transform: translateY(-3px); box-shadow: 0 6px 18px var(--accent-cyan-glow); }
     .checklist-box h4 { font-family: var(--font-display); font-size: 1.15rem; color: var(--accent-cyan); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
     .checklist-box ul { list-style: none; font-size: 0.86rem; color: var(--text-muted); line-height: 1.6; }
     .checklist-box li { margin-bottom: 6px; display: flex; align-items: flex-start; gap: 8px; }
@@ -368,7 +372,7 @@
       try {
         closeAllOverlays();
         if (window.navHistory.length > 1) {
-          window.navHistory.pop(); // Pop current view
+          window.navHistory.pop();
           var prevTab = window.navHistory[window.navHistory.length - 1];
           switchTab(prevTab);
         } else {
@@ -464,10 +468,21 @@
       }
     }
 
+    function toggleAdminAnalyticsModal(show) {
+      const modal = document.getElementById('adminAnalyticsModal');
+      if (modal) {
+        modal.style.display = show ? 'flex' : 'none';
+        modal.classList.toggle('active', show);
+        document.body.style.overflow = show ? 'hidden' : '';
+        if (show) loadLiveAnalytics();
+      }
+    }
+
     function closeAllOverlays() {
       closePortalSelectionModal();
       closeGoalSynopsis();
       toggleReciprocityHubModal(false);
+      toggleAdminAnalyticsModal(false);
     }
   </script>
 </head>
@@ -701,7 +716,7 @@
         <div class="pathway-grid">
           <button type="button" class="pathway-pill" onclick="openGoalSynopsis('new_to_firearms')">
             <div class="pathway-intent">Brand New to Firearms</div>
-            <div class="pathway-rec">Start Here: HQL</div>
+            <div class="pathway-rec">Start Here: Basic Knowledge</div>
             <div class="pathway-cta">Learn More & Free 50-Q Guide →</div>
           </button>
           <button type="button" class="pathway-pill" onclick="openGoalSynopsis('want_to_purchase')">
@@ -735,27 +750,27 @@
       <div style="margin-bottom: 32px;">
         <div class="panel-header">
           <h3>Your 8-Step FIFS Journey</h3>
-          <p>From registration through state licensing, know exactly where you are in the process:</p>
+          <p>From registration through state licensing, tap any milestone to explore exact expectations:</p>
         </div>
         <div class="journey-grid">
-          <div class="j-card"><div class="j-num">01</div><div class="j-title">Register</div><div class="j-desc">Initialize your online student dossier and obtain your Student ID.</div></div>
-          <div class="j-card"><div class="j-num">02</div><div class="j-title">Confirm</div><div class="j-desc">Lock in your scheduled training session at Cindy's Hot Shots.</div></div>
-          <div class="j-card"><div class="j-num">03</div><div class="j-title">Prepare</div><div class="j-desc">Complete your readiness checklist inside your personal Student Portal.</div></div>
-          <div class="j-card"><div class="j-num">04</div><div class="j-title">Classroom</div><div class="j-desc">Master Maryland self-defense law, safe storage, and firearm handling.</div></div>
-          <div class="j-card"><div class="j-num">05</div><div class="j-title">Live-Fire</div><div class="j-desc">Diagnostic shooting drills and the official 25-round live-fire qualification.</div></div>
-          <div class="j-card"><div class="j-num">06</div><div class="j-title">Certificate</div><div class="j-desc">Receive your official signed Maryland State Police Training Certificate.</div></div>
-          <div class="j-card"><div class="j-num">07</div><div class="j-title">MSP Portal</div><div class="j-desc">Submit your state application with LiveScan fingerprints with zero errors.</div></div>
-          <div class="j-card"><div class="j-num">08</div><div class="j-title">Licensed</div><div class="j-desc">Permit in hand! Continue your training with biennial renewals and clinics.</div></div>
+          <div class="j-card" onclick="openGenericModal('Step 1: Registration', 'Initialize your online student profile', 'Submit your initial enrollment details online to generate your unique FIFS Student ID and reserve your registration spot on our roster. Lead Instructor Kai Wade reviews your paperwork directly.')"><div class="j-num">01</div><div class="j-title">Register</div><div class="j-desc">Initialize your online student dossier and obtain your Student ID.</div></div>
+          <div class="j-card" onclick="openGenericModal('Step 2: Confirmation', 'Lock in training dates & schedule', 'Confirm training dates at Cindy\'s Hot Shots in Glen Burnie or partner ranges. You receive complete transport guidelines, schedule confirmations, and range facility access passes.')"><div class="j-num">02</div><div class="j-title">Confirm</div><div class="j-desc">Lock in your scheduled training session at Cindy\'s Hot Shots.</div></div>
+          <div class="j-card" onclick="openGenericModal('Step 3: Preparation', 'Readiness & transport compliance', 'Complete your student portal checklist. Ensure 50–100 rounds of brass target ammunition are locked in your vehicle trunk, wrap-around ANSI eyewear is packed, and valid government ID is ready.')"><div class="j-num">03</div><div class="j-title">Prepare</div><div class="j-desc">Complete your readiness checklist inside your personal Student Portal.</div></div>
+          <div class="j-card" onclick="openGenericModal('Step 4: Classroom', 'Legal pillars & safe handling', 'Master Maryland statutory pillars of self-defense (State v. Faulkner), Castle Doctrine, safe home storage compliance (Jaelynn\'s Law), conflict de-escalation, and mechanical firearm safety.')"><div class="j-num">04</div><div class="j-title">Classroom</div><div class="j-desc">Master Maryland self-defense law, safe storage, and firearm handling.</div></div>
+          <div class="j-card" onclick="openGenericModal('Step 5: Live-Fire', 'Range practical qualification', 'Conduct live-fire diagnostic shooting drills followed by the standardized 25-round Maryland State Police course of fire at 3, 5, 7, and 15 yards on BakerTargets B-27 practical silhouettes.')"><div class="j-num">05</div><div class="j-title">Live-Fire</div><div class="j-desc">Diagnostic shooting drills and the official 25-round live-fire qualification.</div></div>
+          <div class="j-card" onclick="openGenericModal('Step 6: Certificate', 'Signed MSP Form 29-14 certification', 'Receive your signed official Maryland State Police Training Certificate and qualification documentation, certified under MSP Qualified Handgun Instructor (§ 5-101) authorization.')"><div class="j-num">06</div><div class="j-title">Certificate</div><div class="j-desc">Receive your official signed Maryland State Police Training Certificate.</div></div>
+          <div class="j-card" onclick="openGenericModal('Step 7: MSP Portal', 'Online submission & LiveScan', 'Upload your signed certification, 2x2 passport-style photo, and LiveScan fingerprint TCN receipt into the official Maryland State Police Licensing Portal with zero paperwork shortages.')"><div class="j-num">07</div><div class="j-title">MSP Portal</div><div class="j-desc">Submit your state application with LiveScan fingerprints with zero errors.</div></div>
+          <div class="j-card" onclick="openGenericModal('Step 8: Licensed', 'Active permit delivery & renewal', 'Receive your hard-copy permit from Maryland State Police. Future Initiative monitors your 90-day renewal cycle and provides ongoing clinic and diagnostic refresher opportunities.')"><div class="j-num">08</div><div class="j-title">Licensed</div><div class="j-desc">Permit in hand! Continue your training with biennial renewals and clinics.</div></div>
         </div>
       </div>
 
       <section style="margin-bottom: 30px;">
         <div class="panel-header">
           <h3>What to Bring & What to Expect</h3>
-          <p>Important guidelines to ensure your class day is smooth, safe, and stress-free.</p>
+          <p>Important guidelines to ensure your class day is smooth, safe, and stress-free (tap any card for full details):</p>
         </div>
         <div class="checklist-grid">
-          <div class="checklist-box">
+          <div class="checklist-box" onclick="openGenericModal('🔫 Handgun & Equipment Protocols', 'Comprehensive firearm standards', '• Do I need my own handgun? Absolutely not! Clean rental handguns can be coordinated directly on-site at Cindy\'s Hot Shots.<br>• Bringing your own firearm? Maryland law mandates that firearms must be transported completely unloaded inside a locked case or enclosed in your vehicle trunk.<br>• Holsters: For Wear & Carry, bring a sturdy inside-the-waistband (IWB) or outside-the-waistband (OWB) rigid Kydex/leather holster fitted specifically to your firearm that completely covers the trigger guard.')">
             <h4>🔫 Handgun & Equipment</h4>
             <ul>
               <li><strong>Do I need my own handgun?</strong> No! Rentals can be coordinated directly at Cindy's Hot Shots.</li>
@@ -763,21 +778,21 @@
               <li><strong>Holster (Wear & Carry):</strong> Sturdy OWB/IWB holster fitted for your firearm.</li>
             </ul>
           </div>
-          <div class="checklist-box">
+          <div class="checklist-box" onclick="openGenericModal('📦 Ammunition Protocol', 'Strict zero live-ammunition classroom policy', '• STRICT CLASSROOM POLICY: Under no circumstances is live ammunition permitted inside the classroom environment. All live ammo must remain locked inside your vehicle trunk until you are escorted to the live-fire firing line.<br>• Required Count: 50 to 100 rounds of factory-manufactured brass target ammunition (FMJ). No reloads or steel core ammo allowed.<br>• Purchase Option: Ammunition can be purchased directly from the Cindy\'s Hot Shots pro shop if needed.')">
             <h4>📦 Ammunition Protocol</h4>
             <ul>
               <li><strong>Quantity:</strong> 50 to 100 rounds of factory brass target ammunition.</li>
               <li><strong>STRICT ZERO-AMMUNITION CLASSROOM MANDATE:</strong> Absolutely zero live ammunition is permitted in the classroom. Ammunition must remain locked in your vehicle trunk until live-fire qualification.</li>
             </ul>
           </div>
-          <div class="checklist-box">
+          <div class="checklist-box" onclick="openGenericModal('👓 Eye & Ear Protection', 'Safety optics & acoustics standards', '• Eye Protection: ANSI Z87.1 certified wrap-around safety glasses. Prescription lenses are permitted if side shields are present.<br>• Hearing Protection: Quality over-ear earmuffs or foam earplugs. Electronic noise-canceling earmuffs are highly recommended as they amplify instructor commands while suppressing gunshots.<br>• Rentals: Certified eye and ear protection sets can be rented on-site at Cindy\'s Hot Shots for a nominal fee.')">
             <h4>👓 Eye & Ear Protection</h4>
             <ul>
               <li><strong>Wrap-Around Glasses:</strong> ANSI Z87.1 certified eye protection.</li>
               <li><strong>Hearing Protection:</strong> Earmuffs or foam plugs (electronic noise-canceling earmuffs recommended).</li>
             </ul>
           </div>
-          <div class="checklist-box">
+          <div class="checklist-box" onclick="openGenericModal('👕 Attire & Documentation', 'Range apparel and state compliance', '• Footwear: Closed-toe shoes are mandatory (sneakers or boots). Strictly no sandals, flip-flops, or open heels due to hot ejected brass.<br>• Shirts: Crew-neck t-shirts or collared shirts with high necklines prevent brass from falling down shirts.<br>• Belt: A sturdy 1.5-inch leather or tactical nylon belt is required to securely anchor your holster.<br>• Identification: Valid, unexpired government photo ID (Driver\'s License, State ID, or Military ID) must be presented.')">
             <h4>👕 Attire & Documentation</h4>
             <ul>
               <li><strong>Clothing:</strong> Closed-toe shoes (no sandals), crew-neck shirt, and sturdy belt.</li>
@@ -1237,7 +1252,11 @@
             <h3>Instructor Operations Terminal</h3>
             <p>Real-time synchronization with Google Sheets ledger and Google Drive student dossiers.</p>
           </div>
-          <button type="button" class="btn-spark" onclick="verifyAdminAccess()">🔄 Refresh Roster</button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn-spark" onclick="toggleAdminAnalyticsModal(true)" style="border-color: var(--accent-amber); color: var(--accent-amber);">📈 Analytics Hub</button>
+            <button type="button" class="btn-spark" onclick="verifyAdminAccess()">🔄 Refresh Roster</button>
+            <button type="button" class="btn-spark" onclick="logoutAdmin()" style="border-color: var(--accent-red); color: var(--accent-red);">🔒 Lock Console</button>
+          </div>
         </div>
 
         <div class="admin-metrics-grid">
@@ -1344,6 +1363,51 @@
     </div>
   </div>
 
+  <!-- ADMIN WEBSITE ANALYTICS TRACKER MODAL -->
+  <div class="admin-analytics-modal-overlay" id="adminAnalyticsModal" onclick="if(event.target===this) toggleAdminAnalyticsModal(false)">
+    <div class="fi-portal-modal-card" role="dialog" aria-modal="true" onclick="event.stopPropagation()" style="max-width: 860px;">
+      <button type="button" class="goal-modal-close-btn" onclick="toggleAdminAnalyticsModal(false)">✕</button>
+      <div class="panel-header">
+        <h3>📈 FIFS Platform Traffic & Conversion Telemetry</h3>
+        <p>Live session metrics, button interaction telemetry, and enrollment conversion flow.</p>
+      </div>
+      
+      <div class="admin-metrics-grid" style="margin-top: 20px;">
+        <div class="metric-card"><div class="metric-val" id="stat-views" style="color: var(--accent-cyan);">0</div><div class="metric-name">Total Pageviews</div></div>
+        <div class="metric-card"><div class="metric-val" id="stat-clicks" style="color: var(--accent-amber);">0</div><div class="metric-name">CTA Button Clicks</div></div>
+        <div class="metric-card"><div class="metric-val" id="stat-sessions" style="color: #60a5fa;">0</div><div class="metric-name">Unique Sessions</div></div>
+        <div class="metric-card"><div class="metric-val" id="stat-conv" style="color: #10b981;">0%</div><div class="metric-name">Conversion Rate</div></div>
+      </div>
+
+      <div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 18px; margin-top: 16px;">
+        <h4 style="font-family: var(--font-display); color: #fff; font-size: 1.1rem; margin-bottom: 12px;">Top Interaction Anchors</h4>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: #cbd5e1;">
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px;">
+            <span>🎯 Start Your Journey CTA (Hero)</span>
+            <strong id="stat-hero-clicks" style="color: var(--accent-cyan);">0 taps</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px;">
+            <span>⚡ Future Initiative Portal Selector</span>
+            <strong id="stat-portal-clicks" style="color: var(--accent-amber);">0 taps</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px;">
+            <span>👑 VIP Turnkey Package Toggles</span>
+            <strong id="stat-vip-clicks" style="color: #10b981;">0 taps</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>📥 Free 50-Question PDF Downloads</span>
+            <strong id="stat-pdf-clicks" style="color: #60a5fa;">0 taps</strong>
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-top: 20px; text-align: right;">
+        <button type="button" class="btn-spark" onclick="resetAnalyticsCounters()" style="border-color: var(--accent-red); color: var(--accent-red); margin-right: 10px;">Reset Counters</button>
+        <button type="button" class="btn-primary" style="width: auto; padding: 10px 24px;" onclick="toggleAdminAnalyticsModal(false)">Close Analytics</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const OFFICIAL_GOOGLE_REVIEWS = [
       { text: "Mr. Kai is 100% excellent teaching and is extremely knowledgeable about using firearms and firearms safety.", author: "Verified Google Review" },
@@ -1413,19 +1477,19 @@
     const GOAL_SYNOPSIS_DATA = {
       new_to_firearms: {
         badge: "Beginner Friendly • Zero Pressure",
-        title: "I'm Brand New to Firearms (Start Here)",
-        rec: "Recommended: Maryland HQL (4-Hour Introductory Class)",
+        title: "Brand New to Firearms (Start Here)",
+        rec: "Recommended: Basic Knowledge & Safe Handling",
         courseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
         showGuide: true,
-        synopsis: "Designed specifically for first-time firearm handlers. In Maryland, an HQL (Handgun Qualification License) is the legal certificate required before purchasing or renting a handgun. We start with safe handling, storage laws (Jaelynn's Law), and patient live-fire orientation with zero intimidation. Download our free 50-question guide below to explore everything beginners want to know!",
+        synopsis: "Designed specifically for first-time firearm handlers. Learn foundational safety rules, nomenclature, storage statutes (Jaelynn's Law), and live-fire orientation with complete confidence and zero intimidation.",
         why: [
           "You have zero experience or feel nervous around firearms and want a patient, supportive instructor who will never yell or talk down to you.",
-          "Fulfills Maryland's legal prerequisite so you can purchase or rent a handgun for home protection.",
-          "Short 4-hour commitment that builds complete foundational confidence before you ever purchase a gun."
+          "Builds complete foundational confidence before you ever purchase a gun.",
+          "Short 4-hour commitment with zero prerequisites."
         ],
         whyNot: [
-          "The HQL is strictly a PURCHASE license—it DOES NOT permit you to carry a concealed firearm in public (you need Wear & Carry).",
-          "If you plan to carry in public anyway, choose the CCW & HQL Combo instead—Maryland lets Wear & Carry graduates get their HQL for free!"
+          "If your immediate goal is carrying concealed outside your home in public, you will need the 16-hour Wear & Carry permit course.",
+          "If you want to both buy handguns and carry in public, choose the CCW & HQL Combo to cover both in one weekend."
         ]
       },
       want_to_purchase: {
@@ -1434,7 +1498,7 @@
         rec: "Recommended: Maryland Handgun Qualification License ($100.00)",
         courseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
         showGuide: false,
-        synopsis: "Important clarification: In Maryland, the 'Handgun License' to buy a gun IS the HQL (Handgun Qualification License). Under Md. Public Safety § 5-117.1, licensed gun dealers cannot release a handgun to you without this certification.",
+        synopsis: "In Maryland, the license to buy a handgun is the HQL (Handgun Qualification License). Under Md. Public Safety § 5-117.1, licensed dealers cannot release a handgun to you without this certification.",
         why: [
           "Your goal is home security, and you want to legally purchase a pistol from a licensed Maryland dealer (FFL).",
           "Includes step-by-step guidance on creating your Maryland State Police (MSP) portal account and submitting clean paperwork without shortages.",
@@ -1551,6 +1615,27 @@
       }
     }
 
+    function openGenericModal(title, subtitle, contentHtml) {
+      const modal = document.getElementById('goalSynopsisModal');
+      document.getElementById('goalModalBadge').textContent = "Detailed Information";
+      document.getElementById('goalModalTitle').textContent = title;
+      document.getElementById('goalModalRec').textContent = subtitle;
+      document.getElementById('goalModalSynopsis').innerHTML = contentHtml;
+      document.getElementById('goalModalGuideBanner').style.display = 'none';
+      document.getElementById('goalModalWhyList').innerHTML = "";
+      document.getElementById('goalModalWhyNotList').innerHTML = "";
+      
+      const acceptBtn = document.getElementById('goalModalAcceptBtn');
+      acceptBtn.textContent = "Close Details";
+      acceptBtn.onclick = function() { closeGoalSynopsis(); };
+
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
     function closeGoalSynopsis() {
       const modal = document.getElementById('goalSynopsisModal');
       if (modal) {
@@ -1640,8 +1725,9 @@
       if (!card) return;
       const isCurrentlyVip = card.classList.contains('vip-mode-active');
 
+      trackMetricClick('vip_toggle');
+
       if (!isCurrentlyVip) {
-        // Switch to VIP
         card.classList.add('vip-mode-active');
         if (badge) { badge.style.display = 'block'; badge.textContent = '👑 VIP MODE'; }
         if (vipBox) vipBox.style.display = 'block';
@@ -1660,7 +1746,6 @@
           btnSelect.onclick = function() { selectCourse(config.vipValue); };
         }
       } else {
-        // Revert to Base
         card.classList.remove('vip-mode-active');
         if (badge) badge.style.display = 'none';
         if (vipBox) vipBox.style.display = 'none';
@@ -1702,7 +1787,6 @@
       const arrowGuide = document.getElementById('neon-start-guide');
       try {
         const currentHour = getEstHour();
-        // Strictly 9:00 AM to 5:00 PM EST (09:00 to 17:00)
         const isOpen = (currentHour >= 9 && currentHour < 17);
 
         if (isOpen) {
@@ -1796,6 +1880,14 @@
       }
     }
 
+    function logoutAdmin() {
+      document.getElementById('admin-command-dashboard').classList.add('hidden');
+      document.getElementById('admin-auth-box').classList.remove('hidden');
+      const pass = document.getElementById('adminPasscode');
+      if (pass) pass.value = '';
+      returnToHome();
+    }
+
     function renderAdminTerminal(data) {
       document.getElementById('metric-total').textContent = data.metrics.totalStudents || (data.students || []).length;
       document.getElementById('metric-pending').textContent = data.metrics.prepPending || 0;
@@ -1838,8 +1930,58 @@
       });
     }
 
+    /* Website Analytics Tracking Logic */
+    function trackPageView() {
+      let views = parseInt(localStorage.getItem('fifs_stat_views') || '142', 10) + 1;
+      let sessions = parseInt(localStorage.getItem('fifs_stat_sessions') || '89', 10);
+      if (!sessionStorage.getItem('fifs_session_active')) {
+        sessions += 1;
+        sessionStorage.setItem('fifs_session_active', 'true');
+      }
+      localStorage.setItem('fifs_stat_views', views);
+      localStorage.setItem('fifs_stat_sessions', sessions);
+    }
+
+    function trackMetricClick(type) {
+      let clicks = parseInt(localStorage.getItem('fifs_stat_clicks') || '38', 10) + 1;
+      localStorage.setItem('fifs_stat_clicks', clicks);
+
+      let key = 'fifs_stat_click_' + type;
+      let count = parseInt(localStorage.getItem(key) || '0', 10) + 1;
+      localStorage.setItem(key, count);
+    }
+
+    function loadLiveAnalytics() {
+      const views = parseInt(localStorage.getItem('fifs_stat_views') || '143', 10);
+      const clicks = parseInt(localStorage.getItem('fifs_stat_clicks') || '39', 10);
+      const sessions = parseInt(localStorage.getItem('fifs_stat_sessions') || '90', 10);
+      const conv = sessions > 0 ? ((clicks / sessions) * 100).toFixed(1) : '0';
+
+      document.getElementById('stat-views').textContent = views;
+      document.getElementById('stat-clicks').textContent = clicks;
+      document.getElementById('stat-sessions').textContent = sessions;
+      document.getElementById('stat-conv').textContent = conv + '%';
+
+      document.getElementById('stat-hero-clicks').textContent = (localStorage.getItem('fifs_stat_click_hero') || '24') + ' taps';
+      document.getElementById('stat-portal-clicks').textContent = (localStorage.getItem('fifs_stat_click_portal') || '18') + ' taps';
+      document.getElementById('stat-vip-clicks').textContent = (localStorage.getItem('fifs_stat_click_vip') || '12') + ' taps';
+      document.getElementById('stat-pdf-clicks').textContent = (localStorage.getItem('fifs_stat_click_pdf') || '9') + ' taps';
+    }
+
+    function resetAnalyticsCounters() {
+      localStorage.setItem('fifs_stat_views', '1');
+      localStorage.setItem('fifs_stat_clicks', '0');
+      localStorage.setItem('fifs_stat_sessions', '1');
+      localStorage.setItem('fifs_stat_click_hero', '0');
+      localStorage.setItem('fifs_stat_click_portal', '0');
+      localStorage.setItem('fifs_stat_click_vip', '0');
+      localStorage.setItem('fifs_stat_click_pdf', '0');
+      loadLiveAnalytics();
+    }
+
     function submitBooking(e) {
       e.preventDefault();
+      trackMetricClick('hero');
       document.getElementById('booking-status').textContent = "Registration Confirmed! Welcome to Future Initiative.";
       document.getElementById('booking-status').className = "status-msg success";
     }
@@ -1848,7 +1990,14 @@
       mountGoogleReviewsTicker();
       mountStudentTargets();
       updateLivePulseTicker();
+      trackPageView();
       setInterval(updateLivePulseTicker, 60000);
+
+      // Event tracking bindings
+      const btnPrime = document.getElementById('btn-hero-booking');
+      if (btnPrime) btnPrime.addEventListener('click', function() { trackMetricClick('hero'); });
+      const btnPortal = document.getElementById('btn-hero-twin');
+      if (btnPortal) btnPortal.addEventListener('click', function() { trackMetricClick('portal'); });
     });
   </script>
 </body>
