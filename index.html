@@ -5642,224 +5642,20 @@
 
     <!-- Immediate Global Navigation Handlers (Guaranteed Multi-Screen Isolation) -->
 
-  <script>
-
-    window.openAndSwitch = function(tabId) {
-
-      try {
-
-        document.body.className = 'in-app';
-
-        var hero = document.getElementById('hero-landing');
-
-        var app = document.getElementById('app-container');
-
-        if (hero) {
-
-          hero.style.setProperty('display', 'none', 'important');
-
-          hero.classList.add('hidden-view');
-
-        }
-
-        if (app) {
-
-          app.style.setProperty('display', 'block', 'important');
-
-          app.classList.add('active-view');
-
-        }
-
-        if (typeof window.switchTab === 'function') {
-
-          window.switchTab(tabId);
-
-        } else {
-
-          window.__pendingTab = tabId;
-
-        }
-
-        try { window.scrollTo(0, 0); } catch (e) {}
-
-      } catch (err) {
-
-        console.error('Error opening section:', err);
-
-      }
-
-    };
-
   
-  
-  
-  
-
-    window.returnToHome = function() {
-
-      try {
-
-        document.body.className = 'in-home';
-
-        var hero = document.getElementById('hero-landing');
-
-        var app = document.getElementById('app-container');
-
-        if (app) {
-
-          app.style.setProperty('display', 'none', 'important');
-
-          app.classList.remove('active-view');
-
-        }
-
-        if (hero) {
-
-          hero.style.setProperty('display', 'flex', 'important');
-
-          hero.classList.remove('hidden-view');
-
-        }
-
-        // Force hide all individual views inside app-container
-
-        var allTabs = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 'faq', 'admin'];
-
-        allTabs.forEach(function(t) {
-
-          var panel = document.getElementById('view-' + t);
-
-          if (panel) panel.classList.add('hidden');
-
-        });
-
-        try { window.scrollTo(0, 0); } catch (e) {}
-
-      } catch (err) {
-
-        console.error('Error returning home:', err);
-
-      }
-
-    };
-
-  </script>
 
   <!-- Global Unbreakable Navigation Handlers -->
 
   <script>
 
-    function switchTab(tab) {
-
-      const allTabs = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 'faq', 'admin'];
-
-      const sectionTitles = {
-
-        booking: 'Course Enrollment & Multi-Tier Tuition',
-
-        portal: 'Student Operations Portal',
-        'fi-portal': 'Future Initiative Client & Permit Portal',
-
-        about: 'Lead Instructor & Mission',
-
-        testimonial: 'Range Highlights & Student Milestones',
-
-        faq: 'Frequently Asked Questions',
-
-        admin: 'Instructor Command Center'
-
-      };
-
-      allTabs.forEach(function(t) {
-
-        var panel = document.getElementById('view-' + t);
-
-        if (panel) {
-
-          if (t === tab) {
-
-            panel.classList.remove('hidden');
-
-            panel.style.display = 'block';
-
-          } else {
-
-            panel.classList.add('hidden');
-
-            panel.style.display = 'none';
-
-          }
-
-        }
-
-      });
-
-      var userTag = document.getElementById('portal-user-tag');
-
-      var savedSession = localStorage.getItem('fifs_student_session');
-
-      if (tab !== 'portal' || !savedSession) {
-
-        if (userTag && sectionTitles[tab]) {
-
-          userTag.textContent = sectionTitles[tab];
-
-        }
-
-      }
-
-      try { window.scrollTo(0, 0); } catch (e) {}
-
-    }
-
-    window.switchTab = switchTab;
+    
 
   
   
   
   
 
-    function openAndSwitch(tabId) {
-
-      try {
-
-        closeAllOverlays();
-
-        document.body.className = 'in-app';
-
-        var hero = document.getElementById('hero-landing');
-
-        var app = document.getElementById('app-container');
-
-        if (hero) {
-
-          hero.style.setProperty('display', 'none', 'important');
-
-          hero.classList.add('hidden-view');
-
-        }
-
-        if (app) {
-
-          app.style.setProperty('display', 'block', 'important');
-
-          app.classList.add('active-view');
-
-        }
-
-        switchTab(tabId);
-
-        try { window.scrollTo(0, 0); } catch (e) {}
-
-      } catch (err) {
-
-        console.error('Error in openAndSwitch:', err);
-
-      }
-
-    }
-
-    window.openAndSwitch = openAndSwitch;
+    
 
   
   
@@ -5876,61 +5672,7 @@
 
     }
 
-    function returnToHome() {
-
-      try {
-
-        closeAllOverlays();
-
-        document.body.className = 'in-home';
-
-        var hero = document.getElementById('hero-landing');
-
-        var app = document.getElementById('app-container');
-
-        if (app) {
-
-          app.style.setProperty('display', 'none', 'important');
-
-          app.classList.remove('active-view');
-
-        }
-
-        if (hero) {
-
-          hero.style.setProperty('display', 'flex', 'important');
-
-          hero.classList.remove('hidden-view');
-
-        }
-
-        var allTabs = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 'faq', 'admin'];
-
-        allTabs.forEach(function(t) {
-
-          var panel = document.getElementById('view-' + t);
-
-          if (panel) {
-
-            panel.classList.add('hidden');
-
-            panel.style.display = 'none';
-
-          }
-
-        });
-
-        try { window.scrollTo(0, 0); } catch (e) {}
-
-      } catch (err) {
-
-        console.error('Error in returnToHome:', err);
-
-      }
-
-    }
-
-    window.returnToHome = returnToHome;
+    
 
   
 
@@ -8960,6 +8702,155 @@
   
   
 
+    
+    // ==========================================================================
+    // ==========================================================================
+    // OVERLAYS RESET CONTROLLER
+    // ==========================================================================
+    function closeAllOverlays() {
+      const overlayIds = [
+        'fiPortalSelectionModal', 'goalSynopsisModal', 'stepDetailModal',
+        'expectationModal', 'reciprocityHubModal', 'stateModalOverlay',
+        'collectorInfoModal', 'stateDossierModal'
+      ];
+      overlayIds.forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.remove('active');
+          el.classList.remove('open');
+          el.style.setProperty('display', 'none', 'important');
+        }
+      });
+      document.body.style.overflow = '';
+    }
+    window.closeAllOverlays = closeAllOverlays;
+
+    // AUTHORITATIVE UNIFIED NAVIGATION ENGINE (ZERO BLACK SCREEN GUARANTEE)
+    // ==========================================================================
+    const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 'faq', 'admin'];
+    const SECTION_TITLES = {
+      booking: 'Course Enrollment & Multi-Tier Tuition',
+      portal: 'Student Operations Portal',
+      'fi-portal': 'Future Initiative Client & Permit Portal',
+      about: 'Lead Instructor & Mission',
+      testimonial: 'Range Highlights & Student Milestones',
+      faq: 'Frequently Asked Questions',
+      admin: 'Instructor Command Center'
+    };
+
+    let navigationHistory = ['booking'];
+
+    function switchTab(tab) {
+      if (!ALL_APP_TABS.includes(tab)) tab = 'booking';
+
+      // Update history for Back button
+      if (navigationHistory[navigationHistory.length - 1] !== tab) {
+        navigationHistory.push(tab);
+        if (navigationHistory.length > 20) navigationHistory.shift();
+      }
+
+      ALL_APP_TABS.forEach(function(t) {
+        const panel = document.getElementById('view-' + t);
+        if (panel) {
+          if (t === tab) {
+            panel.classList.remove('hidden');
+            panel.style.setProperty('display', 'block', 'important');
+            panel.style.setProperty('visibility', 'visible', 'important');
+            panel.style.setProperty('opacity', '1', 'important');
+          } else {
+            panel.classList.add('hidden');
+            panel.style.setProperty('display', 'none', 'important');
+          }
+        }
+      });
+
+      const userTag = document.getElementById('portal-user-tag');
+      const savedSession = localStorage.getItem('fifs_student_session');
+      if (tab !== 'portal' || !savedSession) {
+        if (userTag && SECTION_TITLES[tab]) {
+          userTag.textContent = SECTION_TITLES[tab];
+        }
+      }
+
+      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+    }
+    window.switchTab = switchTab;
+
+    function openAndSwitch(tabId) {
+      try {
+        closeAllOverlays();
+        document.body.className = 'in-app';
+
+        const hero = document.getElementById('hero-landing');
+        const app = document.getElementById('app-container');
+
+        if (hero) {
+          hero.style.setProperty('display', 'none', 'important');
+          hero.classList.add('hidden-view');
+        }
+        if (app) {
+          app.style.setProperty('display', 'block', 'important');
+          app.style.setProperty('visibility', 'visible', 'important');
+          app.style.setProperty('opacity', '1', 'important');
+          app.classList.add('active-view');
+        }
+
+        switchTab(tabId);
+        try { window.scrollTo(0, 0); } catch (e) {}
+      } catch (err) {
+        console.error('Error in openAndSwitch:', err);
+      }
+    }
+    window.openAndSwitch = openAndSwitch;
+
+    function returnToHome() {
+      try {
+        closeAllOverlays();
+        document.body.className = 'in-home';
+
+        const hero = document.getElementById('hero-landing');
+        const app = document.getElementById('app-container');
+
+        if (app) {
+          app.style.setProperty('display', 'none', 'important');
+          app.classList.remove('active-view');
+        }
+        if (hero) {
+          hero.style.setProperty('display', 'flex', 'important');
+          hero.style.setProperty('visibility', 'visible', 'important');
+          hero.classList.remove('hidden-view');
+        }
+
+        ALL_APP_TABS.forEach(function(t) {
+          const panel = document.getElementById('view-' + t);
+          if (panel) {
+            panel.classList.add('hidden');
+            panel.style.setProperty('display', 'none', 'important');
+          }
+        });
+
+        navigationHistory = ['booking'];
+        try { window.scrollTo(0, 0); } catch (e) {}
+      } catch (err) {
+        console.error('Error in returnToHome:', err);
+      }
+    }
+    window.returnToHome = returnToHome;
+
+    function navigateBack() {
+      if (navigationHistory.length > 1) {
+        navigationHistory.pop(); // remove current view
+        const prev = navigationHistory.pop(); // pop previous view to switch to it
+        if (prev) {
+          switchTab(prev);
+          return;
+        }
+      }
+      returnToHome();
+    }
+    window.navigateBack = navigateBack;
+
+
     const TARGET_PHOTOS_DATA = [
 
             { id: "1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO", course: "Diagnostic Coaching", score: "1-on-1 Session", title: "Lane Diagnostics & Fundamentals", desc: "Student working through 1-on-1 coaching on the firing line at Cindy's Hot Shots. Paced instruction focused on grip friction and smooth trigger press.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
@@ -9204,85 +9095,9 @@
         </article>
 
       `).join('');
-
     }
 
-  
-  
-  
-  
-  
-  
-  
-  
-
-    
-
-    
-
-    function switchTab(tab) {
-
-      const allTabs = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 'faq', 'admin'];
-
-      const sectionTitles = {
-
-        booking: 'Course Enrollment & Tuition',
-
-        portal: 'Student Operations Portal',
-        'fi-portal': 'Future Initiative Client & Permit Portal',
-
-        about: 'Lead Instructor & Mission',
-
-        testimonial: 'Range Highlights & Student Milestones',
-
-        faq: 'Frequently Asked Questions',
-
-        admin: 'Instructor Command Center'
-
-      };
-
-      allTabs.forEach(t => {
-
-        const panel = document.getElementById('view-' + t);
-
-        if (panel) {
-
-          if (t === tab) panel.classList.remove('hidden');
-
-          else panel.classList.add('hidden');
-
-        }
-
-      });
-
-      const userTag = document.getElementById('portal-user-tag');
-
-      const savedSession = localStorage.getItem('fifs_student_session');
-
-      if (tab !== 'portal' || !savedSession) {
-
-        if (userTag && sectionTitles[tab]) {
-
-          userTag.textContent = sectionTitles[tab];
-
-        }
-
-      }
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    }
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-        function selectCourse(courseValue) {
+    function selectCourse(courseValue) {
       const bookingPanel = document.getElementById('view-booking');
       if (!bookingPanel || bookingPanel.classList.contains('hidden')) {
         switchTab('booking');
@@ -14238,31 +14053,10 @@
     // ==========================================================================
     // NAVIGATION BACK BUTTON LOGIC
     // ==========================================================================
-    let viewHistory = ['booking'];
-    function navigateBack() {
-      if (viewHistory.length > 1) {
-        viewHistory.pop(); // pop current view
-        const prevTab = viewHistory[viewHistory.length - 1];
-        if (prevTab) {
-          switchTab(prevTab);
-          return;
-        }
-      }
-      returnToHome();
-    }
-    window.navigateBack = navigateBack;
+    
 
     // Track tab switching in history
-    const originalSwitchTab = window.switchTab;
-    window.switchTab = function(tab) {
-      if (viewHistory[viewHistory.length - 1] !== tab) {
-        viewHistory.push(tab);
-        if (viewHistory.length > 15) viewHistory.shift();
-      }
-      if (typeof originalSwitchTab === 'function') {
-        originalSwitchTab(tab);
-      }
-    };
+    
 
     // ==========================================================================
     // 8-STEP FIFS JOURNEY DEEP MODAL DATA & HANDLERS
