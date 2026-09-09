@@ -6238,15 +6238,38 @@
 
 
         <!-- Student Documents & Resources -->
-        <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 20px;">
-          <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 12px;">Official Records & Resources</h4>
-          <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-            <a href="#" id="dash-doc-link" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-              📄 My Student Training Dossier (Google Doc) ↗
-            </a>
-            <a href="https://licensingportal.mdsp.maryland.gov/MspBridgeClient/" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-              🌐 Maryland State Police MyLicense Portal ↗
-            </a>
+        <!-- ================= OFFICIAL STUDENT RECORDS & STATE LICENSING DOCK ================= -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 24px;">
+          <!-- Card 1: My Student Training Dossier -->
+          <div class="portal-feature-launcher-card" style="border: 2px solid var(--accent-cyan); background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(0, 229, 255, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <span class="next-step-badge" style="color: var(--accent-cyan); margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">SECURE STUDENT PROFILE</span>
+              <h3 class="portal-feature-title" style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 6px;">📄 Personal Student Training Dossier</h3>
+              <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                Access your live synchronized Google Drive training profile, class attendance verification, instructor diagnostic notes, and certified range score log maintained by Coach Kai Wade.
+              </p>
+            </div>
+            <div>
+              <a href="#" id="dash-doc-link" target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 0 16px var(--accent-cyan-glow);">
+                Open Student Dossier (Google Docs) ↗
+              </a>
+            </div>
+          </div>
+
+          <!-- Card 2: Maryland State Police MyLicense Portal -->
+          <div class="portal-feature-launcher-card" style="border: 2px solid var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(255, 183, 3, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <span class="next-step-badge" style="color: var(--accent-amber); margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">OFFICIAL STATE LICENSING</span>
+              <h3 class="portal-feature-title" style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 6px;">🌐 MSP MyLicense Official Portal</h3>
+              <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                Official state portal to submit your formal Wear &amp; Carry (CCW) or Handgun Qualification License (HQL) application, upload your signed MSP Form 29-14, and track live investigator status.
+              </p>
+            </div>
+            <div>
+              <a href="https://licensingportal.mdsp.maryland.gov/MspBridgeClient/" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-color: var(--accent-amber); color: var(--accent-amber); box-shadow: 0 0 16px rgba(255, 183, 3, 0.2);">
+                Launch Maryland MyLicense Portal ↗
+              </a>
+            </div>
           </div>
         </div>
 
@@ -6459,7 +6482,7 @@
           <a href="#fi-sec-travel" class="fi-subnav-btn">🚗 Vehicle Travel</a>
           <a href="#fi-sec-flying" class="fi-subnav-btn">✈️ Flying With Firearms</a>
           <a href="#fi-sec-renewal" class="fi-subnav-btn">⏱️ Permit & Renewal</a>
-          <a href="#fi-sec-profile" class="fi-subnav-btn">👤 Client Profile</a>
+          
           <a href="#fi-sec-services" class="fi-subnav-btn">🛡️ Services & Booking</a>
           <a href="#fi-sec-faq" class="fi-subnav-btn">❓ Client FAQ</a>
           <button type="button" class="fi-subnav-btn" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="switchTab('portal')">🎓 Switch to Student Portal</button>
@@ -6558,7 +6581,7 @@
                 Store your permit expiration date securely for automated 90-day renewal notifications. Privacy guaranteed: zero firearm serial numbers or sensitive hardware details collected.
               </p>
             </div>
-            <button type="button" class="btn-secondary" onclick="fiScrollTo('fi-sec-profile')">Manage Client Profile ↓</button>
+            
           </div>
 
           <!-- CARD 6 -->
@@ -6995,64 +7018,6 @@
               <div style="font-size: 0.82rem; color: #94a3b8; line-height: 1.4;">MSP issues renewed 3-year Wear & Carry permit card with zero coverage gap.</div>
             </div>
           </div>
-        </div>
-
-        <!-- ================= SECTION: CLIENT PROFILE & REGISTRY ================= -->
-        <div class="fi-section-header" id="fi-sec-profile">
-          <h3>Client Profile & Expiration Registry</h3>
-          <p>Register your permit expiration date to receive automated 90-day renewal reminders and legal compliance updates.</p>
-        </div>
-
-        <div class="fi-checklist-card" style="max-width: 720px; margin: 0 auto 30px;">
-          <div style="background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.3); padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 1.3rem;">🔒</span>
-            <div style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.45;">
-              <strong>Zero Sensitive Hardware Data:</strong> Future Initiative strictly does not collect firearm serial numbers, makes, models, or photographs. Only your name, email, and expiration date are stored.
-            </div>
-          </div>
-
-          <form id="fiClientProfileForm" onsubmit="fiSubmitClientProfile(event)">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
-              <div class="form-group">
-                <label for="fiClientName">Full Name <span class="req">*</span></label>
-                <input type="text" id="fiClientName" placeholder="e.g. Marcus Vance" required>
-              </div>
-              <div class="form-group">
-                <label for="fiClientEmail">Email Address <span class="req">*</span></label>
-                <input type="email" id="fiClientEmail" placeholder="e.g. marcus@example.com" required>
-              </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
-              <div class="form-group">
-                <label for="fiClientPermitState">Primary Permit State <span class="req">*</span></label>
-                <select id="fiClientPermitState" style="background: #10161f; border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 10px 14px; border-radius: 8px; width: 100%; font-family: var(--font-display); font-size: 0.95rem;">
-                  <option value="Maryland" selected>Maryland Wear & Carry</option>
-                  <option value="Virginia">Virginia Concealed Handgun</option>
-                  <option value="Pennsylvania">Pennsylvania LTCF</option>
-                  <option value="Florida">Florida Non-Resident</option>
-                  <option value="Utah">Utah Non-Resident</option>
-                  <option value="Other">Other State Jurisdiction</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="fiClientExpDate">Permit Expiration Date <span class="req">*</span></label>
-                <input type="date" id="fiClientExpDate" required>
-              </div>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 20px;">
-              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" id="fiClientOptIn" checked style="width: 18px; height: 18px; accent-color: var(--accent-cyan);">
-                <span style="font-size: 0.88rem; color: #cbd5e1;">Send me automated 90-day renewal reminders and the 10% Future Initiative discount offer.</span>
-              </label>
-            </div>
-
-            <button type="submit" id="btn-client-save" class="btn-primary" style="width: 100%; padding: 12px;">
-              Save Client Profile & Activate Renewal Watch 🛡️
-            </button>
-            <div id="fi-profile-status" class="status-msg" style="display: none; margin-top: 12px;"></div>
-          </form>
         </div>
 
         <!-- ================= SECTION: FUTURE INITIATIVE CLIENT SERVICES ================= -->
@@ -7576,8 +7541,8 @@
           
           <!-- Interactive Tier Toggle Switch -->
           <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-mastery" onclick="setCardTier(\'mastery\', \'base\', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-mastery" onclick="setCardTier(\'mastery\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+            <button type="button" class="tier-toggle-option active" id="tog-base-mastery" onclick="setCardTier('mastery', 'base', event)">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-mastery" onclick="setCardTier('mastery', 'vip', event)" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1; cursor: pointer;">👑</button>
           </div>
 
 
@@ -7626,8 +7591,8 @@
           <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">CCW & HQL Combo</div>
           
           <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-combo" onclick="setCardTier(\'combo\', \'base\', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-combo" onclick="setCardTier(\'combo\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+            <button type="button" class="tier-toggle-option active" id="tog-base-combo" onclick="setCardTier('combo', 'base', event)">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-combo" onclick="setCardTier('combo', 'vip', event)" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1; cursor: pointer;">👑</button>
           </div>
 
 
@@ -7674,8 +7639,8 @@
           <div class="tuition-title">Maryland Wear & Carry</div>
           
           <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-ccw" onclick="setCardTier(\'ccw\', \'base\', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-ccw" onclick="setCardTier(\'ccw\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+            <button type="button" class="tier-toggle-option active" id="tog-base-ccw" onclick="setCardTier('ccw', 'base', event)">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-ccw" onclick="setCardTier('ccw', 'vip', event)" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1; cursor: pointer;">👑</button>
           </div>
 
 
@@ -7721,8 +7686,8 @@
           <div class="tuition-title">Maryland HQL</div>
           
           <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-hql" onclick="setCardTier(\'hql\', \'base\', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-hql" onclick="setCardTier(\'hql\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+            <button type="button" class="tier-toggle-option active" id="tog-base-hql" onclick="setCardTier('hql', 'base', event)">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-hql" onclick="setCardTier('hql', 'vip', event)" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1; cursor: pointer;">👑</button>
           </div>
 
 
@@ -7768,8 +7733,8 @@
           <div class="tuition-title">Personal 1-on-1 Coaching</div>
           
           <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-coaching" onclick="setCardTier(\'coaching\', \'base\', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-coaching" onclick="setCardTier(\'coaching\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+            <button type="button" class="tier-toggle-option active" id="tog-base-coaching" onclick="setCardTier('coaching', 'base', event)">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-coaching" onclick="setCardTier('coaching', 'vip', event)" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1; cursor: pointer;">👑</button>
           </div>
 
 
@@ -7815,8 +7780,8 @@
           <div class="tuition-title">Gun Cleaning Class</div>
           
           <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-cleaning" onclick="setCardTier(\'cleaning\', \'base\', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-cleaning" onclick="setCardTier(\'cleaning\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+            <button type="button" class="tier-toggle-option active" id="tog-base-cleaning" onclick="setCardTier('cleaning', 'base', event)">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-cleaning" onclick="setCardTier('cleaning', 'vip', event)" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1; cursor: pointer;">👑</button>
           </div>
 
 
@@ -7861,8 +7826,8 @@
           <div class="tuition-title">Children's Safety Class</div>
           
           <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-children" onclick="setCardTier(\'children\', \'base\', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-children" onclick="setCardTier(\'children\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+            <button type="button" class="tier-toggle-option active" id="tog-base-children" onclick="setCardTier('children', 'base', event)">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-children" onclick="setCardTier('children', 'vip', event)" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1; cursor: pointer;">👑</button>
           </div>
 
 
@@ -14454,12 +14419,12 @@
       const events = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
       const counts = JSON.parse(localStorage.getItem('fifs_analytics_counts') || '{}');
 
-      // Seeded telemetry numbers + local user interaction telemetry
-      const baseVisitors = 1482 + (counts['Open Section from Landing'] || 0);
-      const totalPageViews = 4890 + (counts['Switch Tab'] || 0) + (counts['Open Section from Landing'] || 0);
-      const vipClicks = 184 + (counts['Toggle VIP Crown'] || 0);
-      const recipLaunches = 942 + (counts['Launch Reciprocity Navigator'] || 0);
-      const bookingsStarted = 126 + (counts['Course Select'] || 0);
+      const isReset = localStorage.getItem('fifs_analytics_is_reset') === 'true';
+      const baseVisitors = isReset ? (counts['Open Section from Landing'] || 0) : (1482 + (counts['Open Section from Landing'] || 0));
+      const totalPageViews = isReset ? ((counts['Switch Tab'] || 0) + (counts['Open Section from Landing'] || 0)) : (4890 + (counts['Switch Tab'] || 0) + (counts['Open Section from Landing'] || 0));
+      const vipClicks = isReset ? (counts['Toggle VIP Crown'] || 0) : (184 + (counts['Toggle VIP Crown'] || 0));
+      const recipLaunches = isReset ? (counts['Launch Reciprocity Navigator'] || 0) : (942 + (counts['Launch Reciprocity Navigator'] || 0));
+      const bookingsStarted = isReset ? (counts['Course Select'] || 0) : (126 + (counts['Course Select'] || 0));
 
       container.innerHTML = `
         <div style="margin-top: 28px; border-top: 1px solid var(--border-subtle); padding-top: 24px;">
@@ -14477,6 +14442,9 @@
               </button>
               <button type="button" class="btn-primary" onclick="renderAdminAnalyticsDashboard()" style="padding: 8px 16px; font-size: 0.85rem; width: auto;">
                 🔄 Refresh Telemetry
+              </button>
+              <button type="button" class="btn-spark" onclick="resetWebsiteTelemetry()" style="padding: 8px 16px; font-size: 0.85rem; border-color: rgba(239, 68, 68, 0.45); color: #ef4444;" title="Reset all telemetry metrics, counters, and activity logs to zero">
+                🗑️ Reset Telemetry
               </button>
             </div>
           </div>
@@ -14629,6 +14597,17 @@
       `;
     }
     window.renderAdminAnalyticsDashboard = renderAdminAnalyticsDashboard;
+
+    function resetWebsiteTelemetry() {
+      if (confirm("Reset all website telemetry counters, conversion metrics, and live interaction logs to zero?")) {
+        localStorage.removeItem('fifs_analytics_events');
+        localStorage.removeItem('fifs_analytics_counts');
+        localStorage.setItem('fifs_analytics_is_reset', 'true');
+        renderAdminAnalyticsDashboard();
+      }
+    }
+    window.resetWebsiteTelemetry = resetWebsiteTelemetry;
+
 
     function exportAnalyticsCSV() {
       const events = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
@@ -15004,9 +14983,9 @@
         Train with Lead Instructor Kai Wade (Certified MSP Qualified Handgun Instructor § 5-101 and NRA Certified) at Cindy's Hot Shots. Build real confidence, master Maryland self-defense law, and obtain multi-state carry authorization across 34+ states.
       </p>
       <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-        <a href="https://trainwithfifs.com" target="_blank" rel="noopener noreferrer" class="btn-cta-dock" style="background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 0 18px var(--accent-cyan-glow);">
-          🎯 Book Maryland CCW & HQL Combo →
-        </a>
+        <button type="button" onclick="toggleReciprocityHubModal(false); selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)');" class="btn-cta-dock" style="background: var(--accent-cyan); color: #070b10; border: none; font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 12px 24px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 0 18px var(--accent-cyan-glow);">
+          🎯 Book Multi-State Concealed Carry Mastery (MD+VA+FL+AZ+PA) →
+        </button>
         <a href="https://trainwithfifs.com?tab=booking" target="_blank" rel="noopener noreferrer" class="btn-cta-dock" style="background: rgba(255, 183, 3, 0.15); border: 1px solid var(--accent-amber); color: var(--accent-amber); font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
           ⏱️ Book 8-Hour CCW Renewal (10% Off) →
         </a>
