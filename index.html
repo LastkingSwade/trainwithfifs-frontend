@@ -6271,6 +6271,25 @@
               </a>
             </div>
           </div>
+
+          <!-- Card 3: Maryland State Police Designated Collector Portal -->
+          <div class="portal-feature-launcher-card" style="border: 2px solid #a855f7; background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(168, 85, 247, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <span class="next-step-badge" style="color: #c084fc; margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">MSP FIREARMS EXEMPTION</span>
+              <h3 class="portal-feature-title" style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 6px;">📋 MSP Designated Collector Portal</h3>
+              <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                Bypass Maryland's statutory 30-day wait limit between regulated handgun purchases (Md. Code Ann., Public Safety § 5-123 &amp; COMAR 29.03.01.29). Free state status waiving purchase limits forever.
+              </p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <a href="https://mdsp.maryland.gov/Organization/Pages/CriminalInvestigationBureau/LicensingDivision/Firearms/FirearmsCollectors.aspx" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-color: #a855f7; color: #c084fc; box-shadow: 0 0 16px rgba(168, 85, 247, 0.2);">
+                Launch MSP Collector Portal ↗
+              </a>
+              <button type="button" class="btn-secondary-modal" onclick="openCollectorModal()" style="width: 100%; padding: 10px 18px; font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; border: 1px solid var(--border-subtle); color: #cbd5e1; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer;">
+                View 4-Step Application Guide ℹ
+              </button>
+            </div>
+          </div>
         </div>
 
 
@@ -6594,7 +6613,26 @@
               </p>
             </div>
             <button type="button" class="btn-spark" onclick="fiScrollTo('fi-sec-services')">Explore Services & Book ↓</button>
-          </div>
+          
+
+          <!-- CARD 7: MSP DESIGNATED COLLECTOR PORTAL -->
+          <div class="fi-feature-card highlight" style="border-color: rgba(168, 85, 247, 0.45); box-shadow: 0 0 20px rgba(168, 85, 247, 0.15);">
+            <div>
+              <span class="fi-feature-icon">📋</span>
+              <h3 class="fi-feature-title">MSP Designated Collector Hub</h3>
+              <p class="fi-feature-desc">
+                Waive Maryland's 30-day handgun purchase limit forever. Free state application under Md. Code Ann., Public Safety § 5-123. Review requirements and submit Form 77R-3.
+              </p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px;">
+              <a href="https://mdsp.maryland.gov/Organization/Pages/CriminalInvestigationBureau/LicensingDivision/Firearms/FirearmsCollectors.aspx" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; padding: 10px 16px; font-size: 0.85rem; border-color: #a855f7; color: #c084fc; text-align: center;">
+                Launch MSP Collector Portal ↗
+              </a>
+              <button type="button" class="btn-secondary-modal" onclick="openCollectorModal()" style="padding: 10px 16px; font-size: 0.85rem; border: 1px solid var(--border-subtle); color: #cbd5e1; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer;">
+                View 4-Step Application Guide ℹ
+              </button>
+            </div>
+          </div></div>
         </div>
 
         <!-- ================= SECTION: 50-STATE RECIPROCITY HUB ================= -->
@@ -11716,26 +11754,28 @@
   
   
 
-    function openCollectorModal() {
-
+        function openCollectorModal() {
       const modal = document.getElementById('collectorInfoModal');
-
-      if (modal) modal.classList.add('active');
-
+      if (modal) {
+        modal.classList.add('active');
+        modal.style.setProperty('display', 'flex', 'important');
+        document.body.style.overflow = 'hidden';
+      }
+      if (typeof logAnalyticsEvent === 'function') {
+        logAnalyticsEvent('MSP Exemption', 'Open Collector Guide', 'Form 77R-3');
+      }
     }
-
-  
-  
-  
-  
+    window.openCollectorModal = openCollectorModal;
 
     function closeCollectorModal() {
-
       const modal = document.getElementById('collectorInfoModal');
-
-      if (modal) modal.classList.remove('active');
-
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.setProperty('display', 'none', 'important');
+        document.body.style.overflow = '';
+      }
     }
+    window.closeCollectorModal = closeCollectorModal;
 
   
   
@@ -15127,6 +15167,9 @@
 
           Open MSP Collector Portal Page ↗
 
+        </a>
+        <a href="https://mdsp.maryland.gov/Organization/Licensing%20Division%20Documents/Application%20for%20Designated%20Collector.pdf" target="_blank" rel="noopener noreferrer" class="btn-spark" style="padding: 10px 18px; border-color: var(--accent-amber); color: var(--accent-amber); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+          📥 Download Form 77R-3 (PDF)
         </a>
 
         <button type="button" class="btn-secondary-modal" onclick="closeCollectorModal()">
