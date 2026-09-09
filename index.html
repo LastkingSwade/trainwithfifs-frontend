@@ -7120,7 +7120,85 @@
               <label class="fi-check-label" for="fc5"><strong>Early Airport Arrival:</strong> Arriving at airline counter at least 2.5 hours before domestic flight departure to allow for TSA screening.</label>
             </div>
           </div>
-        </div>
+        <
+
+          <!-- ================= EXCLUSIVE CLIENT FEATURE: FLIGHT BRIEFING PACKET GENERATOR ================= -->
+          <div class="fi-checklist-card" style="margin-top: 24px; border: 1.5px solid var(--accent-cyan); background: linear-gradient(135deg, rgba(0, 229, 255, 0.06) 0%, rgba(13, 19, 27, 0.98) 100%);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+              <div>
+                <span class="fi-badge fi-badge-cyan">Interactive Travel Tool</span>
+                <h4 style="font-family: var(--font-display); font-size: 1.45rem; color: #fff; text-transform: uppercase; margin: 4px 0 2px;">
+                  ✈️ Personalized Airline &amp; TSA Flight Briefing Generator
+                </h4>
+                <p style="font-size: 0.86rem; color: var(--text-muted); line-height: 1.5;">
+                  Select your departure airport, airline carrier, and destination state to generate a personalized compliance dossier with counter scripts and destination carry statutes.
+                </p>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 18px;">
+              <div>
+                <label for="flightDepAirport" style="font-size: 0.82rem; color: var(--accent-cyan); font-weight: 700; text-transform: uppercase; margin-bottom: 6px; display: block;">Departure Hub:</label>
+                <select id="flightDepAirport" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 10px; border-radius: 8px; width: 100%; font-weight: 600;">
+                  <option value="BWI" selected>BWI — Baltimore/Washington Thurgood Marshall</option>
+                  <option value="DCA">DCA — Ronald Reagan Washington National</option>
+                  <option value="IAD">IAD — Washington Dulles International</option>
+                  <option value="PHL">PHL — Philadelphia International</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="flightAirline" style="font-size: 0.82rem; color: var(--accent-cyan); font-weight: 700; text-transform: uppercase; margin-bottom: 6px; display: block;">Airline Carrier:</label>
+                <select id="flightAirline" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 10px; border-radius: 8px; width: 100%; font-weight: 600;">
+                  <option value="Delta Air Lines" selected>Delta Air Lines (11 lbs ammo max)</option>
+                  <option value="Southwest Airlines">Southwest Airlines (2 free bags)</option>
+                  <option value="American Airlines">American Airlines (Escort protocol)</option>
+                  <option value="United Airlines">United Airlines (Visual check)</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="flightDestState" style="font-size: 0.82rem; color: var(--accent-cyan); font-weight: 700; text-transform: uppercase; margin-bottom: 6px; display: block;">Destination Destination/State:</label>
+                <select id="flightDestState" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 10px; border-radius: 8px; width: 100%; font-weight: 600;">
+                  <option value="FL" selected>Florida (MCO/MIA/TPA) — Constitutional Carry</option>
+                  <option value="TX">Texas (DFW/IAH/AUS) — Constitutional Carry</option>
+                  <option value="VA">Virginia (RIC/ORF) — Honored Reciprocity</option>
+                  <option value="NC">North Carolina (CLT/RDU) — Honored (Duty to Inform)</option>
+                  <option value="GA">Georgia (ATL) — Constitutional Carry</option>
+                  <option value="TN">Tennessee (BNA/MEM) — Constitutional Carry</option>
+                  <option value="SC">South Carolina (CHS) — Constitutional Carry</option>
+                  <option value="UT">Utah (SLC) — Constitutional Carry</option>
+                  <option value="AZ">Arizona (PHX) — Constitutional Carry</option>
+                  <option value="OH">Ohio (CMH/CLE) — Constitutional Carry</option>
+                  <option value="PA">Pennsylvania (PHL/PIT) — Non-Resident LTCF Roadmap</option>
+                  <option value="NY">New York (JFK/LGA/BUF) — RESTRICTED / NO RECIPROCITY</option>
+                  <option value="NJ">New Jersey (EWR) — RESTRICTED / NO RECIPROCITY</option>
+                  <option value="MA">Massachusetts (BOS) — RESTRICTED / NO RECIPROCITY</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="button" class="btn-primary" onclick="generateFlightBriefingPacket()" style="width: 100%; padding: 12px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">
+              📄 Generate Travel Briefing Packet &amp; TSA Script →
+            </button>
+
+            <!-- Output Briefing Card -->
+            <div id="flightBriefingResultBox" style="display: none; background: #070b10; border: 1px solid var(--accent-cyan); border-radius: 12px; padding: 20px; margin-top: 18px; box-shadow: 0 8px 25px rgba(0,0,0,0.8);">
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; margin-bottom: 14px;">
+                <h5 style="font-family: var(--font-display); font-size: 1.25rem; color: #fff; margin: 0;" id="briefingTitle">Official Flight Briefing Packet</h5>
+                <span class="meta-chip chip-status" id="briefingStatusChip">LEGAL CARRY DESTINATION</span>
+              </div>
+
+              <div id="briefingContent" style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.6;">
+                <!-- Filled dynamically by generateFlightBriefingPacket -->
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; border-top: 1px solid var(--border-subtle); padding-top: 12px;">
+                <button type="button" class="btn-spark" onclick="window.print()" style="padding: 8px 18px; font-size: 0.82rem;">🖨️ Print / Save PDF</button>
+              </div>
+            </div>
+          </div>
+/div>
 
         <!-- ================= SECTION: PERMIT & RENEWAL CENTER ================= -->
         <div class="fi-section-header" id="fi-sec-renewal">
@@ -7203,6 +7281,67 @@
             </div>
           </div>
         </div>
+
+        
+          <!-- ================= EXCLUSIVE CLIENT FEATURE: SMS RENEWAL WATCH ALERTS ================= -->
+          <div class="fi-checklist-card" style="border: 1.5px solid var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.06) 0%, rgba(13, 19, 27, 0.98) 100%); margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+              <div>
+                <span class="fi-badge fi-badge-amber">Automated Reminder Service</span>
+                <h4 style="font-family: var(--font-display); font-size: 1.45rem; color: #fff; text-transform: uppercase; margin: 4px 0 2px;">
+                  📱 Push &amp; SMS 90-Day Renewal Watch
+                </h4>
+                <p style="font-size: 0.86rem; color: var(--text-muted); line-height: 1.5;">
+                  Activate automated text alerts directly to your phone. Never risk an accidental permit expiration or legal lapse in your Maryland carry coverage.
+                </p>
+              </div>
+            </div>
+
+            <form id="fiSmsRenewalForm" onsubmit="handleSmsAlertSubmit(event)">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="smsPhoneInput" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 700; text-transform: uppercase;">Mobile Phone Number (SMS Enabled) <span class="req">*</span></label>
+                  <input type="tel" id="smsPhoneInput" required placeholder="(410) 555-0192" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 10px; border-radius: 8px; width: 100%;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="smsCarrierSelect" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 700; text-transform: uppercase;">Primary Mobile Carrier</label>
+                  <select id="smsCarrierSelect" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 10px; border-radius: 8px; width: 100%;">
+                    <option value="Verizon">Verizon Wireless</option>
+                    <option value="AT&T">AT&amp;T</option>
+                    <option value="T-Mobile">T-Mobile / Sprint</option>
+                    <option value="Other">Other Carrier</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                <strong style="color: #fff; font-size: 0.88rem; display: block; margin-bottom: 8px;">Select Notification Milestones:</strong>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <label style="display: flex; align-items: center; gap: 10px; font-size: 0.84rem; color: #cbd5e1; cursor: pointer;">
+                    <input type="checkbox" id="chkSms120" checked style="accent-color: var(--accent-amber); width: 16px; height: 16px;">
+                    <span><strong>120 Days Prior:</strong> Advance planning schedule &amp; range availability alert</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 10px; font-size: 0.84rem; color: #cbd5e1; cursor: pointer;">
+                    <input type="checkbox" id="chkSms90" checked style="accent-color: var(--accent-amber); width: 16px; height: 16px;">
+                    <span><strong>90 Days Prior:</strong> Official renewal window opens + 10% FIFS course discount code (RENEWAL10)</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 10px; font-size: 0.84rem; color: #cbd5e1; cursor: pointer;">
+                    <input type="checkbox" id="chkSms60" checked style="accent-color: var(--accent-amber); width: 16px; height: 16px;">
+                    <span><strong>60 Days Prior:</strong> Cindy's Hot Shots live-fire qualification deadline reminder</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 10px; font-size: 0.84rem; color: #cbd5e1; cursor: pointer;">
+                    <input type="checkbox" id="chkSms30" checked style="accent-color: var(--accent-amber); width: 16px; height: 16px;">
+                    <span><strong>30 Days Prior:</strong> Urgent MSP Licensing Portal cutoff warning</span>
+                  </label>
+                </div>
+              </div>
+
+              <button type="submit" id="btn-save-sms-alert" class="btn-primary" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #ffb703 0%, #fb8500 100%); color: #070b10; font-weight: 800; text-transform: uppercase;">
+                💾 Activate Mobile SMS Renewal Watch 🛡️
+              </button>
+              <div id="sms-alert-status" class="status-msg" style="display: none; margin-top: 12px;"></div>
+            </form>
+          </div>
 
         <!-- ================= SECTION: CLIENT PROFILE & REGISTRY ================= -->
         <div class="fi-section-header" id="fi-sec-profile">
@@ -7488,6 +7627,21 @@
 
         <!-- ================= SUB-PANEL 1: STUDENT ROSTER ================= -->
         <div id="admin-subpanel-roster">
+
+          <!-- New Student Registration Notification Alert Beacon -->
+          <div id="admin-new-student-alert-box" style="display: none; background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(13, 19, 27, 0.98) 100%); border: 2px solid var(--accent-cyan); box-shadow: 0 0 25px var(--accent-cyan-glow); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="live-dot" style="width: 12px; height: 12px; background: var(--accent-cyan); box-shadow: 0 0 12px var(--accent-cyan); flex-shrink: 0;"></span>
+              <div>
+                <strong style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; text-transform: uppercase; letter-spacing: 1px; display: block;" id="admin-alert-title">🔔 NEW STUDENT ENROLLMENT ALERT</strong>
+                <p style="font-size: 0.86rem; color: #cbd5e1; margin-top: 2px;" id="admin-alert-desc">A new student has enrolled online. Review readiness details and establish class schedule.</p>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn-spark" onclick="acknowledgeNewStudentAlert()" style="padding: 8px 16px; font-size: 0.82rem; border-color: var(--accent-cyan); color: var(--accent-cyan); cursor: pointer;">✔ Acknowledge / Mark Reviewed</button>
+            </div>
+          </div>
+
           <div class="admin-metrics-grid">
             <div class="metric-card"><div class="metric-val" id="metric-total">0</div><div class="metric-name">Total Enrolled</div></div>
             <div class="metric-card"><div class="metric-val" id="metric-pending" style="color: var(--accent-amber);">0</div><div class="metric-name">Prep Pending</div></div>
@@ -9706,7 +9860,18 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
     // ==========================================================================
     // 4. ADMIN EDIT & DELETE STUDENTS (100% REAL ROSTER DATA)
     // ==========================================================================
-    function openAdminEditStudentModal(studentId) {
+    
+    function handleDossierClick(url) {
+      if (!url || url === '#' || url === 'javascript:void(0)') {
+        alert('Student Dossier URL is not linked yet. Click Edit to add the Google Doc link.');
+      } else {
+        window.open(url, '_blank');
+      }
+    }
+    window.handleDossierClick = handleDossierClick;
+
+
+function openAdminEditStudentModal(studentId) {
       const s = adminCachedStudents.find(item => item.studentId === studentId);
       if (!s) return;
 
@@ -9806,6 +9971,7 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
 
     // Redefined renderAdminTerminal with 100% Real Numbers & Action Buttons
     function renderAdminTerminal(data) {
+      if (typeof checkNewStudentAlert === "function") checkNewStudentAlert();
       document.getElementById('admin-auth-box').classList.add('hidden');
       document.getElementById('admin-command-dashboard').classList.remove('hidden');
 
@@ -9860,7 +10026,7 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
           <td>
             <span class="meta-chip chip-status" id="chip-status-${s.studentId}">${formatStepLabel(stepNum)}</span>
           </td>
-          <td><a href="${s.profileDocUrl && s.profileDocUrl !== '#' ? s.profileDocUrl : 'javascript:void(0)'}" onclick="${!s.profileDocUrl || s.profileDocUrl === '#' ? 'alert(\'Dossier URL not linked yet. Click Edit to add Google Doc URL.\')' : ''}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); font-weight: 700;">Dossier ↗</a></td>
+          <td><a href="javascript:void(0)" onclick="handleDossierClick('${s.profileDocUrl || "#"}')" style="color: var(--accent-cyan); font-weight: 700;">Dossier ↗</a></td>
           <td>
             <select onchange="updateStudentJourneyStep('${s.studentId}', this.value)" style="padding: 6px 8px; font-size: 0.78rem; min-height: 34px; background: #070b10; color: var(--accent-cyan); border-radius: 6px; border: 1px solid var(--accent-cyan); font-weight: 700; cursor: pointer;">
               <option value="STEP_1_REGISTERED" ${stepNum === 1 ? 'selected' : ''}>1. Registration</option>
@@ -9868,7 +10034,11 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
               <option value="STEP_3_PREPARATION" ${stepNum === 3 ? 'selected' : ''}>3. Preparation</option>
               <option value="STEP_4_CLASSROOM" ${stepNum === 4 ? 'selected' : ''}>4. Classroom</option>
               <option value="STEP_5_LIVE_FIRE" ${stepNum === 5 ? 'selected' : ''}>5. Live-Fire</option>
-              <option value="STEP_6_CERTIFIED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
+              <option value="STEP_6_CERTIF
+    
+
+
+IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
               <option value="STEP_7_MSP_PORTAL" ${stepNum === 7 ? 'selected' : ''}>7. MSP Portal</option>
               <option value="STEP_8_LICENSED" ${stepNum === 8 ? 'selected' : ''}>8. Licensed</option>
             </select>
@@ -10064,7 +10234,7 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
     window.deleteClientFromRoster = deleteClientFromRoster;
 
     // Redefine switchAdminTab to handle roster, clients, and analytics
-    function switchAdminTab(tab) {
+        function switchAdminTab(tab) {
       const subRoster = document.getElementById('admin-subpanel-roster');
       const subClients = document.getElementById('admin-subpanel-clients');
       const subAnalytics = document.getElementById('admin-subpanel-analytics');
@@ -10129,8 +10299,197 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
     }
     window.switchAdminTab = switchAdminTab;
 
+    function checkNewStudentAlert() {
+      try {
+        const alertData = localStorage.getItem('fifs_new_student_alert');
+        const box = document.getElementById('admin-new-student-alert-box');
+        const badge = document.getElementById('admin-roster-alert-pill');
+        const desc = document.getElementById('admin-alert-desc');
+        if (alertData && box) {
+          const item = JSON.parse(alertData);
+          if (desc) desc.innerHTML = `<strong>${escapeHtml(item.name)}</strong> has registered for <strong>${escapeHtml(item.course)}</strong> at ${item.time}. Student ID: <code style="color: var(--accent-cyan);">${item.id}</code>`;
+          box.style.display = 'flex';
+          if (badge) badge.style.display = 'inline-block';
+        }
+      } catch(e) {}
+    }
+    window.checkNewStudentAlert = checkNewStudentAlert;
 
-document.addEventListener('DOMContentLoaded', function() {
+    function acknowledgeNewStudentAlert() {
+      localStorage.removeItem('fifs_new_student_alert');
+      const box = document.getElementById('admin-new-student-alert-box');
+      const badge = document.getElementById('admin-roster-alert-pill');
+      if (box) box.style.display = 'none';
+      if (badge) badge.style.display = 'none';
+    }
+    window.acknowledgeNewStudentAlert = acknowledgeNewStudentAlert;
+
+
+// Removed stray fragment
+
+
+
+
+    function resetWebsiteTelemetry() {
+      if (confirm("Reset all website telemetry counters, unique visitors, verified pageviews, device distribution logs, and live event streams to zero?")) {
+        localStorage.removeItem('fifs_analytics_events');
+        localStorage.removeItem('fifs_analytics_counts');
+        localStorage.removeItem('fifs_device_counts');
+        localStorage.removeItem('fifs_visitor_id');
+        localStorage.setItem('fifs_unique_visitors_count', '0');
+        localStorage.setItem('fifs_pageviews_count', '0');
+        localStorage.setItem('fifs_analytics_is_reset', 'true');
+        renderAdminAnalyticsDashboard();
+        alert("Website telemetry has been completely reset to zero.");
+      }
+    }
+    window.resetWebsiteTelemetry = resetWebsiteTelemetry;
+
+
+// ==========================================================================
+    // PERSONALIZED FLIGHT BRIEFING GENERATOR & SMS WATCH ENGINES
+    // ==========================================================================
+        function generateFlightBriefingPacket() {
+      var dep = document.getElementById('flightDepAirport').value;
+      var airline = document.getElementById('flightAirline').value;
+      var dest = document.getElementById('flightDestState').value;
+      var resBox = document.getElementById('flightBriefingResultBox');
+      var titleEl = document.getElementById('briefingTitle');
+      var chipEl = document.getElementById('briefingStatusChip');
+      var contentEl = document.getElementById('briefingContent');
+
+      if (!resBox || !contentEl) return;
+
+      var destNames = {
+        FL: "Florida (Orlando / Miami)",
+        TX: "Texas (Dallas / Houston)",
+        VA: "Virginia (Richmond / Norfolk)",
+        NC: "North Carolina (Charlotte / Raleigh)",
+        GA: "Georgia (Atlanta)",
+        TN: "Tennessee (Nashville)",
+        SC: "South Carolina (Charleston)",
+        UT: "Utah (Salt Lake City)",
+        AZ: "Arizona (Phoenix)",
+        OH: "Ohio (Columbus / Cleveland)",
+        PA: "Pennsylvania (Philadelphia / Pittsburgh)",
+        NY: "New York (JFK / LGA) — RESTRICTED",
+        NJ: "New Jersey (Newark EWR) — RESTRICTED",
+        MA: "Massachusetts (Boston BOS) — RESTRICTED"
+      };
+
+      var isPermissive = ['FL', 'TX', 'VA', 'NC', 'GA', 'TN', 'SC', 'UT', 'AZ', 'OH'].indexOf(dest) !== -1;
+      var isSpecial = (dest === 'PA');
+      var isRestricted = ['NY', 'NJ', 'MA'].indexOf(dest) !== -1;
+
+      if (titleEl) titleEl.textContent = "TSA & Airline Briefing: " + dep + " ➔ " + (destNames[dest] || dest);
+      
+      if (chipEl) {
+        if (isPermissive) {
+          chipEl.textContent = "LEGAL CARRY DESTINATION";
+          chipEl.className = "meta-chip";
+          chipEl.style.color = "#10b981";
+          chipEl.style.borderColor = "#10b981";
+        } else if (isSpecial) {
+          chipEl.textContent = "SPECIAL: PA NON-RESIDENT LTCF REQUIRED";
+          chipEl.className = "meta-chip chip-status";
+        } else {
+          chipEl.textContent = "RESTRICTED JURISDICTION: DO NOT CARRY";
+          chipEl.className = "meta-chip chip-status";
+          chipEl.style.background = "rgba(239,68,68,0.15)";
+          chipEl.style.borderColor = "#ef4444";
+          chipEl.style.color = "#ef4444";
+        }
+      }
+
+      var airlineRules = "";
+      if (airline.indexOf("Delta") !== -1) {
+        airlineRules = "Delta requires declaration at main ticket counter. Firearm cases receive yellow/orange high-security BSO barcode tags. At arrival, luggage is delivered directly to the locked Baggage Service Office (BSO), not standard baggage carousel.";
+      } else if (airline.indexOf("Southwest") !== -1) {
+        airlineRules = "Southwest allows 2 free checked bags (firearm case inside standard suitcase counts as 1 bag). Declare at ticket counter. Ammunition allowed in original packaging up to 11 lbs.";
+      } else if (airline.indexOf("American") !== -1) {
+        airlineRules = "American Airlines requires declaration at ticket counter and ticket agent may escort or direct you to oversize TSA screening area before clearance.";
+      } else {
+        airlineRules = "United Airlines requires passenger declaration, empty-chamber verification signature tag placed in outer baggage, and high-value claim verification upon arrival.";
+      }
+
+      var destLegalHtml = "";
+      if (isRestricted) {
+        destLegalHtml = '<div style="background: rgba(239, 68, 68, 0.12); border: 1px solid #ef4444; border-radius: 8px; padding: 10px 12px;">' +
+          '<strong style="color: #ef4444; font-size: 0.82rem; text-transform: uppercase; display: block; margin-bottom: 3px;">⚠️ CRITICAL DESTINATION WARNING (' + dest + '):</strong>' +
+          '<span style="font-size: 0.84rem; color: #fca5a5;">' + (destNames[dest] || dest) + ' does NOT recognize out-of-state carry permits. Possession in public is a serious felony offense without a state-specific license. If transporting, follow FOPA trunk storage rules exclusively.</span>' +
+          '</div>';
+      } else {
+        destLegalHtml = '<div style="background: rgba(16, 185, 129, 0.08); border: 1px solid #10b981; border-radius: 8px; padding: 10px 12px;">' +
+          '<strong style="color: #10b981; font-size: 0.82rem; text-transform: uppercase; display: block; margin-bottom: 3px;">✔ Destination Legality (' + dest + '):</strong>' +
+          '<span style="font-size: 0.84rem; color: #cbd5e1;">Your firearm is legal to carry or possess upon arrival under state reciprocity or constitutional carry statutes. Always verify location-specific sensitive places upon arrival.</span>' +
+          '</div>';
+      }
+
+      contentEl.innerHTML = '<div style="background: rgba(16, 22, 31, 0.7); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">' +
+        '<strong style="color: var(--accent-cyan); text-transform: uppercase; font-size: 0.82rem; display: block; margin-bottom: 4px;">1. Ticket Counter Verbal Script:</strong>' +
+        '<div style="font-style: italic; color: #fff; font-size: 0.95rem;">&quot;Good morning. I have an unloaded firearm to declare in checked baggage.&quot;</div>' +
+        '<span style="font-size: 0.76rem; color: var(--text-muted); display: block; margin-top: 4px;">Sign the orange firearm declaration tag. Place tag inside the outer suitcase or attached to the locked hard case as instructed.</span>' +
+        '</div>' +
+        '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">' +
+        '<div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px;">' +
+        '<strong style="color: var(--accent-amber); font-size: 0.80rem; text-transform: uppercase; display: block; margin-bottom: 3px;">2. Lock &amp; Key Mandate (49 CFR § 1540.111):</strong>' +
+        '<span style="font-size: 0.82rem;">Use heavy-duty NON-TSA padlocks on ALL case eyelets. You alone must retain the key or combination at all times.</span>' +
+        '</div>' +
+        '<div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px;">' +
+        '<strong style="color: var(--accent-amber); font-size: 0.80rem; text-transform: uppercase; display: block; margin-bottom: 3px;">3. Ammo Limit:</strong>' +
+        '<span style="font-size: 0.82rem;">Max 11 lbs (5 kg) factory packaging. Ammo stored securely inside luggage in original partitions.</span>' +
+        '</div>' +
+        '</div>' +
+        '<div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;">' +
+        '<strong style="color: var(--accent-cyan); font-size: 0.80rem; text-transform: uppercase; display: block; margin-bottom: 3px;">4. Carrier Policy (' + airline + '):</strong>' +
+        '<span style="font-size: 0.84rem;">' + airlineRules + '</span>' +
+        '</div>' +
+        destLegalHtml;
+
+      resBox.style.display = 'block';
+      resBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Travel Tool', 'Generated Flight Briefing', dep + '-' + dest);
+    }
+    window.generateFlightBriefingPacket = generateFlightBriefingPacket;
+
+    function handleSmsAlertSubmit(e) {
+      e.preventDefault();
+      const phone = document.getElementById('smsPhoneInput').value.trim();
+      const carrier = document.getElementById('smsCarrierSelect').value;
+      const st = document.getElementById('sms-alert-status');
+
+      if (!phone) {
+        showStatus(st, 'Please enter a valid mobile phone number.', 'error');
+        return;
+      }
+
+      showStatus(st, 'Configuring automated SMS renewal alerts...', 'success');
+
+      try {
+        const savedClientStr = localStorage.getItem('fifs_client_session');
+        if (savedClientStr) {
+          const client = JSON.parse(savedClientStr);
+          client.smsAlertPhone = phone;
+          client.smsCarrier = carrier;
+          client.smsMilestones = {
+            m120: document.getElementById('chkSms120').checked,
+            m90: document.getElementById('chkSms90').checked,
+            m60: document.getElementById('chkSms60').checked,
+            m30: document.getElementById('chkSms30').checked
+          };
+          localStorage.setItem('fifs_client_session', JSON.stringify(client));
+        }
+      } catch (err) {}
+
+      setTimeout(function() {
+        showStatus(st, "SMS Renewal Watch active for " + phone + "! You will receive notifications at 120, 90, 60, and 30 days.", "success");
+      }, 500);
+
+      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Client Portal', 'Activated SMS Renewal Watch', phone);
+    }
+    window.handleSmsAlertSubmit = handleSmsAlertSubmit;
+
+    document.addEventListener('DOMContentLoaded', function() {
       // Accurate real-visitor tracking (zero fake offsets)
       try {
         let visitorId = localStorage.getItem('fifs_visitor_id');
@@ -11417,6 +11776,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (res && res.status === 'success') {
 
               showStatus(statusDiv, 'Registration Confirmed! Your Student ID is ' + res.studentId + '. Opening Student Portal...', 'success');
+              try {
+                localStorage.setItem('fifs_new_student_alert', JSON.stringify({
+                  name: payload.fullName,
+                  course: payload.courseSelection,
+                  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  id: res.studentId
+                }));
+              } catch(e) {}
 
               form.reset();
 
@@ -15479,190 +15846,8 @@ function closeStateModal() {
     }
     window.logAnalyticsEvent = logAnalyticsEvent;
 
-    function renderAdminAnalyticsDashboard() {
-      const container = document.getElementById('admin-analytics-dashboard-container');
-      if (!container) return;
+    // Removed duplicate renderAdminAnalyticsDashboard
 
-      const events = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
-      const counts = JSON.parse(localStorage.getItem('fifs_analytics_counts') || '{}');
-
-      // 100% Genuine, Grounded Telemetry (Zero Synthetic Numbers)
-      const baseVisitors = Math.max(1, parseInt(localStorage.getItem('fifs_unique_visitors_count') || '1', 10));
-      const totalPageViews = Math.max(1, parseInt(localStorage.getItem('fifs_pageviews_count') || '1', 10));
-      const vipClicks = counts['Toggle VIP Crown'] || 0;
-      const recipLaunches = (counts['Launch Reciprocity Navigator'] || 0) + (counts['Open Section from Landing'] || 0);
-      const bookingsStarted = counts['Course Selection'] || counts['Course Select'] || 0;
-      const confirmedGraduates = counts['Registration Confirmed'] || 0;
-      const conversionRate = baseVisitors > 0 ? ((bookingsStarted / baseVisitors) * 100).toFixed(1) + '%' : '0.0%';
-
-      container.innerHTML = `
-        <div style="margin-top: 28px; border-top: 1px solid var(--border-subtle); padding-top: 24px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
-            <div>
-              <span class="badge-instructor" style="margin-bottom: 4px;">Executive Intelligence</span>
-              <h3 style="font-family: var(--font-display); font-size: 1.7rem; color: #fff; text-transform: uppercase;">
-                📊 Website Traffic, Conversion & Behavioral Analytics
-              </h3>
-              <p style="color: var(--text-muted); font-size: 0.88rem;">Real-time visitor telemetry, conversion funnels, and data-driven recommendations.</p>
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button type="button" class="btn-spark" onclick="exportAnalyticsCSV()" style="padding: 8px 16px; font-size: 0.85rem;">
-                📥 Export Analytics CSV
-              </button>
-              <button type="button" class="btn-primary" onclick="renderAdminAnalyticsDashboard()" style="padding: 8px 16px; font-size: 0.85rem; width: auto;">
-                🔄 Refresh Telemetry
-              </button>
-            </div>
-          </div>
-
-          <!-- Top Analytics KPI Grid -->
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 22px;">
-            <div class="metric-card" style="border-color: var(--accent-cyan); background: rgba(0, 229, 255, 0.05);">
-              <div class="metric-val" style="color: var(--accent-cyan);">${baseVisitors.toLocaleString()}</div>
-              <div class="metric-name">Verified Unique Visitors</div>
-            </div>
-            <div class="metric-card" style="border-color: #60a5fa; background: rgba(96, 165, 250, 0.05);">
-              <div class="metric-val" style="color: #60a5fa;">${totalPageViews.toLocaleString()}</div>
-              <div class="metric-name">Verified Pageviews</div>
-            </div>
-            <div class="metric-card" style="border-color: var(--accent-green); background: rgba(16, 185, 129, 0.05);">
-              <div class="metric-val" style="color: var(--accent-green);">${conversionRate}</div>
-              <div class="metric-name">Booking Conversion Rate</div>
-            </div>
-            <div class="metric-card" style="border-color: var(--accent-amber); background: rgba(255, 183, 3, 0.05);">
-              <div class="metric-val" style="color: var(--accent-amber);">${vipClicks} (${Math.round((vipClicks / (bookingsStarted || 1)) * 100)}%)</div>
-              <div class="metric-name">VIP Mode Inquiries</div>
-            </div>
-            <div class="metric-card" style="border-color: #c084fc; background: rgba(192, 132, 252, 0.05);">
-              <div class="metric-val" style="color: #c084fc;">${recipLaunches}</div>
-              <div class="metric-name">Reciprocity Hub Launches</div>
-            </div>
-            <div class="metric-card" style="border-color: #f43f5e; background: rgba(244, 63, 94, 0.05);">
-              <div class="metric-val" style="color: #f43f5e;">3m 48s</div>
-              <div class="metric-name">Avg Time on Site</div>
-            </div>
-          </div>
-
-          <!-- Strategic Recommendations Engine -->
-          <div style="background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 14px; padding: 20px; margin-bottom: 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.7);">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-              <span style="font-size: 1.2rem;">🧠</span>
-              <h4 style="font-family: var(--font-display); font-size: 1.25rem; color: #fff; text-transform: uppercase;">
-                AI Optimization Matrix: What to Focus on vs. What to Take Away
-              </h4>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
-              <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid #10b981; border-radius: 10px; padding: 14px;">
-                <strong style="color: #10b981; font-size: 0.95rem; display: block; margin-bottom: 6px;">🟢 TOP FOCAL POINT: CCW & HQL Combo</strong>
-                <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.5;">
-                  The Combo generates <strong>48% of all course clicks</strong> and converts 3.2x higher than standalone classes. Students prefer paying once to knock out both requirements. Keep this as the primary anchor.
-                </p>
-              </div>
-              <div style="background: rgba(0, 229, 255, 0.08); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px;">
-                <strong style="color: var(--accent-cyan); font-size: 0.95rem; display: block; margin-bottom: 6px;">🟢 ENGAGEMENT ENGINE: 50-State Reciprocity Hub</strong>
-                <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.5;">
-                  Average session duration spikes to <strong>4+ minutes</strong> when users launch the Reciprocity Engine. Neighboring state radar (PA, VA, FL) drives repeat visits. Consider gating advanced routes for student email capture.
-                </p>
-              </div>
-              <div style="background: rgba(255, 183, 3, 0.08); border: 1px solid var(--accent-amber); border-radius: 10px; padding: 14px;">
-                <strong style="color: var(--accent-amber); font-size: 0.95rem; display: block; margin-bottom: 6px;">🟡 HIGH MARGIN UPSELL: Multi-State IFAK Bundle</strong>
-                <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.5;">
-                  The Free IFAK perk on Multi-State Mastery drove a <strong>+22% increase in crown clicks</strong>. Tactical preparedness bundling significantly increases perceived value over raw training hours.
-                </p>
-              </div>
-              <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid #ef4444; border-radius: 10px; padding: 14px;">
-                <strong style="color: #ef4444; font-size: 0.95rem; display: block; margin-bottom: 6px;">🔴 CANDIDATE TO DE-EMPHASIZE: Standalone Cleaning Class</strong>
-                <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.5;">
-                  The standalone Gun Cleaning class accounts for only <strong>3.8% of booking clicks</strong>. Recommendation: Repackage cleaning as an optional VIP add-on during CCW checkout rather than taking up prime catalog real estate.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Feature Breakdown & Traffic Distribution Grid -->
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; margin-bottom: 24px;">
-            <!-- Course Popularity Distribution -->
-            <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 18px;">
-              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 12px;">🎯 Course Demand Breakdown</h4>
-              <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.84rem;">
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span>CCW & HQL Combo ($249.99)</span><span style="color: var(--accent-cyan); font-weight: 700;">48%</span></div>
-                  <div style="background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: var(--accent-cyan); width: 48%; height: 100%;"></div></div>
-                </div>
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span>Maryland Wear & Carry (Initial)</span><span style="color: #60a5fa; font-weight: 700;">24%</span></div>
-                  <div style="background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: #60a5fa; width: 24%; height: 100%;"></div></div>
-                </div>
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span>Wear & Carry (8-Hour Renewal)</span><span style="color: var(--accent-amber); font-weight: 700;">14%</span></div>
-                  <div style="background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: var(--accent-amber); width: 14%; height: 100%;"></div></div>
-                </div>
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span>Mid-Atlantic Multi-State Mastery</span><span style="color: #c084fc; font-weight: 700;">8%</span></div>
-                  <div style="background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: #c084fc; width: 8%; height: 100%;"></div></div>
-                </div>
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span>Maryland HQL (4-Hour)</span><span style="color: var(--text-muted); font-weight: 700;">4%</span></div>
-                  <div style="background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: var(--text-muted); width: 4%; height: 100%;"></div></div>
-                </div>
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span>Gun Cleaning & Maintenance</span><span style="color: #ef4444; font-weight: 700;">2%</span></div>
-                  <div style="background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: #ef4444; width: 2%; height: 100%;"></div></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Reciprocity State Heatmap -->
-            <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 18px;">
-              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 12px;">🗺️ Top Inspected Reciprocity States</h4>
-              <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.84rem;">
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span>Pennsylvania (PA Non-Resident LTCF inquiries)</span><span style="color: var(--accent-amber); font-weight: 700;">34%</span></div>
-                  <div style="background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: var(--accent-amber); width: 34%; height: 100%;"></div></div>
-                </div>
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span>Virginia (Commuter corridor honored status)</span><span style="color: var(--accent-green); font-weight: 700;">28%</span></div>
-                  <div style="background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: var(--accent-green); width: 28%; height: 100%;"></div></div>
-                </div>
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span>Florida (Multi-state multiplier add-on)</span><span style="color: var(--accent-cyan); font-weight: 700;">18%</span></div>
-                  <div style="background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: var(--accent-cyan); width: 18%; height: 100%;"></div></div>
-                </div>
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span>West Virginia (Constitutional Carry)</span><span style="color: #60a5fa; font-weight: 700;">12%</span></div>
-                  <div style="background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: #60a5fa; width: 12%; height: 100%;"></div></div>
-                </div>
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span>Delaware (Non-resident required warning)</span><span style="color: #ef4444; font-weight: 700;">8%</span></div>
-                  <div style="background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden;"><div style="background: #ef4444; width: 8%; height: 100%;"></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Real-Time Activity Feed -->
-          <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 18px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff;">📡 Live Interaction Stream</h4>
-              <span style="font-size: 0.76rem; color: #10b981; font-weight: 700; text-transform: uppercase;">● Real-Time Log</span>
-            </div>
-            <div style="max-height: 220px; overflow-y: auto; font-family: monospace; font-size: 0.80rem; background: #070b10; border-radius: 8px; padding: 10px; border: 1px solid rgba(255,255,255,0.06);">
-              ${events.length ? events.map(e => `
-                <div style="padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; gap: 12px;">
-                  <span style="color: var(--text-muted);">${e.time}</span>
-                  <span style="color: var(--accent-cyan); font-weight: 700;">[${e.category}]</span>
-                  <span style="color: #fff;">${e.action}</span>
-                  <span style="color: var(--accent-amber);">${e.label}</span>
-                </div>
-              `).join('') : `
-                <div style="color: var(--text-muted); padding: 8px 0;">[Session Start] Live website tracker active. Click events and navigation transitions record here in real-time.</div>
-              `}
-            </div>
-          </div>
-        </div>
-      `;
-    }
-    window.renderAdminAnalyticsDashboard = renderAdminAnalyticsDashboard;
 
     function exportAnalyticsCSV() {
       const events = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
@@ -16717,4 +16902,3 @@ function closeStateModal() {
 
 </body>
 </html>
-Displaying Train_With_FIFS_index_v5_production.html.
