@@ -1,4 +1,10 @@
-<!DOCTYPE html>
+<!DOC
+            <div style="margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border-subtle); text-align: center;">
+              <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 8px;">Enrolled in an upcoming class at Cindy's Hot Shots?</p>
+              <button type="button" class="btn-spark" onclick="openAndSwitch('portal')" style="padding: 10px 18px; font-size: 0.88rem; border-color: var(--accent-cyan); color: var(--accent-cyan); width: 100%; justify-content: center; font-weight: 800;">
+                🎓 Are you a student? Click here →
+              </button>
+            </div>TYPE html>
 
 <html lang="en">
 
@@ -6141,6 +6147,8 @@
         <span style="color: var(--border-subtle);">•</span>
 
         <button type="button" class="btn-hero-aux" id="btn-hero-faq" onclick="openAndSwitch('faq')">❓ Common Questions</button>
+        <span style="color: var(--border-subtle);">•</span>
+        <button type="button" class="btn-hero-aux" id="btn-hero-contact" onclick="openContactWidgetModal()" style="color: var(--accent-cyan); font-weight: 700;">💬 Contact Instructor</button>
 
       </div>
 
@@ -6217,9 +6225,7 @@
       </div>
 
             <div style="display: flex; align-items: center; gap: 8px;">
-        <button type="button" class="btn-spark" onclick="openContactWidgetModal()" style="padding: 8px 14px; font-size: 0.82rem; border-color: var(--accent-cyan); color: var(--accent-cyan); display: inline-flex; align-items: center; gap: 6px;" title="Direct Contact with Instructor Wade">
-          💬 <span>Direct Contact</span>
-        </button>
+
         <button type="button" class="btn-return-home" onclick="navigateBack()" aria-label="Go back to previous view" style="background: rgba(16, 22, 31, 0.9); border: 2px solid var(--border-subtle); color: var(--accent-cyan) !important; min-height: 44px; padding: 8px 16px;">
           ← BACK
         </button>
@@ -6275,6 +6281,12 @@
             <span>Need to book first? <a href="javascript:void(0)" onclick="switchTab('booking')" style="color: var(--accent-cyan);">View Courses</a></span>
             <button type="button" onclick="loadDemoStudent()" style="background: none; border: none; color: var(--accent-amber); cursor: pointer; text-decoration: underline;">
               Preview Demo Dashboard
+            </button>
+          </div>
+          <div style="margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border-subtle); text-align: center;">
+            <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 8px;">Already certified or looking for your CCW Permit Portal?</p>
+            <button type="button" class="btn-spark" onclick="openAndSwitch('fi-portal')" style="padding: 10px 18px; font-size: 0.88rem; border-color: var(--accent-amber); color: var(--accent-amber); width: 100%; justify-content: center; font-weight: 800;">
+              🛡️ Looking for Future Initiative Client Portal? Click here →
             </button>
           </div>
           <div id="student-login-status" class="status-msg"></div>
@@ -6821,45 +6833,6 @@
           </div>
         <
         
-        <!-- ================= OFFICIAL STATE LICENSING & EXEMPTION HUBS (BOTH PORTALS) ================= -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin: 24px 0;">
-          <!-- Card 1: MSP MyLicense Official Portal -->
-          <div class="portal-feature-launcher-card" style="border: 2px solid var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(255, 183, 3, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
-            <div>
-              <span class="next-step-badge" style="color: var(--accent-amber); margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">OFFICIAL STATE LICENSING</span>
-              <h3 class="portal-feature-title" style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 6px;">🌐 MSP MyLicense Official Portal</h3>
-              <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
-                Official state portal to submit your formal Wear &amp; Carry (CCW) or Handgun Qualification License (HQL) application, upload your certified MSP Form 29-14 score sheet, and monitor live state police investigator status.
-              </p>
-            </div>
-            <div>
-              <a href="https://licensingportal.mdsp.maryland.gov/MspBridgeClient/" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-color: var(--accent-amber); color: var(--accent-amber); box-shadow: 0 0 16px rgba(255, 183, 3, 0.2);">
-                Launch Maryland MyLicense Portal ↗
-              </a>
-            </div>
-          </div>
-
-          <!-- Card 2: Maryland Designated Collector Exemption Hub -->
-          <div class="portal-feature-launcher-card" style="border: 2px solid #a855f7; background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(168, 85, 247, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
-            <div>
-              <span class="next-step-badge" style="color: #c084fc; margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">STATUTORY PURCHASE EXEMPTION</span>
-              <h3 class="portal-feature-title" style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 6px;">📋 MSP Designated Firearms Collector Status</h3>
-              <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
-                Statutory Waiver of the 30-Day Regulated Firearm Purchase Limitation — Under Maryland Public Safety § 5-123 and COMAR 29.03.01.29, recognized collectors may acquire multiple regulated firearms within a 30-day statutory window. Approval establishes permanent statutory exemption with zero state filing fees.
-              </p>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              <a href="https://mdsp.maryland.gov/Organization/Pages/CriminalInvestigationBureau/LicensingDivision/Firearms/FirearmsCollectors.aspx" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-color: #a855f7; color: #c084fc; box-shadow: 0 0 16px rgba(168, 85, 247, 0.2);">
-                Launch MSP Collector Portal ↗
-              </a>
-              <button type="button" class="btn-secondary-modal" onclick="openCollectorModal()" style="width: 100%; padding: 10px 18px; font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">
-                View 4-Step Application Guide &amp; Form 77R-3 ℹ
-              </button>
-            </div>
-          </div>
-        </div>
-/div>
-
         <!-- ================= SECTION: 50-STATE RECIPROCITY HUB ================= -->
         <!-- (In-page 50-state hub eliminated; full interactive 50-state reciprocity hub accessible via Card 1, Subnav, and CCW Wallet) -->
         <!-- (Vehicle Travel moved into #vehicleTravelModal deep-dive popup) -->
@@ -7115,6 +7088,52 @@
         </div>
 
         <!-- ================= SECTION: PERMIT-HOLDER FAQ ================= -->
+        
+        <!-- ================= SECTION: OFFICIAL STATE LICENSING & EXEMPTIONS ================= -->
+        <div class="fi-section-header" id="fi-sec-licensing">
+          <h3>Official Maryland State Licensing &amp; Statutory Exemptions</h3>
+          <p>Direct state police portals for Wear &amp; Carry applications, HQL submissions, and Designated Collector status.</p>
+        </div>
+
+        <div class="fi-checklist-card" style="margin-bottom: 28px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px;">
+            <!-- Card 1: MSP MyLicense Official Portal -->
+            <div style="border: 2px solid var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(255, 183, 3, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <span class="next-step-badge" style="color: var(--accent-amber); margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">OFFICIAL STATE LICENSING</span>
+                <h4 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-bottom: 6px;">🌐 MSP MyLicense Official Portal</h4>
+                <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                  Official state portal to submit your formal Wear &amp; Carry (CCW) or Handgun Qualification License (HQL) application, upload your certified MSP Form 29-14 score sheet, and monitor live state police investigator status.
+                </p>
+              </div>
+              <div>
+                <a href="https://licensingportal.mdsp.maryland.gov/MspBridgeClient/" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-color: var(--accent-amber); color: var(--accent-amber); box-shadow: 0 0 16px rgba(255, 183, 3, 0.2);">
+                  Launch Maryland MyLicense Portal ↗
+                </a>
+              </div>
+            </div>
+
+            <!-- Card 2: Maryland Designated Collector Exemption Hub -->
+            <div style="border: 2px solid #a855f7; background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(168, 85, 247, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <span class="next-step-badge" style="color: #c084fc; margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">STATUTORY PURCHASE EXEMPTION</span>
+                <h4 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-bottom: 6px;">📋 MSP Designated Firearms Collector Status</h4>
+                <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                  Statutory Waiver of the 30-Day Regulated Firearm Purchase Limitation — Under Maryland Public Safety § 5-123 and COMAR 29.03.01.29, recognized collectors may acquire multiple regulated firearms within a 30-day statutory window. Approval establishes permanent statutory exemption with zero state filing fees.
+                </p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <a href="https://mdsp.maryland.gov/Organization/Pages/CriminalInvestigationBureau/LicensingDivision/Firearms/FirearmsCollectors.aspx" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-color: #a855f7; color: #c084fc; box-shadow: 0 0 16px rgba(168, 85, 247, 0.2);">
+                  Launch MSP Collector Portal ↗
+                </a>
+                <button type="button" class="btn-secondary-modal" onclick="openCollectorModal()" style="width: 100%; padding: 10px 18px; font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">
+                  View 4-Step Application Guide &amp; Form 77R-3 ℹ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="fi-section-header" id="fi-sec-faq">
           <h3>Permit Holder Frequently Asked Questions</h3>
           <p>Common statutory and operational inquiries answered by Lead Instructor Kai Wade.</p>
@@ -8003,33 +8022,54 @@
           </div>
         </div><!-- Properly closes card-course-children -->
 
-        <!-- 8. FIFS Graduate Alumni Marksmanship Clinic (Standalone Sibling Card) -->
-        <div class="tuition-card" id="card-course-alumni" style="border: 2px solid #38bdf8; background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(13, 19, 27, 0.98) 100%); position: relative;">
+        <!-- 8. FIFS Graduate Alumni Marksmanship Clinic (Base $65 / VIP $115) -->
+        <div class="tuition-card" id="card-course-alumni" style="position: relative;">
+          <div class="card-tier-badge" id="badge-course-alumni" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
+            👑 VIP TURNKEY MODE
+          </div>
           <span class="badge-pop" style="background: #0284c7; color: #fff;">🎯 ALUMNI EXCLUSIVE CLINIC</span>
           <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">FIFS Graduate Alumni Marksmanship Clinic</div>
           <div class="combo-savings-badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.8px; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; margin: 6px 0; display: inline-flex; align-items: center; gap: 6px;">
             <span>🎯</span> 2-HOUR DIAGNOSTIC WORKSHOP — HOLSTER DRAW &amp; MALFUNCTION CLEARANCE
           </div>
 
-          <div class="tuition-price" style="margin: 14px 0 10px;">
-            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #38bdf8;">$65.00</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-cyan); font-weight: 700; margin-left: 6px;">/ 2-Hr Session (Alumni Flat Rate)</span>
+          <div class="tier-toggle-wrapper">
+            <div class="tier-sliding-switch" id="switch-alumni" onclick="toggleCardTier('alumni', event)">
+              <div class="tier-sliding-pill" id="slider-alumni"></div>
+              <button type="button" class="tier-option-btn btn-base-side" id="tog-base-alumni" onclick="setCardTier('alumni', 'base', event)">Standard</button>
+              <button type="button" class="tier-option-btn btn-vip-side" id="tog-vip-alumni" onclick="setCardTier('alumni', 'vip', event)">👑 VIP</button>
+            </div>
+          </div>
+
+          <div class="tuition-price" id="price-course-alumni">
+            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$65.00</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
           </div>
 
           <div class="tuition-desc">
             Designed exclusively for Wear &amp; Carry graduates and permit holders to maintain peak defensive readiness between biennial renewal windows. Fast-paced diagnostic shooting on the line at Cindy's Hot Shots.
           </div>
 
-          <div class="tuition-bullets">
-            <div>✔ Holster draw speed &amp; first-shot par times</div>
+          <div class="tuition-bullets" id="bullets-course-alumni">
+            <div>✔ Holster draw speed &amp; sub-second first-shot par times</div>
             <div>✔ Red-dot optic acquisition &amp; rapid target transitions</div>
             <div>✔ Diagnostic malfunction clearance &amp; recoil recovery</div>
             <div>✔ Intimate 4-shooter cohort coached by Kai Wade</div>
           </div>
 
+          <!-- VIP Perks Expandable Box -->
+          <div class="vip-perks-box" id="vip-box-course-alumni" style="display: none;">
+            <div class="vip-box-title">👑 WHAT'S ADDED IN VIP TURNKEY MODE:</div>
+            <div class="vip-perk-item">✔ Cindy's Hot Shots Range Lane Fee Included ($25–$35 Value)</div>
+            <div class="vip-perk-item">✔ 50 Rounds Factory Brass 9mm Target Ammunition Provided</div>
+            <div class="vip-perk-item">✔ B-27 &amp; BakerTargets Diagnostic Targets Included</div>
+            <div class="vip-perk-item">✔ MantisX Sensor Live Telemetry &amp; High-Speed Video Analysis</div>
+            <div class="vip-perk-item" style="color: var(--accent-amber); font-weight: 700;">👑 VIP Priority 7-Day Flexible Scheduling (Mon–Sun Anytime — Standard is Weekend Only)</div>
+          </div>
+
           <div style="margin-top: 14px;">
-            <button type="button" class="btn-select-course" onclick="selectCourse('FIFS Graduate Alumni Marksmanship Clinic ($65.00)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase; border-color: #38bdf8; color: #38bdf8; box-shadow: 0 0 14px rgba(56, 189, 248, 0.3);">
-              Reserve Alumni Clinic ($65.00) →
+            <button type="button" class="btn-select-course" id="btn-select-course-alumni" onclick="selectCourse('FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
+              Select Base ($65.00) &amp; Reserve Seat →
             </button>
           </div>
         </div>
@@ -8181,9 +8221,8 @@
 
       <div class="checklist-grid">
 
-        <div class="checklist-box" onclick="openExpectationModal('ammunition')" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Expanded Ammunition Protocol Infographic">
-
-          <h4>🎖️ State & National Credentials</h4>
+        <div class="checklist-box" style="transition: all 0.25s ease;">
+          <h4>🎖️ State &amp; National Credentials</h4>
 
           <ul>
 
@@ -8208,27 +8247,53 @@
   
   
 
-        <div class="checklist-box" onclick="openExpectationModal('ammunition')" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Expanded Ammunition Protocol Infographic">
-
-          <h4>🛡️ The FIFS Philosophy</h4>
-
+        <div class="checklist-box" style="transition: all 0.25s ease;">
+          <h4>🛡️ The FIFS Philosophy: Safety, Diagnostic Precision &amp; Respect</h4>
+          <p style="font-size: 0.86rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">
+            At Future Initiative Firearm Services, our mission is to build calculated, ethical, and mechanically confident shooters through patient, personalized coaching.
+          </p>
           <ul>
-
-            <li><strong>Zero Intimidation:</strong> Paced for beginner comfort and confidence.</li>
-
-            <li><strong>Diagnostic Video Review:</strong> Slow-motion analysis of grip and trigger press.</li>
-
-            <li><strong>Strict Safety Protocols:</strong> 100% zero-live-ammunition classroom policy.</li>
-
-            <li><strong>Long-Term Mentorship:</strong> Continued guidance through the MSP portal.</li>
-
-          </ul><div style="font-size: 0.76rem; color: var(--accent-cyan); margin-top: 12px; font-weight: 700; text-transform: uppercase;">Click for Expanded Infographic →</div>
-
+            <li><strong>Zero Intimidation &amp; Beginner Pacing:</strong> Fear has no place in firearms training. Every student progresses at their own pace with absolute psychological safety and respect.</li>
+            <li><strong>Diagnostic Sensor &amp; Slow-Motion Telemetry:</strong> We analyze grip pressure, recoil anticipation, and trigger press dynamics using MantisX diagnostics and high-speed video capture.</li>
+            <li><strong>Zero-Live-Ammunition Classroom Safety:</strong> Mechanical handling and malfunction drills use inert dummy rounds exclusively. Live ammunition is restricted to the range firing line.</li>
+            <li><strong>Lifelong Student Mentorship:</strong> Training doesn't end at qualification. We guide you through the MSP Licensing Portal, renewal milestones, and continuous skill tune-ups.</li>
+          </ul>
         </div>
 
       </div>
 
-    </section>
+    
+      <!-- 24/7 Persistent Direct Instructor Access Dock (Always Available) -->
+      <div style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, #070b10 100%); border: 2px solid var(--accent-cyan); border-radius: 14px; padding: 22px 24px; margin-top: 28px; box-shadow: 0 0 25px rgba(0, 229, 255, 0.15);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 14px;">
+          <div>
+            <span class="badge-instructor" style="margin-bottom: 4px;">24/7 Direct Student Access</span>
+            <h3 style="font-family: var(--font-display); font-size: 1.5rem; color: #fff; text-transform: uppercase; margin: 4px 0 2px;">
+              💬 Direct Line to Instructor Kai Wade
+            </h3>
+            <p style="font-size: 0.86rem; color: var(--text-muted); line-height: 1.5;">
+              Have questions about course prerequisites, equipment compliance, or class schedules? Reach out directly.
+            </p>
+          </div>
+          <span class="meta-chip chip-status" style="font-size: 0.80rem; padding: 4px 12px; background: rgba(16, 185, 129, 0.15); border-color: #10b981; color: #10b981;">
+            ● DIRECT ACCESS ACTIVE 24/7
+          </span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+          <a href="tel:4439901304" class="btn-spark" style="text-decoration: none; padding: 12px 18px; font-size: 0.90rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+            <span>📞</span> Call (443) 990-1304
+          </a>
+          <a href="mailto:info@trainwithfifs.com" class="btn-spark" style="text-decoration: none; padding: 12px 18px; font-size: 0.90rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-color: var(--accent-amber); color: var(--accent-amber);">
+            <span>✉️</span> Email info@trainwithfifs.com
+          </a>
+          <button type="button" class="btn-primary" onclick="openContactWidgetModal()" style="padding: 12px 18px; font-size: 0.90rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px;">
+            <span>💬</span> Dispatch Priority Message →
+          </button>
+        </div>
+      </div>
+
+      </section>
 
   
   
@@ -10028,9 +10093,9 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (typeof detectUserDevice === 'function') {
         const d = detectUserDevice();
         const devSlug = d.category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        document.documentElement.classList.add('device-' + devSlug);
-        document.documentElement.setAttribute('data-device-category', d.category);
-        document.documentElement.setAttribute('data-device-name', d.deviceName);
+        if (document.documentElement && document.documentElement.classList) document.documentElement.classList.add('device-' + devSlug);
+        if (document.documentElement && document.documentElement.setAttribute) document.documentElement.setAttribute('data-device-category', d.category);
+        if (document.documentElement && document.documentElement.setAttribute) document.documentElement.setAttribute('data-device-name', d.deviceName);
       }
     })();
 
@@ -10315,6 +10380,15 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }, 150);
     }
     window.proceedToClientSignInForAlumni = proceedToClientSignInForAlumni;
+
+
+    
+    function dismissAlumniGateWithWarning() {
+      closeAlumniAccessGateModal();
+      localStorage.removeItem('fifs_pending_alumni_booking');
+      alert("Alumni Clinic Access Closed: Only certified FIFS graduates and permit holders can book this clinic. Explore our Maryland Wear & Carry (CCW) or Combo courses to earn alumni status!");
+    }
+    window.dismissAlumniGateWithWarning = dismissAlumniGateWithWarning;
 
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -12055,6 +12129,11 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       }
 
+      const mspPortalBanner = document.getElementById('goalModalMspPortalBanner');
+      if (mspPortalBanner) {
+        mspPortalBanner.style.display = (goalKey === 'want_to_carry') ? 'flex' : 'none';
+      }
+
   
   
   
@@ -13077,7 +13156,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
     // ================= DYNAMIC COURSE CARD VIP TOGGLE LOGIC =================
 
-    const COURSE_TIER_CONFIG = {
+    const COURSE_TIER_CONFIG = window.COURSE_TIER_CONFIG = {
 
       mastery: {
 
@@ -13161,6 +13240,12 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         vipValue: "Children's Safety Class — VIP Turnkey ($265.00)"
 
+      },
+      alumni: {
+        basePrice: "$65.00",
+        vipPrice: "$115.00",
+        baseValue: "FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)",
+        vipValue: "FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
       }
 
     };
@@ -13443,7 +13528,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         base: "$65.00",
 
-        vip: "$65.00",
+        vip: "$115.00",
 
         baseDesc: "FIFS alumni exclusive clinic. 2-hour practical diagnostic shooting workshop at Cindy's Hot Shots (Glen Burnie, MD) coached directly by Lead Instructor Kai Wade.",
 
@@ -16423,7 +16508,7 @@ function closeStateModal() {
       </div>
 
       <!-- Maryland State Police Wear and Carry Portal User's Guide (MSP Media 474) -->
-      <div class="guide-download-banner" id="goalModalMspPortalBanner" style="display: flex; margin-top: 10px; border-color: var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.12) 0%, rgba(13, 19, 27, 0.95) 100%);">
+      <div class="guide-download-banner" id="goalModalMspPortalBanner" style="display: none; margin-top: 10px; border-color: var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.12) 0%, rgba(13, 19, 27, 0.95) 100%);">
         <div class="guide-banner-text">
           <strong style="color: var(--accent-amber); display: block; font-size: 0.92rem;">🌐 Official State Resource: Maryland Wear &amp; Carry Portal User's Guide (MSP)</strong>
           <span>Comprehensive 20-page Maryland State Police walkthrough explaining account setup, score sheet upload, and application tracking.</span>
@@ -16819,7 +16904,8 @@ function closeStateModal() {
             <option value="Maryland HQL (Purchase License) — Base Track ($100.00)">Maryland HQL (Purchase License) — Base Track ($100.00)</option>
             <option value="Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)">Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)</option>
             <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">Personal 1-on-1 Coaching — Base Track ($125.00/hr)</option>
-            <option value="FIFS Graduate Alumni Marksmanship Clinic ($65.00)">FIFS Graduate Alumni Marksmanship Clinic ($65.00)</option>
+            <option value="FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)">FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)</option>
+            <option value="FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)">FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)</option>
             <option value="Gun Cleaning & Maintenance — VIP Turnkey ($115.00)">Gun Cleaning &amp; Maintenance — VIP Turnkey ($115.00)</option>
             <option value="Gun Cleaning & Maintenance — Base Track ($75.00)">Gun Cleaning &amp; Maintenance — Base Track ($75.00)</option>
             <option value="Children's Safety Class — VIP Turnkey ($265.00)">Children's Safety Class — VIP Turnkey ($265.00)</option>
@@ -17451,17 +17537,21 @@ function closeStateModal() {
       <h3 class="goal-modal-title" id="alumniGateTitle" style="color: #fff; margin: 4px 0 8px; font-size: 1.7rem; text-transform: uppercase;">
         🔒 Alumni Exclusive Clinic Access
       </h3>
-      <div class="goal-synopsis-card" style="border-left-color: #38bdf8; background: #070b10; font-size: 0.90rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 16px;">
-        The <strong>FIFS Graduate Alumni Marksmanship Clinic ($65.00)</strong> is an exclusive 2-hour diagnostic workshop reserved for verified FIFS graduates and active carry permit holders.<br><br>
-        To reserve a seat in an upcoming alumni clinic cohort, please sign in to your <strong>Client Portal</strong> (or create your free verified profile). Once verified, you will immediately be redirected to complete your reservation.
+            <div class="goal-synopsis-card" style="border-left-color: #38bdf8; background: #070b10; font-size: 0.90rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 16px;">
+        <p style="margin: 0 0 10px;">
+          The <strong>FIFS Graduate Alumni Marksmanship Clinic</strong> is an exclusive 2-hour diagnostic live-fire workshop reserved strictly for verified graduates of Future Initiative courses and active permit holders.
+        </p>
+        <p style="margin: 0; color: #94a3b8; font-size: 0.84rem;">
+          If you have not yet completed a Maryland Wear &amp; Carry or Combo course with Coach Kai Wade, you cannot reserve an alumni seat. Please enroll in an initial certification course to earn alumni status.
+        </p>
       </div>
 
       <div class="goal-modal-actions" style="display: flex; flex-direction: column; gap: 10px;">
         <button type="button" class="btn-primary" onclick="proceedToClientSignInForAlumni()" style="background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #070b10; font-weight: 800; padding: 12px; width: 100%;">
-          🔑 Sign In to Client Portal to Unlock ($65.00) →
+          🔑 Sign In to Client / Alumni Portal →
         </button>
-        <button type="button" class="btn-secondary-modal" onclick="closeAlumniAccessGateModal()" style="width: 100%; padding: 10px;">
-          ← Return to Course Catalog
+        <button type="button" class="btn-secondary-modal" onclick="dismissAlumniGateWithWarning()" style="width: 100%; padding: 10px;">
+          ← Return to Course Catalog (Non-Alumni)
         </button>
       </div>
     </div>
