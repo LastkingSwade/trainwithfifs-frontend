@@ -6643,7 +6643,56 @@
               </div>
               <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px;">Lead Instructor: Kai Wade</div>
             </div>
+          
+
+          <!-- ================= EXCLUSIVE CLIENT FEATURE: DIGITAL CCW TACTICAL WALLET ================= -->
+          <div class="client-ccw-wallet-card" style="background: linear-gradient(135deg, #0d1219 0%, #070b10 100%); border: 2px solid var(--accent-amber); border-radius: 16px; padding: 22px 24px; margin-bottom: 24px; box-shadow: 0 12px 35px rgba(0,0,0,0.85), 0 0 25px rgba(255,183,3,0.2); position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -10px; right: -10px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(255,183,3,0.12) 0%, transparent 70%); pointer-events: none;"></div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+              <div>
+                <span style="font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; color: var(--accent-amber); letter-spacing: 1.5px; text-transform: uppercase;">VERIFIED CREDENTIAL WALLET</span>
+                <h3 style="font-family: var(--font-display); font-size: 1.55rem; color: #fff; text-transform: uppercase; margin: 3px 0 2px;">
+                  🛡️ Future Initiative CCW Tactical Card
+                </h3>
+                <p style="font-size: 0.84rem; color: var(--text-muted);">Lead Instructor: Kai Wade • Certified MSP Qualified Handgun Instructor (§ 5-101)</p>
+              </div>
+              <div style="text-align: right;">
+                <span class="meta-chip chip-status" id="wallet-status-badge" style="font-size: 0.85rem; padding: 5px 14px;">ACTIVE CARRIER</span>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; background: rgba(16, 22, 31, 0.7); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px 18px; margin-bottom: 16px;">
+              <div>
+                <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">Resident State Permit</span>
+                <div style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: #fff;" id="wallet-primary-permit">Maryland Wear &amp; Carry</div>
+              </div>
+              <div>
+                <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">Permit Expiration Date</span>
+                <div style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--accent-amber);" id="wallet-exp-date">Oct 15, 2026</div>
+              </div>
+              <div>
+                <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">Legal Carry Reach</span>
+                <div style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--accent-green);">34+ States Recognized</div>
+              </div>
+              <div>
+                <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">90-Day Renewal Watch</span>
+                <div style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--accent-cyan);" id="wallet-days-left">Active</div>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="wallet-multiplier-badges">
+                <span class="meta-chip" style="color: var(--accent-cyan); border-color: var(--accent-cyan);">MD Resident</span>
+                <span class="meta-chip" style="color: #10b981; border-color: #10b981;">+UT Multiplier</span>
+                <span class="meta-chip" style="color: #60a5fa; border-color: #60a5fa;">+FL Multiplier</span>
+                <span class="meta-chip" style="color: #c084fc; border-color: #c084fc;">+PA LTCF Roadmap</span>
+              </div>
+              <button type="button" class="btn-spark" onclick="toggleReciprocityHubModal(true)" style="width: auto; padding: 8px 16px; font-size: 0.85rem; border-color: var(--accent-amber); color: var(--accent-amber);">
+                🗺️ Check 50-State Reciprocity Map ↗
+              </button>
+            </div>
           </div>
+</div>
 
           <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.08);">
             <button type="button" class="btn-primary" style="width: auto; padding: 10px 20px; font-size: 0.88rem;" onclick="fiScrollTo('fi-sec-renewal')">
@@ -6902,11 +6951,6 @@
               </tbody>
             </table>
           </div>
-        </div>
-        <div id="admin-subpanel-analytics" style="display: none;">
-          <div id="admin-analytics-dashboard-container"></div>
-        </div>
-
           <!-- INTERACTIVE PRE-TRIP CHECKLIST -->
           <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: var(--accent-cyan); text-transform: uppercase; margin: 20px 0 10px;">
             📋 Interactive "Before You Leave" Road Trip Checklist
@@ -7407,111 +7451,105 @@
   
 
       <div id="admin-command-dashboard" class="hidden">
-        <!-- High-Tech Instructor Terminal Header -->
+        <!-- High-Tech Instructor Terminal Header Bar -->
         <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
           <div>
-            <span class="badge-instructor" style="margin-bottom: 6px;">Lead Instructor Command Center</span>
+            <span class="badge-instructor" style="margin-bottom: 6px;">Lead Instructor Operations</span>
             <h3 style="font-family: var(--font-display); font-size: 1.85rem; color: #fff; text-transform: uppercase; letter-spacing: 1.2px; margin: 4px 0 2px;">
               Instructor Operations &amp; Intelligence Terminal
             </h3>
-            <p style="color: var(--text-muted); font-size: 0.88rem;">Live student roster, direct access invitations, and verified website device telemetry.</p>
+            <p style="color: var(--text-muted); font-size: 0.88rem;">Synchronized student roster, client permit tracking, and verified real-time device telemetry.</p>
           </div>
           <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <button type="button" id="btn-admin-refresh-roster" class="btn-hero-booking-prime" onclick="refreshAdminRoster()" style="width: auto; padding: 10px 20px; font-size: 0.92rem; border-radius: 8px; flex-direction: row; gap: 8px; box-shadow: 0 0 18px var(--accent-cyan-glow);">
-              <span>🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">REFRESH ROSTER</span>
+            <button type="button" id="btn-admin-refresh-data" class="btn-hero-booking-prime" onclick="refreshAdminRoster()" style="width: auto; padding: 10px 20px; font-size: 0.92rem; border-radius: 8px; flex-direction: row; gap: 8px; box-shadow: 0 0 18px var(--accent-cyan-glow);">
+              <span>🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">REFRESH DATA</span>
             </button>
-            <button type="button" id="btn-admin-telemetry-toggle" class="btn-spark" onclick="switchAdminTab('analytics')" style="width: auto; padding: 10px 18px; font-size: 0.90rem; border-color: var(--accent-amber); color: var(--accent-amber); box-shadow: 0 0 16px rgba(255, 183, 3, 0.25); display: inline-flex; align-items: center; gap: 6px;">
+            <button type="button" id="btn-admin-telemetry-hdr" class="btn-spark" onclick="switchAdminTab('analytics')" style="width: auto; padding: 10px 18px; font-size: 0.90rem; border-color: var(--accent-amber); color: var(--accent-amber); box-shadow: 0 0 16px rgba(255, 183, 3, 0.25); display: inline-flex; align-items: center; gap: 6px;">
               <span>📊</span> <span>WEBSITE TELEMETRY</span>
             </button>
-            <button type="button" id="btn-admin-invite-open" class="btn-spark" onclick="openAdminInviteModal()" style="width: auto; padding: 10px 18px; font-size: 0.90rem; border-color: #a855f7; color: #c084fc; box-shadow: 0 0 16px rgba(168, 85, 247, 0.25); display: inline-flex; align-items: center; gap: 6px;">
+            <button type="button" id="btn-admin-invite-hdr" class="btn-spark" onclick="openAdminInviteModal()" style="width: auto; padding: 10px 18px; font-size: 0.90rem; border-color: #a855f7; color: #c084fc; box-shadow: 0 0 16px rgba(168, 85, 247, 0.25); display: inline-flex; align-items: center; gap: 6px;">
               <span>✉️</span> <span>SEND PORTAL INVITE</span>
             </button>
           </div>
         </div>
 
-        <!-- Admin View Switcher Bar -->
-        <div class="admin-view-toggle-bar" style="display: flex; gap: 10px; margin-bottom: 24px; background: #070b10; padding: 6px; border-radius: 12px; border: 1px solid var(--border-subtle); max-width: 680px;">
-          <button type="button" id="btn-admin-tab-roster" class="admin-toggle-btn active" onclick="switchAdminTab('roster')" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: 8px; border: none; font-family: var(--font-display); font-size: 0.98rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.25s ease; background: var(--accent-cyan); color: #070b10; box-shadow: 0 0 18px var(--accent-cyan-glow);">
+        <!-- High-Visibility 3-Way Admin Switcher Tabs -->
+        <div class="admin-view-toggle-bar" style="display: flex; gap: 10px; margin-bottom: 24px; background: #070b10; padding: 6px; border-radius: 12px; border: 1px solid var(--border-subtle); max-width: 820px; flex-wrap: wrap;">
+          <button type="button" id="btn-admin-tab-roster" class="admin-toggle-btn active" onclick="switchAdminTab('roster')" style="flex: 1; min-width: 220px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 8px; border: none; font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.25s ease; background: var(--accent-cyan); color: #070b10; box-shadow: 0 0 18px var(--accent-cyan-glow);">
             <span>👥</span> Student Roster &amp; Operations
           </button>
-          <button type="button" id="btn-admin-tab-analytics" class="admin-toggle-btn" onclick="switchAdminTab('analytics')" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: 8px; border: 1px solid rgba(255, 183, 3, 0.4); font-family: var(--font-display); font-size: 0.98rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.25s ease; background: transparent; color: var(--accent-amber);">
+          <button type="button" id="btn-admin-tab-clients" class="admin-toggle-btn" onclick="switchAdminTab('clients')" style="flex: 1; min-width: 220px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-subtle); font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.25s ease; background: transparent; color: var(--text-muted);">
+            <span>🛡️</span> Future Initiative Clients
+          </button>
+          <button type="button" id="btn-admin-tab-analytics" class="admin-toggle-btn" onclick="switchAdminTab('analytics')" style="flex: 1; min-width: 220px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255, 183, 3, 0.4); font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.25s ease; background: transparent; color: var(--accent-amber);">
             <span>📊</span> Website Traffic &amp; Telemetry
           </button>
         </div>
 
-  
-  
-  
-  
-  
-  
-  
-  
-
-        <!-- Sub-Panel 1: Roster -->
+        <!-- ================= SUB-PANEL 1: STUDENT ROSTER ================= -->
         <div id="admin-subpanel-roster">
-        <div class="admin-metrics-grid">
+          <div class="admin-metrics-grid">
+            <div class="metric-card"><div class="metric-val" id="metric-total">0</div><div class="metric-name">Total Enrolled</div></div>
+            <div class="metric-card"><div class="metric-val" id="metric-pending" style="color: var(--accent-amber);">0</div><div class="metric-name">Prep Pending</div></div>
+            <div class="metric-card"><div class="metric-val" id="metric-upcoming" style="color: #60a5fa;">0</div><div class="metric-name">Upcoming Sessions</div></div>
+            <div class="metric-card"><div class="metric-val" id="metric-completed" style="color: #10b981;">0</div><div class="metric-name">Certified Graduates</div></div>
+          </div>
 
-          <div class="metric-card"><div class="metric-val" id="metric-total">0</div><div class="metric-name">Total Enrolled</div></div>
-
-          <div class="metric-card"><div class="metric-val" id="metric-pending" style="color: var(--accent-amber);">0</div><div class="metric-name">Prep Pending</div></div>
-
-          <div class="metric-card"><div class="metric-val" id="metric-upcoming" style="color: #60a5fa;">0</div><div class="metric-name">Upcoming Sessions</div></div>
-
-          <div class="metric-card"><div class="metric-val" id="metric-completed" style="color: #10b981;">0</div><div class="metric-name">Certified Graduates</div></div>
-
+          <div style="overflow-x: auto; background: #070b10; border-radius: 12px; border: 1px solid var(--border-subtle); padding: 14px; margin-bottom: 20px;">
+            <table class="admin-roster-table" style="width: 100%; border-collapse: collapse; font-size: 0.86rem;">
+              <thead>
+                <tr>
+                  <th>Student ID</th>
+                  <th>Full Name &amp; Contact</th>
+                  <th>Course</th>
+                  <th>Training Schedule</th>
+                  <th>8-Step Journey Status</th>
+                  <th>Dossier</th>
+                  <th>Change Step</th>
+                  <th style="text-align: center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-roster-tbody">
+                <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 20px;">Loading live student roster...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
-  
-  
-  
-  
-  
-  
-  
-  
+        <!-- ================= SUB-PANEL 2: FUTURE INITIATIVE CLIENT ROSTER ================= -->
+        <div id="admin-subpanel-clients" style="display: none;">
+          <div class="admin-metrics-grid">
+            <div class="metric-card" style="border-color: var(--accent-amber);"><div class="metric-val" id="metric-client-total" style="color: var(--accent-amber);">0</div><div class="metric-name">Total Clients</div></div>
+            <div class="metric-card" style="border-color: #10b981;"><div class="metric-val" id="metric-client-active" style="color: #10b981;">0</div><div class="metric-name">Active Permits (&gt;90d)</div></div>
+            <div class="metric-card" style="border-color: var(--accent-cyan);"><div class="metric-val" id="metric-client-renewal" style="color: var(--accent-cyan);">0</div><div class="metric-name">90-Day Renewal Window</div></div>
+            <div class="metric-card" style="border-color: #ef4444;"><div class="metric-val" id="metric-client-expired" style="color: #ef4444;">0</div><div class="metric-name">Expired / Due</div></div>
+          </div>
 
-        <div style="overflow-x: auto; background: #070b10; border-radius: 12px; border: 1px solid var(--border-subtle); padding: 12px;">
-
-          <table class="admin-roster-table">
-
-            <thead>
-
-              <tr>
-
-                <th>Student ID</th>
-
-                <th>Full Name</th>
-
-                <th>Course</th>
-
-                <th>Training Schedule</th>
-
-                <th>8-Step Journey Status</th>
-
-                <th>Dossier</th>
-
-                <th>Change Journey Step (1-8)</th>
-
-              </tr>
-
-            </thead>
-
-            <tbody id="admin-roster-tbody">
-
-              <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading live roster...</td></tr>
-
-            </tbody>
-
-          </table>
-
+          <div style="overflow-x: auto; background: #070b10; border-radius: 12px; border: 1px solid var(--border-subtle); padding: 14px; margin-bottom: 20px;">
+            <table class="admin-roster-table" style="width: 100%; border-collapse: collapse; font-size: 0.86rem;">
+              <thead>
+                <tr>
+                  <th>Client ID</th>
+                  <th>Full Name &amp; Contact</th>
+                  <th>Permit Jurisdiction</th>
+                  <th>Permit Expiration</th>
+                  <th>Days Remaining</th>
+                  <th>Renewal Status</th>
+                  <th style="text-align: center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-client-tbody">
+                <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">Loading Future Initiative client records...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div id="admin-analytics-dashboard-container"></div>
-
-      </div>
-
-    </section>
+        <!-- ================= SUB-PANEL 3: WEBSITE TELEMETRY & HARDWARE DIAGNOSTICS ================= -->
+        <div id="admin-subpanel-analytics" style="display: none;">
+          <div id="admin-analytics-dashboard-container"></div>
+        </div>
+      </div></section>
 
   
   
@@ -8935,7 +8973,7 @@
     // OVERLAYS RESET CONTROLLER
     // ==========================================================================
     function closeAllOverlays() {
-      const overlayIds = ['portalConflictModal', 'adminInviteModal', 'adminEditStudentModal', 
+      const overlayIds = ['portalConflictModal', 'adminInviteModal', 'adminEditStudentModal', 'adminEditClientModal', 
         'fiPortalSelectionModal', 'goalSynopsisModal', 'stepDetailModal',
         'expectationModal', 'reciprocityHubModal', 'stateModalOverlay',
         'collectorInfoModal', 'stateDossierModal'
@@ -9846,6 +9884,250 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
       });
     }
     window.renderAdminTerminal = renderAdminTerminal;
+
+
+
+    // ==========================================================================
+    // ADMIN CLIENT ROSTER CONTROLLER & CLIENT EDIT/DELETE ACTIONS
+    // ==========================================================================
+    var adminCachedClients = [];
+    window.adminCachedClients = adminCachedClients;
+
+    function renderAdminClientTerminal(data) {
+      if (data && data.clients && data.clients.length) {
+        adminCachedClients = data.clients;
+        try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch (e) {}
+      } else {
+        const savedClientRoster = localStorage.getItem('fifs_client_roster');
+        if (savedClientRoster) {
+          try { adminCachedClients = JSON.parse(savedClientRoster); } catch (e) {}
+        }
+        if (!adminCachedClients || !adminCachedClients.length) {
+          // Initialize with verified clients
+          adminCachedClients = [
+            { clientId: 'FI-CLIENT-1042', fullName: 'Marcus Vance', email: 'm.vance@example.com', phone: '(410) 555-0192', permitState: 'Maryland Wear & Carry', expirationDate: '2026-10-31', status: 'ACTIVE_REGISTERED' },
+            { clientId: 'FI-CLIENT-3088', fullName: 'Derrick Ross', email: 'd.ross@example.com', phone: '(443) 555-3088', permitState: 'Virginia Concealed Handgun', expirationDate: '2026-11-20', status: 'ACTIVE_REGISTERED' },
+            { clientId: 'FI-CLIENT-4192', fullName: 'Shannon Miller', email: 'smiller@example.com', phone: '(240) 555-4192', permitState: 'Maryland Wear & Carry', expirationDate: '2026-09-25', status: 'RENEWAL_PENDING' }
+          ];
+          try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch (e) {}
+        }
+      }
+      window.adminCachedClients = adminCachedClients;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      let activeCount = 0;
+      let renewalCount = 0;
+      let expiredCount = 0;
+
+      adminCachedClients.forEach(c => {
+        let diffDays = 365;
+        if (c.expirationDate) {
+          const exp = new Date(c.expirationDate + 'T00:00:00');
+          diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+        }
+        c.daysLeft = diffDays;
+        if (diffDays <= 0) expiredCount++;
+        else if (diffDays <= 90) renewalCount++;
+        else activeCount++;
+      });
+
+      const elTotal = document.getElementById('metric-client-total');
+      const elActive = document.getElementById('metric-client-active');
+      const elRenewal = document.getElementById('metric-client-renewal');
+      const elExpired = document.getElementById('metric-client-expired');
+
+      if (elTotal) elTotal.textContent = adminCachedClients.length;
+      if (elActive) elActive.textContent = activeCount;
+      if (elRenewal) elRenewal.textContent = renewalCount;
+      if (elExpired) elExpired.textContent = expiredCount;
+
+      const tbody = document.getElementById('admin-client-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (adminCachedClients.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No client permit records found. Use "SEND PORTAL INVITE" to add someone.</td></tr>';
+        return;
+      }
+
+      adminCachedClients.forEach(c => {
+        const tr = document.createElement('tr');
+        let daysBadge = `<span class="meta-chip" style="color: #10b981; border-color: #10b981;">${c.daysLeft} Days</span>`;
+        if (c.daysLeft <= 0) {
+          daysBadge = `<span class="meta-chip chip-status" style="background: rgba(239,68,68,0.15); border-color: #ef4444; color: #ef4444;">Expired (${c.daysLeft}d)</span>`;
+        } else if (c.daysLeft <= 90) {
+          daysBadge = `<span class="meta-chip chip-status">${c.daysLeft} Days (Window)</span>`;
+        }
+
+        tr.innerHTML = `
+          <td><strong style="color: var(--accent-amber); font-family: var(--font-display); font-size: 0.95rem;">${c.clientId}</strong></td>
+          <td><strong style="color: #fff;">${escapeHtml(c.fullName)}</strong><br><span style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(c.email || '')}</span></td>
+          <td>${escapeHtml(c.permitState || 'Maryland')}</td>
+          <td>${escapeHtml(c.expirationDate || 'Not set')}</td>
+          <td>${daysBadge}</td>
+          <td><span style="font-size: 0.78rem; text-transform: uppercase; color: var(--accent-cyan); font-weight: 700;">${escapeHtml(c.status || 'ACTIVE')}</span></td>
+          <td style="text-align: center;">
+            <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+              <button type="button" class="btn-spark" onclick="openAdminEditClientModal('${c.clientId}')" style="width: auto; padding: 5px 10px; font-size: 0.78rem; border-color: var(--accent-amber); color: var(--accent-amber);">✏️ Edit</button>
+              <button type="button" class="btn-spark" onclick="deleteClientFromRoster('${c.clientId}')" style="width: auto; padding: 5px 10px; font-size: 0.78rem; border-color: var(--accent-red); color: var(--accent-red);">🗑️ Delete</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    window.renderAdminClientTerminal = renderAdminClientTerminal;
+
+    function openAdminEditClientModal(clientId) {
+      const c = adminCachedClients.find(item => item.clientId === clientId);
+      if (!c) return;
+
+      document.getElementById('editClientId').value = c.clientId;
+      document.getElementById('editClientFullName').value = c.fullName || '';
+      document.getElementById('editClientEmail').value = c.email || '';
+      document.getElementById('editClientPhone').value = c.phone || '';
+      document.getElementById('editClientPermitState').value = c.permitState || 'Maryland Wear & Carry';
+      document.getElementById('editClientExpDate').value = c.expirationDate || '';
+      document.getElementById('editClientStatus').value = c.status || 'ACTIVE_REGISTERED';
+
+      const st = document.getElementById('edit-client-status');
+      if (st) st.style.display = 'none';
+
+      const modal = document.getElementById('adminEditClientModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    window.openAdminEditClientModal = openAdminEditClientModal;
+
+    function closeAdminEditClientModal() {
+      const modal = document.getElementById('adminEditClientModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+    window.closeAdminEditClientModal = closeAdminEditClientModal;
+
+    function handleAdminEditClientSubmit(e) {
+      e.preventDefault();
+      const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      const clientId = document.getElementById('editClientId').value;
+      const c = adminCachedClients.find(item => item.clientId === clientId);
+      if (!c) return;
+
+      c.fullName = document.getElementById('editClientFullName').value.trim();
+      c.email = document.getElementById('editClientEmail').value.trim();
+      c.phone = document.getElementById('editClientPhone').value.trim();
+      c.permitState = document.getElementById('editClientPermitState').value;
+      c.expirationDate = document.getElementById('editClientExpDate').value;
+      c.status = document.getElementById('editClientStatus').value;
+
+      try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch (err) {}
+
+      const st = document.getElementById('edit-client-status');
+      showStatus(st, 'Client permit record updated!', 'success');
+
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminEditClient) {
+        google.script.run.handleAdminEditClient(pin, clientId, c);
+      }
+
+      setTimeout(function() {
+        closeAdminEditClientModal();
+        renderAdminClientTerminal();
+      }, 500);
+    }
+    window.handleAdminEditClientSubmit = handleAdminEditClientSubmit;
+
+    function deleteClientFromRoster(clientId) {
+      const c = adminCachedClients.find(item => item.clientId === clientId);
+      const name = c ? c.fullName : clientId;
+      if (!confirm(`Are you sure you want to permanently delete client "${name}" (${clientId}) from the permit ledger?`)) {
+        return;
+      }
+
+      adminCachedClients = adminCachedClients.filter(item => item.clientId !== clientId);
+      try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch (err) {}
+
+      const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminDeleteClient) {
+        google.script.run.handleAdminDeleteClient(pin, clientId);
+      }
+
+      renderAdminClientTerminal();
+    }
+    window.deleteClientFromRoster = deleteClientFromRoster;
+
+    // Redefine switchAdminTab to handle roster, clients, and analytics
+    function switchAdminTab(tab) {
+      const subRoster = document.getElementById('admin-subpanel-roster');
+      const subClients = document.getElementById('admin-subpanel-clients');
+      const subAnalytics = document.getElementById('admin-subpanel-analytics');
+      const btnRoster = document.getElementById('btn-admin-tab-roster');
+      const btnClients = document.getElementById('btn-admin-tab-clients');
+      const btnAnalytics = document.getElementById('btn-admin-tab-analytics');
+
+      if (subRoster) subRoster.style.display = 'none';
+      if (subClients) subClients.style.display = 'none';
+      if (subAnalytics) subAnalytics.style.display = 'none';
+
+      if (btnRoster) {
+        btnRoster.classList.remove('active');
+        btnRoster.style.background = 'transparent';
+        btnRoster.style.color = 'var(--text-muted)';
+        btnRoster.style.boxShadow = 'none';
+      }
+      if (btnClients) {
+        btnClients.classList.remove('active');
+        btnClients.style.background = 'transparent';
+        btnClients.style.color = 'var(--text-muted)';
+        btnClients.style.boxShadow = 'none';
+      }
+      if (btnAnalytics) {
+        btnAnalytics.classList.remove('active');
+        btnAnalytics.style.background = 'transparent';
+        btnAnalytics.style.color = 'var(--accent-amber)';
+        btnAnalytics.style.boxShadow = 'none';
+      }
+
+      if (tab === 'analytics') {
+        if (subAnalytics) subAnalytics.style.display = 'block';
+        if (btnAnalytics) {
+          btnAnalytics.classList.add('active');
+          btnAnalytics.style.background = 'var(--accent-amber)';
+          btnAnalytics.style.color = '#070b10';
+          btnAnalytics.style.boxShadow = '0 0 18px rgba(255, 183, 3, 0.45)';
+        }
+        renderAdminAnalyticsDashboard();
+        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Website Telemetry');
+      } else if (tab === 'clients') {
+        if (subClients) subClients.style.display = 'block';
+        if (btnClients) {
+          btnClients.classList.add('active');
+          btnClients.style.background = 'var(--accent-cyan)';
+          btnClients.style.color = '#070b10';
+          btnClients.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
+        }
+        renderAdminClientTerminal();
+        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Client Roster');
+      } else {
+        if (subRoster) subRoster.style.display = 'block';
+        if (btnRoster) {
+          btnRoster.classList.add('active');
+          btnRoster.style.background = 'var(--accent-cyan)';
+          btnRoster.style.color = '#070b10';
+          btnRoster.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
+        }
+        renderAdminTerminal();
+        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Student Roster');
+      }
+    }
+    window.switchAdminTab = switchAdminTab;
 
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -16361,5 +16643,78 @@ function closeStateModal() {
     </div>
   </div>
 
+
+  <!-- ================= MODAL 4: ADMIN EDIT CLIENT RECORD MODAL ================= -->
+  <div class="goal-modal-overlay" id="adminEditClientModal" style="display: none;" onclick="if(event.target===this) closeAdminEditClientModal()">
+    <div class="goal-modal-box" role="dialog" aria-modal="true" aria-labelledby="editClientModalTitle" onclick="event.stopPropagation()" style="max-width: 600px; border-color: var(--accent-amber); box-shadow: 0 20px 50px rgba(0,0,0,0.92), 0 0 30px var(--accent-amber-glow);">
+      <button type="button" class="goal-modal-close-btn" onclick="closeAdminEditClientModal()" aria-label="Close edit client modal">✕</button>
+      <div>
+        <span class="goal-header-badge" style="background: rgba(255, 183, 3, 0.15); border-color: var(--accent-amber); color: var(--accent-amber);">CLIENT PERMIT EDITOR</span>
+      </div>
+      <h3 class="goal-modal-title" id="editClientModalTitle" style="color: #fff; margin: 6px 0 14px;">
+        Edit Client Permit Record
+      </h3>
+
+      <form id="adminEditClientForm" onsubmit="handleAdminEditClientSubmit(event)">
+        <input type="hidden" id="editClientId">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="editClientFullName" style="font-size: 0.84rem; color: #cbd5e1;">Full Legal Name <span class="req">*</span></label>
+            <input type="text" id="editClientFullName" required style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 10px; border-radius: 8px; width: 100%;">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="editClientEmail" style="font-size: 0.84rem; color: #cbd5e1;">Email Address <span class="req">*</span></label>
+            <input type="email" id="editClientEmail" required style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 10px; border-radius: 8px; width: 100%;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="editClientPhone" style="font-size: 0.84rem; color: #cbd5e1;">Phone Number</label>
+            <input type="tel" id="editClientPhone" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 10px; border-radius: 8px; width: 100%;">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="editClientPermitState" style="font-size: 0.84rem; color: #cbd5e1;">Permit Jurisdiction</label>
+            <select id="editClientPermitState" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 10px; border-radius: 8px; width: 100%;">
+              <option value="Maryland Wear & Carry">Maryland Wear &amp; Carry (Resident)</option>
+              <option value="Virginia Concealed Handgun">Virginia Concealed Handgun</option>
+              <option value="Pennsylvania LTCF">Pennsylvania LTCF</option>
+              <option value="Florida Non-Resident">Florida Non-Resident CWL</option>
+              <option value="Utah Non-Resident">Utah Non-Resident CFP</option>
+              <option value="Multi-State (MD+UT/FL)">Multi-State (MD + UT/FL)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="editClientExpDate" style="font-size: 0.84rem; color: #cbd5e1;">Permit Expiration Date <span class="req">*</span></label>
+            <input type="date" id="editClientExpDate" required style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 10px; border-radius: 8px; width: 100%;">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="editClientStatus" style="font-size: 0.84rem; color: #cbd5e1;">Renewal Watch Status</label>
+            <select id="editClientStatus" style="background: #070b10; border: 1px solid var(--border-subtle); color: var(--accent-amber); padding: 10px; border-radius: 8px; width: 100%; font-weight: 700;">
+              <option value="ACTIVE_REGISTERED">Active Registered</option>
+              <option value="RENEWAL_PENDING">90-Day Window Open</option>
+              <option value="REMINDER_SENT">Reminder Dispatched</option>
+              <option value="RENEWED">Renewed</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn-primary" style="flex: 2; padding: 12px; background: var(--accent-amber); color: #070b10; font-weight: 800;">
+            💾 Save Client Changes
+          </button>
+          <button type="button" class="btn-secondary-modal" onclick="closeAdminEditClientModal()" style="flex: 1; padding: 12px;">
+            Cancel
+          </button>
+        </div>
+        <div id="edit-client-status" class="status-msg" style="margin-top: 10px; display: none;"></div>
+      </form>
+    </div>
+  </div>
+
 </body>
 </html>
+Displaying Train_With_FIFS_index_v5_production.html.
