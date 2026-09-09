@@ -3569,40 +3569,12 @@
 
   
 
-    function openPortalSelectionModal() {
-
-      const modal = document.getElementById('fiPortalSelectionModal');
-
-      if (modal) {
-
-        modal.style.display = 'flex';
-
-        modal.classList.add('active');
-
-      }
-
-    }
-
-    window.openPortalSelectionModal = openPortalSelectionModal;
+    
 
   
   
 
-    function closePortalSelectionModal() {
-
-      const modal = document.getElementById('fiPortalSelectionModal');
-
-      if (modal) {
-
-        modal.classList.remove('active');
-
-        modal.style.display = 'none';
-
-      }
-
-    }
-
-    window.closePortalSelectionModal = closePortalSelectionModal;
+    
 
   
   
@@ -4958,8 +4930,8 @@
 <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">Mid-Atlantic Multi-State Mastery</div>
 <!-- Interactive Tier Toggle Switch -->
 <div class="tier-toggle-switch">
-<button class="tier-toggle-option active" id="tog-base-mastery" onclick="setCardTier(\'mastery\', \'base\', event)" type="button">Standard Base</button>
-<button class="tier-toggle-option vip-toggle" id="tog-vip-mastery" onclick="setCardTier(\'mastery\', \'vip\')" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;" title="Activate 👑 VIP Turnkey Mode" type="button">👑</button>
+<button type="button" class="tier-toggle-option active" id="tog-base-mastery" onclick="setCardTier('mastery', 'base', event)">Standard Base</button>
+<button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-mastery" onclick="setCardTier('mastery', 'vip', event)" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1; cursor: pointer;">👑</button>
 </div>
 <div class="tuition-price" id="price-course-mastery">
 <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$425.00</span>
@@ -4995,8 +4967,8 @@
 <span class="badge-pop" id="pop-course-combo">🔥 MOST POPULAR COMBO</span>
 <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">CCW &amp; HQL Combo</div>
 <div class="tier-toggle-switch">
-<button class="tier-toggle-option active" id="tog-base-combo" onclick="setCardTier(\'combo\', \'base\', event)" type="button">Standard Base</button>
-<button class="tier-toggle-option vip-toggle" id="tog-vip-combo" onclick="setCardTier(\'combo\', \'vip\')" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;" title="Activate 👑 VIP Turnkey Mode" type="button">👑</button>
+<button type="button" class="tier-toggle-option active" id="tog-base-combo" onclick="setCardTier('combo', 'base', event)">Standard Base</button>
+<button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-combo" onclick="setCardTier('combo', 'vip', event)" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1; cursor: pointer;">👑</button>
 </div>
 <div class="tuition-price" id="price-course-combo">
 <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$249.99</span>
@@ -5030,8 +5002,8 @@
           </div>
 <div class="tuition-title">Maryland Wear &amp; Carry</div>
 <div class="tier-toggle-switch">
-<button class="tier-toggle-option active" id="tog-base-ccw" onclick="setCardTier(\'ccw\', \'base\', event)" type="button">Standard Base</button>
-<button class="tier-toggle-option vip-toggle" id="tog-vip-ccw" onclick="setCardTier(\'ccw\', \'vip\')" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;" title="Activate 👑 VIP Turnkey Mode" type="button">👑</button>
+<button type="button" class="tier-toggle-option active" id="tog-base-ccw" onclick="setCardTier('ccw', 'base', event)">Standard Base</button>
+<button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-ccw" onclick="setCardTier('ccw', 'vip', event)" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1; cursor: pointer;">👑</button>
 </div>
 <div class="tuition-price" id="price-course-ccw">
 <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$199.99</span>
@@ -5064,8 +5036,8 @@
           </div>
 <div class="tuition-title">Maryland HQL</div>
 <div class="tier-toggle-switch">
-<button class="tier-toggle-option active" id="tog-base-hql" onclick="setCardTier(\'hql\', \'base\', event)" type="button">Standard Base</button>
-<button class="tier-toggle-option vip-toggle" id="tog-vip-hql" onclick="setCardTier(\'hql\', \'vip\')" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;" title="Activate 👑 VIP Turnkey Mode" type="button">👑</button>
+<button type="button" class="tier-toggle-option active" id="tog-base-hql" onclick="setCardTier('hql', 'base', event)">Standard Base</button>
+<button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-hql" onclick="setCardTier('hql', 'vip', event)" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1; cursor: pointer;">👑</button>
 </div>
 <div class="tuition-price" id="price-course-hql">
 <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$100.00</span>
@@ -5098,8 +5070,8 @@
           </div>
 <div class="tuition-title">Personal 1-on-1 Coaching</div>
 <div class="tier-toggle-switch">
-<button class="tier-toggle-option active" id="tog-base-coaching" onclick="setCardTier(\'coaching\', \'base\', event)" type="button">Standard Base</button>
-<button class="tier-toggle-option vip-toggle" id="tog-vip-coaching" onclick="setCardTier(\'coaching\', \'vip\')" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;" title="Activate 👑 VIP Turnkey Mode" type="button">👑</button>
+<button type="button" class="tier-toggle-option active" id="tog-base-coaching" onclick="setCardTier('coaching', 'base', event)">Standard Base</button>
+<button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-coaching" onclick="setCardTier('coaching', 'vip', event)" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1; cursor: pointer;">👑</button>
 </div>
 <div class="tuition-price" id="price-course-coaching">
 <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$125.00</span>
@@ -5132,8 +5104,8 @@
           </div>
 <div class="tuition-title">Gun Cleaning Class</div>
 <div class="tier-toggle-switch">
-<button class="tier-toggle-option active" id="tog-base-cleaning" onclick="setCardTier(\'cleaning\', \'base\', event)" type="button">Standard Base</button>
-<button class="tier-toggle-option vip-toggle" id="tog-vip-cleaning" onclick="setCardTier(\'cleaning\', \'vip\')" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;" title="Activate 👑 VIP Turnkey Mode" type="button">👑</button>
+<button type="button" class="tier-toggle-option active" id="tog-base-cleaning" onclick="setCardTier('cleaning', 'base', event)">Standard Base</button>
+<button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-cleaning" onclick="setCardTier('cleaning', 'vip', event)" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1; cursor: pointer;">👑</button>
 </div>
 <div class="tuition-price" id="price-course-cleaning">
 <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$75.00</span>
@@ -5165,8 +5137,8 @@
           </div>
 <div class="tuition-title">Children's Safety Class</div>
 <div class="tier-toggle-switch">
-<button class="tier-toggle-option active" id="tog-base-children" onclick="setCardTier(\'children\', \'base\', event)" type="button">Standard Base</button>
-<button class="tier-toggle-option vip-toggle" id="tog-vip-children" onclick="setCardTier(\'children\', \'vip\')" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;" title="Activate 👑 VIP Turnkey Mode" type="button">👑</button>
+<button type="button" class="tier-toggle-option active" id="tog-base-children" onclick="setCardTier('children', 'base', event)">Standard Base</button>
+<button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-children" onclick="setCardTier('children', 'vip', event)" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1; cursor: pointer;">👑</button>
 </div>
 <div class="tuition-price" id="price-course-children">
 <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$199.99</span>
@@ -9272,7 +9244,7 @@
             selectCourse(config.vipValue);
           };
         }
-        logAnalyticsEvent('Course Selection', 'Toggle VIP Crown', courseKey);
+        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Course Selection', 'Toggle VIP Crown', courseKey);
       } else {
         // RETURN TO BASE MODE
         card.classList.remove('vip-mode-active');
@@ -9310,7 +9282,7 @@
             selectCourse(config.baseValue);
           };
         }
-        logAnalyticsEvent('Course Selection', 'Toggle Base Mode', courseKey);
+        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Course Selection', 'Toggle Base Mode', courseKey);
       }
     }
     window.setCardTier = setCardTier;
@@ -9322,40 +9294,12 @@
 
     
 
-    function openPortalSelectionModal() {
-
-      const modal = document.getElementById('fiPortalSelectionModal');
-
-      if (modal) {
-
-        modal.style.display = 'flex';
-
-        modal.classList.add('active');
-
-      }
-
-    }
-
-    window.openPortalSelectionModal = openPortalSelectionModal;
+    
 
   
   
 
-    function closePortalSelectionModal() {
-
-      const modal = document.getElementById('fiPortalSelectionModal');
-
-      if (modal) {
-
-        modal.classList.remove('active');
-
-        modal.style.display = 'none';
-
-      }
-
-    }
-
-    window.closePortalSelectionModal = closePortalSelectionModal;
+    
 
   
   
@@ -9398,24 +9342,9 @@
     // ==========================================================================
 
     // --- PORTAL SELECTION MODAL LOGIC ---
-    function openPortalSelectionModal() {
-      const modal = document.getElementById('fiPortalSelectionModal');
-      if (modal) {
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        if (window.fiAnalytics) fiAnalytics.track('portal_splash_open', {});
-      }
-    }
-    window.openPortalSelectionModal = openPortalSelectionModal;
+    
 
-    function closePortalSelectionModal() {
-      const modal = document.getElementById('fiPortalSelectionModal');
-      if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-      }
-    }
-    window.closePortalSelectionModal = closePortalSelectionModal;
+    
 
     function fiSelectPortal(choice) {
       closePortalSelectionModal();
@@ -11041,8 +10970,8 @@
       }
     }
 
-    window.openPortalSelectionModal = function() { showOverlay('fiPortalSelectionModal'); };
-    window.closePortalSelectionModal = function() { hideOverlay('fiPortalSelectionModal'); };
+    
+    
 
     window.openGoalSynopsisModal = function() { showOverlay('goalSynopsisModal'); };
     window.closeGoalSynopsis = function() { hideOverlay('goalSynopsisModal'); };
@@ -11135,23 +11064,9 @@
     }
     window.closeStateModal = closeStateModal;
 
-    function openPortalSelectionModal() {
-      const modal = document.getElementById('fiPortalSelectionModal');
-      if (modal) {
-        modal.classList.add('active');
-        modal.style.display = 'flex';
-      }
-    }
-    window.openPortalSelectionModal = openPortalSelectionModal;
+    
 
-    function closePortalSelectionModal() {
-      const modal = document.getElementById('fiPortalSelectionModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.style.display = 'none';
-      }
-    }
-    window.closePortalSelectionModal = closePortalSelectionModal;
+    
 
 
 
@@ -11427,6 +11342,35 @@
       document.body.removeChild(a);
     }
     window.exportAnalyticsCSV = exportAnalyticsCSV;
+
+
+
+    // Portal Selection Modal Controller
+    function openPortalSelectionModal() {
+      const modal = document.getElementById('fiPortalSelectionModal');
+      if (modal) {
+        modal.classList.add('active');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('visibility', 'visible', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.style.setProperty('pointer-events', 'auto', 'important');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    window.openPortalSelectionModal = openPortalSelectionModal;
+
+    function closePortalSelectionModal() {
+      const modal = document.getElementById('fiPortalSelectionModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.setProperty('display', 'none', 'important');
+        modal.style.setProperty('visibility', 'hidden', 'important');
+        modal.style.setProperty('opacity', '0', 'important');
+        modal.style.setProperty('pointer-events', 'none', 'important');
+        document.body.style.overflow = '';
+      }
+    }
+    window.closePortalSelectionModal = closePortalSelectionModal;
 
 </script>
 <!-- ================= DEDICATED RECIPROCITY & TRAVEL HUB MODAL ================= -->
