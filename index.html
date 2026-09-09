@@ -8337,312 +8337,43 @@
               Select Base ($199.99) & Reserve Seat →
             </button>
           </div>
+       
+
+        <!-- 8. FIFS Graduate Alumni Marksmanship Clinic (NEW) -->
+        <div class="tuition-card" id="card-course-alumni" style="border: 2px solid #38bdf8; background: linear-gradient(135deg, rgba(56, 189, 248, 0.06) 0%, rgba(13, 19, 27, 0.98) 100%);">
+          <span class="badge-pop" style="background: #0284c7; color: #fff;">🎯 ALUMNI EXCLUSIVE CLINIC</span>
+          <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">FIFS Graduate Alumni Marksmanship Clinic</div>
+          <div class="combo-savings-badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.8px; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; margin: 6px 0; display: inline-flex; align-items: center; gap: 6px;">
+            <span>🎯</span> 2-HOUR EVENING WORKSHOP — HOLSTER DRAW CADENCE &amp; MALFUNCTION DRILLS
+          </div>
+
+          <div class="tuition-price" style="margin: 10px 0;">
+            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #38bdf8;">$65.00</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">/ 2-Hr Session (Alumni Special)</span>
+          </div>
+
+          <div class="tuition-desc">
+            Designed for Wear &amp; Carry graduates and permit holders to maintain peak defensive readiness between biennial renewal windows. Fast-paced diagnostic shooting on the line at Cindy's Hot Shots.
+          </div>
+
+          <div class="tuition-bullets">
+            <div>✔ Holster draw speed &amp; first-shot par times</div>
+            <div>✔ Red-dot optic dot acquisition &amp; transitions</div>
+            <div>✔ Immediate-action malfunction clearance</div>
+            <div>✔ Intimate 4-shooter cohort coached by Kai Wade</div>
+          </div>
+
+          <div style="margin-top: 14px;">
+            <button type="button" class="btn-select-course" onclick="selectCourse('FIFS Graduate Alumni Marksmanship Clinic ($65.00)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase; border-color: #38bdf8; color: #38bdf8;">
+              Reserve Alumni Clinic ($65.00) →
+            </button>
+          </div>
         </div>
+ </div>
       </div>
 
 
-      <!-- Reservation Booking Form Section -->
-      <section id="booking-form-section" style="border-top: 1px solid var(--border-subtle); padding-top: 24px; scroll-margin-top: 80px;">
-        <div class="panel-header">
-          <h3>Reserve Your Training Session</h3>
-          <p>Submit your details to establish your student record with Instructor Wade.</p>
-
-      </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-        <form id="booking-form" onsubmit="submitBooking(event)">
-
-          <div class="form-group">
-
-            <label for="courseSelection">Selected Course Curriculum & Tuition <span class="req">*</span></label>
-
-            <select id="courseSelection" class="form-select" onchange="updateFormPriceDisplay()" required>
-
-              <option value="Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)">Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)</option>
-
-              <option value="Mid-Atlantic Multi-State Mastery — Base Track ($425.00)">Mid-Atlantic Multi-State Mastery — Base Track ($425.00)</option>
-
-              <option value="Maryland CCW & HQL Combo — VIP Turnkey ($375.00)">Maryland CCW & HQL Combo — VIP Turnkey ($375.00)</option>
-
-              <option value="Maryland CCW & HQL Combo — Base Track ($249.99)" selected>Maryland CCW & HQL Combo — Base Track ($249.99)</option>
-
-              <option value="Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)">Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)</option>
-
-              <option value="Maryland Wear & Carry (CCW) — Base Track ($199.99)">Maryland Wear & Carry (CCW) — Base Track ($199.99)</option>
-
-              <option value="Maryland HQL (Purchase License) — VIP Turnkey ($165.00)">Maryland HQL (Purchase License) — VIP Turnkey ($165.00)</option>
-
-              <option value="Maryland HQL (Purchase License) — Base Track ($100.00)">Maryland HQL (Purchase License) — Base Track ($100.00)</option>
-
-              <option value="Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)">Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)</option>
-
-              <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">Personal 1-on-1 Coaching — Base Track ($125.00/hr)</option>
-
-              <option value="Gun Cleaning & Maintenance — VIP Turnkey ($115.00)">Gun Cleaning & Maintenance — VIP Turnkey ($115.00)</option>
-
-              <option value="Gun Cleaning & Maintenance — Base Track ($75.00)">Gun Cleaning & Maintenance — Base Track ($75.00)</option>
-
-              <option value="Children's Safety Class — VIP Turnkey ($265.00)">Children's Safety Class — VIP Turnkey ($265.00)</option>
-
-              <option value="Children's Safety Class — Base Track ($199.99)">Children's Safety Class — Base Track ($199.99)</option>
-
-            </select>
-
-          </div>
-
-          <!-- ================= SELECTED COURSE PRICING CLARIFICATION CARD ================= -->
-
-          <div id="formPriceSummaryCard" style="background: rgba(0, 229, 255, 0.06); border: 1px solid var(--accent-cyan); border-radius: 12px; padding: 16px 18px; margin-top: 12px; margin-bottom: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
-
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-
-              <div>
-
-                <span id="formCardCourseTitle" style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; color: #fff; display: block;">Maryland CCW & HQL Combo</span>
-
-                <span id="formCardTierTag" style="font-size: 0.78rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px;">Standard Base Track Selected</span>
-
-              </div>
-
-              <div style="text-align: right;">
-
-                <span id="formCardActivePrice" style="font-family: var(--font-display); font-size: 1.7rem; font-weight: 800; color: var(--accent-cyan);">$249.99</span>
-
-              </div>
-
-            </div>
-
-  
-  
-  
-  
-
-            <!-- Base vs VIP Clarity Comparison Boxes -->
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
-
-              <div id="formBoxBase" style="background: #070b10; border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.2s;" onclick="toggleFormTier('base')">
-
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-
-                  <strong style="color: #fff; font-size: 0.85rem;">Standard Base</strong>
-
-                  <span id="formPriceBaseVal" style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: #fff;">$249.99</span>
-
-                </div>
-
-                <p style="color: var(--text-muted); font-size: 0.74rem; margin-top: 3px; line-height: 1.35;">Self-equipped (Provide own gun, holster & ammo)</p>
-
-              </div>
-
-  
-  
-  
-  
-
-              <div id="formBoxVip" style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.2s;" onclick="toggleFormTier('vip')">
-
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-
-                  <strong style="color: var(--accent-amber); font-size: 0.85rem;">👑 VIP Turnkey</strong>
-
-                  <span id="formPriceVipVal" style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--accent-amber);">$375.00</span>
-
-                </div>
-
-                <p style="color: var(--text-muted); font-size: 0.74rem; margin-top: 3px; line-height: 1.35;">Turnkey (Lane fee, targets, loaner 9mm, ammo & photos)</p>
-
-              </div>
-
-            </div>
-
-  
-  
-  
-  
-
-            <p id="formCardTierDesc" style="font-size: 0.80rem; color: #cbd5e1; margin-top: 10px; line-height: 1.45; border-left: 2px solid var(--accent-cyan); padding-left: 10px;">
-
-              Self-equipped track. You provide your own reliable handgun, rigid holster, and 50–100 rounds factory target ammo. Range lane fee ($25–$35) paid directly to Cindy's Hot Shots.
-
-            </p>
-
-          </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
-          <div class="form-group">
-
-            <label for="fullName">Full Legal Name <span class="req">*</span></label>
-
-            <input type="text" id="fullName" name="fullName" required placeholder="e.g., Jordan Vance" autocomplete="name">
-
-          </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-          <div class="form-group">
-
-            <label for="email">Email Address <span class="req">*</span></label>
-
-            <input type="email" id="email" name="email" required placeholder="jordan@example.com" autocomplete="email">
-
-          </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-          <div class="form-group">
-
-            <label for="phone">Phone Number (SMS Enabled) <span class="req">*</span></label>
-
-            <input type="tel" id="phone" name="phone" required placeholder="(410) 555-0192" autocomplete="tel">
-
-          </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-          <div class="form-group">
-
-            <label for="preferredDates">Preferred Training Date(s) <span class="req">*</span></label>
-
-            <input type="text" id="preferredDates" name="preferredDates" required placeholder="e.g., Saturday Oct 12 Morning, or Flexible Weekdays">
-
-          </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-          <div class="form-group">
-
-            <label for="groupSize">Group Size / Training Format <span class="req">*</span></label>
-
-            <select id="groupSize" name="groupSize" required>
-
-              <option value="1 (Private One-on-One)">1 (Private One-on-One)</option>
-
-              <option value="2 (Paired Session)">2 (Paired Session)</option>
-
-              <option value="3-4 (Small Group / Family)">3-4 (Small Group / Family)</option>
-
-              <option value="5+ (Private Class Cohort)">5+ (Private Class Cohort)</option>
-
-            </select>
-
-          </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-          <div class="form-group">
-
-            <label for="comments">Additional Comments / Prior Experience / Equipment</label>
-
-            <textarea id="comments" name="comments" placeholder="Include your current shooting background, firearm models owned (if any), or scheduling notes..."></textarea>
-
-          </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-          <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; padding: 14px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;">
-
-            <input type="checkbox" id="safety-check" required style="width: 20px; height: 20px; accent-color: var(--accent-cyan); margin-top: 2px;">
-
-            <label for="safety-check" style="font-size: 0.82rem; color: #fca5a5; line-height: 1.5; cursor: pointer;">
-
-              <strong>MANDATORY SAFETY POLICY:</strong> I understand that absolutely zero live ammunition is permitted in the classroom environment. Ammunition must remain secured in my vehicle trunk until range live-fire.
-
-            </label>
-
-          </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-          <button type="submit" id="btn-booking-submit" class="btn-primary">
-
-            Confirm Training Request
-
-          </button>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-          <div id="booking-status" class="status-msg"></div>
-
-        </form>
-
-      </section>
+      <!-- (Reservation form modalized into #courseBookingModal) -->
 
     
 
@@ -9127,7 +8858,7 @@
     // OVERLAYS RESET CONTROLLER
     // ==========================================================================
     function closeAllOverlays() {
-      const overlayIds = ['portalConflictModal', 'adminInviteModal', 'adminEditStudentModal', 'adminEditClientModal', 
+      const overlayIds = ['courseBookingModal', 'portalConflictModal', 'adminInviteModal', 'adminEditStudentModal', 'adminEditClientModal', 
         'fiPortalSelectionModal', 'goalSynopsisModal', 'stepDetailModal',
         'expectationModal', 'reciprocityHubModal', 'stateModalOverlay',
         'collectorInfoModal', 'stateDossierModal'
@@ -10045,8 +9776,10 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           </td>
           <td>
             <div style="display: flex; gap: 6px; align-items: center;">
-              <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${s.studentId}')" style="width: auto; padding: 5px 10px; font-size: 0.78rem; border-color: var(--accent-cyan);">✏️ Edit</button>
-              <button type="button" class="btn-spark" onclick="deleteStudentFromRoster('${s.studentId}')" style="width: auto; padding: 5px 10px; font-size: 0.78rem; border-color: var(--accent-red); color: var(--accent-red);">🗑️ Delete</button>
+              <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-cyan);" title="Edit student record">✏️ Edit</button>
+              <button type="button" class="btn-spark" onclick="dispatchRangeBriefing('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: #60a5fa; color: #60a5fa;" title="Send Range Day Arrival Briefing">🎯 Briefing</button>
+              <button type="button" class="btn-spark" onclick="dispatchReviewRequest('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-amber); color: var(--accent-amber);" title="Send 5-Star Google Review Request">⭐ Review</button>
+              <button type="button" class="btn-spark" onclick="deleteStudentFromRoster('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-red); color: var(--accent-red);" title="Delete student">🗑️</button>
             </div>
           </td>
         `;
@@ -10489,6 +10222,95 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     }
     window.handleSmsAlertSubmit = handleSmsAlertSubmit;
 
+    
+    function openCourseBookingModal() {
+      const modal = document.getElementById('courseBookingModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    window.openCourseBookingModal = openCourseBookingModal;
+
+    function closeCourseBookingModal() {
+      const modal = document.getElementById('courseBookingModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+    window.closeCourseBookingModal = closeCourseBookingModal;
+
+
+    
+    function handleLeadMagnetSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('leadFullName').value.trim();
+      const email = document.getElementById('leadEmail').value.trim();
+      const st = document.getElementById('lead-status');
+
+      if (!name || !email) return;
+
+      showStatus(st, 'Preparing your download link...', 'success');
+
+      try {
+        const leads = JSON.parse(localStorage.getItem('fifs_reciprocity_leads') || '[]');
+        leads.unshift({ name: name, email: email, time: new Date().toISOString() });
+        localStorage.setItem('fifs_reciprocity_leads', JSON.stringify(leads));
+      } catch (err) {}
+
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLeadMagnetSubmission) {
+        google.script.run.handleLeadMagnetSubmission({ fullName: name, email: email, source: '50-State Reciprocity Hub Lead Magnet' });
+      }
+
+      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Lead Magnet', 'Downloaded Travel Guide', email);
+
+      setTimeout(function() {
+        showStatus(st, 'Success! Download starting. Thank you for training with Future Initiative.', 'success');
+        window.open('https://drive.google.com/file/d/1WIoQO00ALNalIuTjSNacZbBNLYIrVHGN/view?usp=sharing', '_blank');
+      }, 400);
+    }
+    window.handleLeadMagnetSubmit = handleLeadMagnetSubmit;
+
+
+    
+    function dispatchRangeBriefing(studentId) {
+      const s = adminCachedStudents.find(item => item.studentId === studentId);
+      const name = s ? s.fullName : studentId;
+      if (!confirm(`Dispatch official Range Day Arrival Briefing & Driving Directions to ${name} (${s ? s.email : ''})?`)) return;
+
+      const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleDispatchRangeBriefing) {
+        google.script.run
+          .withSuccessHandler(function(res) { alert(res.message || 'Briefing email dispatched!'); })
+          .handleDispatchRangeBriefing(pin, studentId);
+      } else {
+        alert(`Range Day Briefing dispatched to ${s ? s.email : 'student'}! Includes Cindy's Hot Shots directions and zero-ammo policy.`);
+      }
+      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Dispatch', 'Range Day Briefing Dispatched', studentId);
+    }
+    window.dispatchRangeBriefing = dispatchRangeBriefing;
+
+    function dispatchReviewRequest(studentId) {
+      const s = adminCachedStudents.find(item => item.studentId === studentId);
+      const name = s ? s.fullName : studentId;
+      if (!confirm(`Send 5-Star Google Review congratulations email to certified graduate ${name} (${s ? s.email : ''})?`)) return;
+
+      const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleDispatchReviewRequest) {
+        google.script.run
+          .withSuccessHandler(function(res) { alert(res.message || 'Review request dispatched!'); })
+          .handleDispatchReviewRequest(pin, studentId);
+      } else {
+        alert(`Google Review acceleration email sent to ${s ? s.email : 'student'} with direct 1-click link!`);
+      }
+      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Dispatch', 'Google Review Request Dispatched', studentId);
+    }
+    window.dispatchReviewRequest = dispatchReviewRequest;
+
+
     document.addEventListener('DOMContentLoaded', function() {
       // Accurate real-visitor tracking (zero fake offsets)
       try {
@@ -10702,13 +10524,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           selectElem.style.boxShadow = '';
         }, 1800);
       }
-      // Smooth scroll directly to the booking form
-      const targetSection = document.getElementById('booking-form-section') || document.getElementById('booking-form');
-      if (targetSection) {
-        setTimeout(function() {
-          targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 80);
-      }
+      // Open Course Booking Modal Window immediately in-place
+      openCourseBookingModal();
     }
     window.selectCourse = selectCourse;
 
@@ -16214,6 +16031,32 @@ function closeStateModal() {
     <!-- Action Training Dock -->
         <!-- Action Training Dock -->
     
+    
+    <!-- ================= LEAD MAGNET: FREE 2026 MID-ATLANTIC CARRY GUIDE ================= -->
+    <div class="lead-magnet-card" style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(13, 19, 27, 0.98) 100%); border: 2px solid var(--accent-cyan); box-shadow: 0 0 25px rgba(0, 229, 255, 0.2); border-radius: 16px; padding: 22px 24px; margin: 24px 0;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 14px;">
+        <div style="max-width: 680px;">
+          <span class="badge-instructor" style="margin-bottom: 6px;">Complimentary Travel Resource</span>
+          <h3 style="font-family: var(--font-display); font-size: 1.55rem; color: #fff; text-transform: uppercase; margin: 4px 0 6px;">
+            📘 Planning an Interstate Road Trip? Free 2026 Mid-Atlantic Carry Guide (PDF)
+          </h3>
+          <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.55;">
+            Download Coach Kai Wade's complimentary multi-state transport reference guide covering Maryland, Virginia, Pennsylvania, Delaware, and Florida reciprocity corridors.
+          </p>
+        </div>
+        <span class="meta-chip chip-status" style="font-size: 0.82rem; padding: 4px 12px;">INSTANT DOWNLOAD</span>
+      </div>
+
+      <form id="reciprocityLeadForm" onsubmit="handleLeadMagnetSubmit(event)" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+        <input type="text" id="leadFullName" placeholder="Your Full Name" required style="flex: 1; min-width: 200px; background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 11px 14px; border-radius: 8px; font-size: 0.90rem;">
+        <input type="email" id="leadEmail" placeholder="Your Email Address" required style="flex: 1; min-width: 220px; background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 11px 14px; border-radius: 8px; font-size: 0.90rem;">
+        <button type="submit" class="btn-primary" style="width: auto; padding: 11px 22px; font-size: 0.92rem; font-weight: 800; text-transform: uppercase; white-space: nowrap; box-shadow: 0 0 16px var(--accent-cyan-glow);">
+          📥 Get Free Guide (PDF) →
+        </button>
+      </form>
+      <div id="lead-status" class="status-msg" style="display: none; margin-top: 12px;"></div>
+    </div>
+
     <!-- Standard Statutory Disclaimer for Interstate Carry & Travel Tools -->
     <div class="statutory-disclaimer-card" style="background: rgba(7, 11, 16, 0.92); border: 1px solid var(--border-subtle); border-left: 3px solid var(--accent-amber); border-radius: 10px; padding: 14px 18px; margin: 24px 0; font-size: 0.82rem; color: #cbd5e1; line-height: 1.55;">
       <strong style="color: var(--accent-amber); text-transform: uppercase; font-family: var(--font-display); letter-spacing: 0.8px; display: block; margin-bottom: 4px;">
@@ -16897,6 +16740,139 @@ function closeStateModal() {
         </div>
         <div id="edit-client-status" class="status-msg" style="margin-top: 10px; display: none;"></div>
       </form>
+    </div>
+  </div>
+
+
+  <!-- ================= COURSE ENROLLMENT MODAL WINDOW (DEEP DIVE POPUP) ================= -->
+  <div class="goal-modal-overlay" id="courseBookingModal" style="display: none;" onclick="if(event.target===this) closeCourseBookingModal()">
+    <div class="goal-modal-box" role="dialog" aria-modal="true" aria-labelledby="bookingModalTitle" onclick="event.stopPropagation()" style="max-width: 680px; border-color: var(--accent-cyan); box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 35px var(--accent-cyan-glow);">
+      <button type="button" class="goal-modal-close-btn" onclick="closeCourseBookingModal()" aria-label="Close reservation form">✕</button>
+      
+      <div>
+        <span class="goal-header-badge" id="bookingModalBadge">CLASS REGISTRATION &amp; SEAT RESERVATION</span>
+      </div>
+      <h3 class="goal-modal-title" id="bookingModalTitle" style="color: #fff; margin: 6px 0 4px; font-size: 1.8rem; text-transform: uppercase;">
+        Reserve Your Training Session
+      </h3>
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5;">
+        Submit your student details directly to Instructor Kai Wade to establish your official training record and lock in your range date.
+      </p>
+
+      <!-- Clean Form Container (Extracted from old bottom section) -->
+      <form id="booking-form" onsubmit="submitBooking(event)">
+        <div class="form-group">
+          <label for="courseSelection">Selected Course Curriculum &amp; Tuition <span class="req">*</span></label>
+          <select id="courseSelection" class="form-select" onchange="updateFormPriceDisplay()" required style="background: #070b10; border: 1px solid var(--accent-cyan); color: #fff; padding: 12px; border-radius: 8px; width: 100%; font-size: 0.95rem; font-weight: 700;">
+            <option value="Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)">Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)</option>
+            <option value="Mid-Atlantic Multi-State Mastery — Base Track ($425.00)">Mid-Atlantic Multi-State Mastery — Base Track ($425.00)</option>
+            <option value="Maryland CCW & HQL Combo — VIP Turnkey ($375.00)">Maryland CCW &amp; HQL Combo — VIP Turnkey ($375.00)</option>
+            <option value="Maryland CCW & HQL Combo — Base Track ($249.99)" selected>Maryland CCW &amp; HQL Combo — Base Track ($249.99)</option>
+            <option value="Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)">Maryland Wear &amp; Carry (CCW) — VIP Turnkey ($325.00)</option>
+            <option value="Maryland Wear & Carry (CCW) — Base Track ($199.99)">Maryland Wear &amp; Carry (CCW) — Base Track ($199.99)</option>
+            <option value="Maryland HQL (Purchase License) — VIP Turnkey ($165.00)">Maryland HQL (Purchase License) — VIP Turnkey ($165.00)</option>
+            <option value="Maryland HQL (Purchase License) — Base Track ($100.00)">Maryland HQL (Purchase License) — Base Track ($100.00)</option>
+            <option value="Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)">Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)</option>
+            <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">Personal 1-on-1 Coaching — Base Track ($125.00/hr)</option>
+            <option value="FIFS Graduate Alumni Marksmanship Clinic ($65.00)">FIFS Graduate Alumni Marksmanship Clinic ($65.00)</option>
+            <option value="Gun Cleaning & Maintenance — VIP Turnkey ($115.00)">Gun Cleaning &amp; Maintenance — VIP Turnkey ($115.00)</option>
+            <option value="Gun Cleaning & Maintenance — Base Track ($75.00)">Gun Cleaning &amp; Maintenance — Base Track ($75.00)</option>
+            <option value="Children's Safety Class — VIP Turnkey ($265.00)">Children's Safety Class — VIP Turnkey ($265.00)</option>
+            <option value="Children's Safety Class — Base Track ($199.99)">Children's Safety Class — Base Track ($199.99)</option>
+          </select>
+        </div>
+
+        <!-- Selected Course Pricing Summary Card -->
+        <div id="formPriceSummaryCard" style="background: rgba(0, 229, 255, 0.06); border: 1px solid var(--accent-cyan); border-radius: 12px; padding: 16px 18px; margin-top: 12px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <span id="formCardCourseTitle" style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; color: #fff; display: block;">Maryland CCW &amp; HQL Combo</span>
+              <span id="formCardTierTag" style="font-size: 0.78rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px;">Standard Base Track Selected</span>
+            </div>
+            <div style="text-align: right;">
+              <span id="formCardActivePrice" style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--accent-cyan);">$249.99</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+            <div id="formBoxBase" style="background: #070b10; border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.2s;" onclick="toggleFormTier('base')">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="color: #fff; font-size: 0.85rem;">Standard Base</strong>
+                <span id="formPriceBaseVal" style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: #fff;">$249.99</span>
+              </div>
+              <p style="color: var(--text-muted); font-size: 0.74rem; margin-top: 3px; line-height: 1.35;">Self-equipped (Provide own gun, holster &amp; ammo)</p>
+            </div>
+
+            <div id="formBoxVip" style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.2s;" onclick="toggleFormTier('vip')">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="color: var(--accent-amber); font-size: 0.85rem;">👑 VIP Turnkey</strong>
+                <span id="formPriceVipVal" style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--accent-amber);">$375.00</span>
+              </div>
+              <p style="color: var(--text-muted); font-size: 0.74rem; margin-top: 3px; line-height: 1.35;">Turnkey (Lane fee, targets, loaner 9mm, ammo &amp; photos)</p>
+            </div>
+          </div>
+
+          <p id="formCardTierDesc" style="font-size: 0.82rem; color: #cbd5e1; margin-top: 12px; line-height: 1.5; border-left: 2px solid var(--accent-cyan); padding-left: 10px;">
+            Self-equipped track. You provide your own reliable handgun, rigid holster, and 50–100 rounds factory target ammo. Range lane fee ($25–$35) paid directly to Cindy's Hot Shots.
+          </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="fullName">Full Legal Name <span class="req">*</span></label>
+            <input type="text" id="fullName" name="fullName" required placeholder="e.g., Jordan Vance" autocomplete="name" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 12px; border-radius: 8px; width: 100%;">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="email">Email Address <span class="req">*</span></label>
+            <input type="email" id="email" name="email" required placeholder="jordan@example.com" autocomplete="email" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 12px; border-radius: 8px; width: 100%;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="phone">Phone Number (SMS Enabled) <span class="req">*</span></label>
+            <input type="tel" id="phone" name="phone" required placeholder="(410) 555-0192" autocomplete="tel" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 12px; border-radius: 8px; width: 100%;">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="preferredDates">Preferred Date(s) <span class="req">*</span></label>
+            <input type="text" id="preferredDates" name="preferredDates" required placeholder="e.g., Saturday Oct 19 Morning" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 12px; border-radius: 8px; width: 100%;">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label for="groupSize">Group Size / Training Format <span class="req">*</span></label>
+          <select id="groupSize" name="groupSize" required style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 12px; border-radius: 8px; width: 100%;">
+            <option value="1 (Private One-on-One)">1 (Private One-on-One)</option>
+            <option value="2 (Paired Session)">2 (Paired Session)</option>
+            <option value="3-4 (Small Group / Family)">3-4 (Small Group / Family)</option>
+            <option value="5+ (Private Class Cohort)">5+ (Private Class Cohort)</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label for="comments">Additional Notes / Prior Experience / Equipment</label>
+          <textarea id="comments" name="comments" rows="2" placeholder="Include your shooting background, handguns owned (if any), or scheduling notes..." style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 12px; border-radius: 8px; width: 100%; font-family: inherit; font-size: 0.95rem;"></textarea>
+        </div>
+
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; padding: 12px 14px; margin-bottom: 18px; display: flex; align-items: flex-start; gap: 10px;">
+          <input type="checkbox" id="safety-check" required style="width: 18px; height: 18px; accent-color: var(--accent-cyan); margin-top: 2px;">
+          <label for="safety-check" style="font-size: 0.80rem; color: #fca5a5; line-height: 1.45; cursor: pointer;">
+            <strong>MANDATORY RANGE SAFETY POLICY:</strong> I understand that absolutely zero live ammunition is permitted in the classroom. Ammunition must remain locked in my vehicle trunk until range live-fire.
+          </label>
+        </div>
+
+        <button type="submit" id="btn-booking-submit" class="btn-primary" style="width: 100%; padding: 14px; font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; box-shadow: 0 0 20px var(--accent-cyan-glow);">
+          Confirm Training Reservation 🎯
+        </button>
+        <div id="booking-status" class="status-msg" style="margin-top: 12px; display: none;"></div>
+      </form>
+
+      <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <span style="font-size: 0.78rem; color: var(--text-muted);">Lead Instructor: Kai Wade • Cindy's Hot Shots (Glen Burnie, MD)</span>
+        <button type="button" class="btn-secondary-modal" onclick="closeCourseBookingModal()" style="padding: 8px 18px; font-size: 0.85rem; font-weight: 700;">
+          ← Return to Course Catalog
+        </button>
+      </div>
     </div>
   </div>
 
