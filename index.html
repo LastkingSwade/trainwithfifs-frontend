@@ -5717,6 +5717,42 @@
       color: #070b10;
     }
 
+
+    /* Floating Communication Action Widget */
+    .floating-comm-bubble {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #00e5ff 0%, #0099cc 100%);
+      color: #070b10 !important;
+      border: 2px solid #ffffff;
+      border-radius: 30px;
+      padding: 10px 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 0 24px rgba(0, 229, 255, 0.75), 0 8px 24px rgba(0, 0, 0, 0.7);
+      cursor: pointer;
+      z-index: 99999;
+      transition: all 0.25s ease;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .floating-comm-bubble:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 0 35px rgba(0, 229, 255, 0.95);
+      background: linear-gradient(135deg, #ffffff 0%, #00e5ff 100%);
+    }
+
+    /* Device-Adaptive Responsive Layout Classes */
+    html.device-mobile body { font-size: 15px; }
+    html.device-mobile .tuition-grid { grid-template-columns: 1fr; }
+    html.device-mobile .hero-command-dock { max-width: 100%; padding: 14px 12px; }
+    html.device-mobile .btn-hero-booking-prime { padding: 14px 12px; }
+    html.device-mobile .goal-modal-box { padding: 18px 14px; max-height: 94vh; }
+    html.device-tablet .tuition-grid { grid-template-columns: 1fr 1fr; }
+    html.device-desktop .tuition-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
 </style>
 
     <!-- Immediate Global Navigation Handlers (Guaranteed Multi-Screen Isolation) -->
@@ -6181,6 +6217,9 @@
       </div>
 
             <div style="display: flex; align-items: center; gap: 8px;">
+        <button type="button" class="btn-spark" onclick="openContactWidgetModal()" style="padding: 8px 14px; font-size: 0.82rem; border-color: var(--accent-cyan); color: var(--accent-cyan); display: inline-flex; align-items: center; gap: 6px;" title="Direct Contact with Instructor Wade">
+          💬 <span>Direct Contact</span>
+        </button>
         <button type="button" class="btn-return-home" onclick="navigateBack()" aria-label="Go back to previous view" style="background: rgba(16, 22, 31, 0.9); border: 2px solid var(--border-subtle); color: var(--accent-cyan) !important; min-height: 44px; padding: 8px 16px;">
           ← BACK
         </button>
@@ -6780,76 +6819,49 @@
             </div>
             <button type="button" class="btn-spark" onclick="fiScrollTo('fi-sec-services')">Explore Services & Book ↓</button>
           </div>
+        <
+        
+        <!-- ================= OFFICIAL STATE LICENSING & EXEMPTION HUBS (BOTH PORTALS) ================= -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin: 24px 0;">
+          <!-- Card 1: MSP MyLicense Official Portal -->
+          <div class="portal-feature-launcher-card" style="border: 2px solid var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(255, 183, 3, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <span class="next-step-badge" style="color: var(--accent-amber); margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">OFFICIAL STATE LICENSING</span>
+              <h3 class="portal-feature-title" style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 6px;">🌐 MSP MyLicense Official Portal</h3>
+              <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                Official state portal to submit your formal Wear &amp; Carry (CCW) or Handgun Qualification License (HQL) application, upload your certified MSP Form 29-14 score sheet, and monitor live state police investigator status.
+              </p>
+            </div>
+            <div>
+              <a href="https://licensingportal.mdsp.maryland.gov/MspBridgeClient/" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-color: var(--accent-amber); color: var(--accent-amber); box-shadow: 0 0 16px rgba(255, 183, 3, 0.2);">
+                Launch Maryland MyLicense Portal ↗
+              </a>
+            </div>
+          </div>
+
+          <!-- Card 2: Maryland Designated Collector Exemption Hub -->
+          <div class="portal-feature-launcher-card" style="border: 2px solid #a855f7; background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(168, 85, 247, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <span class="next-step-badge" style="color: #c084fc; margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">STATUTORY PURCHASE EXEMPTION</span>
+              <h3 class="portal-feature-title" style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 6px;">📋 MSP Designated Firearms Collector Status</h3>
+              <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                Statutory Waiver of the 30-Day Regulated Firearm Purchase Limitation — Under Maryland Public Safety § 5-123 and COMAR 29.03.01.29, recognized collectors may acquire multiple regulated firearms within a 30-day statutory window. Approval establishes permanent statutory exemption with zero state filing fees.
+              </p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <a href="https://mdsp.maryland.gov/Organization/Pages/CriminalInvestigationBureau/LicensingDivision/Firearms/FirearmsCollectors.aspx" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-color: #a855f7; color: #c084fc; box-shadow: 0 0 16px rgba(168, 85, 247, 0.2);">
+                Launch MSP Collector Portal ↗
+              </a>
+              <button type="button" class="btn-secondary-modal" onclick="openCollectorModal()" style="width: 100%; padding: 10px 18px; font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">
+                View 4-Step Application Guide &amp; Form 77R-3 ℹ
+              </button>
+            </div>
+          </div>
         </div>
+/div>
 
         <!-- ================= SECTION: 50-STATE RECIPROCITY HUB ================= -->
-        <div class="fi-section-header" id="fi-sec-reciprocity">
-          <h3>Interactive 50-State Reciprocity Hub</h3>
-          <p>Real-time carry recognition, statutory duty to inform officers, and magazine capacity limits across all 50 states.</p>
-        </div>
-
-        <div class="fi-checklist-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <label for="fiResPermitSelect" style="font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase;">Resident State:</label>
-              <select id="fiResPermitSelect" style="background: #10161f; border: 1px solid rgba(0,229,255,0.3); color: #fff; padding: 6px 14px; border-radius: 8px; font-family: var(--font-display); font-size: 0.95rem;" onchange="fiUpdateReciprocity()">
-                <option value="MD" selected>Maryland (MD)</option>
-                <option value="VA">Virginia (VA)</option>
-                <option value="PA">Pennsylvania (PA)</option>
-                <option value="FL">Florida (FL)</option>
-                <option value="UT">Utah (UT)</option>
-              </select>
-            </div>
-
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <span style="font-size: 0.8rem; color: var(--text-muted); align-self: center;">Add Non-Resident Permits:</span>
-              <div class="permit-chip" id="fi-chip-UT" onclick="fiToggleNonRes('UT')">Utah (+DE, +NV, +NE)</div>
-              <div class="permit-chip" id="fi-chip-FL" onclick="fiToggleNonRes('FL')">Florida (+DE, +NM)</div>
-              <div class="permit-chip" id="fi-chip-VA" onclick="fiToggleNonRes('VA')">Virginia</div>
-              <div class="permit-chip" id="fi-chip-PA" onclick="fiToggleNonRes('PA')">Pennsylvania</div>
-            </div>
-          </div>
-
-          <!-- SCORECARD METRICS -->
-          <div class="reciprocity-scorecard" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px;">
-            <div class="scorecard-item" style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.06);">
-              <div class="scorecard-lbl" style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Total Legal States</div>
-              <div class="scorecard-val green" id="fiScoreTotal" style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--accent-green);">34 / 51</div>
-            </div>
-            <div class="scorecard-item" style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.06);">
-              <div class="scorecard-lbl" style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Constitutional Carry</div>
-              <div class="scorecard-val blue" id="fiScoreConst" style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--accent-cyan);">29</div>
-            </div>
-            <div class="scorecard-item" style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.06);">
-              <div class="scorecard-lbl" style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Reciprocity Honored</div>
-              <div class="scorecard-val green" id="fiScoreRecip" style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--accent-green);">5</div>
-            </div>
-            <div class="scorecard-item" style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.06);">
-              <div class="scorecard-lbl" style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Not Honored</div>
-              <div class="scorecard-val red" id="fiScoreNotHonored" style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--accent-red);">17</div>
-            </div>
-          </div>
-
-          <!-- SEARCH & FILTER BAR -->
-          <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px;">
-            <input type="text" id="fiStateSearch" placeholder="🔍 Search state name or postal code (e.g., Virginia, PA)..." style="flex: 1; min-width: 240px; background: #10161f; border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 10px 14px; border-radius: 8px;" oninput="fiFilterGrid()">
-            
-            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-              <button type="button" class="filter-tab-pill active" id="fi-pill-all" onclick="fiSetFilter('all', this)">All States</button>
-              <button type="button" class="filter-tab-pill" id="fi-pill-legal" onclick="fiSetFilter('legal', this)">Legal Carry</button>
-              <button type="button" class="filter-tab-pill" id="fi-pill-prohibited" onclick="fiSetFilter('prohibited', this)">Not Honored</button>
-              <button type="button" class="filter-tab-pill" id="fi-pill-duty" onclick="fiSetFilter('duty', this)">Duty to Inform</button>
-              <button type="button" class="filter-tab-pill" id="fi-pill-mag" onclick="fiSetFilter('mag', this)">Mag Restrictions</button>
-            </div>
-          </div>
-
-          <!-- 50 STATE GRID -->
-          <div id="fiStatesGrid" class="states-matrix-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; max-height: 480px; overflow-y: auto; padding-right: 4px;">
-            <!-- Dynamically populated via fiRenderGrid() -->
-          </div>
-        </div>
-
-        <!-- ================= SECTION: TRAVELING WITH A FIREARM ================= -->
+        <!-- (In-page 50-state hub eliminated; full interactive 50-state reciprocity hub accessible via Card 1, Subnav, and CCW Wallet) -->
         <!-- (Vehicle Travel moved into #vehicleTravelModal deep-dive popup) -->
         <!-- (Flying With Firearm moved into #flyingWithFirearmModal deep-dive popup) -->
         <div class="fi-section-header" id="fi-sec-renewal">
@@ -7964,13 +7976,14 @@
           </div>
 
 
-          <div class="tuition-desc">Structured, zero-compromise safety education, Eddie Eagle principles, hazard avoidance, and parent-guided instruction.</div>
-
-
+          <div class="tuition-desc">
+            Comprehensive youth accident prevention and family home defense covenant based on NRA Eddie Eagle principles. Teaches children age-appropriate reaction protocols if an unsecured firearm is encountered, coupled with parent-guided safe storage demonstrations and biometric lock fitting in accordance with Maryland Jaelynn's Law.
+          </div>
           <div class="tuition-bullets" id="bullets-course-children">
-            <div>✔ Eddie Eagle 4-Step Safety Rules</div>
-            <div>✔ Safe Home Storage Orientation</div>
-            <div>✔ Parent-Child Safety Covenant</div>
+            <div>✔ Eddie Eagle 4-Step Safety Rules (Stop, Don't Touch, Run Away, Tell a Grown-Up)</div>
+            <div>✔ Home Safe Storage Orientation &amp; Trigger Lock Fitting (Jaelynn's Law compliance)</div>
+            <div>✔ Parent-Child Defensive Safety Covenant &amp; Hands-Off Demystification</div>
+            <div>✔ Real-World Hazard Avoidance, School Safety &amp; Peer Pressure De-Escalation</div>
           </div>
 
 
@@ -8508,7 +8521,7 @@
     // OVERLAYS RESET CONTROLLER
     // ==========================================================================
     function closeAllOverlays() {
-      const overlayIds = ['courseBookingModal', 'vehicleTravelModal', 'flyingWithFirearmModal', 'portalConflictModal', 'adminInviteModal', 'adminEditStudentModal', 'adminEditClientModal', 
+      const overlayIds = ['courseBookingModal', 'contactInstructorModal', 'alumniAccessGateModal', 'vehicleTravelModal', 'flyingWithFirearmModal', 'portalConflictModal', 'adminInviteModal', 'adminEditStudentModal', 'adminEditClientModal', 
         'fiPortalSelectionModal', 'goalSynopsisModal', 'stepDetailModal',
         'expectationModal', 'reciprocityHubModal', 'stateModalOverlay',
         'collectorInfoModal', 'stateDossierModal'
@@ -8795,7 +8808,7 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
     // ==========================================================================
     function detectUserDevice() {
       const ua = navigator.userAgent || '';
-      const w = window.innerWidth || window.screen.width || 0;
+      const w = window.innerWidth || (window.screen ? window.screen.width : 0) || 0;
       const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
       
       // Tablet / iPad detection (including modern iPadOS reporting as MacIntel with touch)
@@ -10007,6 +10020,303 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     window.closeFlyingWithFirearmModal = closeFlyingWithFirearmModal;
 
 
+    
+    // ==========================================================================
+    // 1. DEVICE ADAPTIVE RENDERING ENGINE
+    // ==========================================================================
+    (function initDeviceAdaptiveRendering() {
+      if (typeof detectUserDevice === 'function') {
+        const d = detectUserDevice();
+        const devSlug = d.category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        document.documentElement.classList.add('device-' + devSlug);
+        document.documentElement.setAttribute('data-device-category', d.category);
+        document.documentElement.setAttribute('data-device-name', d.deviceName);
+      }
+    })();
+
+    // ==========================================================================
+    // 2. INTERACTIVE BOOKING CALENDAR CONTROLLER
+    // ==========================================================================
+    let calCurrentYear = 2026;
+    let calCurrentMonth = 9; // October (0-indexed: 9 = Oct)
+    let calSelectedDate = null;
+    let calBookedDates = ['2026-10-03', '2026-10-10', '2026-10-17', '2026-10-24', '2026-11-07'];
+
+    function renderBookingCalendar() {
+      const grid = document.getElementById('bookingCalDaysGrid');
+      const label = document.getElementById('bookingCalMonthLabel');
+      const policyBanner = document.getElementById('calendarPolicyText');
+      if (!grid || !label) return;
+
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      label.textContent = `${monthNames[calCurrentMonth]} ${calCurrentYear}`;
+
+      // Check current selected course VIP status
+      const selectElem = document.getElementById('courseSelection');
+      const curVal = (selectElem ? selectElem.value : '').toLowerCase();
+      const isVip = curVal.includes('vip') || curVal.includes('turnkey');
+
+      if (policyBanner) {
+        if (isVip) {
+          policyBanner.innerHTML = '👑 <strong style="color: var(--accent-amber);">VIP Turnkey Perk:</strong> Priority <strong>7-Day Flexible Scheduling (Monday–Sunday)</strong> is unlocked! Select any open date below.';
+          policyBanner.style.borderColor = 'var(--accent-amber)';
+          policyBanner.style.background = 'rgba(255, 183, 3, 0.08)';
+        } else {
+          policyBanner.innerHTML = '📅 <strong>Standard Schedule:</strong> Classes held on <strong>Saturdays &amp; Sundays</strong>. Weekdays (Mon–Fri) locked. (Toggle to 👑 VIP to unlock 7-day flexible scheduling).';
+          policyBanner.style.borderColor = 'var(--accent-cyan)';
+          policyBanner.style.background = 'rgba(0, 229, 255, 0.08)';
+        }
+      }
+
+      grid.innerHTML = '';
+
+      const firstDay = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
+      const totalDays = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
+
+      // Empty leading cells
+      for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.style.background = '#070b10';
+        emptyCell.style.minHeight = '42px';
+        grid.appendChild(emptyCell);
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      for (let d = 1; d <= totalDays; d++) {
+        const cellDate = new Date(calCurrentYear, calCurrentMonth, d);
+        cellDate.setHours(0, 0, 0, 0);
+        const dayOfWeek = cellDate.getDay(); // 0 = Sun, 6 = Sat
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const dateKey = `${calCurrentYear}-${String(calCurrentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const isBooked = calBookedDates.includes(dateKey);
+        const isPast = cellDate < today;
+
+        const cell = document.createElement('div');
+        cell.style.background = '#0d1219';
+        cell.style.minHeight = '42px';
+        cell.style.display = 'flex';
+        cell.style.flexDirection = 'column';
+        cell.style.alignItems = 'center';
+        cell.style.justifyContent = 'center';
+        cell.style.fontSize = '0.86rem';
+        cell.style.fontWeight = '700';
+        cell.style.cursor = 'pointer';
+        cell.style.transition = 'all 0.15s ease';
+        cell.textContent = d;
+
+        if (isPast) {
+          cell.style.color = '#334155';
+          cell.style.cursor = 'not-allowed';
+          cell.title = 'Past date';
+        } else if (isBooked) {
+          cell.style.color = '#ef4444';
+          cell.style.cursor = 'not-allowed';
+          cell.title = 'Class session already booked for this date';
+          cell.innerHTML = `${d}<span style="width: 5px; height: 5px; border-radius: 50%; background: #ef4444; margin-top: 2px;"></span>`;
+        } else if (!isVip && !isWeekend) {
+          cell.style.color = '#475569';
+          cell.style.cursor = 'not-allowed';
+          cell.title = 'Standard Base Track is Weekend Only (Sat & Sun). Upgrade to VIP to unlock Mon–Fri!';
+        } else {
+          // Available Date!
+          cell.style.color = '#fff';
+          if (calSelectedDate === dateKey) {
+            cell.style.background = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+            cell.style.color = '#070b10';
+            cell.style.fontWeight = '900';
+            cell.style.boxShadow = isVip ? '0 0 12px var(--accent-amber)' : '0 0 12px var(--accent-cyan)';
+          } else {
+            cell.onmouseover = function() {
+              this.style.background = isVip ? 'rgba(255, 183, 3, 0.25)' : 'rgba(0, 229, 255, 0.25)';
+            };
+            cell.onmouseout = function() {
+              this.style.background = '#0d1219';
+            };
+          }
+
+          cell.onclick = function() {
+            selectBookingDate(dateKey, cellDate, isVip);
+          };
+        }
+
+        grid.appendChild(cell);
+      }
+    }
+    window.renderBookingCalendar = renderBookingCalendar;
+
+    function changeBookingCalendarMonth(delta) {
+      calCurrentMonth += delta;
+      if (calCurrentMonth > 11) {
+        calCurrentMonth = 0;
+        calCurrentYear++;
+      } else if (calCurrentMonth < 0) {
+        calCurrentMonth = 11;
+        calCurrentYear--;
+      }
+      renderBookingCalendar();
+    }
+    window.changeBookingCalendarMonth = changeBookingCalendarMonth;
+
+    function selectBookingDate(dateKey, dateObj, isVip) {
+      calSelectedDate = dateKey;
+      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const formatted = `${dayNames[dateObj.getDay()]}, ${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()} • 9:00 AM (${isVip ? 'VIP Priority Session' : 'Weekend Session'})`;
+
+      const input = document.getElementById('preferredDates');
+      const text = document.getElementById('bookingCalSelectedDateText');
+      if (input) input.value = formatted;
+      if (text) {
+        text.textContent = formatted;
+        text.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+      }
+      renderBookingCalendar();
+    }
+    window.selectBookingDate = selectBookingDate;
+
+    // Call renderBookingCalendar whenever courseSelection changes or modal opens
+    const origOpenCourseBookingModal = window.openCourseBookingModal;
+    window.openCourseBookingModal = function() {
+      origOpenCourseBookingModal();
+      setTimeout(renderBookingCalendar, 50);
+    };
+
+    // ==========================================================================
+    // 3. CONTACT & LIVE CHAT (9AM - 5PM EST DISPATCH TO 443-990-1304)
+    // ==========================================================================
+    function openContactWidgetModal() {
+      const modal = document.getElementById('contactInstructorModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        updateLiveChatStatusUI();
+      }
+      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Communication', 'Open Contact Modal', 'Widget');
+    }
+    window.openContactWidgetModal = openContactWidgetModal;
+
+    function closeContactWidgetModal() {
+      const modal = document.getElementById('contactInstructorModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+    window.closeContactWidgetModal = closeContactWidgetModal;
+
+    function isLiveChatActiveNow() {
+      // Check EST time 9:00 AM to 5:00 PM (17:00)
+      const now = new Date();
+      const estStr = now.toLocaleString("en-US", { timeZone: "America/New_York" });
+      const estDate = new Date(estStr);
+      const hour = estDate.getHours();
+      return (hour >= 9 && hour < 17);
+    }
+
+    function updateLiveChatStatusUI() {
+      const tag = document.getElementById('liveChatOperatingTag');
+      const dot = document.getElementById('liveChatPulseDot');
+      const desc = document.getElementById('liveChatStatusDescription');
+      const active = isLiveChatActiveNow();
+
+      if (active) {
+        if (tag) { tag.textContent = '🟢 ONLINE NOW (9 AM – 5 PM EST)'; tag.style.color = '#10b981'; }
+        if (dot) dot.style.background = '#10b981';
+        if (desc) desc.textContent = 'Direct live dispatch to Coach Kai Wade. Messages submitted right now trigger immediate priority notification.';
+      } else {
+        if (tag) { tag.textContent = '🔴 AFTER HOURS (ACTIVE 9 AM – 5 PM EST)'; tag.style.color = 'var(--accent-amber)'; }
+        if (dot) dot.style.background = 'var(--accent-amber)';
+        if (desc) desc.textContent = 'Coach Wade is currently off the line. Leave your message below and it will be dispatched immediately for first-priority morning review.';
+      }
+    }
+
+    function handleLiveChatSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('chatSenderName').value.trim();
+      const phone = document.getElementById('chatSenderPhone').value.trim();
+      const msg = document.getElementById('chatMessageText').value.trim();
+      const st = document.getElementById('chat-dispatch-status');
+      const btn = document.getElementById('btn-send-chat');
+
+      if (!name || !phone || !msg) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Connecting & Dispatching...';
+      showStatus(st, 'Connecting to Instructor Kai Wade...', 'success');
+
+      const payload = {
+        name: name,
+        phone: phone,
+        message: msg,
+        timestamp: new Date().toISOString(),
+        isLiveHours: isLiveChatActiveNow()
+      };
+
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.disabled = false;
+            btn.textContent = '🚀 Dispatch Live Chat Message →';
+            showStatus(st, '✔ Dispatched directly to Instructor Kai Wade (443-990-1304)! Expect a prompt reply or call back shortly.', 'success');
+            document.getElementById('liveChatDispatchForm').reset();
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false;
+            btn.textContent = '🚀 Dispatch Live Chat Message →';
+            showStatus(st, '✔ Message logged and dispatched to Coach Wade (443-990-1304).', 'success');
+          })
+          .handleLiveChatMessage(payload);
+      } else {
+        setTimeout(function() {
+          btn.disabled = false;
+          btn.textContent = '🚀 Dispatch Live Chat Message →';
+          showStatus(st, '✔ Dispatched directly to Instructor Kai Wade (443-990-1304)! Expect a prompt reply or call back shortly.', 'success');
+          document.getElementById('liveChatDispatchForm').reset();
+        }, 600);
+      }
+
+      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Communication', 'Live Chat Dispatched', `${name} (${phone})`);
+    }
+    window.handleLiveChatSubmit = handleLiveChatSubmit;
+
+    // ==========================================================================
+    // 4. ALUMNI EXCLUSIVE CLINIC VERIFICATION GATE
+    // ==========================================================================
+    function openAlumniAccessGateModal() {
+      const modal = document.getElementById('alumniAccessGateModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    window.openAlumniAccessGateModal = openAlumniAccessGateModal;
+
+    function closeAlumniAccessGateModal() {
+      const modal = document.getElementById('alumniAccessGateModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+    window.closeAlumniAccessGateModal = closeAlumniAccessGateModal;
+
+    function proceedToClientSignInForAlumni() {
+      closeAlumniAccessGateModal();
+      openAndSwitch('fi-portal');
+      setTimeout(function() {
+        const authBox = document.getElementById('client-auth-box');
+        if (authBox) authBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+    }
+    window.proceedToClientSignInForAlumni = proceedToClientSignInForAlumni;
+
+
     document.addEventListener('DOMContentLoaded', function() {
       // Accurate real-visitor tracking (zero fake offsets)
       try {
@@ -10174,6 +10484,18 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     }
 
     function selectCourse(courseValue) {
+      const valClean = (courseValue || '').toLowerCase().trim();
+
+      // REQUIREMENT 9: Lock Alumni Clinic down to registered clients
+      if (valClean.includes('alumni') || valClean.includes('clinic')) {
+        const clientSession = localStorage.getItem('fifs_client_session');
+        if (!clientSession) {
+          localStorage.setItem('fifs_pending_alumni_booking', 'true');
+          openAlumniAccessGateModal();
+          return;
+        }
+      }
+
       const bookingPanel = document.getElementById('view-booking');
       if (!bookingPanel || bookingPanel.classList.contains('hidden')) {
         switchTab('booking');
@@ -15908,7 +16230,7 @@ function closeStateModal() {
 
       <div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px; margin-bottom: 14px; font-size: 0.88rem; color: #e2e8f0; line-height: 1.55;">
 
-        <p><strong>What it does:</strong> Under Maryland Public Safety § 5-123 and COMAR 29.03.01.29, Maryland limits citizens to one regulated firearm purchase every 30 days. Approval as a <em>Designated Collector</em> completely waives this limit forever—allowing you to buy multiple handguns or receivers at the same time.</p>
+        <p><strong>Statutory Purpose:</strong> Under Maryland Public Safety § 5-123 and COMAR 29.03.01.29, Maryland law limits citizens to one regulated firearm purchase per 30-day statutory period. Approval as a <em>Designated Firearms Collector</em> establishes a permanent statutory exemption, permitting the lawful purchase and transfer of multiple regulated firearms without waiting periods between purchases.</p>
 
       </div>
 
@@ -16099,6 +16421,18 @@ function closeStateModal() {
         </a>
 
       </div>
+
+      <!-- Maryland State Police Wear and Carry Portal User's Guide (MSP Media 474) -->
+      <div class="guide-download-banner" id="goalModalMspPortalBanner" style="display: flex; margin-top: 10px; border-color: var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.12) 0%, rgba(13, 19, 27, 0.95) 100%);">
+        <div class="guide-banner-text">
+          <strong style="color: var(--accent-amber); display: block; font-size: 0.92rem;">🌐 Official State Resource: Maryland Wear &amp; Carry Portal User's Guide (MSP)</strong>
+          <span>Comprehensive 20-page Maryland State Police walkthrough explaining account setup, score sheet upload, and application tracking.</span>
+        </div>
+        <a href="https://mdsp.maryland.gov/media/474" target="_blank" rel="noopener noreferrer" class="btn-download-guide" style="background: var(--accent-amber); color: #070b10 !important;">
+          <span>📄 View MSP Portal Guide ↗</span>
+        </a>
+      </div>
+
 
   
   
@@ -16539,16 +16873,53 @@ function closeStateModal() {
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-          <div class="form-group" style="margin-bottom: 0;">
+        <div class="form-group" style="margin-bottom: 14px;">
             <label for="phone">Phone Number (SMS Enabled) <span class="req">*</span></label>
             <input type="tel" id="phone" name="phone" required placeholder="(410) 555-0192" autocomplete="tel" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 12px; border-radius: 8px; width: 100%;">
           </div>
-          <div class="form-group" style="margin-bottom: 0;">
-            <label for="preferredDates">Preferred Date(s) <span class="req">*</span></label>
-            <input type="text" id="preferredDates" name="preferredDates" required placeholder="e.g., Saturday Oct 19 Morning" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 12px; border-radius: 8px; width: 100%;">
+
+          <div style="margin-bottom: 14px;">
+                      <div class="form-group" style="margin-bottom: 0; grid-column: span 2;">
+            <label style="font-size: 0.84rem; color: #cbd5e1; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; display: block;">
+              Select Training Session Date (Synced With Instructor Calendar) <span class="req">*</span>
+            </label>
+
+            <!-- Dynamic Scheduling Tier Rule Banner -->
+            <div id="bookingCalendarPolicyBanner" style="background: rgba(0, 229, 255, 0.08); border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 0.82rem; color: #cbd5e1; line-height: 1.45;">
+              <span id="calendarPolicyText">📅 <strong>Standard Schedule:</strong> Classes held on <strong>Saturdays &amp; Sundays</strong>. Weekdays (Mon–Fri) locked. (Toggle to 👑 VIP Turnkey to unlock 7-day flexible scheduling).</span>
+            </div>
+
+            <!-- Calendar Month Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px 8px 0 0; padding: 10px 14px;">
+              <button type="button" class="btn-spark" onclick="changeBookingCalendarMonth(-1)" style="padding: 4px 10px; font-size: 0.80rem;">◀ Prev</button>
+              <strong style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; text-transform: uppercase;" id="bookingCalMonthLabel">October 2026</strong>
+              <button type="button" class="btn-spark" onclick="changeBookingCalendarMonth(1)" style="padding: 4px 10px; font-size: 0.80rem;">Next ▶</button>
+            </div>
+
+            <!-- Days of Week Header -->
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); background: #10161f; border-left: 1px solid var(--border-subtle); border-right: 1px solid var(--border-subtle); text-align: center; font-size: 0.76rem; font-weight: 800; color: var(--text-muted); padding: 8px 0;">
+              <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+            </div>
+
+            <!-- Calendar Days Grid -->
+            <div id="bookingCalDaysGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-subtle); border: 1px solid var(--border-subtle); border-radius: 0 0 8px 8px; overflow: hidden;">
+              <!-- Dynamically populated via renderBookingCalendar() -->
+            </div>
+
+            <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+              <span style="font-size: 0.84rem; color: #cbd5e1;">
+                Selected Date: <strong id="bookingCalSelectedDateText" style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.95rem;">Please select an open date above</strong>
+              </span>
+              <div style="display: flex; gap: 12px; font-size: 0.74rem; color: var(--text-muted);">
+                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span> Open</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></span> Booked</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #475569;"></span> Locked</span>
+              </div>
+            </div>
+
+            <input type="hidden" id="preferredDates" name="preferredDates" required>
           </div>
-        </div>
+          </div>
 
         <div class="form-group" style="margin-bottom: 14px;">
           <label for="groupSize">Group Size / Training Format <span class="req">*</span></label>
@@ -16987,6 +17358,110 @@ function closeStateModal() {
         <span style="font-size: 0.78rem; color: var(--text-muted);">Future Initiative Firearm Services • Airline Baggage Security</span>
         <button type="button" class="btn-secondary-modal" onclick="closeFlyingWithFirearmModal()" style="padding: 10px 22px; font-size: 0.90rem; font-weight: 800;">
           ← Return to Client Hub
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Floating Contact & Live Chat Trigger Pill -->
+  <div class="floating-comm-bubble" id="floatingCommPill" onclick="openContactWidgetModal()" role="button" tabindex="0" title="Contact Coach Kai Wade • Call, Email or Live Chat">
+    <span style="font-size: 1.2rem;">💬</span>
+    <span style="font-family: var(--font-display); font-size: 0.88rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">CONTACT INSTRUCTOR</span>
+  </div>
+
+
+  <!-- ================= MODAL: DIRECT CONTACT & LIVE CHAT (9AM - 5PM EST) ================= -->
+  <div class="goal-modal-overlay" id="contactInstructorModal" style="display: none;" onclick="if(event.target===this) closeContactWidgetModal()">
+    <div class="goal-modal-box" role="dialog" aria-modal="true" aria-labelledby="contactModalTitle" onclick="event.stopPropagation()" style="max-width: 620px; border-color: var(--accent-cyan); box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 35px var(--accent-cyan-glow);">
+      <button type="button" class="goal-modal-close-btn" onclick="closeContactWidgetModal()" aria-label="Close contact options">✕</button>
+      <div>
+        <span class="goal-header-badge">FUTURE INITIATIVE DIRECT DISPATCH</span>
+      </div>
+      <h3 class="goal-modal-title" id="contactModalTitle" style="color: #fff; margin: 4px 0 2px; font-size: 1.8rem; text-transform: uppercase;">
+        💬 Connect With Lead Instructor Kai Wade
+      </h3>
+      <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5;">
+        Direct line to Coach Kai Wade. Have questions about course prerequisites, equipment compliance, or class schedules? Connect directly below.
+      </p>
+
+      <!-- 3 Communication Channels Grid -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+        <div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px; text-align: center;">
+          <span style="font-size: 1.8rem; display: block; margin-bottom: 4px;">📞</span>
+          <strong style="color: #fff; font-family: var(--font-display); font-size: 1.05rem; display: block;">Direct Telephone</strong>
+          <span style="font-size: 0.76rem; color: var(--text-muted); display: block; margin: 2px 0 10px;">Range Office &amp; Scheduling Line</span>
+          <a href="tel:4439901304" class="btn-spark" style="text-decoration: none; padding: 8px 14px; font-size: 0.85rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; width: 100%;">
+            📞 Call (443) 990-1304
+          </a>
+        </div>
+
+        <div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px; text-align: center;">
+          <span style="font-size: 1.8rem; display: block; margin-bottom: 4px;">✉️</span>
+          <strong style="color: #fff; font-family: var(--font-display); font-size: 1.05rem; display: block;">Official Email</strong>
+          <span style="font-size: 0.76rem; color: var(--text-muted); display: block; margin: 2px 0 10px;">Inquiries &amp; Paperwork Audits</span>
+          <a href="mailto:info@trainwithfifs.com" class="btn-spark" style="text-decoration: none; padding: 8px 14px; font-size: 0.85rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; width: 100%; border-color: var(--accent-amber); color: var(--accent-amber);">
+            ✉️ Email Instructor
+          </a>
+        </div>
+      </div>
+
+      <!-- Priority Live Chat Channel (Active 9 AM - 5 PM EST) -->
+      <div style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, #070b10 100%); border: 1.5px solid var(--accent-cyan); border-radius: 12px; padding: 18px 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="pulse-dot" id="liveChatPulseDot" style="width: 8px; height: 8px;"></span>
+            <strong style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; text-transform: uppercase;">💬 Priority Live Range Chat</strong>
+          </div>
+          <span id="liveChatOperatingTag" style="font-size: 0.74rem; font-weight: 800; text-transform: uppercase; color: var(--accent-cyan);">Active 9 AM – 5 PM EST</span>
+        </div>
+        <p style="font-size: 0.82rem; color: #cbd5e1; margin-bottom: 12px; line-height: 1.45;" id="liveChatStatusDescription">
+          Direct dispatch to Coach Kai Wade. Messages submitted during business hours trigger instant priority notification.
+        </p>
+
+        <form id="liveChatDispatchForm" onsubmit="handleLiveChatSubmit(event)">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <input type="text" id="chatSenderName" placeholder="Your Name" required style="background: #10161f; border: 1px solid var(--border-subtle); color: #fff; padding: 10px; border-radius: 8px; font-size: 0.88rem;">
+            <input type="tel" id="chatSenderPhone" placeholder="Mobile Phone (SMS Callback)" required style="background: #10161f; border: 1px solid var(--border-subtle); color: #fff; padding: 10px; border-radius: 8px; font-size: 0.88rem;">
+          </div>
+          <textarea id="chatMessageText" rows="2" placeholder="How can Coach Wade assist you today? (Course dates, equipment questions, etc.)" required style="background: #10161f; border: 1px solid var(--border-subtle); color: #fff; padding: 10px; border-radius: 8px; width: 100%; font-family: inherit; font-size: 0.88rem; margin-bottom: 10px;"></textarea>
+          <button type="submit" id="btn-send-chat" class="btn-primary" style="width: 100%; padding: 11px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">
+            🚀 Dispatch Live Chat Message →
+          </button>
+          <div id="chat-dispatch-status" class="status-msg" style="margin-top: 10px; display: none;"></div>
+        </form>
+      </div>
+
+      <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-subtle); text-align: right;">
+        <button type="button" class="btn-secondary-modal" onclick="closeContactWidgetModal()" style="padding: 8px 18px; font-size: 0.85rem;">
+          Close Window
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================= MODAL: ALUMNI EXCLUSIVE CLINIC VERIFICATION GATE ================= -->
+  <div class="goal-modal-overlay" id="alumniAccessGateModal" style="display: none;" onclick="if(event.target===this) closeAlumniAccessGateModal()">
+    <div class="goal-modal-box" role="dialog" aria-modal="true" aria-labelledby="alumniGateTitle" onclick="event.stopPropagation()" style="max-width: 580px; border-color: #38bdf8; box-shadow: 0 20px 50px rgba(0,0,0,0.92), 0 0 30px rgba(56, 189, 248, 0.35);">
+      <button type="button" class="goal-modal-close-btn" onclick="closeAlumniAccessGateModal()" aria-label="Close modal">✕</button>
+      <div>
+        <span class="goal-header-badge" style="background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; color: #38bdf8;">ALUMNI VERIFICATION REQUIRED</span>
+      </div>
+      <h3 class="goal-modal-title" id="alumniGateTitle" style="color: #fff; margin: 4px 0 8px; font-size: 1.7rem; text-transform: uppercase;">
+        🔒 Alumni Exclusive Clinic Access
+      </h3>
+      <div class="goal-synopsis-card" style="border-left-color: #38bdf8; background: #070b10; font-size: 0.90rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 16px;">
+        The <strong>FIFS Graduate Alumni Marksmanship Clinic ($65.00)</strong> is an exclusive 2-hour diagnostic workshop reserved for verified FIFS graduates and active carry permit holders.<br><br>
+        To reserve a seat in an upcoming alumni clinic cohort, please sign in to your <strong>Client Portal</strong> (or create your free verified profile). Once verified, you will immediately be redirected to complete your reservation.
+      </div>
+
+      <div class="goal-modal-actions" style="display: flex; flex-direction: column; gap: 10px;">
+        <button type="button" class="btn-primary" onclick="proceedToClientSignInForAlumni()" style="background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #070b10; font-weight: 800; padding: 12px; width: 100%;">
+          🔑 Sign In to Client Portal to Unlock ($65.00) →
+        </button>
+        <button type="button" class="btn-secondary-modal" onclick="closeAlumniAccessGateModal()" style="width: 100%; padding: 10px;">
+          ← Return to Course Catalog
         </button>
       </div>
     </div>
