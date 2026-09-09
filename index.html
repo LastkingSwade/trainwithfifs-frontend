@@ -7070,7 +7070,7 @@
                 State-mandated refresher course covering SB 1 legal updates, conflict de-escalation, safe storage mandates, and live-fire range qualification at Cindy's Hot Shots.
               </p>
               <div style="font-family: var(--font-display); font-size: 1.3rem; color: #fff; margin-bottom: 12px;">
-                $175 <span style="font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-body);">Base</span> • $325 <span style="font-size: 0.85rem; color: var(--accent-amber); font-family: var(--font-body);">VIP Mode</span>
+                $175 <span style="font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-body);">Base</span> • $325 <span style="font-size: 0.85rem; color: var(--accent-amber); font-family: var(--font-body);">VIP Turnkey</span>
               </div>
             </div>
             <button type="button" class="btn-primary" onclick="selectCourse('Maryland Wear & Carry (8-Hour Renewal) - $175')">Book Renewal Class →</button>
@@ -7084,7 +7084,7 @@
                 Comprehensive Utah, Florida, and Virginia non-resident permit training. Expands your legal carry recognition to over 34 states with zero classroom fluff.
               </p>
               <div style="font-family: var(--font-display); font-size: 1.3rem; color: #fff; margin-bottom: 12px;">
-                $175 <span style="font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-body);">Base</span> • $325 <span style="font-size: 0.85rem; color: var(--accent-amber); font-family: var(--font-body);">VIP Mode</span>
+                $175 <span style="font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-body);">Base</span> • $325 <span style="font-size: 0.85rem; color: var(--accent-amber); font-family: var(--font-body);">VIP Turnkey</span>
               </div>
             </div>
             <button type="button" class="btn-spark" onclick="selectCourse('Multi-State Concealed Carry Mastery - $175')">Book Multi-State Class →</button>
@@ -7098,7 +7098,7 @@
                 Intensive diagnostic coaching with Lead Instructor Kai Wade. Grip mechanics, sight recovery, target transitions, and holster draw diagnostics.
               </p>
               <div style="font-family: var(--font-display); font-size: 1.3rem; color: #fff; margin-bottom: 12px;">
-                $165/hr <span style="font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-body);">Base</span> • $295 <span style="font-size: 0.85rem; color: var(--accent-amber); font-family: var(--font-body);">VIP Mode</span>
+                $165/hr <span style="font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-body);">Base</span> • $295 <span style="font-size: 0.85rem; color: var(--accent-amber); font-family: var(--font-body);">VIP Turnkey</span>
               </div>
             </div>
             <button type="button" class="btn-secondary" onclick="selectCourse('Private 1-on-1 Range Coaching (Hourly) - $165')">Book Private Session →</button>
@@ -7245,87 +7245,63 @@
 
       <div id="admin-command-dashboard" class="hidden">
 
-        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-
+        <!-- Instructor Operations Header -->
+        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
           <div>
+            <span class="badge-instructor" style="margin-bottom: 4px;">Command Terminal</span>
+            <h3 style="font-family: var(--font-display); font-size: 1.8rem; color: #fff; text-transform: uppercase;">
+              Instructor Operations &amp; Intelligence Terminal
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem;">Live student roster management, course telemetry, and website traffic analytics.</p>
+          </div>
+          <button type="button" class="btn-spark" onclick="refreshAdminRoster()" style="width: auto; padding: 10px 18px; font-size: 0.88rem;">
+            🔄 Refresh Roster
+          </button>
+        </div>
 
-            <h3>Instructor Operations Terminal</h3>
+        <!-- High-Visibility Dual Admin Toggle Switcher Bar -->
+        <div class="admin-view-toggle-bar" style="display: flex; gap: 10px; margin-bottom: 24px; background: #070b10; padding: 6px; border-radius: 12px; border: 1px solid var(--border-subtle); max-width: 640px;">
+          <button type="button" id="btn-admin-tab-roster" class="admin-toggle-btn active" onclick="switchAdminTab('roster')" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: 8px; border: none; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.25s ease; background: var(--accent-cyan); color: #070b10; box-shadow: 0 0 18px var(--accent-cyan-glow);">
+            <span>👥</span> Student Roster &amp; Operations
+          </button>
+          <button type="button" id="btn-admin-tab-analytics" class="admin-toggle-btn" onclick="switchAdminTab('analytics')" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: 8px; border: 1px solid rgba(255, 183, 3, 0.4); font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.25s ease; background: transparent; color: var(--accent-amber);">
+            <span>📊</span> Website Traffic &amp; Analytics
+          </button>
+        </div>
 
-            <p>Real-time synchronization with Google Sheets ledger and Google Drive dossiers.</p>
-
+        <!-- ================= SUB-PANEL 1: STUDENT ROSTER & OPERATIONS ================= -->
+        <div id="admin-subpanel-roster">
+          <div class="admin-metrics-grid">
+            <div class="metric-card"><div class="metric-val" id="metric-total">0</div><div class="metric-name">Total Enrolled</div></div>
+            <div class="metric-card"><div class="metric-val" id="metric-pending" style="color: var(--accent-amber);">0</div><div class="metric-name">Prep Pending</div></div>
+            <div class="metric-card"><div class="metric-val" id="metric-upcoming" style="color: #60a5fa;">0</div><div class="metric-name">Upcoming Sessions</div></div>
+            <div class="metric-card"><div class="metric-val" id="metric-completed" style="color: #10b981;">0</div><div class="metric-name">Certified Graduates</div></div>
           </div>
 
-          <button type="button" class="btn-spark" onclick="refreshAdminRoster()">🔄 Refresh Roster</button>
-
+          <div style="overflow-x: auto; background: #070b10; border-radius: 12px; border: 1px solid var(--border-subtle); padding: 12px;">
+            <table class="admin-roster-table">
+              <thead>
+                <tr>
+                  <th>Student ID</th>
+                  <th>Full Name</th>
+                  <th>Course</th>
+                  <th>Training Schedule</th>
+                  <th>8-Step Journey Status</th>
+                  <th>Dossier</th>
+                  <th>Change Journey Step (1-8)</th>
+                </tr>
+              </thead>
+              <tbody id="admin-roster-tbody">
+                <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading live roster...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
-  
-  
-  
-  
-  
-  
-  
-  
-
-        <div class="admin-metrics-grid">
-
-          <div class="metric-card"><div class="metric-val" id="metric-total">0</div><div class="metric-name">Total Enrolled</div></div>
-
-          <div class="metric-card"><div class="metric-val" id="metric-pending" style="color: var(--accent-amber);">0</div><div class="metric-name">Prep Pending</div></div>
-
-          <div class="metric-card"><div class="metric-val" id="metric-upcoming" style="color: #60a5fa;">0</div><div class="metric-name">Upcoming Sessions</div></div>
-
-          <div class="metric-card"><div class="metric-val" id="metric-completed" style="color: #10b981;">0</div><div class="metric-name">Certified Graduates</div></div>
-
+        <!-- ================= SUB-PANEL 2: IN-DEPTH WEBSITE ANALYTICS DASHBOARD ================= -->
+        <div id="admin-subpanel-analytics" style="display: none;">
+          <div id="admin-analytics-dashboard-container"></div>
         </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-        <div style="overflow-x: auto; background: #070b10; border-radius: 12px; border: 1px solid var(--border-subtle); padding: 12px;">
-
-          <table class="admin-roster-table">
-
-            <thead>
-
-              <tr>
-
-                <th>Student ID</th>
-
-                <th>Full Name</th>
-
-                <th>Course</th>
-
-                <th>Training Schedule</th>
-
-                <th>8-Step Journey Status</th>
-
-                <th>Dossier</th>
-
-                <th>Change Journey Step (1-8)</th>
-
-              </tr>
-
-            </thead>
-
-            <tbody id="admin-roster-tbody">
-
-              <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading live roster...</td></tr>
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-        <div id="admin-analytics-dashboard-container"></div>
 
       </div>
 
@@ -7578,7 +7554,7 @@
 
         <p style="font-size: 0.92rem; color: var(--text-muted); max-width: 740px; margin: 6px auto 0; line-height: 1.55;">
 
-          All courses display standard self-equipped Base Pricing by default. Toggle between <strong>Standard Base</strong> and <strong>👑 VIP Mode</strong> on any card to see exactly what is added!
+          All courses display standard self-equipped Base Pricing by default. Toggle between <strong>Standard Base</strong> and <strong>👑 VIP Turnkey</strong> on any card to see exactly what is added!
 
         </p>
 
@@ -7593,15 +7569,15 @@
         <!-- 1. Mid-Atlantic Multi-State Mastery (NEW FLAGSHIP) -->
         <div class="tuition-card" id="card-course-mastery" style="border: 2px solid var(--accent-amber);">
           <div class="card-tier-badge" id="badge-course-mastery" style="display: none; background: var(--accent-amber); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP MODE
+            👑 VIP TURNKEY MODE
           </div>
           <span class="badge-pop" id="pop-course-mastery" style="background: var(--accent-amber); color: #070b10;">⭐ FLAGSHIP MULTI-STATE</span>
           <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">Mid-Atlantic Multi-State Mastery</div>
           
           <!-- Interactive Tier Toggle Switch -->
           <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-mastery" onclick="setCardTier('mastery', 'base', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-mastery" onclick="setCardTier('mastery', 'vip', event)" title="Activate 👑 VIP Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+            <button type="button" class="tier-toggle-option active" id="tog-base-mastery" onclick="setCardTier(\'mastery\', \'base\', event)">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-mastery" onclick="setCardTier(\'mastery\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
           </div>
 
 
@@ -7623,7 +7599,7 @@
 
 
           <div class="vip-perks-box" id="vip-box-course-mastery" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Range lane fee included at Cindy's Hot Shots (Save $25–$35)</div>
             <div>👑 Official B-27 practical qualification targets provided</div>
             <div>👑 Loaner 9mm semi-automatic handgun provided</div>
@@ -7644,14 +7620,14 @@
         <!-- 2. Maryland CCW & HQL Combo -->
         <div class="tuition-card highlight-combo" id="card-course-combo">
           <div class="card-tier-badge" id="badge-course-combo" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP MODE
+            👑 VIP TURNKEY MODE
           </div>
           <span class="badge-pop" id="pop-course-combo">🔥 MOST POPULAR COMBO</span>
           <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">CCW & HQL Combo</div>
           
           <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-combo" onclick="setCardTier('combo', 'base', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-combo" onclick="setCardTier('combo', 'vip', event)" title="Activate 👑 VIP Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+            <button type="button" class="tier-toggle-option active" id="tog-base-combo" onclick="setCardTier(\'combo\', \'base\', event)">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-combo" onclick="setCardTier(\'combo\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
           </div>
 
 
@@ -7672,7 +7648,7 @@
 
 
           <div class="vip-perks-box" id="vip-box-course-combo" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
             <div>👑 Official B-27 qualification targets provided</div>
             <div>👑 Loaner 9mm handgun provided for live-fire evolution</div>
@@ -7693,13 +7669,13 @@
         <!-- 3. Maryland Wear & Carry (16-Hr) -->
         <div class="tuition-card" id="card-course-ccw">
           <div class="card-tier-badge" id="badge-course-ccw" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP MODE
+            👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Maryland Wear & Carry</div>
           
           <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-ccw" onclick="setCardTier('ccw', 'base', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-ccw" onclick="setCardTier('ccw', 'vip', event)" title="Activate 👑 VIP Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+            <button type="button" class="tier-toggle-option active" id="tog-base-ccw" onclick="setCardTier(\'ccw\', \'base\', event)">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-ccw" onclick="setCardTier(\'ccw\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
           </div>
 
 
@@ -7720,7 +7696,7 @@
 
 
           <div class="vip-perks-box" id="vip-box-course-ccw" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
             <div>👑 Official B-27 qualification targets provided</div>
             <div>👑 Loaner 9mm handgun provided</div>
@@ -7740,13 +7716,13 @@
         <!-- 4. Maryland HQL (4-Hour) -->
         <div class="tuition-card" id="card-course-hql">
           <div class="card-tier-badge" id="badge-course-hql" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP MODE
+            👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Maryland HQL</div>
           
           <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-hql" onclick="setCardTier('hql', 'base', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-hql" onclick="setCardTier('hql', 'vip', event)" title="Activate 👑 VIP Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+            <button type="button" class="tier-toggle-option active" id="tog-base-hql" onclick="setCardTier(\'hql\', \'base\', event)">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-hql" onclick="setCardTier(\'hql\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
           </div>
 
 
@@ -7767,7 +7743,7 @@
 
 
           <div class="vip-perks-box" id="vip-box-course-hql" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Range fee included at Cindy's Hot Shots</div>
             <div>👑 Loaner handgun provided for live-fire verification</div>
             <div>👑 Qualifying ammunition included</div>
@@ -7787,13 +7763,13 @@
         <!-- 5. Personal 1-on-1 Coaching -->
         <div class="tuition-card" id="card-course-coaching">
           <div class="card-tier-badge" id="badge-course-coaching" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP MODE
+            👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Personal 1-on-1 Coaching</div>
           
           <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-coaching" onclick="setCardTier('coaching', 'base', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-coaching" onclick="setCardTier('coaching', 'vip', event)" title="Activate 👑 VIP Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+            <button type="button" class="tier-toggle-option active" id="tog-base-coaching" onclick="setCardTier(\'coaching\', \'base\', event)">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-coaching" onclick="setCardTier(\'coaching\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
           </div>
 
 
@@ -7814,7 +7790,7 @@
 
 
           <div class="vip-perks-box" id="vip-box-course-coaching" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Private lane reservation fee included</div>
             <div>👑 Diagnostic sensor telemetry (MantisX live analysis)</div>
             <div>👑 Access to premium loaner handguns (SIG, Glock, etc.)</div>
@@ -7834,13 +7810,13 @@
         <!-- 6. Gun Cleaning Class -->
         <div class="tuition-card" id="card-course-cleaning">
           <div class="card-tier-badge" id="badge-course-cleaning" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP MODE
+            👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Gun Cleaning Class</div>
           
           <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-cleaning" onclick="setCardTier('cleaning', 'base', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-cleaning" onclick="setCardTier('cleaning', 'vip', event)" title="Activate 👑 VIP Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+            <button type="button" class="tier-toggle-option active" id="tog-base-cleaning" onclick="setCardTier(\'cleaning\', \'base\', event)">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-cleaning" onclick="setCardTier(\'cleaning\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
           </div>
 
 
@@ -7861,7 +7837,7 @@
 
 
           <div class="vip-perks-box" id="vip-box-course-cleaning" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Complete premium multi-caliber cleaning kit to take home</div>
             <div>👑 Specialized bore solvents and advanced CLP lubricants</div>
             <div>👑 Ultrasonic deep cleaning treatment for slide & barrel</div>
@@ -7880,13 +7856,13 @@
         <!-- 7. Children's Safety Class -->
         <div class="tuition-card" id="card-course-children">
           <div class="card-tier-badge" id="badge-course-children" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP MODE
+            👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Children's Safety Class</div>
           
           <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-children" onclick="setCardTier('children', 'base', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-children" onclick="setCardTier('children', 'vip', event)" title="Activate 👑 VIP Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+            <button type="button" class="tier-toggle-option active" id="tog-base-children" onclick="setCardTier(\'children\', \'base\', event)">Standard Base</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-children" onclick="setCardTier(\'children\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
           </div>
 
 
@@ -7907,7 +7883,7 @@
 
 
           <div class="vip-perks-box" id="vip-box-course-children" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Mode:</strong>
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Certified heavy-duty cable gun locks to take home</div>
             <div>👑 Youth safe-handling activity workbook packet</div>
             <div>👑 Safe storage demonstration for parents</div>
@@ -7949,31 +7925,31 @@
 
             <select id="courseSelection" class="form-select" onchange="updateFormPriceDisplay()" required>
 
-              <option value="Mid-Atlantic Multi-State Mastery — VIP Mode ($550.00)">Mid-Atlantic Multi-State Mastery — VIP Mode ($550.00)</option>
+              <option value="Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)">Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)</option>
 
               <option value="Mid-Atlantic Multi-State Mastery — Base Track ($425.00)">Mid-Atlantic Multi-State Mastery — Base Track ($425.00)</option>
 
-              <option value="Maryland CCW & HQL Combo — VIP Mode ($375.00)">Maryland CCW & HQL Combo — VIP Mode ($375.00)</option>
+              <option value="Maryland CCW & HQL Combo — VIP Turnkey ($375.00)">Maryland CCW & HQL Combo — VIP Turnkey ($375.00)</option>
 
               <option value="Maryland CCW & HQL Combo — Base Track ($249.99)" selected>Maryland CCW & HQL Combo — Base Track ($249.99)</option>
 
-              <option value="Maryland Wear & Carry (CCW) — VIP Mode ($325.00)">Maryland Wear & Carry (CCW) — VIP Mode ($325.00)</option>
+              <option value="Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)">Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)</option>
 
               <option value="Maryland Wear & Carry (CCW) — Base Track ($199.99)">Maryland Wear & Carry (CCW) — Base Track ($199.99)</option>
 
-              <option value="Maryland HQL (Purchase License) — VIP Mode ($165.00)">Maryland HQL (Purchase License) — VIP Mode ($165.00)</option>
+              <option value="Maryland HQL (Purchase License) — VIP Turnkey ($165.00)">Maryland HQL (Purchase License) — VIP Turnkey ($165.00)</option>
 
               <option value="Maryland HQL (Purchase License) — Base Track ($100.00)">Maryland HQL (Purchase License) — Base Track ($100.00)</option>
 
-              <option value="Personal 1-on-1 Coaching — VIP Mode ($195.00/hr)">Personal 1-on-1 Coaching — VIP Mode ($195.00/hr)</option>
+              <option value="Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)">Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)</option>
 
               <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">Personal 1-on-1 Coaching — Base Track ($125.00/hr)</option>
 
-              <option value="Gun Cleaning & Maintenance — VIP Mode ($115.00)">Gun Cleaning & Maintenance — VIP Mode ($115.00)</option>
+              <option value="Gun Cleaning & Maintenance — VIP Turnkey ($115.00)">Gun Cleaning & Maintenance — VIP Turnkey ($115.00)</option>
 
               <option value="Gun Cleaning & Maintenance — Base Track ($75.00)">Gun Cleaning & Maintenance — Base Track ($75.00)</option>
 
-              <option value="Children's Safety Class — VIP Mode ($265.00)">Children's Safety Class — VIP Mode ($265.00)</option>
+              <option value="Children's Safety Class — VIP Turnkey ($265.00)">Children's Safety Class — VIP Turnkey ($265.00)</option>
 
               <option value="Children's Safety Class — Base Track ($199.99)">Children's Safety Class — Base Track ($199.99)</option>
 
@@ -8035,13 +8011,13 @@
 
                 <div style="display: flex; justify-content: space-between; align-items: center;">
 
-                  <strong style="color: var(--accent-amber); font-size: 0.85rem;">👑 VIP Mode</strong>
+                  <strong style="color: var(--accent-amber); font-size: 0.85rem;">👑 VIP Turnkey</strong>
 
                   <span id="formPriceVipVal" style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--accent-amber);">$375.00</span>
 
                 </div>
 
-                <p style="color: var(--text-muted); font-size: 0.74rem; margin-top: 3px; line-height: 1.35;">VIP Mode (Lane fee, targets, loaner 9mm, ammo & photos)</p>
+                <p style="color: var(--text-muted); font-size: 0.74rem; margin-top: 3px; line-height: 1.35;">Turnkey (Lane fee, targets, loaner 9mm, ammo & photos)</p>
 
               </div>
 
@@ -8740,8 +8716,8 @@
       admin: 'Instructor Command Center'
     };
 
-    window.window.currentActiveView = 'home';
-    window.window.contextualHistoryStack = [];
+    let currentActiveView = 'home';
+    let contextualHistoryStack = [];
 
     function rawSwitchTab(tab) {
       if (!ALL_APP_TABS.includes(tab)) tab = 'booking';
@@ -8772,11 +8748,11 @@
     }
 
     function switchTab(tab) {
-      if (window.currentActiveView !== tab) {
-        window.contextualHistoryStack.push(window.currentActiveView);
-        if (window.contextualHistoryStack.length > 25) window.contextualHistoryStack.shift();
+      if (currentActiveView !== tab) {
+        contextualHistoryStack.push(currentActiveView);
+        if (contextualHistoryStack.length > 25) contextualHistoryStack.shift();
       }
-      window.currentActiveView = tab;
+      currentActiveView = tab;
       rawSwitchTab(tab);
       if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Navigation', 'Switch Tab', tab);
     }
@@ -8786,11 +8762,11 @@
       try {
         closeAllOverlays();
         
-        if (window.currentActiveView !== tabId) {
-          window.contextualHistoryStack.push(window.currentActiveView);
-          if (window.contextualHistoryStack.length > 25) window.contextualHistoryStack.shift();
+        if (currentActiveView !== tabId) {
+          contextualHistoryStack.push(currentActiveView);
+          if (contextualHistoryStack.length > 25) contextualHistoryStack.shift();
         }
-        window.currentActiveView = tabId;
+        currentActiveView = tabId;
 
         document.body.className = 'in-app';
         const hero = document.getElementById('hero-landing');
@@ -8819,11 +8795,11 @@
       try {
         closeAllOverlays();
 
-        if (window.currentActiveView !== 'home') {
-          window.contextualHistoryStack.push(window.currentActiveView);
-          if (window.contextualHistoryStack.length > 25) window.contextualHistoryStack.shift();
+        if (currentActiveView !== 'home') {
+          contextualHistoryStack.push(currentActiveView);
+          if (contextualHistoryStack.length > 25) contextualHistoryStack.shift();
         }
-        window.currentActiveView = 'home';
+        currentActiveView = 'home';
 
         document.body.className = 'in-home';
         const hero = document.getElementById('hero-landing');
@@ -8855,13 +8831,13 @@
     window.returnToHome = returnToHome;
 
     function navigateBack() {
-      if (window.contextualHistoryStack.length > 0) {
-        const previousView = window.contextualHistoryStack.pop();
+      if (contextualHistoryStack.length > 0) {
+        const previousView = contextualHistoryStack.pop();
         if (previousView === 'home') {
           returnToHome();
           return;
         } else if (ALL_APP_TABS.includes(previousView)) {
-          window.currentActiveView = previousView;
+          currentActiveView = previousView;
           rawSwitchTab(previousView);
           return;
         }
@@ -10637,7 +10613,7 @@
 
         rec: "Recommended: Mid-Atlantic Multi-State Mastery ($425 Base / $550 VIP)",
 
-        courseValue: "Mid-Atlantic Multi-State Mastery — VIP Mode ($550.00)",
+        courseValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)",
 
         showGuide: false,
 
@@ -10649,7 +10625,7 @@
 
           "Knocks out your Maryland Wear & Carry permit plus non-resident application documentation for VA, FL, AZ, and PA in one organized experience.",
 
-          "VIP Mode provides everything: range fees, targets, loaner 9mm, factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos."
+          "VIP Turnkey option provides everything: range fees, targets, loaner 9mm, factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos."
 
         ],
 
@@ -11815,7 +11791,7 @@
 
         baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($425.00)",
 
-        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Mode ($550.00)"
+        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)"
 
       },
 
@@ -11827,7 +11803,7 @@
 
         baseValue: "Maryland CCW & HQL Combo — Base Track ($249.99)",
 
-        vipValue: "Maryland CCW & HQL Combo — VIP Mode ($375.00)"
+        vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($375.00)"
 
       },
 
@@ -11839,7 +11815,7 @@
 
         baseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
 
-        vipValue: "Maryland Wear & Carry (CCW) — VIP Mode ($325.00)"
+        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)"
 
       },
 
@@ -11851,7 +11827,7 @@
 
         baseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
 
-        vipValue: "Maryland HQL (Purchase License) — VIP Mode ($165.00)"
+        vipValue: "Maryland HQL (Purchase License) — VIP Turnkey ($165.00)"
 
       },
 
@@ -11863,7 +11839,7 @@
 
         baseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
 
-        vipValue: "Personal 1-on-1 Coaching — VIP Mode ($195.00/hr)"
+        vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
 
       },
 
@@ -11875,7 +11851,7 @@
 
         baseValue: "Gun Cleaning & Maintenance — Base Track ($75.00)",
 
-        vipValue: "Gun Cleaning & Maintenance — VIP Mode ($115.00)"
+        vipValue: "Gun Cleaning & Maintenance — VIP Turnkey ($115.00)"
 
       },
 
@@ -11887,7 +11863,7 @@
 
         baseValue: "Children's Safety Class — Base Track ($199.99)",
 
-        vipValue: "Children's Safety Class — VIP Mode ($265.00)"
+        vipValue: "Children's Safety Class — VIP Turnkey ($265.00)"
 
       }
 
@@ -11961,7 +11937,7 @@
 
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-cyan);">${config.vipPrice}</span>
 
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Mode ★)</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>
 
           `;
 
@@ -12091,7 +12067,7 @@
 
         baseDesc: "Self-equipped track. Includes 16-hour instruction + live-fire qualification + documentation for MD, VA, FL, AZ, and PA. Provide own firearm and ammo.",
 
-        vipDesc: "👑 VIP Mode Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
 
       },
 
@@ -12103,7 +12079,7 @@
 
         baseDesc: "Self-equipped track. 16-hour Wear & Carry curriculum + Maryland HQL exemption guide. Provide own handgun, holster, and ammo.",
 
-        vipDesc: "👑 VIP Mode Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
 
       },
 
@@ -12115,7 +12091,7 @@
 
         baseDesc: "Self-equipped track. 16-hour Wear & Carry certification and live-fire range qualification. Provide own firearm and ammo.",
 
-        vipDesc: "👑 VIP Mode Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
 
       },
 
@@ -12127,7 +12103,7 @@
 
         baseDesc: "Self-equipped track. 4-hour state prerequisite course with live-fire component.",
 
-        vipDesc: "👑 VIP Mode Track. Includes range fee, loaner handgun, live-fire target ammo, target & portal submission guidance!"
+        vipDesc: "👑 VIP Turnkey Track. Includes range fee, loaner handgun, live-fire target ammo, target & portal submission guidance!"
 
       },
 
@@ -12139,7 +12115,7 @@
 
         baseDesc: "Dedicated 1-on-1 private coaching. Custom diagnostic instruction.",
 
-        vipDesc: "👑 VIP Mode Track. Includes private lane fee, diagnostic sensor telemetry (MantisX), loaner firearms & ammunition!"
+        vipDesc: "👑 VIP Turnkey Track. Includes private lane fee, diagnostic sensor telemetry (MantisX), loaner firearms & ammunition!"
 
       },
 
@@ -12151,7 +12127,7 @@
 
         baseDesc: "Instructional field-strip, cleaning, and maintenance workshop.",
 
-        vipDesc: "👑 VIP Mode Track. Includes full premium take-home cleaning kit, ultrasonic treatment & specialized solvents!"
+        vipDesc: "👑 VIP Turnkey Track. Includes full premium take-home cleaning kit, ultrasonic treatment & specialized solvents!"
 
       },
 
@@ -12163,7 +12139,7 @@
 
         baseDesc: "Family safety and Eddie Eagle accident-prevention curriculum.",
 
-        vipDesc: "👑 VIP Mode Track. Includes certified home cable gun locks, youth workbook & completion certificate!"
+        vipDesc: "👑 VIP Turnkey Track. Includes certified home cable gun locks, youth workbook & completion certificate!"
 
       }
 
@@ -12215,7 +12191,7 @@
 
       const selectedVal = selectElem.value;
 
-      const isVip = selectedVal.includes('VIP') || selectedVal.includes('Option') || selectedVal.includes('Turnkey');
+      const isVip = selectedVal.includes('VIP') || selectedVal.includes('Turnkey');
 
   
   
@@ -12269,7 +12245,7 @@
 
         if (tierTag) {
 
-          tierTag.textContent = "👑 VIP Mode Track Selected";
+          tierTag.textContent = "👑 VIP Turnkey Track Selected";
 
           tierTag.style.color = "var(--accent-amber)";
 
@@ -12382,7 +12358,7 @@
 
       if (targetTier === 'vip' && !isCurrentlyVip) {
 
-        // Find matching VIP tier in select
+        // Find matching VIP option in select
 
         for (let i = 0; i < selectElem.options.length; i++) {
 
@@ -12463,9 +12439,6 @@
 
     // ================= DYNAMIC COURSE CARD TIER TOGGLE SWITCH =================
 
-        // ==========================================================================
-    // VIP TIER TOGGLE CONTROLLER
-    // ==========================================================================
     function setCardTier(courseKey, targetTier, evt) {
       if (evt && evt.stopPropagation) evt.stopPropagation();
       const config = COURSE_TIER_CONFIG[courseKey];
@@ -12490,24 +12463,21 @@
 
         if (badge) badge.style.setProperty('display', 'block', 'important');
         if (vipBox) vipBox.style.setProperty('display', 'block', 'important');
-
         if (togVip) {
           togVip.classList.add('active');
           togVip.style.setProperty('background', 'var(--accent-amber)', 'important');
           togVip.style.setProperty('color', '#070b10', 'important');
-          togVip.style.setProperty('border-color', 'var(--accent-amber)', 'important');
         }
         if (togBase) {
           togBase.classList.remove('active');
           togBase.style.setProperty('background', 'transparent', 'important');
           togBase.style.setProperty('color', 'var(--text-muted)', 'important');
-          togBase.style.setProperty('border-color', 'transparent', 'important');
         }
 
         if (priceElem) {
           priceElem.innerHTML = `
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-amber);">${config.vipPrice}</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Mode ★)</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>
           `;
         }
 
@@ -12521,9 +12491,7 @@
             selectCourse(config.vipValue);
           };
         }
-        if (typeof logAnalyticsEvent === 'function') {
-          logAnalyticsEvent('Course Selection', 'Toggle VIP Crown', courseKey);
-        }
+        logAnalyticsEvent('Course Selection', 'Toggle VIP Crown', courseKey);
       } else {
         // RETURN TO BASE MODE
         card.classList.remove('vip-mode-active');
@@ -12533,18 +12501,15 @@
 
         if (badge) badge.style.setProperty('display', 'none', 'important');
         if (vipBox) vipBox.style.setProperty('display', 'none', 'important');
-
         if (togBase) {
           togBase.classList.add('active');
           togBase.style.setProperty('background', 'var(--accent-cyan)', 'important');
           togBase.style.setProperty('color', '#070b10', 'important');
-          togBase.style.setProperty('border-color', 'var(--accent-cyan)', 'important');
         }
         if (togVip) {
           togVip.classList.remove('active');
           togVip.style.setProperty('background', 'transparent', 'important');
           togVip.style.setProperty('color', '#fff', 'important');
-          togVip.style.setProperty('border-color', 'transparent', 'important');
         }
 
         if (priceElem) {
@@ -12564,9 +12529,7 @@
             selectCourse(config.baseValue);
           };
         }
-        if (typeof logAnalyticsEvent === 'function') {
-          logAnalyticsEvent('Course Selection', 'Toggle Base Mode', courseKey);
-        }
+        logAnalyticsEvent('Course Selection', 'Toggle Base Mode', courseKey);
       }
     }
     window.setCardTier = setCardTier;
@@ -14683,6 +14646,66 @@
       document.body.removeChild(a);
     }
     window.exportAnalyticsCSV = exportAnalyticsCSV;
+
+
+
+    // ==========================================================================
+    // ADMIN DASHBOARD TAB SWITCHER (ROSTER VS ANALYTICS)
+    // ==========================================================================
+    function switchAdminTab(tab) {
+      const rosterPanel = document.getElementById('admin-subpanel-roster');
+      const analyticsPanel = document.getElementById('admin-subpanel-analytics');
+      const btnRoster = document.getElementById('btn-admin-tab-roster');
+      const btnAnalytics = document.getElementById('btn-admin-tab-analytics');
+
+      if (tab === 'analytics') {
+        if (rosterPanel) rosterPanel.style.display = 'none';
+        if (analyticsPanel) analyticsPanel.style.display = 'block';
+
+        if (btnAnalytics) {
+          btnAnalytics.classList.add('active');
+          btnAnalytics.style.background = 'var(--accent-amber)';
+          btnAnalytics.style.color = '#070b10';
+          btnAnalytics.style.boxShadow = '0 0 18px rgba(255, 183, 3, 0.45)';
+          btnAnalytics.style.borderColor = 'var(--accent-amber)';
+        }
+        if (btnRoster) {
+          btnRoster.classList.remove('active');
+          btnRoster.style.background = 'transparent';
+          btnRoster.style.color = 'var(--text-muted)';
+          btnRoster.style.boxShadow = 'none';
+          btnRoster.style.border = '1px solid var(--border-subtle)';
+        }
+        if (typeof renderAdminAnalyticsDashboard === 'function') {
+          renderAdminAnalyticsDashboard();
+        }
+        if (typeof logAnalyticsEvent === 'function') {
+          logAnalyticsEvent('Admin Command', 'Switch Tab', 'Website Analytics');
+        }
+      } else {
+        if (analyticsPanel) analyticsPanel.style.display = 'none';
+        if (rosterPanel) rosterPanel.style.display = 'block';
+
+        if (btnRoster) {
+          btnRoster.classList.add('active');
+          btnRoster.style.background = 'var(--accent-cyan)';
+          btnRoster.style.color = '#070b10';
+          btnRoster.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
+          btnRoster.style.border = 'none';
+        }
+        if (btnAnalytics) {
+          btnAnalytics.classList.remove('active');
+          btnAnalytics.style.background = 'transparent';
+          btnAnalytics.style.color = 'var(--accent-amber)';
+          btnAnalytics.style.boxShadow = 'none';
+          btnAnalytics.style.border = '1px solid rgba(255, 183, 3, 0.4)';
+        }
+        if (typeof logAnalyticsEvent === 'function') {
+          logAnalyticsEvent('Admin Command', 'Switch Tab', 'Student Roster');
+        }
+      }
+    }
+    window.switchAdminTab = switchAdminTab;
 
 </script>
 
