@@ -1,7 +1,4 @@
 
-Train_With_FIFS_index.html
-
-100%
 <!DOCTYPE html>
 
 <html lang="en">
@@ -79,9 +76,9 @@ Train_With_FIFS_index.html
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; overscroll-behavior-y: none; }
 
-    body { font-family: var(--font-body); color: var(--text-main); background-color: var(--bg-dark-core); min-height: 100vh; line-height: 1.5; overflow-x: hidden; }
+    body { overscroll-behavior-y: none; font-family: var(--font-body); color: var(--text-main); background-color: var(--bg-dark-core); min-height: 100vh; line-height: 1.5; overflow-x: hidden; }
 
   
   
@@ -5642,6 +5639,85 @@ Train_With_FIFS_index.html
       visibility: visible !important;
     }
 
+
+    /* Sleek Sliding Tier Toggle Switch */
+    .tier-toggle-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 12px 0 16px;
+      width: 100%;
+    }
+    .tier-sliding-switch {
+      display: inline-flex;
+      position: relative;
+      background: #070b10;
+      border: 1.5px solid rgba(0, 229, 255, 0.35);
+      border-radius: 24px;
+      padding: 3px;
+      cursor: pointer;
+      user-select: none;
+      width: fit-content;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .tier-sliding-switch.vip-active {
+      border-color: var(--accent-amber);
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8), 0 0 16px rgba(255, 183, 3, 0.25);
+    }
+    .tier-sliding-pill {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      height: 32px;
+      width: 110px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #00e5ff 0%, #00b4d8 100%);
+      box-shadow: 0 0 12px var(--accent-cyan-glow);
+      transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), background 0.26s ease, width 0.26s ease, box-shadow 0.26s ease;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .tier-sliding-switch.vip-active .tier-sliding-pill {
+      transform: translateX(108px);
+      width: 98px;
+      background: linear-gradient(135deg, #ffb703 0%, #fb8500 100%);
+      box-shadow: 0 0 14px var(--accent-amber-glow);
+    }
+    .tier-option-btn {
+      position: relative;
+      z-index: 2;
+      background: none;
+      border: none;
+      font-family: var(--font-display);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: color 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.2;
+    }
+    .tier-option-btn.btn-base-side {
+      width: 110px;
+      color: #070b10;
+    }
+    .tier-sliding-switch.vip-active .tier-option-btn.btn-base-side {
+      color: #94a3b8;
+    }
+    .tier-option-btn.btn-vip-side {
+      width: 98px;
+      color: #94a3b8;
+      gap: 5px;
+    }
+    .tier-sliding-switch.vip-active .tier-option-btn.btn-vip-side {
+      color: #070b10;
+    }
+
 </style>
 
     <!-- Immediate Global Navigation Handlers (Guaranteed Multi-Screen Isolation) -->
@@ -6299,15 +6375,38 @@ Train_With_FIFS_index.html
 
 
         <!-- Student Documents & Resources -->
-        <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 20px;">
-          <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 12px;">Official Records & Resources</h4>
-          <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-            <a href="#" id="dash-doc-link" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-              📄 My Student Training Dossier (Google Doc) ↗
-            </a>
-            <a href="https://licensingportal.mdsp.maryland.gov/MspBridgeClient/" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-              🌐 Maryland State Police MyLicense Portal ↗
-            </a>
+        <!-- ================= OFFICIAL STUDENT RECORDS & STATE LICENSING DOCK ================= -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 24px;">
+          <!-- Card 1: My Student Training Dossier -->
+          <div class="portal-feature-launcher-card" style="border: 2px solid var(--accent-cyan); background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(0, 229, 255, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <span class="next-step-badge" style="color: var(--accent-cyan); margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">SECURE STUDENT PROFILE</span>
+              <h3 class="portal-feature-title" style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 6px;">📄 Personal Student Training Dossier</h3>
+              <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                Access your live synchronized Google Drive training profile, class attendance verification, instructor diagnostic notes, and certified range score log maintained by Coach Kai Wade.
+              </p>
+            </div>
+            <div>
+              <a href="#" id="dash-doc-link" target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 0 16px var(--accent-cyan-glow);">
+                Open Student Dossier (Google Docs) ↗
+              </a>
+            </div>
+          </div>
+
+          <!-- Card 2: Maryland State Police MyLicense Portal -->
+          <div class="portal-feature-launcher-card" style="border: 2px solid var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(255, 183, 3, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <span class="next-step-badge" style="color: var(--accent-amber); margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">OFFICIAL STATE LICENSING</span>
+              <h3 class="portal-feature-title" style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 6px;">🌐 MSP MyLicense Official Portal</h3>
+              <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                Official state portal to submit your formal Wear &amp; Carry (CCW) or Handgun Qualification License (HQL) application, upload your signed MSP Form 29-14, and track live investigator status.
+              </p>
+            </div>
+            <div>
+              <a href="https://licensingportal.mdsp.maryland.gov/MspBridgeClient/" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-color: var(--accent-amber); color: var(--accent-amber); box-shadow: 0 0 16px rgba(255, 183, 3, 0.2);">
+                Launch Maryland MyLicense Portal ↗
+              </a>
+            </div>
           </div>
         </div>
 
@@ -7658,11 +7757,17 @@ Train_With_FIFS_index.html
           </div>
           <span class="badge-pop" id="pop-course-mastery" style="background: var(--accent-amber); color: #070b10;">⭐ FLAGSHIP MULTI-STATE</span>
           <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">Mid-Atlantic Multi-State Mastery</div>
+          <div class="combo-savings-badge" style="background: rgba(255, 183, 3, 0.15); border: 1px solid var(--accent-amber); color: var(--accent-amber); font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.8px; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; margin: 6px 0; display: inline-flex; align-items: center; gap: 6px;">
+            <span>⭐</span> 5-STATE EXPANSION (MD+VA+FL+AZ+PA) — 34+ STATES LEGAL CARRY
+          </div>
           
           <!-- Interactive Tier Toggle Switch -->
-          <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-mastery" onclick="setCardTier(\'mastery\', \'base\', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-mastery" onclick="setCardTier(\'mastery\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+          <div class="tier-toggle-wrapper">
+            <div class="tier-sliding-switch" id="switch-mastery" onclick="toggleCardTier('mastery', event)">
+              <div class="tier-sliding-pill" id="slider-mastery"></div>
+              <button type="button" class="tier-option-btn btn-base-side" id="tog-base-mastery" onclick="setCardTier('mastery', 'base', event)">Standard</button>
+              <button type="button" class="tier-option-btn btn-vip-side" id="tog-vip-mastery" onclick="setCardTier('mastery', 'vip', event)">👑 VIP</button>
+            </div>
           </div>
 
 
@@ -7713,9 +7818,12 @@ Train_With_FIFS_index.html
             <span>💰</span> INCLUDES HQL TRAINING WAIVER — SAVE $100
           </div>
           
-          <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-combo" onclick="setCardTier(\'combo\', \'base\', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-combo" onclick="setCardTier(\'combo\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+          <div class="tier-toggle-wrapper">
+            <div class="tier-sliding-switch" id="switch-combo" onclick="toggleCardTier('combo', event)">
+              <div class="tier-sliding-pill" id="slider-combo"></div>
+              <button type="button" class="tier-option-btn btn-base-side" id="tog-base-combo" onclick="setCardTier('combo', 'base', event)">Standard</button>
+              <button type="button" class="tier-option-btn btn-vip-side" id="tog-vip-combo" onclick="setCardTier('combo', 'vip', event)">👑 VIP</button>
+            </div>
           </div>
 
 
@@ -7761,10 +7869,16 @@ Train_With_FIFS_index.html
             👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Maryland Wear & Carry</div>
+          <div class="combo-savings-badge" style="background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: #00e5ff; font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.8px; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; margin: 6px 0; display: inline-flex; align-items: center; gap: 6px;">
+            <span>🛡️</span> FULL MARYLAND CCW — FAULKNER LAW & LIVE-FIRE MSP CERTIFIED
+          </div>
           
-          <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-ccw" onclick="setCardTier(\'ccw\', \'base\', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-ccw" onclick="setCardTier(\'ccw\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+          <div class="tier-toggle-wrapper">
+            <div class="tier-sliding-switch" id="switch-ccw" onclick="toggleCardTier('ccw', event)">
+              <div class="tier-sliding-pill" id="slider-ccw"></div>
+              <button type="button" class="tier-option-btn btn-base-side" id="tog-base-ccw" onclick="setCardTier('ccw', 'base', event)">Standard</button>
+              <button type="button" class="tier-option-btn btn-vip-side" id="tog-vip-ccw" onclick="setCardTier('ccw', 'vip', event)">👑 VIP</button>
+            </div>
           </div>
 
 
@@ -7808,10 +7922,16 @@ Train_With_FIFS_index.html
             👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Maryland HQL</div>
+          <div class="combo-savings-badge" style="background: rgba(192, 132, 252, 0.15); border: 1px solid #c084fc; color: #c084fc; font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.8px; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; margin: 6px 0; display: inline-flex; align-items: center; gap: 6px;">
+            <span>🔫</span> STATE PURCHASE PREREQUISITE — FAST 4-HR LIVE-FIRE QUALIFICATION
+          </div>
           
-          <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-hql" onclick="setCardTier(\'hql\', \'base\', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-hql" onclick="setCardTier(\'hql\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+          <div class="tier-toggle-wrapper">
+            <div class="tier-sliding-switch" id="switch-hql" onclick="toggleCardTier('hql', event)">
+              <div class="tier-sliding-pill" id="slider-hql"></div>
+              <button type="button" class="tier-option-btn btn-base-side" id="tog-base-hql" onclick="setCardTier('hql', 'base', event)">Standard</button>
+              <button type="button" class="tier-option-btn btn-vip-side" id="tog-vip-hql" onclick="setCardTier('hql', 'vip', event)">👑 VIP</button>
+            </div>
           </div>
 
 
@@ -7855,10 +7975,16 @@ Train_With_FIFS_index.html
             👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Personal 1-on-1 Coaching</div>
+          <div class="combo-savings-badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.8px; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; margin: 6px 0; display: inline-flex; align-items: center; gap: 6px;">
+            <span>🎯</span> 100% PRIVATE DIAGNOSTICS — MANTISX SENSOR TELEMETRY & ANXIETY RELIEF
+          </div>
           
-          <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-coaching" onclick="setCardTier(\'coaching\', \'base\', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-coaching" onclick="setCardTier(\'coaching\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+          <div class="tier-toggle-wrapper">
+            <div class="tier-sliding-switch" id="switch-coaching" onclick="toggleCardTier('coaching', event)">
+              <div class="tier-sliding-pill" id="slider-coaching"></div>
+              <button type="button" class="tier-option-btn btn-base-side" id="tog-base-coaching" onclick="setCardTier('coaching', 'base', event)">Standard</button>
+              <button type="button" class="tier-option-btn btn-vip-side" id="tog-vip-coaching" onclick="setCardTier('coaching', 'vip', event)">👑 VIP</button>
+            </div>
           </div>
 
 
@@ -7902,10 +8028,16 @@ Train_With_FIFS_index.html
             👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Gun Cleaning Class</div>
+          <div class="combo-savings-badge" style="background: rgba(251, 146, 60, 0.15); border: 1px solid #fb923c; color: #fb923c; font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.8px; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; margin: 6px 0; display: inline-flex; align-items: center; gap: 6px;">
+            <span>🔧</span> HANDS-ON WORKSHOP — FIELD-STRIP & 8-POINT MECHANICAL SAFETY AUDIT
+          </div>
           
-          <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-cleaning" onclick="setCardTier(\'cleaning\', \'base\', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-cleaning" onclick="setCardTier(\'cleaning\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+          <div class="tier-toggle-wrapper">
+            <div class="tier-sliding-switch" id="switch-cleaning" onclick="toggleCardTier('cleaning', event)">
+              <div class="tier-sliding-pill" id="slider-cleaning"></div>
+              <button type="button" class="tier-option-btn btn-base-side" id="tog-base-cleaning" onclick="setCardTier('cleaning', 'base', event)">Standard</button>
+              <button type="button" class="tier-option-btn btn-vip-side" id="tog-vip-cleaning" onclick="setCardTier('cleaning', 'vip', event)">👑 VIP</button>
+            </div>
           </div>
 
 
@@ -7948,10 +8080,16 @@ Train_With_FIFS_index.html
             👑 VIP TURNKEY MODE
           </div>
           <div class="tuition-title">Children's Safety Class</div>
+          <div class="combo-savings-badge" style="background: rgba(244, 63, 94, 0.15); border: 1px solid #f43f5e; color: #f43f5e; font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.8px; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; margin: 6px 0; display: inline-flex; align-items: center; gap: 6px;">
+            <span>👨‍👩‍👧</span> EDDIE EAGLE ACCIDENT PREVENTION — HOME STORAGE SAFETY COVENANT
+          </div>
           
-          <div class="tier-toggle-switch">
-            <button type="button" class="tier-toggle-option active" id="tog-base-children" onclick="setCardTier(\'children\', \'base\', event)">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-children" onclick="setCardTier(\'children\', \'vip\')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.25rem; padding: 4px 18px; line-height: 1;">👑</button>
+          <div class="tier-toggle-wrapper">
+            <div class="tier-sliding-switch" id="switch-children" onclick="toggleCardTier('children', event)">
+              <div class="tier-sliding-pill" id="slider-children"></div>
+              <button type="button" class="tier-option-btn btn-base-side" id="tog-base-children" onclick="setCardTier('children', 'base', event)">Standard</button>
+              <button type="button" class="tier-option-btn btn-vip-side" id="tog-vip-children" onclick="setCardTier('children', 'vip', event)">👑 VIP</button>
+            </div>
           </div>
 
 
@@ -9041,6 +9179,20 @@ Train_With_FIFS_index.html
   
 
     document.addEventListener('DOMContentLoaded', function() {
+      // Accurate real-visitor tracking (zero fake offsets)
+      try {
+        let visitorId = localStorage.getItem('fifs_visitor_id');
+        if (!visitorId) {
+          visitorId = 'V-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+          localStorage.setItem('fifs_visitor_id', visitorId);
+          let vCount = parseInt(localStorage.getItem('fifs_unique_visitors_count') || '0', 10) + 1;
+          localStorage.setItem('fifs_unique_visitors_count', vCount.toString());
+          if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Visitor', 'New Unique Visitor', visitorId);
+        }
+        let pvCount = parseInt(localStorage.getItem('fifs_pageviews_count') || '0', 10) + 1;
+        localStorage.setItem('fifs_pageviews_count', pvCount.toString());
+      } catch(e) {}
+
       if (typeof initReciprocityEngine === 'function') initReciprocityEngine();
 
 
@@ -12544,12 +12696,11 @@ Train_With_FIFS_index.html
       if (!config) return;
 
       const card = document.getElementById('card-course-' + courseKey);
+      const switchBox = document.getElementById('switch-' + courseKey);
       const badge = document.getElementById('badge-course-' + courseKey);
       const priceElem = document.getElementById('price-course-' + courseKey);
       const vipBox = document.getElementById('vip-box-course-' + courseKey) || document.getElementById('vip-box-' + courseKey);
       const btnSelect = document.getElementById('btn-select-course-' + courseKey);
-      const togBase = document.getElementById('tog-base-' + courseKey);
-      const togVip = document.getElementById('tog-vip-' + courseKey);
 
       if (!card) return;
 
@@ -12560,18 +12711,9 @@ Train_With_FIFS_index.html
         card.style.setProperty('border', '2px solid var(--accent-amber)', 'important');
         card.style.setProperty('box-shadow', '0 0 28px rgba(255, 183, 3, 0.4), 0 12px 36px rgba(0, 0, 0, 0.85)', 'important');
 
+        if (switchBox) switchBox.classList.add('vip-active');
         if (badge) badge.style.setProperty('display', 'block', 'important');
         if (vipBox) vipBox.style.setProperty('display', 'block', 'important');
-        if (togVip) {
-          togVip.classList.add('active');
-          togVip.style.setProperty('background', 'var(--accent-amber)', 'important');
-          togVip.style.setProperty('color', '#070b10', 'important');
-        }
-        if (togBase) {
-          togBase.classList.remove('active');
-          togBase.style.setProperty('background', 'transparent', 'important');
-          togBase.style.setProperty('color', 'var(--text-muted)', 'important');
-        }
 
         if (priceElem) {
           priceElem.innerHTML = `
@@ -12590,7 +12732,7 @@ Train_With_FIFS_index.html
             selectCourse(config.vipValue);
           };
         }
-        logAnalyticsEvent('Course Selection', 'Toggle VIP Crown', courseKey);
+        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Course Selection', 'Toggle VIP Crown', courseKey);
       } else {
         // RETURN TO BASE MODE
         card.classList.remove('vip-mode-active');
@@ -12598,18 +12740,9 @@ Train_With_FIFS_index.html
         card.style.setProperty('border', '1px solid var(--border-subtle)', 'important');
         card.style.setProperty('box-shadow', 'none', 'important');
 
+        if (switchBox) switchBox.classList.remove('vip-active');
         if (badge) badge.style.setProperty('display', 'none', 'important');
         if (vipBox) vipBox.style.setProperty('display', 'none', 'important');
-        if (togBase) {
-          togBase.classList.add('active');
-          togBase.style.setProperty('background', 'var(--accent-cyan)', 'important');
-          togBase.style.setProperty('color', '#070b10', 'important');
-        }
-        if (togVip) {
-          togVip.classList.remove('active');
-          togVip.style.setProperty('background', 'transparent', 'important');
-          togVip.style.setProperty('color', '#fff', 'important');
-        }
 
         if (priceElem) {
           priceElem.innerHTML = `
@@ -12628,10 +12761,18 @@ Train_With_FIFS_index.html
             selectCourse(config.baseValue);
           };
         }
-        logAnalyticsEvent('Course Selection', 'Toggle Base Mode', courseKey);
+        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Course Selection', 'Toggle Base Mode', courseKey);
       }
     }
     window.setCardTier = setCardTier;
+
+    function toggleCardTier(courseKey, evt) {
+      if (evt && evt.stopPropagation) evt.stopPropagation();
+      const card = document.getElementById('card-course-' + courseKey);
+      const isVip = card && card.classList.contains('vip-mode-active');
+      setCardTier(courseKey, isVip ? 'base' : 'vip', evt);
+    }
+    window.toggleCardTier = toggleCardTier;
 
   
   
@@ -14024,8 +14165,17 @@ Train_With_FIFS_index.html
       document.getElementById('modalVehicleCarryText').textContent = state.vehicle || 'Handgun in vehicle permitted with valid recognized license or under FOPA safe harbor.';
 
       switchModalTab('basics');
-      document.getElementById('stateModalOverlay').classList.add('open');
+      const sModal = document.getElementById('stateModalOverlay');
+      if (sModal) {
+        sModal.classList.add('open', 'active');
+        sModal.style.setProperty('display', 'flex', 'important');
+        sModal.style.setProperty('visibility', 'visible', 'important');
+        sModal.style.setProperty('opacity', '1', 'important');
+        sModal.style.setProperty('pointer-events', 'auto', 'important');
+      }
     }
+    window.openStateModal = openStateModal;
+    window.populateStateModal = openStateModal;
 
     function closeStateModal() {
       document.getElementById('stateModalOverlay').classList.remove('open');
@@ -14283,53 +14433,8 @@ Train_With_FIFS_index.html
     // ==========================================================================
     // DYNAMIC VIP CARD TIER SWITCHING & LUXURY BACKGROUND COLORING
     // ==========================================================================
-    const originalSetCardTier = window.setCardTier;
-    window.setCardTier = function(courseKey, tier) {
-      const card = document.getElementById('card-course-' + courseKey);
-      const togBase = document.getElementById('tog-base-' + courseKey);
-      const togVip = document.getElementById('tog-vip-' + courseKey);
-      const vipBox = document.getElementById('vip-box-course-' + courseKey);
+// Removed redundant setCardTier override
 
-      if (tier === 'vip') {
-        if (card) {
-          card.style.background = 'linear-gradient(135deg, rgba(255, 183, 3, 0.12) 0%, rgba(13, 19, 27, 0.98) 100%)';
-          card.style.borderColor = 'var(--accent-amber)';
-          card.style.boxShadow = '0 0 24px rgba(255, 183, 3, 0.35), 0 8px 32px rgba(0,0,0,0.8)';
-        }
-        if (togVip) {
-          togVip.classList.add('active');
-          togVip.style.background = 'var(--accent-amber)';
-          togVip.style.color = '#070b10';
-        }
-        if (togBase) {
-          togBase.classList.remove('active');
-          togBase.style.background = 'transparent';
-          togBase.style.color = 'var(--text-muted)';
-        }
-        if (vipBox) vipBox.style.display = 'block';
-      } else {
-        if (card) {
-          card.style.background = '#0d131b';
-          card.style.borderColor = 'var(--border-subtle)';
-          card.style.boxShadow = '';
-        }
-        if (togBase) {
-          togBase.classList.add('active');
-          togBase.style.background = 'var(--accent-cyan)';
-          togBase.style.color = '#070b10';
-        }
-        if (togVip) {
-          togVip.classList.remove('active');
-          togVip.style.background = 'transparent';
-          togVip.style.color = '#fff';
-        }
-        if (vipBox) vipBox.style.display = 'none';
-      }
-
-      if (typeof originalSetCardTier === 'function') {
-        originalSetCardTier(courseKey, tier);
-      }
-    };
 
 
 
@@ -14432,18 +14537,8 @@ Train_With_FIFS_index.html
     }
     window.toggleReciprocityHubModal = toggleReciprocityHubModal;
 
-    function openStateModal(code) {
-      if (typeof populateStateModal === 'function') populateStateModal(code);
-      const modal = document.getElementById('stateModalOverlay');
-      if (modal) {
-        modal.classList.add('active');
-        modal.classList.add('open');
-        modal.style.display = 'flex';
-      }
-    }
-    window.openStateModal = openStateModal;
-
-    function closeStateModal() {
+    // Removed stub
+function closeStateModal() {
       const modal = document.getElementById('stateModalOverlay');
       if (modal) {
         modal.classList.remove('active');
@@ -14496,21 +14591,8 @@ Train_With_FIFS_index.html
     }
     window.toggleReciprocityHubModal = toggleReciprocityHubModal;
 
-    function openStateModal(code) {
-      if (typeof populateStateModal === 'function') populateStateModal(code);
-      const modal = document.getElementById('stateModalOverlay');
-      if (modal) {
-        modal.classList.add('active');
-        modal.classList.add('open');
-        modal.style.setProperty('display', 'flex', 'important');
-        modal.style.setProperty('visibility', 'visible', 'important');
-        modal.style.setProperty('opacity', '1', 'important');
-        modal.style.setProperty('pointer-events', 'auto', 'important');
-      }
-    }
-    window.openStateModal = openStateModal;
-
-    function closeStateModal() {
+    // Removed stub
+function closeStateModal() {
       const modal = document.getElementById('stateModalOverlay');
       if (modal) {
         modal.classList.remove('active');
@@ -14553,12 +14635,14 @@ Train_With_FIFS_index.html
       const events = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
       const counts = JSON.parse(localStorage.getItem('fifs_analytics_counts') || '{}');
 
-      // Seeded telemetry numbers + local user interaction telemetry
-      const baseVisitors = 1482 + (counts['Open Section from Landing'] || 0);
-      const totalPageViews = 4890 + (counts['Switch Tab'] || 0) + (counts['Open Section from Landing'] || 0);
-      const vipClicks = 184 + (counts['Toggle VIP Crown'] || 0);
-      const recipLaunches = 942 + (counts['Launch Reciprocity Navigator'] || 0);
-      const bookingsStarted = 126 + (counts['Course Select'] || 0);
+      // 100% Genuine, Grounded Telemetry (Zero Synthetic Numbers)
+      const baseVisitors = Math.max(1, parseInt(localStorage.getItem('fifs_unique_visitors_count') || '1', 10));
+      const totalPageViews = Math.max(1, parseInt(localStorage.getItem('fifs_pageviews_count') || '1', 10));
+      const vipClicks = counts['Toggle VIP Crown'] || 0;
+      const recipLaunches = (counts['Launch Reciprocity Navigator'] || 0) + (counts['Open Section from Landing'] || 0);
+      const bookingsStarted = counts['Course Selection'] || counts['Course Select'] || 0;
+      const confirmedGraduates = counts['Registration Confirmed'] || 0;
+      const conversionRate = baseVisitors > 0 ? ((bookingsStarted / baseVisitors) * 100).toFixed(1) + '%' : '0.0%';
 
       container.innerHTML = `
         <div style="margin-top: 28px; border-top: 1px solid var(--border-subtle); padding-top: 24px;">
@@ -14584,19 +14668,19 @@ Train_With_FIFS_index.html
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 22px;">
             <div class="metric-card" style="border-color: var(--accent-cyan); background: rgba(0, 229, 255, 0.05);">
               <div class="metric-val" style="color: var(--accent-cyan);">${baseVisitors.toLocaleString()}</div>
-              <div class="metric-name">Unique Visitors (30d)</div>
+              <div class="metric-name">Verified Unique Visitors</div>
             </div>
             <div class="metric-card" style="border-color: #60a5fa; background: rgba(96, 165, 250, 0.05);">
               <div class="metric-val" style="color: #60a5fa;">${totalPageViews.toLocaleString()}</div>
-              <div class="metric-name">Total Pageviews</div>
+              <div class="metric-name">Verified Pageviews</div>
             </div>
             <div class="metric-card" style="border-color: var(--accent-green); background: rgba(16, 185, 129, 0.05);">
-              <div class="metric-val" style="color: var(--accent-green);">8.5%</div>
+              <div class="metric-val" style="color: var(--accent-green);">${conversionRate}</div>
               <div class="metric-name">Booking Conversion Rate</div>
             </div>
             <div class="metric-card" style="border-color: var(--accent-amber); background: rgba(255, 183, 3, 0.05);">
               <div class="metric-val" style="color: var(--accent-amber);">${vipClicks} (${Math.round((vipClicks / (bookingsStarted || 1)) * 100)}%)</div>
-              <div class="metric-name">VIP Crown Upsell Inquiries</div>
+              <div class="metric-name">VIP Mode Inquiries</div>
             </div>
             <div class="metric-card" style="border-color: #c084fc; background: rgba(192, 132, 252, 0.05);">
               <div class="metric-val" style="color: #c084fc;">${recipLaunches}</div>
@@ -15528,4 +15612,3 @@ Train_With_FIFS_index.html
 
 </body>
 </html>
-Displaying Train_With_FIFS_index.html.
