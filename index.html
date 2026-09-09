@@ -1,11 +1,4 @@
-<!DOC
-            <div style="margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border-subtle); text-align: center;">
-              <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 8px;">Enrolled in an upcoming class at Cindy's Hot Shots?</p>
-              <button type="button" class="btn-spark" onclick="openAndSwitch('portal')" style="padding: 10px 18px; font-size: 0.88rem; border-color: var(--accent-cyan); color: var(--accent-cyan); width: 100%; justify-content: center; font-weight: 800;">
-                🎓 Are you a student? Click here →
-              </button>
-            </div>TYPE html>
-
+!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -6640,7 +6633,14 @@
                 </button>
                 <div id="client-register-status" class="status-msg"></div>
               </form>
-            </div>
+            
+            <!-- Portal Cross-Link: Switch to Student Portal -->
+            <div style="margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border-subtle); text-align: center;">
+              <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 8px;">Enrolled in an upcoming class at Cindy's Hot Shots?</p>
+              <button type="button" class="btn-spark" onclick="openAndSwitch('portal')" style="padding: 10px 18px; font-size: 0.88rem; border-color: var(--accent-cyan); color: var(--accent-cyan); width: 100%; justify-content: center; font-weight: 800;">
+                🎓 Are you a student? Click here for Student Portal →
+              </button>
+            </div></div>
           </div>
         </div>
 
@@ -8599,7 +8599,7 @@
           el.style.setProperty('display', 'none', 'important');
         }
       });
-      document.body.style.overflow = '';
+      if (document.body) document.body.style.overflow = '';
     }
     window.closeAllOverlays = closeAllOverlays;
 
@@ -8855,6 +8855,14 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
         }
 
       });
+
+      const btnContact = document.getElementById('btn-hero-contact');
+      if (btnContact) {
+        btnContact.onclick = function(e) {
+          if (e && e.preventDefault) e.preventDefault();
+          openContactWidgetModal();
+        };
+      }
 
     }
 
@@ -9164,7 +9172,7 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
 
       modal.style.display = 'flex';
       modal.classList.add('active');
-      document.body.style.overflow = 'hidden';
+      if (document.body) document.body.style.overflow = 'hidden';
     }
     window.showPortalConflictModal = showPortalConflictModal;
 
@@ -9173,7 +9181,7 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.closePortalConflictModal = closePortalConflictModal;
@@ -9190,7 +9198,7 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
       }
     }
     window.openAdminInviteModal = openAdminInviteModal;
@@ -9200,7 +9208,7 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.closeAdminInviteModal = closeAdminInviteModal;
@@ -9361,7 +9369,7 @@ function openAdminEditStudentModal(studentId) {
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
       }
     }
     window.openAdminEditStudentModal = openAdminEditStudentModal;
@@ -9371,7 +9379,7 @@ function openAdminEditStudentModal(studentId) {
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.closeAdminEditStudentModal = closeAdminEditStudentModal;
@@ -9630,7 +9638,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
       }
     }
     window.openAdminEditClientModal = openAdminEditClientModal;
@@ -9640,7 +9648,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.closeAdminEditClientModal = closeAdminEditClientModal;
@@ -9956,7 +9964,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
       }
     }
     window.openCourseBookingModal = openCourseBookingModal;
@@ -9966,7 +9974,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.closeCourseBookingModal = closeCourseBookingModal;
@@ -10046,7 +10054,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
       }
       if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Client Portal', 'Open Vehicle Travel Modal', 'FOPA Guide');
     }
@@ -10057,7 +10065,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.closeVehicleTravelModal = closeVehicleTravelModal;
@@ -10068,7 +10076,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
       }
       if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Client Portal', 'Open Flying Firearm Modal', 'TSA Guide');
     }
@@ -10079,7 +10087,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.closeFlyingWithFirearmModal = closeFlyingWithFirearmModal;
@@ -10256,7 +10264,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
         updateLiveChatStatusUI();
       }
       if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Communication', 'Open Contact Modal', 'Widget');
@@ -10268,7 +10276,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.closeContactWidgetModal = closeContactWidgetModal;
@@ -10356,7 +10364,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
       }
     }
     window.openAlumniAccessGateModal = openAlumniAccessGateModal;
@@ -10366,7 +10374,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.closeAlumniAccessGateModal = closeAlumniAccessGateModal;
@@ -12168,7 +12176,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         modal.classList.add('active');
 
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
 
       }
 
@@ -12197,7 +12205,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         modal.classList.remove('active');
 
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
 
       }
 
@@ -14004,7 +14012,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       const modal = document.getElementById('fiPortalSelectionModal');
       if (modal) {
         modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
         if (window.fiAnalytics) fiAnalytics.track('portal_splash_open', {});
       }
     }
@@ -14014,7 +14022,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       const modal = document.getElementById('fiPortalSelectionModal');
       if (modal) {
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.closePortalSelectionModal = closePortalSelectionModal;
@@ -14208,7 +14216,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       if (modal) {
         modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
       }
       if (window.fiAnalytics) fiAnalytics.track('view_state_dossier', { state: stateCode });
     }
@@ -14218,7 +14226,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       const modal = document.getElementById('fiPortalStateModal');
       if (modal) {
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.fiCloseStateModal = fiCloseStateModal;
@@ -14532,7 +14540,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.setProperty('display', 'flex', 'important');
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
       }
     }
     window.openExpectationModal = openExpectationModal;
@@ -14542,7 +14550,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.setProperty('display', 'none', 'important');
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.closeExpectationModal = closeExpectationModal;
@@ -15548,7 +15556,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.setProperty('display', 'flex', 'important');
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
       }
     }
     window.openStepDetailModal = openStepDetailModal;
@@ -15558,7 +15566,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.setProperty('display', 'none', 'important');
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.closeStepDetailModal = closeStepDetailModal;
@@ -15600,7 +15608,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         el.style.setProperty('visibility', 'visible', 'important');
         el.style.setProperty('opacity', '1', 'important');
         el.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
       }
     }
 
@@ -15613,7 +15621,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         el.style.setProperty('pointer-events', 'none', 'important');
         el.style.setProperty('visibility', 'hidden', 'important');
         el.style.setProperty('opacity', '0', 'important');
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
 
@@ -15677,7 +15685,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (show) {
         modal.classList.add('active');
         modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
         if (typeof initReciprocityEngine === 'function') {
           initReciprocityEngine();
         }
@@ -15685,7 +15693,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       } else {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.toggleReciprocityHubModal = toggleReciprocityHubModal;
@@ -15731,7 +15739,7 @@ function closeStateModal() {
         modal.style.setProperty('visibility', 'visible', 'important');
         modal.style.setProperty('opacity', '1', 'important');
         modal.style.setProperty('pointer-events', 'auto', 'important');
-        document.body.style.overflow = 'hidden';
+        if (document.body) document.body.style.overflow = 'hidden';
         if (typeof initReciprocityEngine === 'function') {
           initReciprocityEngine();
         }
@@ -15739,7 +15747,7 @@ function closeStateModal() {
       } else {
         modal.classList.remove('active');
         modal.style.setProperty('display', 'none', 'important');
-        document.body.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
       }
     }
     window.toggleReciprocityHubModal = toggleReciprocityHubModal;
