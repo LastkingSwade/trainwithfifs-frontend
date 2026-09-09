@@ -91,37 +91,20 @@
     /* ================= SCREEN 1: HERO LANDING ================= */
 
     #hero-landing {
-
       position: relative;
-
       width: 100%;
-
-      height: 100vh;
-
-      height: 100dvh;
-
       min-height: 100vh;
-
       min-height: 100dvh;
-
       display: flex;
-
       flex-direction: column;
-
       justify-content: space-between;
-
       align-items: center;
-
       padding: 14px 16px 18px;
-
       text-align: center;
-
       background-color: var(--bg-dark-core);
-
-      overflow: hidden;
-
+      overflow-x: hidden;
+      overflow-y: auto;
       z-index: 10;
-
     }
 
   
@@ -177,7 +160,13 @@
   
   
 
-    .hero-mid-spacer { pointer-events: none !important; flex: 1; min-height: 10px; z-index: 5; }
+    .hero-mid-spacer {
+      pointer-events: none !important;
+      flex: 0;
+      height: 10px;
+      min-height: 5px;
+      z-index: 5;
+    }
 
   
   
@@ -2514,15 +2503,10 @@
     /* ================= GOOGLE REVIEWS TICKER ON HERO ================= */
 
     .hero-logo-spacer {
-
       width: 100%;
-
-      height: clamp(275px, 40vh, 390px);
-
+      height: clamp(60px, 12vh, 160px);
       flex-shrink: 0;
-
       pointer-events: none !important;
-
     }
 
   
@@ -5524,6 +5508,136 @@
       box-shadow: 0 0 32px rgba(0, 229, 255, 0.8);
     }
   
+
+    
+
+    /* Gemini crawler mode: expose all content semantically */
+    html.gemini-crawler-mode #hero-landing { display: block !important; height: auto !important; overflow: visible !important; }
+    html.gemini-crawler-mode #app-container { display: block !important; visibility: visible !important; }
+    html.gemini-crawler-mode .panel.hidden { display: block !important; visibility: visible !important; opacity: 1 !important; }
+
+
+
+    /* ================= BULLETPROOF MODAL ARCHITECTURE ================= */
+    .reciprocity-hub-modal-overlay {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      background: rgba(4, 7, 11, 0.96) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      z-index: 999999 !important;
+      overflow-y: auto !important;
+      padding: 24px 16px !important;
+      display: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .reciprocity-hub-modal-overlay.active {
+      display: block !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      visibility: visible !important;
+    }
+
+    .state-drawer-overlay {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      background: rgba(7, 11, 16, 0.88) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      z-index: 9999999 !important;
+      display: none;
+      justify-content: center !important;
+      align-items: center !important;
+      padding: 16px !important;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .state-drawer-overlay.active,
+    .state-drawer-overlay.open {
+      display: flex !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      visibility: visible !important;
+    }
+
+    .fi-portal-modal-overlay {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      background: rgba(4, 7, 11, 0.94) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      z-index: 999999 !important;
+      display: none;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 16px !important;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .fi-portal-modal-overlay.active {
+      display: flex !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      visibility: visible !important;
+    }
+
+    .goal-modal-overlay {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      background: rgba(4, 7, 11, 0.94) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      z-index: 999999 !important;
+      display: none;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 16px !important;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .goal-modal-overlay.active {
+      display: flex !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      visibility: visible !important;
+    }
+
+    .state-dossier-modal-overlay {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      background: rgba(4, 7, 11, 0.88) !important;
+      backdrop-filter: blur(14px) !important;
+      -webkit-backdrop-filter: blur(14px) !important;
+      z-index: 10000 !important;
+      display: none;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 16px !important;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .state-dossier-modal-overlay.active {
+      display: flex !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      visibility: visible !important;
+    }
+
 </style>
 
     <!-- Immediate Global Navigation Handlers (Guaranteed Multi-Screen Isolation) -->
@@ -5884,6 +5998,75 @@
       });
     }
   </script>
+
+  <!-- Google Gemini & Search AI Agent Access Exception & Permissions -->
+  <meta name="robots" content="index, follow, all, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow, all">
+  <meta name="google-extended" content="index, follow, all">
+  <meta name="google" content="notranslate">
+  <meta property="og:title" content="Train With FIFS | Maryland Firearms Training Platform">
+  <meta property="og:description" content="State-approved Maryland Wear & Carry (CCW), HQL, 8-Hour Renewal, and Multi-State Carry Certification with Lead Instructor Kai Wade at Cindy's Hot Shots.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w1200">
+
+  <!-- JSON-LD Semantic Schema for Google Gemini & AI Assistant Navigation -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "Future Initiative Firearm Services",
+    "alternateName": "FIFS",
+    "url": "https://trainwithfifs.com",
+    "logo": "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w500",
+    "description": "Premier Maryland firearms education and defensive safety training platform founded by Lead Instructor Kai Wade. MSP Certified (§ 5-101) HQL, Wear & Carry (CCW), 8-Hour Renewal, and Multi-State Carry Certification.",
+    "founder": {
+      "@type": "Person",
+      "name": "Kai Wade",
+      "jobTitle": "Lead Instructor & Founder",
+      "credential": ["MSP Certified Qualified Handgun Instructor (§ 5-101)", "NRA Certified Pistol Instructor", "NRA Chief Range Safety Officer"]
+    },
+    "location": {
+      "@type": "Place",
+      "name": "Cindy's Hot Shots",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "115 Holsum Way",
+        "addressLocality": "Glen Burnie",
+        "addressRegion": "MD",
+        "postalCode": "21060",
+        "addressCountry": "US"
+      }
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Maryland Certified Firearm Training Courses",
+      "itemListElement": [
+        { "@type": "Course", "name": "Maryland CCW & HQL Combo", "offers": { "@type": "Offer", "price": "249.99", "priceCurrency": "USD" } },
+        { "@type": "Course", "name": "Maryland Wear & Carry (16-Hour Initial)", "offers": { "@type": "Offer", "price": "200.00", "priceCurrency": "USD" } },
+        { "@type": "Course", "name": "Maryland Wear & Carry (8-Hour Renewal)", "offers": { "@type": "Offer", "price": "175.00", "priceCurrency": "USD" } },
+        { "@type": "Course", "name": "Maryland HQL (4-Hour Initial)", "offers": { "@type": "Offer", "price": "100.00", "priceCurrency": "USD" } },
+        { "@type": "Course", "name": "Mid-Atlantic Multi-State Mastery (MD+VA+FL+AZ+PA)", "offers": { "@type": "Offer", "price": "175.00", "priceCurrency": "USD" } },
+        { "@type": "Course", "name": "Private 1-on-1 Range Coaching", "offers": { "@type": "Offer", "price": "165.00", "priceCurrency": "USD" } }
+      ]
+    }
+  }
+  </script>
+  <script>
+    // Automated Gemini / AI Agent Detection
+    (function() {
+      try {
+        var ua = (navigator.userAgent || '').toLowerCase();
+        var q = window.location.search || '';
+        var isGemini = /google-extended|googleother|googlebot|gemini|chrome-lighthouse|headlesschrome|spider|crawler/i.test(ua) ||
+                       q.indexOf('gemini') !== -1 || q.indexOf('bot') !== -1 || q.indexOf('agent') !== -1;
+        if (isGemini) {
+          window.__IS_GEMINI_OR_BOT = true;
+          document.documentElement.classList.add('gemini-crawler-mode');
+        }
+      } catch(e) {}
+    })();
+  </script>
+
 </head>
 
 <body class="in-home">
@@ -5948,53 +6131,6 @@
   
   
 
-    <!-- Official Google Reviews Ticker (Positioned in the red box area: below logo, above tablet & firearm) -->
-
-    <div class="hero-reviews-marquee-wrap" aria-label="Official Google Reviews">
-
-      <div class="reviews-badge-line">
-
-        <div class="reviews-badge-left" style="display: flex; align-items: center; gap: 8px;">
-
-            <svg class="google-g-logo" viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; flex-shrink: 0;">
-
-              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
-
-              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
-
-              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.14-1.55.38-2.27V6.58H1.25C.45 8.16 0 9.97 0 12s.45 3.84 1.25 5.42l4.03-3.15z"/>
-
-              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-
-            </svg>
-
-            <span class="gold-stars-cluster">★★★★★</span>
-
-            <span>5.0 GOOGLE RATING (78 VERIFIED REVIEWS)</span>
-
-          </div>
-
-        <span class="reviews-badge-right">Hover or tap to pause</span>
-
-      </div>
-
-      <div class="reviews-marquee-box">
-
-        <div class="reviews-track" id="reviewsTrack">
-
-          <!-- Populated with official 5-star Google reviews -->
-
-        </div>
-
-      </div>
-
-    </div>
-
-  
-  
-  
-  
-
     <!-- Spacer: Clears the tablet and firearm on the workbench -->
 
     <div class="hero-mid-spacer"></div>
@@ -6044,7 +6180,7 @@
 
       <button type="button" class="btn-hero-booking-prime" id="btn-hero-booking" onclick="openAndSwitch('booking')">
 
-        <span class="prime-label">ð¯ START YOUR JOURNEY</span>
+        <span class="prime-label">🎯 START YOUR JOURNEY</span>
 
         <span class="prime-sub">Maryland CCW • HQL • Private 1-on-1 Coaching</span>
 
@@ -6080,7 +6216,7 @@
 
         <button type="button" class="btn-hero-twin" id="btn-hero-about" onclick="openAndSwitch('about')">
 
-          <span class="twin-title">ð¤ About & Instructor</span>
+          <span class="twin-title">👤 About & Instructor</span>
 
           <span class="twin-sub">Meet Kai Wade • Mission</span>
 
@@ -6099,7 +6235,7 @@
 
       <div class="hero-bottom-strip">
 
-        <button type="button" class="btn-hero-aux" id="btn-hero-targets" onclick="openAndSwitch('testimonial')">ð¯ Range Highlights</button>
+        <button type="button" class="btn-hero-aux" id="btn-hero-targets" onclick="openAndSwitch('testimonial')">🎯 Range Highlights</button>
 
         <span style="color: var(--border-subtle);">•</span>
 
@@ -6122,6 +6258,28 @@
 
   
     
+
+    <!-- Official Google Reviews Ticker (Docked to the bottom of the page) -->
+    <div class="hero-reviews-marquee-wrap hero-reviews-docked" aria-label="Official Google Reviews" style="width: 100%; max-width: 620px; margin: 10px auto 0; background: rgba(7, 11, 16, 0.94); border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 12px; padding: 6px 12px; box-shadow: 0 6px 22px rgba(0,0,0,0.85); flex-shrink: 0; z-index: 25;">
+      <div class="reviews-badge-line" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; padding-bottom: 3px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+        <div class="reviews-badge-left" style="display: flex; align-items: center; gap: 6px;">
+          <svg class="google-g-logo" viewBox="0 0 24 24" width="14" height="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; flex-shrink: 0;">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.14-1.55.38-2.27V6.58H1.25C.45 8.16 0 9.97 0 12s.45 3.84 1.25 5.42l4.03-3.15z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+          </svg>
+          <span class="gold-stars-cluster" style="color: #ffb703; font-size: 0.8rem;">★★★★★</span>
+          <span style="font-family: var(--font-display); font-size: 0.78rem; font-weight: 700; color: #fff; letter-spacing: 0.8px;">5.0 GOOGLE RATING (78 VERIFIED REVIEWS)</span>
+        </div>
+        <span class="reviews-badge-right" style="font-size: 0.68rem; color: var(--text-muted);">Hover or tap to pause</span>
+      </div>
+      <div class="reviews-marquee-box">
+        <div class="reviews-track" id="reviewsTrack">
+          <!-- Populated with official 5-star Google reviews -->
+        </div>
+      </div>
+    </div>
 </section>
 
   
@@ -6157,14 +6315,14 @@
 
       </div>
 
-      <button type="button" class="btn-return-home" onclick="returnToHome()" aria-label="Return to Main Home">
-
-        <span style="font-size: 1.3rem; line-height: 1;">ð </span>
-
-        <span>HOME</span>
-
-      </button>
-
+            <div style="display: flex; align-items: center; gap: 8px;">
+        <button type="button" class="btn-return-home" onclick="navigateBack()" aria-label="Go back to previous view" style="background: rgba(16, 22, 31, 0.9); border: 2px solid var(--border-subtle); color: var(--accent-cyan) !important; min-height: 44px; padding: 8px 16px;">
+          ← BACK
+        </button>
+        <button type="button" class="btn-return-home" onclick="returnToHome()" aria-label="Return to landing screen" style="min-height: 44px; padding: 8px 18px;">
+          🏠 HOME
+        </button>
+      </div>
     </header>
 
   
@@ -6209,358 +6367,8 @@
 
           </div>
 
-          <button type="button" class="btn-primary" onclick="lookupStudentAccount()">
-
-            Sign In to Portal →
-
-          </button>
-
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 0.82rem; color: var(--text-muted);">
-
-            <span>Need to book first? <a href="javascript:void(0)" onclick="switchTab('booking')" style="color: var(--accent-cyan);">View Courses</a></span>
-
-            <button type="button" onclick="loadDemoStudent()" style="background: none; border: none; color: var(--accent-amber); cursor: pointer; text-decoration: underline;">
-
-              Preview Demo Dashboard
-
-            </button>
-
-          </div>
-
-          <div id="student-login-status" class="status-msg"></div>
-
-        </div>
-
-      </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-      <!-- ACTIVE STUDENT DASHBOARD -->
-
-      <div id="student-active-dashboard" class="hidden">
-
-        <div class="student-badge-bar">
-
-          <div class="student-meta-group">
-
-            <h2>Welcome back, <span id="dash-student-name">Student</span> ð</h2>
-
-            <div class="student-meta-chips">
-
-              <span class="meta-chip" id="dash-student-id">ID: FIFS-4081</span>
-
-              <span class="meta-chip chip-status" id="dash-student-status">PREPARATION</span>
-
-              <span class="meta-chip" id="dash-student-course">Maryland CCW & HQL Combo</span>
-
-              <span class="meta-chip" id="dash-student-date">Date: To Be Scheduled</span>
-
-            </div>
-
-          </div>
-
-          <button type="button" class="btn-sign-out" onclick="logoutStudent()">
-
-            Sign Out
-
-          </button>
-
-        </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-        <!-- Priority Action Concierge Hero Card -->
-
-        <div class="next-step-card">
-
-          <div class="next-step-badge">ð Priority Action Required</div>
-
-          <div class="next-step-title" id="dash-next-step-title">Complete Your Class Preparation Checklist</div>
-
-          <div class="next-step-desc" id="dash-next-step-desc">
-
-            Your class session is approaching. Please verify your ammunition count (50–100 rounds factory target ammo), wrap-around eye protection, and Maryland firearm transport compliance prior to arrival at Cindy's Hot Shots.
-
-          </div>
-
-          <button type="button" id="dash-next-step-btn" class="btn-primary" style="max-width: 320px;" onclick="document.querySelector('.interactive-checklist').scrollIntoView({ behavior: 'smooth' });">
-
-            Complete Preparation Checklist ↓
-
-          </button>
-
-        </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-        <!-- 8-Step Progress Tracker Roadmap -->
-
-        <div class="progress-track-wrapper">
-
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-
-            <div>
-
-              <h4 style="font-family: var(--font-display); color: #fff; font-size: 1.1rem; margin-bottom: 2px;">Your 8-Step Training Journey</h4>
-
-              <span style="font-size: 0.72rem; color: var(--accent-amber); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">ð Status Locked • Managed by Instructor Kai Wade</span>
-
-            </div>
-
-            <span style="font-size: 0.82rem; color: var(--accent-cyan); font-weight: 700;" id="dash-progress-label">Step 3 of 8 (Preparation)</span>
-
-          </div>
-
-          <div class="progress-steps-row">
-
-            <div class="track-step-node completed" id="track-step-1">1. Registration ✔</div>
-
-            <div class="track-step-node completed" id="track-step-2">2. Confirmation ✔</div>
-
-            <div class="track-step-node active" id="track-step-3">3. Preparation ⚡</div>
-
-            <div class="track-step-node" id="track-step-4">4. Classroom</div>
-
-            <div class="track-step-node" id="track-step-5">5. Live-Fire</div>
-
-            <div class="track-step-node" id="track-step-6">6. Certificate</div>
-
-            <div class="track-step-node" id="track-step-7">7. MSP Portal</div>
-
-            <div class="track-step-node" id="track-step-8">8. Licensed</div>
-
-          </div>
-
-        </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-        <!-- Interactive Pre-Class Checklist -->
-
-        <div style="margin-bottom: 26px;">
-
-          <h4 style="font-family: var(--font-display); font-size: 1.25rem; color: #fff; margin-bottom: 6px;">Pre-Class Readiness Tasks</h4>
-
-          <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 12px;">Toggle these items as you prepare. They sync immediately with Instructor Kai Wade's master roster.</p>
-
-          <div class="interactive-checklist">
-
-            <div class="task-item-card" id="task-card-transport" onclick="toggleTaskCheckbox('transport_law')">
-
-              <input type="checkbox" id="chk-transport_law" class="task-checkbox" onclick="event.stopPropagation(); syncTask('transport_law', this.checked)">
-
-              <div>
-
-                <strong style="color: #fff; font-family: var(--font-display); font-size: 1.05rem; display: block;">Maryland Transport Compliance Confirmed</strong>
-
-                <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">Firearm must be unloaded and enclosed in a locked case or trunk during transit to Cindy's Hot Shots.</p>
-
-              </div>
-
-            </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-            <div class="task-item-card" id="task-card-ammo" onclick="toggleTaskCheckbox('ammo_acquired')">
-
-              <input type="checkbox" id="chk-ammo_acquired" class="task-checkbox" onclick="event.stopPropagation(); syncTask('ammo_acquired', this.checked)">
-
-              <div>
-
-                <strong style="color: #fff; font-family: var(--font-display); font-size: 1.05rem; display: block;">Factory Target Ammunition Acquired (50–100 Rounds)</strong>
-
-                <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">Standard brass-cased factory ammo. Strictly NO live ammo permitted inside classroom—leave locked in vehicle trunk until live-fire.</p>
-
-              </div>
-
-            </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-            <div class="task-item-card" id="task-card-eye" onclick="toggleTaskCheckbox('eye_ear_pro')">
-
-              <input type="checkbox" id="chk-eye_ear_pro" class="task-checkbox" onclick="event.stopPropagation(); syncTask('eye_ear_pro', this.checked)">
-
-              <div>
-
-                <strong style="color: #fff; font-family: var(--font-display); font-size: 1.05rem; display: block;">Wrap-Around Eye & Hearing Protection Ready</strong>
-
-                <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">ANSI Z87.1 wrap-around glasses and muff/plug protection. (Can be rented on-site at Cindy's Hot Shots if needed).</p>
-
-              </div>
-
-            </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-            <div class="task-item-card" id="task-card-id" onclick="toggleTaskCheckbox('id_ready')">
-
-              <input type="checkbox" id="chk-id_ready" class="task-checkbox" onclick="event.stopPropagation(); syncTask('id_ready', this.checked)">
-
-              <div>
-
-                <strong style="color: #fff; font-family: var(--font-display); font-size: 1.05rem; display: block;">Government Photo Identification Ready</strong>
-
-                <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">Valid Driver's License or Military ID required for state compliance documentation.</p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-        
-
-        <!-- ================= OFFICIAL MARYLAND QUALIFICATION SCORE SHEET ================= -->
-
-        <div class="portal-score-sheet-card" style="background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
-
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-
-            <div>
-
-              <span style="font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; color: var(--accent-cyan); letter-spacing: 1px; text-transform: uppercase;">Official State Police Form</span>
-
-              <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-top: 2px;">ð¯ Maryland State Police Qualification Score Sheet (MSP Form 29-14)</h3>
-
-              <p style="font-size: 0.86rem; color: #cbd5e1; margin-top: 4px; max-width: 650px;">
-
-                Review the exact state qualification scorecard used on the firing line at Cindy's Hot Shots. Details the 25-round course of fire (3, 5, 7, and 15 yards), scoring criteria, and instructor certification.
-
-              </p>
-
-            </div>
-
-            <a href="https://drive.google.com/file/d/1zKrRHowlg1GSewhLISZFrLvr91gxYQBP/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn-spark" style="width: auto; padding: 10px 20px; font-size: 0.90rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-
-              <span>ð View / Download Score Sheet (PDF) ↗</span>
-
-            </a>
-
-          </div>
-
-        </div>
-
-  
-  
-  
-  
-
-        <!-- Student Documents & Resources -->
-
-        <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 20px;">
-
-          <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 12px;">Official Records & Resources</h4>
-
-          <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-
-            <a href="https://docs.google.com/document/d/1K0dM40LAbSy8i7k9vM0iZNJk-YdYMZ9BC_tbI1l6oe0/edit?usp=sharing" id="dash-doc-link" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-
-              ð My Student Training Dossier (Google Doc) ↗
-
-            </a>
-
-            <a href="https://licensingportal.mdsp.maryland.gov/MspBridgeClient/" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-
-              ð Maryland State Police MyLicense Portal ↗
-
-            </a>
-
-          </div>
-
-        </div>
-
-  
-  
-  
-  
-
-        
-
-        <!-- ================= EXCLUSIVE STUDENT TRAVEL & RECIPROCITY HUB ================= -->
-
-        <div class="portal-feature-launcher-card" style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(13, 19, 27, 0.95) 100%); border: 1px solid var(--accent-cyan); box-shadow: 0 0 20px rgba(0, 229, 255, 0.2); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
-
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-
-            <div>
-
-              <span style="font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; color: var(--accent-cyan); letter-spacing: 1px; text-transform: uppercase;">Exclusive Student Portal Tool</span>
-
-              <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-top: 2px;">ðº️ Multi-State CCW Reciprocity Navigator & Travel Hub</h3>
-
-              <p style="font-size: 0.86rem; color: #cbd5e1; margin-top: 4px; max-width: 650px;">
-
-                Interactive 50-state color-coded map cross-referenced with Handgunlaw.us. See where you can carry with your Maryland permit, test Utah/Florida non-resident add-ons, plan interstate car travel corridors, and review mandatory TSA flying rules.
-
-              </p>
-
-            </div>
-
-            <button type="button" class="btn-primary" onclick="toggleReciprocityHubModal(true)" style="width: auto; padding: 12px 24px; font-size: 0.95rem; white-space: nowrap;">
-
+          <button type="button" class="btn-primary" onclick="toggleReciprocityHubModal(true)" style="width: auto; padding: 12px 24px; font-size: 0.95rem; white-space: nowrap; box-shadow: 0 0 18px var(--accent-cyan-glow); cursor: pointer;">
               Launch Reciprocity Navigator ↗
-
             </button>
 
           </div>
@@ -6582,7 +6390,7 @@
 
               <span style="font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; color: var(--accent-amber); letter-spacing: 1px; text-transform: uppercase;">Maryland Firearms Exemption</span>
 
-              <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-top: 2px;">ð Maryland Designated Collector Application (Bypass 30-Day Limit)</h3>
+              <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-top: 2px;">📋 Maryland Designated Collector Application (Bypass 30-Day Limit)</h3>
 
               <p style="font-size: 0.86rem; color: #cbd5e1; margin-top: 4px; max-width: 650px;">
 
@@ -6627,7 +6435,7 @@
 
               <span style="font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; color: var(--accent-cyan); letter-spacing: 1px; text-transform: uppercase;">Your Official Course Guide</span>
 
-              <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-top: 2px;" id="packetCardTitle">ð Student Follow-Along Packet (Phone Edition)</h3>
+              <h3 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-top: 2px;" id="packetCardTitle">📘 Student Follow-Along Packet (Phone Edition)</h3>
 
               <p style="font-size: 0.86rem; color: #cbd5e1; margin-top: 4px;" id="packetCardDesc">
 
@@ -6658,7 +6466,7 @@
 
         <!-- State Dossier Details Modal -->
 
-        <div class="state-dossier-modal-overlay" id="stateDossierModal" onclick="if(event.target===this) closeStateDossier()">
+        <div class="state-dossier-modal-overlay" id="stateDossierModal" style="display: none;" onclick="if(event.target===this) closeStateDossier()">
 
           <div class="state-dossier-card" role="dialog" aria-modal="true" aria-labelledby="dossierStateTitle" onclick="event.stopPropagation()">
 
@@ -6879,7 +6687,7 @@
         <!-- CLIENT PORTAL STICKY SUBNAV -->
         <nav class="fi-portal-subnav" aria-label="Client Portal Navigation">
           <a href="#fi-sec-dashboard" class="fi-subnav-btn active">📊 Dashboard</a>
-          <a href="#fi-sec-reciprocity" class="fi-subnav-btn">🗺️ Reciprocity Hub</a>
+          <button type="button" class="fi-subnav-btn" onclick="toggleReciprocityHubModal(true)">🗺️ 50-State Reciprocity Hub</button>
           <a href="#fi-sec-travel" class="fi-subnav-btn">🚗 Vehicle Travel</a>
           <a href="#fi-sec-flying" class="fi-subnav-btn">✈️ Flying With Firearms</a>
           <a href="#fi-sec-renewal" class="fi-subnav-btn">⏱️ Permit & Renewal</a>
@@ -6914,7 +6722,7 @@
             <button type="button" class="btn-primary" style="width: auto; padding: 10px 20px; font-size: 0.88rem;" onclick="fiScrollTo('fi-sec-renewal')">
               ⏱️ Check Permit Expiration
             </button>
-            <button type="button" class="btn-spark" style="width: auto; padding: 10px 20px; font-size: 0.88rem;" onclick="fiScrollTo('fi-sec-reciprocity')">
+            <button type="button" class="btn-spark" style="width: auto; padding: 10px 20px; font-size: 0.88rem;" onclick="toggleReciprocityHubModal(true)">
               🗺️ 50-State Reciprocity Engine
             </button>
             <button type="button" class="btn-secondary" style="width: auto; padding: 10px 20px; font-size: 0.88rem;" onclick="fiScrollTo('fi-sec-flying')">
@@ -6934,7 +6742,7 @@
                 Interactive nationwide recognition engine. Evaluate where your Maryland Wear & Carry and multi-state non-resident permits (Utah, Florida, Virginia) are honored in real time.
               </p>
             </div>
-            <button type="button" class="btn-spark" onclick="fiScrollTo('fi-sec-reciprocity')">Open Reciprocity Hub ↓</button>
+            <button type="button" class="btn-spark" onclick="toggleReciprocityHubModal(true)">Launch 50-State Reciprocity Hub ↗</button>
           </div>
 
           <!-- CARD 2 -->
@@ -7648,7 +7456,7 @@
 
           <button type="button" class="btn-primary" onclick="verifyAdminAccess()">
 
-            Unlock Command Terminal ð
+            Unlock Command Terminal 🔓
 
           </button>
 
@@ -7679,7 +7487,7 @@
 
           </div>
 
-          <button type="button" class="btn-spark" onclick="refreshAdminRoster()">ð Refresh Roster</button>
+          <button type="button" class="btn-spark" onclick="refreshAdminRoster()">🔄 Refresh Roster</button>
 
         </div>
 
@@ -7789,7 +7597,7 @@
 
         <strong style="font-family: var(--font-display); font-size: 1.15rem; color: var(--accent-amber); display: block; margin-bottom: 4px; text-transform: uppercase;">
 
-          The FIFS Promise:
+          The The Future Initiative Firearm Services Promise:
 
         </strong>
 
@@ -7824,7 +7632,7 @@
 
         <div class="pathway-grid">
 
-          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('new_to_firearms')" title="Learn more about starting with HQL">
+          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('new_to_firearms', this)" title="Learn more about starting with HQL">
 
             <div class="pathway-intent">Brand New to Firearms</div>
 
@@ -7834,7 +7642,7 @@
 
           </button>
 
-          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('want_to_purchase')" title="Learn more about buying a handgun">
+          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('want_to_purchase', this)" title="Learn more about buying a handgun">
 
             <div class="pathway-intent">Looking to Buy a Pistol</div>
 
@@ -7844,7 +7652,7 @@
 
           </button>
 
-          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('want_to_carry')" title="Learn more about concealed carry">
+          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('want_to_carry', this)" title="Learn more about concealed carry">
 
             <div class="pathway-intent">I Want to Carry in Public</div>
 
@@ -7854,7 +7662,7 @@
 
           </button>
 
-          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('want_both')" title="Learn more about CCW & HQL combo">
+          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('want_both', this)" title="Learn more about CCW & HQL combo">
 
             <div class="pathway-intent">I Want Both: Buy & Carry</div>
 
@@ -7864,7 +7672,7 @@
 
           </button>
 
-          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('personalized_focus')" title="Learn more about 1-on-1 private coaching">
+          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('personalized_focus', this)" title="Learn more about 1-on-1 private coaching">
 
             <div class="pathway-intent">Personalized / Anxiety Relief</div>
 
@@ -7874,7 +7682,7 @@
 
           </button>
 
-          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('need_multistate')" style="border-color: var(--accent-amber);" title="Learn more about multi-state carry">
+          <button type="button" class="pathway-pill" onclick="openGoalSynopsis('need_multistate', this)"  title="Learn more about multi-state carry">
 
             <div class="pathway-intent" style="color: var(--accent-amber);">Do I Need a Multi-State Permit?</div>
 
@@ -8000,7 +7808,7 @@
 
         <p style="font-size: 0.92rem; color: var(--text-muted); max-width: 740px; margin: 6px auto 0; line-height: 1.55;">
 
-          All courses display standard self-equipped Base Pricing by default. Toggle between <strong>Standard Base</strong> and <strong>ð VIP Turnkey</strong> on any card to see exactly what is added!
+          All courses display standard self-equipped Base Pricing by default. Toggle between <strong>Standard Base</strong> and <strong>👑 VIP Turnkey</strong> on any card to see exactly what is added!
 
         </p>
 
@@ -8019,7 +7827,7 @@
 
           <div class="card-tier-badge" id="badge-course-mastery" style="display: none; background: var(--accent-amber); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
 
-            ð VIP TURNKEY MODE
+            👑 VIP TURNKEY MODE
 
           </div>
 
@@ -8035,7 +7843,7 @@
 
             <button type="button" class="tier-toggle-option active" id="tog-base-mastery" onclick="setCardTier('mastery', 'base')">Standard Base</button>
 
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-mastery" onclick="setCardTier('mastery', 'vip')">ð VIP Turnkey</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-mastery" onclick="setCardTier('mastery', 'vip')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.35rem; padding: 4px 20px; line-height: 1;">👑</button>
 
           </div>
 
@@ -8081,21 +7889,24 @@
   
   
 
-          <div class="vip-perks-box" id="vip-box-course-mastery" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+          <div class="vip-perks-box" id="vip-box-course-mastery" style="display: none; background: rgba(255, 183, 3, 0.10); border: 1px solid var(--accent-amber); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-amber); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 <strong>FREE Tactical IFAK (Individual First Aid / Trauma Kit)</strong> included!</div>
+            <div>👑 Complete multi-state non-resident application prep (UT, FL, AZ, VA)</div>
+            <div>👑 Official FD-258 fingerprint cards & on-site passport photo package</div>
+            <div>👑 Range lane fees & 100 rounds factory target ammo at Cindy's Hot Shots</div>
+            <div>👑 Full 1-Year VIP Access to the Future Initiative Reciprocity & Training Portal</div>
+          </div>
 
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">ð What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Official B-27 practical qualification targets provided</div>
 
-            <div>ð Range lane fee included at Cindy's Hot Shots (Save $25–$35)</div>
+            <div>👑 Loaner 9mm semi-automatic handgun provided</div>
 
-            <div>ð Official B-27 practical qualification targets provided</div>
+            <div>👑 50 rounds factory brass target ammunition included</div>
 
-            <div>ð Loaner 9mm semi-automatic handgun provided</div>
+            <div>👑 On-site FD-258 fingerprint cards & 2x2 passport photos!</div>
 
-            <div>ð 50 rounds factory brass target ammunition included</div>
-
-            <div>ð On-site FD-258 fingerprint cards & 2x2 passport photos!</div>
-
-            <div>ð 1-on-1 application dossier audit with Instructor Kai Wade</div>
+            <div>👑 1-on-1 application dossier audit with Instructor Kai Wade</div>
 
           </div>
 
@@ -8127,11 +7938,11 @@
 
           <div class="card-tier-badge" id="badge-course-combo" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
 
-            ð VIP TURNKEY MODE
+            👑 VIP TURNKEY MODE
 
           </div>
 
-          <span class="badge-pop" id="pop-course-combo">ð¥ MOST POPULAR COMBO</span>
+          <span class="badge-pop" id="pop-course-combo">🔥 MOST POPULAR COMBO</span>
 
           <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">CCW & HQL Combo</div>
 
@@ -8141,7 +7952,7 @@
 
             <button type="button" class="tier-toggle-option active" id="tog-base-combo" onclick="setCardTier('combo', 'base')">Standard Base</button>
 
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-combo" onclick="setCardTier('combo', 'vip')">ð VIP Turnkey</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-combo" onclick="setCardTier('combo', 'vip')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.35rem; padding: 4px 20px; line-height: 1;">👑</button>
 
           </div>
 
@@ -8185,21 +7996,25 @@
   
   
 
-          <div class="vip-perks-box" id="vip-box-course-combo" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+          <div class="vip-perks-box" id="vip-box-course-combo" style="display: none; background: rgba(0, 229, 255, 0.10); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
+            <div>👑 Loaner 9mm semi-automatic handgun provided for qualification</div>
+            <div>👑 50 rounds factory brass target ammunition included</div>
+            <div>👑 Certified on-site passport photos taken & printed for MSP portal upload</div>
+            <div>👑 Dual application audit: Both HQL & CCW reviewed by Coach Kai Wade</div>
+            <div>👑 6-Month VIP Student Portal Access included</div>
+          </div>
 
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">ð What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Official B-27 qualification targets provided</div>
 
-            <div>ð Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
+            <div>👑 Loaner 9mm handgun provided for live-fire evolution</div>
 
-            <div>ð Official B-27 qualification targets provided</div>
+            <div>👑 50 rounds factory brass ammunition included</div>
 
-            <div>ð Loaner 9mm handgun provided for live-fire evolution</div>
+            <div>👑 On-site passport-style photos taken & printed</div>
 
-            <div>ð 50 rounds factory brass ammunition included</div>
-
-            <div>ð On-site passport-style photos taken & printed</div>
-
-            <div>ð Complete dual filing assistance for both CCW and HQL!</div>
+            <div>👑 Complete dual filing assistance for both CCW and HQL!</div>
 
           </div>
 
@@ -8231,7 +8046,7 @@
 
           <div class="card-tier-badge" id="badge-course-ccw" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
 
-            ð VIP TURNKEY MODE
+            👑 VIP TURNKEY MODE
 
           </div>
 
@@ -8243,7 +8058,7 @@
 
             <button type="button" class="tier-toggle-option active" id="tog-base-ccw" onclick="setCardTier('ccw', 'base')">Standard Base</button>
 
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-ccw" onclick="setCardTier('ccw', 'vip')">ð VIP Turnkey</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-ccw" onclick="setCardTier('ccw', 'vip')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.35rem; padding: 4px 20px; line-height: 1;">👑</button>
 
           </div>
 
@@ -8287,19 +8102,23 @@
   
   
 
-          <div class="vip-perks-box" id="vip-box-course-ccw" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+          <div class="vip-perks-box" id="vip-box-course-ccw" style="display: none; background: rgba(0, 229, 255, 0.10); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
+            <div>👑 Official B-27 full-size practical qualification targets provided</div>
+            <div>👑 Loaner 9mm handgun provided (No firearm ownership required to take class)</div>
+            <div>👑 50 rounds factory target brass ammunition included</div>
+            <div>👑 On-site passport-style color photo package printed for MSP portal upload</div>
+            <div>👑 1-on-1 MSP MyLicense submission review with Instructor Kai Wade</div>
+          </div>
 
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">ð What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Official B-27 qualification targets provided</div>
 
-            <div>ð Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
+            <div>👑 Loaner 9mm handgun provided</div>
 
-            <div>ð Official B-27 qualification targets provided</div>
+            <div>👑 50 rounds factory target ammunition included</div>
 
-            <div>ð Loaner 9mm handgun provided</div>
-
-            <div>ð 50 rounds factory target ammunition included</div>
-
-            <div>ð On-site passport photos taken & printed!</div>
+            <div>👑 On-site passport photos taken & printed!</div>
 
           </div>
 
@@ -8335,7 +8154,7 @@
           
           <div class="tier-toggle-switch">
             <button type="button" class="tier-toggle-option active" id="tog-base-renewal" onclick="setCardTier('renewal', 'base')">Standard Base</button>
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-renewal" onclick="setCardTier('renewal', 'vip')">👑 VIP Turnkey</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-renewal" onclick="setCardTier('renewal', 'vip')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.35rem; padding: 4px 20px; line-height: 1;">👑</button>
           </div>
           <div class="tuition-price" id="price-course-renewal">
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$175.00</span>
@@ -8348,9 +8167,15 @@
             <div>✔ 25-Round Live-Fire Range Qualification</div>
             <div>✔ Certified MSP Form 29-14 Score Sheet</div>
           </div>
-          <div class="vip-perks-box" id="vip-box-course-renewal" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+          <div class="vip-perks-box" id="vip-box-course-renewal" style="display: none; background: rgba(255, 183, 3, 0.10); border: 1px solid var(--accent-amber); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-amber); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
             <div>👑 Cindy's Hot Shots range lane fee included (Save $25–$35)</div>
+            <div>👑 50 rounds factory target brass ammunition included</div>
+            <div>👑 Loaner handgun provided if your firearm is undergoing maintenance</div>
+            <div>👑 State v. Faulkner & SB 1 Sensitive Place Statutory Law Refresher Packet</div>
+            <div>👑 Printed passport photo service included</div>
+            <div>👑 Expedited 24-hour MSP Form 29-14 certified score sheet delivery</div>
+          </div>
             <div>👑 Official B-27 practical qualification targets provided</div>
             <div>👑 Loaner 9mm handgun provided for qualification shoot</div>
             <div>👑 50 rounds factory target ammunition included</div>
@@ -8370,7 +8195,7 @@
 
           <div class="card-tier-badge" id="badge-course-hql" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
 
-            ð VIP TURNKEY MODE
+            👑 VIP TURNKEY MODE
 
           </div>
 
@@ -8382,7 +8207,7 @@
 
             <button type="button" class="tier-toggle-option active" id="tog-base-hql" onclick="setCardTier('hql', 'base')">Standard Base</button>
 
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-hql" onclick="setCardTier('hql', 'vip')">ð VIP Turnkey</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-hql" onclick="setCardTier('hql', 'vip')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.35rem; padding: 4px 20px; line-height: 1;">👑</button>
 
           </div>
 
@@ -8426,19 +8251,22 @@
   
   
 
-          <div class="vip-perks-box" id="vip-box-course-hql" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+          <div class="vip-perks-box" id="vip-box-course-hql" style="display: none; background: rgba(0, 229, 255, 0.10); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Handgun rental, range lane fee & 25 rds target ammo included (100% turnkey)</div>
+            <div>👑 ANSI Z87.1 eye protection & noise-canceling hearing gear provided</div>
+            <div>👑 Passport photos taken & printed on-site</div>
+            <div>👑 Live MSP 77R portal application walkthrough immediately after class</div>
+            <div>👑 <strong>FREE "Top 50 Questions New Gun Owners Ask"</strong> Master Guide</div>
+          </div>
 
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">ð What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Loaner handgun provided for live-fire verification</div>
 
-            <div>ð Range fee included at Cindy's Hot Shots</div>
+            <div>👑 Qualifying ammunition included</div>
 
-            <div>ð Loaner handgun provided for live-fire verification</div>
+            <div>👑 Target provided</div>
 
-            <div>ð Qualifying ammunition included</div>
-
-            <div>ð Target provided</div>
-
-            <div>ð MSP 77R portal account setup & submission guidance!</div>
+            <div>👑 MSP 77R portal account setup & submission guidance!</div>
 
           </div>
 
@@ -8470,7 +8298,7 @@
 
           <div class="card-tier-badge" id="badge-course-coaching" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
 
-            ð VIP TURNKEY MODE
+            👑 VIP TURNKEY MODE
 
           </div>
 
@@ -8482,7 +8310,7 @@
 
             <button type="button" class="tier-toggle-option active" id="tog-base-coaching" onclick="setCardTier('coaching', 'base')">Standard Base</button>
 
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-coaching" onclick="setCardTier('coaching', 'vip')">ð VIP Turnkey</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-coaching" onclick="setCardTier('coaching', 'vip')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.35rem; padding: 4px 20px; line-height: 1;">👑</button>
 
           </div>
 
@@ -8526,19 +8354,21 @@
   
   
 
-          <div class="vip-perks-box" id="vip-box-course-coaching" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+          <div class="vip-perks-box" id="vip-box-course-coaching" style="display: none; background: rgba(0, 229, 255, 0.10); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 High-speed slow-motion video diagnostic analysis of grip & trigger press</div>
+            <div>👑 MantisX live-fire sensor telemetry report analyzing muzzle movement</div>
+            <div>👑 Private lane fee & premium steel/paper diagnostic targets included</div>
+            <div>👑 Personalized dry-fire prescription drill card for home practice</div>
+          </div>
 
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">ð What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Diagnostic sensor telemetry (MantisX live analysis)</div>
 
-            <div>ð Private lane reservation fee included</div>
+            <div>👑 Access to premium loaner handguns (SIG, Glock, etc.)</div>
 
-            <div>ð Diagnostic sensor telemetry (MantisX live analysis)</div>
+            <div>👑 Training ammunition provided</div>
 
-            <div>ð Access to premium loaner handguns (SIG, Glock, etc.)</div>
-
-            <div>ð Training ammunition provided</div>
-
-            <div>ð High-speed video trigger stroke analysis!</div>
+            <div>👑 High-speed video trigger stroke analysis!</div>
 
           </div>
 
@@ -8570,7 +8400,7 @@
 
           <div class="card-tier-badge" id="badge-course-cleaning" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
 
-            ð VIP TURNKEY MODE
+            👑 VIP TURNKEY MODE
 
           </div>
 
@@ -8582,7 +8412,7 @@
 
             <button type="button" class="tier-toggle-option active" id="tog-base-cleaning" onclick="setCardTier('cleaning', 'base')">Standard Base</button>
 
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-cleaning" onclick="setCardTier('cleaning', 'vip')">ð VIP Turnkey</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-cleaning" onclick="setCardTier('cleaning', 'vip')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.35rem; padding: 4px 20px; line-height: 1;">👑</button>
 
           </div>
 
@@ -8626,17 +8456,18 @@
   
   
 
-          <div class="vip-perks-box" id="vip-box-course-cleaning" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+          <div class="vip-perks-box" id="vip-box-course-cleaning" style="display: none; background: rgba(0, 229, 255, 0.10); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 <strong>FREE Complete Take-Home Gun Cleaning Kit</strong> (universal rod, brass jags, bore brush, CLP solvent & lube, and cleaning mat)</div>
+            <div>👑 Hands-on deep disassembly & ultrasonic parts tank cleaning demonstration</div>
+            <div>👑 Complete field inspection & spring wear diagnostic report for your firearm</div>
+          </div>
 
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">ð What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Specialized bore solvents and advanced CLP lubricants</div>
 
-            <div>ð Complete premium multi-caliber cleaning kit to take home</div>
+            <div>👑 Ultrasonic deep cleaning treatment for slide & barrel</div>
 
-            <div>ð Specialized bore solvents and advanced CLP lubricants</div>
-
-            <div>ð Ultrasonic deep cleaning treatment for slide & barrel</div>
-
-            <div>ð Comprehensive 8-point mechanical function check!</div>
+            <div>👑 Comprehensive 8-point mechanical function check!</div>
 
           </div>
 
@@ -8668,7 +8499,7 @@
 
           <div class="card-tier-badge" id="badge-course-children" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
 
-            ð VIP TURNKEY MODE
+            👑 VIP TURNKEY MODE
 
           </div>
 
@@ -8680,7 +8511,7 @@
 
             <button type="button" class="tier-toggle-option active" id="tog-base-children" onclick="setCardTier('children', 'base')">Standard Base</button>
 
-            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-children" onclick="setCardTier('children', 'vip')">ð VIP Turnkey</button>
+            <button type="button" class="tier-toggle-option vip-toggle" id="tog-vip-children" onclick="setCardTier('children', 'vip')" title="Activate 👑 VIP Turnkey Mode" style="font-size: 1.35rem; padding: 4px 20px; line-height: 1;">👑</button>
 
           </div>
 
@@ -8724,17 +8555,18 @@
   
   
 
-          <div class="vip-perks-box" id="vip-box-course-children" style="display: none; background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+          <div class="vip-perks-box" id="vip-box-course-children" style="display: none; background: rgba(0, 229, 255, 0.10); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; text-align: left;">
+            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">👑 What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 <strong>FREE Heavy-Duty Steel Cable Gun Lock</strong> for home firearm security</div>
+            <div>👑 Illustrated Eddie Eagle / FIFS Youth Gun Safety Workbook & Certificate</div>
+            <div>👑 Full Family In-Home Firearm Storage & Staging Consultation with Kai Wade</div>
+          </div>
 
-            <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px; font-family: var(--font-display); font-size: 1.05rem;">ð What's Added in VIP Turnkey Mode:</strong>
+            <div>👑 Youth safe-handling activity workbook packet</div>
 
-            <div>ð Certified heavy-duty cable gun locks to take home</div>
+            <div>👑 Safe storage demonstration for parents</div>
 
-            <div>ð Youth safe-handling activity workbook packet</div>
-
-            <div>ð Safe storage demonstration for parents</div>
-
-            <div>ð Official Certificate of Completion for student!</div>
+            <div>👑 Official Certificate of Completion for student!</div>
 
           </div>
 
@@ -8877,7 +8709,7 @@
 
                 <div style="display: flex; justify-content: space-between; align-items: center;">
 
-                  <strong style="color: var(--accent-amber); font-size: 0.85rem;">ð VIP Turnkey</strong>
+                  <strong style="color: var(--accent-amber); font-size: 0.85rem;">👑 VIP Turnkey</strong>
 
                   <span id="formPriceVipVal" style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--accent-amber);">$375.00</span>
 
@@ -9094,234 +8926,7 @@
   
   
 
-      <!-- ================= STEP 12: PORTAL SELECTION SPLASH MODAL ================= -->
-
-  <div class="fi-portal-modal-overlay" id="fiPortalSelectionModal" onclick="if(event.target===this) closePortalSelectionModal()">
-
-    <div class="fi-portal-modal-card" role="dialog" aria-modal="true" aria-labelledby="fiPortalSelectTitle" onclick="event.stopPropagation()">
-
-      <button type="button" class="goal-modal-close-btn" onclick="closePortalSelectionModal()" aria-label="Close Portal Selector">✕</button>
-
-      
-
-      <div style="text-align: center; margin-bottom: 20px;">
-
-        <h2 id="fiPortalSelectTitle" style="font-family: var(--font-display); font-size: 2.2rem; letter-spacing: 2px; text-transform: uppercase; color: #fff; margin-bottom: 4px;">Future Initiative</h2>
-
-        <p style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 1.15rem; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700;">Choose Your Portal</p>
-
-      </div>
-
-  
-  
-
-      <div class="fi-select-grid">
-
-        <!-- OPTION 1: STUDENT PORTAL -->
-
-        <div class="fi-select-card">
-
-          <div>
-
-            <span class="fi-card-badge fi-card-badge-cyan">Enrolled Students</span>
-
-            <h3 class="fi-card-title">Student Portal</h3>
-
-            <p class="fi-card-desc">For current Future Initiative students</p>
-
-            <ul class="fi-card-list">
-
-              <li><span>ð</span> Maryland HQL &amp; Wear &amp; Carry Curriculum</li>
-
-              <li><span>ðº️</span> 8-Step Training Milestone Roadmap</li>
-
-              <li><span>ð</span> Mandatory Range Prep Tasks Checklist</li>
-
-              <li><span>ð</span> Official MSP Form 29-14 Score Sheet Link</li>
-
-              <li><span>ð</span> Course Follow-Along Training Packets</li>
-
-            </ul>
-
-          </div>
-
-          <button type="button" class="btn-primary" style="width: 100%; padding: 13px;" onclick="closePortalSelectionModal(); openAndSwitch('portal');">
-
-            Open Student Portal →
-
-          </button>
-
-        </div>
-
-  
-  
-
-        <!-- OPTION 2: FUTURE INITIATIVE PORTAL -->
-
-        <div class="fi-select-card highlight">
-
-          <div>
-
-            <span class="fi-card-badge fi-card-badge-amber">Permit Holders &amp; Firearm Owners</span>
-
-            <h3 class="fi-card-title">Future Initiative Portal</h3>
-
-            <p class="fi-card-desc">For CCW/permit holders, firearm owners, and Future Initiative clients</p>
-
-            <ul class="fi-card-list">
-
-              <li><span>ðº️</span> Interactive 50-State Reciprocity Hub</li>
-
-              <li><span>ð</span> Interstate &amp; Vehicle Highway Travel (FOPA § 926A)</li>
-
-              <li><span>✈️</span> Commercial Air Travel &amp; TSA Packing Standards</li>
-
-              <li><span>⏱️</span> Permit Expiration Calculator &amp; 90-Day Renewal Hub</li>
-
-              <li><span>ð</span> 10% Future Initiative Renewal Training Offer</li>
-
-            </ul>
-
-          </div>
-
-          <button type="button" class="btn-spark" style="width: 100%; padding: 13px;" onclick="closePortalSelectionModal(); openAndSwitch('fi-portal');">
-            Open Future Initiative Portal →
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-  
-  
-
-  <!-- Goal Synopsis Interactive Pop-Up Modal -->
-
-  <div class="goal-modal-overlay" id="goalSynopsisModal" onclick="if(event.target===this) closeGoalSynopsis()">
-
-    <div class="goal-modal-box" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle" onclick="event.stopPropagation()">
-
-      <button type="button" class="goal-modal-close-btn" onclick="closeGoalSynopsis()" aria-label="Close details">✕</button>
-
-      <div>
-
-        <span class="goal-header-badge" id="goalModalBadge">Guidance & Course Selection</span>
-
-      </div>
-
-      <h3 class="goal-modal-title" id="goalModalTitle">Goal Title</h3>
-
-      <div class="goal-modal-rec" id="goalModalRec">Recommended Course</div>
-
-      
-
-      <div class="goal-synopsis-card" id="goalModalSynopsis">
-
-        Synopsis text will appear here.
-
-      </div>
-
-  
-  
-  
-  
-
-      <!-- Download Free PDF Guide for New Shooters -->
-
-      <div class="guide-download-banner" id="goalModalGuideBanner" style="display: none;">
-
-        <div class="guide-banner-text">
-
-          <strong style="color: var(--accent-cyan); display: block; font-size: 0.92rem;">ð Free Student Resource: Top 50 Questions New Gun Owners Ask</strong>
-
-          <span>Comprehensive 6-page Maryland-compliant guide prepared by Instructor Kai Wade.</span>
-
-        </div>
-
-        <a href="https://drive.google.com/file/d/1WIoQO00ALNalIuTjSNacZbBNLYIrVHGN/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn-download-guide">
-
-          <span>ð¥ View & Download PDF</span>
-
-        </a>
-
-      </div>
-
-  
-  
-  
-  
-
-      <div class="goal-columns-grid">
-
-        <div class="goal-col-card col-why">
-
-          <div class="goal-col-head head-why">
-
-            <span>✔</span>
-
-            <span>Why Choose This</span>
-
-          </div>
-
-          <ul class="goal-bullet-list" id="goalModalWhyList">
-
-          </ul>
-
-        </div>
-
-  
-  
-  
-  
-
-        <div class="goal-col-card col-why-not">
-
-          <div class="goal-col-head head-why-not">
-
-            <span>⚡</span>
-
-            <span>Why You Might NOT Want This</span>
-
-          </div>
-
-          <ul class="goal-bullet-list" id="goalModalWhyNotList">
-
-          </ul>
-
-        </div>
-
-      </div>
-
-  
-  
-  
-  
-
-      <div class="goal-modal-actions">
-
-        <button type="button" class="btn-primary" id="goalModalAcceptBtn" onclick="closeGoalSynopsis(); selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)');">
-
-          Choose This Course & Continue →
-
-        </button>
-
-        <button type="button" class="btn-secondary-modal" onclick="closeGoalSynopsis()">
-
-          Explore Other Goals
-
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-    </main>
+      </main>
 
   
   
@@ -9441,7 +9046,7 @@
 
         <div class="checklist-box">
 
-          <h4>ð️ State & National Credentials</h4>
+          <h4>🎖️ State & National Credentials</h4>
 
           <ul>
 
@@ -9468,7 +9073,7 @@
 
         <div class="checklist-box">
 
-          <h4>ð¡️ The FIFS Philosophy</h4>
+          <h4>🛡️ The FIFS Philosophy</h4>
 
           <ul>
 
@@ -10706,7 +10311,7 @@
 
         if (heroDesc) heroDesc.textContent = "Active classroom instruction in progress. Study your student follow-along guide and legal use-of-force standards (State v. Faulkner).";
 
-        if (heroBtn) { heroBtn.textContent = "Open Follow-Along Packet ð"; heroBtn.onclick = function() { document.getElementById('packetCardLink').click(); }; }
+        if (heroBtn) { heroBtn.textContent = "Open Follow-Along Packet 📖"; heroBtn.onclick = function() { document.getElementById('packetCardLink').click(); }; }
 
       } else if (stepNum === 5) {
 
@@ -10714,15 +10319,15 @@
 
         if (heroDesc) heroDesc.textContent = "Live-fire evaluation at Cindy's Hot Shots. Focus on master grip, trigger press, and the 25-round Maryland State Police qualification course.";
 
-        if (heroBtn) { heroBtn.textContent = "View Official Score Sheet (MSP 29-14) ð¯"; heroBtn.onclick = function() { window.open('https://drive.google.com/file/d/1zKrRHowlg1GSewhLISZFrLvr91gxYQBP/view?usp=sharing', '_blank'); }; }
+        if (heroBtn) { heroBtn.textContent = "View Official Score Sheet (MSP 29-14) 🎯"; heroBtn.onclick = function() { window.open('https://drive.google.com/file/d/1zKrRHowlg1GSewhLISZFrLvr91gxYQBP/view?usp=sharing', '_blank'); }; }
 
       } else if (stepNum === 6) {
 
-        if (heroTitle) heroTitle.textContent = "Official Qualification Certified! ð";
+        if (heroTitle) heroTitle.textContent = "Official Qualification Certified! 🎉";
 
         if (heroDesc) heroDesc.textContent = "Congratulations! Instructor Kai Wade has certified your marksmanship qualification and completed your training documentation.";
 
-        if (heroBtn) { heroBtn.textContent = "Open Official Student Dossier ð"; heroBtn.onclick = function() { window.open(student.profileDocUrl || '#', '_blank'); }; }
+        if (heroBtn) { heroBtn.textContent = "Open Official Student Dossier 📄"; heroBtn.onclick = function() { window.open(student.profileDocUrl || '#', '_blank'); }; }
 
       } else if (stepNum === 7) {
 
@@ -10730,15 +10335,15 @@
 
         if (heroDesc) heroDesc.textContent = "Log in to the official MSP Licensing Portal to upload your signed qualification certificate, passport photo, and LiveScan TCN receipt.";
 
-        if (heroBtn) { heroBtn.textContent = "Open MSP Licensing Portal ð"; heroBtn.onclick = function() { window.open('https://licensingportal.mdsp.maryland.gov/MspBridgeClient/', '_blank'); }; }
+        if (heroBtn) { heroBtn.textContent = "Open MSP Licensing Portal 🌐"; heroBtn.onclick = function() { window.open('https://licensingportal.mdsp.maryland.gov/MspBridgeClient/', '_blank'); }; }
 
       } else if (stepNum === 8) {
 
-        if (heroTitle) heroTitle.textContent = "Maryland Carry Permit Active & Licensed ð¡️";
+        if (heroTitle) heroTitle.textContent = "Maryland Carry Permit Active & Licensed 🛡️";
 
         if (heroDesc) heroDesc.textContent = "Your Maryland Wear & Carry permit is active. Remember your 90-day renewal cycle and explore our Multi-State Reciprocity Hub for travel compliance.";
 
-        if (heroBtn) { heroBtn.textContent = "Launch CCW Reciprocity Hub ðº️"; heroBtn.onclick = function() { toggleReciprocityHubModal(true); }; }
+        if (heroBtn) { heroBtn.textContent = "Launch CCW Reciprocity Hub 🗺️"; heroBtn.onclick = function() { toggleReciprocityHubModal(true); }; }
 
       }
 
@@ -11040,7 +10645,7 @@
 
         7: "7. MSP Portal Submitted",
 
-        8: "8. Licensed & Active ð¡️"
+        8: "8. Licensed & Active 🛡️"
 
       };
 
@@ -12675,7 +12280,7 @@
 
       renewal: {
 
-        title: "ð Maryland Wear & Carry (8-Hour Renewal) — Follow-Along Guide",
+        title: "📘 Maryland Wear & Carry (8-Hour Renewal) — Follow-Along Guide",
 
         desc: "Official 8-hour recertification study manual. Covers State v. Faulkner, SB 1 sensitive places, Jaelynn's Law, de-escalation scripts, and the 25-round BPHC qualification course.",
 
@@ -12685,7 +12290,7 @@
 
       initial: {
 
-        title: "ð Maryland Wear & Carry (16-Hour Initial) — Follow-Along Guide",
+        title: "📘 Maryland Wear & Carry (16-Hour Initial) — Follow-Along Guide",
 
         desc: "Comprehensive 16-hour curriculum companion. Covers safe gun handling, handgun anatomy, ammunition fundamentals, EDC setup, Maryland statutory pillars, and live-fire range drills.",
 
@@ -12745,13 +12350,16 @@
   
   
 
-    function toggleReciprocityHubModal(show) {
+        function toggleReciprocityHubModal(show) {
       const modal = document.getElementById('reciprocityHubModal');
       if (modal) {
         modal.style.setProperty('display', show ? 'block' : 'none', 'important');
         document.body.style.overflow = show ? 'hidden' : '';
-        if (show && typeof initReciprocityEngine === 'function') {
-          initReciprocityEngine();
+        if (show) {
+          if (typeof initReciprocityEngine === 'function') {
+            initReciprocityEngine();
+          }
+          modal.scrollTop = 0;
         }
       }
     }
@@ -12948,7 +12556,7 @@
 
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-cyan);">${config.vipPrice}</span>
 
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(ð VIP Turnkey ★)</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>
 
           `;
 
@@ -12961,7 +12569,7 @@
 
         if (btnSelect) {
 
-          btnSelect.textContent = "Confirm ð VIP (" + config.vipPrice + ")";
+          btnSelect.textContent = "Confirm 👑 VIP (" + config.vipPrice + ")";
 
           btnSelect.className = "btn-select-course btn-vip-select";
 
@@ -13043,7 +12651,7 @@
 
         if (btnVip) {
 
-          btnVip.textContent = "ð Select VIP";
+          btnVip.textContent = "👑 Select VIP";
 
           btnVip.style.background = "rgba(0, 229, 255, 0.15)";
 
@@ -13078,7 +12686,7 @@
 
         baseDesc: "Self-equipped track. Includes 16-hour instruction + live-fire qualification + documentation for MD, VA, FL, AZ, and PA. Provide own firearm and ammo.",
 
-        vipDesc: "ð VIP Turnkey Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
 
       },
 
@@ -13090,7 +12698,7 @@
 
         baseDesc: "Self-equipped track. 16-hour Wear & Carry curriculum + Maryland HQL exemption guide. Provide own handgun, holster, and ammo.",
 
-        vipDesc: "ð VIP Turnkey Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
 
       },
 
@@ -13102,7 +12710,7 @@
 
         baseDesc: "Self-equipped track. 16-hour Wear & Carry certification and live-fire range qualification. Provide own firearm and ammo.",
 
-        vipDesc: "ð VIP Turnkey Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
 
       },
 
@@ -13114,7 +12722,7 @@
 
         baseDesc: "Self-equipped track. 4-hour state prerequisite course with live-fire component.",
 
-        vipDesc: "ð VIP Turnkey Track. Includes range fee, loaner handgun, live-fire target ammo, target & portal submission guidance!"
+        vipDesc: "👑 VIP Turnkey Track. Includes range fee, loaner handgun, live-fire target ammo, target & portal submission guidance!"
 
       },
 
@@ -13126,7 +12734,7 @@
 
         baseDesc: "Dedicated 1-on-1 private coaching. Custom diagnostic instruction.",
 
-        vipDesc: "ð VIP Turnkey Track. Includes private lane fee, diagnostic sensor telemetry (MantisX), loaner firearms & ammunition!"
+        vipDesc: "👑 VIP Turnkey Track. Includes private lane fee, diagnostic sensor telemetry (MantisX), loaner firearms & ammunition!"
 
       },
 
@@ -13138,7 +12746,7 @@
 
         baseDesc: "Instructional field-strip, cleaning, and maintenance workshop.",
 
-        vipDesc: "ð VIP Turnkey Track. Includes full premium take-home cleaning kit, ultrasonic treatment & specialized solvents!"
+        vipDesc: "👑 VIP Turnkey Track. Includes full premium take-home cleaning kit, ultrasonic treatment & specialized solvents!"
 
       },
 
@@ -13150,7 +12758,7 @@
 
         baseDesc: "Family safety and Eddie Eagle accident-prevention curriculum.",
 
-        vipDesc: "ð VIP Turnkey Track. Includes certified home cable gun locks, youth workbook & completion certificate!"
+        vipDesc: "👑 VIP Turnkey Track. Includes certified home cable gun locks, youth workbook & completion certificate!"
 
       }
 
@@ -13256,7 +12864,7 @@
 
         if (tierTag) {
 
-          tierTag.textContent = "ð VIP Turnkey Track Selected";
+          tierTag.textContent = "👑 VIP Turnkey Track Selected";
 
           tierTag.style.color = "var(--accent-amber)";
 
@@ -13512,7 +13120,7 @@
 
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-cyan);">${config.vipPrice}</span>
 
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(ð VIP Turnkey ★)</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>
 
           `;
 
@@ -13525,7 +13133,7 @@
 
         if (btnSelect) {
 
-          btnSelect.textContent = "Select ð VIP (" + config.vipPrice + ") & Reserve Seat →";
+          btnSelect.textContent = "Select 👑 VIP (" + config.vipPrice + ") & Reserve Seat →";
 
           btnSelect.className = "btn-select-course btn-vip-select";
 
@@ -15042,10 +14650,424 @@
     window.buildRollerList = buildRollerList;
     window.renderMyPermitsList = renderMyPermitsList;
 
+
+
+    // ==========================================================================
+    // NAVIGATION BACK BUTTON LOGIC
+    // ==========================================================================
+    let viewHistory = ['booking'];
+    function navigateBack() {
+      if (viewHistory.length > 1) {
+        viewHistory.pop(); // pop current view
+        const prevTab = viewHistory[viewHistory.length - 1];
+        if (prevTab) {
+          switchTab(prevTab);
+          return;
+        }
+      }
+      returnToHome();
+    }
+    window.navigateBack = navigateBack;
+
+    // Track tab switching in history
+    const originalSwitchTab = window.switchTab;
+    window.switchTab = function(tab) {
+      if (viewHistory[viewHistory.length - 1] !== tab) {
+        viewHistory.push(tab);
+        if (viewHistory.length > 15) viewHistory.shift();
+      }
+      if (typeof originalSwitchTab === 'function') {
+        originalSwitchTab(tab);
+      }
+    };
+
+    // ==========================================================================
+    // 8-STEP FIFS JOURNEY DEEP MODAL DATA & HANDLERS
+    // ==========================================================================
+    const FIFS_STEPS_DATA = {
+      1: {
+        title: "Registration & Profile Creation",
+        icon: "📝",
+        status: "Completed ✔",
+        synopsis: "Your student enrollment record has been initialized in the Future Initiative database with your unique Student ID and course selection.",
+        points: [
+          "✔ Full Name, Email, and Phone recorded in the Master Student Booking Ledger.",
+          "✔ Student Profile Document generated and stored securely in Google Drive.",
+          "✔ Lifecycle status initialized to STEP_1_REGISTERED."
+        ],
+        ctaText: "Review Course Selection & Tuition →",
+        ctaAction: "switchTab('booking')"
+      },
+      2: {
+        title: "Seat Confirmation & Training Date Assignment",
+        icon: "📅",
+        status: "Completed ✔",
+        synopsis: "Your training cohort date and firing line reservation at Cindy's Hot Shots have been assigned.",
+        points: [
+          "✔ Firing line lane slot reserved at Cindy's Hot Shots (Glen Burnie, MD).",
+          "✔ Confirmation notification and preparation briefing sent to student email.",
+          "✔ Access granted to the Future Initiative Student Operations Portal."
+        ],
+        ctaText: "Check Student Dashboard →",
+        ctaAction: "switchTab('portal')"
+      },
+      3: {
+        title: "Pre-Class Readiness & Equipment Preparation",
+        icon: "🎒",
+        status: "Active Action Required ⚡",
+        synopsis: "Preparation is critical for range safety. You must review equipment standards, lock transport rules, and acquire target ammunition before your live-fire day.",
+        points: [
+          "✔ Review Maryland Transport Compliance (Unloaded in locked case/trunk).",
+          "✔ Acquire 50–100 rounds of factory target brass ammunition (9mm, .380, etc.).",
+          "✔ Secure ANSI Z87.1 wrap-around eye protection & electronic earmuffs (or arrange loaner/rental).",
+          "✔ Verify government photo ID is valid and unexpired."
+        ],
+        ctaText: "Open Equipment & Readiness Checklist →",
+        ctaAction: "openExpectationModal('handgun')"
+      },
+      4: {
+        title: "Classroom Instruction & Self-Defense Law",
+        icon: "⚖️",
+        status: "Scheduled Evolution",
+        synopsis: "Comprehensive state-approved instruction covering firearm mechanics, conflict avoidance, de-escalation, and Maryland criminal law.",
+        points: [
+          "✔ Maryland SB 1 Sensitive Places restrictions and prohibited carry zones.",
+          "✔ State v. Faulkner duty to retreat and lawful defense of self and others.",
+          "✔ Safe staging, home storage compliance, and child access prevention laws.",
+          "✔ 100% strict zero-live-ammunition classroom policy enforced."
+        ],
+        ctaText: "View Follow-Along Course Packet →",
+        ctaAction: "window.open('https://docs.google.com/document/d/1K0dM40LAbSy8i7k9vM0iZNJk-YdYMZ9BC_tbI1l6oe0/edit?usp=sharing', '_blank')"
+      },
+      5: {
+        title: "Live-Fire Practical Range Qualification",
+        icon: "🎯",
+        status: "Range Practical",
+        synopsis: "Live-fire shooting evolution conducted on the firing line at Cindy's Hot Shots under the direct supervision of Certified Instructor Kai Wade.",
+        points: [
+          "✔ Wear & Carry: 25-round course of fire at 3, 5, 7, and 15 yards on B-27 targets (70% passing score).",
+          "✔ HQL: Demonstration of safe loading, firing, and unloading mechanics.",
+          "✔ Diagnostic feedback on grip friction, sight tracking, and trigger press reset."
+        ],
+        ctaText: "View Range Highlights & Targets →",
+        ctaAction: "switchTab('testimonial')"
+      },
+      6: {
+        title: "Certified Score Sheet Delivery (MSP Form 29-14)",
+        icon: "📜",
+        status: "Official Record",
+        synopsis: "Upon passing your live-fire shoot, Coach Kai Wade signs and certifies your official Maryland State Police Form 29-14 Training Documentation.",
+        points: [
+          "✔ Certified MSP Form 29-14 signed with Instructor QHIC # and date.",
+          "✔ High-resolution PDF generated and delivered to your Student Portal.",
+          "✔ Official Score Sheet serves as mandatory proof of training for your MSP application."
+        ],
+        ctaText: "Preview Official MSP 29-14 Score Sheet →",
+        ctaAction: "window.open('https://mdsp.maryland.gov/Organization/Licensing%20Division%20Documents/MSP%20Form%2029-14%20-%20Certified%20Handgun%20Training%20Score%20Sheet.pdf', '_blank')"
+      },
+      7: {
+        title: "MSP Portal Submission & LiveScan Fingerprints",
+        icon: "💻",
+        status: "State Application",
+        synopsis: "Submit your formal permit application online through the Maryland State Police MyLicense portal and complete your state and FBI background check.",
+        points: [
+          "✔ Obtain electronic LiveScan fingerprints from an authorized Maryland DPSCS provider.",
+          "✔ Upload your certified MSP Form 29-14 and passport-style photo to the portal.",
+          "✔ Track application progression and respond promptly to any MSP investigator inquiries."
+        ],
+        ctaText: "Open Maryland MyLicense Portal ↗",
+        ctaAction: "window.open('https://licensingportal.mdsp.maryland.gov/', '_blank')"
+      },
+      8: {
+        title: "Licensed Permit Carry & Ongoing Reciprocity",
+        icon: "🛡️",
+        status: "Milestone Achieved",
+        synopsis: "Receive your official Maryland Wear & Carry Permit card in the mail. Access our Reciprocity Engine and activate your 3-year renewal countdown watch.",
+        points: [
+          "✔ Carry lawfully across Maryland and reciprocal states.",
+          "✔ Utilize the FIFS 50-State Reciprocity Engine to verify travel compliance.",
+          "✔ Track your 3-year expiration date for 10% off your required 8-hour renewal class."
+        ],
+        ctaText: "Launch 50-State Reciprocity Hub ↗",
+        ctaAction: "toggleReciprocityHubModal(true)"
+      }
+    };
+
+    function openStepDetailModal(stepNum) {
+      const data = FIFS_STEPS_DATA[stepNum];
+      if (!data) return;
+
+      const modal = document.getElementById('stepDetailModal');
+      const badge = document.getElementById('stepModalBadge');
+      const heading = document.getElementById('stepModalHeading');
+      const icon = document.getElementById('stepModalIcon');
+      const status = document.getElementById('stepModalStatus');
+      const synopsis = document.getElementById('stepModalSynopsis');
+      const keyPoints = document.getElementById('stepModalKeyPoints');
+      const actions = document.getElementById('stepModalActions');
+
+      if (badge) badge.textContent = `STEP ${stepNum} OF 8 • TRAINING ROADMAP`;
+      if (heading) heading.textContent = data.title;
+      if (icon) icon.textContent = data.icon;
+      if (status) status.textContent = `Status: ${data.status}`;
+      if (synopsis) synopsis.textContent = data.synopsis;
+
+      if (keyPoints && Array.isArray(data.points)) {
+        keyPoints.innerHTML = data.points.map(p => `
+          <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; color: #cbd5e1;">
+            ${p}
+          </div>
+        `).join('');
+      }
+
+      if (actions) {
+        actions.innerHTML = `
+          <button type="button" class="btn-primary" onclick="closeStepDetailModal(); ${data.ctaAction};">
+            ${data.ctaText}
+          </button>
+          <button type="button" class="btn-secondary-modal" onclick="closeStepDetailModal()">
+            Close Step Overview
+          </button>
+        `;
+      }
+
+      if (modal) {
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    window.openStepDetailModal = openStepDetailModal;
+
+    function closeStepDetailModal() {
+      const modal = document.getElementById('stepDetailModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.setProperty('display', 'none', 'important');
+        document.body.style.overflow = '';
+      }
+    }
+    window.closeStepDetailModal = closeStepDetailModal;
+
+    // ==========================================================================
+    // PATHWAY CARD DYNAMIC SELECTION HIGHLIGHT
+    // ==========================================================================
+    const originalOpenGoalSynopsis = window.openGoalSynopsis;
+    window.openGoalSynopsis = function(goalKey, btnEl) {
+      document.querySelectorAll('.pathway-pill').forEach(p => {
+        p.classList.remove('active');
+        p.style.borderColor = '';
+        p.style.boxShadow = '';
+      });
+      if (btnEl) {
+        btnEl.classList.add('active');
+        btnEl.style.borderColor = 'var(--accent-cyan)';
+        btnEl.style.boxShadow = '0 0 16px var(--accent-cyan-glow), inset 0 0 10px rgba(0, 229, 255, 0.15)';
+      }
+      if (typeof originalOpenGoalSynopsis === 'function') {
+        originalOpenGoalSynopsis(goalKey);
+      }
+    };
+
+    // ==========================================================================
+    // DYNAMIC VIP CARD TIER SWITCHING & LUXURY BACKGROUND COLORING
+    // ==========================================================================
+    const originalSetCardTier = window.setCardTier;
+    window.setCardTier = function(courseKey, tier) {
+      const card = document.getElementById('card-course-' + courseKey);
+      const togBase = document.getElementById('tog-base-' + courseKey);
+      const togVip = document.getElementById('tog-vip-' + courseKey);
+      const vipBox = document.getElementById('vip-box-course-' + courseKey);
+
+      if (tier === 'vip') {
+        if (card) {
+          card.style.background = 'linear-gradient(135deg, rgba(255, 183, 3, 0.12) 0%, rgba(13, 19, 27, 0.98) 100%)';
+          card.style.borderColor = 'var(--accent-amber)';
+          card.style.boxShadow = '0 0 24px rgba(255, 183, 3, 0.35), 0 8px 32px rgba(0,0,0,0.8)';
+        }
+        if (togVip) {
+          togVip.classList.add('active');
+          togVip.style.background = 'var(--accent-amber)';
+          togVip.style.color = '#070b10';
+        }
+        if (togBase) {
+          togBase.classList.remove('active');
+          togBase.style.background = 'transparent';
+          togBase.style.color = 'var(--text-muted)';
+        }
+        if (vipBox) vipBox.style.display = 'block';
+      } else {
+        if (card) {
+          card.style.background = '#0d131b';
+          card.style.borderColor = 'var(--border-subtle)';
+          card.style.boxShadow = '';
+        }
+        if (togBase) {
+          togBase.classList.add('active');
+          togBase.style.background = 'var(--accent-cyan)';
+          togBase.style.color = '#070b10';
+        }
+        if (togVip) {
+          togVip.classList.remove('active');
+          togVip.style.background = 'transparent';
+          togVip.style.color = '#fff';
+        }
+        if (vipBox) vipBox.style.display = 'none';
+      }
+
+      if (typeof originalSetCardTier === 'function') {
+        originalSetCardTier(courseKey, tier);
+      }
+    };
+
+
+
+    // Robust Modal Controller ensuring zero pointer-event trapping
+    function showOverlay(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.setProperty('display', 'flex', 'important');
+        el.style.setProperty('pointer-events', 'auto', 'important');
+        el.style.setProperty('visibility', 'visible', 'important');
+        el.style.setProperty('opacity', '1', 'important');
+        el.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function hideOverlay(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('active');
+        el.classList.remove('open');
+        el.style.setProperty('display', 'none', 'important');
+        el.style.setProperty('pointer-events', 'none', 'important');
+        el.style.setProperty('visibility', 'hidden', 'important');
+        el.style.setProperty('opacity', '0', 'important');
+        document.body.style.overflow = '';
+      }
+    }
+
+    window.openPortalSelectionModal = function() { showOverlay('fiPortalSelectionModal'); };
+    window.closePortalSelectionModal = function() { hideOverlay('fiPortalSelectionModal'); };
+
+    window.openGoalSynopsisModal = function() { showOverlay('goalSynopsisModal'); };
+    window.closeGoalSynopsis = function() { hideOverlay('goalSynopsisModal'); };
+
+    window.openStepDetailModal = function(stepNum) {
+      const data = FIFS_STEPS_DATA[stepNum];
+      if (!data) return;
+
+      const badge = document.getElementById('stepModalBadge');
+      const heading = document.getElementById('stepModalHeading');
+      const icon = document.getElementById('stepModalIcon');
+      const status = document.getElementById('stepModalStatus');
+      const synopsis = document.getElementById('stepModalSynopsis');
+      const keyPoints = document.getElementById('stepModalKeyPoints');
+      const actions = document.getElementById('stepModalActions');
+
+      if (badge) badge.textContent = `STEP ${stepNum} OF 8 • TRAINING ROADMAP`;
+      if (heading) heading.textContent = data.title;
+      if (icon) icon.textContent = data.icon;
+      if (status) status.textContent = `Status: ${data.status}`;
+      if (synopsis) synopsis.textContent = data.synopsis;
+
+      if (keyPoints && Array.isArray(data.points)) {
+        keyPoints.innerHTML = data.points.map(p => `
+          <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; color: #cbd5e1;">
+            ${p}
+          </div>
+        `).join('');
+      }
+
+      if (actions) {
+        actions.innerHTML = `
+          <button type="button" class="btn-primary" onclick="closeStepDetailModal(); ${data.ctaAction};">
+            ${data.ctaText}
+          </button>
+          <button type="button" class="btn-secondary-modal" onclick="closeStepDetailModal()">
+            Close Step Overview
+          </button>
+        `;
+      }
+
+      showOverlay('stepDetailModal');
+    };
+    window.closeStepDetailModal = function() { hideOverlay('stepDetailModal'); };
+
+    window.openExpectationModal = function(topic) {
+      switchExpectationTab(topic || 'handgun');
+      showOverlay('expectationModal');
+    };
+    window.closeExpectationModal = function() { hideOverlay('expectationModal'); };
+
+    
+
+
+
+    // Reciprocity Hub Modal Controller
+    function toggleReciprocityHubModal(show) {
+      const modal = document.getElementById('reciprocityHubModal');
+      if (!modal) return;
+      if (show) {
+        modal.classList.add('active');
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        if (typeof initReciprocityEngine === 'function') {
+          initReciprocityEngine();
+        }
+        modal.scrollTop = 0;
+      } else {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+    window.toggleReciprocityHubModal = toggleReciprocityHubModal;
+
+    function openStateModal(code) {
+      if (typeof populateStateModal === 'function') populateStateModal(code);
+      const modal = document.getElementById('stateModalOverlay');
+      if (modal) {
+        modal.classList.add('active');
+        modal.classList.add('open');
+        modal.style.display = 'flex';
+      }
+    }
+    window.openStateModal = openStateModal;
+
+    function closeStateModal() {
+      const modal = document.getElementById('stateModalOverlay');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.classList.remove('open');
+        modal.style.display = 'none';
+      }
+    }
+    window.closeStateModal = closeStateModal;
+
+    function openPortalSelectionModal() {
+      const modal = document.getElementById('fiPortalSelectionModal');
+      if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+      }
+    }
+    window.openPortalSelectionModal = openPortalSelectionModal;
+
+    function closePortalSelectionModal() {
+      const modal = document.getElementById('fiPortalSelectionModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+      }
+    }
+    window.closePortalSelectionModal = closePortalSelectionModal;
+
 </script>
 
   <!-- ================= DEDICATED RECIPROCITY & TRAVEL HUB MODAL ================= -->
-  <div class="reciprocity-hub-modal-overlay" id="reciprocityHubModal" style="display: none; position: fixed; inset: 0; background: rgba(4, 7, 11, 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); z-index: 999999; overflow-y: auto; padding: 24px 16px;">
+  <div class="reciprocity-hub-modal-overlay" id="reciprocityHubModal" style="display: none;">
     <div style="max-width: 1140px; margin: 0 auto; position: relative;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle);">
         <h2 style="font-family: var(--font-display); font-size: 1.65rem; color: #fff; letter-spacing: 1px;">
@@ -15447,7 +15469,7 @@
   </div>
 
 
-<div class="state-drawer-overlay" style="z-index: 9999999;" id="stateModalOverlay" onclick="handleModalOverlayClick(event)">
+<div class="state-drawer-overlay" id="stateModalOverlay" style="display: none;" onclick="handleModalOverlayClick(event)">
 <div class="state-drawer-modal">
 <div class="modal-sticky-head">
 <h3 id="modalHeadTitle">MARYLAND GUN LAWS</h3>
@@ -15509,7 +15531,7 @@
 
 <!-- ================= DESIGNATED COLLECTOR INFO MODAL ================= -->
 
-  <div class="state-dossier-modal-overlay" id="collectorInfoModal" onclick="if(event.target===this) closeCollectorModal()">
+  <div class="state-dossier-modal-overlay" id="collectorInfoModal" style="display: none;" onclick="if(event.target===this) closeCollectorModal()">
 
     <div class="state-dossier-card" role="dialog" aria-modal="true" style="max-width: 620px;" onclick="event.stopPropagation()">
 
@@ -15584,7 +15606,7 @@
 
 
   <!-- ================= EXPECTATION DETAIL POPUP MODAL ================= -->
-  <div class="goal-modal-overlay" id="expectationModal" onclick="if(event.target===this) closeExpectationModal()">
+  <div class="goal-modal-overlay" id="expectationModal" style="display: none;" onclick="if(event.target===this) closeExpectationModal()">
     <div class="goal-modal-box" role="dialog" aria-modal="true" aria-labelledby="expectModalTitle" onclick="event.stopPropagation()">
       <button type="button" class="goal-modal-close-btn" onclick="closeExpectationModal()" aria-label="Close details">✕</button>
       <div>
@@ -15607,6 +15629,217 @@
         <button type="button" class="btn-primary" onclick="closeExpectationModal()">
           Understood & Return to Checklist ✔
         </button>
+      </div>
+    </div>
+  </div>
+
+
+<!-- ================= STEP 12: PORTAL SELECTION SPLASH MODAL ================= -->
+
+    <!-- ================= STEP 12: PORTAL SELECTION SPLASH MODAL ================= -->
+  <div class="fi-portal-modal-overlay" id="fiPortalSelectionModal" style="display: none;" onclick="if(event.target===this) closePortalSelectionModal()">
+    <div class="fi-portal-modal-card" role="dialog" aria-modal="true" aria-labelledby="fiPortalSelectTitle" onclick="event.stopPropagation()">
+      <button type="button" class="goal-modal-close-btn" onclick="closePortalSelectionModal()" aria-label="Close Portal Selector">✕</button>
+      
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h2 id="fiPortalSelectTitle" style="font-family: var(--font-display); font-size: 2.2rem; letter-spacing: 2px; text-transform: uppercase; color: #fff; margin-bottom: 4px;">Future Initiative</h2>
+        <p style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 1.15rem; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700;">Choose Your Portal</p>
+      </div>
+
+      <div class="fi-select-grid">
+        <!-- OPTION 1: STUDENT PORTAL -->
+        <div class="fi-select-card">
+          <div>
+            <span class="fi-card-badge fi-card-badge-cyan">Enrolled Students</span>
+            <h3 class="fi-card-title">Student Portal</h3>
+            <p class="fi-card-desc">For current Future Initiative students</p>
+            <ul class="fi-card-list">
+              <li><span>🎓</span> Maryland HQL &amp; Wear &amp; Carry Curriculum</li>
+              <li><span>🗺️</span> 8-Step Training Milestone Roadmap</li>
+              <li><span>📋</span> Mandatory Range Prep Tasks Checklist</li>
+              <li><span>📄</span> Official MSP Form 29-14 Score Sheet Link</li>
+              <li><span>📘</span> Course Follow-Along Training Packets</li>
+            </ul>
+          </div>
+          <button type="button" class="btn-primary" style="width: 100%; padding: 13px;" onclick="closePortalSelectionModal(); openAndSwitch('portal');">
+            Open Student Portal →
+          </button>
+        </div>
+
+        <!-- OPTION 2: FUTURE INITIATIVE PORTAL -->
+        <div class="fi-select-card highlight">
+          <div>
+            <span class="fi-card-badge fi-card-badge-amber">Permit Holders &amp; Firearm Owners</span>
+            <h3 class="fi-card-title">Future Initiative Portal</h3>
+            <p class="fi-card-desc">For CCW/permit holders, firearm owners, and Future Initiative clients</p>
+            <ul class="fi-card-list">
+              <li><span>🗺️</span> Interactive 50-State Reciprocity Hub</li>
+              <li><span>🚗</span> Interstate &amp; Vehicle Highway Travel (FOPA § 926A)</li>
+              <li><span>✈️</span> Commercial Air Travel &amp; TSA Packing Standards</li>
+              <li><span>⏱️</span> Permit Expiration Calculator &amp; 90-Day Renewal Hub</li>
+              <li><span>🎁</span> 10% Future Initiative Renewal Training Offer</li>
+            </ul>
+          </div>
+          <button type="button" class="btn-spark" style="width: 100%; padding: 13px;" onclick="closePortalSelectionModal(); openAndSwitch('fi-portal');">
+            Open Future Initiative Portal →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+  
+  
+
+  <!-- Goal Synopsis Interactive Pop-Up Modal -->
+
+  <div class="goal-modal-overlay" id="goalSynopsisModal" style="display: none;" onclick="if(event.target===this) closeGoalSynopsis()">
+
+    <div class="goal-modal-box" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle" onclick="event.stopPropagation()">
+
+      <button type="button" class="goal-modal-close-btn" onclick="closeGoalSynopsis()" aria-label="Close details">✕</button>
+
+      <div>
+
+        <span class="goal-header-badge" id="goalModalBadge">Guidance & Course Selection</span>
+
+      </div>
+
+      <h3 class="goal-modal-title" id="goalModalTitle">Goal Title</h3>
+
+      <div class="goal-modal-rec" id="goalModalRec">Recommended Course</div>
+
+      
+
+      <div class="goal-synopsis-card" id="goalModalSynopsis">
+
+        Synopsis text will appear here.
+
+      </div>
+
+  
+  
+  
+  
+
+      <!-- Download Free PDF Guide for New Shooters -->
+
+      <div class="guide-download-banner" id="goalModalGuideBanner" style="display: none;">
+
+        <div class="guide-banner-text">
+
+          <strong style="color: var(--accent-cyan); display: block; font-size: 0.92rem;">📘 Free Student Resource: Top 50 Questions New Gun Owners Ask</strong>
+
+          <span>Comprehensive 6-page Maryland-compliant guide prepared by Instructor Kai Wade.</span>
+
+        </div>
+
+        <a href="https://drive.google.com/file/d/1WIoQO00ALNalIuTjSNacZbBNLYIrVHGN/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn-download-guide">
+
+          <span>📥 View & Download PDF</span>
+
+        </a>
+
+      </div>
+
+  
+  
+  
+  
+
+      <div class="goal-columns-grid">
+
+        <div class="goal-col-card col-why">
+
+          <div class="goal-col-head head-why">
+
+            <span>✔</span>
+
+            <span>Why Choose This</span>
+
+          </div>
+
+          <ul class="goal-bullet-list" id="goalModalWhyList">
+
+          </ul>
+
+        </div>
+
+  
+  
+  
+  
+
+        <div class="goal-col-card col-why-not">
+
+          <div class="goal-col-head head-why-not">
+
+            <span>⚡</span>
+
+            <span>Why You Might NOT Want This</span>
+
+          </div>
+
+          <ul class="goal-bullet-list" id="goalModalWhyNotList">
+
+          </ul>
+
+        </div>
+
+      </div>
+
+  
+  
+  
+  
+
+      <div class="goal-modal-actions">
+
+        <button type="button" class="btn-primary" id="goalModalAcceptBtn" onclick="closeGoalSynopsis(); selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)');">
+
+          Choose This Course & Continue →
+
+        </button>
+
+        <button type="button" class="btn-secondary-modal" onclick="closeGoalSynopsis()">
+
+          Explore Other Goals
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+    
+
+
+  <!-- ================= 8-STEP FIFS JOURNEY DEEP INFORMATION MODAL ================= -->
+  <div class="goal-modal-overlay" id="stepDetailModal" style="display: none;" onclick="if(event.target===this) closeStepDetailModal()">
+    <div class="goal-modal-box" role="dialog" aria-modal="true" aria-labelledby="stepModalTitle" onclick="event.stopPropagation()" style="max-width: 640px; width: 100%;">
+      <button type="button" class="goal-modal-close-btn" onclick="closeStepDetailModal()" aria-label="Close details">✕</button>
+      <div>
+        <span class="goal-header-badge" id="stepModalBadge">8-Step Training Roadmap</span>
+      </div>
+      <h3 class="goal-modal-title" id="stepModalTitle" style="display: flex; align-items: center; gap: 8px; font-size: 1.6rem; color: #fff; margin: 4px 0 6px;">
+        <span id="stepModalIcon">⚡</span> <span id="stepModalHeading">Step Details</span>
+      </h3>
+      <div class="goal-modal-rec" id="stepModalStatus" style="color: var(--accent-cyan); font-weight: 700; text-transform: uppercase; font-size: 0.85rem; margin-bottom: 12px;">Current Status</div>
+      
+      <div class="goal-synopsis-card" id="stepModalSynopsis" style="margin-bottom: 16px; background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 16px; font-size: 0.90rem; color: #cbd5e1; line-height: 1.6;">
+        <!-- Filled dynamically -->
+      </div>
+
+      <div id="stepModalKeyPoints" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+        <!-- Detailed checklist / requirements for this step -->
+      </div>
+
+      <div class="goal-modal-actions" id="stepModalActions">
+        <!-- Dynamic CTAs -->
       </div>
     </div>
   </div>
