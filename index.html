@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 
 <html lang="en">
 <head>
@@ -6342,7 +6342,7 @@
 </div>
 <!-- Portal Cross-Link: Switch to Student Portal (ALWAYS VISIBLE) -->
 <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-subtle); text-align: center;">
-<p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 8px;">Enrolled in an upcoming class at Cindy's Hot Shots?</p>
+<p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 8px;">Enrolled in an upcoming class with Future Initiative Firearm Services?</p>
 <button class="btn-spark" onclick="openAndSwitch('portal')" style="padding: 10px 18px; font-size: 0.88rem; border-color: var(--accent-cyan); color: var(--accent-cyan); width: 100%; justify-content: center; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;" type="button">
                 🎓 Looking for the Student Portal? Click here →
               </button>
@@ -6853,6 +6853,9 @@
 <button class="btn-spark" id="btn-admin-invite-hdr" onclick="openAdminInviteModal()" style="width: auto; padding: 10px 18px; font-size: 0.90rem; border-color: #a855f7; color: #c084fc; box-shadow: 0 0 16px rgba(168, 85, 247, 0.25); display: inline-flex; align-items: center; gap: 6px;" type="button">
 <span>✉️</span> <span>SEND PORTAL INVITE</span>
 </button>
+            <button type="button" id="btn-admin-sign-out" class="btn-sign-out" onclick="adminSignOut()" style="background: rgba(239, 68, 68, 0.15); border: 1.5px solid #ef4444; color: #ef4444; padding: 10px 18px; font-size: 0.90rem; font-weight: 800; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; text-transform: uppercase;" title="Sign out and lock Admin Command Center">
+              <span>🚪</span> <span>Sign Out Admin</span>
+            </button>
 <button class="btn-spark" onclick="loadDemoStudent()" style="width: auto; padding: 10px 16px; font-size: 0.85rem; border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Test Student Portal Dashboard with Mock Student Data" type="button">
               👁️ TEST STUDENT DASHBOARD
             </button>
@@ -9260,10 +9263,11 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         } else if (!isVip && !isWeekend) {
           cell.style.color = '#334155';
           cell.style.background = '#080c11';
-          cell.style.opacity = '0.30';
+          cell.style.opacity = '0.25';
           cell.style.cursor = 'not-allowed';
           cell.style.pointerEvents = 'none';
           cell.title = 'Standard Base Track is locked to Saturdays & Sundays only. Upgrade to VIP Turnkey to unlock weekdays!';
+          cell.innerHTML = `<span style="opacity: 0.35;">${d}</span><span style="font-size: 0.65rem; color: #475569; margin-top: 1px;">🔒</span>`;
         } else {
           // Available Date!
           cell.style.color = '#fff';
@@ -9491,6 +9495,28 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }, 150);
     }
     window.proceedToClientSignInForAlumni = proceedToClientSignInForAlumni;
+
+
+    
+    function adminSignOut() {
+      if (confirm("Sign out of Instructor Admin Command Center?")) {
+        const adminPass = document.getElementById('adminPasscode');
+        if (adminPass) adminPass.value = '';
+        const adminDash = document.getElementById('admin-command-dashboard');
+        if (adminDash) {
+          adminDash.classList.add('hidden');
+          adminDash.style.display = 'none';
+        }
+        const lockScreen = document.getElementById('admin-lock-screen');
+        if (lockScreen) {
+          lockScreen.classList.remove('hidden');
+          lockScreen.style.display = 'block';
+        }
+        returnToHome();
+        alert("Signed out of Instructor Admin Console.");
+      }
+    }
+    window.adminSignOut = adminSignOut;
 
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -12878,7 +12904,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           )) {
 
             selectElem.selectedIndex = i;
-
+            selectElem.value = opt;
             break;
 
           }
@@ -12912,7 +12938,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           )) {
 
             selectElem.selectedIndex = i;
-
+            selectElem.value = opt;
             break;
 
           }
@@ -12922,6 +12948,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }
 
       updateFormPriceDisplay();
+      if (typeof renderBookingCalendar === "function") renderBookingCalendar();
 
     }
 
