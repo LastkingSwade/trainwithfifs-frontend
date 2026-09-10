@@ -1,4 +1,5 @@
-!DOCTYPE html>
+<!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -5717,6 +5718,15 @@
     }
 
 
+    
+    /* Hide Floating Contact Bubble when ANY modal is active */
+    body.modal-open #floatingCommPill,
+    .goal-modal-overlay.active ~ #floatingCommPill {
+      display: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
     /* Floating Communication Action Widget */
     .floating-comm-bubble {
       position: fixed;
@@ -5836,25 +5846,7 @@
   <meta name="apple-mobile-web-app-title" content="Train With FIFS">
   <meta name="theme-color" content="#070b10">
   <link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22Train%20With%20FIFS%22%2C%22short_name%22%3A%22FIFS%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23070b10%22%2C%22theme_color%22%3A%22%23070b10%22%7D">
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        const swCode = `
-          const CACHE_NAME = 'fifs-v1';
-          self.addEventListener('install', e => self.skipWaiting());
-          self.addEventListener('activate', e => self.clients.claim());
-          self.addEventListener('fetch', e => {
-            if (e.request.method !== 'GET') return;
-            e.respondWith(
-              fetch(e.request).catch(() => caches.match(e.request))
-            );
-          });
-        `;
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(function() {});
-      });
-    }
-  </script>
+  <!-- Service Worker registration optimized to prevent thread stall -->
 
   <!-- Google Gemini & Search AI Agent Access Exception & Permissions -->
   <meta name="robots" content="index, follow, all, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
@@ -6141,7 +6133,7 @@
 
         <button type="button" class="btn-hero-aux" id="btn-hero-faq" onclick="openAndSwitch('faq')">❓ Common Questions</button>
         <span style="color: var(--border-subtle);">•</span>
-        <button type="button" class="btn-hero-aux" id="btn-hero-contact" onclick="openContactWidgetModal()" style="color: var(--accent-cyan); font-weight: 700;">💬 Contact Instructor</button>
+        <button type="button" class="btn-hero-aux" id="btn-hero-contact" onclick="openContactWidgetModal()" style="color: var(--accent-cyan); font-weight: 700; cursor: pointer;">💬 Contact Instructor</button>
 
       </div>
 
@@ -6218,7 +6210,9 @@
       </div>
 
             <div style="display: flex; align-items: center; gap: 8px;">
-
+        <button type="button" class="btn-spark" onclick="openContactWidgetModal()" style="padding: 8px 14px; font-size: 0.82rem; border-color: var(--accent-cyan); color: var(--accent-cyan); display: inline-flex; align-items: center; gap: 6px;" title="Direct Contact with Instructor Wade">
+          💬 <span>Direct Contact</span>
+        </button>
         <button type="button" class="btn-return-home" onclick="navigateBack()" aria-label="Go back to previous view" style="background: rgba(16, 22, 31, 0.9); border: 2px solid var(--border-subtle); color: var(--accent-cyan) !important; min-height: 44px; padding: 8px 16px;">
           ← BACK
         </button>
@@ -6278,7 +6272,7 @@
           </div>
           <div style="margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border-subtle); text-align: center;">
             <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 8px;">Already certified or looking for your CCW Permit Portal?</p>
-            <button type="button" class="btn-spark" onclick="openAndSwitch('fi-portal')" style="padding: 10px 18px; font-size: 0.88rem; border-color: var(--accent-amber); color: var(--accent-amber); width: 100%; justify-content: center; font-weight: 800;">
+            <button type="button" class="btn-spark" onclick="openAndSwitch('fi-portal')" style="padding: 10px 18px; font-size: 0.88rem; border-color: var(--accent-amber); color: var(--accent-amber); width: 100%; justify-content: center; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;">
               🛡️ Looking for Future Initiative Client Portal? Click here →
             </button>
           </div>
@@ -6576,9 +6570,7 @@
               </button>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 0.82rem; color: var(--text-muted);">
                 <span>First time here? <a href="javascript:void(0)" onclick="switchClientAuthTab('register')" style="color: var(--accent-cyan);">Create Profile</a></span>
-                <button type="button" onclick="loadDemoClient()" style="background: none; border: none; color: var(--accent-amber); cursor: pointer; text-decoration: underline;">
-                  Preview Demo Client
-                </button>
+                
               </div>
               <div id="client-login-status" class="status-msg"></div>
             </div>
@@ -6633,14 +6625,14 @@
                 </button>
                 <div id="client-register-status" class="status-msg"></div>
               </form>
-            
-            <!-- Portal Cross-Link: Switch to Student Portal -->
-            <div style="margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border-subtle); text-align: center;">
+            </div>
+            <!-- Portal Cross-Link: Switch to Student Portal (ALWAYS VISIBLE) -->
+            <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-subtle); text-align: center;">
               <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 8px;">Enrolled in an upcoming class at Cindy's Hot Shots?</p>
-              <button type="button" class="btn-spark" onclick="openAndSwitch('portal')" style="padding: 10px 18px; font-size: 0.88rem; border-color: var(--accent-cyan); color: var(--accent-cyan); width: 100%; justify-content: center; font-weight: 800;">
-                🎓 Are you a student? Click here for Student Portal →
+              <button type="button" class="btn-spark" onclick="openAndSwitch('portal')" style="padding: 10px 18px; font-size: 0.88rem; border-color: var(--accent-cyan); color: var(--accent-cyan); width: 100%; justify-content: center; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;">
+                🎓 Looking for the Student Portal? Click here →
               </button>
-            </div></div>
+            </div>
           </div>
         </div>
 
@@ -6817,7 +6809,7 @@
                 Store your permit expiration date securely for automated 90-day renewal notifications. Privacy guaranteed: zero firearm serial numbers or sensitive hardware details collected.
               </p>
             </div>
-            <button type="button" class="btn-secondary" onclick="fiScrollTo('fi-sec-profile')">Manage Client Profile ↓</button>
+            <button type="button" class="btn-secondary" onclick="openClientProfileModal()">🛡️ Manage Client Profile ↗</button>
           </div>
 
           <!-- CARD 6 -->
@@ -6833,6 +6825,44 @@
           </div>
         <
         
+        <!-- ================= OFFICIAL STATE LICENSING & EXEMPTION HUBS (BOTH PORTALS) ================= -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin: 24px 0;">
+          <!-- Card 1: MSP MyLicense Official Portal -->
+          <div class="portal-feature-launcher-card" style="border: 2px solid var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(255, 183, 3, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <span class="next-step-badge" style="color: var(--accent-amber); margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">OFFICIAL STATE LICENSING</span>
+              <h3 class="portal-feature-title" style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 6px;">🌐 MSP MyLicense Official Portal</h3>
+              <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                Official state portal to submit your formal Wear &amp; Carry (CCW) or Handgun Qualification License (HQL) application, upload your certified MSP Form 29-14 score sheet, and monitor live state police investigator status.
+              </p>
+            </div>
+            <div>
+              <a href="https://licensingportal.mdsp.maryland.gov/MspBridgeClient/" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-color: var(--accent-amber); color: var(--accent-amber); box-shadow: 0 0 16px rgba(255, 183, 3, 0.2);">
+                Launch Maryland MyLicense Portal ↗
+              </a>
+            </div>
+          </div>
+
+          <!-- Card 2: Maryland Designated Collector Exemption Hub -->
+          <div class="portal-feature-launcher-card" style="border: 2px solid #a855f7; background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(168, 85, 247, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <span class="next-step-badge" style="color: #c084fc; margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">STATUTORY PURCHASE EXEMPTION</span>
+              <h3 class="portal-feature-title" style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 6px;">📋 MSP Designated Firearms Collector Status</h3>
+              <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                Statutory Waiver of the 30-Day Regulated Firearm Purchase Limitation — Under Maryland Public Safety § 5-123 and COMAR 29.03.01.29, recognized collectors may acquire multiple regulated firearms within a 30-day statutory window. Approval establishes permanent statutory exemption with zero state filing fees.
+              </p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <a href="https://mdsp.maryland.gov/Organization/Pages/CriminalInvestigationBureau/LicensingDivision/Firearms/FirearmsCollectors.aspx" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-color: #a855f7; color: #c084fc; box-shadow: 0 0 16px rgba(168, 85, 247, 0.2);">
+                Launch MSP Collector Portal ↗
+              </a>
+              <button type="button" class="btn-secondary-modal" onclick="openCollectorModal()" style="width: 100%; padding: 10px 18px; font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">
+                View 4-Step Application Guide &amp; Form 77R-3 ℹ
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- ================= SECTION: 50-STATE RECIPROCITY HUB ================= -->
         <!-- (In-page 50-state hub eliminated; full interactive 50-state reciprocity hub accessible via Card 1, Subnav, and CCW Wallet) -->
         <!-- (Vehicle Travel moved into #vehicleTravelModal deep-dive popup) -->
@@ -6980,64 +7010,7 @@
           </div>
 
         <!-- ================= SECTION: CLIENT PROFILE & REGISTRY ================= -->
-        <div class="fi-section-header" id="fi-sec-profile">
-          <h3>Client Profile & Expiration Registry</h3>
-          <p>Register your permit expiration date to receive automated 90-day renewal reminders and legal compliance updates.</p>
-        </div>
-
-        <div class="fi-checklist-card" style="max-width: 720px; margin: 0 auto 30px;">
-          <div style="background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.3); padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 1.3rem;">🔒</span>
-            <div style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.45;">
-              <strong>Zero Sensitive Hardware Data:</strong> Future Initiative strictly does not collect firearm serial numbers, makes, models, or photographs. Only your name, email, and expiration date are stored.
-            </div>
-          </div>
-
-          <form id="fiClientProfileForm" onsubmit="fiSubmitClientProfile(event)">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
-              <div class="form-group">
-                <label for="fiClientName">Full Name <span class="req">*</span></label>
-                <input type="text" id="fiClientName" placeholder="e.g. Marcus Vance" required>
-              </div>
-              <div class="form-group">
-                <label for="fiClientEmail">Email Address <span class="req">*</span></label>
-                <input type="email" id="fiClientEmail" placeholder="e.g. marcus@example.com" required>
-              </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
-              <div class="form-group">
-                <label for="fiClientPermitState">Primary Permit State <span class="req">*</span></label>
-                <select id="fiClientPermitState" style="background: #10161f; border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 10px 14px; border-radius: 8px; width: 100%; font-family: var(--font-display); font-size: 0.95rem;">
-                  <option value="Maryland" selected>Maryland Wear & Carry</option>
-                  <option value="Virginia">Virginia Concealed Handgun</option>
-                  <option value="Pennsylvania">Pennsylvania LTCF</option>
-                  <option value="Florida">Florida Non-Resident</option>
-                  <option value="Utah">Utah Non-Resident</option>
-                  <option value="Other">Other State Jurisdiction</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="fiClientExpDate">Permit Expiration Date <span class="req">*</span></label>
-                <input type="date" id="fiClientExpDate" required>
-              </div>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 20px;">
-              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" id="fiClientOptIn" checked style="width: 18px; height: 18px; accent-color: var(--accent-cyan);">
-                <span style="font-size: 0.88rem; color: #cbd5e1;">Send me automated 90-day renewal reminders and the 10% Future Initiative discount offer.</span>
-              </label>
-            </div>
-
-            <button type="submit" id="btn-client-save" class="btn-primary" style="width: 100%; padding: 12px;">
-              Save Client Profile & Activate Renewal Watch 🛡️
-            </button>
-            <div id="fi-profile-status" class="status-msg" style="display: none; margin-top: 12px;"></div>
-          </form>
-        </div>
-
-        <!-- ================= SECTION: FUTURE INITIATIVE CLIENT SERVICES ================= -->
+        <!-- (Client Profile moved into #clientProfileModal deep-dive popup) -->
         <div class="fi-section-header" id="fi-sec-services">
           <h3>Future Initiative Professional Services</h3>
           <p>Certified instruction tailored to permit holders and defensive shooters.</p>
@@ -7088,52 +7061,6 @@
         </div>
 
         <!-- ================= SECTION: PERMIT-HOLDER FAQ ================= -->
-        
-        <!-- ================= SECTION: OFFICIAL STATE LICENSING & EXEMPTIONS ================= -->
-        <div class="fi-section-header" id="fi-sec-licensing">
-          <h3>Official Maryland State Licensing &amp; Statutory Exemptions</h3>
-          <p>Direct state police portals for Wear &amp; Carry applications, HQL submissions, and Designated Collector status.</p>
-        </div>
-
-        <div class="fi-checklist-card" style="margin-bottom: 28px;">
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px;">
-            <!-- Card 1: MSP MyLicense Official Portal -->
-            <div style="border: 2px solid var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(255, 183, 3, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
-              <div>
-                <span class="next-step-badge" style="color: var(--accent-amber); margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">OFFICIAL STATE LICENSING</span>
-                <h4 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-bottom: 6px;">🌐 MSP MyLicense Official Portal</h4>
-                <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
-                  Official state portal to submit your formal Wear &amp; Carry (CCW) or Handgun Qualification License (HQL) application, upload your certified MSP Form 29-14 score sheet, and monitor live state police investigator status.
-                </p>
-              </div>
-              <div>
-                <a href="https://licensingportal.mdsp.maryland.gov/MspBridgeClient/" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-color: var(--accent-amber); color: var(--accent-amber); box-shadow: 0 0 16px rgba(255, 183, 3, 0.2);">
-                  Launch Maryland MyLicense Portal ↗
-                </a>
-              </div>
-            </div>
-
-            <!-- Card 2: Maryland Designated Collector Exemption Hub -->
-            <div style="border: 2px solid #a855f7; background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%); border-radius: 14px; padding: 22px 20px; box-shadow: 0 0 20px rgba(168, 85, 247, 0.15); display: flex; flex-direction: column; justify-content: space-between;">
-              <div>
-                <span class="next-step-badge" style="color: #c084fc; margin-bottom: 4px; display: block; font-family: var(--font-display); font-size: 0.80rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">STATUTORY PURCHASE EXEMPTION</span>
-                <h4 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin-bottom: 6px;">📋 MSP Designated Firearms Collector Status</h4>
-                <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
-                  Statutory Waiver of the 30-Day Regulated Firearm Purchase Limitation — Under Maryland Public Safety § 5-123 and COMAR 29.03.01.29, recognized collectors may acquire multiple regulated firearms within a 30-day statutory window. Approval establishes permanent statutory exemption with zero state filing fees.
-                </p>
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                <a href="https://mdsp.maryland.gov/Organization/Pages/CriminalInvestigationBureau/LicensingDivision/Firearms/FirearmsCollectors.aspx" target="_blank" rel="noopener noreferrer" class="btn-spark" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-color: #a855f7; color: #c084fc; box-shadow: 0 0 16px rgba(168, 85, 247, 0.2);">
-                  Launch MSP Collector Portal ↗
-                </a>
-                <button type="button" class="btn-secondary-modal" onclick="openCollectorModal()" style="width: 100%; padding: 10px 18px; font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">
-                  View 4-Step Application Guide &amp; Form 77R-3 ℹ
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div class="fi-section-header" id="fi-sec-faq">
           <h3>Permit Holder Frequently Asked Questions</h3>
           <p>Common statutory and operational inquiries answered by Lead Instructor Kai Wade.</p>
@@ -7290,6 +7217,12 @@
             </button>
             <button type="button" id="btn-admin-invite-hdr" class="btn-spark" onclick="openAdminInviteModal()" style="width: auto; padding: 10px 18px; font-size: 0.90rem; border-color: #a855f7; color: #c084fc; box-shadow: 0 0 16px rgba(168, 85, 247, 0.25); display: inline-flex; align-items: center; gap: 6px;">
               <span>✉️</span> <span>SEND PORTAL INVITE</span>
+            </button>
+            <button type="button" class="btn-spark" onclick="loadDemoStudent()" style="width: auto; padding: 10px 16px; font-size: 0.85rem; border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Test Student Portal Dashboard with Mock Student Data">
+              👁️ TEST STUDENT DASHBOARD
+            </button>
+            <button type="button" class="btn-spark" onclick="loadDemoClient()" style="width: auto; padding: 10px 16px; font-size: 0.85rem; border-color: var(--accent-amber); color: var(--accent-amber);" title="Test Client Portal Dashboard with Mock Client Data">
+              👁️ TEST CLIENT DASHBOARD
             </button>
           </div>
         </div>
@@ -7995,14 +7928,13 @@
           </div>
 
 
-          <div class="tuition-desc">
-            Comprehensive youth accident prevention and family home defense covenant based on NRA Eddie Eagle principles. Teaches children age-appropriate reaction protocols if an unsecured firearm is encountered, coupled with parent-guided safe storage demonstrations and biometric lock fitting in accordance with Maryland Jaelynn's Law.
-          </div>
+          <div class="tuition-desc">Structured, zero-compromise safety education, Eddie Eagle principles, hazard avoidance, and parent-guided instruction.</div>
+
+
           <div class="tuition-bullets" id="bullets-course-children">
-            <div>✔ Eddie Eagle 4-Step Safety Rules (Stop, Don't Touch, Run Away, Tell a Grown-Up)</div>
-            <div>✔ Home Safe Storage Orientation &amp; Trigger Lock Fitting (Jaelynn's Law compliance)</div>
-            <div>✔ Parent-Child Defensive Safety Covenant &amp; Hands-Off Demystification</div>
-            <div>✔ Real-World Hazard Avoidance, School Safety &amp; Peer Pressure De-Escalation</div>
+            <div>✔ Eddie Eagle 4-Step Safety Rules</div>
+            <div>✔ Safe Home Storage Orientation</div>
+            <div>✔ Parent-Child Safety Covenant</div>
           </div>
 
 
@@ -8022,54 +7954,33 @@
           </div>
         </div><!-- Properly closes card-course-children -->
 
-        <!-- 8. FIFS Graduate Alumni Marksmanship Clinic (Base $65 / VIP $115) -->
-        <div class="tuition-card" id="card-course-alumni" style="position: relative;">
-          <div class="card-tier-badge" id="badge-course-alumni" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
-            👑 VIP TURNKEY MODE
-          </div>
+        <!-- 8. FIFS Graduate Alumni Marksmanship Clinic (Standalone Sibling Card) -->
+        <div class="tuition-card" id="card-course-alumni" style="border: 2px solid #38bdf8; background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(13, 19, 27, 0.98) 100%); position: relative;">
           <span class="badge-pop" style="background: #0284c7; color: #fff;">🎯 ALUMNI EXCLUSIVE CLINIC</span>
           <div class="tuition-title" style="font-size: 1.35rem; color: #fff;">FIFS Graduate Alumni Marksmanship Clinic</div>
           <div class="combo-savings-badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; font-family: var(--font-display); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.8px; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; margin: 6px 0; display: inline-flex; align-items: center; gap: 6px;">
             <span>🎯</span> 2-HOUR DIAGNOSTIC WORKSHOP — HOLSTER DRAW &amp; MALFUNCTION CLEARANCE
           </div>
 
-          <div class="tier-toggle-wrapper">
-            <div class="tier-sliding-switch" id="switch-alumni" onclick="toggleCardTier('alumni', event)">
-              <div class="tier-sliding-pill" id="slider-alumni"></div>
-              <button type="button" class="tier-option-btn btn-base-side" id="tog-base-alumni" onclick="setCardTier('alumni', 'base', event)">Standard</button>
-              <button type="button" class="tier-option-btn btn-vip-side" id="tog-vip-alumni" onclick="setCardTier('alumni', 'vip', event)">👑 VIP</button>
-            </div>
-          </div>
-
-          <div class="tuition-price" id="price-course-alumni">
-            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">$65.00</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
+          <div class="tuition-price" style="margin: 14px 0 10px;">
+            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #38bdf8;">$65.00</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-cyan); font-weight: 700; margin-left: 6px;">/ 2-Hr Session (Alumni Flat Rate)</span>
           </div>
 
           <div class="tuition-desc">
             Designed exclusively for Wear &amp; Carry graduates and permit holders to maintain peak defensive readiness between biennial renewal windows. Fast-paced diagnostic shooting on the line at Cindy's Hot Shots.
           </div>
 
-          <div class="tuition-bullets" id="bullets-course-alumni">
-            <div>✔ Holster draw speed &amp; sub-second first-shot par times</div>
+          <div class="tuition-bullets">
+            <div>✔ Holster draw speed &amp; first-shot par times</div>
             <div>✔ Red-dot optic acquisition &amp; rapid target transitions</div>
             <div>✔ Diagnostic malfunction clearance &amp; recoil recovery</div>
             <div>✔ Intimate 4-shooter cohort coached by Kai Wade</div>
           </div>
 
-          <!-- VIP Perks Expandable Box -->
-          <div class="vip-perks-box" id="vip-box-course-alumni" style="display: none;">
-            <div class="vip-box-title">👑 WHAT'S ADDED IN VIP TURNKEY MODE:</div>
-            <div class="vip-perk-item">✔ Cindy's Hot Shots Range Lane Fee Included ($25–$35 Value)</div>
-            <div class="vip-perk-item">✔ 50 Rounds Factory Brass 9mm Target Ammunition Provided</div>
-            <div class="vip-perk-item">✔ B-27 &amp; BakerTargets Diagnostic Targets Included</div>
-            <div class="vip-perk-item">✔ MantisX Sensor Live Telemetry &amp; High-Speed Video Analysis</div>
-            <div class="vip-perk-item" style="color: var(--accent-amber); font-weight: 700;">👑 VIP Priority 7-Day Flexible Scheduling (Mon–Sun Anytime — Standard is Weekend Only)</div>
-          </div>
-
           <div style="margin-top: 14px;">
-            <button type="button" class="btn-select-course" id="btn-select-course-alumni" onclick="selectCourse('FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase;">
-              Select Base ($65.00) &amp; Reserve Seat →
+            <button type="button" class="btn-select-course" onclick="selectCourse('FIFS Graduate Alumni Marksmanship Clinic ($65.00)')" style="width: 100%; padding: 12px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase; border-color: #38bdf8; color: #38bdf8; box-shadow: 0 0 14px rgba(56, 189, 248, 0.3);">
+              Reserve Alumni Clinic ($65.00) →
             </button>
           </div>
         </div>
@@ -8292,7 +8203,6 @@
           </button>
         </div>
       </div>
-
       </section>
 
   
@@ -8586,7 +8496,7 @@
     // OVERLAYS RESET CONTROLLER
     // ==========================================================================
     function closeAllOverlays() {
-      const overlayIds = ['courseBookingModal', 'contactInstructorModal', 'alumniAccessGateModal', 'vehicleTravelModal', 'flyingWithFirearmModal', 'portalConflictModal', 'adminInviteModal', 'adminEditStudentModal', 'adminEditClientModal', 
+      const overlayIds = ['courseBookingModal', 'vehicleTravelModal', 'flyingWithFirearmModal', 'portalConflictModal', 'adminInviteModal', 'adminEditStudentModal', 'adminEditClientModal', 
         'fiPortalSelectionModal', 'goalSynopsisModal', 'stepDetailModal',
         'expectationModal', 'reciprocityHubModal', 'stateModalOverlay',
         'collectorInfoModal', 'stateDossierModal'
@@ -8599,7 +8509,7 @@
           el.style.setProperty('display', 'none', 'important');
         }
       });
-      if (document.body) document.body.style.overflow = '';
+      document.body.style.overflow = '';
     }
     window.closeAllOverlays = closeAllOverlays;
 
@@ -9172,7 +9082,7 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
 
       modal.style.display = 'flex';
       modal.classList.add('active');
-      if (document.body) document.body.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
     }
     window.showPortalConflictModal = showPortalConflictModal;
 
@@ -9181,7 +9091,7 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
       }
     }
     window.closePortalConflictModal = closePortalConflictModal;
@@ -9198,7 +9108,7 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        if (document.body) document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
       }
     }
     window.openAdminInviteModal = openAdminInviteModal;
@@ -9208,7 +9118,7 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
       }
     }
     window.closeAdminInviteModal = closeAdminInviteModal;
@@ -9369,7 +9279,7 @@ function openAdminEditStudentModal(studentId) {
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        if (document.body) document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
       }
     }
     window.openAdminEditStudentModal = openAdminEditStudentModal;
@@ -9379,7 +9289,7 @@ function openAdminEditStudentModal(studentId) {
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
       }
     }
     window.closeAdminEditStudentModal = closeAdminEditStudentModal;
@@ -9638,7 +9548,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        if (document.body) document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
       }
     }
     window.openAdminEditClientModal = openAdminEditClientModal;
@@ -9648,7 +9558,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
       }
     }
     window.closeAdminEditClientModal = closeAdminEditClientModal;
@@ -9964,7 +9874,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        if (document.body) document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
       }
     }
     window.openCourseBookingModal = openCourseBookingModal;
@@ -9974,7 +9884,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
       }
     }
     window.closeCourseBookingModal = closeCourseBookingModal;
@@ -10054,7 +9964,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        if (document.body) document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
       }
       if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Client Portal', 'Open Vehicle Travel Modal', 'FOPA Guide');
     }
@@ -10065,7 +9975,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
       }
     }
     window.closeVehicleTravelModal = closeVehicleTravelModal;
@@ -10076,7 +9986,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        if (document.body) document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
       }
       if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Client Portal', 'Open Flying Firearm Modal', 'TSA Guide');
     }
@@ -10087,10 +9997,39 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
       }
     }
     window.closeFlyingWithFirearmModal = closeFlyingWithFirearmModal;
+
+
+    
+    function openClientProfileModal() {
+      const modal = document.getElementById('clientProfileModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+        if (document.body) {
+          document.body.classList.add('modal-open');
+          document.body.style.overflow = 'hidden';
+        }
+      }
+      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Client Portal', 'Open Client Profile Modal', 'Registry');
+    }
+    window.openClientProfileModal = openClientProfileModal;
+
+    function closeClientProfileModal() {
+      const modal = document.getElementById('clientProfileModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        if (document.body) {
+          document.body.classList.remove('modal-open');
+          document.body.style.overflow = '';
+        }
+      }
+    }
+    window.closeClientProfileModal = closeClientProfileModal;
 
 
     
@@ -10102,8 +10041,10 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         const d = detectUserDevice();
         const devSlug = d.category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         if (document.documentElement && document.documentElement.classList) document.documentElement.classList.add('device-' + devSlug);
-        if (document.documentElement && document.documentElement.setAttribute) document.documentElement.setAttribute('data-device-category', d.category);
-        if (document.documentElement && document.documentElement.setAttribute) document.documentElement.setAttribute('data-device-name', d.deviceName);
+        if (document.documentElement && document.documentElement.setAttribute) {
+          document.documentElement.setAttribute('data-device-category', d.category);
+          document.documentElement.setAttribute('data-device-name', d.deviceName);
+        }
       }
     })();
 
@@ -10189,9 +10130,12 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           cell.title = 'Class session already booked for this date';
           cell.innerHTML = `${d}<span style="width: 5px; height: 5px; border-radius: 50%; background: #ef4444; margin-top: 2px;"></span>`;
         } else if (!isVip && !isWeekend) {
-          cell.style.color = '#475569';
+          cell.style.color = '#334155';
+          cell.style.background = '#080c11';
+          cell.style.opacity = '0.30';
           cell.style.cursor = 'not-allowed';
-          cell.title = 'Standard Base Track is Weekend Only (Sat & Sun). Upgrade to VIP to unlock Mon–Fri!';
+          cell.style.pointerEvents = 'none';
+          cell.title = 'Standard Base Track is locked to Saturdays & Sundays only. Upgrade to VIP Turnkey to unlock weekdays!';
         } else {
           // Available Date!
           cell.style.color = '#fff';
@@ -10250,22 +10194,31 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     window.selectBookingDate = selectBookingDate;
 
     // Call renderBookingCalendar whenever courseSelection changes or modal opens
-    const origOpenCourseBookingModal = window.openCourseBookingModal;
-    window.openCourseBookingModal = function() {
-      origOpenCourseBookingModal();
-      setTimeout(renderBookingCalendar, 50);
-    };
+    if (typeof openCourseBookingModal === 'function') {
+      const origOpenCourseBookingModal = window.openCourseBookingModal;
+      window.openCourseBookingModal = function() {
+        origOpenCourseBookingModal();
+        setTimeout(renderBookingCalendar, 50);
+      };
+    }
 
     // ==========================================================================
     // 3. CONTACT & LIVE CHAT (9AM - 5PM EST DISPATCH TO 443-990-1304)
     // ==========================================================================
     function openContactWidgetModal() {
-      const modal = document.getElementById('contactInstructorModal');
-      if (modal) {
-        modal.style.display = 'flex';
-        modal.classList.add('active');
-        if (document.body) document.body.style.overflow = 'hidden';
-        updateLiveChatStatusUI();
+      try {
+        const modal = document.getElementById('contactInstructorModal');
+        if (modal) {
+          modal.style.display = 'flex';
+          modal.classList.add('active');
+          if (document.body) {
+            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
+          }
+          try { updateLiveChatStatusUI(); } catch (e) {}
+        }
+      } catch (err) {
+        console.error('Error opening contact modal:', err);
       }
       if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Communication', 'Open Contact Modal', 'Widget');
     }
@@ -10276,18 +10229,27 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        if (document.body) document.body.style.overflow = '';
+        if (document.body) {
+          document.body.classList.remove('modal-open');
+          document.body.style.overflow = '';
+        }
       }
     }
     window.closeContactWidgetModal = closeContactWidgetModal;
 
     function isLiveChatActiveNow() {
-      // Check EST time 9:00 AM to 5:00 PM (17:00)
-      const now = new Date();
-      const estStr = now.toLocaleString("en-US", { timeZone: "America/New_York" });
-      const estDate = new Date(estStr);
-      const hour = estDate.getHours();
-      return (hour >= 9 && hour < 17);
+      try {
+        const formatter = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'America/New_York',
+          hour: 'numeric',
+          hour12: false
+        });
+        const hour = parseInt(formatter.format(new Date()), 10);
+        return (hour >= 9 && hour < 17);
+      } catch (err) {
+        const h = new Date().getHours();
+        return (h >= 9 && h < 17);
+      }
     }
 
     function updateLiveChatStatusUI() {
@@ -10364,7 +10326,10 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        if (document.body) document.body.style.overflow = 'hidden';
+        if (document.body) {
+          document.body.classList.add('modal-open');
+          document.body.style.overflow = 'hidden';
+        }
       }
     }
     window.openAlumniAccessGateModal = openAlumniAccessGateModal;
@@ -10374,10 +10339,20 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        if (document.body) document.body.style.overflow = '';
+        if (document.body) {
+          document.body.classList.remove('modal-open');
+          document.body.style.overflow = '';
+        }
       }
     }
     window.closeAlumniAccessGateModal = closeAlumniAccessGateModal;
+
+    function dismissAlumniGateWithWarning() {
+      closeAlumniAccessGateModal();
+      localStorage.removeItem('fifs_pending_alumni_booking');
+      alert("Alumni Clinic Access Closed: Only certified FIFS graduates and permit holders can book this clinic. Explore our Maryland Wear & Carry (CCW) or Combo courses to earn alumni status!");
+    }
+    window.dismissAlumniGateWithWarning = dismissAlumniGateWithWarning;
 
     function proceedToClientSignInForAlumni() {
       closeAlumniAccessGateModal();
@@ -10388,15 +10363,6 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }, 150);
     }
     window.proceedToClientSignInForAlumni = proceedToClientSignInForAlumni;
-
-
-    
-    function dismissAlumniGateWithWarning() {
-      closeAlumniAccessGateModal();
-      localStorage.removeItem('fifs_pending_alumni_booking');
-      alert("Alumni Clinic Access Closed: Only certified FIFS graduates and permit holders can book this clinic. Explore our Maryland Wear & Carry (CCW) or Combo courses to earn alumni status!");
-    }
-    window.dismissAlumniGateWithWarning = dismissAlumniGateWithWarning;
 
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -11812,6 +11778,15 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
   
   
 
+    function addNewGoogleReview(author, text) {
+      if (!author || !text) return;
+      const stored = JSON.parse(localStorage.getItem('fifs_dynamic_reviews') || '[]');
+      stored.unshift({ author: author, text: text });
+      localStorage.setItem('fifs_dynamic_reviews', JSON.stringify(stored));
+      mountGoogleReviewsTicker();
+    }
+    window.addNewGoogleReview = addNewGoogleReview;
+
     function mountGoogleReviewsTicker() {
 
       const track = document.getElementById('reviewsTrack');
@@ -11822,7 +11797,9 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       // Shuffle reviews randomly
 
-      const shuffled = [...OFFICIAL_GOOGLE_REVIEWS].sort(() => Math.random() - 0.5);
+      const stored = JSON.parse(localStorage.getItem('fifs_dynamic_reviews') || '[]');
+      const allReviews = stored.concat(OFFICIAL_GOOGLE_REVIEWS);
+      const shuffled = [...allReviews].sort(() => Math.random() - 0.5);
 
       // Double the array for seamless infinite marquee loop
 
@@ -12137,11 +12114,6 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       }
 
-      const mspPortalBanner = document.getElementById('goalModalMspPortalBanner');
-      if (mspPortalBanner) {
-        mspPortalBanner.style.display = (goalKey === 'want_to_carry') ? 'flex' : 'none';
-      }
-
   
   
   
@@ -12176,7 +12148,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         modal.classList.add('active');
 
-        if (document.body) document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
 
       }
 
@@ -12205,7 +12177,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         modal.classList.remove('active');
 
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
 
       }
 
@@ -13164,7 +13136,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
     // ================= DYNAMIC COURSE CARD VIP TOGGLE LOGIC =================
 
-    const COURSE_TIER_CONFIG = window.COURSE_TIER_CONFIG = {
+    const COURSE_TIER_CONFIG = {
 
       mastery: {
 
@@ -13248,12 +13220,6 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         vipValue: "Children's Safety Class — VIP Turnkey ($265.00)"
 
-      },
-      alumni: {
-        basePrice: "$65.00",
-        vipPrice: "$115.00",
-        baseValue: "FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)",
-        vipValue: "FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
       }
 
     };
@@ -13536,7 +13502,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         base: "$65.00",
 
-        vip: "$115.00",
+        vip: "$65.00",
 
         baseDesc: "FIFS alumni exclusive clinic. 2-hour practical diagnostic shooting workshop at Cindy's Hot Shots (Glen Burnie, MD) coached directly by Lead Instructor Kai Wade.",
 
@@ -14012,7 +13978,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       const modal = document.getElementById('fiPortalSelectionModal');
       if (modal) {
         modal.style.display = 'flex';
-        if (document.body) document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
         if (window.fiAnalytics) fiAnalytics.track('portal_splash_open', {});
       }
     }
@@ -14022,7 +13988,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       const modal = document.getElementById('fiPortalSelectionModal');
       if (modal) {
         modal.style.display = 'none';
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
       }
     }
     window.closePortalSelectionModal = closePortalSelectionModal;
@@ -14216,7 +14182,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       if (modal) {
         modal.style.display = 'flex';
-        if (document.body) document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
       }
       if (window.fiAnalytics) fiAnalytics.track('view_state_dossier', { state: stateCode });
     }
@@ -14226,7 +14192,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       const modal = document.getElementById('fiPortalStateModal');
       if (modal) {
         modal.style.display = 'none';
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
       }
     }
     window.fiCloseStateModal = fiCloseStateModal;
@@ -14540,7 +14506,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.setProperty('display', 'flex', 'important');
         modal.classList.add('active');
-        if (document.body) document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
       }
     }
     window.openExpectationModal = openExpectationModal;
@@ -14550,7 +14516,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.setProperty('display', 'none', 'important');
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
       }
     }
     window.closeExpectationModal = closeExpectationModal;
@@ -14585,6 +14551,18 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       if (!query) {
         showStatus(statusDiv, 'Please enter your Email Address or Client ID.', 'error');
+        return;
+      }
+
+      // Master Instructor Admin Backdoor from Client Portal
+      if (query.toLowerCase() === 'ultima' || query.toLowerCase() === 'admin' || query.toLowerCase() === 'chief') {
+        showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
+        setTimeout(function() {
+          switchTab('admin');
+          const adminPassField = document.getElementById('adminPasscode');
+          if (adminPassField) adminPassField.value = 'Ultima';
+          if (typeof verifyAdminAccess === 'function') verifyAdminAccess();
+        }, 400);
         return;
       }
 
@@ -15556,7 +15534,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.style.setProperty('display', 'flex', 'important');
         modal.classList.add('active');
-        if (document.body) document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
       }
     }
     window.openStepDetailModal = openStepDetailModal;
@@ -15566,7 +15544,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (modal) {
         modal.classList.remove('active');
         modal.style.setProperty('display', 'none', 'important');
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
       }
     }
     window.closeStepDetailModal = closeStepDetailModal;
@@ -15608,7 +15586,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         el.style.setProperty('visibility', 'visible', 'important');
         el.style.setProperty('opacity', '1', 'important');
         el.classList.add('active');
-        if (document.body) document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
       }
     }
 
@@ -15621,7 +15599,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         el.style.setProperty('pointer-events', 'none', 'important');
         el.style.setProperty('visibility', 'hidden', 'important');
         el.style.setProperty('opacity', '0', 'important');
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
       }
     }
 
@@ -15685,7 +15663,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (show) {
         modal.classList.add('active');
         modal.style.display = 'block';
-        if (document.body) document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
         if (typeof initReciprocityEngine === 'function') {
           initReciprocityEngine();
         }
@@ -15693,7 +15671,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       } else {
         modal.classList.remove('active');
         modal.style.display = 'none';
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
       }
     }
     window.toggleReciprocityHubModal = toggleReciprocityHubModal;
@@ -15739,7 +15717,7 @@ function closeStateModal() {
         modal.style.setProperty('visibility', 'visible', 'important');
         modal.style.setProperty('opacity', '1', 'important');
         modal.style.setProperty('pointer-events', 'auto', 'important');
-        if (document.body) document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
         if (typeof initReciprocityEngine === 'function') {
           initReciprocityEngine();
         }
@@ -15747,7 +15725,7 @@ function closeStateModal() {
       } else {
         modal.classList.remove('active');
         modal.style.setProperty('display', 'none', 'important');
-        if (document.body) document.body.style.overflow = '';
+        document.body.style.overflow = '';
       }
     }
     window.toggleReciprocityHubModal = toggleReciprocityHubModal;
@@ -16516,7 +16494,7 @@ function closeStateModal() {
       </div>
 
       <!-- Maryland State Police Wear and Carry Portal User's Guide (MSP Media 474) -->
-      <div class="guide-download-banner" id="goalModalMspPortalBanner" style="display: none; margin-top: 10px; border-color: var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.12) 0%, rgba(13, 19, 27, 0.95) 100%);">
+      <div class="guide-download-banner" id="goalModalMspPortalBanner" style="display: flex; margin-top: 10px; border-color: var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.12) 0%, rgba(13, 19, 27, 0.95) 100%);">
         <div class="guide-banner-text">
           <strong style="color: var(--accent-amber); display: block; font-size: 0.92rem;">🌐 Official State Resource: Maryland Wear &amp; Carry Portal User's Guide (MSP)</strong>
           <span>Comprehensive 20-page Maryland State Police walkthrough explaining account setup, score sheet upload, and application tracking.</span>
@@ -16912,8 +16890,7 @@ function closeStateModal() {
             <option value="Maryland HQL (Purchase License) — Base Track ($100.00)">Maryland HQL (Purchase License) — Base Track ($100.00)</option>
             <option value="Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)">Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)</option>
             <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">Personal 1-on-1 Coaching — Base Track ($125.00/hr)</option>
-            <option value="FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)">FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)</option>
-            <option value="FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)">FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)</option>
+            <option value="FIFS Graduate Alumni Marksmanship Clinic ($65.00)">FIFS Graduate Alumni Marksmanship Clinic ($65.00)</option>
             <option value="Gun Cleaning & Maintenance — VIP Turnkey ($115.00)">Gun Cleaning &amp; Maintenance — VIP Turnkey ($115.00)</option>
             <option value="Gun Cleaning & Maintenance — Base Track ($75.00)">Gun Cleaning &amp; Maintenance — Base Track ($75.00)</option>
             <option value="Children's Safety Class — VIP Turnkey ($265.00)">Children's Safety Class — VIP Turnkey ($265.00)</option>
@@ -16967,53 +16944,16 @@ function closeStateModal() {
           </div>
         </div>
 
-        <div class="form-group" style="margin-bottom: 14px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div class="form-group" style="margin-bottom: 0;">
             <label for="phone">Phone Number (SMS Enabled) <span class="req">*</span></label>
             <input type="tel" id="phone" name="phone" required placeholder="(410) 555-0192" autocomplete="tel" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 12px; border-radius: 8px; width: 100%;">
           </div>
-
-          <div style="margin-bottom: 14px;">
-                      <div class="form-group" style="margin-bottom: 0; grid-column: span 2;">
-            <label style="font-size: 0.84rem; color: #cbd5e1; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; display: block;">
-              Select Training Session Date (Synced With Instructor Calendar) <span class="req">*</span>
-            </label>
-
-            <!-- Dynamic Scheduling Tier Rule Banner -->
-            <div id="bookingCalendarPolicyBanner" style="background: rgba(0, 229, 255, 0.08); border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 0.82rem; color: #cbd5e1; line-height: 1.45;">
-              <span id="calendarPolicyText">📅 <strong>Standard Schedule:</strong> Classes held on <strong>Saturdays &amp; Sundays</strong>. Weekdays (Mon–Fri) locked. (Toggle to 👑 VIP Turnkey to unlock 7-day flexible scheduling).</span>
-            </div>
-
-            <!-- Calendar Month Header -->
-            <div style="display: flex; justify-content: space-between; align-items: center; background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px 8px 0 0; padding: 10px 14px;">
-              <button type="button" class="btn-spark" onclick="changeBookingCalendarMonth(-1)" style="padding: 4px 10px; font-size: 0.80rem;">◀ Prev</button>
-              <strong style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; text-transform: uppercase;" id="bookingCalMonthLabel">October 2026</strong>
-              <button type="button" class="btn-spark" onclick="changeBookingCalendarMonth(1)" style="padding: 4px 10px; font-size: 0.80rem;">Next ▶</button>
-            </div>
-
-            <!-- Days of Week Header -->
-            <div style="display: grid; grid-template-columns: repeat(7, 1fr); background: #10161f; border-left: 1px solid var(--border-subtle); border-right: 1px solid var(--border-subtle); text-align: center; font-size: 0.76rem; font-weight: 800; color: var(--text-muted); padding: 8px 0;">
-              <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
-            </div>
-
-            <!-- Calendar Days Grid -->
-            <div id="bookingCalDaysGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-subtle); border: 1px solid var(--border-subtle); border-radius: 0 0 8px 8px; overflow: hidden;">
-              <!-- Dynamically populated via renderBookingCalendar() -->
-            </div>
-
-            <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-              <span style="font-size: 0.84rem; color: #cbd5e1;">
-                Selected Date: <strong id="bookingCalSelectedDateText" style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.95rem;">Please select an open date above</strong>
-              </span>
-              <div style="display: flex; gap: 12px; font-size: 0.74rem; color: var(--text-muted);">
-                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span> Open</span>
-                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></span> Booked</span>
-                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #475569;"></span> Locked</span>
-              </div>
-            </div>
-
-            <input type="hidden" id="preferredDates" name="preferredDates" required>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="preferredDates">Preferred Date(s) <span class="req">*</span></label>
+            <input type="text" id="preferredDates" name="preferredDates" required placeholder="e.g., Saturday Oct 19 Morning" style="background: #070b10; border: 1px solid var(--border-subtle); color: #fff; padding: 12px; border-radius: 8px; width: 100%;">
           </div>
-          </div>
+        </div>
 
         <div class="form-group" style="margin-bottom: 14px;">
           <label for="groupSize">Group Size / Training Format <span class="req">*</span></label>
@@ -17443,7 +17383,6 @@ function closeStateModal() {
               </div>
             </div>
           </div>
-/div>
 
         <!-- ================= SECTION: PERMIT & RENEWAL CENTER ================= -->
       </div>
@@ -17545,25 +17484,105 @@ function closeStateModal() {
       <h3 class="goal-modal-title" id="alumniGateTitle" style="color: #fff; margin: 4px 0 8px; font-size: 1.7rem; text-transform: uppercase;">
         🔒 Alumni Exclusive Clinic Access
       </h3>
-            <div class="goal-synopsis-card" style="border-left-color: #38bdf8; background: #070b10; font-size: 0.90rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 16px;">
-        <p style="margin: 0 0 10px;">
-          The <strong>FIFS Graduate Alumni Marksmanship Clinic</strong> is an exclusive 2-hour diagnostic live-fire workshop reserved strictly for verified graduates of Future Initiative courses and active permit holders.
-        </p>
-        <p style="margin: 0; color: #94a3b8; font-size: 0.84rem;">
-          If you have not yet completed a Maryland Wear &amp; Carry or Combo course with Coach Kai Wade, you cannot reserve an alumni seat. Please enroll in an initial certification course to earn alumni status.
-        </p>
+      <div class="goal-synopsis-card" style="border-left-color: #38bdf8; background: #070b10; font-size: 0.90rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 16px;">
+        The <strong>FIFS Graduate Alumni Marksmanship Clinic ($65.00)</strong> is an exclusive 2-hour diagnostic workshop reserved for verified FIFS graduates and active carry permit holders.<br><br>
+        To reserve a seat in an upcoming alumni clinic cohort, please sign in to your <strong>Client Portal</strong> (or create your free verified profile). Once verified, you will immediately be redirected to complete your reservation.
       </div>
 
       <div class="goal-modal-actions" style="display: flex; flex-direction: column; gap: 10px;">
         <button type="button" class="btn-primary" onclick="proceedToClientSignInForAlumni()" style="background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #070b10; font-weight: 800; padding: 12px; width: 100%;">
-          🔑 Sign In to Client / Alumni Portal →
+          🔑 Sign In to Client Portal to Unlock ($65.00) →
         </button>
-        <button type="button" class="btn-secondary-modal" onclick="dismissAlumniGateWithWarning()" style="width: 100%; padding: 10px;">
-          ← Return to Course Catalog (Non-Alumni)
+        <button type="button" class="btn-secondary-modal" onclick="closeAlumniAccessGateModal()" style="width: 100%; padding: 10px;">
+          ← Return to Course Catalog
         </button>
       </div>
     </div>
   </div>
 
+
+  <!-- ================= MODAL: CLIENT PROFILE & EXPIRATION REGISTRY DEEP-DIVE ================= -->
+  <div class="goal-modal-overlay" id="clientProfileModal" style="display: none;" onclick="if(event.target===this) closeClientProfileModal()">
+    <div class="goal-modal-box" role="dialog" aria-modal="true" aria-labelledby="clientProfileModalTitle" onclick="event.stopPropagation()" style="max-width: 760px; border-color: var(--accent-amber); box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 35px var(--accent-amber-glow);">
+      <button type="button" class="goal-modal-close-btn" onclick="closeClientProfileModal()" aria-label="Close client profile">✕</button>
+      <div>
+        <span class="goal-header-badge" style="background: rgba(255,183,3,0.15); border-color: var(--accent-amber); color: var(--accent-amber);">PERMIT COMPLIANCE REGISTRY</span>
+      </div>
+      <h3 class="goal-modal-title" id="clientProfileModalTitle" style="color: #fff; margin: 4px 0 6px; font-size: 1.8rem; text-transform: uppercase;">
+        🛡️ Manage Client Profile &amp; Renewal Watch
+      </h3>
+      <div class="goal-modal-rec" style="color: var(--accent-amber); font-weight: 700; margin-bottom: 16px;">
+        Automated 90-Day Renewal Notifications &amp; Official Permit Expiration Tracking
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <div class="fi-section-header" id="fi-sec-profile">
+          <h3>Client Profile & Expiration Registry</h3>
+          <p>Register your permit expiration date to receive automated 90-day renewal reminders and legal compliance updates.</p>
+        </div>
+
+        <div class="fi-checklist-card" style="max-width: 720px; margin: 0 auto 30px;">
+          <div style="background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.3); padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.3rem;">🔒</span>
+            <div style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.45;">
+              <strong>Zero Sensitive Hardware Data:</strong> Future Initiative strictly does not collect firearm serial numbers, makes, models, or photographs. Only your name, email, and expiration date are stored.
+            </div>
+          </div>
+
+          <form id="fiClientProfileForm" onsubmit="fiSubmitClientProfile(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
+              <div class="form-group">
+                <label for="fiClientName">Full Name <span class="req">*</span></label>
+                <input type="text" id="fiClientName" placeholder="e.g. Marcus Vance" required>
+              </div>
+              <div class="form-group">
+                <label for="fiClientEmail">Email Address <span class="req">*</span></label>
+                <input type="email" id="fiClientEmail" placeholder="e.g. marcus@example.com" required>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
+              <div class="form-group">
+                <label for="fiClientPermitState">Primary Permit State <span class="req">*</span></label>
+                <select id="fiClientPermitState" style="background: #10161f; border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 10px 14px; border-radius: 8px; width: 100%; font-family: var(--font-display); font-size: 0.95rem;">
+                  <option value="Maryland" selected>Maryland Wear & Carry</option>
+                  <option value="Virginia">Virginia Concealed Handgun</option>
+                  <option value="Pennsylvania">Pennsylvania LTCF</option>
+                  <option value="Florida">Florida Non-Resident</option>
+                  <option value="Utah">Utah Non-Resident</option>
+                  <option value="Other">Other State Jurisdiction</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="fiClientExpDate">Permit Expiration Date <span class="req">*</span></label>
+                <input type="date" id="fiClientExpDate" required>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" id="fiClientOptIn" checked style="width: 18px; height: 18px; accent-color: var(--accent-cyan);">
+                <span style="font-size: 0.88rem; color: #cbd5e1;">Send me automated 90-day renewal reminders and the 10% Future Initiative discount offer.</span>
+              </label>
+            </div>
+
+            <button type="submit" id="btn-client-save" class="btn-primary" style="width: 100%; padding: 12px;">
+              Save Client Profile & Activate Renewal Watch 🛡️
+            </button>
+            <div id="fi-profile-status" class="status-msg" style="display: none; margin-top: 12px;"></div>
+          </form>
+        </div>
+
+        <!-- ================= SECTION: FUTURE INITIATIVE CLIENT SERVICES ================= -->
+      </div>
+
+      <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <span style="font-size: 0.78rem; color: var(--text-muted);">Future Initiative Firearm Services • Client Privacy &amp; Data Security</span>
+        <button type="button" class="btn-secondary-modal" onclick="closeClientProfileModal()" style="padding: 10px 22px; font-size: 0.90rem; font-weight: 800;">
+          ← Return to Client Hub
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
