@@ -10040,6 +10040,9 @@ function openAdminEditStudentModal(studentId) {
         adminCachedStudents = data.students;
         window.adminCachedStudents = adminCachedStudents;
         try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch (e) {}
+        if (data.clients && data.clients.length && typeof renderAdminClientTerminal === 'function') {
+          renderAdminClientTerminal(data);
+        }
       } else {
         const savedRoster = localStorage.getItem('fifs_roster_students');
         if (savedRoster) {
@@ -14495,12 +14498,12 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
             (currentVal.includes('Combo') && opt.includes('Combo')) ||
 
-            (currentVal.includes('Wear & Carry') && opt.includes('Wear & Carry') && !opt.includes('Combo')) ||
+            (currentVal.includes('Wear & Carry') && op
+t.includes('Wear & Carry') && !opt.includes('Combo')) ||
 
             (currentVal.includes('HQL') && opt.includes('HQL') && !opt.includes('Combo')) ||
 
-   
-         (currentVal.includes('1-on-1') && opt.includes('1-on-1')) ||
+            (currentVal.includes('1-on-1') && opt.includes('1-on-1')) ||
 
             (currentVal.includes('Cleaning') && opt.includes('Cleaning')) ||
 
@@ -18218,11 +18221,11 @@ function closeStateModal() {
       </h3>
 <div class="goal-synopsis-card" style="border-left-color: #38bdf8; background: #070b10; font-size: 0.90rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 16px;">
         The <strong>FIFS Graduate Alumni Marksmanship Clinic ($65.00)</strong> is an exclusive 2-hour diagnostic workshop reserved for verified FIFS graduates and active carry permit holders.<br/><br/>
-        To reserve a seat in an upcoming alumni clinic cohort, please sign in to your <strong>Client Portal</strong> (or create your free verified profile). Once verified, you will immediately be redirected to complete your reservation.
+        To reserve a seat in an upcoming alumni clinic cohort, please sign in to your <strong>Client Portal</strong> (or create your free verified profile). Once verified, you will immediately b
+e redirected to complete your reservation.
       </div>
 <div class="goal-modal-actions" style="display: flex; flex-direction: column; gap: 10px;">
-<button 
-class="btn-primary" onclick="proceedToClientSignInForAlumni()" style="background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #070b10; font-weight: 800; padding: 12px; width: 100%;" type="button">
+<button class="btn-primary" onclick="proceedToClientSignInForAlumni()" style="background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #070b10; font-weight: 800; padding: 12px; width: 100%;" type="button">
           🔑 Sign In to Client Portal to Unlock ($65.00) →
         </button>
 <button class="btn-secondary-modal" onclick="closeAlumniAccessGateModal()" style="width: 100%; padding: 10px;" type="button">
