@@ -8299,9 +8299,7 @@
 <button class="btn-hero-booking-prime" id="btn-admin-refresh-data" onclick="refreshAdminRoster()" style="width: auto; padding: 10px 20px; font-size: 0.92rem; border-radius: 8px; flex-direction: row; gap: 8px; box-shadow: 0 0 18px var(--accent-cyan-glow);" type="button">
 <span>🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">REFRESH DATA</span>
 </button>
-<button class="btn-spark" id="btn-admin-telemetry-hdr" onclick="switchAdminTab('analytics')" style="width: auto; padding: 10px 18px; font-size: 0.90rem; border-color: var(--accent-amber); color: var(--accent-amber); box-shadow: 0 0 16px rgba(255, 183, 3, 0.25); display: inline-flex; align-items: center; gap: 6px;" type="button">
-<span>📊</span> <span>WEBSITE TELEMETRY</span>
-</button>
+
 <button class="btn-spark" id="btn-admin-invite-hdr" onclick="openAdminInviteModal()" style="width: auto; padding: 10px 18px; font-size: 0.90rem; border-color: #a855f7; color: #c084fc; box-shadow: 0 0 16px rgba(168, 85, 247, 0.25); display: inline-flex; align-items: center; gap: 6px;" type="button">
 <span>✉️</span> <span>SEND PORTAL INVITE</span>
 </button>
@@ -8323,6 +8321,9 @@
           </button>
 <button class="admin-toggle-btn" id="btn-admin-tab-clients" onclick="switchAdminTab('clients')" style="flex: 1; min-width: 220px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-subtle); font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.25s ease; background: transparent; color: var(--text-muted);" type="button">
 <span>🛡️</span> Future Initiative Clients
+          </button>
+<button class="admin-toggle-btn" id="btn-admin-tab-inquiries" onclick="switchAdminTab('inquiries')" style="flex: 1; min-width: 200px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-subtle); font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.25s ease; background: transparent; color: var(--text-muted);" type="button">
+<span>📨</span> Range Inquiries &amp; Live Chat
           </button>
 <button class="admin-toggle-btn" id="btn-admin-tab-analytics" onclick="switchAdminTab('analytics')" style="flex: 1; min-width: 220px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255, 183, 3, 0.4); font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.25s ease; background: transparent; color: var(--accent-amber);" type="button">
 <span>📊</span> Website Traffic &amp; Telemetry
@@ -8368,6 +8369,50 @@
 </tbody>
 </table>
 </div>
+</div>
+<!-- ================= SUB-PANEL 2: FUTURE INITIATIVE CLIENT ROSTER ================= -->
+<div id="admin-subpanel-clients" style="display: none;">
+<!-- Dynamic New Client Registration Notification Alert Beacon -->
+<div id="admin-new-client-alert-box" style="display: none; background: linear-gradient(135deg, rgba(255, 183, 3, 0.15) 0%, rgba(13, 19, 27, 0.98) 100%); border: 2px solid var(--accent-amber); box-shadow: 0 0 25px var(--accent-amber-glow); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+<div style="display: flex; align-items: center; gap: 12px;">
+<span class="live-dot" style="width: 12px; height: 12px; background: var(--accent-amber); box-shadow: 0 0 12px var(--accent-amber); flex-shrink: 0;"></span>
+<div>
+<strong id="admin-client-alert-title" style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; text-transform: uppercase; letter-spacing: 1px; display: block;">🛡️ NEW CLIENT PROFILE REGISTRATION DETECTED</strong>
+<p id="admin-client-alert-desc" style="font-size: 0.86rem; color: #cbd5e1; margin-top: 2px;">A permit holder has registered their profile in the Future Initiative Client Portal.</p>
+</div>
+</div>
+<div style="display: flex; gap: 8px;">
+<button class="btn-spark" onclick="acknowledgeNewClientAlert()" style="padding: 8px 16px; font-size: 0.82rem; border-color: var(--accent-amber); color: var(--accent-amber); cursor: pointer;" type="button">✔ Acknowledge / Mark Reviewed</button>
+</div>
+</div>
+
+<div class="admin-metrics-grid">
+<div class="metric-card" style="border-color: var(--accent-amber);"><div class="metric-val" id="metric-client-total" style="color: var(--accent-amber);">0</div><div class="metric-name">Total Clients</div></div>
+<div class="metric-card" style="border-color: #10b981;"><div class="metric-val" id="metric-client-active" style="color: #10b981;">0</div><div class="metric-name">Active Permits (&gt;90d)</div></div>
+<div class="metric-card" style="border-color: var(--accent-cyan);"><div class="metric-val" id="metric-client-renewal" style="color: var(--accent-cyan);">0</div><div class="metric-name">90-Day Renewal Window</div></div>
+<div class="metric-card" style="border-color: #ef4444;"><div class="metric-val" id="metric-client-expired" style="color: #ef4444;">0</div><div class="metric-name">Expired / Due</div></div>
+</div>
+<div style="overflow-x: auto; background: #070b10; border-radius: 12px; border: 1px solid var(--border-subtle); padding: 14px; margin-bottom: 20px;">
+<table class="admin-roster-table" style="width: 100%; border-collapse: collapse; font-size: 0.86rem;">
+<thead>
+<tr>
+<th>Client ID</th>
+<th>Full Name &amp; Contact</th>
+<th>Permit Jurisdiction</th>
+<th>Permit Expiration</th>
+<th>Days Remaining</th>
+<th>Renewal Status</th>
+<th style="text-align: center;">Actions</th>
+</tr>
+</thead>
+<tbody id="admin-client-tbody">
+<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">Loading Future Initiative client records...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- ================= SUB-PANEL: RANGE INQUIRIES & LIVE CHAT MESSAGES ================= -->
+<div id="admin-subpanel-inquiries" style="display: none; margin-bottom: 24px;">
 <!-- ================= ADMIN HUB: RANGE INQUIRIES & LIVE CHAT MESSAGES ================= -->
 <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 14px; padding: 22px; margin-top: 24px;">
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
@@ -8405,33 +8450,7 @@
 </div>
 </div>
 </div>
-<!-- ================= SUB-PANEL 2: FUTURE INITIATIVE CLIENT ROSTER ================= -->
-<div id="admin-subpanel-clients" style="display: none;">
-<div class="admin-metrics-grid">
-<div class="metric-card" style="border-color: var(--accent-amber);"><div class="metric-val" id="metric-client-total" style="color: var(--accent-amber);">0</div><div class="metric-name">Total Clients</div></div>
-<div class="metric-card" style="border-color: #10b981;"><div class="metric-val" id="metric-client-active" style="color: #10b981;">0</div><div class="metric-name">Active Permits (&gt;90d)</div></div>
-<div class="metric-card" style="border-color: var(--accent-cyan);"><div class="metric-val" id="metric-client-renewal" style="color: var(--accent-cyan);">0</div><div class="metric-name">90-Day Renewal Window</div></div>
-<div class="metric-card" style="border-color: #ef4444;"><div class="metric-val" id="metric-client-expired" style="color: #ef4444;">0</div><div class="metric-name">Expired / Due</div></div>
-</div>
-<div style="overflow-x: auto; background: #070b10; border-radius: 12px; border: 1px solid var(--border-subtle); padding: 14px; margin-bottom: 20px;">
-<table class="admin-roster-table" style="width: 100%; border-collapse: collapse; font-size: 0.86rem;">
-<thead>
-<tr>
-<th>Client ID</th>
-<th>Full Name &amp; Contact</th>
-<th>Permit Jurisdiction</th>
-<th>Permit Expiration</th>
-<th>Days Remaining</th>
-<th>Renewal Status</th>
-<th style="text-align: center;">Actions</th>
-</tr>
-</thead>
-<tbody id="admin-client-tbody">
-<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">Loading Future Initiative client records...</td></tr>
-</tbody>
-</table>
-</div>
-</div>
+
 <!-- ================= SUB-PANEL 3: WEBSITE TELEMETRY & HARDWARE DIAGNOSTICS ================= -->
 <div id="admin-subpanel-analytics" style="display: none;">
 <div id="admin-analytics-dashboard-container"></div>
@@ -9430,6 +9449,25 @@
     // ==========================================================================
     // 1. DEVICE TELEMETRY & ACCURATE AUDIT ENGINE
     // ==========================================================================
+    
+    // Strict Internal & Instructor Session Detection
+    function isInternalOrInstructorSession() {
+      try {
+        const host = (window.location && window.location.hostname) ? window.location.hostname.toLowerCase() : '';
+        const protocol = (window.location && window.location.protocol) ? window.location.protocol.toLowerCase() : '';
+        if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' || host === '::1' || host.endsWith('.local') || host.endsWith('.test') || protocol === 'file:') {
+          return true;
+        }
+        const pin = localStorage.getItem('fifs_instructor_pin');
+        const adminSession = localStorage.getItem('fifs_admin_session');
+        if (pin === 'Ultima' || pin === 'admin' || pin === 'chief' || adminSession === 'active' || adminSession === 'true') {
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+    window.isInternalOrInstructorSession = isInternalOrInstructorSession;
+
     function detectUserDevice() {
       const ua = navigator.userAgent || '';
       const w = window.innerWidth || (window.screen ? window.screen.width : 0) || 0;
@@ -9483,6 +9521,10 @@
 
     function logAnalyticsEvent(category, action, label) {
       try {
+        if (isInternalOrInstructorSession()) {
+          // Do not skew production analytics with internal/instructor test actions
+          return;
+        }
         const dev = detectUserDevice();
         const log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
         const entry = {
@@ -10103,6 +10145,20 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         }
       }
       window.adminCachedClients = adminCachedClients;
+      // Check for dynamic new client registration alert
+      try {
+        const clientAlert = localStorage.getItem('fifs_new_client_alert');
+        const alertBox = document.getElementById('admin-new-client-alert-box');
+        const alertDesc = document.getElementById('admin-client-alert-desc');
+        if (clientAlert && alertBox) {
+          const a = JSON.parse(clientAlert);
+          if (alertDesc) {
+            alertDesc.innerHTML = `New Client Registered: <strong>${escapeHtml(a.name || a.fullName)}</strong> (${escapeHtml(a.permitState || 'Maryland')} Permit, Expires: ${escapeHtml(a.expirationDate)}) &bull; Contact: ${escapeHtml(a.email)} ${a.phone ? '&bull; ' + escapeHtml(a.phone) : ''} &bull; Client ID: <code style="color: var(--accent-amber); font-weight: 800;">${escapeHtml(a.clientId)}</code>`;
+          }
+          alertBox.style.display = 'flex';
+        }
+      } catch (e) {}
+
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -10257,64 +10313,70 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         function switchAdminTab(tab) {
       const subRoster = document.getElementById('admin-subpanel-roster');
       const subClients = document.getElementById('admin-subpanel-clients');
+      const subInquiries = document.getElementById('admin-subpanel-inquiries');
       const subAnalytics = document.getElementById('admin-subpanel-analytics');
+
       const btnRoster = document.getElementById('btn-admin-tab-roster');
       const btnClients = document.getElementById('btn-admin-tab-clients');
+      const btnInquiries = document.getElementById('btn-admin-tab-inquiries');
       const btnAnalytics = document.getElementById('btn-admin-tab-analytics');
 
       if (subRoster) subRoster.style.display = 'none';
       if (subClients) subClients.style.display = 'none';
+      if (subInquiries) subInquiries.style.display = 'none';
       if (subAnalytics) subAnalytics.style.display = 'none';
 
-      if (btnRoster) {
-        btnRoster.classList.remove('active');
-        btnRoster.style.background = 'transparent';
-        btnRoster.style.color = 'var(--text-muted)';
-        btnRoster.style.boxShadow = 'none';
-      }
-      if (btnClients) {
-        btnClients.classList.remove('active');
-        btnClients.style.background = 'transparent';
-        btnClients.style.color = 'var(--text-muted)';
-        btnClients.style.boxShadow = 'none';
-      }
-      if (btnAnalytics) {
-        btnAnalytics.classList.remove('active');
-        btnAnalytics.style.background = 'transparent';
-        btnAnalytics.style.color = 'var(--accent-amber)';
-        btnAnalytics.style.boxShadow = 'none';
-      }
+      const allBtns = [btnRoster, btnClients, btnInquiries, btnAnalytics];
+      allBtns.forEach(b => {
+        if (b) {
+          b.classList.remove('active');
+          b.style.background = 'transparent';
+          b.style.color = 'var(--text-muted)';
+          b.style.boxShadow = 'none';
+          b.style.borderColor = 'var(--border-subtle)';
+        }
+      });
 
-      if (tab === 'analytics') {
+      if (tab === 'clients') {
+        if (subClients) subClients.style.display = 'block';
+        if (btnClients) {
+          btnClients.classList.add('active');
+          btnClients.style.background = 'var(--accent-amber)';
+          btnClients.style.color = '#070b10';
+          btnClients.style.boxShadow = '0 0 18px var(--accent-amber-glow)';
+          btnClients.style.borderColor = 'var(--accent-amber)';
+        }
+        if (typeof renderAdminClientTerminal === 'function') renderAdminClientTerminal();
+      } else if (tab === 'inquiries') {
+        if (subInquiries) subInquiries.style.display = 'block';
+        if (btnInquiries) {
+          btnInquiries.classList.add('active');
+          btnInquiries.style.background = 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)';
+          btnInquiries.style.color = '#fff';
+          btnInquiries.style.boxShadow = '0 0 18px rgba(168, 85, 247, 0.4)';
+          btnInquiries.style.borderColor = '#a855f7';
+        }
+        if (typeof renderAdminInquiries === 'function') renderAdminInquiries();
+      } else if (tab === 'analytics') {
         if (subAnalytics) subAnalytics.style.display = 'block';
         if (btnAnalytics) {
           btnAnalytics.classList.add('active');
           btnAnalytics.style.background = 'var(--accent-amber)';
           btnAnalytics.style.color = '#070b10';
-          btnAnalytics.style.boxShadow = '0 0 18px rgba(255, 183, 3, 0.45)';
+          btnAnalytics.style.boxShadow = '0 0 18px var(--accent-amber-glow)';
+          btnAnalytics.style.borderColor = 'var(--accent-amber)';
         }
-        renderAdminAnalyticsDashboard();
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Website Telemetry');
-      } else if (tab === 'clients') {
-        if (subClients) subClients.style.display = 'block';
-        if (btnClients) {
-          btnClients.classList.add('active');
-          btnClients.style.background = 'var(--accent-cyan)';
-          btnClients.style.color = '#070b10';
-          btnClients.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
-        }
-        renderAdminClientTerminal();
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Client Roster');
+        if (typeof renderAdminAnalyticsDashboard === 'function') renderAdminAnalyticsDashboard();
       } else {
+        // Default: roster
         if (subRoster) subRoster.style.display = 'block';
         if (btnRoster) {
           btnRoster.classList.add('active');
           btnRoster.style.background = 'var(--accent-cyan)';
           btnRoster.style.color = '#070b10';
           btnRoster.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
+          btnRoster.style.borderColor = 'var(--accent-cyan)';
         }
-        renderAdminTerminal();
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Student Roster');
       }
     }
     window.switchAdminTab = switchAdminTab;
@@ -10334,6 +10396,32 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       } catch(e) {}
     }
     window.checkNewStudentAlert = checkNewStudentAlert;
+
+    
+    function acknowledgeNewClientAlert() {
+      localStorage.removeItem('fifs_new_client_alert');
+      const box = document.getElementById('admin-new-client-alert-box');
+      if (box) box.style.display = 'none';
+
+        // Also check if a new client registration exists and notify instructor
+        const cAlert = localStorage.getItem('fifs_new_client_alert');
+        if (cAlert && !alertData && box) {
+          try {
+            const ca = JSON.parse(cAlert);
+            const titleEl = document.getElementById('admin-alert-title');
+            if (titleEl) titleEl.textContent = '🔔 NEW CLIENT REGISTRATION ALERT';
+            if (desc) {
+              desc.innerHTML = `New Client Profile Registered: <strong>${escapeHtml(ca.name || ca.fullName)}</strong> (${escapeHtml(ca.permitState || 'Maryland')} Permit, Exp: ${escapeHtml(ca.expirationDate)}) &bull; <a href="javascript:void(0)" onclick="switchAdminTab('clients')" style="color: var(--accent-cyan); font-weight: 800; text-decoration: underline;">Switch to Client Operations Tab to View &rarr;</a>`;
+            }
+            box.style.display = 'flex';
+          } catch(e) {}
+        }
+
+    }
+   
+
+
+ window.acknowledgeNewClientAlert = acknowledgeNewClientAlert;
 
     function acknowledgeNewStudentAlert() {
       localStorage.removeItem('fifs_new_student_alert');
@@ -11017,18 +11105,20 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
     document.addEventListener('DOMContentLoaded', function() {
-      // Accurate real-visitor tracking (zero fake offsets)
+      // Accurate real-visitor tracking (strictly excludes localhost, 127.0.0.1 and instructor sessions)
       try {
-        let visitorId = localStorage.getItem('fifs_visitor_id');
-        if (!visitorId) {
-          visitorId = 'V-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
-          localStorage.setItem('fifs_visitor_id', visitorId);
-          let vCount = parseInt(localStorage.getItem('fifs_unique_visitors_count') || '0', 10) + 1;
-          localStorage.setItem('fifs_unique_visitors_count', vCount.toString());
-          if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Visitor', 'New Unique Visitor', visitorId);
+        if (!isInternalOrInstructorSession()) {
+          let visitorId = localStorage.getItem('fifs_visitor_id');
+          if (!visitorId) {
+            visitorId = 'V-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+            localStorage.setItem('fifs_visitor_id', visitorId);
+            let vCount = parseInt(localStorage.getItem('fifs_unique_visitors_count') || '0', 10) + 1;
+            localStorage.setItem('fifs_unique_visitors_count', vCount.toString());
+            if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Visitor', 'New Unique Visitor', visitorId);
+          }
+          let pvCount = parseInt(localStorage.getItem('fifs_pageviews_count') || '0', 10) + 1;
+          localStorage.setItem('fifs_pageviews_count', pvCount.toString());
         }
-        let pvCount = parseInt(localStorage.getItem('fifs_pageviews_count') || '0', 10) + 1;
-        localStorage.setItem('fifs_pageviews_count', pvCount.toString());
       } catch(e) {}
 
       if (typeof initReciprocityEngine === 'function') initReciprocityEngine();
@@ -14409,7 +14499,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
             (currentVal.includes('HQL') && opt.includes('HQL') && !opt.includes('Combo')) ||
 
-            (currentVal.includes('1-on-1') && opt.includes('1-on-1')) ||
+   
+         (currentVal.includes('1-on-1') && opt.includes('1-on-1')) ||
 
             (currentVal.includes('Cleaning') && opt.includes('Cleaning')) ||
 
@@ -14545,8 +14636,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
             if (e && e.stopPropagation) e.stopPropagation();
             selectCourse(config.baseValue);
           };
-   
-     }
+        }
         if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Course Selection', 'Toggle Base Mode', courseKey);
       }
     }
@@ -14984,17 +15074,43 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         return;
       }
 
+      const clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
       const clientRecord = {
+        clientId: clientId,
         fullName: name,
         email: email,
+        phone: '',
         permitState: state,
         expirationDate: expDate,
+        status: 'ACTIVE_REGISTERED',
         optInReminder: optIn,
         savedAt: new Date().toISOString()
       };
 
       try {
         localStorage.setItem('fifs_client_profile', JSON.stringify(clientRecord));
+        localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord));
+        
+        // Add to permanent client roster persistence (fifs_client_roster)
+        let roster = JSON.parse(localStorage.getItem('fifs_client_roster') || '[]');
+        const existingIdx = roster.findIndex(c => c.email && c.email.toLowerCase() === email.toLowerCase());
+        if (existingIdx >= 0) {
+          roster[existingIdx] = { ...roster[existingIdx], ...clientRecord };
+        } else {
+          roster.unshift(clientRecord);
+        }
+        localStorage.setItem('fifs_client_roster', JSON.stringify(roster));
+
+        // Trigger Admin Hub Notification Alert!
+        localStorage.setItem('fifs_new_client_alert', JSON.stringify({
+          clientId: clientId,
+          name: name,
+          email: email,
+          phone: 'N/A',
+          permitState: state,
+          expirationDate: expDate,
+          timestamp: new Date().toLocaleString()
+        }));
       } catch (err) {}
 
       btn.disabled = true;
@@ -15004,25 +15120,36 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         google.script.run
           .withSuccessHandler(function(res) {
             btn.disabled = false;
-            showStatus(statusDiv, 'Profile Saved! Client ID: ' + (res.clientId || 'Registered') + '. Automated 90-day reminders activated.', 'success');
+            showStatus(statusDiv, 'Profile Saved! Client ID: ' + (res.clientId || clientId) + '. Automated 90-day reminders activated.', 'success');
+            setTimeout(function() {
+              closeClientProfileModal();
+              renderClientDashboard(clientRecord);
+            }, 700);
           })
           .withFailureHandler(function(err) {
             btn.disabled = false;
-            showStatus(statusDiv, 'Profile saved locally! (Backend sync pending: ' + err.message + ')', 'success');
+            showStatus(statusDiv, 'Profile saved locally! Client ID: ' + clientId, 'success');
+            setTimeout(function() {
+              closeClientProfileModal();
+              renderClientDashboard(clientRecord);
+            }, 700);
           })
           .handleClientRegistration(clientRecord);
       } else {
         setTimeout(function() {
           btn.disabled = false;
-          showStatus(statusDiv, 'Client Profile Saved! 90-day renewal countdown watch is now active.', 'success');
-        }, 600);
+          showStatus(statusDiv, 'Client Profile Saved! Client ID: ' + clientId + '. 90-day renewal countdown watch is now active.', 'success');
+          setTimeout(function() {
+            closeClientProfileModal();
+            renderClientDashboard(clientRecord);
+          }, 700);
+        }, 500);
       }
 
-      // Sync expiration calculator
       const calcInput = document.getElementById('fiPermitExpInput');
       if (calcInput) {
         calcInput.value = expDate;
-        fiCalculateExpiration();
+        try { fiCalculateExpiration(); } catch(e) {}
       }
 
       if (window.fiAnalytics) fiAnalytics.track('client_profile_registered', { email: email, state: state });
@@ -15325,14 +15452,39 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         phone: phone,
         permitState: permitState,
         expirationDate: expDate,
+        status: 'ACTIVE_REGISTERED',
         optInReminder: optIn,
         savedAt: new Date().toISOString()
       };
 
+      try {
+        localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord));
+        localStorage.setItem('fifs_client_profile', JSON.stringify(clientRecord));
+
+        // Add to permanent client roster persistence (fifs_client_roster)
+        let roster = JSON.parse(localStorage.getItem('fifs_client_roster') || '[]');
+        const existingIdx = roster.findIndex(c => c.email && c.email.toLowerCase() === email.toLowerCase());
+        if (existingIdx >= 0) {
+          roster[existingIdx] = { ...roster[existingIdx], ...clientRecord };
+        } else {
+          roster.unshift(clientRecord);
+        }
+        localStorage.setItem('fifs_client_roster', JSON.stringify(roster));
+
+        // Trigger Admin Hub Notification Alert!
+        localStorage.setItem('fifs_new_client_alert', JSON.stringify({
+          clientId: clientId,
+          name: name,
+          email: email,
+          phone: phone,
+          permitState: permitState,
+          expirationDate: expDate,
+          timestamp: new Date().toLocaleString()
+        }));
+      } catch(err) {}
+
       btn.disabled = true;
       showStatus(statusDiv, 'Creating profile & setting renewal watch...', 'success');
-
-      localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord));
 
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleClientRegistration) {
         google.script.run
@@ -18069,7 +18221,8 @@ function closeStateModal() {
         To reserve a seat in an upcoming alumni clinic cohort, please sign in to your <strong>Client Portal</strong> (or create your free verified profile). Once verified, you will immediately be redirected to complete your reservation.
       </div>
 <div class="goal-modal-actions" style="display: flex; flex-direction: column; gap: 10px;">
-<button class="btn-primary" onclick="proceedToClientSignInForAlumni()" style="background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #070b10; font-weight: 800; padding: 12px; width: 100%;" type="button">
+<button 
+class="btn-primary" onclick="proceedToClientSignInForAlumni()" style="background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #070b10; font-weight: 800; padding: 12px; width: 100%;" type="button">
           🔑 Sign In to Client Portal to Unlock ($65.00) →
         </button>
 <button class="btn-secondary-modal" onclick="closeAlumniAccessGateModal()" style="width: 100%; padding: 10px;" type="button">
@@ -18171,8 +18324,7 @@ function closeStateModal() {
 </div>
 <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 4px 6px;">
 <span style="font-size: 0.84rem; color: var(--text-muted); text-align: left;">
-            📍 Certified Live-Fire Range Partner: Cindy's Hot Shots (Glen Burnie, MD) • 25-Round State Course of Fi
-re
+            📍 Certified Live-Fire Range Partner: Cindy's Hot Shots (Glen Burnie, MD) • 25-Round State Course of Fire
           </span>
 <a class="btn-spark" href="https://drive.google.com/file/d/1mQZ307vNE2ivNiJJICdgYKEKLvIPyTt-/view?usp=sharing" rel="noopener noreferrer" style="width: auto; padding: 8px 16px; font-size: 0.85rem; text-decoration: none;" target="_blank">
             Download High-Res Original (JPEG) ↗
