@@ -5753,14 +5753,7 @@
       background: linear-gradient(135deg, #ffffff 0%, #00e5ff 100%);
     }
 
-    /* Device-Adaptive Responsive Layout Classes */
-    html.device-mobile body { font-size: 15px; }
-    html.device-mobile .tuition-grid { grid-template-columns: 1fr; }
-    html.device-mobile .hero-command-dock { max-width: 100%; padding: 14px 12px; }
-    html.device-mobile .btn-hero-booking-prime { padding: 14px 12px; }
-    html.device-mobile .goal-modal-box { padding: 18px 14px; max-height: 94vh; }
-    html.device-tablet .tuition-grid { grid-template-columns: 1fr 1fr; }
-    html.device-desktop .tuition-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    /* Natural responsive fluid layout restored */
 
 </style>
 
@@ -6126,15 +6119,11 @@
   
 
       <div class="hero-bottom-strip">
-
         <button type="button" class="btn-hero-aux" id="btn-hero-targets" onclick="openAndSwitch('testimonial')">🎯 Range Highlights</button>
-
         <span style="color: var(--border-subtle);">•</span>
-
         <button type="button" class="btn-hero-aux" id="btn-hero-faq" onclick="openAndSwitch('faq')">❓ Common Questions</button>
         <span style="color: var(--border-subtle);">•</span>
         <button type="button" class="btn-hero-aux" id="btn-hero-contact" onclick="openContactWidgetModal()" style="color: var(--accent-cyan); font-weight: 700; cursor: pointer;">💬 Contact Instructor</button>
-
       </div>
 
     </div>
@@ -6210,9 +6199,6 @@
       </div>
 
             <div style="display: flex; align-items: center; gap: 8px;">
-        <button type="button" class="btn-spark" onclick="openContactWidgetModal()" style="padding: 8px 14px; font-size: 0.82rem; border-color: var(--accent-cyan); color: var(--accent-cyan); display: inline-flex; align-items: center; gap: 6px;" title="Direct Contact with Instructor Wade">
-          💬 <span>Direct Contact</span>
-        </button>
         <button type="button" class="btn-return-home" onclick="navigateBack()" aria-label="Go back to previous view" style="background: rgba(16, 22, 31, 0.9); border: 2px solid var(--border-subtle); color: var(--accent-cyan) !important; min-height: 44px; padding: 8px 16px;">
           ← BACK
         </button>
@@ -6266,9 +6252,7 @@
           </button>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 0.82rem; color: var(--text-muted);">
             <span>Need to book first? <a href="javascript:void(0)" onclick="switchTab('booking')" style="color: var(--accent-cyan);">View Courses</a></span>
-            <button type="button" onclick="loadDemoStudent()" style="background: none; border: none; color: var(--accent-amber); cursor: pointer; text-decoration: underline;">
-              Preview Demo Dashboard
-            </button>
+            
           </div>
           <div style="margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border-subtle); text-align: center;">
             <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 8px;">Already certified or looking for your CCW Permit Portal?</p>
@@ -8567,7 +8551,7 @@ const ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 
           userTag.textContent = SECTION_TITLES[tab];
         }
       }
-      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+      try { if (typeof window.scrollTo === 'function') window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
     }
 
     function switchTab(tab) {
@@ -10033,20 +10017,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
     
-    // ==========================================================================
-    // 1. DEVICE ADAPTIVE RENDERING ENGINE
-    // ==========================================================================
-    (function initDeviceAdaptiveRendering() {
-      if (typeof detectUserDevice === 'function') {
-        const d = detectUserDevice();
-        const devSlug = d.category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        if (document.documentElement && document.documentElement.classList) document.documentElement.classList.add('device-' + devSlug);
-        if (document.documentElement && document.documentElement.setAttribute) {
-          document.documentElement.setAttribute('data-device-category', d.category);
-          document.documentElement.setAttribute('data-device-name', d.deviceName);
-        }
-      }
-    })();
+    // Device adaptive rendering reverted per user instruction
 
     // ==========================================================================
     // 2. INTERACTIVE BOOKING CALENDAR CONTROLLER
@@ -10753,7 +10724,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       // Streamlined Instructor Authentication via the same field
 
-      if (query.toLowerCase() === 'ultima' || query.toLowerCase() === 'admin' || query.toLowerCase() === 'chief') {
+      if (query.trim().toLowerCase() === 'ultima') {
 
         showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
 
@@ -10826,19 +10797,24 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           .handleGetStudentPortalData(query.includes('@') ? query : '', query.includes('@') ? '' : query);
 
       } else {
-
         setTimeout(function() {
-
-          const demo = getMockStudent(query);
-
-          localStorage.setItem('fifs_student_session', JSON.stringify(demo));
-
-          renderStudentDashboard(demo);
-
-          statusDiv.style.display = 'none';
-
-        }, 400);
-
+          let found = null;
+          const cached = localStorage.getItem('fifs_roster_students');
+          if (cached) {
+            try {
+              const list = JSON.parse(cached);
+              found = list.find(s => (s.email && s.email.toLowerCase() === query.toLowerCase()) || (s.studentId && s.studentId.toUpperCase() === query.toUpperCase()));
+            } catch (e) {}
+          }
+          if (found) {
+            showStatus(statusDiv, 'Student record verified! Loading your dossier...', 'success');
+            localStorage.setItem('fifs_student_session', JSON.stringify(found));
+            setTimeout(function() { renderStudentDashboard(found); }, 400);
+          } else {
+            showStatus(statusDiv, 'No student record found. Please enroll in a course to register.', 'error');
+            alert("Account Not Found:\n\nNo enrolled student record matches \"" + query + "\".\n\nPlease select a training course from our catalog to establish your official student registration and training dossier.");
+          }
+        }, 350);
       }
 
     }
@@ -14555,7 +14531,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }
 
       // Master Instructor Admin Backdoor from Client Portal
-      if (query.toLowerCase() === 'ultima' || query.toLowerCase() === 'admin' || query.toLowerCase() === 'chief') {
+      if (query.trim().toLowerCase() === 'ultima') {
         showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
         setTimeout(function() {
           switchTab('admin');
@@ -14581,12 +14557,30 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         } catch(e) {}
       }
 
-      // Demo or backend fallback
+      // Verified Ledger Lookup Only (Zero unauthenticated auto-login)
       setTimeout(function() {
-        const client = getMockClient(query);
-        localStorage.setItem('fifs_client_session', JSON.stringify(client));
-        renderClientDashboard(client);
-        statusDiv.style.display = 'none';
+        let foundClient = null;
+        if (typeof adminCachedClients !== 'undefined' && Array.isArray(adminCachedClients)) {
+          foundClient = adminCachedClients.find(c => (c.email && c.email.toLowerCase() === query.toLowerCase()) || (c.clientId && c.clientId.toUpperCase() === query.toUpperCase()));
+        }
+        if (!foundClient) {
+          const rosterSaved = localStorage.getItem('fifs_client_roster');
+          if (rosterSaved) {
+            try {
+              const list = JSON.parse(rosterSaved);
+              foundClient = list.find(c => (c.email && c.email.toLowerCase() === query.toLowerCase()) || (c.clientId && c.clientId.toUpperCase() === query.toUpperCase()));
+            } catch (e) {}
+          }
+        }
+        if (foundClient) {
+          showStatus(statusDiv, 'Client permit record verified! Loading portal...', 'success');
+          localStorage.setItem('fifs_client_session', JSON.stringify(foundClient));
+          setTimeout(function() { renderClientDashboard(foundClient); }, 400);
+        } else {
+          showStatus(statusDiv, 'No client permit profile found. Please register your permit.', 'error');
+          alert("Account Not Found:\n\nNo client permit profile matches \"" + query + "\".\n\nPlease click \"Create Free Profile\" to register your carry permit and activate your 90-day renewal countdown watch.");
+          if (typeof switchClientAuthTab === 'function') switchClientAuthTab('register');
+        }
       }, 350);
     }
     window.lookupClientAccount = lookupClientAccount;
@@ -14708,7 +14702,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       const userTag = document.getElementById('portal-user-tag');
       if (userTag) userTag.textContent = "Client: " + client.fullName + " (" + (client.clientId || 'Verified') + ")";
 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (typeof window.scrollTo === 'function') window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     window.renderClientDashboard = renderClientDashboard;
 
@@ -17385,6 +17379,8 @@ function closeStateModal() {
           </div>
 
         <!-- ================= SECTION: PERMIT & RENEWAL CENTER ================= -->
+      </div>
+      </div>
       </div>
 
       <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
