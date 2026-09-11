@@ -5789,6 +5789,264 @@
     window.currentStateFocus = 'MD';
     window.currentRollerState = 'WV';
 
+    
+    // --- STATUS DISPLAY & UI HELPERS ---
+    function showStatus(elem, text, type) {
+      if (!elem) return;
+      elem.textContent = text;
+      elem.className = 'status-msg ' + (type || 'info');
+      elem.style.display = 'block';
+    }
+    window.showStatus = showStatus;
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+    window.escapeHtml = escapeHtml;
+
+    // --- CLIENT PORTAL AUTH SUBNAV ---
+    function switchClientAuthTab(tab) {
+      const pSignin = document.getElementById('panel-client-signin');
+      const pRegister = document.getElementById('panel-client-register');
+      const btnSignin = document.getElementById('tab-client-signin');
+      const btnRegister = document.getElementById('tab-client-register');
+
+      if (tab === 'register') {
+        if (pSignin) pSignin.style.setProperty('display', 'none', 'important');
+        if (pRegister) pRegister.style.setProperty('display', 'block', 'important');
+        if (btnSignin) btnSignin.classList.remove('active');
+        if (btnRegister) btnRegister.classList.add('active');
+      } else {
+        if (pSignin) pSignin.style.setProperty('display', 'block', 'important');
+        if (pRegister) pRegister.style.setProperty('display', 'none', 'important');
+        if (btnSignin) btnSignin.classList.add('active');
+        if (btnRegister) btnRegister.classList.remove('active');
+      }
+    }
+    window.switchClientAuthTab = switchClientAuthTab;
+
+    // --- STUDENT PACKET DATA & RENDERING ---
+    var PACKET_LINKS = {
+      renewal: {
+        title: "📘 Maryland Wear & Carry (8-Hour Renewal) — Follow-Along Guide",
+        desc: "Official 8-hour recertification study manual. Covers State v. Faulkner, SB 1 sensitive places, Jaelynn's Law, de-escalation scripts, and the 25-round BPHC qualification course.",
+        url: "https://docs.google.com/document/d/1BA5_XAKvSZ-jxq8vwwjbmHggV1JDankPewhNtJImxMg/edit?usp=drivesdk&ouid=101490363026866386126"
+      },
+      initial: {
+        title: "📘 Maryland Wear & Carry (16-Hour Initial) — Follow-Along Guide",
+        desc: "Comprehensive 16-hour initial certification packet. Step-by-step guidance through handgun mechanisms, Maryland use-of-force laws, and practical range qualification standards.",
+        url: "https://docs.google.com/document/d/1WIoQO00ALNalIuTjS320n897k3r30f6h1Vj6bJ46y6M/edit?usp=drivesdk&ouid=101490363026866386126"
+      }
+    };
+    window.PACKET_LINKS = PACKET_LINKS;
+
+    function updateStudentCoursePacketDisplay(courseName) {
+      const titleElem = document.getElementById('packetCardTitle');
+      const descElem = document.getElementById('packetCardDesc');
+      const linkElem = document.getElementById('packetCardLink');
+      const c = (courseName || '').toLowerCase();
+      const isRenewal = c.includes('renewal') || c.includes('recertification') || c.includes('8-hour') || c.includes('8 hour');
+      const packet = isRenewal ? PACKET_LINKS.renewal : PACKET_LINKS.initial;
+
+      if (titleElem) titleElem.textContent = packet.title;
+      if (descElem) descElem.textContent = packet.desc;
+      if (linkElem) {
+        linkElem.href = packet.url;
+        linkElem.textContent = isRenewal ? "Open 8-Hour Renewal Guide ↗" : "Open 16-Hour Course Guide ↗";
+      }
+    }
+    window.updateStudentCoursePacketDisplay = updateStudentCoursePacketDisplay;
+
+    // --- STUDENT DOSSIER DASHBOARD CONTROLLER ---
+    function renderStudentDashboard(student) {
+      if (!student) return;
+      if (typeof updateStudentCoursePacketDisplay === 'function') {
+        updateStudentCoursePacketDisplay(student.course);
+      }
+      const loginBox = document.getElementById('student-login-box');
+      const activeDash = document.getElementById('student-active-dashboard');
+      if (loginBox) loginBox.classList.add('hidden');
+      if (activeDash) activeDash.classList.remove('hidden');
+
+      const nameElem = document.getElementById('dash-student-name');
+      if (nameElem) nameElem.textContent = (student.fullName || 'Student').split(' ')[0];
+
+      const idElem = document.getElementById('dash-student-id');
+      if (idElem) idElem.textContent = 'ID: ' + student.studentId;
+
+      const statusElem = document.getElementById('dash-student-status');
+      if (statusElem) statusElem.textContent = student.trainingStatus || student.status || 'PREP_PENDING';
+
+      const courseElem = document.getElementById('dash-student-course');
+      if (courseElem) courseElem.textContent = (student.course || '').split('(')[0].trim();
+
+      const dateElem = document.getElementById('dash-student-date');
+      if (dateElem) dateElem.textContent = 'Date: ' + (student.assignedDate || 'To Be Scheduled');
+
+      const userTag = document.getElementById('portal-user-tag');
+      if (userTag) userTag.textContent = "Student: " + student.fullName + " (" + student.studentId + ")";
+    }
+    window.renderStudentDashboard = renderStudentDashboard;
+
+    function logoutStudent() {
+      localStorage.removeItem('fifs_student_session');
+      const dash = document.getElementById('student-active-dashboard');
+      const login = document.getElementById('student-login-box');
+      if (dash) dash.classList.add('hidden');
+      if (login) login.classList.remove('hidden');
+      const userTag = document.getElementById('portal-user-tag');
+      if (userTag) userTag.textContent = SECTION_TITLES['portal'] || 'Student Operations Portal';
+    }
+    window.logoutStudent = logoutStudent;
+
+    // --- CLIENT PORTAL DASHBOARD CONTROLLER ---
+    function renderClientDashboard(client) {
+      if (!client) return;
+      const authBox = document.getElementById('client-auth-box');
+      const dashBox = document.getElementById('client-active-dashboard');
+
+      if (authBox) authBox.style.display = 'none';
+      if (dashBox) dashBox.style.display = 'block';
+
+      const nameEl = document.getElementById('dash-client-name');
+      const idEl = document.getElementById('dash-client-id');
+      const permitEl = document.getElementById('dash-client-permit');
+      const expBadge = document.getElementById('dash-client-exp-badge');
+
+      if (nameEl) nameEl.textContent = (client.fullName || 'Client').split(' ')[0];
+      if (idEl) idEl.textContent = 'ID: ' + (client.clientId || 'Registered Client');
+      if (permitEl) permitEl.textContent = client.permitState || 'Maryland Wear & Carry';
+
+      if (expBadge) {
+        if (client.expirationDate) {
+          expBadge.textContent = 'Expiration: ' + client.expirationDate;
+        } else {
+          expBadge.textContent = 'Status: Planning / In Progress';
+        }
+      }
+
+      const calcInput = document.getElementById('fiPermitExpInput');
+      if (calcInput && client.expirationDate) {
+        calcInput.value = client.expirationDate;
+        if (typeof fiCalculateExpiration === 'function') fiCalculateExpiration();
+      }
+
+      const userTag = document.getElementById('portal-user-tag');
+      if (userTag) userTag.textContent = "Client: " + client.fullName + " (" + (client.clientId || 'Client') + ")";
+    }
+    window.renderClientDashboard = renderClientDashboard;
+
+    function logoutClient() {
+      localStorage.removeItem('fifs_client_session');
+      const dash = document.getElementById('client-active-dashboard');
+      const auth = document.getElementById('client-auth-box');
+      if (dash) dash.style.display = 'none';
+      if (auth) auth.style.display = 'block';
+      const userTag = document.getElementById('portal-user-tag');
+      if (userTag) userTag.textContent = SECTION_TITLES['fi-portal'] || 'Future Initiative Client Portal';
+    }
+    window.logoutClient = logoutClient;
+
+    // --- CLIENT PROFILE REGISTRATION SUBMIT HANDLERS ---
+    function handleClientRegisterSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const statusDiv = document.getElementById('client-register-status');
+      const btn = document.getElementById('btn-client-register-submit');
+
+      const nameInput = document.getElementById('regClientName');
+      const emailInput = document.getElementById('regClientEmail');
+      const phoneInput = document.getElementById('regClientPhone');
+      const stateInput = document.getElementById('regClientPermitState');
+      const expInput = document.getElementById('regClientExpDate');
+      const optInInput = document.getElementById('regClientOptIn');
+
+      const name = nameInput ? nameInput.value.trim() : '';
+      const email = emailInput ? emailInput.value.trim() : '';
+      const phone = phoneInput ? phoneInput.value.trim() : '';
+      const permitState = stateInput ? stateInput.value : 'Maryland Wear & Carry';
+      const expDate = expInput ? expInput.value : '';
+      const optIn = optInInput ? optInInput.checked : true;
+
+      if (!name || !email) {
+        showStatus(statusDiv, 'Full Name and Email Address are required.', 'error');
+        return;
+      }
+
+      const clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
+      const clientRecord = {
+        clientId: clientId,
+        fullName: name,
+        email: email,
+        phone: phone,
+        permitState: permitState,
+        expirationDate: expDate,
+        status: 'ACTIVE_REGISTERED',
+        optInReminder: optIn,
+        savedAt: new Date().toISOString()
+      };
+
+      try {
+        localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord));
+        localStorage.setItem('fifs_client_profile', JSON.stringify(clientRecord));
+
+        let roster = JSON.parse(localStorage.getItem('fifs_client_roster') || '[]');
+        const existingIdx = roster.findIndex(c => c.email && c.email.toLowerCase() === email.toLowerCase());
+        if (existingIdx >= 0) {
+          roster[existingIdx] = { ...roster[existingIdx], ...clientRecord };
+        } else {
+          roster.unshift(clientRecord);
+        }
+        localStorage.setItem('fifs_client_roster', JSON.stringify(roster));
+
+        localStorage.setItem('fifs_new_client_alert', JSON.stringify({
+          clientId: clientId,
+          name: name,
+          email: email,
+          phone: phone,
+          permitState: permitState,
+          expirationDate: expDate,
+          timestamp: new Date().toLocaleString()
+        }));
+      } catch(err) {}
+
+      if (btn) btn.disabled = true;
+      showStatus(statusDiv, 'Creating profile & setting renewal watch...', 'success');
+
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleClientRegistration) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (btn) btn.disabled = false;
+            showStatus(statusDiv, 'Profile established! Client ID: ' + (res.clientId || clientId) + '. Opening Dashboard...', 'success');
+            setTimeout(function() {
+              renderClientDashboard(clientRecord);
+            }, 500);
+          })
+          .withFailureHandler(function(err) {
+            if (btn) btn.disabled = false;
+            showStatus(statusDiv, 'Profile saved locally! Opening Dashboard...', 'success');
+            setTimeout(function() {
+              renderClientDashboard(clientRecord);
+            }, 500);
+          })
+          .handleClientRegistration(clientRecord);
+      } else {
+        setTimeout(function() {
+          if (btn) btn.disabled = false;
+          showStatus(statusDiv, 'Profile created! Client ID: ' + clientId + '. Opening Dashboard...', 'success');
+          setTimeout(function() {
+            renderClientDashboard(clientRecord);
+          }, 450);
+        }, 400);
+      }
+    }
+    window.handleClientRegisterSubmit = handleClientRegisterSubmit;
+
     // 2. Overlays Reset
     function closeAllOverlays() {
       const overlayIds = [
@@ -6652,8 +6910,8 @@
 
         if (priceElem) {
           priceElem.innerHTML = `
-            <span class="price-val" style="color: var(--accent-amber); font-size: 2.1rem; font-weight: 800;">${config.vipPrice}</span>
-            <span class="price-term">/ COMPLETE VIP TURNKEY</span>
+            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-amber);">${config.vipPrice}</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 700; margin-left: 6px;">(VIP Turnkey)</span>
           `;
         }
         if (btnSelect) {
@@ -6674,8 +6932,8 @@
 
         if (priceElem) {
           priceElem.innerHTML = `
-            <span class="price-val" style="color: #fff; font-size: 2.1rem; font-weight: 800;">${config.basePrice}</span>
-            <span class="price-term">/ STUDENT BASE TRACK</span>
+            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">${config.basePrice}</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
           `;
         }
         if (btnSelect) {
@@ -6919,7 +7177,7 @@
 
     function lookupClientAccount() {
       const input = document.getElementById('clientAuthInput');
-      const statusDiv = document.getElementById('client-auth-status');
+      const statusDiv = document.getElementById('client-login-status') || document.getElementById('client-auth-status');
       const query = input ? input.value.trim() : '';
 
       if (!query) {
@@ -6946,7 +7204,7 @@
       } else {
         setTimeout(function() {
           let client = null;
-          const cached = localStorage.getItem('fifs_clients_roster');
+          const cached = localStorage.getItem('fifs_client_roster') || localStorage.getItem('fifs_clients_roster');
           if (cached) {
             try {
               const list = JSON.parse(cached);
@@ -8052,7 +8310,8 @@
 <div style="font-size: 0.82rem; color: #94a3b8; line-height: 1.4;">Log into Maryland State Police Licensing Portal. Upload score sheet and pay state renewal fee.</div>
 </div>
 <div style="background: rgba(0,0,0,0.3); border-top: 3px solid #cbd5e1; padding: 14px; border-radius: 8px;">
-<div style="font-family: var(--font-display); font-size: 1rem; color: #fff; font-weight: 700;">Day 14–0</div>
+<div style="font-family: var(--font-display); font-size: 1rem; color: #fff; fo
+nt-weight: 700;">Day 14–0</div>
 <div style="font-size: 0.88rem; font-weight: 600; color: #fff; margin: 2px 0 4px;">Receive Card in Mail</div>
 <div style="font-size: 0.82rem; color: #94a3b8; line-height: 1.4;">MSP issues renewed 3-year Wear &amp; Carry permit card with zero coverage gap.</div>
 </div>
@@ -8199,8 +8458,7 @@
                 </a>
 <button class="btn-secondary-modal" onclick="openCollectorModal()" style="width: 100%; padding: 10px 18px; font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;" type="button">
                   View 4-Step Application Guide &amp; Form 77R-3 ℹ
-                <
-/button>
+                </button>
 </div>
 </div>
 </div>
@@ -13782,7 +14040,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
     // ================= DYNAMIC COURSE PACKET & MODAL HANDLERS =================
 
-    const PACKET_LINKS = {
+    // PACKET_LINKS declared in head
+    PACKET_LINKS = window.PACKET_LINKS || {
 
       renewal: {
 
@@ -13949,7 +14208,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         basePrice: "$100.00",
 
-        vipPrice: "$165.00",
+        vi
+pPrice: "$165.00",
 
         baseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
 
@@ -14498,8 +14758,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
             (currentVal.includes('Combo') && opt.includes('Combo')) ||
 
-            (currentVal.includes('Wear & Carry') && op
-t.includes('Wear & Carry') && !opt.includes('Combo')) ||
+            (currentVal.includes('Wear & Carry') && opt.includes('Wear & Carry') && !opt.includes('Combo')) ||
 
             (currentVal.includes('HQL') && opt.includes('HQL') && !opt.includes('Combo')) ||
 
@@ -18077,7 +18336,8 @@ function closeStateModal() {
                   ✈️ Personalized Airline &amp; TSA Flight Briefing Generator
                 </h4>
 <p style="font-size: 0.86rem; color: var(--text-muted); line-height: 1.5;">
-                  Select your departure airport, airline carrier, and destination state to generate a personalized compliance dossier with counter scripts and destination carry statutes.
+                  Select your departure airport, airline carrier, and destination state to generate a personalized compliance dossier wit
+h counter scripts and destination carry statutes.
                 </p>
 </div>
 </div>
@@ -18221,8 +18481,7 @@ function closeStateModal() {
       </h3>
 <div class="goal-synopsis-card" style="border-left-color: #38bdf8; background: #070b10; font-size: 0.90rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 16px;">
         The <strong>FIFS Graduate Alumni Marksmanship Clinic ($65.00)</strong> is an exclusive 2-hour diagnostic workshop reserved for verified FIFS graduates and active carry permit holders.<br/><br/>
-        To reserve a seat in an upcoming alumni clinic cohort, please sign in to your <strong>Client Portal</strong> (or create your free verified profile). Once verified, you will immediately b
-e redirected to complete your reservation.
+        To reserve a seat in an upcoming alumni clinic cohort, please sign in to your <strong>Client Portal</strong> (or create your free verified profile). Once verified, you will immediately be redirected to complete your reservation.
       </div>
 <div class="goal-modal-actions" style="display: flex; flex-direction: column; gap: 10px;">
 <button class="btn-primary" onclick="proceedToClientSignInForAlumni()" style="background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #070b10; font-weight: 800; padding: 12px; width: 100%;" type="button">
