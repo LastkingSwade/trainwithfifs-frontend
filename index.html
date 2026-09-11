@@ -7549,327 +7549,218 @@
     }
     window.closeExpectationModal = closeExpectationModal;
 
-    // 8. Course Catalog & VIP Toggles
-    // COURSE_TIER_CONFIG declared in head
-    COURSE_TIER_CONFIG = window.COURSE_TIER_CONFIG || {
-
-      mastery: {
-
-        basePrice: "$425.00",
-
-        vipPrice: "$550.00",
-
+    // --- 8B. DYNAMIC COURSE PRICING & CALENDAR SYNCHRONIZATION ENGINE ---
+    var FORM_COURSE_PRICING = {
+      "Mid-Atlantic Multi-State Mastery": {
+        base: "$425.00",
+        vip: "$550.00",
         baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($425.00)",
-
-        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)"
-
+        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)",
+        baseDesc: "Self-equipped track. Includes 16-hour instruction + live-fire qualification + documentation for MD, VA, FL, AZ, and PA. Provide own firearm and ammo.",
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
       },
-
-      combo: {
-
-        basePrice: "$249.99",
-
-        vipPrice: "$375.00",
-
+      "Maryland CCW & HQL Combo": {
+        base: "$249.99",
+        vip: "$375.00",
         baseValue: "Maryland CCW & HQL Combo — Base Track ($249.99)",
-
-        vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($375.00)"
-
+        vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($375.00)",
+        baseDesc: "Self-equipped track. 16-hour Wear & Carry curriculum + Maryland HQL exemption guide. Provide own handgun, holster, and ammo.",
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
       },
-
-      ccw: {
-
-        basePrice: "$199.99",
-
-        vipPrice: "$325.00",
-
+      "Maryland Wear & Carry (CCW)": {
+        base: "$199.99",
+        vip: "$325.00",
         baseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
-
-        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)"
-
+        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)",
+        baseDesc: "Self-equipped track. 16-hour Wear & Carry certification and live-fire range qualification. Provide own firearm and ammo.",
+        vipDesc: "👑 VIP Turnkey Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
       },
-
-      hql: {
-
-        basePrice: "$100.00",
-
-        vipPrice: "$165.00",
-
+      "Maryland Wear & Carry (8-Hour Renewal)": {
+        base: "$150.00",
+        vip: "$225.00",
+        baseValue: "Maryland Wear & Carry (8-Hour Renewal) — Base Track ($150.00)",
+        vipValue: "Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($225.00)",
+        baseDesc: "Self-equipped recertification. 8-hour classroom & range qualification. Provide own firearm and ammo.",
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner firearm, and target ammunition."
+      },
+      "Maryland HQL (Purchase License)": {
+        base: "$100.00",
+        vip: "$165.00",
         baseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
-
-        vipValue: "Maryland HQL (Purchase License) — VIP Turnkey ($165.00)"
-
+        vipValue: "Maryland HQL (Purchase License) — VIP Turnkey ($165.00)",
+        baseDesc: "Self-equipped track. 4-hour state prerequisite course with live-fire component.",
+        vipDesc: "👑 VIP Turnkey Track. Includes range fee, loaner handgun, live-fire target ammo, target & portal submission guidance!"
       },
-
-      coaching: {
-
-        basePrice: "$125.00",
-
-        vipPrice: "$195.00",
-
+      "Personal 1-on-1 Coaching": {
+        base: "$125.00/hr",
+        vip: "$195.00/hr",
         baseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
-
-        vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
-
+        vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)",
+        baseDesc: "Dedicated 1-on-1 private coaching. Custom diagnostic instruction.",
+        vipDesc: "👑 VIP Turnkey Track. Includes private lane fee, diagnostic sensor telemetry (MantisX), loaner firearms & ammunition!"
       },
-
-      cleaning: {
-        basePrice: "$75.00",
-        vipPrice: "$115.00",
+      "Gun Cleaning & Maintenance": {
+        base: "$75.00",
+        vip: "$115.00",
         baseValue: "Gun Cleaning & Maintenance — Base Track ($75.00)",
-        vipValue: "Gun Cleaning & Maintenance — VIP Turnkey ($115.00)"
+        vipValue: "Gun Cleaning & Maintenance — VIP Turnkey ($115.00)",
+        baseDesc: "Instructional field-strip, cleaning, and maintenance workshop.",
+        vipDesc: "👑 VIP Turnkey Track. Includes full premium take-home cleaning kit, ultrasonic treatment & specialized solvents!"
       },
-      children: {
-        basePrice: "$199.99",
-        vipPrice: "$265.00",
+      "Children's Safety Class": {
+        base: "$199.99",
+        vip: "$265.00",
         baseValue: "Children's Safety Class — Base Track ($199.99)",
-        vipValue: "Children's Safety Class — VIP Turnkey ($265.00)"
+        vipValue: "Children's Safety Class — VIP Turnkey ($265.00)",
+        baseDesc: "Family safety and Eddie Eagle accident-prevention curriculum.",
+        vipDesc: "👑 VIP Turnkey Track. Includes certified home cable gun locks, youth workbook & completion certificate!"
       },
-      alumni: {
-        basePrice: "$65.00",
-        vipPrice: "$115.00",
-        baseValue: "FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)",
-        vipValue: "FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
+      "FIFS Graduate Alumni Marksmanship Clinic": {
+        base: "$65.00",
+        vip: "$65.00",
+        baseValue: "FIFS Graduate Alumni Marksmanship Clinic ($65.00)",
+        vipValue: "FIFS Graduate Alumni Marksmanship Clinic ($65.00)",
+        baseDesc: "FIFS alumni exclusive clinic. 2-hour practical diagnostic shooting workshop at Cindy's Hot Shots (Glen Burnie, MD) coached directly by Lead Instructor Kai Wade.",
+        vipDesc: "Flat rate for certified graduates and permit holders ($65.00/session). No VIP package needed—all training and lane access included!"
       }
-    };;
-    window.COURSE_TIER_CONFIG = COURSE_TIER_CONFIG;
+    };
+    window.FORM_COURSE_PRICING = FORM_COURSE_PRICING;
 
-    function setCardTier(courseKey, targetTier, evt) {
-      if (evt && evt.stopPropagation) evt.stopPropagation();
-      const config = (window.COURSE_TIER_CONFIG && window.COURSE_TIER_CONFIG[courseKey]) || COURSE_TIER_CONFIG[courseKey];
-      if (!config) return;
+    function getMatchedCourseKey(selectedVal) {
+      const v = (selectedVal || '').toLowerCase();
+      if (v.includes('alumni') || v.includes('clinic')) return "FIFS Graduate Alumni Marksmanship Clinic";
+      if (v.includes('multi-state') || v.includes('mastery')) return "Mid-Atlantic Multi-State Mastery";
+      if (v.includes('combo')) return "Maryland CCW & HQL Combo";
+      if (v.includes('renewal') || v.includes('recertification') || v.includes('8-hour') || v.includes('8 hour')) return "Maryland Wear & Carry (8-Hour Renewal)";
+      if (v.includes('wear & carry') || v.includes('ccw')) return "Maryland Wear & Carry (CCW)";
+      if (v.includes('hql')) return "Maryland HQL (Purchase License)";
+      if (v.includes('1-on-1') || v.includes('coaching') || v.includes('one-on-one')) return "Personal 1-on-1 Coaching";
+      if (v.includes('cleaning')) return "Gun Cleaning & Maintenance";
+      if (v.includes('children') || v.includes('youth')) return "Children's Safety Class";
+      return "Maryland CCW & HQL Combo";
+    }
+    window.getMatchedCourseKey = getMatchedCourseKey;
 
-      const card = document.getElementById('card-course-' + courseKey);
-      const switchBox = document.getElementById('switch-' + courseKey);
-      const badge = document.getElementById('badge-course-' + courseKey);
-      const priceElem = document.getElementById('price-course-' + courseKey);
-      const vipBox = document.getElementById('vip-box-course-' + courseKey) || document.getElementById('vip-box-' + courseKey);
-      const btnSelect = document.getElementById('btn-select-course-' + courseKey);
+    function updateFormPriceDisplay() {
+      const selectElem = document.getElementById('courseSelection');
+      if (!selectElem) return;
 
-      if (!card) return;
+      const selectedVal = selectElem.value || '';
+      const isVip = selectedVal.includes('VIP') || selectedVal.includes('Turnkey');
 
-      if (targetTier === 'vip') {
-        card.classList.add('vip-mode-active');
-        card.style.setProperty('background', 'linear-gradient(135deg, rgba(255, 183, 3, 0.14) 0%, rgba(13, 19, 27, 0.98) 100%)', 'important');
-        card.style.setProperty('border', '2px solid var(--accent-amber)', 'important');
-        card.style.setProperty('box-shadow', '0 0 28px rgba(255, 183, 3, 0.4), 0 12px 36px rgba(0, 0, 0, 0.85)', 'important');
+      const matchedKey = getMatchedCourseKey(selectedVal);
+      const pData = (window.FORM_COURSE_PRICING && window.FORM_COURSE_PRICING[matchedKey]) || FORM_COURSE_PRICING[matchedKey];
+      if (!pData) return;
 
-        if (switchBox) switchBox.classList.add('vip-active');
-        if (badge) badge.style.setProperty('display', 'block', 'important');
-        if (vipBox) vipBox.style.setProperty('display', 'block', 'important');
+      const titleElem = document.getElementById('formCardCourseTitle');
+      const tierTag = document.getElementById('formCardTierTag');
+      const activePrice = document.getElementById('formCardActivePrice');
+      const baseVal = document.getElementById('formPriceBaseVal');
+      const vipVal = document.getElementById('formPriceVipVal');
+      const tierDesc = document.getElementById('formCardTierDesc');
+      const boxBase = document.getElementById('formBoxBase');
+      const boxVip = document.getElementById('formBoxVip');
 
-        if (priceElem) {
-          priceElem.innerHTML = `
-            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-amber);">${config.vipPrice}</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 700; margin-left: 6px;">(VIP Turnkey)</span>
-          `;
+      if (titleElem) titleElem.textContent = matchedKey;
+      if (baseVal) baseVal.textContent = pData.base;
+      if (vipVal) vipVal.textContent = pData.vip;
+
+      if (isVip) {
+        if (tierTag) {
+          tierTag.textContent = "👑 VIP Turnkey Track Selected";
+          tierTag.style.color = "var(--accent-amber)";
         }
-        if (btnSelect) {
-          btnSelect.onclick = function() { selectCourse(config.vipValue); };
-          btnSelect.textContent = "Select VIP Turnkey (" + config.vipPrice + ") →";
-          btnSelect.style.background = 'linear-gradient(135deg, var(--accent-amber) 0%, #d97706 100%)';
-          btnSelect.style.color = '#070b10';
+        if (activePrice) {
+          activePrice.textContent = pData.vip;
+          activePrice.style.color = "var(--accent-amber)";
+        }
+        if (tierDesc) {
+          tierDesc.textContent = pData.vipDesc;
+          tierDesc.style.borderLeftColor = "var(--accent-amber)";
+        }
+        if (boxVip) {
+          boxVip.style.borderColor = "var(--accent-amber)";
+          boxVip.style.background = "rgba(255, 183, 3, 0.14)";
+          boxVip.style.boxShadow = "0 0 14px rgba(255, 183, 3, 0.35)";
+        }
+        if (boxBase) {
+          boxBase.style.borderColor = "var(--border-subtle)";
+          boxBase.style.background = "#070b10";
+          boxBase.style.boxShadow = "none";
         }
       } else {
-        card.classList.remove('vip-mode-active');
-        card.style.setProperty('background', '', '');
-        card.style.setProperty('border', '', '');
-        card.style.setProperty('box-shadow', '', '');
-
-        if (switchBox) switchBox.classList.remove('vip-active');
-        if (badge) badge.style.setProperty('display', 'none', 'important');
-        if (vipBox) vipBox.style.setProperty('display', 'none', 'important');
-
-        if (priceElem) {
-          priceElem.innerHTML = `
-            <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">${config.basePrice}</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
-          `;
+        if (tierTag) {
+          tierTag.textContent = "Standard Base Track Selected";
+          tierTag.style.color = "var(--accent-cyan)";
         }
-        if (btnSelect) {
-          btnSelect.onclick = function() { selectCourse(config.baseValue); };
-          btnSelect.textContent = "Select Course (" + config.basePrice + ") →";
-          btnSelect.style.background = '';
-          btnSelect.style.color = '';
+        if (activePrice) {
+          activePrice.textContent = pData.base;
+          activePrice.style.color = "var(--accent-cyan)";
+        }
+        if (tierDesc) {
+          tierDesc.textContent = pData.baseDesc;
+          tierDesc.style.borderLeftColor = "var(--accent-cyan)";
+        }
+        if (boxBase) {
+          boxBase.style.borderColor = "var(--accent-cyan)";
+          boxBase.style.background = "rgba(0, 229, 255, 0.12)";
+          boxBase.style.boxShadow = "0 0 14px rgba(0, 229, 255, 0.35)";
+        }
+        if (boxVip) {
+          boxVip.style.borderColor = "var(--border-subtle)";
+          boxVip.style.background = "#070b10";
+          boxVip.style.boxShadow = "none";
         }
       }
+
+      if (typeof renderBookingCalendar === 'function') {
+        try { renderBookingCalendar(); } catch(e) {}
+      }
     }
-    window.setCardTier = setCardTier;
+    window.updateFormPriceDisplay = updateFormPriceDisplay;
 
-    function toggleCardTier(courseKey, evt) {
-      const switchBox = document.getElementById('switch-' + courseKey);
-      const isVip = switchBox ? switchBox.classList.contains('vip-active') : false;
-      setCardTier(courseKey, isVip ? 'base' : 'vip', evt);
-    }
-    window.toggleCardTier = toggleCardTier;
-
-    
-    // =========================================================================
-    // DYNAMIC INTERACTIVE BOOKING CALENDAR CONTROLLER (VIP 7-DAY UNLOCK ENGINE)
-    // =========================================================================
-    var calCurrentYear = new Date().getFullYear();
-    var calCurrentMonth = new Date().getMonth();
-    var calSelectedDate = null;
-    var calBookedDates = ['2026-10-03', '2026-10-10', '2026-10-17', '2026-10-24', '2026-11-07'];
-
-    window.calCurrentYear = calCurrentYear;
-    window.calCurrentMonth = calCurrentMonth;
-    window.calSelectedDate = calSelectedDate;
-    window.calBookedDates = calBookedDates;
-
-    function renderBookingCalendar() {
-      const grid = document.getElementById('bookingCalDaysGrid');
-      const label = document.getElementById('bookingCalMonthLabel');
-      const policyBanner = document.getElementById('calendarPolicyText');
-      if (!grid || !label) return;
-
-      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      label.textContent = `${monthNames[calCurrentMonth]} ${calCurrentYear}`;
-
+    function toggleFormTier(targetTier) {
       const selectElem = document.getElementById('courseSelection');
-      const curVal = (selectElem && selectElem.value ? String(selectElem.value) : '').toLowerCase();
-      const isVip = curVal.includes('vip') || curVal.includes('turnkey');
+      if (!selectElem || !selectElem.options) return;
 
-      if (policyBanner) {
-        if (isVip) {
-          policyBanner.innerHTML = '👑 <strong style="color: var(--accent-amber);">VIP Turnkey Perk:</strong> Priority <strong>7-Day Flexible Scheduling (Monday–Sunday)</strong> is 100% unlocked! You may choose any date across the entire month.';
-          policyBanner.style.borderColor = 'var(--accent-amber)';
-          policyBanner.style.background = 'linear-gradient(135deg, rgba(255, 183, 3, 0.15) 0%, rgba(13, 19, 27, 0.98) 100%)';
-          policyBanner.style.boxShadow = '0 0 16px rgba(255, 183, 3, 0.2)';
-        } else {
-          policyBanner.innerHTML = '📅 <strong>Standard Schedule:</strong> Classes held on <strong>Saturdays &amp; Sundays</strong> only. Weekdays locked. (Toggle to 👑 VIP to unlock the rest of the month).';
-          policyBanner.style.borderColor = 'var(--accent-cyan)';
-          policyBanner.style.background = 'rgba(0, 229, 255, 0.08)';
-          policyBanner.style.boxShadow = 'none';
+      const currentVal = selectElem.value || '';
+      const currentKey = getMatchedCourseKey(currentVal);
+      const pData = (window.FORM_COURSE_PRICING && window.FORM_COURSE_PRICING[currentKey]) || FORM_COURSE_PRICING[currentKey];
+      if (!pData) return;
+
+      const targetValue = (targetTier === 'vip') ? pData.vipValue : pData.baseValue;
+
+      // Find exact match in options
+      let matched = false;
+      for (let i = 0; i < selectElem.options.length; i++) {
+        const optVal = selectElem.options[i].value;
+        if (optVal === targetValue) {
+          selectElem.selectedIndex = i;
+          selectElem.value = optVal;
+          matched = true;
+          break;
         }
       }
 
-      grid.innerHTML = '';
-
-      const firstDay = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
-      const totalDays = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
-
-      // Empty leading cells
-      for (let i = 0; i < firstDay; i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.style.background = '#070b10';
-        emptyCell.style.minHeight = '42px';
-        grid.appendChild(emptyCell);
-      }
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      for (let d = 1; d <= totalDays; d++) {
-        const cellDate = new Date(calCurrentYear, calCurrentMonth, d);
-        cellDate.setHours(0, 0, 0, 0);
-        const dayOfWeek = cellDate.getDay(); // 0 = Sun, 6 = Sat
-        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-        const dateKey = `${calCurrentYear}-${String(calCurrentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const isBooked = calBookedDates.includes(dateKey);
-        const isPast = cellDate < today;
-
-        const cell = document.createElement('div');
-        cell.style.background = '#0d1219';
-        cell.style.minHeight = '42px';
-        cell.style.display = 'flex';
-        cell.style.flexDirection = 'column';
-        cell.style.alignItems = 'center';
-        cell.style.justifyContent = 'center';
-        cell.style.fontSize = '0.86rem';
-        cell.style.fontWeight = '700';
-        cell.style.cursor = 'pointer';
-        cell.style.transition = 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)';
-        cell.textContent = d;
-
-        if (isPast) {
-          cell.style.color = '#334155';
-          cell.style.cursor = 'not-allowed';
-          cell.style.opacity = '0.4';
-          cell.title = 'Past date';
-        } else if (isBooked) {
-          cell.style.color = '#ef4444';
-          cell.style.cursor = 'not-allowed';
-          cell.title = 'Class session already booked for this date';
-          cell.innerHTML = `${d}<span style="width: 5px; height: 5px; border-radius: 50%; background: #ef4444; margin-top: 2px;"></span>`;
-        } else if (!isVip && !isWeekend) {
-          // Standard Base Track is locked to Saturdays & Sundays only. Weekdays locked!
-          cell.style.color = '#334155';
-          cell.style.background = '#080c11';
-          cell.style.opacity = '0.28';
-          cell.style.cursor = 'not-allowed';
-          cell.style.pointerEvents = 'none';
-          cell.title = 'Standard Base Track is locked to Saturdays & Sundays only. Upgrade to VIP Turnkey to unlock weekdays!';
-          cell.innerHTML = `<span style="opacity: 0.35;">${d}</span><span style="font-size: 0.65rem; color: #475569; margin-top: 1px;">🔒</span>`;
-        } else {
-          // Available Date!
-          cell.style.color = '#fff';
-          if (isVip && !isWeekend) {
-            cell.style.background = 'rgba(255, 183, 3, 0.08)';
-            cell.style.borderColor = 'rgba(255, 183, 3, 0.3)';
-          }
-
-          if (calSelectedDate === dateKey) {
-            cell.style.background = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
-            cell.style.color = '#070b10';
-            cell.style.fontWeight = '900';
-            cell.style.boxShadow = isVip ? '0 0 16px var(--accent-amber)' : '0 0 16px var(--accent-cyan)';
-            cell.style.transform = 'scale(1.08)';
-            cell.innerHTML = `<strong>${d}</strong><span style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase;">SET</span>`;
-          } else {
-            cell.onmouseenter = function() {
-              if (calSelectedDate !== dateKey) {
-                cell.style.background = isVip ? 'rgba(255, 183, 3, 0.25)' : 'rgba(0, 229, 255, 0.25)';
-                cell.style.transform = 'translateY(-2px)';
-              }
-            };
-            cell.onmouseleave = function() {
-              if (calSelectedDate !== dateKey) {
-                cell.style.background = (isVip && !isWeekend) ? 'rgba(255, 183, 3, 0.08)' : '#0d1219';
-                cell.style.transform = '';
-              }
-            };
-            cell.onclick = function() {
-              selectBookingDate(dateKey, cellDate, isVip);
-            };
+      if (!matched) {
+        const isVip = (targetTier === 'vip');
+        for (let i = 0; i < selectElem.options.length; i++) {
+          const optVal = selectElem.options[i].value;
+          const optKey = getMatchedCourseKey(optVal);
+          const optIsVip = optVal.includes('VIP') || optVal.includes('Turnkey');
+          if (optKey === currentKey && optIsVip === isVip) {
+            selectElem.selectedIndex = i;
+            selectElem.value = optVal;
+            matched = true;
+            break;
           }
         }
-        grid.appendChild(cell);
       }
+
+      updateFormPriceDisplay();
     }
-    window.renderBookingCalendar = renderBookingCalendar;
+    window.toggleFormTier = toggleFormTier;
 
-    function changeBookingCalendarMonth(delta) {
-      calCurrentMonth += delta;
-      if (calCurrentMonth > 11) {
-        calCurrentMonth = 0;
-        calCurrentYear++;
-      } else if (calCurrentMonth < 0) {
-        calCurrentMonth = 11;
-        calCurrentYear--;
-      }
-      renderBookingCalendar();
-    }
-    window.changeBookingCalendarMonth = changeBookingCalendarMonth;
-
-    function selectBookingDate(dateKey, dateObj, isVip) {
-      calSelectedDate = dateKey;
-      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const formatted = `${dayNames[dateObj.getDay()]}, ${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()} • 9:00 AM (${isVip ? 'VIP Priority Session' : 'Weekend Session'})`;
-
-      const input = document.getElementById('preferredDates');
-      const text = document.getElementById('bookingCalSelectedDateText');
-      if (input) input.value = formatted;
-      if (text) {
-        text.textContent = formatted;
-        text.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
-      }
-      renderBookingCalendar();
-    }
-    window.selectBookingDate = selectBookingDate;
-
-    // 9. Course Selection & Booking Modal
     function openCourseBookingModal() {
       const modal = document.getElementById('courseBookingModal');
       if (modal) {
@@ -7879,10 +7770,12 @@
         modal.style.setProperty('pointer-events', 'auto', 'important');
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        if (typeof renderBookingCalendar === 'function') {
-          try { renderBookingCalendar(); } catch(e) {}
-          setTimeout(function() { try { renderBookingCalendar(); } catch(e) {} }, 30);
-        }
+      }
+      if (typeof updateFormPriceDisplay === 'function') {
+        try { updateFormPriceDisplay(); } catch(e) {}
+      }
+      if (typeof renderBookingCalendar === 'function') {
+        try { renderBookingCalendar(); } catch(e) {}
       }
     }
     window.openCourseBookingModal = openCourseBookingModal;
@@ -7915,6 +7808,7 @@
       const selectElem = document.getElementById('courseSelection');
       if (selectElem && selectElem.options) {
         let matched = false;
+        // 1. Exact match check
         for (let i = 0; i < selectElem.options.length; i++) {
           const optVal = selectElem.options[i].value.toLowerCase().trim();
           if (optVal === valClean) {
@@ -7924,106 +7818,40 @@
             break;
           }
         }
+        // 2. Substring & tier check
         if (!matched) {
-          const isVip = valClean.includes('vip');
+          const isVip = valClean.includes('vip') || valClean.includes('turnkey');
+          const targetKey = getMatchedCourseKey(courseValue);
           for (let i = 0; i < selectElem.options.length; i++) {
-            const optVal = selectElem.options[i].value.toLowerCase().trim();
-            const optIsVip = optVal.includes('vip');
-            if (isVip === optIsVip) {
-              if ((valClean.includes('multi-state') || valClean.includes('mastery')) && optVal.includes('multi-state')) { selectElem.selectedIndex = i; matched = true; break; }
-              if (valClean.includes('combo') && optVal.includes('combo')) { selectElem.selectedIndex = i; matched = true; break; }
-              if ((valClean.includes('wear & carry') || valClean.includes('ccw')) && !valClean.includes('combo') && !valClean.includes('multi-state') && optVal.includes('wear & carry')) { selectElem.selectedIndex = i; matched = true; break; }
-              if (valClean.includes('hql') && !valClean.includes('combo') && optVal.includes('hql')) { selectElem.selectedIndex = i; matched = true; break; }
-              if ((valClean.includes('1-on-1') || valClean.includes('coaching')) && (optVal.includes('1-on-1') || optVal.includes('coaching'))) { selectElem.selectedIndex = i; matched = true; break; }
-              if (valClean.includes('cleaning') && optVal.includes('cleaning')) { selectElem.selectedIndex = i; matched = true; break; }
-              if ((valClean.includes('children') || valClean.includes('youth')) && optVal.includes('children')) { selectElem.selectedIndex = i; matched = true; break; }
+            const optVal = selectElem.options[i].value;
+            const optKey = getMatchedCourseKey(optVal);
+            const optIsVip = optVal.includes('VIP') || optVal.includes('Turnkey');
+            if (optKey === targetKey && optIsVip === isVip) {
+              selectElem.selectedIndex = i;
+              selectElem.value = optVal;
+              matched = true;
+              break;
             }
           }
         }
-        if (typeof updateFormPriceDisplay === 'function') updateFormPriceDisplay();
+        // 3. Key match fallback
+        if (!matched) {
+          const targetKey = getMatchedCourseKey(courseValue);
+          for (let i = 0; i < selectElem.options.length; i++) {
+            const optVal = selectElem.options[i].value;
+            if (getMatchedCourseKey(optVal) === targetKey) {
+              selectElem.selectedIndex = i;
+              selectElem.value = optVal;
+              matched = true;
+              break;
+            }
+          }
+        }
       }
+
       openCourseBookingModal();
     }
     window.selectCourse = selectCourse;
-
-    function toggleFormTier(targetTier) {
-      const selectElem = document.getElementById('courseSelection');
-      if (!selectElem || !selectElem.options) return;
-      const currentVal = selectElem.value || '';
-      const isCurrentlyVip = currentVal.includes('VIP') || currentVal.includes('Turnkey');
-
-      if (targetTier === 'vip' && !isCurrentlyVip) {
-        for (let i = 0; i < selectElem.options.length; i++) {
-          const opt = selectElem.options[i].value;
-          if (opt.includes('VIP') || opt.includes('Turnkey')) {
-            selectElem.selectedIndex = i;
-            selectElem.value = opt;
-            break;
-          }
-        }
-      } else if (targetTier === 'base' && isCurrentlyVip) {
-        for (let i = 0; i < selectElem.options.length; i++) {
-          const opt = selectElem.options[i].value;
-          if (opt.includes('Base') || (!opt.includes('VIP') && !opt.includes('Turnkey'))) {
-            selectElem.selectedIndex = i;
-            selectElem.value = opt;
-            break;
-          }
-        }
-      }
-
-      // Visual Animation on Tier Boxes in Course Booking Modal
-      const boxBase = document.getElementById('formBoxBase');
-      const boxVip = document.getElementById('formBoxVip');
-      const tierDesc = document.getElementById('formCardTierDesc');
-
-      if (targetTier === 'vip') {
-        if (boxVip) {
-          boxVip.style.setProperty('border', '2px solid var(--accent-amber)', 'important');
-          boxVip.style.setProperty('box-shadow', '0 0 20px var(--accent-amber-glow)', 'important');
-          boxVip.style.setProperty('transform', 'scale(1.025)', 'important');
-          boxVip.style.setProperty('background', 'linear-gradient(135deg, rgba(255,183,3,0.18) 0%, #0d1219 100%)', 'important');
-          boxVip.style.opacity = '1';
-        }
-        if (boxBase) {
-          boxBase.style.setProperty('border', '1px solid var(--border-subtle)', 'important');
-          boxBase.style.setProperty('box-shadow', 'none', 'important');
-          boxBase.style.setProperty('transform', 'scale(1)', 'important');
-          boxBase.style.setProperty('background', '#070b10', 'important');
-          boxBase.style.opacity = '0.65';
-        }
-        if (tierDesc) {
-          tierDesc.style.borderLeftColor = 'var(--accent-amber)';
-          tierDesc.style.color = '#fef08a';
-        }
-      } else {
-        if (boxBase) {
-          boxBase.style.setProperty('border', '2px solid var(--accent-cyan)', 'important');
-          boxBase.style.setProperty('box-shadow', '0 0 20px var(--accent-cyan-glow)', 'important');
-          boxBase.style.setProperty('transform', 'scale(1.025)', 'important');
-          boxBase.style.setProperty('background', 'linear-gradient(135deg, rgba(0,229,255,0.18) 0%, #0d1219 100%)', 'important');
-          boxBase.style.opacity = '1';
-        }
-        if (boxVip) {
-          boxVip.style.setProperty('border', '1px solid var(--border-subtle)', 'important');
-          boxVip.style.setProperty('box-shadow', 'none', 'important');
-          boxVip.style.setProperty('transform', 'scale(1)', 'important');
-          boxVip.style.setProperty('background', '#070b10', 'important');
-          boxVip.style.opacity = '0.65';
-        }
-        if (tierDesc) {
-          tierDesc.style.borderLeftColor = 'var(--accent-cyan)';
-          tierDesc.style.color = '#cbd5e1';
-        }
-      }
-
-      if (typeof updateFormPriceDisplay === 'function') updateFormPriceDisplay();
-      // Re-render calendar immediately to unlock all days of the month for VIP!
-      if (typeof renderBookingCalendar === 'function') {
-        renderBookingCalendar();
-      }
-    }
-    window.toggleFormTier = toggleFormTier;
 
     // 10. Contact & Live Chat Modals
     function openContactWidgetModal() {
@@ -8631,8 +8459,7 @@
 
       { id: "1-__LG3c5gZA2zAKX-qeX8magmZRBETsY", course: "Paired Session", score: "Dual Qualifiers", title: "Paired Training Cohort", desc: "Two students celebrating successful state qualification following their live-fire practical course of fire.", loc: "Cindy's Hot Shots • Range Exit" },
 
-      { id: "1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5", course: "Maryland CCW", score: "X-Ring Cluster", title:
- "Red X-Ring Accuracy", desc: "Dead-center shot placement clustered around the red X-ring on the B-27 qualification target.", loc: "Certified Range • Cindy's Hot Shots" }
+      { id: "1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5", course: "Maryland CCW", score: "X-Ring Cluster", title: "Red X-Ring Accuracy", desc: "Dead-center shot placement clustered around the red X-ring on the B-27 qualification target.", loc: "Certified Range • Cindy's Hot Shots" }
 
     ];;
     window.TARGET_PHOTOS_DATA = TARGET_PHOTOS_DATA;
@@ -8783,7 +8610,8 @@
       } else {
         modal.classList.remove('active');
         modal.style.setProperty('display', 'none', 'important');
-        modal.style.setProperty('opacity', '0', 'important');
+        modal.style.setProperty('opacity', '0
+', 'important');
         modal.style.setProperty('visibility', 'hidden', 'important');
         modal.style.setProperty('pointer-events', 'none', 'important');
         document.body.style.overflow = '';
@@ -12657,8 +12485,7 @@
 </div>
 </div><div class="goal-modal-overlay" id="scoreSheetLightboxModal" onclick="if(event.target===this) closeScoreSheetLightbox()" style="display: none; position: fixed; inset: 0; background: rgba(4, 7, 11, 0.96); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 999999; justify-content: center; align-items: center; padding: 16px;">
 <div aria-modal="true" class="goal-modal-box" onclick="event.stopPropagation()" role="dialog" style="max-width: 920px; border-color: var(--accent-cyan); box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 35px var(--accent-cyan-glow); padding: 22px; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden;">
-<div style="display: flex; justify-conte
-nt: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 16px;">
+<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 16px;">
 <div>
 <span class="goal-header-badge" style="color: var(--accent-amber); border-color: var(--accent-amber); background: rgba(255,183,3,0.12);">OFFICIAL STATE POLICE COMPLIANCE RECORD</span>
 <h3 class="goal-modal-title" style="color: #fff; margin: 4px 0 2px; font-size: 1.45rem; text-transform: uppercase;">
@@ -12785,7 +12612,8 @@ nt: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px
 <!-- Category Color Legend -->
 <div class="map-legend-bar">
 <div class="legend-item" onclick="setCategoryFilter('all')">
-<span class="legend-color-box" style="background: #1e293b; border: 1px solid var(--accent-cyan);"></span>
+<span class="legend-col
+or-box" style="background: #1e293b; border: 1px solid var(--accent-cyan);"></span>
 <span>Show All (51)</span>
 </div>
 <div class="legend-item" onclick="setCategoryFilter('constitutional')">
@@ -16604,8 +16432,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         title: "Certified Score Sheet Delivery (MSP Form 29-14)",
         icon: "📜",
         status: "Official Record",
-        synopsis: "Upon pa
-ssing your live-fire shoot, Coach Kai Wade signs and certifies your official Maryland State Police Form 29-14 Training Documentation.",
+        synopsis: "Upon passing your live-fire shoot, Coach Kai Wade signs and certifies your official Maryland State Police Form 29-14 Training Documentation.",
         points: [
           "✔ Certified MSP Form 29-14 signed with Instructor QHIC # and date.",
           "✔ High-resolution PDF generated and delivered to your Student Portal.",
@@ -16766,7 +16593,8 @@ ssing your live-fire shoot, Coach Kai Wade signs and certifies your official Mar
       const heading = document.getElementById('stepModalHeading');
       const icon = document.getElementById('stepModalIcon');
       const status = document.getElementById('stepModalStatus');
-      const synopsis = document.getElementById('stepModalSynopsis');
+      const synopsis = document.g
+etElementById('stepModalSynopsis');
       const keyPoints = document.getElementById('stepModalKeyPoints');
       const actions = document.getElementById('stepModalActions');
 
