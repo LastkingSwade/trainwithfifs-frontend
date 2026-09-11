@@ -5773,6 +5773,18 @@
 
 </style>
 <script>
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+    window.escapeHtml = escapeHtml;
+
     // ==========================================================================
     // AUTHORITATIVE CORE NAVIGATION ENGINE (DEFINED IN <HEAD> FOR INSTANT TAP/CLICK)
     // ==========================================================================
@@ -6047,19 +6059,1115 @@
     }
     window.closeContactWidgetModal = closeContactWidgetModal;
 
+    // ==========================================================================
+    // AUTHORITATIVE DATA ARCHITECTURE IN <HEAD>
+    // ==========================================================================
+    const GOAL_SYNOPSIS_DATA = {
+
+      new_to_firearms: {
+        badge: "First-Time Owner Essentials • Safety & Crisis Resources",
+        title: "Brand New to Firearms: Fundamental Safety & Guidance",
+        rec: "Universal Safety Rules, Secure Storage & Community Care",
+        courseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
+        showGuide: true,
+        synopsis: "Welcome. If you have never held or owned a firearm before, our mission is to provide you with clear, pressure-free safety fundamentals before taking any formal class. Responsible firearm ownership begins with mechanical respect, safe home storage, and emotional readiness. Owning a firearm is a serious, lifelong responsibility—we teach you to move at your own pace with zero judgment or intimidation.",
+        why: [
+          "<strong>The 4 Universal Rules of Gun Safety:</strong> Always treat every firearm as loaded; never point the muzzle at anything you are not willing to destroy; keep your finger off the trigger until your sights are on target; and always know your target and what lies beyond.",
+          "<strong>Safe Home Storage & Access Prevention:</strong> Keep firearms locked, unloaded, and separate from ammunition in a child-proof biometric or key-lock safe to prevent tragic domestic accidents.",
+          "<strong>988 Suicide & Crisis Lifeline:</strong> If you, a loved one, or a family member are experiencing distress, anxiety, or a mental health crisis, free, confidential, 24/7 support is available immediately. Call or text <strong>988</strong> or visit <a href=\"https://988lifeline.org\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color: var(--accent-cyan); text-decoration: underline; font-weight: 700;\">988lifeline.org</a>.",
+          "<strong>Temporary Off-Site Storage Support:</strong> Learn about voluntary temporary off-site firearm storage options during difficult emotional times, stress, or family transitions.",
+          "<strong>Free 6-Page Guide:</strong> Download our comprehensive 'Top 50 Questions New Gun Owners Ask' reference guide directly below."
+        ],
+        whyNot: [
+          "Owning a firearm is never a replacement for situational awareness, conflict avoidance, and de-escalation.",
+          "Never handle, clean, or purchase a firearm when emotionally overwhelmed, agitated, or in distress.",
+          "If you feel unready or anxious, do not rush—you are welcome to take our Private 1-on-1 Coaching or Family Safety Orientation first."
+        ]
+      },
+
+      want_to_purchase: {
+
+        badge: "State Legal Prerequisite • Handgun License",
+
+        title: "Looking to Buy a Handgun (Maryland HQL)",
+
+        rec: "Recommended: Maryland Handgun Qualification License ($100.00)",
+
+        courseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
+
+        showGuide: false,
+
+        synopsis: "Important clarification: In Maryland, the 'Handgun License' to buy a gun IS the HQL (Handgun Qualification License). Under Md. Public Safety § 5-117.1, licensed gun dealers cannot release a handgun to you without this certification. This class fulfills the training prerequisite required for your state 77R purchase application.",
+
+        why: [
+
+          "Your goal is home security, and you want to legally purchase a pistol from a licensed Maryland dealer (FFL).",
+
+          "Includes step-by-step guidance on creating your Maryland State Police (MSP) portal account and submitting clean paperwork without shortages.",
+
+          "Completed in half a day with live-fire verification at Cindy's Hot Shots."
+
+        ],
+
+        whyNot: [
+
+          "The HQL does NOT license you to carry a concealed weapon outside your home or business.",
+
+          "If you might want to carry concealed in the future, taking HQL now means paying for two separate classes later. The CCW Combo covers both."
+
+        ]
+
+      },
+
+      want_to_carry: {
+
+        badge: "Full Public Carry Authorization • 16-Hour",
+
+        title: "I Want to Legally Carry Concealed in Public",
+
+        rec: "Recommended: Maryland CCW (Wear & Carry Permit) ($199.99)",
+
+        courseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
+
+        showGuide: false,
+
+        synopsis: "The mandatory state-certified 16-hour curriculum and 25-round practical qualification required to receive your Maryland Handgun Wear and Carry Permit. Provides in-depth training in defensive marksmanship, holster draw mechanics, and Maryland's strict legal use-of-force standards.",
+
+        why: [
+
+          "You want legal authorization to carry a concealed handgun on your person throughout Maryland for personal and family protection.",
+
+          "Comprehensive self-defense legal education: The 5 Pillars of Lawful Force (State v. Faulkner), Castle Doctrine, and SB 1 sensitive locations.",
+
+          "Includes the official 25-round Maryland State Police live-fire qualification shoot with Lead Instructor Kai Wade."
+
+        ],
+
+        whyNot: [
+
+          "Requires a 16-hour commitment across two sessions and live-fire range qualification.",
+
+          "If you only want a pistol locked in your home nightstand for home defense and never plan to carry outside, the 4-hour HQL is all you need."
+
+        ]
+
+      },
+
+      want_both: {
+
+        badge: "Most Popular • Maximum Value & Efficiency",
+
+        title: "I Want Both: Purchase & Concealed Carry",
+
+        rec: "Recommended: Maryland CCW & HQL Combo ($249.99)",
+
+        courseValue: "Maryland CCW & HQL Combo — Base Track ($249.99)",
+
+        showGuide: false,
+
+        synopsis: "The all-inclusive gold standard for Maryland citizens. Complete your full 16-hour Wear & Carry permit certification and qualify for a training exemption on your Maryland HQL application—giving you full carry rights and handgun purchase rights in one streamlined curriculum.",
+
+        why: [
+
+          "Maximum efficiency: Once you graduate from Wear & Carry, Maryland allows you to apply for an HQL permit without paying for a separate HQL training class.",
+
+          "Covers everything from foundational safe gun handling to holster work and dynamic target acquisition.",
+
+          "Includes complete administrative walk-through for both Maryland State Police portals from start to finish."
+
+        ],
+
+        whyNot: [
+
+          "Requires the full 16-hour schedule. If you have an urgent need to purchase a home-defense firearm within the next few days, start with the standalone 4-hour HQL first."
+
+        ]
+
+      },
+
+      need_multistate: {
+
+        badge: "Multi-State Travel & I-95 Commuters",
+
+        title: "Do I Need a Multi-State Carry Permit?",
+
+        rec: "Recommended: Mid-Atlantic Multi-State Mastery ($425 Base / $550 VIP)",
+
+        courseValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)",
+
+        showGuide: false,
+
+        synopsis: "Designed for travelers, commuters, and roadtrippers who regularly cross Maryland state borders into Virginia, Pennsylvania, Delaware, the Carolinas, Georgia, or Florida. Maryland's permit alone does NOT honor Pennsylvania or Delaware directly. This course fulfills your 16-hour Maryland requirement while preparing the affidavits and documentation needed for Virginia, Florida, Arizona, and Pennsylvania non-resident carry in a single weekend.",
+
+        why: [
+
+          "You travel along I-95, I-81, or I-70 for work, family, or vacations and want legal carry coverage across multiple states without accidental felony violations.",
+
+          "Knocks out your Maryland Wear & Carry permit plus non-resident application documentation for VA, FL, AZ, and PA in one organized experience.",
+
+          "VIP Turnkey option provides everything: range fees, targets, loaner 9mm, factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos."
+
+        ],
+
+        whyNot: [
+
+          "If you only stay inside Maryland and rarely travel out of state, the standard Maryland Wear & Carry course ($199.99 Base / $325 VIP) is all you need.",
+
+          "If your only goal is keeping a firearm at home for protection, choose the Maryland HQL class instead."
+
+        ]
+
+      },
+
+      personalized_focus: {
+
+        badge: "100% Private • Custom Pace & Confidential",
+
+        title: "Personalized Coaching / Anxiety & Trauma Relief",
+
+        rec: "Recommended: Private 1-on-1 Coaching ($125.00 / hr)",
+
+        courseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
+
+        showGuide: false,
+
+        synopsis: "Dedicated one-on-one private instruction tailored exclusively to your personal comfort level, physical capabilities, and schedule with Lead Instructor Kai Wade. Zero classmates, zero judgment, and customized range drills.",
+
+        why: [
+
+          "You have anxiety, past trauma, or nervousness and want a quiet, completely controlled setting with supportive attention.",
+
+          "Advanced diagnostic shooter coaching: recoil control, red-dot optic zeroing, micro-chassis platforms, or sub-second draw mechanics.",
+
+          "Custom scheduling tailored around your personal availability."
+
+        ],
+
+        whyNot: [
+
+          "Billed at an hourly rate ($125/hr). For standard state permit compliance (Wear & Carry or HQL), our packaged group courses provide the most economical rate."
+
+        ]
+
+      }
+
+    };
+    window.GOAL_SYNOPSIS_DATA = GOAL_SYNOPSIS_DATA;
+
+    const FIFS_STEPS_DATA = {
+      1: {
+        title: "Registration & Profile Creation",
+        icon: "📝",
+        status: "Completed ✔",
+        synopsis: "Your student enrollment record has been initialized in the Future Initiative database with your unique Student ID and course selection.",
+        points: [
+          "✔ Full Name, Email, and Phone recorded in the Master Student Booking Ledger.",
+          "✔ Student Profile Document generated and stored securely in Google Drive.",
+          "✔ Lifecycle status initialized to STEP_1_REGISTERED."
+        ],
+        ctaText: "Review Course Selection & Tuition →",
+        ctaAction: "switchTab('booking')"
+      },
+      2: {
+        title: "Seat Confirmation & Training Date Assignment",
+        icon: "📅",
+        status: "Completed ✔",
+        synopsis: "Your training cohort date and firing line reservation at Cindy's Hot Shots have been assigned.",
+        points: [
+          "✔ Firing line lane slot reserved at Cindy's Hot Shots (Glen Burnie, MD).",
+          "✔ Confirmation notification and preparation briefing sent to student email.",
+          "✔ Access granted to the Future Initiative Student Operations Portal."
+        ],
+        ctaText: "Check Student Dashboard →",
+        ctaAction: "switchTab('portal')"
+      },
+      3: {
+        title: "Pre-Class Readiness & Equipment Preparation",
+        icon: "🎒",
+        status: "Active Action Required ⚡",
+        synopsis: "Preparation is critical for range safety. You must review equipment standards, lock transport rules, and acquire target ammunition before your live-fire day.",
+        points: [
+          "✔ Review Maryland Transport Compliance (Unloaded in locked case/trunk).",
+          "✔ Acquire 50–100 rounds of factory target brass ammunition (9mm, .380, etc.).",
+          "✔ Secure ANSI Z87.1 wrap-around eye protection & electronic earmuffs (or arrange loaner/rental).",
+          "✔ Verify government photo ID is valid and unexpired."
+        ],
+        ctaText: "Open Equipment & Readiness Checklist →",
+        ctaAction: "openExpectationModal('handgun')"
+      },
+      4: {
+        title: "Classroom Instruction & Self-Defense Law",
+        icon: "⚖️",
+        status: "Scheduled Evolution",
+        synopsis: "Comprehensive state-approved instruction covering firearm mechanics, conflict avoidance, de-escalation, and Maryland criminal law.",
+        points: [
+          "✔ Maryland SB 1 Sensitive Places restrictions and prohibited carry zones.",
+          "✔ State v. Faulkner duty to retreat and lawful defense of self and others.",
+          "✔ Safe staging, home storage compliance, and child access prevention laws.",
+          "✔ 100% strict zero-live-ammunition classroom policy enforced."
+        ],
+        ctaText: "View Follow-Along Course Packet →",
+        ctaAction: "window.open('https://docs.google.com/document/d/1K0dM40LAbSy8i7k9vM0iZNJk-YdYMZ9BC_tbI1l6oe0/edit?usp=sharing', '_blank')"
+      },
+      5: {
+        title: "Live-Fire Practical Range Qualification",
+        icon: "🎯",
+        status: "Range Practical",
+        synopsis: "Live-fire shooting evolution conducted on the firing line at Cindy's Hot Shots under the direct supervision of Certified Instructor Kai Wade.",
+        points: [
+          "✔ Wear & Carry: 25-round course of fire at 3, 5, 7, and 15 yards on B-27 targets (70% passing score).",
+          "✔ HQL: Demonstration of safe loading, firing, and unloading mechanics.",
+          "✔ Diagnostic feedback on grip friction, sight tracking, and trigger press reset."
+        ],
+        ctaText: "View Range Highlights & Targets →",
+        ctaAction: "switchTab('testimonial')"
+      },
+      6: {
+        title: "Certified Score Sheet Delivery (MSP Form 29-14)",
+        icon: "📜",
+        status: "Official Record",
+        synopsis: "Upon passing your live-fire shoot, Coach Kai Wade signs and certifies your official Maryland State Police Form 29-14 Training Documentation.",
+        points: [
+          "✔ Certified MSP Form 29-14 signed with Instructor QHIC # and date.",
+          "✔ High-resolution PDF generated and delivered to your Student Portal.",
+          "✔ Official Score Sheet serves as mandatory proof of training for your MSP application."
+        ],
+        ctaText: "Preview Official MSP 29-14 Score Sheet →",
+        ctaAction: "window.open('https://mdsp.maryland.gov/Organization/Licensing%20Division%20Documents/MSP%20Form%2029-14%20-%20Certified%20Handgun%20Training%20Score%20Sheet.pdf', '_blank')"
+      },
+      7: {
+        title: "MSP Portal Submission & LiveScan Fingerprints",
+        icon: "💻",
+        status: "State Application",
+        synopsis: "Submit your formal permit application online through the Maryland State Police MyLicense portal and complete your state and FBI background check.",
+        points: [
+          "✔ Obtain electronic LiveScan fingerprints from an authorized Maryland DPSCS provider.",
+          "✔ Upload your certified MSP Form 29-14 and passport-style photo to the portal.",
+          "✔ Track application progression and respond promptly to any MSP investigator inquiries."
+        ],
+        ctaText: "Open Maryland MyLicense Portal ↗",
+        ctaAction: "window.open('https://licensingportal.mdsp.maryland.gov/', '_blank')"
+      },
+      8: {
+        title: "Licensed Permit Carry & Ongoing Reciprocity",
+        icon: "🛡️",
+        status: "Milestone Achieved",
+        synopsis: "Receive your official Maryland Wear & Carry Permit card in the mail. Access our Reciprocity Engine and activate your 3-year renewal countdown watch.",
+        points: [
+          "✔ Carry lawfully across Maryland and reciprocal states.",
+          "✔ Utilize the FIFS 50-State Reciprocity Engine to verify travel compliance.",
+          "✔ Track your 3-year expiration date for 10% off your required 8-hour renewal class."
+        ],
+        ctaText: "Launch 50-State Reciprocity Hub ↗",
+        ctaAction: "toggleReciprocityHubModal(true)"
+      }
+    };
+    window.FIFS_STEPS_DATA = FIFS_STEPS_DATA;
+
+    const EXPECTATION_DATA = {
+      "handgun": {
+            "icon": "\ud83d\udd2b",
+            "badge": "Firearms & Gear Protocols",
+            "title": "Handgun & Equipment Guidelines",
+            "subtitle": "Zero-Intimidation Gear Standards for Range Day",
+            "sections": [
+                  {
+                        "title": "Do I Need My Own Handgun?",
+                        "desc": "No! You do not need to own a firearm prior to taking our courses. Handgun rentals can be coordinated directly at Cindy's Hot Shots. Taking the course before buying allows you to learn proper fit, recoil impulse, and grip ergonomics before spending money on a pistol."
+                  },
+                  {
+                        "title": "Bringing Your Own Handgun?",
+                        "desc": "If bringing your own firearm, it must be Maryland transport compliant: 100% completely unloaded and enclosed inside a rigid locked case or secured in your vehicle trunk. Strictly NO firearms may be uncased outside the firing line."
+                  },
+                  {
+                        "title": "Holster Standards (Wear & Carry Only)",
+                        "desc": "Must be a rigid, molded Kydex or heavy leather holster specifically fitted for your handgun model (OWB or IWB) that completely encloses the trigger guard. Soft nylon universal holsters and collapsible fabric holsters are strictly prohibited for safety."
+                  },
+                  {
+                        "title": "Magazines & Loading Devices",
+                        "desc": "Bring at least 2 factory magazines (3 recommended) or speedloaders for revolvers to keep shooting evolutions efficient on the firing line."
+                  }
+            ]
+      },
+      "ammunition": {
+            "icon": "\ud83d\udce6",
+            "badge": "Strict Range Safety Protocol",
+            "title": "Ammunition Protocol & Classroom Safety",
+            "subtitle": "Zero-Tolerance Policy: Range Live-Fire Only",
+            "sections": [
+                  {
+                        "title": "100% Zero-Live-Ammunition Classroom Mandate",
+                        "desc": "Absolutely zero live ammunition is permitted inside the classroom environment under any circumstance. All live ammunition must remain secured in your vehicle trunk until Instructor Kai Wade conducts the live-fire evolution downrange at Cindy's Hot Shots."
+                  },
+                  {
+                        "title": "Required Ammo Quantity",
+                        "desc": "50 to 100 rounds of factory-manufactured target ammunition. Clean brass-cased FMJ (Full Metal Jacket) is recommended. Handloaded, reloaded, or steel-core penetrating ammunition is not permitted."
+                  },
+                  {
+                        "title": "Purchasing Ammo On-Site",
+                        "desc": "Target ammunition in all standard calibers (9mm, .380 ACP, .40 S&W, .45 ACP, .38 Special) is available for purchase directly at Cindy's Hot Shots pro shop counter before range qualification."
+                  }
+            ]
+      },
+      "protection": {
+            "icon": "\ud83d\udc53",
+            "badge": "Personal Safety Equipment",
+            "title": "Eye & Hearing Protection Guidelines",
+            "subtitle": "Required Range Line Safety Specifications",
+            "sections": [
+                  {
+                        "title": "Wrap-Around Eye Protection",
+                        "desc": "Must be ANSI Z87.1 certified safety glasses with side-shield protection to guard against deflected hot brass and particulate. Regular prescription eyeglasses are acceptable if fitted with side shields."
+                  },
+                  {
+                        "title": "Hearing Protection (Electronic Recommended)",
+                        "desc": "Electronic noise-canceling earmuffs are strongly recommended because they amplify the instructor's voice and range commands while instantly compressing gunfire impulses over 85 dB. Passive muffs or foam earplugs are also accepted."
+                  },
+                  {
+                        "title": "Range Loaners / Purchases",
+                        "desc": "Safety glasses and hearing protection are available for purchase or rental at Cindy's Hot Shots on class day if you do not own them."
+                  }
+            ]
+      },
+      "attire": {
+            "icon": "\ud83d\udc55",
+            "badge": "Dress Code & Compliance",
+            "title": "Range Attire & Required Documentation",
+            "subtitle": "Comfort, Protection & State Mandate Verification",
+            "sections": [
+                  {
+                        "title": "Proper Clothing & Footwear",
+                        "desc": "Wear crew-neck t-shirts or collared shirts fitting close to the neck to prevent ejected hot brass from settling inside clothing. Closed-toe athletic shoes or boots are mandatory\u2014sandals, heels, or open-toe footwear are strictly prohibited."
+                  },
+                  {
+                        "title": "Sturdy EDC Gun Belt",
+                        "desc": "Wear a solid 1.5-inch leather or reinforced tactical gun belt capable of holding the holster securely against your body without sagging during holster draw and holstering drills."
+                  },
+                  {
+                        "title": "Mandatory Government Identification",
+                        "desc": "Valid, unexpired government-issued photo ID (Driver's License, State ID, or Military ID) is legally required for Maryland State Police paperwork and Cindy's Hot Shots range waivers."
+                  }
+            ]
+      }
+};
+    window.EXPECTATION_DATA = EXPECTATION_DATA;
+
+    const FORM_COURSE_PRICING = {
+
+      "Mid-Atlantic Multi-State Mastery": {
+
+        base: "$425.00",
+
+        vip: "$550.00",
+
+        baseDesc: "Self-equipped track. Includes 16-hour instruction + live-fire qualification + documentation for MD, VA, FL, AZ, and PA. Provide own firearm and ammo.",
+
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
+
+      },
+
+      "Maryland CCW & HQL Combo": {
+
+        base: "$249.99",
+
+        vip: "$375.00",
+
+        baseDesc: "Self-equipped track. 16-hour Wear & Carry curriculum + Maryland HQL exemption guide. Provide own handgun, holster, and ammo.",
+
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
+
+      },
+
+      "Maryland Wear & Carry (CCW)": {
+
+        base: "$199.99",
+
+        vip: "$325.00",
+
+        baseDesc: "Self-equipped track. 16-hour Wear & Carry certification and live-fire range qualification. Provide own firearm and ammo.",
+
+        vipDesc: "👑 VIP Turnkey Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
+
+      },
+
+      "Maryland HQL (Purchase License)": {
+
+        base: "$100.00",
+
+        vip: "$165.00",
+
+        baseDesc: "Self-equipped track. 4-hour state prerequisite course with live-fire component.",
+
+        vipDesc: "👑 VIP Turnkey Track. Includes range fee, loaner handgun, live-fire target ammo, target & portal submission guidance!"
+
+      },
+
+      "Personal 1-on-1 Coaching": {
+
+        base: "$125.00/hr",
+
+        vip: "$195.00/hr",
+
+        baseDesc: "Dedicated 1-on-1 private coaching. Custom diagnostic instruction.",
+
+        vipDesc: "👑 VIP Turnkey Track. Includes private lane fee, diagnostic sensor telemetry (MantisX), loaner firearms & ammunition!"
+
+      },
+
+      "Gun Cleaning & Maintenance": {
+
+        base: "$75.00",
+
+        vip: "$115.00",
+
+        baseDesc: "Instructional field-strip, cleaning, and maintenance workshop.",
+
+        vipDesc: "👑 VIP Turnkey Track. Includes full premium take-home cleaning kit, ultrasonic treatment & specialized solvents!"
+
+      },
+
+      "Children's Safety Class": {
+
+        base: "$199.99",
+
+        vip: "$265.00",
+
+        baseDesc: "Family safety and Eddie Eagle accident-prevention curriculum.",
+
+        vipDesc: "👑 VIP Turnkey Track. Includes certified home cable gun locks, youth workbook & completion certificate!"
+
+      },
+
+      "FIFS Graduate Alumni Marksmanship Clinic": {
+
+        base: "$65.00",
+
+        vip: "$65.00",
+
+        baseDesc: "FIFS alumni exclusive clinic. 2-hour practical diagnostic shooting workshop at Cindy's Hot Shots (Glen Burnie, MD) coached directly by Lead Instructor Kai Wade.",
+
+        vipDesc: "Flat rate for certified graduates and permit holders ($65.00/session). No VIP package needed—all training and lane access included!"
+
+      }
+
+    };
+    window.FORM_COURSE_PRICING = FORM_COURSE_PRICING;
+
+    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1547779726746320958/nu4yar-r8aR3c6-P-mm8YeprX5bou1uqej24tEuYhNS5LVusMuBtADVcv1vf1oJp_bum";
+    window.DISCORD_WEBHOOK_URL = DISCORD_WEBHOOK_URL;
+
+    function sendClientDiscordAlert(title, description, fields, colorInt) {
+      try {
+        if (!DISCORD_WEBHOOK_URL) return;
+        const payload = {
+          username: "FIFS Command Center",
+          avatar_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w256",
+          embeds: [{
+            title: title || "FIFS Operational Notification",
+            description: description || "",
+            color: colorInt || 0x00E5FF,
+            fields: fields || [],
+            footer: {
+              text: "Future Initiative Firearm Services • trainwithfifs.com",
+              icon_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w128"
+            },
+            timestamp: new Date().toISOString()
+          }]
+        };
+
+        fetch(DISCORD_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }).catch(function(err) {
+          console.log("Discord alert delivery notice:", err);
+        });
+      } catch (e) {
+        console.log("Discord notification catch:", e);
+      }
+    }
+    window.sendClientDiscordAlert = sendClientDiscordAlert;
+
+    function isLiveChatActiveNow() {
+      try {
+        const formatter = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'America/New_York',
+          hour: 'numeric',
+          hour12: false
+        });
+        const currentHour = parseInt(formatter.format(new Date()), 10);
+        return (currentHour >= 9 && currentHour < 17);
+      } catch (e) {
+        return true;
+      }
+    }
+    window.isLiveChatActiveNow = isLiveChatActiveNow;
+
+    function showStatus(elem, text, type) {
+      if (!elem) return;
+      elem.textContent = text;
+      elem.className = 'status-msg ' + type;
+      elem.style.display = 'block';
+    }
+    window.showStatus = showStatus;
+
+    // ==========================================================================
+    // BULLETPROOF MODAL TRIGGER ENGINE (DISPLAYS WITH OPACITY & POINTER-EVENTS)
+    // ==========================================================================
+    function openGoalSynopsis(goalKey) {
+      const data = GOAL_SYNOPSIS_DATA[goalKey];
+      if (!data) return;
+
+      const modal = document.getElementById('goalSynopsisModal');
+      const badge = document.getElementById('goalModalBadge');
+      const title = document.getElementById('goalModalTitle');
+      const rec = document.getElementById('goalModalRec');
+      const synopsis = document.getElementById('goalModalSynopsis');
+      const whyList = document.getElementById('goalModalWhyList');
+      const whyNotList = document.getElementById('goalModalWhyNotList');
+      const acceptBtn = document.getElementById('goalModalAcceptBtn');
+      const guideBanner = document.getElementById('goalModalGuideBanner');
+      const mspPortalBanner = document.getElementById('goalModalMspPortalBanner');
+
+      if (badge) badge.textContent = data.badge;
+      if (title) title.textContent = data.title;
+      if (rec) rec.textContent = data.rec;
+      if (synopsis) synopsis.textContent = data.synopsis;
+
+      if (whyList && Array.isArray(data.why)) {
+        whyList.innerHTML = data.why.map(item => `<li><span class="bullet-icon-why">✔</span><span>${item}</span></li>`).join('');
+      }
+      if (whyNotList && Array.isArray(data.whyNot)) {
+        whyNotList.innerHTML = data.whyNot.map(item => `<li><span class="bullet-icon-why-not">⚡</span><span>${item}</span></li>`).join('');
+      }
+      if (guideBanner) guideBanner.style.display = data.showGuide ? 'flex' : 'none';
+      if (mspPortalBanner) mspPortalBanner.style.display = (goalKey === 'want_to_carry') ? 'flex' : 'none';
+
+      if (acceptBtn) {
+        acceptBtn.onclick = function() {
+          closeGoalSynopsis();
+          selectCourse(data.courseValue);
+        };
+      }
+
+      if (modal) {
+        modal.classList.add('active');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.style.setProperty('visibility', 'visible', 'important');
+        modal.style.setProperty('pointer-events', 'auto', 'important');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    window.openGoalSynopsis = openGoalSynopsis;
+
+    function closeGoalSynopsis() {
+      const modal = document.getElementById('goalSynopsisModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.setProperty('display', 'none', 'important');
+        modal.style.setProperty('opacity', '0', 'important');
+        modal.style.setProperty('pointer-events', 'none', 'important');
+      }
+      if (document.body) {
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      }
+    }
+    window.closeGoalSynopsis = closeGoalSynopsis;
+
     function openStepDetailModal(stepNum) {
-      if (typeof window.__openStepDetailModalImpl === 'function') {
-        window.__openStepDetailModalImpl(stepNum);
+      const data = FIFS_STEPS_DATA[stepNum];
+      if (!data) return;
+
+      const modal = document.getElementById('stepDetailModal');
+      const badge = document.getElementById('stepModalBadge');
+      const heading = document.getElementById('stepModalHeading');
+      const icon = document.getElementById('stepModalIcon');
+      const status = document.getElementById('stepModalStatus');
+      const synopsis = document.getElementById('stepModalSynopsis');
+      const keyPoints = document.getElementById('stepModalKeyPoints');
+      const actions = document.getElementById('stepModalActions');
+
+      if (badge) badge.textContent = `STEP ${stepNum} OF 8 • TRAINING ROADMAP`;
+      if (heading) heading.textContent = data.title;
+      if (icon) icon.textContent = data.icon;
+      if (status) status.textContent = `Status: ${data.status}`;
+      if (synopsis) synopsis.textContent = data.synopsis;
+
+      if (keyPoints && Array.isArray(data.points)) {
+        keyPoints.innerHTML = data.points.map(p => `
+          <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; color: #cbd5e1;">
+            ${p}
+          </div>
+        `).join('');
+      }
+
+      if (actions) {
+        actions.innerHTML = `
+          <button type="button" class="btn-primary" onclick="closeStepDetailModal(); ${data.ctaAction};">
+            ${data.ctaText}
+          </button>
+          <button type="button" class="btn-secondary-modal" onclick="closeStepDetailModal()">
+            Close Step Overview
+          </button>
+        `;
+      }
+
+      if (modal) {
+        modal.classList.add('active');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.style.setProperty('visibility', 'visible', 'important');
+        modal.style.setProperty('pointer-events', 'auto', 'important');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
       }
     }
     window.openStepDetailModal = openStepDetailModal;
 
+    function closeStepDetailModal() {
+      const modal = document.getElementById('stepDetailModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.setProperty('display', 'none', 'important');
+        modal.style.setProperty('opacity', '0', 'important');
+        modal.style.setProperty('pointer-events', 'none', 'important');
+      }
+      if (document.body) {
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      }
+    }
+    window.closeStepDetailModal = closeStepDetailModal;
+
     function openExpectationModal(type) {
-      if (typeof window.__openExpectationModalImpl === 'function') {
-        window.__openExpectationModalImpl(type);
+      const data = EXPECTATION_DATA[type];
+      if (!data) return;
+
+      const modal = document.getElementById('expectationModal');
+      const badge = document.getElementById('expectModalBadge');
+      const heading = document.getElementById('expectModalHeading');
+      const icon = document.getElementById('expectModalIcon');
+      const subtitle = document.getElementById('expectModalSubtitle');
+      const synopsis = document.getElementById('expectModalSynopsis');
+      const grid = document.getElementById('expectModalSectionsGrid');
+
+      if (badge) badge.textContent = data.badge;
+      if (heading) heading.textContent = data.title;
+      if (icon) icon.textContent = data.icon;
+      if (subtitle) subtitle.textContent = data.subtitle;
+      if (synopsis) synopsis.textContent = data.synopsis || data.subtitle;
+
+      if (grid && Array.isArray(data.sections)) {
+        grid.innerHTML = data.sections.map(s => `
+          <div style="background: #070b10; border: 1px solid var(--border-subtle); border-left: 3px solid var(--accent-cyan); border-radius: 8px; padding: 12px 14px;">
+            <strong style="font-family: var(--font-display); font-size: 1.05rem; color: #fff; display: block; margin-bottom: 3px;">${s.title}</strong>
+            <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.45; margin: 0;">${s.desc}</p>
+          </div>
+        `).join('');
+      }
+
+      if (modal) {
+        modal.classList.add('active');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.style.setProperty('visibility', 'visible', 'important');
+        modal.style.setProperty('pointer-events', 'auto', 'important');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
       }
     }
     window.openExpectationModal = openExpectationModal;
+
+    function closeExpectationModal() {
+      const modal = document.getElementById('expectationModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.setProperty('display', 'none', 'important');
+        modal.style.setProperty('opacity', '0', 'important');
+        modal.style.setProperty('pointer-events', 'none', 'important');
+      }
+      if (document.body) {
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      }
+    }
+    window.closeExpectationModal = closeExpectationModal;
+
+    // ==========================================================================
+    // SYNCHRONIZED COURSE SELECTION, FORM TIER TOGGLE & DYNAMIC CALENDAR ENGINE
+    // ==========================================================================
+    function getMatchedCourseKey(selectedVal) {
+      const v = (selectedVal || '').toLowerCase();
+      if (v.includes('alumni') || v.includes('clinic')) return "FIFS Graduate Alumni Marksmanship Clinic";
+      if (v.includes('multi-state') || v.includes('mastery')) return "Mid-Atlantic Multi-State Mastery";
+      if (v.includes('combo')) return "Maryland CCW & HQL Combo";
+      if (v.includes('renewal') || v.includes('recertification') || v.includes('8-hour') || v.includes('8 hour')) return "Maryland Wear & Carry (8-Hour Renewal)";
+      if (v.includes('wear & carry') || v.includes('ccw')) return "Maryland Wear & Carry (CCW)";
+      if (v.includes('hql')) return "Maryland HQL (Purchase License)";
+      if (v.includes('1-on-1') || v.includes('coaching') || v.includes('one-on-one')) return "Personal 1-on-1 Coaching";
+      if (v.includes('cleaning')) return "Gun Cleaning & Maintenance";
+      if (v.includes('children') || v.includes('youth')) return "Children's Safety Class";
+      return "Maryland CCW & HQL Combo";
+    }
+    window.getMatchedCourseKey = getMatchedCourseKey;
+
+    function updateFormPriceDisplay() {
+      const selectElem = document.getElementById('courseSelection');
+      if (!selectElem) return;
+
+      const selectedVal = selectElem.value;
+      const isVip = selectedVal.includes('VIP') || selectedVal.includes('Turnkey');
+      const matchedKey = getMatchedCourseKey(selectedVal);
+      const pData = FORM_COURSE_PRICING[matchedKey];
+      if (!pData) return;
+
+      const titleElem = document.getElementById('formCardCourseTitle');
+      const tierTag = document.getElementById('formCardTierTag');
+      const activePrice = document.getElementById('formCardActivePrice');
+      const baseVal = document.getElementById('formPriceBaseVal');
+      const vipVal = document.getElementById('formPriceVipVal');
+      const tierDesc = document.getElementById('formCardTierDesc');
+      const boxBase = document.getElementById('formBoxBase');
+      const boxVip = document.getElementById('formBoxVip');
+
+      if (titleElem) titleElem.textContent = matchedKey;
+      if (baseVal) baseVal.textContent = pData.base;
+      if (vipVal) vipVal.textContent = pData.vip;
+
+      if (isVip) {
+        if (tierTag) {
+          tierTag.textContent = "👑 VIP Turnkey Track Selected";
+          tierTag.style.color = "var(--accent-amber)";
+        }
+        if (activePrice) {
+          activePrice.textContent = pData.vip;
+          activePrice.style.color = "var(--accent-amber)";
+        }
+        if (tierDesc) {
+          tierDesc.textContent = pData.vipDesc;
+          tierDesc.style.borderLeftColor = "var(--accent-amber)";
+        }
+        if (boxVip) {
+          boxVip.style.borderColor = "var(--accent-amber)";
+          boxVip.style.background = "rgba(255, 183, 3, 0.12)";
+          boxVip.style.boxShadow = "0 0 14px rgba(255, 183, 3, 0.25)";
+        }
+        if (boxBase) {
+          boxBase.style.borderColor = "var(--border-subtle)";
+          boxBase.style.background = "#070b10";
+          boxBase.style.boxShadow = "none";
+        }
+      } else {
+        if (tierTag) {
+          tierTag.textContent = "Standard Base Track Selected";
+          tierTag.style.color = "var(--accent-cyan)";
+        }
+        if (activePrice) {
+          activePrice.textContent = pData.base;
+          activePrice.style.color = "var(--accent-cyan)";
+        }
+        if (tierDesc) {
+          tierDesc.textContent = pData.baseDesc;
+          tierDesc.style.borderLeftColor = "var(--accent-cyan)";
+        }
+        if (boxBase) {
+          boxBase.style.borderColor = "var(--accent-cyan)";
+          boxBase.style.background = "rgba(0, 229, 255, 0.08)";
+          boxBase.style.boxShadow = "0 0 14px var(--accent-cyan-glow)";
+        }
+        if (boxVip) {
+          boxVip.style.borderColor = "var(--border-subtle)";
+          boxVip.style.background = "#070b10";
+          boxVip.style.boxShadow = "none";
+        }
+      }
+
+      if (typeof renderBookingCalendar === 'function') {
+        renderBookingCalendar();
+      }
+    }
+    window.updateFormPriceDisplay = updateFormPriceDisplay;
+
+    function toggleFormTier(targetTier) {
+      const selectElem = document.getElementById('courseSelection');
+      if (!selectElem) return;
+
+      const currentVal = selectElem.value;
+      const isCurrentlyVip = currentVal.includes('VIP') || currentVal.includes('Turnkey');
+
+      if (targetTier === 'vip' && !isCurrentlyVip) {
+        for (let i = 0; i < selectElem.options.length; i++) {
+          const opt = selectElem.options[i].value;
+          if ((opt.includes('VIP') || opt.includes('Turnkey')) && (
+            (currentVal.includes('Multi-State') && opt.includes('Multi-State')) ||
+            (currentVal.includes('Combo') && opt.includes('Combo')) ||
+            (currentVal.includes('Wear & Carry') && opt.includes('Wear & Carry') && !opt.includes('Combo')) ||
+            (currentVal.includes('HQL') && opt.includes('HQL') && !opt.includes('Combo')) ||
+            (currentVal.includes('1-on-1') && opt.includes('1-on-1')) ||
+            (currentVal.includes('Cleaning') && opt.includes('Cleaning')) ||
+            (currentVal.includes('Children') && opt.includes('Children'))
+          )) {
+            selectElem.selectedIndex = i;
+            selectElem.value = opt;
+            break;
+          }
+        }
+      } else if (targetTier === 'base' && isCurrentlyVip) {
+        for (let i = 0; i < selectElem.options.length; i++) {
+          const opt = selectElem.options[i].value;
+          if (!opt.includes('VIP') && !opt.includes('Turnkey') && (
+            (currentVal.includes('Multi-State') && opt.includes('Multi-State')) ||
+            (currentVal.includes('Combo') && opt.includes('Combo')) ||
+            (currentVal.includes('Wear & Carry') && opt.includes('Wear & Carry') && !opt.includes('Combo')) ||
+            (currentVal.includes('HQL') && opt.includes('HQL') && !opt.includes('Combo')) ||
+            (currentVal.includes('1-on-1') && opt.includes('1-on-1')) ||
+            (currentVal.includes('Cleaning') && opt.includes('Cleaning')) ||
+            (currentVal.includes('Children') && opt.includes('Children'))
+          )) {
+            selectElem.selectedIndex = i;
+            selectElem.value = opt;
+            break;
+          }
+        }
+      }
+      updateFormPriceDisplay();
+    }
+    window.toggleFormTier = toggleFormTier;
+
+    // ==========================================================================
+    // 2-WAY LIVE CHAT MODAL ENGINE (REAL-TIME COMMUNICATION WINDOW)
+    // ==========================================================================
+    function openTwoWayChat(name, phone, initialMsg) {
+      window.__currentChatSession = {
+        name: name || 'Valued Student',
+        phone: phone || 'Not provided'
+      };
+
+      const modal = document.getElementById('twoWayChatModal');
+      const stream = document.getElementById('twoWayChatStream');
+      const headerTitle = document.getElementById('twoWayChatHeaderTitle');
+
+      if (headerTitle) headerTitle.textContent = "Coach Kai Wade";
+
+      if (stream) {
+        stream.innerHTML = '';
+        const channelBanner = document.createElement('div');
+        channelBanner.style.textAlign = 'center';
+        channelBanner.style.margin = '4px 0 10px';
+        channelBanner.innerHTML = '<span style="font-size: 0.72rem; color: var(--accent-cyan); background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.25); padding: 4px 12px; border-radius: 20px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">🔒 Direct 2-Way Channel Established with Lead Instructor Kai Wade</span>';
+        stream.appendChild(channelBanner);
+
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+        appendTwoWayBubble('user', name, initialMsg, timeStr);
+
+        setTimeout(function() {
+          const welcomeReply = "Hello " + escapeHtml(name) + "! Coach Kai Wade here. I\'ve received your message on my direct line. How can I assist you with Maryland Wear & Carry, HQL, 8-hour renewal, or private range training at Cindy\'s Hot Shots?";
+          appendTwoWayBubble('instructor', 'Coach Kai Wade', welcomeReply, timeStr);
+        }, 400);
+      }
+
+      if (modal) {
+        modal.classList.add('active');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.style.setProperty('visibility', 'visible', 'important');
+        modal.style.setProperty('pointer-events', 'auto', 'important');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      setTimeout(function() {
+        const input = document.getElementById('twoWayMessageInput');
+        if (input) input.focus();
+      }, 300);
+    }
+    window.openTwoWayChat = openTwoWayChat;
+
+    function closeTwoWayChat() {
+      const modal = document.getElementById('twoWayChatModal');
+      const stream = document.getElementById('twoWayChatStream');
+      const input = document.getElementById('twoWayMessageInput');
+      const dispatchForm = document.getElementById('liveChatDispatchForm');
+
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.setProperty('display', 'none', 'important');
+        modal.style.setProperty('opacity', '0', 'important');
+        modal.style.setProperty('pointer-events', 'none', 'important');
+      }
+
+      if (stream) stream.innerHTML = '';
+      if (input) input.value = '';
+      if (dispatchForm) dispatchForm.reset();
+
+      window.__currentChatSession = null;
+      try {
+        sessionStorage.removeItem('fifs_live_chat_transcript');
+        localStorage.removeItem('fifs_live_chat_transcript');
+      } catch (e) {}
+
+      if (document.body) {
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      }
+    }
+    window.closeTwoWayChat = closeTwoWayChat;
+
+    function handleLiveChatSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const nameEl = document.getElementById('chatSenderName');
+      const phoneEl = document.getElementById('chatSenderPhone');
+      const msgEl = document.getElementById('chatMessageText');
+      const btn = document.getElementById('btn-send-chat');
+
+      const name = nameEl ? nameEl.value.trim() : '';
+      const phone = phoneEl ? phoneEl.value.trim() : '';
+      const msg = msgEl ? msgEl.value.trim() : '';
+
+      if (!name || !phone || !msg) {
+        alert('Please fill out your Name, Phone, and Question to open live chat.');
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Opening Live Chat Window...';
+      }
+
+      // 1. Dispatch Discord Alert
+      sendClientDiscordAlert(
+        "💬 Incoming Live Chat: " + name,
+        "A visitor initiated a conversation via the website live chat widget.",
+        [
+          { name: "Sender Name", value: name, inline: true },
+          { name: "Phone / SMS Callback", value: phone, inline: true },
+          { name: "Operating Window", value: isLiveChatActiveNow() ? "ONLINE NOW (9 AM – 5 PM EST)" : "AFTER HOURS", inline: true },
+          { name: "Initial Message Content", value: msg, inline: false }
+        ],
+        0x00E5FF
+      );
+
+      // 2. Immediately close contact form and open Two-Way Chat window
+      closeContactWidgetModal();
+      openTwoWayChat(name, phone, msg);
+
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '💬 Send Message & Open Live Chat →';
+      }
+
+      // 3. Dispatch to backend asynchronously if available
+      const payload = {
+        name: name,
+        phone: phone,
+        message: msg,
+        timestamp: new Date().toISOString(),
+        isLiveHours: isLiveChatActiveNow()
+      };
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
+        google.script.run.handleLiveChatMessage(payload);
+      }
+    }
+    window.handleLiveChatSubmit = handleLiveChatSubmit;
+
+    function appendTwoWayBubble(senderType, senderName, text, timeStr) {
+      const stream = document.getElementById('twoWayChatStream');
+      if (!stream) return;
+
+      const bubble = document.createElement('div');
+      bubble.style.marginBottom = '12px';
+      bubble.style.display = 'flex';
+      bubble.style.flexDirection = 'column';
+
+      if (senderType === 'user') {
+        bubble.style.alignItems = 'flex-end';
+        bubble.innerHTML = `
+          <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 2px;">${escapeHtml(senderName)} • ${timeStr}</div>
+          <div style="background: var(--accent-cyan); color: #070b10; padding: 10px 14px; border-radius: 14px 14px 2px 14px; max-width: 85%; font-size: 0.90rem; font-weight: 600; line-height: 1.45; box-shadow: 0 4px 14px rgba(0, 229, 255, 0.25);">
+            ${escapeHtml(text)}
+          </div>
+          <div style="font-size: 0.65rem; color: #10b981; margin-top: 2px; font-weight: 700;">✓ Sent to Coach Wade</div>
+        `;
+      } else {
+        bubble.style.alignItems = 'flex-start';
+        bubble.innerHTML = `
+          <div style="font-size: 0.72rem; color: var(--accent-cyan); margin-bottom: 2px; font-weight: 700;">${escapeHtml(senderName)} (Lead Instructor) • ${timeStr}</div>
+          <div style="background: #141c26; border: 1px solid rgba(0, 229, 255, 0.35); color: #e2e8f0; padding: 10px 14px; border-radius: 14px 14px 14px 2px; max-width: 85%; font-size: 0.90rem; line-height: 1.45; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);">
+            ${escapeHtml(text)}
+          </div>
+        `;
+      }
+
+      stream.appendChild(bubble);
+      stream.scrollTop = stream.scrollHeight;
+    }
+    window.appendTwoWayBubble = appendTwoWayBubble;
+
+    function handleTwoWayChatSend(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const input = document.getElementById('twoWayMessageInput');
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      const session = window.__currentChatSession || { name: 'Valued Student', phone: '(443) 990-1304' };
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+      // Append user bubble
+      appendTwoWayBubble('user', session.name, text, timeStr);
+      input.value = '';
+
+      // Discord webhook for follow-up reply
+      sendClientDiscordAlert(
+        "💬 Live Chat Follow-Up: " + session.name,
+        "Student sent a message during the live chat session.",
+        [
+          { name: "Sender Name", value: session.name, inline: true },
+          { name: "Phone / SMS Callback", value: session.phone, inline: true },
+          { name: "Message Content", value: text, inline: false }
+        ],
+        0x00E5FF
+      );
+
+      // Show typing indicator
+      const typing = document.getElementById('twoWayTypingIndicator');
+      if (typing) typing.style.display = 'block';
+
+      setTimeout(function() {
+        if (typing) typing.style.display = 'none';
+        const replyText = generateCoachWadeReply(text);
+        appendTwoWayBubble('instructor', 'Coach Kai Wade', replyText, new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+      }, 900);
+    }
+    window.handleTwoWayChatSend = handleTwoWayChatSend;
+
+    function generateCoachWadeReply(msg) {
+      const m = msg.toLowerCase();
+      if (m.includes('cost') || m.includes('price') || m.includes('tuition') || m.includes('how much')) {
+        return "Our courses start at $100 for Maryland HQL and $249.99 for the complete Wear & Carry + HQL Combo (which saves you $100). All classes include live-fire practical range qualification at Cindy's Hot Shots. You can view full transparent pricing in our course catalog!";
+      }
+      if (m.includes('schedule') || m.includes('date') || m.includes('when') || m.includes('weekend') || m.includes('weekday')) {
+        return "We offer flexible scheduling: Standard courses run on Saturdays & Sundays, while VIP Turnkey enrollments unlock 7-day flexible scheduling (Monday through Sunday anytime) to match your personal schedule!";
+      }
+      if (m.includes('range') || m.includes('location') || m.includes('where')) {
+        return "All live-fire marksmanship training and practical qualifications are conducted at Cindy's Hot Shots (115 Holsum Way, Glen Burnie, MD 21060). It's a clean, safe, and professional certified indoor range facility.";
+      }
+      if (m.includes('gun') || m.includes('firearm') || m.includes('rent') || m.includes('ammo')) {
+        return "You do NOT need to own a handgun to start! Loaner 9mm firearms and factory target ammo can be provided or coordinated directly on-site at Cindy's Hot Shots for your live-fire shoot.";
+      }
+      return "Thank you for reaching out! I\'ve logged your inquiry on our priority dispatch ledger. For immediate scheduling assistance or range questions, you can also text or call me directly at (443) 990-1304.";
+    }
+    window.generateCoachWadeReply = generateCoachWadeReply;
+
+
+
+    
 
     function openCourseBookingModal() {
       const modal = document.getElementById('courseBookingModal');
@@ -6071,6 +7179,12 @@
         modal.style.setProperty('pointer-events', 'auto', 'important');
         document.body.classList.add('modal-open');
         document.body.style.overflow = 'hidden';
+      }
+      if (typeof updateFormPriceDisplay === 'function') {
+        updateFormPriceDisplay();
+      }
+      if (typeof renderBookingCalendar === 'function') {
+        renderBookingCalendar();
       }
     }
     window.openCourseBookingModal = openCourseBookingModal;
@@ -6345,6 +7459,181 @@
       }
     }
     window.switchClientAuthTab = switchClientAuthTab;
+
+    function lookupStudentAccount() {
+      const input = document.getElementById('studentAuthInput');
+      const statusDiv = document.getElementById('student-login-status');
+      const query = input ? input.value.trim() : '';
+
+      if (!query) {
+        showStatus(statusDiv, 'Please enter your Email Address or Student ID.', 'error');
+        return;
+      }
+
+      // Instructor Authentication Gateway
+      if (query.trim().toLowerCase() === 'ultima') {
+        showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
+        localStorage.setItem('fifs_instructor_pin', 'Ultima');
+        setTimeout(function() {
+          openAndSwitch('admin');
+          const adminPassField = document.getElementById('adminPasscode');
+          if (adminPassField) adminPassField.value = 'Ultima';
+          if (typeof verifyAdminAccess === 'function') verifyAdminAccess();
+          if (statusDiv) statusDiv.style.display = 'none';
+        }, 250);
+        return;
+      }
+
+      showStatus(statusDiv, 'Cross-referencing Student Roster & Operations credentials...', 'success');
+
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleGetStudentPortalData) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (res && res.status === 'success') {
+              if (statusDiv) statusDiv.style.display = 'none';
+              localStorage.setItem('fifs_student_session', JSON.stringify(res.student));
+              renderStudentDashboard(res.student);
+            } else {
+              showStatus(statusDiv, res.message || 'Unauthorized access: Email or Student ID is not present in Student Roster, Operations, or Client database.', 'error');
+            }
+          })
+          .withFailureHandler(function(err) {
+            showStatus(statusDiv, 'Security verification error. Access rejected.', 'error');
+          })
+          .handleGetStudentPortalData(query.includes('@') ? query : '', query.includes('@') ? '' : query);
+      } else {
+        setTimeout(function() {
+          let found = null;
+          const cached = localStorage.getItem('fifs_roster_students');
+          if (cached) {
+            try {
+              const list = JSON.parse(cached);
+              found = list.find(s => (s.email && s.email.toLowerCase() === query.toLowerCase()) || (s.studentId && s.studentId.toUpperCase() === query.toUpperCase()));
+            } catch(e) {}
+          }
+          if (!found) {
+            const clientRoster = localStorage.getItem('fifs_client_roster');
+            if (clientRoster) {
+              try {
+                const cList = JSON.parse(clientRoster);
+                const cFound = cList.find(c => (c.email && c.email.toLowerCase() === query.toLowerCase()) || (c.clientId && c.clientId.toUpperCase() === query.toUpperCase()));
+                if (cFound) {
+                  found = {
+                    studentId: cFound.clientId,
+                    fullName: cFound.fullName,
+                    email: cFound.email,
+                    phone: cFound.phone,
+                    course: cFound.permitState || 'Maryland Wear & Carry',
+                    status: 'ACTIVE_REGISTERED',
+                    score: 'Qualified',
+                    classDate: 'Active Client',
+                    renewalDueDate: cFound.expirationDate
+                  };
+                }
+              } catch(e) {}
+            }
+          }
+
+          if (found) {
+            if (statusDiv) statusDiv.style.display = 'none';
+            localStorage.setItem('fifs_student_session', JSON.stringify(found));
+            renderStudentDashboard(found);
+          } else {
+            showStatus(statusDiv, 'Unauthorized access: Provided email or identifier was not found in the Student Roster, Operations, or Future Initiative Clients database.', 'error');
+          }
+        }, 300);
+      }
+    }
+    window.lookupStudentAccount = lookupStudentAccount;
+
+    function lookupClientAccount() {
+      const input = document.getElementById('clientAuthInput');
+      const statusDiv = document.getElementById('client-login-status');
+      const query = input ? input.value.trim() : '';
+
+      if (!query) {
+        showStatus(statusDiv, 'Please enter your Email Address or Client ID.', 'error');
+        return;
+      }
+
+      // Instructor Authentication Gateway
+      if (query.trim().toLowerCase() === 'ultima') {
+        showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
+        localStorage.setItem('fifs_instructor_pin', 'Ultima');
+        setTimeout(function() {
+          openAndSwitch('admin');
+          const adminPassField = document.getElementById('adminPasscode');
+          if (adminPassField) adminPassField.value = 'Ultima';
+          if (typeof verifyAdminAccess === 'function') verifyAdminAccess();
+          if (statusDiv) statusDiv.style.display = 'none';
+        }, 250);
+        return;
+      }
+
+      showStatus(statusDiv, 'Cross-referencing client credentials in database...', 'success');
+
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleGetClientPortalData) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (res && res.status === 'success') {
+              if (statusDiv) statusDiv.style.display = 'none';
+              localStorage.setItem('fifs_client_session', JSON.stringify(res.client));
+              renderClientDashboard(res.client);
+            } else {
+              showStatus(statusDiv, res.message || 'Unauthorized access: Provided email or Client ID is not registered in Future Initiative records.', 'error');
+            }
+          })
+          .withFailureHandler(function(err) {
+            showStatus(statusDiv, 'Security verification error. Access rejected.', 'error');
+          })
+          .handleGetClientPortalData(query.includes('@') ? query : '', query.includes('@') ? '' : query);
+      } else {
+        setTimeout(function() {
+          let foundClient = null;
+          const rosterSaved = localStorage.getItem('fifs_client_roster');
+          if (rosterSaved) {
+            try {
+              const parsed = JSON.parse(rosterSaved);
+              foundClient = parsed.find(c => (c.email && c.email.toLowerCase() === query.toLowerCase()) || (c.clientId && c.clientId.toUpperCase() === query.toUpperCase()));
+            } catch(e) {}
+          }
+          if (!foundClient && typeof adminCachedClients !== 'undefined' && Array.isArray(adminCachedClients)) {
+            foundClient = adminCachedClients.find(c => (c.email && c.email.toLowerCase() === query.toLowerCase()) || (c.clientId && c.clientId.toUpperCase() === query.toUpperCase()));
+          }
+          if (!foundClient) {
+            const studentRoster = localStorage.getItem('fifs_roster_students');
+            if (studentRoster) {
+              try {
+                const sList = JSON.parse(studentRoster);
+                const sFound = sList.find(s => (s.email && s.email.toLowerCase() === query.toLowerCase()) || (s.studentId && s.studentId.toUpperCase() === query.toUpperCase()));
+                if (sFound) {
+                  foundClient = {
+                    clientId: 'FI-CLIENT-' + sFound.studentId.replace(/\D/g, ''),
+                    fullName: sFound.fullName,
+                    email: sFound.email,
+                    phone: sFound.phone,
+                    permitState: sFound.course || 'Maryland Wear & Carry',
+                    expirationDate: sFound.renewalDueDate || '2027-10-31',
+                    daysLeft: 365,
+                    status: 'ACTIVE_REGISTERED'
+                  };
+                }
+              } catch(e) {}
+            }
+          }
+
+          if (foundClient) {
+            if (statusDiv) statusDiv.style.display = 'none';
+            localStorage.setItem('fifs_client_session', JSON.stringify(foundClient));
+            renderClientDashboard(foundClient);
+          } else {
+            showStatus(statusDiv, 'Unauthorized access: Provided email or identifier was not found in the Student Roster, Operations, or Future Initiative Clients database.', 'error');
+          }
+        }, 300);
+      }
+    }
+    window.lookupClientAccount = lookupClientAccount;
+
 
 
 
@@ -7163,7 +8452,8 @@
 </div>
 <!-- ================= EXCLUSIVE CLIENT FEATURE: SMS RENEWAL WATCH ALERTS ================= -->
 <div class="fi-checklist-card" style="border: 1.5px solid var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.06) 0%, rgba(13, 19, 27, 0.98) 100%); margin-top: 24px;">
-<div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+<div style="display: flex; justify-content: space-b
+etween; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
 <div>
 <span class="fi-badge fi-badge-amber">Automated Reminder Service</span>
 <h4 style="font-family: var(--font-display); font-size: 1.45rem; color: #fff; text-transform: uppercase; margin: 4px 0 2px;">
@@ -7664,7 +8954,7 @@
 <div class="tier-sliding-switch" id="switch-mastery" onclick="toggleCardTier('mastery', event)">
 <div class="tier-sliding-pill" id="slider-mastery"></div>
 <button class="tier-option-btn btn-base-side" id="tog-base-mastery" onclick="setCardTier('mastery', 'base', event)" type="button">Standard</button>
-<button class="tier-option-btn btn-vip-side" id="tog-vip-mastery" onclick="setCardTier('mastery', 'vip', event)" type="button">👑 VIP</button>
+<button class="tier-option-btn btn-vip-side" id="tog-vip-mastery" onclick="setCardTier(\'mastery\', \'vip\', event)" type="button">👑</button>
 </div>
 </div>
 <div class="tuition-price" id="price-course-mastery">
@@ -7708,7 +8998,7 @@
 <div class="tier-sliding-switch" id="switch-combo" onclick="toggleCardTier('combo', event)">
 <div class="tier-sliding-pill" id="slider-combo"></div>
 <button class="tier-option-btn btn-base-side" id="tog-base-combo" onclick="setCardTier('combo', 'base', event)" type="button">Standard</button>
-<button class="tier-option-btn btn-vip-side" id="tog-vip-combo" onclick="setCardTier('combo', 'vip', event)" type="button">👑 VIP</button>
+<button class="tier-option-btn btn-vip-side" id="tog-vip-combo" onclick="setCardTier(\'combo\', \'vip\', event)" type="button">👑</button>
 </div>
 </div>
 <div class="tuition-price" id="price-course-combo">
@@ -7751,7 +9041,7 @@
 <div class="tier-sliding-switch" id="switch-ccw" onclick="toggleCardTier('ccw', event)">
 <div class="tier-sliding-pill" id="slider-ccw"></div>
 <button class="tier-option-btn btn-base-side" id="tog-base-ccw" onclick="setCardTier('ccw', 'base', event)" type="button">Standard</button>
-<button class="tier-option-btn btn-vip-side" id="tog-vip-ccw" onclick="setCardTier('ccw', 'vip', event)" type="button">👑 VIP</button>
+<button class="tier-option-btn btn-vip-side" id="tog-vip-ccw" onclick="setCardTier(\'ccw\', \'vip\', event)" type="button">👑</button>
 </div>
 </div>
 <div class="tuition-price" id="price-course-ccw">
@@ -7792,7 +9082,7 @@
 <div class="tier-sliding-switch" id="switch-hql" onclick="toggleCardTier('hql', event)">
 <div class="tier-sliding-pill" id="slider-hql"></div>
 <button class="tier-option-btn btn-base-side" id="tog-base-hql" onclick="setCardTier('hql', 'base', event)" type="button">Standard</button>
-<button class="tier-option-btn btn-vip-side" id="tog-vip-hql" onclick="setCardTier('hql', 'vip', event)" type="button">👑 VIP</button>
+<button class="tier-option-btn btn-vip-side" id="tog-vip-hql" onclick="setCardTier(\'hql\', \'vip\', event)" type="button">👑</button>
 </div>
 </div>
 <div class="tuition-price" id="price-course-hql">
@@ -7833,7 +9123,7 @@
 <div class="tier-sliding-switch" id="switch-coaching" onclick="toggleCardTier('coaching', event)">
 <div class="tier-sliding-pill" id="slider-coaching"></div>
 <button class="tier-option-btn btn-base-side" id="tog-base-coaching" onclick="setCardTier('coaching', 'base', event)" type="button">Standard</button>
-<button class="tier-option-btn btn-vip-side" id="tog-vip-coaching" onclick="setCardTier('coaching', 'vip', event)" type="button">👑 VIP</button>
+<button class="tier-option-btn btn-vip-side" id="tog-vip-coaching" onclick="setCardTier(\'coaching\', \'vip\', event)" type="button">👑</button>
 </div>
 </div>
 <div class="tuition-price" id="price-course-coaching">
@@ -7874,7 +9164,7 @@
 <div class="tier-sliding-switch" id="switch-cleaning" onclick="toggleCardTier('cleaning', event)">
 <div class="tier-sliding-pill" id="slider-cleaning"></div>
 <button class="tier-option-btn btn-base-side" id="tog-base-cleaning" onclick="setCardTier('cleaning', 'base', event)" type="button">Standard</button>
-<button class="tier-option-btn btn-vip-side" id="tog-vip-cleaning" onclick="setCardTier('cleaning', 'vip', event)" type="button">👑 VIP</button>
+<button class="tier-option-btn btn-vip-side" id="tog-vip-cleaning" onclick="setCardTier(\'cleaning\', \'vip\', event)" type="button">👑</button>
 </div>
 </div>
 <div class="tuition-price" id="price-course-cleaning">
@@ -7911,11 +9201,10 @@
 <span>👨‍👩‍👧</span> EDDIE EAGLE ACCIDENT PREVENTION — HOME STORAGE SAFETY COVENANT
           </div>
 <div class="tier-toggle-wrapper">
-<div class="tier-sliding-switch" id="switch-children" onclick="toggleCardTier('childr
-en', event)">
+<div class="tier-sliding-switch" id="switch-children" onclick="toggleCardTier('children', event)">
 <div class="tier-sliding-pill" id="slider-children"></div>
 <button class="tier-option-btn btn-base-side" id="tog-base-children" onclick="setCardTier('children', 'base', event)" type="button">Standard</button>
-<button class="tier-option-btn btn-vip-side" id="tog-vip-children" onclick="setCardTier('children', 'vip', event)" type="button">👑 VIP</button>
+<button class="tier-option-btn btn-vip-side" id="tog-vip-children" onclick="setCardTier(\'children\', \'vip\', event)" type="button">👑</button>
 </div>
 </div>
 <div class="tuition-price" id="price-course-children">
@@ -7960,7 +9249,7 @@ en', event)">
 <div class="tier-sliding-switch" id="switch-alumni" onclick="toggleCardTier('alumni', event)">
 <div class="tier-sliding-pill" id="slider-alumni"></div>
 <button class="tier-option-btn btn-base-side" id="tog-base-alumni" onclick="setCardTier('alumni', 'base', event)" type="button">Standard</button>
-<button class="tier-option-btn btn-vip-side" id="tog-vip-alumni" onclick="setCardTier('alumni', 'vip', event)" type="button">👑 VIP</button>
+<button class="tier-option-btn btn-vip-side" id="tog-vip-alumni" onclick="setCardTier(\'alumni\', \'vip\', event)" type="button">👑</button>
 </div>
 </div>
 <div class="tuition-price" id="price-course-alumni">
@@ -9636,6 +10925,12 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         document.body.classList.add('modal-open');
         document.body.style.overflow = 'hidden';
       }
+      if (typeof updateFormPriceDisplay === 'function') {
+        updateFormPriceDisplay();
+      }
+      if (typeof renderBookingCalendar === 'function') {
+        renderBookingCalendar();
+      }
     }
     window.openCourseBookingModal = openCourseBookingModal;
 
@@ -10018,22 +11313,30 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     }
 
     function handleLiveChatSubmit(e) {
-      e.preventDefault();
-      const name = document.getElementById('chatSenderName').value.trim();
-      const phone = document.getElementById('chatSenderPhone').value.trim();
-      const msg = document.getElementById('chatMessageText').value.trim();
-      const st = document.getElementById('chat-dispatch-status');
+      if (e && e.preventDefault) e.preventDefault();
+      const nameEl = document.getElementById('chatSenderName');
+      const phoneEl = document.getElementById('chatSenderPhone');
+      const msgEl = document.getElementById('chatMessageText');
       const btn = document.getElementById('btn-send-chat');
 
-      if (!name || !phone || !msg) return;
+      const name = nameEl ? nameEl.value.trim() : '';
+      const phone = phoneEl ? phoneEl.value.trim() : '';
+      const msg = msgEl ? msgEl.value.trim() : '';
 
-      btn.disabled = true;
-      btn.textContent = 'Connecting to 2-Way Live Chat...';
+      if (!name || !phone || !msg) {
+        alert('Please fill out your Name, Phone, and Question to open live chat.');
+        return;
+      }
 
-      // 3. Discord Webhook Alert: Incoming Chat
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Opening Live Chat Window...';
+      }
+
+      // 1. Dispatch Discord Alert
       sendClientDiscordAlert(
         "💬 Incoming Live Chat: " + name,
-        "A visitor initiated a conversation via the website chat widget.",
+        "A visitor initiated a conversation via the website live chat widget.",
         [
           { name: "Sender Name", value: name, inline: true },
           { name: "Phone / SMS Callback", value: phone, inline: true },
@@ -10043,6 +11346,16 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         0x00E5FF
       );
 
+      // 2. Immediately close contact form and open Two-Way Chat window
+      closeContactWidgetModal();
+      openTwoWayChat(name, phone, msg);
+
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '💬 Send Message & Open Live Chat →';
+      }
+
+      // 3. Dispatch to backend asynchronously if available
       const payload = {
         name: name,
         phone: phone,
@@ -10050,32 +11363,9 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         timestamp: new Date().toISOString(),
         isLiveHours: isLiveChatActiveNow()
       };
-
-      // Dispatch to Apps Script backend asynchronously
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            btn.disabled = false;
-            btn.textContent = '💬 Send Message & Open Live Chat →';
-            closeContactWidgetModal();
-            openTwoWayChat(name, phone, msg);
-          })
-          .withFailureHandler(function(err) {
-            btn.disabled = false;
-            btn.textContent = '💬 Send Message & Open Live Chat →';
-            closeContactWidgetModal();
-            openTwoWayChat(name, phone, msg);
-          })
-          .handleLiveChatMessage(payload);
-      } else {
-        setTimeout(function() {
-          btn.disabled = false;
-          btn.textContent = '💬 Send Message & Open Live Chat →';
-          closeContactWidgetModal();
-          openTwoWayChat(name, phone, msg);
-        }, 300);
+        google.script.run.handleLiveChatMessage(payload);
       }
-      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Communication', 'Live Chat Started', `${name} (${phone})`);
     }
     window.handleLiveChatSubmit = handleLiveChatSubmit;
 
@@ -12802,7 +14092,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       const state = RECIPROCITY_STATES_DATA[stateCode];
 
-      const resSelect = document.getElementById('resPermitSelect');
+      const resSelect = document.getElementById('resPermitSelect'
+);
 
       const residentState = resSelect ? resSelect.value : 'MD';
 
@@ -14600,8 +15891,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         permitState: permitState,
         expirationDate: expDate,
         optInReminder: optIn,
-        savedAt: new Dat
-e().toISOString()
+        savedAt: new Date().toISOString()
       };
 
       btn.disabled = true;
@@ -17089,7 +18379,8 @@ function closeStateModal() {
 </div>
 <div class="fi-check-item" onclick="fiToggleCheck(this, 'fc3')">
 <input id="fc3" type="checkbox"/>
-<label class="fi-check-label" for="fc3"><strong>Firearm Physically Cleared:</strong> Completely unloaded; chamber empty; bolt/slide locked back or action closed on empty chamber.</label>
+<label class="fi-check-label" for="fc3"><strong>Firearm Physically Cleared:</strong> Completely unl
+oaded; chamber empty; bolt/slide locked back or action closed on empty chamber.</label>
 </div>
 <div class="fi-check-item" onclick="fiToggleCheck(this, 'fc4')">
 <input id="fc4" type="checkbox"/>
