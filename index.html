@@ -1,6 +1,26 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html
+
+          <!-- New Client Registration Notification Alert Beacon -->
+          <div id="admin-new-client-alert-box" style="display: none; background: linear-gradient(135deg, rgba(255, 183, 3, 0.15) 0%, rgba(13, 19, 27, 0.98) 100%); border: 2px solid var(--accent-amber); box-shadow: 0 0 25px var(--accent-amber-glow); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="live-dot" style="width: 12px; height: 12px; background: var(--accent-amber); box-shadow: 0 0 12px var(--accent-amber); flex-shrink: 0;"></span>
+              <div>
+                <strong id="admin-client-alert-title" style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; text-transform: uppercase; letter-spacing: 1px; display: block;">🛡️ NEW CLIENT PORTAL REGISTRATION</strong>
+                <p id="admin-client-alert-desc" style="font-size: 0.86rem; color: #cbd5e1; margin-top: 2px;">A new permit holder has registered in the Future Initiative Client Portal.</p>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-spark" onclick="switchAdminTab('clients'); acknowledgeNewClientAlert();" style="padding: 8px 16px; font-size: 0.82rem; border-color: var(--accent-amber); color: var(--accent-amber);" type="button">
+                👁️ View Client Roster
+              </button>
+              <button class="btn-spark" onclick="acknowledgeNewClientAlert()" style="padding: 8px 16px; font-size: 0.82rem; border-color: var(--border-subtle); color: var(--text-muted);" type="button">
+                Dismiss
+              </button>
+            </div>
+          </div>
+ lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
@@ -7678,9 +7698,63 @@
     }
     window.logoutClient = logoutClient;
 
-    function renderAdminAnalyticsDashboard() {
+    function renderAdminAnalyticsDashboard(serverData) {
       const container = document.getElementById('admin-analytics-dashboard-container');
       if (!container) return;
+
+      const telem = (serverData && serverData.telemetry) ? serverData.telemetry : (window.__serverTelemetry || null);
+      if (telem) {
+        window.__serverTelemetry = telem;
+        const elVis = document.getElementById('telemetry-visitors-val');
+        const elPv = document.getElementById('telemetry-pageviews-val');
+        const elConv = document.getElementById('telemetry-conversion-val');
+        const elVip = document.getElementById('telemetry-vip-val');
+        const elMiles = document.getElementById('telemetry-milestones-val');
+
+        if (elVis) elVis.textContent = Number(telem.totalVisitors || 0).toLocaleString();
+        if (elPv) elPv.textContent = Number(telem.totalPageviews || 0).toLocaleString();
+        if (elConv) elConv.textContent = telem.conversionRate || "0.0%";
+        if (elVip) elVip.textContent = telem.vipCount || 0;
+        if (elMiles) elMiles.textContent = telem.confirmedRegistrations || 0;
+
+        const totalDev = (telem.deviceCounts["Mobile Phone"] || 0) + (telem.deviceCounts["Tablet / iPad"] || 0) + (telem.deviceCounts["Desktop / Laptop"] || 0) + (telem.deviceCounts["Handheld PC"] || 0);
+        const calcPct = (cnt) => totalDev > 0 ? Math.round((cnt / totalDev) * 100) : 0;
+
+        const mobPct = calcPct(telem.deviceCounts["Mobile Phone"] || 0);
+        const tabPct = calcPct(telem.deviceCounts["Tablet / iPad"] || 0);
+        const deskPct = calcPct(telem.deviceCounts["Desktop / Laptop"] || 0);
+        const handPct = calcPct(telem.deviceCounts["Handheld PC"] || 0);
+
+        const setBar = (id, pct, cnt, label) => {
+          const elP = document.getElementById(`telemetry-${id}-pct`);
+          const elB = document.getElementById(`telemetry-${id}-bar`);
+          const elC = document.getElementById(`telemetry-${id}-count`);
+          if (elP) elP.textContent = `${pct}%`;
+          if (elB) elB.style.width = `${pct}%`;
+          if (elC) elC.textContent = `${cnt} sessions • ${label}`;
+        };
+
+        setBar('mob', mobPct, telem.deviceCounts["Mobile Phone"] || 0, 'iPhones, Android & Razr+');
+        setBar('tab', tabPct, telem.deviceCounts["Tablet / iPad"] || 0, 'iPad Pro, Mini & Tablets');
+        setBar('desk', deskPct, telem.deviceCounts["Desktop / Laptop"] || 0, 'MacBooks, Windows PCs');
+        setBar('hand', handPct, telem.deviceCounts["Handheld PC"] || 0, 'ROG Ally, Steam Deck');
+
+        const streamBox = document.getElementById('telemetry-stream-box');
+        if (streamBox && telem.recentStream && telem.recentStream.length > 0) {
+          streamBox.innerHTML = telem.recentStream.map(item => `
+            <div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span style="color: var(--text-muted); font-size: 0.75rem;">${escapeHtml(item.time.split(' ')[1] || item.time)}</span>
+                <span style="color: var(--accent-cyan); font-weight: 700;">[${escapeHtml(item.category)}]</span>
+                <span style="color: #fff;">${escapeHtml(item.action)}</span>
+                <span style="color: var(--accent-amber);">${escapeHtml(item.label)}</span>
+              </div>
+              <span style="color: #cbd5e1; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">${escapeHtml(item.deviceCategory || item.device)}</span>
+            </div>
+          `).join('');
+        }
+        return;
+      }
 
       try {
         const events = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
@@ -7782,6 +7856,15 @@
       showStatus(statusDiv, 'Creating profile & establishing 90-day renewal countdown...', 'success');
 
       localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord));
+      try {
+        localStorage.setItem('fifs_new_client_alert', JSON.stringify({
+          name: name,
+          email: email,
+          permitState: permitState,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          id: clientId
+        }));
+      } catch(e) {}
 
       // Update local client roster cache so Admin Terminal immediately reflects new client
       try {
@@ -7929,6 +8012,7 @@
 
     function renderAdminTerminal(data) {
       if (typeof checkNewStudentAlert === "function") checkNewStudentAlert();
+      if (typeof checkNewClientAlert === "function") checkNewClientAlert();
       const authBox = document.getElementById('admin-auth-box');
       const dashBox = document.getElementById('admin-command-dashboard');
       if (authBox) {
@@ -7979,6 +8063,9 @@
 
       if (data && data.clients && typeof renderAdminClientTerminal === 'function') {
         renderAdminClientTerminal(data);
+      }
+      if (typeof renderAdminAnalyticsDashboard === 'function') {
+        renderAdminAnalyticsDashboard(data);
       }
 
       const tbody = document.getElementById('admin-roster-tbody');
@@ -8070,6 +8157,94 @@
       returnToHome();
     }
     window.adminSignOut = adminSignOut;
+
+    // ==========================================================================
+    // CLIENT ALERT & ANIMATED ADMIN ACTION CONTROLLERS
+    // ==========================================================================
+    function checkNewClientAlert() {
+      try {
+        const alertData = localStorage.getItem('fifs_new_client_alert');
+        const box = document.getElementById('admin-new-client-alert-box');
+        const badge = document.getElementById('admin-client-alert-pill');
+        const desc = document.getElementById('admin-client-alert-desc');
+        if (alertData && box) {
+          const item = JSON.parse(alertData);
+          if (desc) desc.innerHTML = `<strong>${escapeHtml(item.name)}</strong> has registered for <strong>${escapeHtml(item.permitState)}</strong> at ${item.time}. Client ID: <code style="color: var(--accent-amber);">${item.id}</code>`;
+          box.style.display = 'flex';
+          if (badge) badge.style.display = 'inline-block';
+        }
+      } catch(e) {}
+    }
+    window.checkNewClientAlert = checkNewClientAlert;
+
+    function acknowledgeNewClientAlert() {
+      localStorage.removeItem('fifs_new_client_alert');
+      const box = document.getElementById('admin-new-client-alert-box');
+      const badge = document.getElementById('admin-client-alert-pill');
+      if (box) box.style.display = 'none';
+      if (badge) badge.style.display = 'none';
+    }
+    window.acknowledgeNewClientAlert = acknowledgeNewClientAlert;
+
+    function refreshAdminRoster() {
+      const btn = document.getElementById('btn-admin-refresh-data');
+      if (btn) {
+        btn.classList.add('btn-animated-loading');
+        btn.innerHTML = '<span class="spin-icon">🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">SYNCING DATA...</span>';
+      }
+      const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      verifyAdminAccess(pin);
+
+      setTimeout(function() {
+        if (btn) {
+          btn.classList.remove('btn-animated-loading');
+          btn.classList.add('btn-animated-success');
+          btn.innerHTML = '<span>✓</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">DATA SYNCED</span>';
+          setTimeout(function() {
+            btn.classList.remove('btn-animated-success');
+            btn.innerHTML = '<span>🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">REFRESH DATA</span>';
+          }, 1200);
+        }
+      }, 800);
+    }
+    window.refreshAdminRoster = refreshAdminRoster;
+
+    function resetWebsiteTelemetry() {
+      if (!confirm("Reset all website telemetry counters in Google Sheets and local storage?")) return;
+      const btn = document.getElementById('btn-reset-telemetry') || document.querySelector('button[onclick*="resetWebsiteTelemetry"]');
+      if (btn) {
+        btn.classList.add('btn-animated-loading');
+        btn.innerHTML = '<span class="spin-icon">🔄</span> <span>RESETTING LEDGER...</span>';
+      }
+      const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleResetTelemetry) {
+        google.script.run.handleResetTelemetry(pin);
+      }
+
+      localStorage.removeItem('fifs_analytics_events');
+      localStorage.removeItem('fifs_analytics_counts');
+      localStorage.removeItem('fifs_device_counts');
+      localStorage.setItem('fifs_unique_visitors_count', '0');
+      localStorage.setItem('fifs_pageviews_count', '0');
+
+      setTimeout(function() {
+        if (btn) {
+          btn.classList.remove('btn-animated-loading');
+          btn.classList.add('btn-animated-success');
+          btn.innerHTML = '<span>✓</span> <span>RESET COMPLETE</span>';
+          setTimeout(function() {
+            btn.classList.remove('btn-animated-success');
+            btn.innerHTML = '<span>🗑️</span> <span>Reset Telemetry</span>';
+          }, 1200);
+        }
+        if (typeof renderAdminAnalyticsDashboard === 'function') {
+          renderAdminAnalyticsDashboard({});
+        }
+      }, 900);
+    }
+    window.resetWebsiteTelemetry = resetWebsiteTelemetry;
+
 
     // ==========================================================================
     // CLIENT PORTAL REGISTRATION & ACTIVE DASHBOARD CONTROLLER IN <HEAD>
@@ -8399,11 +8574,7 @@
     }
     window.switchAdminTab = switchAdminTab;
 
-    function refreshAdminRoster() {
-      const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
-      verifyAdminAccess(pin);
-    }
-    window.refreshAdminRoster = refreshAdminRoster;
+// Duplicate refreshAdminRoster removed
 
     function openAdminInviteModal() {
       const modal = document.getElementById('adminInviteModal');
@@ -8542,7 +8713,8 @@
       if (!confirm('Are you sure you want to remove student ' + studentId + ' from the administrative roster?')) return;
       const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
 
-      if (typeof adminCachedStudents !== 'undefined' && Array.isArray(adminCachedStudents)) {
+  
+    if (typeof adminCachedStudents !== 'undefined' && Array.isArray(adminCachedStudents)) {
         adminCachedStudents = adminCachedStudents.filter(s => s.studentId !== studentId);
         window.adminCachedStudents = adminCachedStudents;
         try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch(e) {}
@@ -8764,8 +8936,7 @@
         if (vipBox) vipBox.style.setProperty('display', 'none', 'important');
 
         if (priceElem) {
-      
-    priceElem.innerHTML = `
+          priceElem.innerHTML = `
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">${config.basePrice}</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
           `;
@@ -10469,7 +10640,7 @@
       <span style="font-size: 0.78rem; color: var(--text-muted);">Synced with Google Sheets: <code>Student_Booking_Ledger / Analytics_Ledger</code></span>
       <div style="display: flex; gap: 8px;">
         <button type="button" class="btn-spark" onclick="exportAnalyticsCSV()" style="padding: 6px 14px; font-size: 0.80rem;">📥 Export Analytics CSV</button>
-        <button type="button" class="btn-spark" onclick="resetWebsiteTelemetry()" style="padding: 6px 14px; font-size: 0.80rem; border-color: rgba(239, 68, 68, 0.45); color: #ef4444;">🗑️ Reset Telemetry</button>
+        <button type="button" class="btn-spark" id="btn-reset-telemetry" onclick="resetWebsiteTelemetry()" style="padding: 6px 14px; font-size: 0.80rem; border-color: rgba(239, 68, 68, 0.45); color: #ef4444;">🗑️ Reset Telemetry</button>
       </div>
     </div>
   </div>
@@ -12088,7 +12259,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
               <span style="font-size: 0.78rem; color: var(--text-muted);">Synced with Google Sheets: <code>Student_Booking_Ledger / Analytics_Ledger</code></span>
               <div style="display: flex; gap: 8px;">
                 <button type="button" class="btn-spark" onclick="exportAnalyticsCSV()" style="padding: 6px 14px; font-size: 0.80rem;">📥 Export Analytics CSV</button>
-                <button type="button" class="btn-spark" onclick="resetWebsiteTelemetry()" style="padding: 6px 14px; font-size: 0.80rem; border-color: rgba(239, 68, 68, 0.45); color: #ef4444;">🗑️ Reset Telemetry</button>
+                <button type="button" class="btn-spark" id="btn-reset-telemetry" onclick="resetWebsiteTelemetry()" style="padding: 6px 14px; font-size: 0.80rem; border-color: rgba(239, 68, 68, 0.45); color: #ef4444;">🗑️ Reset Telemetry</button>
               </div>
             </div>
           </div>
@@ -12426,6 +12597,7 @@ function openAdminEditStudentModal(studentId) {
     // Redefined renderAdminTerminal with 100% Real Numbers & Action Buttons
     function renderAdminTerminal(data) {
       if (typeof checkNewStudentAlert === "function") checkNewStudentAlert();
+      if (typeof checkNewClientAlert === "function") checkNewClientAlert();
       document.getElementById('admin-auth-box').classList.add('hidden');
       document.getElementById('admin-command-dashboard').classList.remove('hidden');
 
@@ -12628,7 +12800,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         modal.style.display = 'flex';
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
-      }
+      
+}
     }
     window.openAdminEditClientModal = openAdminEditClientModal;
 
@@ -12785,20 +12958,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
 
-    function resetWebsiteTelemetry() {
-      if (confirm("Reset all website telemetry counters, unique visitors, verified pageviews, device distribution logs, and live event streams to zero?")) {
-        localStorage.removeItem('fifs_analytics_events');
-        localStorage.removeItem('fifs_analytics_counts');
-        localStorage.removeItem('fifs_device_counts');
-        localStorage.removeItem('fifs_visitor_id');
-        localStorage.setItem('fifs_unique_visitors_count', '0');
-        localStorage.setItem('fifs_pageviews_count', '0');
-        localStorage.setItem('fifs_analytics_is_reset', 'true');
-        renderAdminAnalyticsDashboard();
-        alert("Website telemetry has been completely reset to zero.");
-      }
-    }
-    window.resetWebsiteTelemetry = resetWebsiteTelemetry;
+    // Duplicate resetWebsiteTelemetry removed
+
 
 
 // ==========================================================================
@@ -12858,8 +13019,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       var airlineRules = "";
       if (airline.indexOf("Delta") !== -1) {
-        airlineRules = "Delta requires declaration at main ticket counter. Fir
-earm cases receive yellow/orange high-security BSO barcode tags. At arrival, luggage is delivered directly to the locked Baggage Service Office (BSO), not standard baggage carousel.";
+        airlineRules = "Delta requires declaration at main ticket counter. Firearm cases receive yellow/orange high-security BSO barcode tags. At arrival, luggage is delivered directly to the locked Baggage Service Office (BSO), not standard baggage carousel.";
       } else if (airline.indexOf("Southwest") !== -1) {
         airlineRules = "Southwest allows 2 free checked bags (firearm case inside standard suitcase counts as 1 bag). Declare at ticket counter. Ammunition allowed in original packaging up to 11 lbs.";
       } else if (airline.indexOf("American") !== -1) {
@@ -14763,11 +14923,7 @@ earm cases receive yellow/orange high-security BSO barcode tags. At arrival, lug
   
   
 
-    function refreshAdminRoster() {
-
-      verifyAdminAccess();
-
-    }
+// Duplicate refreshAdminRoster removed
 
   
   
@@ -18333,7 +18489,8 @@ earm cases receive yellow/orange high-security BSO barcode tags. At arrival, lug
         }
 
         group.appendChild(rect);
-        group.appendChild(text);
+        group.appe
+ndChild(text);
         group.appendChild(sub);
         svg.appendChild(group);
       });
@@ -18571,8 +18728,7 @@ earm cases receive yellow/orange high-security BSO barcode tags. At arrival, lug
       // Populate Tab 2 & 3 text
       document.getElementById('modalStatuteReciprocityText').textContent = state.summary || 'Statutes updated for 2026.';
       document.getElementById('modalDutyToInformText').textContent = state.duty || 'Refer to officer instruction.';
-      document.getElementById('modalMagAmmoText').textContent = 'Handgun Magazine Restrictions: ' + (state.mag_limit || 'None') + '. Ammunition: Standard defens
-ive hollow-point rounds are lawful unless specifically restricted on public transport.';
+      document.getElementById('modalMagAmmoText').textContent = 'Handgun Magazine Restrictions: ' + (state.mag_limit || 'None') + '. Ammunition: Standard defensive hollow-point rounds are lawful unless specifically restricted on public transport.';
       document.getElementById('modalVehicleCarryText').textContent = state.vehicle || 'Handgun in vehicle permitted with valid recognized license or under FOPA safe harbor.';
 
       switchModalTab('basics');
@@ -20834,3 +20990,23 @@ function closeStateModal() {
 
 </body>
 </html>
+    /* Dynamic Button Animations & Feedback States */
+    @keyframes fifsSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spin-icon {
+      display: inline-block;
+      animation: fifsSpin 0.75s linear infinite;
+    }
+    .btn-animated-loading {
+      opacity: 0.85 !important;
+      pointer-events: none !important;
+    }
+    .btn-animated-success {
+      border-color: #10b981 !important;
+      color: #10b981 !important;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.45) !important;
+    }
+
+    
