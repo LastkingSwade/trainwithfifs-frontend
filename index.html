@@ -7607,6 +7607,395 @@
     }
     window.adminSignOut = adminSignOut;
 
+    // ==========================================================================
+    // COMPLETE ADMIN TERMINAL ENGINE IN <HEAD> (INSTANT INTERACTION & MODULES)
+    // ==========================================================================
+    
+    var adminCachedClients = [];
+    window.adminCachedClients = adminCachedClients;
+
+    function renderAdminClientTerminal(data) {
+      if (data && data.clients && data.clients.length) {
+        adminCachedClients = data.clients;
+        window.adminCachedClients = adminCachedClients;
+        try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch (e) {}
+      } else {
+        const savedClientRoster = localStorage.getItem('fifs_client_roster');
+        if (savedClientRoster) {
+          try {
+            adminCachedClients = JSON.parse(savedClientRoster);
+            window.adminCachedClients = adminCachedClients;
+          } catch (e) {}
+        }
+        if (!adminCachedClients || !adminCachedClients.length) {
+          adminCachedClients = [
+            { clientId: 'FI-CLIENT-7788', fullName: 'Alex Mercer (Test Client)', email: 'test.client@trainwithfifs.com', phone: '(443) 990-1304', permitState: 'Maryland Wear & Carry', expirationDate: '2026-12-15', status: 'ACTIVE_REGISTERED' },
+            { clientId: 'FI-CLIENT-1042', fullName: 'Marcus Vance', email: 'm.vance@example.com', phone: '(410) 555-0192', permitState: 'Maryland Wear & Carry', expirationDate: '2026-10-31', status: 'ACTIVE_REGISTERED' },
+            { clientId: 'FI-CLIENT-3088', fullName: 'Derrick Ross', email: 'd.ross@example.com', phone: '(443) 555-3088', permitState: 'Virginia Concealed Handgun', expirationDate: '2026-11-20', status: 'ACTIVE_REGISTERED' },
+            { clientId: 'FI-CLIENT-4192', fullName: 'Shannon Miller', email: 'smiller@example.com', phone: '(240) 555-4192', permitState: 'Maryland Wear & Carry', expirationDate: '2026-09-25', status: 'RENEWAL_PENDING' }
+          ];
+          try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch (e) {}
+        }
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      let activeCount = 0;
+      let renewalCount = 0;
+      let expiredCount = 0;
+
+      adminCachedClients.forEach(c => {
+        let diffDays = 365;
+        if (c.expirationDate) {
+          const exp = new Date(c.expirationDate + 'T00:00:00');
+          diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+        }
+        c.daysLeft = diffDays;
+        if (diffDays <= 0) expiredCount++;
+        else if (diffDays <= 90) renewalCount++;
+        else activeCount++;
+      });
+
+      const elTotal = document.getElementById('metric-client-total');
+      const elActive = document.getElementById('metric-client-active');
+      const elRenewal = document.getElementById('metric-client-renewal');
+      const elExpired = document.getElementById('metric-client-expired');
+
+      if (elTotal) elTotal.textContent = adminCachedClients.length;
+      if (elActive) elActive.textContent = activeCount;
+      if (elRenewal) elRenewal.textContent = renewalCount;
+      if (elExpired) elExpired.textContent = expiredCount;
+
+      const tbody = document.getElementById('admin-client-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (adminCachedClients.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No client permit records found. Use "SEND PORTAL INVITE" to add someone.</td></tr>';
+        return;
+      }
+
+      adminCachedClients.forEach(c => {
+        const tr = document.createElement('tr');
+        let daysBadge = `<span class="meta-chip" style="color: #10b981; border-color: #10b981;">${c.daysLeft} Days</span>`;
+        if (c.daysLeft <= 0) {
+          daysBadge = `<span class="meta-chip" style="color: #ef4444; border-color: #ef4444; background: rgba(239,68,68,0.15);">EXPIRED (${Math.abs(c.daysLeft)}d)</span>`;
+        } else if (c.daysLeft <= 90) {
+          daysBadge = `<span class="meta-chip" style="color: var(--accent-amber); border-color: var(--accent-amber); background: rgba(255,183,3,0.15);">${c.daysLeft} Days (WINDOW)</span>`;
+        }
+
+        let statusBadge = `<span class="meta-chip" style="color: #10b981; border-color: #10b981;">ACTIVE_REGISTERED</span>`;
+        if (c.status === 'RENEWAL_PENDING' || c.daysLeft <= 30) {
+          statusBadge = `<span class="meta-chip" style="color: var(--accent-amber); border-color: var(--accent-amber);">RENEWAL_PENDING</span>`;
+        } else if (c.status === 'EXPIRED' || c.daysLeft <= 0) {
+          statusBadge = `<span class="meta-chip" style="color: #ef4444; border-color: #ef4444;">EXPIRED_WATCH</span>`;
+        }
+
+        tr.innerHTML = `
+          <td><strong style="color: var(--accent-amber); font-family: var(--font-display); font-size: 0.92rem;">${c.clientId || 'FI-CLIENT'}</strong></td>
+          <td>
+            <div style="font-weight: 700; color: #fff;">${c.fullName || 'Valued Client'}</div>
+            <div style="font-size: 0.80rem; color: var(--text-muted);">${c.email || ''} ${c.phone ? '• ' + c.phone : ''}</div>
+          </td>
+          <td><span style="font-size: 0.85rem; color: #cbd5e1;">${c.permitState || 'Maryland Wear & Carry'}</span></td>
+          <td><span style="font-size: 0.85rem; color: #cbd5e1; font-weight: 600;">${c.expirationDate || 'Not Set'}</span></td>
+          <td>${daysBadge}</td>
+          <td>${statusBadge}</td>
+          <td style="text-align: right; white-space: nowrap;">
+            <button type="button" class="btn-spark" onclick="openAdminEditClientModal('${c.clientId}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px;" title="Edit Client Permit">✏️ Edit</button>
+            <button type="button" class="btn-spark" onclick="deleteClientFromAdmin('${c.clientId}')" style="padding: 5px 10px; font-size: 0.78rem; border-color: #ef4444; color: #ef4444;" title="Delete Client Record">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    window.renderAdminClientTerminal = renderAdminClientTerminal;
+
+    function switchAdminTab(tab) {
+      const subRoster = document.getElementById('admin-subpanel-roster');
+      const subClients = document.getElementById('admin-subpanel-clients');
+      const subAnalytics = document.getElementById('admin-subpanel-analytics');
+      const btnRoster = document.getElementById('btn-admin-tab-roster');
+      const btnClients = document.getElementById('btn-admin-tab-clients');
+      const btnAnalytics = document.getElementById('btn-admin-tab-analytics');
+
+      if (subRoster) subRoster.style.setProperty('display', 'none', 'important');
+      if (subClients) subClients.style.setProperty('display', 'none', 'important');
+      if (subAnalytics) subAnalytics.style.setProperty('display', 'none', 'important');
+
+      if (btnRoster) {
+        btnRoster.classList.remove('active');
+        btnRoster.style.background = 'transparent';
+        btnRoster.style.color = 'var(--text-muted)';
+        btnRoster.style.boxShadow = 'none';
+      }
+      if (btnClients) {
+        btnClients.classList.remove('active');
+        btnClients.style.background = 'transparent';
+        btnClients.style.color = 'var(--text-muted)';
+        btnClients.style.boxShadow = 'none';
+      }
+      if (btnAnalytics) {
+        btnAnalytics.classList.remove('active');
+        btnAnalytics.style.background = 'transparent';
+        btnAnalytics.style.color = 'var(--accent-amber)';
+        btnAnalytics.style.boxShadow = 'none';
+      }
+
+      if (tab === 'analytics') {
+        if (subAnalytics) subAnalytics.style.setProperty('display', 'block', 'important');
+        if (btnAnalytics) {
+          btnAnalytics.classList.add('active');
+          btnAnalytics.style.background = 'var(--accent-amber)';
+          btnAnalytics.style.color = '#070b10';
+          btnAnalytics.style.boxShadow = '0 0 18px var(--accent-amber-glow)';
+        }
+        if (typeof renderAdminAnalyticsDashboard === 'function') renderAdminAnalyticsDashboard();
+        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Website Telemetry');
+      } else if (tab === 'clients') {
+        if (subClients) subClients.style.setProperty('display', 'block', 'important');
+        if (btnClients) {
+          btnClients.classList.add('active');
+          btnClients.style.background = 'var(--accent-cyan)';
+          btnClients.style.color = '#070b10';
+          btnClients.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
+        }
+        renderAdminClientTerminal({ clients: adminCachedClients });
+        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Client Roster');
+      } else {
+        if (subRoster) subRoster.style.setProperty('display', 'block', 'important');
+        if (btnRoster) {
+          btnRoster.classList.add('active');
+          btnRoster.style.background = 'var(--accent-cyan)';
+          btnRoster.style.color = '#070b10';
+          btnRoster.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
+        }
+        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Student Operations');
+      }
+    }
+    window.switchAdminTab = switchAdminTab;
+
+    function refreshAdminRoster() {
+      const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      verifyAdminAccess(pin);
+    }
+    window.refreshAdminRoster = refreshAdminRoster;
+
+    function openAdminInviteModal() {
+      const modal = document.getElementById('adminInviteModal');
+      if (modal) {
+        modal.classList.add('active');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.style.setProperty('visibility', 'visible', 'important');
+        modal.style.setProperty('pointer-events', 'auto', 'important');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    window.openAdminInviteModal = openAdminInviteModal;
+
+    function closeAdminInviteModal() {
+      const modal = document.getElementById('adminInviteModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.setProperty('display', 'none', 'important');
+        modal.style.setProperty('opacity', '0', 'important');
+        modal.style.setProperty('pointer-events', 'none', 'important');
+      }
+      if (document.body) {
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      }
+    }
+    window.closeAdminInviteModal = closeAdminInviteModal;
+
+    function loadDemoStudent() {
+      const demo = {
+        studentId: 'FIFS-4081',
+        fullName: 'Jordan Vance',
+        email: 'jordan.vance@example.com',
+        phone: '(410) 555-0192',
+        course: 'Maryland CCW & HQL Combo ($249.99)',
+        assignedDate: 'Saturday, Oct 12 • 9:00 AM',
+        groupSize: '1 (Private One-on-One)',
+        trainingStatus: 'PREP_PENDING',
+        profileDocUrl: '#',
+        prepTasks: { transport_law: true, ammo_acquired: true, eye_ear_pro: false, id_ready: true }
+      };
+      localStorage.setItem('fifs_student_session', JSON.stringify(demo));
+      openAndSwitch('portal');
+      if (typeof renderStudentDashboard === 'function') renderStudentDashboard(demo);
+    }
+    window.loadDemoStudent = loadDemoStudent;
+
+    function loadDemoClient() {
+      const demo = {
+        clientId: 'FI-CLIENT-1042',
+        fullName: 'Marcus Vance',
+        email: 'm.vance@example.com',
+        phone: '(410) 555-0192',
+        permitState: 'Maryland Wear & Carry',
+        expirationDate: '2026-10-31',
+        daysLeft: 50,
+        status: 'ACTIVE_REGISTERED'
+      };
+      localStorage.setItem('fifs_client_session', JSON.stringify(demo));
+      openAndSwitch('fi-portal');
+      if (typeof renderClientDashboard === 'function') renderClientDashboard(demo);
+    }
+    window.loadDemoClient = loadDemoClient;
+
+    function updateStudentJourneyStep(studentId, newStepValue) {
+      const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      const ind = document.getElementById('save-ind-' + studentId);
+      const chip = document.getElementById('chip-status-' + studentId);
+      const stepNum = getStepNumberFromStatus(newStepValue);
+      if (chip) chip.textContent = formatStepLabel(stepNum);
+
+      const stu = (adminCachedStudents || []).find(s => s.studentId === studentId);
+      if (stu) {
+        stu.status = newStepValue;
+        try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch(e) {}
+      }
+
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleUpdateStudentStatus) {
+        google.script.run.handleUpdateStudentStatus(pin, studentId, { status: newStepValue });
+      }
+
+      if (ind) {
+        ind.style.display = 'inline';
+        setTimeout(function() { ind.style.display = 'none'; }, 2000);
+      }
+    }
+    window.updateStudentJourneyStep = updateStudentJourneyStep;
+
+    function openAdminEditStudentModal(studentId) {
+      const modal = document.getElementById('adminEditStudentModal');
+      const s = (adminCachedStudents || []).find(stu => stu.studentId === studentId);
+      if (!s || !modal) return;
+
+      const idInput = document.getElementById('editStudentId');
+      const nameInput = document.getElementById('editStudentName');
+      const emailInput = document.getElementById('editStudentEmail');
+      const phoneInput = document.getElementById('editStudentPhone');
+      const courseInput = document.getElementById('editStudentCourse');
+      const dateInput = document.getElementById('editStudentDate');
+
+      if (idInput) idInput.value = s.studentId;
+      if (nameInput) nameInput.value = s.fullName || '';
+      if (emailInput) emailInput.value = s.email || '';
+      if (phoneInput) phoneInput.value = s.phone || '';
+      if (courseInput) courseInput.value = s.course || '';
+      if (dateInput) dateInput.value = s.assignedDate || '';
+
+      modal.classList.add('active');
+      modal.style.setProperty('display', 'flex', 'important');
+      modal.style.setProperty('opacity', '1', 'important');
+      modal.style.setProperty('visibility', 'visible', 'important');
+      modal.style.setProperty('pointer-events', 'auto', 'important');
+      document.body.classList.add('modal-open');
+      document.body.style.overflow = 'hidden';
+    }
+    window.openAdminEditStudentModal = openAdminEditStudentModal;
+
+    function closeAdminEditStudentModal() {
+      const modal = document.getElementById('adminEditStudentModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.setProperty('display', 'none', 'important');
+        modal.style.setProperty('opacity', '0', 'important');
+        modal.style.setProperty('pointer-events', 'none', 'important');
+      }
+      if (document.body) {
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      }
+    }
+    window.closeAdminEditStudentModal = closeAdminEditStudentModal;
+
+    function deleteStudentFromAdmin(studentId) {
+      if (!confirm('Are you sure you want to remove student ' + studentId + ' from the administrative roster?')) return;
+      const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+
+      if (typeof adminCachedStudents !== 'undefined' && Array.isArray(adminCachedStudents)) {
+        adminCachedStudents = adminCachedStudents.filter(s => s.studentId !== studentId);
+        window.adminCachedStudents = adminCachedStudents;
+        try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch(e) {}
+      }
+
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminDeleteStudent) {
+        google.script.run.handleAdminDeleteStudent(pin, studentId);
+      }
+
+      renderAdminTerminal({ students: adminCachedStudents });
+    }
+    window.deleteStudentFromAdmin = deleteStudentFromAdmin;
+
+    function openAdminEditClientModal(clientId) {
+      const modal = document.getElementById('adminEditClientModal');
+      const c = (adminCachedClients || []).find(cli => cli.clientId === clientId);
+      if (!c || !modal) return;
+
+      const idInput = document.getElementById('editClientId');
+      const nameInput = document.getElementById('editClientName');
+      const emailInput = document.getElementById('editClientEmail');
+      const phoneInput = document.getElementById('editClientPhone');
+      const stateInput = document.getElementById('editClientPermitState');
+      const expInput = document.getElementById('editClientExpDate');
+
+      if (idInput) idInput.value = c.clientId;
+      if (nameInput) nameInput.value = c.fullName || '';
+      if (emailInput) emailInput.value = c.email || '';
+      if (phoneInput) phoneInput.value = c.phone || '';
+      if (stateInput) stateInput.value = c.permitState || 'Maryland Wear & Carry';
+      if (expInput) expInput.value = c.expirationDate || '';
+
+      modal.classList.add('active');
+      modal.style.setProperty('display', 'flex', 'important');
+      modal.style.setProperty('opacity', '1', 'important');
+      modal.style.setProperty('visibility', 'visible', 'important');
+      modal.style.setProperty('pointer-events', 'auto', 'important');
+      document.body.classList.add('modal-open');
+      document.body.style.overflow = 'hidden';
+    }
+    window.openAdminEditClientModal = openAdminEditClientModal;
+
+    function closeAdminEditClientModal() {
+      const modal = document.getElementById('adminEditClientModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.setProperty('display', 'none', 'important');
+        modal.style.setProperty('opacity', '0', 'important');
+        modal.style.setProperty('pointer-events', 'none', 'important');
+      }
+      if (document.body) {
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      }
+    }
+    window.closeAdminEditClientModal = closeAdminEditClientModal;
+
+    function deleteClientFromAdmin(clientId) {
+      if (!confirm('Are you sure you want to remove client ' + clientId + ' from the client portal registry?')) return;
+      const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+
+      if (typeof adminCachedClients !== 'undefined' && Array.isArray(adminCachedClients)) {
+        adminCachedClients = adminCachedClients.filter(c => c.clientId !== clientId);
+        window.adminCachedClients = adminCachedClients;
+        try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch(e) {}
+      }
+
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminDeleteClient) {
+        google.script.run.handleAdminDeleteClient(pin, clientId);
+      }
+
+      renderAdminClientTerminal({ clients: adminCachedClients });
+    }
+    window.deleteClientFromAdmin = deleteClientFromAdmin;
+
+
 
 
 
@@ -8292,7 +8681,8 @@
 <!-- VIEW 1: AUTHENTICATED STUDENT DASHBOARD -->
 <section class="panel hidden" id="view-portal" role="tabpanel">
 <!-- PWA Mobile Home Screen Callout Banner -->
-<div class="pwa-install-banner" id="pwaStudentBanner" style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(16, 22, 31, 0.95) 100%); border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+<div class="pwa-install-banner" id="pwaStudentBanner" style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(16, 22, 31, 0.95) 100%); border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; justify-content: space-between; al
+ign-items: center; flex-wrap: wrap; gap: 12px;">
 <div style="display: flex; align-items: center; gap: 12px;">
 <span style="font-size: 1.6rem; flex-shrink: 0;">📱</span>
 <div>
@@ -8509,8 +8899,7 @@
 </div>
 <!-- State Dossier Details Modal -->
 <div class="state-dossier-modal-overlay" id="stateDossierModal" onclick="if(event.target===this) closeStateDossier()" style="display: none;">
-<div aria-labelledby="dossierStateTitle" 
-aria-modal="true" class="state-dossier-card" onclick="event.stopPropagation()" role="dialog">
+<div aria-labelledby="dossierStateTitle" aria-modal="true" class="state-dossier-card" onclick="event.stopPropagation()" role="dialog">
 <button aria-label="Close dossier" class="dossier-close-btn" onclick="closeStateDossier()" type="button">✕</button>
 <div class="dossier-header-row">
 <div class="dossier-state-code" id="dossierStateCode">MD</div>
@@ -12591,7 +12980,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     window.mountStudentTargets = mountStudentTargets;
 
     function selectCourse(courseValue) {
-      const valClean = (courseValue || '').toLowerCase().trim();
+      const valClean = (courseValue || '').toLowerCas
+e().trim();
 
       // REQUIREMENT 9: Lock Alumni Clinic down to registered clients
       if (valClean.includes('alumni') || valClean.includes('clinic')) {
@@ -13173,8 +13563,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         syncTask(taskId, chk.checked);
 
- 
-     }
+      }
 
     }
 
@@ -18197,7 +18586,8 @@ function closeStateModal() {
 </div>
 <div class="fifs-action-dock" style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.12) 0%, rgba(13, 19, 27, 0.98) 100%); border: 2px solid var(--accent-cyan); box-shadow: 0 0 25px var(--accent-cyan-glow); border-radius: 16px; padding: 26px 20px; margin-top: 32px; text-align: center;">
 <span class="badge-instructor" style="margin-bottom: 8px;">Future Initiative Firearm Services</span>
-<h3 style="font-family: var(--font-display); font-size: 1.85rem; color: #fff; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 4px;">Ready to Expand Your Multi-State Carry Footprint?</h3>
+<h3 style="font-family: var(-
+-font-display); font-size: 1.85rem; color: #fff; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 4px;">Ready to Expand Your Multi-State Carry Footprint?</h3>
 <p style="color: #cbd5e1; font-size: 0.92rem; max-width: 780px; margin: 6px auto 18px; line-height: 1.55;">
         Train with Lead Instructor Kai Wade (Certified MSP Qualified Handgun Instructor § 5-101 and NRA Certified) at Cindy's Hot Shots. Build real confidence, master Maryland self-defense law, and obtain multi-state carry authorization across 34+ states.
       </p>
@@ -18477,8 +18867,7 @@ function closeStateModal() {
 <span id="stepModalIcon">⚡</span> <span id="stepModalHeading">Step Details</span>
 </h3>
 <div class="goal-modal-rec" id="stepModalStatus" style="color: var(--accent-cyan); font-weight: 700; text-transform: uppercase; font-size: 0.85rem; margin-bottom: 12px;">Current Status</div>
-<div class="goal-synopsis-card" i
-d="stepModalSynopsis" style="margin-bottom: 16px; background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 16px; font-size: 0.90rem; color: #cbd5e1; line-height: 1.6;">
+<div class="goal-synopsis-card" id="stepModalSynopsis" style="margin-bottom: 16px; background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 16px; font-size: 0.90rem; color: #cbd5e1; line-height: 1.6;">
 <!-- Filled dynamically -->
 </div>
 <div id="stepModalKeyPoints" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
@@ -19575,3 +19964,59 @@ d="stepModalSynopsis" style="margin-bottom: 16px; background: #070b10; border: 1
 </div>
 </body>
 </html>
+    /* Bulletproof Inactive Overlay Safety: Inactive overlays MUST NEVER intercept mouse/touch input */
+    .goal-modal-overlay:not(.active),
+    .fi-portal-modal-overlay:not(.active),
+    .reciprocity-hub-modal-overlay:not(.active),
+    .state-drawer-overlay:not(.active):not(.open),
+    .state-dossier-modal-overlay:not(.active) {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      z-index: -10 !important;
+    }
+
+    /* Authoritative Admin Command Terminal Stacking Context & Touch Responsiveness */
+    #view-admin {
+      position: relative;
+      z-index: 50 !important;
+      pointer-events: auto !important;
+    }
+    #admin-command-dashboard {
+      position: relative;
+      z-index: 60 !important;
+      pointer-events: auto !important;
+      width: 100%;
+    }
+    #admin-command-dashboard button,
+    #admin-command-dashboard a,
+    #admin-command-dashboard select,
+    #admin-command-dashboard input {
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
+      cursor: pointer;
+    }
+    .admin-view-toggle-bar,
+    .admin-view-toggle-btn {
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
+      cursor: pointer;
+      position: relative;
+      z-index: 65 !important;
+    }
+    #admin-roster-tbody tr,
+    #admin-client-tbody tr {
+      pointer-events: auto !important;
+    }
+    #admin-roster-tbody button,
+    #admin-client-tbody button,
+    #admin-roster-tbody select,
+    #admin-client-tbody select {
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
+      cursor: pointer;
+      position: relative;
+      z-index: 70 !important;
+    }
+
