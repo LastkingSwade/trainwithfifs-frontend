@@ -5757,6 +5757,12 @@
       animation: fifsSpin 0.75s linear infinite;
     }
 
+
+    #view-admin, #admin-command-dashboard, .admin-view-toggle-bar, #admin-subpanel-roster, #admin-subpanel-clients, #admin-subpanel-inquiries, #admin-subpanel-analytics {
+      position: relative !important;
+      z-index: 50 !important;
+      pointer-events: auto !important;
+    }
 </style>
 <!-- Immediate Global Navigation Handlers (Guaranteed Multi-Screen Isolation) -->
 <!-- Global Unbreakable Navigation Handlers -->
@@ -6091,7 +6097,7 @@
         'adminInviteModal', 'adminEditStudentModal', 'adminEditClientModal',
         'alumniAccessGateModal', 'clientProfileModal', 'stepDetailModal',
         'expectationModal', 'stateModalOverlay', 'courseBookingModal', 'vehicleTravelModal',
-        'flyingWithFirearmModal'
+        'flyingWithFirearmModal', 'adminReplyChatModal'
       ];
       overlayIds.forEach(function(id) {
         const el = document.getElementById(id);
@@ -8425,7 +8431,7 @@
 </div>
 </div>
 <!-- State Dossier Details Modal -->
-<div class="state-dossier-modal-overlay" id="stateDossierModal" onclick="if(event.target===this) closeStateDossier()">
+<div class="state-dossier-modal-overlay" id="stateDossierModal" onclick="if(event.target===this) closeStateDossier()" style="display: none;">
 <div aria-labelledby="dossierStateTitle" aria-modal="true" class="state-dossier-card" onclick="event.stopPropagation()" role="dialog">
 <button aria-label="Close dossier" class="dossier-close-btn" onclick="closeStateDossier()" type="button">✕</button>
 <div class="dossier-header-row">
@@ -8487,8 +8493,7 @@
 <div id="panel-client-signin">
 <div class="form-group">
 <label for="clientAuthInput" style="color: var(--accent-cyan); font-weight: 700; font-size: 0.85rem;">Email Address or Client ID <span class="req">*</span></label>
-<
-input id="clientAuthInput" onkeydown="if(event.key==='Enter') lookupClientAccount()" placeholder="e.g., marcus@example.com or FI-CLIENT-1042" type="text"/>
+<input type="text" id="clientAuthInput" placeholder="e.g., marcus@example.com or FI-CLIENT-1042" onkeydown="if(event.key==='Enter') lookupClientAccount()"/>
 </div>
 <button class="btn-primary" onclick="lookupClientAccount()" type="button">
                 Sign In to Client Portal →
@@ -12835,6 +12840,9 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
             if (res && res.status === 'success') {
 
               statusDiv.style.display = 'none';
+          try { closeAllOverlays(); } catch(e) {}
+          document.body.style.overflow = '';
+          document.body.classList.remove('modal-open');
 
               localStorage.setItem('fifs_instructor_pin', pin);
 
@@ -13767,8 +13775,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       OH: { name: "Ohio", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Prompt disclosure when requested by officer", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry active since 2022." },
 
-      OK: { name: "Oklahoma", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No l
-imit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry active." },
+      OK: { name: "Oklahoma", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry active." },
 
       OR: { name: "Oregon", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested", mag: "No active state limit currently enforced", vehicle: "OR permit required for concealed carry in vehicle", notes: "No out-of-state reciprocity." },
 
@@ -18468,8 +18475,7 @@ function closeStateModal() {
 <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
 </div>
 <!-- Calendar Days Grid -->
-<div id="bookingCalDaysGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-subtle); border: 1px solid var(--border
--subtle); border-radius: 0 0 8px 8px; overflow: hidden;">
+<div id="bookingCalDaysGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-subtle); border: 1px solid var(--border-subtle); border-radius: 0 0 8px 8px; overflow: hidden;">
 <!-- Dynamically populated via renderBookingCalendar() -->
 </div>
 <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
