@@ -5843,6 +5843,10 @@
         }
       });
 
+      if (tab === 'testimonial' && typeof mountStudentTargets === 'function') {
+        try { mountStudentTargets(); } catch(e) {}
+      }
+
       const userTag = document.getElementById('portal-user-tag');
       const savedSession = localStorage.getItem('fifs_student_session');
       if (tab !== 'portal' || !savedSession) {
@@ -6273,6 +6277,75 @@
       openCourseBookingModal();
     }
     window.selectCourse = selectCourse;
+
+    // ==========================================================================
+    // GLOBAL AUTHENTICATION & PORTAL TRIGGERS (GUARANTEED GLOBAL AVAILABILITY)
+    // ==========================================================================
+    function openAuthModal(portalType) {
+      if (portalType === 'client' || portalType === 'fi-portal') {
+        openAndSwitch('fi-portal');
+        switchClientAuthTab('signin');
+      } else if (portalType === 'register' || portalType === 'client-register') {
+        openAndSwitch('fi-portal');
+        switchClientAuthTab('register');
+      } else if (portalType === 'student' || portalType === 'portal') {
+        openAndSwitch('portal');
+      } else {
+        openPortalSelectionModal();
+      }
+    }
+    window.openAuthModal = openAuthModal;
+
+    function switchClientAuthTab(tab) {
+      const pSignin = document.getElementById('panel-client-signin');
+      const pRegister = document.getElementById('panel-client-register');
+      const tSignin = document.getElementById('tab-client-signin');
+      const tRegister = document.getElementById('tab-client-register');
+
+      if (tab === 'signin') {
+        if (pSignin) {
+          pSignin.style.setProperty('display', 'block', 'important');
+          pSignin.style.setProperty('visibility', 'visible', 'important');
+          pSignin.style.setProperty('pointer-events', 'auto', 'important');
+        }
+        if (pRegister) {
+          pRegister.style.setProperty('display', 'none', 'important');
+          pRegister.style.setProperty('pointer-events', 'none', 'important');
+        }
+        if (tSignin) {
+          tSignin.classList.add('active');
+          tSignin.style.borderColor = 'var(--accent-cyan)';
+          tSignin.style.color = '#fff';
+        }
+        if (tRegister) {
+          tRegister.classList.remove('active');
+          tRegister.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+          tRegister.style.color = 'var(--text-muted)';
+        }
+      } else {
+        if (pSignin) {
+          pSignin.style.setProperty('display', 'none', 'important');
+          pSignin.style.setProperty('pointer-events', 'none', 'important');
+        }
+        if (pRegister) {
+          pRegister.style.setProperty('display', 'block', 'important');
+          pRegister.style.setProperty('visibility', 'visible', 'important');
+          pRegister.style.setProperty('pointer-events', 'auto', 'important');
+        }
+        if (tSignin) {
+          tSignin.classList.remove('active');
+          tSignin.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+          tSignin.style.color = 'var(--text-muted)';
+        }
+        if (tRegister) {
+          tRegister.classList.add('active');
+          tRegister.style.borderColor = 'var(--accent-cyan)';
+          tRegister.style.color = '#fff';
+        }
+      }
+    }
+    window.switchClientAuthTab = switchClientAuthTab;
+
 
 
 </script>
@@ -7838,7 +7911,8 @@
 <span>👨‍👩‍👧</span> EDDIE EAGLE ACCIDENT PREVENTION — HOME STORAGE SAFETY COVENANT
           </div>
 <div class="tier-toggle-wrapper">
-<div class="tier-sliding-switch" id="switch-children" onclick="toggleCardTier('children', event)">
+<div class="tier-sliding-switch" id="switch-children" onclick="toggleCardTier('childr
+en', event)">
 <div class="tier-sliding-pill" id="slider-children"></div>
 <button class="tier-option-btn btn-base-side" id="tog-base-children" onclick="setCardTier('children', 'base', event)" type="button">Standard</button>
 <button class="tier-option-btn btn-vip-side" id="tog-vip-children" onclick="setCardTier('children', 'vip', event)" type="button">👑 VIP</button>
@@ -7872,8 +7946,7 @@
 </div>
 </div><!-- Properly closes card-course-children -->
 <!-- 8. FIFS Graduate Alumni Marksmanship Clinic (Standalone Sibling Card) -->
-<!-- 8. FIFS Graduate Alumni Marksmanship Clinic
- (Base $65 / VIP $115) -->
+<!-- 8. FIFS Graduate Alumni Marksmanship Clinic (Base $65 / VIP $115) -->
 <div class="tuition-card" id="card-course-alumni" style="position: relative;">
 <div class="card-tier-badge" id="badge-course-alumni" style="display: none; background: var(--accent-cyan); color: #070b10; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; position: absolute; top: -10px; right: 16px;">
             👑 VIP TURNKEY MODE
@@ -8230,7 +8303,10 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
           if (contextualHistoryStack.length > 25) contextualHistoryStack.shift();
         }
         currentActiveView = tabId;
+        window.currentActiveView = tabId;
 
+        document.body.classList.remove('in-home');
+        document.body.classList.add('in-app');
         document.body.className = 'in-app';
         const hero = document.getElementById('hero-landing');
         const app = document.getElementById('app-container');
@@ -8263,7 +8339,10 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
           if (contextualHistoryStack.length > 25) contextualHistoryStack.shift();
         }
         currentActiveView = 'home';
+        window.currentActiveView = 'home';
 
+        document.body.classList.remove('in-app');
+        document.body.classList.add('in-home');
         document.body.className = 'in-home';
         const hero = document.getElementById('hero-landing');
         const app = document.getElementById('app-container');
@@ -10419,8 +10498,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       container.innerHTML = TARGET_PHOTOS_DATA.map(p => `
         <article class="target-card-student">
           <div class="target-img-frame">
-            <img src="https://lh3.googleusercontent.com/d/${p.id}" 
-                 onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id=${p.id}&sz=w800'; this.onerror=function(){ this.parentElement.classList.add('img-fallback'); this.style.display='none'; };" 
+            <img src="https://drive.google.com/thumbnail?id=${p.id}&sz=w800" 
+                 onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/${p.id}=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
                  alt="${escapeHtml(p.title)}" loading="lazy">
             <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
             <span class="badge-course">${escapeHtml(p.course)}</span>
@@ -10436,6 +10515,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         </article>
       `).join('');
     }
+    window.mountStudentTargets = mountStudentTargets;
 
     function selectCourse(courseValue) {
       const valClean = (courseValue || '').toLowerCase().trim();
@@ -14520,7 +14600,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         permitState: permitState,
         expirationDate: expDate,
         optInReminder: optIn,
-        savedAt: new Date().toISOString()
+        savedAt: new Dat
+e().toISOString()
       };
 
       btn.disabled = true;
@@ -14597,8 +14678,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }
 
       // Sync the Expiration Calculator automatically
-      const calcInput = document.getElemen
-tById('fiPermitExpInput');
+      const calcInput = document.getElementById('fiPermitExpInput');
       if (calcInput && client.expirationDate) {
         calcInput.value = client.expirationDate;
         if (typeof fiCalculateExpiration === 'function') fiCalculateExpiration();
