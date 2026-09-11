@@ -5779,6 +5779,49 @@
     }
     window.isAuthorizedAdminPin = isAuthorizedAdminPin;
 
+    // =========================================================================
+    // AUTHORITATIVE UNIFIED DISCORD WEBHOOK DISPATCHER
+    // =========================================================================
+    var DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1547779726746320958/nu4yar-r8aR3c6-P-mm8YeprX5bou1uqej24tEuYhNS5LVusMuBtADVcv1vf1oJp_bum";
+    window.DISCORD_WEBHOOK_URL = DISCORD_WEBHOOK_URL;
+
+    function dispatchDiscordAlert(title, description, fields, colorHex, contentText) {
+      try {
+        const webhookUrl = window.DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL;
+        if (!webhookUrl || typeof webhookUrl !== 'string' || !webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
+          return;
+        }
+
+        const discordBody = {
+          username: "FIFS Operations Bot",
+          avatar_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w256",
+          content: contentText || `🔔 **FIFS Notification: ${title}**`,
+          embeds: [{
+            title: title,
+            description: description || "",
+            color: colorHex || 0x00E5FF,
+            fields: fields || [],
+            footer: { text: "Future Initiative Firearm Services • trainwithfifs.com" },
+            timestamp: new Date().toISOString()
+          }]
+        };
+
+        if (typeof fetch === 'function') {
+          fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(discordBody)
+          }).catch(err => {
+            console.warn('Direct browser Discord webhook dispatch caught (offline/CORS):', err);
+          });
+        }
+      } catch (err) {
+        console.warn('Error in dispatchDiscordAlert:', err);
+      }
+    }
+    window.dispatchDiscordAlert = dispatchDiscordAlert;
+
+
     function unlockAdminDashboardDirect(pin) {
       const p = pin || '5819';
       try {
@@ -6056,8 +6099,48 @@
         }));
       } catch(err) {}
 
+      // Dispatch Discord Webhook Alert immediately for new Client Registration
+      try {
+        if (typeof dispatchDiscordAlert === 'function') {
+          dispatchDiscordAlert(
+            "🛡️ New Client Portal Profile: " + name,
+            "A permit holder registered their profile in the **Future Initiative Client Portal**.",
+            [
+              { name: "Client Name", value: name, inline: true },
+              { name: "Client ID", value: clientId, inline: true },
+              { name: "Email Address", value: email, inline: true },
+              { name: "Phone Number", value: phone || "Not provided", inline: true },
+              { name: "Permit State", value: permitState, inline: true },
+              { name: "Expiration Date", value: expDate || "To Be Determined", inline: true },
+              { name: "Renewal Reminder Watch", value: optIn ? "Opted In (Automated 90-Day Notice)" : "Declined", inline: true }
+            ],
+            0xFFB703,
+            `🛡️ **NEW CLIENT REGISTRATION: ${name} registered ${permitState} Permit (Exp: ${expDate})**`
+          );
+        }
+      } catch (err) {}
+
+
       if (btn) btn.disabled = true;
       showStatus(statusDiv, 'Creating profile & setting renewal watch...', 'success');
+      // Dispatch Discord Webhook Alert immediately for new Client Registration
+      try {
+        dispatchDiscordAlert(
+          "🛡️ New Client Portal Profile: " + name,
+          "A permit holder registered their profile in the **Future Initiative Client Portal**.",
+          [
+            { name: "Client Name", value: name, inline: true },
+            { name: "Client ID", value: clientId, inline: true },
+            { name: "Email Address", value: email, inline: true },
+            { name: "Phone Number", value: phone || "N/A", inline: true },
+            { name: "Permit State", value: permitState, inline: true },
+            { name: "Expiration Date", value: expDate || "Planning / In Progress", inline: true }
+          ],
+          0xFFB703,
+          `🛡️ **NEW CLIENT REGISTRATION: ${name} created a profile in the Client Portal (${permitState})**`
+        );
+      } catch (err) {}
+
 
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleClientRegistration) {
         google.script.run
@@ -7118,6 +7201,8 @@
               form.style.display = 'none';
               activeView.style.display = 'block';
               if (typeof renderLiveChatStream === 'function') renderLiveChatStream();
+              const btnClose = document.getElementById('btn-close-live-chat');
+              if (btnClose) btnClose.style.display = 'inline-flex';
             } else {
               form.style.display = 'block';
               activeView.style.display = 'none';
@@ -7140,6 +7225,26 @@
       }
     }
     window.closeContactWidgetModal = closeContactWidgetModal;
+
+    function closeLiveChatSession() {
+      if (confirm("Close this chat session? This will end the conversation and reset the chat.")) {
+        localStorage.removeItem('fifs_range_chat_thread');
+        localStorage.removeItem('fifs_active_chat_user');
+        const form = document.getElementById('liveChatDispatchForm');
+        const activeView = document.getElementById('liveChatActiveThreadView');
+        const btnCloseChat = document.getElementById('btn-close-live-chat');
+        if (form) {
+          form.style.display = 'block';
+          form.reset();
+        }
+        if (activeView) activeView.style.display = 'none';
+        if (btnCloseChat) btnCloseChat.style.display = 'none';
+        closeContactWidgetModal();
+      }
+    }
+    window.closeLiveChatSession = closeLiveChatSession;
+    window.closeLiveChatThread = closeLiveChatSession;
+
 
     
     // --- LIVE CHAT DISPATCH & RANGE INQUIRIES CONTROLLERS ---
@@ -7646,13 +7751,13 @@
         const isReply = (payload.type === 'instructor_reply');
         const title = isReply 
           ? `🎯 Coach Kai Wade Replied to ${payload.name || 'Student'}`
-          : `💬 Priority Live Range Chat Dispatch: ${payload.name || 'Website Visitor'}`;
+          : `💬 Chat Dispatch: ${payload.name || 'Website Visitor'}`;
         
         const color = isReply ? 0xFFB703 : 0x00E5FF;
 
         const embed = {
           title: title,
-          description: payload.message || "New message received in Priority Live Range Chat.",
+          description: payload.message || "New message received in Chat.",
           color: color,
           fields: [
             { name: "👤 Contact Name", value: payload.name || "Anonymous", inline: true },
@@ -7739,7 +7844,7 @@
           id: 'SYS-WELCOME',
           senderName: 'Coach Kai Wade',
           senderRole: 'instructor',
-          text: `👋 Hello ${name}! I've received your live range dispatch on my mobile line and Discord. What questions do you have about our Maryland CCW, HQL certification, or range coaching today?`,
+          text: "Hello, I have received your message and am here to help. What questions do you have? I am an automated response. Instructor Wade will be with you shortly.",
           timestamp: timestampStr
         },
         {
@@ -8415,7 +8520,8 @@
             </button>
 </div>
 </div>
-<!-- ================= DYNAMIC COURSE FOLLOW-ALONG PACKET CARD ================= -->
+<!-- ================= DYNAMIC COURSE FOLLOW-ALONG PAC
+KET CARD ================= -->
 <div id="student-course-packet-card" style="background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
 <div>
@@ -11705,6 +11811,11 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         if (thread && activeView && form) {
           try {
             const list = JSON.parse(thread);
+          list.forEach(m => {
+            if (m.id === 'SYS-WELCOME') {
+              m.text = "Hello, I have received your message and am here to help. What questions do you have? I am an automated response. Instructor Wade will be with you shortly.";
+            }
+          });
             if (list && list.length > 0) {
               form.style.display = 'none';
               activeView.style.display = 'block';
@@ -13093,22 +13204,22 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
   
   
 
+      const cSelect = document.getElementById('courseSelection');
+      const fName = document.getElementById('fullName');
+      const fEmail = document.getElementById('email');
+      const fPhone = document.getElementById('phone');
+      const fDates = document.getElementById('preferredDates');
+      const fGroup = document.getElementById('groupSize');
+      const fComments = document.getElementById('comments');
+
       const payload = {
-
-        courseSelection: form.courseSelection.value,
-
-        fullName: form.fullName.value.trim(),
-
-        email: form.email.value.trim(),
-
-        phone: form.phone.value.trim(),
-
-        preferredDates: form.preferredDates.value.trim(),
-
-        groupSize: form.groupSize.value,
-
-        comments: form.comments.value.trim()
-
+        courseSelection: cSelect ? cSelect.value : (form.courseSelection ? form.courseSelection.value : ''),
+        fullName: fName ? fName.value.trim() : (form.fullName ? form.fullName.value.trim() : ''),
+        email: fEmail ? fEmail.value.trim() : (form.email ? form.email.value.trim() : ''),
+        phone: fPhone ? fPhone.value.trim() : (form.phone ? form.phone.value.trim() : ''),
+        preferredDates: fDates ? fDates.value.trim() : (form.preferredDates ? form.preferredDates.value.trim() : 'Flexible'),
+        groupSize: fGroup ? fGroup.value : (form.groupSize ? form.groupSize.value : '1'),
+        comments: fComments ? fComments.value.trim() : (form.comments ? form.comments.value.trim() : '')
       };
 
   
@@ -13123,6 +13234,24 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       submitBtn.disabled = true;
 
       showStatus(statusDiv, 'Registering student session with Future Initiative...', 'success');
+      // Dispatch Discord Webhook Alert immediately for new Course Booking
+      try {
+        dispatchDiscordAlert(
+          "🎯 New Student Course Booking: " + payload.fullName,
+          "A new student has enrolled online via **trainwithfifs.com**.",
+          [
+            { name: "Student Name", value: payload.fullName, inline: true },
+            { name: "Course Selection", value: payload.courseSelection, inline: true },
+            { name: "Preferred Date(s)", value: payload.preferredDates || "Flexible", inline: true },
+            { name: "Email Address", value: payload.email, inline: true },
+            { name: "Phone Number", value: payload.phone || "N/A", inline: true },
+            { name: "Group Size", value: payload.groupSize || "1", inline: true }
+          ],
+          0x00E5FF,
+          `🎯 **NEW COURSE ENROLLMENT: ${payload.fullName} registered for ${payload.courseSelection}**`
+        );
+      } catch (err) {}
+
 
   
   
@@ -13719,7 +13848,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       DE: { name: "Delaware", constCarry: false, honorsMD: false, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "17-round limit (except 22 LR)", vehicle: "Open carry legal in vehicle; concealed requires recognized permit (Utah/FL)", notes: "Does NOT honor MD, but DOES honor Utah and Florida Non-Resident permits!" },
 
-      DC: { name: "District of Columbia", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Immediate upon contact", mag: "10-round limit", vehicle: "Strictly unloaded, ammunition separate, locked in trunk", notes: "Does not recognize any other state permits. Requires DC-specific non-resident permit." },
+      DC: { name: "District of Columbia", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Immediate upon contact", mag: "10-round limit", vehicle: "Strictly unloade
+d, ammunition separate, locked in trunk", notes: "Does not recognize any other state permits. Requires DC-specific non-resident permit." },
 
       FL: { name: "Florida", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested by officer", mag: "No magazine capacity limit", vehicle: "Permitless concealed carry legal in vehicle for 21+", notes: "Permitless concealed carry active for lawful residents and non-residents." },
 
@@ -15838,6 +15968,23 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       btn.disabled = true;
       showStatus(statusDiv, 'Activating renewal watch & saving client record...', 'success');
+      // Dispatch Discord Webhook Alert immediately for Client Profile Save
+      try {
+        dispatchDiscordAlert(
+          "🛡️ New Client Portal Profile: " + name,
+          "A permit holder registered their profile in the **Future Initiative Client Portal**.",
+          [
+            { name: "Client Name", value: name, inline: true },
+            { name: "Client ID", value: clientId, inline: true },
+            { name: "Email Address", value: email, inline: true },
+            { name: "Permit State", value: state, inline: true },
+            { name: "Expiration Date", value: expDate, inline: true }
+          ],
+          0xFFB703,
+          `🛡️ **NEW CLIENT REGISTRATION: ${name} created a profile in the Client Portal (${state})**`
+        );
+      } catch (err) {}
+
 
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleClientRegistration) {
         google.script.run
@@ -16240,6 +16387,28 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           timestamp: new Date().toLocaleString()
         }));
       } catch(err) {}
+
+      // Dispatch Discord Webhook Alert immediately for new Client Registration
+      try {
+        if (typeof dispatchDiscordAlert === 'function') {
+          dispatchDiscordAlert(
+            "🛡️ New Client Portal Profile: " + name,
+            "A permit holder registered their profile in the **Future Initiative Client Portal**.",
+            [
+              { name: "Client Name", value: name, inline: true },
+              { name: "Client ID", value: clientId, inline: true },
+              { name: "Email Address", value: email, inline: true },
+              { name: "Phone Number", value: phone || "Not provided", inline: true },
+              { name: "Permit State", value: permitState, inline: true },
+              { name: "Expiration Date", value: expDate || "To Be Determined", inline: true },
+              { name: "Renewal Reminder Watch", value: optIn ? "Opted In (Automated 90-Day Notice)" : "Declined", inline: true }
+            ],
+            0xFFB703,
+            `🛡️ **NEW CLIENT REGISTRATION: ${name} registered ${permitState} Permit (Exp: ${expDate})**`
+          );
+        }
+      } catch (err) {}
+
 
       btn.disabled = true;
       showStatus(statusDiv, 'Creating profile & setting renewal watch...', 'success');
@@ -18382,7 +18551,8 @@ function closeStateModal() {
 <div>
 <span class="goal-header-badge" id="bookingModalBadge">CLASS REGISTRATION &amp; SEAT RESERVATION</span>
 </div>
-<h3 class="goal-modal-title" id="bookingModalTitle" style="color: #fff; margin: 6px 0 4px; font-size: 1.8rem; text-transform: uppercase;">
+<h3 class="goal-modal-
+title" id="bookingModalTitle" style="color: #fff; margin: 6px 0 4px; font-size: 1.8rem; text-transform: uppercase;">
         Reserve Your Training Session
       </h3>
 <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5;">
@@ -18392,7 +18562,7 @@ function closeStateModal() {
 <form id="booking-form" onsubmit="submitBooking(event)">
 <div class="form-group">
 <label for="courseSelection">Selected Course Curriculum &amp; Tuition <span class="req">*</span></label>
-<select class="form-select" id="courseSelection" onchange="updateFormPriceDisplay()" required="" style="background: #070b10; border: 1px solid var(--accent-cyan); color: #fff; padding: 12px; border-radius: 8px; width: 100%; font-size: 0.95rem; font-weight: 700;">
+<select class="form-select" id="courseSelection" name="courseSelection" onchange="updateFormPriceDisplay()" required="" style="background: #070b10; border: 1px solid var(--accent-cyan); color: #fff; padding: 12px; border-radius: 8px; width: 100%; font-size: 0.95rem; font-weight: 700;">
 <option value="Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)">Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)</option>
 <option value="Mid-Atlantic Multi-State Mastery — Base Track ($425.00)">Mid-Atlantic Multi-State Mastery — Base Track ($425.00)</option>
 <option value="Maryland CCW &amp; HQL Combo — VIP Turnkey ($375.00)">Maryland CCW &amp; HQL Combo — VIP Turnkey ($375.00)</option>
@@ -18938,7 +19108,7 @@ function closeStateModal() {
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
 <div style="display: flex; align-items: center; gap: 8px;">
 <span class="pulse-dot" id="liveChatPulseDot" style="width: 8px; height: 8px;"></span>
-<strong style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; text-transform: uppercase;">💬 Priority Live Range Chat</strong>
+<strong style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; text-transform: uppercase;">💬 Chat</strong>
 </div>
 <span id="liveChatOperatingTag" style="font-size: 0.74rem; font-weight: 800; text-transform: uppercase; color: var(--accent-cyan);">Active 9 AM – 5 PM EST</span>
 </div>
@@ -18959,16 +19129,13 @@ function closeStateModal() {
 
 <!-- TWO-WAY LIVE RANGE CHAT CLIENT (Real-Time Back-and-Forth Interface) -->
 <div id="liveChatActiveThreadView" style="display: none; background: #070b10; border: 1.5px solid var(--accent-cyan); border-radius: 12px; padding: 16px; margin-top: 14px; box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);">
-  <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 12px;">
     <div>
       <span style="font-size: 0.74rem; color: var(--accent-green); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">● Connected to Coach Kai Wade</span>
       <div style="font-size: 0.82rem; color: #fff; font-weight: 700; margin-top: 2px;">
         Chatting as: <span id="chatActiveUserTag" style="color: var(--accent-cyan);">Prospective Student</span> (<span id="chatActiveContactTag" style="color: var(--text-muted);">(443) 555-0192</span>)
       </div>
     </div>
-    <button type="button" class="btn-spark" onclick="resetLiveChatClient()" style="padding: 4px 10px; font-size: 0.75rem; border-color: var(--border-subtle); color: var(--text-muted);">
-      Start New Chat
-    </button>
   </div>
 
   <!-- Messages Stream Area -->
@@ -18977,9 +19144,9 @@ function closeStateModal() {
   </div>
 
   <!-- Reply Dock Form -->
-  <form id="liveChatReplyForm" onsubmit="handleLiveChatReplySubmit(event)" style="display: flex; gap: 8px; align-items: center;">
-    <input id="chatReplyTextInput" type="text" placeholder="Type message to Coach Wade..." required style="flex: 1; background: #10161f; border: 1px solid var(--accent-cyan); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 0.88rem;">
-    <button type="submit" class="btn-primary" id="btn-send-reply" style="padding: 10px 18px; font-size: 0.88rem; font-weight: 800; text-transform: uppercase; white-space: nowrap;">
+  <form id="liveChatReplyForm" onsubmit="handleLiveChatReplySubmit(event)" style="display: flex; gap: 10px; align-items: center; width: 100%; margin-top: 6px;">
+    <input id="chatReplyTextInput" type="text" placeholder="Type your message to Coach Wade..." required style="flex: 1 1 auto; min-width: 0; width: auto; background: #10161f; border: 1.5px solid var(--accent-cyan); color: #fff; padding: 11px 16px; border-radius: 8px; font-size: 0.90rem; box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);">
+    <button type="submit" class="btn-primary" id="btn-send-reply" style="width: auto !important; flex: 0 0 auto !important; padding: 11px 22px; font-size: 0.88rem; font-weight: 800; text-transform: uppercase; white-space: nowrap; border-radius: 8px; box-shadow: 0 0 16px var(--accent-cyan-glow);">
       Send 💬
     </button>
   </form>
@@ -18987,10 +19154,14 @@ function closeStateModal() {
 </div>
 
 </div>
-<div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-subtle); text-align: right;">
-<button class="btn-secondary-modal" onclick="closeContactWidgetModal()" style="padding: 8px 18px; font-size: 0.85rem;" type="button">
-          Close Window
-        </button>
+<div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+  <button type="button" class="btn-spark" id="btn-close-live-chat" onclick="closeLiveChatSession()" style="padding: 8px 18px; font-size: 0.85rem; font-weight: 800; border-color: rgba(239, 68, 68, 0.5); color: #ef4444; background: rgba(239, 68, 68, 0.12); cursor: pointer; border-radius: 8px; display: none; align-items: center; gap: 6px;" title="End and close this live chat session">
+    ✕ Close Chat
+  </button>
+  <div style="flex: 1;"></div>
+  <button class="btn-secondary-modal" onclick="closeContactWidgetModal()" style="padding: 8px 18px; font-size: 0.85rem;" type="button">
+    Close Window
+  </button>
 </div>
 </div>
 </div>
@@ -19162,4 +19333,44 @@ function closeStateModal() {
 </div>
 
 </body>
-</html>
+</html    // AUTHORITATIVE UNIFIED DISCORD WEBHOOK DISPATCHER
+    var DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1547779726746320958/nu4yar-r8aR3c6-P-mm8YeprX5bou1uqej24tEuYhNS5LVusMuBtADVcv1vf1oJp_bum";
+    window.DISCORD_WEBHOOK_URL = DISCORD_WEBHOOK_URL;
+
+    function dispatchDiscordAlert(title, description, fields, colorHex, contentText) {
+      try {
+        const webhookUrl = window.DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL;
+        if (!webhookUrl || typeof webhookUrl !== 'string' || !webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
+          return;
+        }
+
+        const discordBody = {
+          username: "FIFS Operations Bot",
+          avatar_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w256",
+          content: contentText || `🔔 **FIFS Notification: ${title}**`,
+          embeds: [{
+            title: title,
+            description: description || "",
+            color: colorHex || 0x00E5FF,
+            fields: fields || [],
+            footer: { text: "Future Initiative Firearm Services • trainwithfifs.com" },
+            timestamp: new Date().toISOString()
+          }]
+        };
+
+        if (typeof fetch === 'function') {
+          fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(discordBody)
+          }).catch(function(err) {
+            console.warn('Direct browser Discord webhook dispatch caught (offline/CORS):', err);
+          });
+        }
+      } catch (err) {
+        console.warn('Error in dispatchDiscordAlert:', err);
+      }
+    }
+    window.dispatchDiscordAlert = dispatchDiscordAlert;
+
+    >
