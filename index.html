@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 
 <html lang="en">
 <head>
@@ -5936,7 +5936,7 @@
 <!-- Official Motto Ticker with Dynamic Blinking Light -->
 <div class="hero-top-hud">
 <div class="range-live-ticker">
-<span class="pulse-dot pulse-red" id="live-status-dot" title="Checking status..."></span>
+<span class="pulse-dot" id="live-status-dot" style="background: #10b981; box-shadow: 0 0 12px #10b981;" title="Live Training & Student Operations Active (9 AM - 5 PM EST)"></span>
 <span>THE FUTURE IS NOW, TAKE THE INITIATIVE!</span>
 </div>
 </div>
@@ -5948,7 +5948,7 @@
 <div class="hero-command-dock">
 <!-- Semi-Transparent Neon Arrow Guide (Colors of the business logo: #00e5ff) -->
 <div class="neon-arrow-guide-wrap" id="wrap-neon-guide" onclick="openAndSwitch('booking')" role="button" tabindex="0" title="New to firearms? Click here to start">
-<div class="neon-arrow-badge neon-mode-red" id="neon-start-guide">
+<div class="neon-arrow-badge neon-mode-cyan" id="neon-start-guide" title="Future Initiative Operations Active • Click to Start Training">
 <span class="neon-arrow-text">New To Firearms? Start Here</span>
 <span class="neon-arrow-icon">▼</span>
 </div>
@@ -5997,6 +5997,11 @@
 </div>
 </div>
 </section>
+<script>
+  try {
+    if (typeof updateLivePulseTicker === 'function') updateLivePulseTicker();
+  } catch (e) {}
+</script>
 <!-- ================= SCREEN 2: MAIN TRAINING PORTAL & BUSINESS SYSTEM ================= -->
 <div class="container" id="app-container" style="display: none;">
 <header class="app-header">
@@ -7685,12 +7690,12 @@ const RECIPROCITY_STATES_DATA = {
 
       MS: { name: "Mississippi", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry state." },
 
-      MO: { name: "Missouri", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry state." },
+      MO: { name: "Missouri", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Co
+nstitutional Carry state." },
 
       MT: { name: "Montana", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry state." },
 
-      NE: { name: "Nebrask
-a", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No limit", vehicle: "Permitless carry in vehicle legal (21+)", notes: "Constitutional Carry active since September 2023." },
+      NE: { name: "Nebraska", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No limit", vehicle: "Permitless carry in vehicle legal (21+)", notes: "Constitutional Carry active since September 2023." },
 
       NV: { name: "Nevada", constCarry: false, honorsMD: false, honorsUT: true, honorsFL: true, duty: "Only when requested", mag: "No limit", vehicle: "Loaded handgun legal in vehicle without permit", notes: "Does not honor MD, but honors Utah and Florida Non-Resident permits!" },
 
@@ -10063,41 +10068,39 @@ function handleLiveChatSubmit(e) {
 
 
     document.addEventListener('DOMContentLoaded', function() {
-      // Accurate real-visitor tracking (zero fake offsets)
-      try {
-        let visitorId = localStorage.getItem('fifs_visitor_id');
-        if (!visitorId) {
-          visitorId = 'V-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
-          localStorage.setItem('fifs_visitor_id', visitorId);
-          let vCount = parseInt(localStorage.getItem('fifs_unique_visitors_count') || '0', 10) + 1;
-          localStorage.setItem('fifs_unique_visitors_count', vCount.toString());
-          if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Visitor', 'New Unique Visitor', visitorId);
-        }
-        let pvCount = parseInt(localStorage.getItem('fifs_pageviews_count') || '0', 10) + 1;
-        localStorage.setItem('fifs_pageviews_count', pvCount.toString());
-      } catch(e) {}
+    // 1. Immediately bind hero buttons first to guarantee zero unresponsiveness
+    try { bindHeroButtons(); } catch(e) { console.error('Hero buttons binding error:', e); }
 
-      if (typeof initReciprocityEngine === 'function') initReciprocityEngine();
+    // 2. Immediately evaluate operational hours (green 9 AM - 5 PM EST)
+    try { updateLivePulseTicker(); } catch(e) { console.error('Pulse ticker error:', e); }
+    try { setInterval(updateLivePulseTicker, 30000); } catch(e) {}
 
+    // 3. Telemetry tracking in safe try/catch
+    try {
+      let visitorId = localStorage.getItem('fifs_visitor_id');
+      if (!visitorId) {
+        visitorId = 'V-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+        localStorage.setItem('fifs_visitor_id', visitorId);
+        let vCount = parseInt(localStorage.getItem('fifs_unique_visitors_count') || '0', 10) + 1;
+        localStorage.setItem('fifs_unique_visitors_count', vCount.toString());
+      }
+      let pvCount = parseInt(localStorage.getItem('fifs_pageviews_count') || '0', 10) + 1;
+      localStorage.setItem('fifs_pageviews_count', pvCount.toString());
+    } catch(e) {}
 
+    // 4. Client session restoration in safe try/catch
+    try {
       const savedClientSession = localStorage.getItem('fifs_client_session');
       if (savedClientSession) {
-        try { renderClientDashboard(JSON.parse(savedClientSession)); } catch(e) {}
+        renderClientDashboard(JSON.parse(savedClientSession));
       }
+    } catch(e) {}
 
-
-
-      mountGoogleReviewsTicker();
-
-      updateReciprocityEngine();
-
-      bindHeroButtons();
-
-      updateLivePulseTicker();
-
-      setInterval(updateLivePulseTicker, 60000);
-
-      mountStudentTargets();
+    // 5. Safe widget initialization
+    try { mountGoogleReviewsTicker(); } catch(e) { console.warn('Reviews ticker notice:', e); }
+    try { if (typeof initReciprocityEngine === 'function') initReciprocityEngine(); } catch(e) { console.warn('Reciprocity init notice:', e); }
+    try { updateReciprocityEngine(); } catch(e) { console.warn('Reciprocity update notice:', e); }
+    try { mountStudentTargets(); } catch(e) { console.warn('Student targets notice:', e); }
 
   
   
@@ -10324,86 +10327,82 @@ function handleLiveChatSubmit(e) {
   
   
 
-    function updateLivePulseTicker() {
+    
+  // ==========================================================================
+  // OPERATIONAL PULSE LIGHT & TICKER (9 AM – 5 PM EST / EDT LIVE HOURS)
+  // Strictly Green / Cyan from 09:00 to 17:00 Eastern Time; Red after hours
+  // ==========================================================================
+  function updateLivePulseTicker() {
+    const dot = document.getElementById('live-status-dot');
+    const arrowGuide = document.getElementById('neon-start-guide');
 
-      const dot = document.getElementById('live-status-dot');
+    try {
+      const now = new Date();
+      // Formats accurately in America/New_York (handles EDT / EST automatically)
+      const estTimeStr = now.toLocaleTimeString('en-US', {
+        timeZone: 'America/New_York',
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit'
+      });
 
-      const arrowGuide = document.getElementById('neon-start-guide');
+      const parts = estTimeStr.split(':');
+      const hours = parseInt(parts[0], 10);
+      const minutes = parseInt(parts[1], 10);
+      const totalMinutes = hours * 60 + minutes;
 
-      try {
+      // 9:00 AM (540 min) to 5:00 PM (1020 min) Eastern Time
+      const isOpen = (totalMinutes >= 540 && totalMinutes < 1020);
 
-        const now = new Date();
-
-        const estOptions = { timeZone: 'America/New_York', hour12: false, hour: 'numeric' };
-
-        const currentHour = parseInt(new Intl.DateTimeFormat('en-US', estOptions).format(now), 10);
-
-        // Strictly 9:00 AM to 5:00 PM EST (09:00 to 17:00)
-
-        const isOpen = (currentHour >= 9 && currentHour < 17);
-
-  
-  
-  
-  
-
-        if (isOpen) {
-
-          if (dot) {
-
-            dot.className = 'pulse-dot';
-
-            dot.style.background = '#10b981';
-
-            dot.style.boxShadow = '0 0 10px #10b981';
-
-            dot.title = 'Live Training & Student Operations Active (9 AM - 5 PM EST)';
-
-          }
-
-          if (arrowGuide) {
-
-            arrowGuide.className = 'neon-arrow-badge neon-mode-cyan';
-
-            arrowGuide.title = 'Live Business Hours (9 AM - 5 PM) • Click to Start Training';
-
-          }
-
-        } else {
-
-          if (dot) {
-
-            dot.className = 'pulse-dot pulse-red';
-
-            dot.style.background = '#ef4444';
-
-            dot.style.boxShadow = '0 0 12px #ef4444';
-
-            dot.title = 'Range Operations Closed (Opens 9 AM EST) • 24/7 Online Registration Active';
-
-          }
-
-          if (arrowGuide) {
-
-            arrowGuide.className = 'neon-arrow-badge neon-mode-red';
-
-            arrowGuide.title = 'After Hours (Closed 5 PM - 9 AM) • Online Booking Active 24/7';
-
-          }
-
+      if (isOpen) {
+        if (dot) {
+          dot.className = 'pulse-dot';
+          dot.style.setProperty('background', '#10b981', 'important');
+          dot.style.setProperty('box-shadow', '0 0 12px #10b981', 'important');
+          dot.title = 'Live Training & Student Operations Active (9 AM - 5 PM EST)';
         }
-
-      } catch (e) {
-
-        if (dot) dot.className = 'pulse-dot pulse-red';
-
-        if (arrowGuide) arrowGuide.className = 'neon-arrow-badge neon-mode-red';
-
+        if (arrowGuide) {
+          arrowGuide.className = 'neon-arrow-badge neon-mode-cyan';
+          arrowGuide.style.setProperty('background', 'rgba(0, 229, 255, 0.12)', 'important');
+          arrowGuide.style.setProperty('border-color', 'var(--accent-cyan)', 'important');
+          arrowGuide.style.setProperty('color', 'var(--accent-cyan)', 'important');
+          arrowGuide.title = 'Live Business Hours (9 AM - 5 PM) • Click to Start Training';
+        }
+      } else {
+        if (dot) {
+          dot.className = 'pulse-dot pulse-red';
+          dot.style.setProperty('background', '#ef4444', 'important');
+          dot.style.setProperty('box-shadow', '0 0 12px #ef4444', 'important');
+          dot.title = 'Range Operations Closed (Opens 9 AM EST) • 24/7 Online Registration Active';
+        }
+        if (arrowGuide) {
+          arrowGuide.className = 'neon-arrow-badge neon-mode-red';
+          arrowGuide.style.setProperty('background', 'rgba(239, 68, 68, 0.14)', 'important');
+          arrowGuide.style.setProperty('border-color', '#ef4444', 'important');
+          arrowGuide.style.setProperty('color', '#ef4444', 'important');
+          arrowGuide.title = 'After Hours (Closed 5 PM - 9 AM) • Online Booking Active 24/7';
+        }
       }
-
+    } catch (e) {
+      // Robust Fallback: local browser hours
+      try {
+        const localH = new Date().getHours();
+        const isOpenFallback = (localH >= 9 && localH < 17);
+        if (isOpenFallback) {
+          if (dot) {
+            dot.className = 'pulse-dot';
+            dot.style.setProperty('background', '#10b981', 'important');
+            dot.style.setProperty('box-shadow', '0 0 12px #10b981', 'important');
+          }
+          if (arrowGuide) {
+            arrowGuide.className = 'neon-arrow-badge neon-mode-cyan';
+          }
+        }
+      } catch (err2) {}
     }
+  }
+  window.updateLivePulseTicker = updateLivePulseTicker;
 
-    window.updateLivePulseTicker = updateLivePulseTicker;
 
   
   
@@ -12245,7 +12244,7 @@ function handleLiveChatSubmit(e) {
 
       const searchInput = document.getElementById('stateSearchInput');
 
-      const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+      const query = (searchInput && searchInput.value) ? searchInput.value.toString().trim().toLowerCase() : '';
 
   
   
@@ -13357,7 +13356,8 @@ function handleLiveChatSubmit(e) {
 
       if (modal) {
 
-        modal.classList.remove('active');
+      
+  modal.classList.remove('active');
 
         modal.style.display = 'none';
 
@@ -13425,8 +13425,7 @@ function handleLiveChatSubmit(e) {
         document.body.style.overflow = '';
       }
     }
-    window.closePortalSelectionModal = closePo
-rtalSelectionModal;
+    window.closePortalSelectionModal = closePortalSelectionModal;
 
     function fiSelectPortal(choice) {
       if (typeof checkPortalSessionConflict === 'function') {
@@ -13527,7 +13526,7 @@ rtalSelectionModal;
     function fiFilterGrid() {
       const entries = window.__fiStateEntries || [];
       const searchInput = document.getElementById('fiStateSearch');
-      const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+      const query = (searchInput && searchInput.value) ? searchInput.value.toString().trim().toLowerCase() : '';
 
       const filtered = entries.filter(s => {
         const matchesQuery = !query || s.code.toLowerCase().includes(query) || s.data.name.toLowerCase().includes(query);
