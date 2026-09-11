@@ -7100,6 +7100,24 @@
         modal.style.setProperty('pointer-events', 'auto', 'important');
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
+
+        // Check if an active chat thread exists
+        const thread = localStorage.getItem('fifs_range_chat_thread');
+        const form = document.getElementById('liveChatDispatchForm');
+        const activeView = document.getElementById('liveChatActiveThreadView');
+        if (thread && activeView && form) {
+          try {
+            const list = JSON.parse(thread);
+            if (list && list.length > 0) {
+              form.style.display = 'none';
+              activeView.style.display = 'block';
+              if (typeof renderLiveChatStream === 'function') renderLiveChatStream();
+            } else {
+              form.style.display = 'block';
+              activeView.style.display = 'none';
+            }
+          } catch(e) {}
+        }
       }
     }
     window.openContactWidgetModal = openContactWidgetModal;
@@ -7135,125 +7153,8 @@
     }
     window.isLiveChatActiveNow = isLiveChatActiveNow;
 
-    function handleLiveChatSubmit(e) {
-      if (e && e.preventDefault) e.preventDefault();
-      const nameInput = document.getElementById('chatSenderName');
-      const phoneInput = document.getElementById('chatSenderPhone');
-      const msgInput = document.getElementById('chatMessageText');
-      const st = document.getElementById('chat-dispatch-status');
-      const btn = document.getElementById('btn-send-chat');
+    // Delegated to authoritative Two-Way Chat engine in head
 
-      const name = nameInput ? nameInput.value.trim() : '';
-      const phone = phoneInput ? phoneInput.value.trim() : '';
-      const msg = msgInput ? msgInput.value.trim() : '';
-
-      if (!name || !phone || !msg) {
-        if (st) showStatus(st, 'Please fill in your name, phone number, and message.', 'error');
-        return;
-      }
-
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Connecting & Dispatching...';
-      }
-      if (st) showStatus(st, 'Connecting to Instructor Kai Wade...', 'success');
-
-      const now = new Date();
-      const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
-      const timeOptions = { hour: 'numeric', minute: '2-digit' };
-      const timestampStr = now.toLocaleDateString('en-US', dateOptions) + ' • ' + now.toLocaleTimeString('en-US', timeOptions);
-      const msgId = 'MSG-' + Math.floor(100000 + Math.random() * 900000);
-
-      const newInquiry = {
-        id: msgId,
-        timestamp: timestampStr,
-        name: name,
-        contact: phone,
-        course: 'Live Chat Inquiry',
-        message: msg,
-        status: 'Awaiting Reply'
-      };
-
-      // 1. Persist directly to fifs_range_inquiries in localStorage
-      try {
-        let list = JSON.parse(localStorage.getItem('fifs_range_inquiries') || '[]');
-        if (!list || !list.length) {
-          list = [
-            {
-              id: 'MSG-804122',
-              timestamp: 'Sep 10, 2026 • 2:15 PM',
-              name: 'Marcus Vance',
-              contact: '(443) 555-0192',
-              course: 'Maryland CCW & HQL Combo',
-              message: "Hi Coach Wade, I want to book the weekend Combo class. Do you have lane space open for Oct 12 at Cindy's Hot Shots?",
-              status: 'Awaiting Reply'
-            },
-            {
-              id: 'MSG-793011',
-              timestamp: 'Sep 10, 2026 • 11:30 AM',
-              name: 'Elena Brooks',
-              contact: 'elena.b@example.com',
-              course: 'Private 1-on-1 Range Coaching',
-              message: 'Looking for 1-on-1 coaching for recoil management. Can eye/ear protection be rented directly on site?',
-              status: 'Handled'
-            }
-          ];
-        }
-        list.unshift(newInquiry);
-        localStorage.setItem('fifs_range_inquiries', JSON.stringify(list));
-        localStorage.setItem('fifs_new_inquiry_alert', JSON.stringify(newInquiry));
-      } catch (err) {}
-
-      // 2. Immediately update Admin Inquiries Table & badge counter
-      if (typeof renderAdminInquiries === 'function') {
-        renderAdminInquiries();
-      }
-
-      // 3. Dispatch to Google Apps Script backend if available
-      const payload = {
-        messageId: msgId,
-        name: name,
-        phone: phone,
-        message: msg,
-        course: 'Live Chat Inquiry',
-        timestamp: new Date().toISOString(),
-        isLiveHours: isLiveChatActiveNow()
-      };
-
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            if (btn) {
-              btn.disabled = false;
-              btn.textContent = '🚀 Dispatch Live Chat Message →';
-            }
-            if (st) showStatus(st, '✔ Dispatched directly to Instructor Kai Wade (443-990-1304)! Message logged to Inquiries Ledger.', 'success');
-            const form = document.getElementById('liveChatDispatchForm');
-            if (form) form.reset();
-          })
-          .withFailureHandler(function(err) {
-            if (btn) {
-              btn.disabled = false;
-              btn.textContent = '🚀 Dispatch Live Chat Message →';
-            }
-            if (st) showStatus(st, '✔ Message logged and dispatched to Coach Wade (443-990-1304).', 'success');
-            const form = document.getElementById('liveChatDispatchForm');
-            if (form) form.reset();
-          })
-          .handleLiveChatMessage(payload);
-      } else {
-        setTimeout(function() {
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = '🚀 Dispatch Live Chat Message →';
-          }
-          if (st) showStatus(st, '✔ Dispatched directly to Instructor Kai Wade (443-990-1304)! Message logged to Inquiries Ledger.', 'success');
-          const form = document.getElementById('liveChatDispatchForm');
-          if (form) form.reset();
-        }, 450);
-      }
-    }
-    window.handleLiveChatSubmit = handleLiveChatSubmit;
 
     function openRangeChatModal() {
       openContactWidgetModal();
@@ -7718,6 +7619,380 @@
       try { updateLivePulseTicker(); } catch(e) {}
     });
 
+
+// =========================================================================
+    // DISCORD WEBHOOK & TWO-WAY LIVE RANGE CHAT CLIENT ENGINE
+    // =========================================================================
+    var DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1547779726746320958/nu4yar-r8aR3c6-P-mm8YeprX5bou1uqej24tEuYhNS5LVusMuBtADVcv1vf1oJp_bum";
+    window.DISCORD_WEBHOOK_URL = DISCORD_WEBHOOK_URL;
+
+    var BACKEND_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz9X2h0o5_pmNafKXRY8hSeGiGpHcrp_JMWIe8wg9FmSir0W3mrZAnkSnw-Zs9xH9BY/exec";
+    window.BACKEND_WEBAPP_URL = BACKEND_WEBAPP_URL;
+
+    function dispatchDiscordChatAlert(payload) {
+      try {
+        const webhookUrl = window.DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL;
+        if (!webhookUrl || typeof webhookUrl !== 'string' || !webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
+          console.warn('Discord webhook URL not configured or invalid.');
+          return;
+        }
+
+        const isReply = (payload.type === 'instructor_reply');
+        const title = isReply 
+          ? `🎯 Coach Kai Wade Replied to ${payload.name || 'Student'}`
+          : `💬 Priority Live Range Chat Dispatch: ${payload.name || 'Website Visitor'}`;
+        
+        const color = isReply ? 0xFFB703 : 0x00E5FF;
+
+        const embed = {
+          title: title,
+          description: payload.message || "New message received in Priority Live Range Chat.",
+          color: color,
+          fields: [
+            { name: "👤 Contact Name", value: payload.name || "Anonymous", inline: true },
+            { name: "📞 Phone / SMS Callback", value: payload.phone || "Not provided", inline: true },
+            { name: "⏱️ Time", value: payload.timestamp || new Date().toLocaleString(), inline: true },
+            { name: "📍 Source", value: "trainwithfifs.com Two-Way Live Chat", inline: true }
+          ],
+          footer: {
+            text: "Future Initiative Firearm Services • Range Line: (443) 990-1304",
+            icon_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w128"
+          },
+          timestamp: new Date().toISOString()
+        };
+
+        const discordBody = {
+          username: "FIFS Range Dispatch",
+          avatar_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w256",
+          content: isReply 
+            ? `📢 **Instructor Kai Wade sent a reply to ${payload.name}**`
+            : `🚨 **NEW LIVE CHAT DISPATCH from ${payload.name}** (${payload.phone})`,
+          embeds: [embed]
+        };
+
+        if (typeof fetch === 'function') {
+          fetch(webhookUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(discordBody)
+          }).catch(err => {
+            console.warn("Direct browser Discord webhook dispatch caught error (offline/CORS):", err);
+          });
+        }
+
+        // Also post to Google Apps Script Web App backend
+        if (typeof fetch === 'function' && window.BACKEND_WEBAPP_URL) {
+          fetch(window.BACKEND_WEBAPP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "handleLiveChatMessage",
+              payload: payload
+            })
+          }).catch(e => {});
+        }
+      } catch (err) {
+        console.error("Error in dispatchDiscordChatAlert:", err);
+      }
+    }
+    window.dispatchDiscordChatAlert = dispatchDiscordChatAlert;
+
+    function handleLiveChatSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const nameInput = document.getElementById('chatSenderName');
+      const phoneInput = document.getElementById('chatSenderPhone');
+      const msgInput = document.getElementById('chatMessageText');
+      const st = document.getElementById('chat-dispatch-status');
+      const btn = document.getElementById('btn-send-chat');
+
+      const name = nameInput ? nameInput.value.trim() : '';
+      const phone = phoneInput ? phoneInput.value.trim() : '';
+      const msg = msgInput ? msgInput.value.trim() : '';
+
+      if (!name || !phone || !msg) {
+        if (st) showStatus(st, 'Please fill in your name, phone number, and message.', 'error');
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Connecting & Dispatching...';
+      }
+      if (st) showStatus(st, 'Dispatching message to Instructor Kai Wade and Discord...', 'success');
+
+      const now = new Date();
+      const timestampStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' • ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      const msgId = 'MSG-' + Math.floor(100000 + Math.random() * 900000);
+
+      const userRecord = { name: name, phone: phone };
+      localStorage.setItem('fifs_active_chat_user', JSON.stringify(userRecord));
+
+      const thread = [
+        {
+          id: 'SYS-WELCOME',
+          senderName: 'Coach Kai Wade',
+          senderRole: 'instructor',
+          text: `👋 Hello ${name}! I've received your live range dispatch on my mobile line and Discord. What questions do you have about our Maryland CCW, HQL certification, or range coaching today?`,
+          timestamp: timestampStr
+        },
+        {
+          id: msgId,
+          senderName: name,
+          senderRole: 'student',
+          text: msg,
+          timestamp: timestampStr
+        }
+      ];
+      localStorage.setItem('fifs_range_chat_thread', JSON.stringify(thread));
+
+      const newInquiry = {
+        id: msgId,
+        timestamp: timestampStr,
+        name: name,
+        contact: phone,
+        course: 'Priority Live Chat',
+        message: msg,
+        status: 'Awaiting Reply'
+      };
+
+      try {
+        let list = JSON.parse(localStorage.getItem('fifs_range_inquiries') || '[]');
+        list.unshift(newInquiry);
+        localStorage.setItem('fifs_range_inquiries', JSON.stringify(list));
+        localStorage.setItem('fifs_new_inquiry_alert', JSON.stringify(newInquiry));
+      } catch (err) {}
+
+      if (typeof renderAdminInquiries === 'function') {
+        renderAdminInquiries();
+      }
+
+      // DISPATCH DISCORD ALERT IMMEDIATELY!
+      const payload = {
+        messageId: msgId,
+        name: name,
+        phone: phone,
+        message: msg,
+        timestamp: timestampStr,
+        type: 'new_chat'
+      };
+      dispatchDiscordChatAlert(payload);
+
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
+        google.script.run.handleLiveChatMessage(payload);
+      }
+
+      setTimeout(function() {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '🚀 Dispatch Live Chat Message →';
+        }
+        const form = document.getElementById('liveChatDispatchForm');
+        const activeView = document.getElementById('liveChatActiveThreadView');
+        if (form) form.style.display = 'none';
+        if (activeView) activeView.style.display = 'block';
+        renderLiveChatStream();
+        if (st) st.style.display = 'none';
+      }, 500);
+    }
+    window.handleLiveChatSubmit = handleLiveChatSubmit;
+
+    function handleLiveChatReplySubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const input = document.getElementById('chatReplyTextInput');
+      const text = input ? input.value.trim() : '';
+      if (!text) return;
+
+      const activeUser = JSON.parse(localStorage.getItem('fifs_active_chat_user') || '{"name":"Prospective Student","phone":""}');
+      const now = new Date();
+      const timestampStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' • ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      const msgId = 'MSG-' + Math.floor(100000 + Math.random() * 900000);
+
+      const newMsg = {
+        id: msgId,
+        senderName: activeUser.name || 'You',
+        senderRole: 'student',
+        text: text,
+        timestamp: timestampStr
+      };
+
+      let thread = JSON.parse(localStorage.getItem('fifs_range_chat_thread') || '[]');
+      thread.push(newMsg);
+      localStorage.setItem('fifs_range_chat_thread', JSON.stringify(thread));
+
+      try {
+        let list = JSON.parse(localStorage.getItem('fifs_range_inquiries') || '[]');
+        list.unshift({
+          id: msgId,
+          timestamp: timestampStr,
+          name: activeUser.name,
+          contact: activeUser.phone,
+          course: 'Live Chat Follow-Up',
+          message: text,
+          status: 'Awaiting Reply'
+        });
+        localStorage.setItem('fifs_range_inquiries', JSON.stringify(list));
+      } catch (err) {}
+
+      if (input) input.value = '';
+      renderLiveChatStream();
+
+      // Dispatch to Discord
+      const payload = {
+        messageId: msgId,
+        name: activeUser.name,
+        phone: activeUser.phone,
+        message: text,
+        timestamp: timestampStr,
+        type: 'student_follow_up'
+      };
+      dispatchDiscordChatAlert(payload);
+    }
+    window.handleLiveChatReplySubmit = handleLiveChatReplySubmit;
+
+    function renderLiveChatStream() {
+      const stream = document.getElementById('liveChatMessagesStream');
+      if (!stream) return;
+
+      const thread = JSON.parse(localStorage.getItem('fifs_range_chat_thread') || '[]');
+      const activeUser = JSON.parse(localStorage.getItem('fifs_active_chat_user') || '{"name":"Prospective Student","phone":""}');
+      
+      const userTag = document.getElementById('chatActiveUserTag');
+      const contactTag = document.getElementById('chatActiveContactTag');
+      if (userTag && activeUser.name) userTag.textContent = activeUser.name;
+      if (contactTag && activeUser.phone) contactTag.textContent = activeUser.phone;
+
+      if (!thread || !thread.length) {
+        stream.innerHTML = `
+          <div style="align-self: flex-start; max-width: 85%; background: #10161f; border: 1px solid var(--border-subtle); border-left: 3px solid var(--accent-cyan); border-radius: 10px; padding: 10px 14px;">
+            <strong style="color: var(--accent-cyan); font-size: 0.80rem; display: block; margin-bottom: 2px;">Instructor Kai Wade ⭐</strong>
+            <p style="font-size: 0.85rem; color: #f8fafc; line-height: 1.45; margin: 0;">👋 Welcome! This is Lead Instructor Kai Wade. How can I assist you with your Maryland CCW, HQL, or range coaching today?</p>
+            <span style="font-size: 0.70rem; color: var(--text-muted); display: block; margin-top: 4px; text-align: right;">Just now</span>
+          </div>
+        `;
+        return;
+      }
+
+      stream.innerHTML = thread.map(m => {
+        const isInstructor = (m.senderRole === 'instructor');
+        return `
+          <div style="align-self: ${isInstructor ? 'flex-start' : 'flex-end'}; max-width: 85%; background: ${isInstructor ? '#10161f' : 'linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(13, 19, 27, 0.98) 100%)'}; border: 1px solid ${isInstructor ? 'var(--accent-amber)' : 'var(--accent-cyan)'}; border-left: 3px solid ${isInstructor ? 'var(--accent-amber)' : 'var(--accent-cyan)'}; border-radius: 10px; padding: 10px 14px;">
+            <strong style="color: ${isInstructor ? 'var(--accent-amber)' : 'var(--accent-cyan)'}; font-size: 0.80rem; display: block; margin-bottom: 2px;">${escapeHtml(m.senderName || (isInstructor ? 'Coach Kai Wade' : 'You'))} ${isInstructor ? '⭐ (Lead Instructor)' : ''}</strong>
+            <p style="font-size: 0.85rem; color: #f8fafc; line-height: 1.45; margin: 0;">${escapeHtml(m.text)}</p>
+            <span style="font-size: 0.70rem; color: var(--text-muted); display: block; margin-top: 4px; text-align: right;">${escapeHtml(m.timestamp || 'Just now')}</span>
+          </div>
+        `;
+      }).join('');
+
+      try { stream.scrollTop = stream.scrollHeight; } catch(e) {}
+    }
+    window.renderLiveChatStream = renderLiveChatStream;
+
+    function resetLiveChatClient() {
+      const form = document.getElementById('liveChatDispatchForm');
+      const activeView = document.getElementById('liveChatActiveThreadView');
+      if (form) form.style.display = 'block';
+      if (activeView) activeView.style.display = 'none';
+      localStorage.removeItem('fifs_range_chat_thread');
+      localStorage.removeItem('fifs_active_chat_user');
+    }
+    window.resetLiveChatClient = resetLiveChatClient;
+
+    // --- ADMIN REPLY MODAL HANDLERS ---
+    function openAdminReplyModal(inquiryId) {
+      const list = JSON.parse(localStorage.getItem('fifs_range_inquiries') || '[]');
+      const inq = list.find(item => item.id === inquiryId);
+      if (!inq) return;
+
+      const modal = document.getElementById('adminReplyChatModal');
+      const nameEl = document.getElementById('adminReplyStudentName');
+      const contactEl = document.getElementById('adminReplyStudentContact');
+      const origMsgEl = document.getElementById('adminReplyOriginalMsg');
+      const hiddenId = document.getElementById('adminReplyInquiryId');
+      const input = document.getElementById('adminReplyInput');
+
+      if (nameEl) nameEl.textContent = inq.name;
+      if (contactEl) contactEl.textContent = inq.contact;
+      if (origMsgEl) origMsgEl.textContent = inq.message;
+      if (hiddenId) hiddenId.value = inq.id;
+      if (input) input.value = '';
+
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    window.openAdminReplyModal = openAdminReplyModal;
+
+    function closeAdminReplyModal() {
+      const modal = document.getElementById('adminReplyChatModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+    window.closeAdminReplyModal = closeAdminReplyModal;
+
+    function handleAdminReplySubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const hiddenId = document.getElementById('adminReplyInquiryId');
+      const input = document.getElementById('adminReplyInput');
+      const statusDiv = document.getElementById('admin-reply-status');
+      const btn = document.getElementById('btn-admin-submit-reply');
+
+      const inqId = hiddenId ? hiddenId.value : '';
+      const replyText = input ? input.value.trim() : '';
+      if (!replyText) return;
+
+      const now = new Date();
+      const timestampStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' • ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+      // 1. Post into the two-way live chat thread
+      let thread = JSON.parse(localStorage.getItem('fifs_range_chat_thread') || '[]');
+      thread.push({
+        id: 'REPLY-' + Date.now(),
+        senderName: 'Instructor Kai Wade',
+        senderRole: 'instructor',
+        text: replyText,
+        timestamp: timestampStr
+      });
+      localStorage.setItem('fifs_range_chat_thread', JSON.stringify(thread));
+
+      // 2. Update inquiries list
+      let list = JSON.parse(localStorage.getItem('fifs_range_inquiries') || '[]');
+      const idx = list.findIndex(i => i.id === inqId);
+      let studentName = 'Student';
+      let studentContact = '';
+      if (idx >= 0) {
+        list[idx].status = 'Replied';
+        studentName = list[idx].name;
+        studentContact = list[idx].contact;
+        localStorage.setItem('fifs_range_inquiries', JSON.stringify(list));
+      }
+
+      if (typeof renderAdminInquiries === 'function') renderAdminInquiries();
+
+      // 3. Dispatch reply to Discord
+      dispatchDiscordChatAlert({
+        name: studentName,
+        phone: studentContact,
+        message: replyText,
+        timestamp: timestampStr,
+        type: 'instructor_reply'
+      });
+
+      if (btn) btn.disabled = true;
+      showStatus(statusDiv, 'Reply dispatched to live chat stream & Discord channel!', 'success');
+
+      setTimeout(function() {
+        if (btn) btn.disabled = false;
+        closeAdminReplyModal();
+        if (statusDiv) statusDiv.style.display = 'none';
+      }, 700);
+    }
+    window.handleAdminReplySubmit = handleAdminReplySubmit;
 </script>
 <!-- PWA Offline & Mobile Installation Meta Tags -->
 <meta content="yes" name="apple-mobile-web-app-capable"/>
@@ -8212,7 +8487,8 @@
 <div id="panel-client-signin">
 <div class="form-group">
 <label for="clientAuthInput" style="color: var(--accent-cyan); font-weight: 700; font-size: 0.85rem;">Email Address or Client ID <span class="req">*</span></label>
-<input id="clientAuthInput" onkeydown="if(event.key==='Enter') lookupClientAccount()" placeholder="e.g., marcus@example.com or FI-CLIENT-1042" type="text"/>
+<
+input id="clientAuthInput" onkeydown="if(event.key==='Enter') lookupClientAccount()" placeholder="e.g., marcus@example.com or FI-CLIENT-1042" type="text"/>
 </div>
 <button class="btn-primary" onclick="lookupClientAccount()" type="button">
                 Sign In to Client Portal →
@@ -11408,21 +11684,33 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     // 3. CONTACT & LIVE CHAT (9AM - 5PM EST DISPATCH TO 443-990-1304)
     // ==========================================================================
     function openContactWidgetModal() {
-      try {
-        const modal = document.getElementById('contactInstructorModal');
-        if (modal) {
-          modal.style.display = 'flex';
-          modal.classList.add('active');
-          if (document.body) {
-            document.body.classList.add('modal-open');
-            document.body.style.overflow = 'hidden';
-          }
-          try { updateLiveChatStatusUI(); } catch (e) {}
+      const modal = document.getElementById('contactInstructorModal');
+      if (modal) {
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.style.setProperty('visibility', 'visible', 'important');
+        modal.style.setProperty('pointer-events', 'auto', 'important');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Check if an active chat thread exists
+        const thread = localStorage.getItem('fifs_range_chat_thread');
+        const form = document.getElementById('liveChatDispatchForm');
+        const activeView = document.getElementById('liveChatActiveThreadView');
+        if (thread && activeView && form) {
+          try {
+            const list = JSON.parse(thread);
+            if (list && list.length > 0) {
+              form.style.display = 'none';
+              activeView.style.display = 'block';
+              if (typeof renderLiveChatStream === 'function') renderLiveChatStream();
+            } else {
+              form.style.display = 'block';
+              activeView.style.display = 'none';
+            }
+          } catch(e) {}
         }
-      } catch (err) {
-        console.error('Error opening contact modal:', err);
       }
-      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Communication', 'Open Contact Modal', 'Widget');
     }
     window.openContactWidgetModal = openContactWidgetModal;
 
@@ -11471,123 +11759,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }
     }
 
-    function handleLiveChatSubmit(e) {
-      if (e && e.preventDefault) e.preventDefault();
-      const nameInput = document.getElementById('chatSenderName');
-      const phoneInput = document.getElementById('chatSenderPhone');
-      const msgInput = document.getElementById('chatMessageText');
-      const st = document.getElementById('chat-dispatch-status');
-      const btn = document.getElementById('btn-send-chat');
+    // Delegated to authoritative Two-Way Chat engine in head
 
-      const name = nameInput ? nameInput.value.trim() : '';
-      const phone = phoneInput ? phoneInput.value.trim() : '';
-      const msg = msgInput ? msgInput.value.trim() : '';
-
-      if (!name || !phone || !msg) {
-        if (st) showStatus(st, 'Please fill in your name, phone number, and message.', 'error');
-        return;
-      }
-
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Connecting & Dispatching...';
-      }
-      if (st) showStatus(st, 'Connecting to Instructor Kai Wade...', 'success');
-
-      const now = new Date();
-      const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
-      const timeOptions = { hour: 'numeric', minute: '2-digit' };
-      const timestampStr = now.toLocaleDateString('en-US', dateOptions) + ' • ' + now.toLocaleTimeString('en-US', timeOptions);
-      const msgId = 'MSG-' + Math.floor(100000 + Math.random() * 900000);
-
-      const newInquiry = {
-        id: msgId,
-        timestamp: timestampStr,
-        name: name,
-        contact: phone,
-        course: 'Live Chat Inquiry',
-        message: msg,
-        status: 'Awaiting Reply'
-      };
-
-      // 1. Persist directly to fifs_range_inquiries in localStorage
-      try {
-        let list = JSON.parse(localStorage.getItem('fifs_range_inquiries') || '[]');
-        if (!list || !list.length) {
-          list = [
-            {
-              id: 'MSG-804122',
-              timestamp: 'Sep 10, 2026 • 2:15 PM',
-              name: 'Marcus Vance',
-              contact: '(443) 555-0192',
-              course: 'Maryland CCW & HQL Combo',
-              message: "Hi Coach Wade, I want to book the weekend Combo class. Do you have lane space open for Oct 12 at Cindy's Hot Shots?",
-              status: 'Awaiting Reply'
-            },
-            {
-              id: 'MSG-793011',
-              timestamp: 'Sep 10, 2026 • 11:30 AM',
-              name: 'Elena Brooks',
-              contact: 'elena.b@example.com',
-              course: 'Private 1-on-1 Range Coaching',
-              message: 'Looking for 1-on-1 coaching for recoil management. Can eye/ear protection be rented directly on site?',
-              status: 'Handled'
-            }
-          ];
-        }
-        list.unshift(newInquiry);
-        localStorage.setItem('fifs_range_inquiries', JSON.stringify(list));
-        localStorage.setItem('fifs_new_inquiry_alert', JSON.stringify(newInquiry));
-      } catch (err) {}
-
-      // 2. Immediately update Admin Inquiries Table & badge counter
-      if (typeof renderAdminInquiries === 'function') {
-        renderAdminInquiries();
-      }
-
-      // 3. Dispatch to Google Apps Script backend if available
-      const payload = {
-        messageId: msgId,
-        name: name,
-        phone: phone,
-        message: msg,
-        course: 'Live Chat Inquiry',
-        timestamp: new Date().toISOString(),
-        isLiveHours: typeof isLiveChatActiveNow === 'function' ? isLiveChatActiveNow() : true
-      };
-
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            if (btn) {
-              btn.disabled = false;
-              btn.textContent = '🚀 Dispatch Live Chat Message →';
-            }
-            if (st) showStatus(st, '✔ Dispatched directly to Instructor Kai Wade (443-990-1304)! Message logged to Inquiries Ledger.', 'success');
-            const form = document.getElementById('liveChatDispatchForm');
-            if (form) form.reset();
-          })
-          .withFailureHandler(function(err) {
-            if (btn) {
-              btn.disabled = false;
-              btn.textContent = '🚀 Dispatch Live Chat Message →';
-            }
-            if (st) showStatus(st, '✔ Message logged and dispatched to Coach Wade (443-990-1304).', 'success');
-          })
-          .handleLiveChatMessage(payload);
-      } else {
-        setTimeout(function() {
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = '🚀 Dispatch Live Chat Message →';
-          }
-          if (st) showStatus(st, '✔ Dispatched directly to Instructor Kai Wade (443-990-1304)! Message logged to Inquiries Ledger.', 'success');
-          const form = document.getElementById('liveChatDispatchForm');
-          if (form) form.reset();
-        }, 450);
-      }
-    }
-    window.handleLiveChatSubmit = handleLiveChatSubmit;
 
     // ==========================================================================
     // 4. ALUMNI EXCLUSIVE CLINIC VERIFICATION GATE
@@ -13594,7 +13767,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       OH: { name: "Ohio", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Prompt disclosure when requested by officer", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry active since 2022." },
 
-      OK: { name: "Oklahoma", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No limit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry active." },
+      OK: { name: "Oklahoma", constCarry: true, honorsMD: true, honorsUT: true, honorsFL: true, duty: "Immediate upon contact", mag: "No l
+imit", vehicle: "Permitless carry in vehicle legal", notes: "Constitutional Carry active." },
 
       OR: { name: "Oregon", constCarry: false, honorsMD: false, honorsUT: false, honorsFL: false, duty: "Only when requested", mag: "No active state limit currently enforced", vehicle: "OR permit required for concealed carry in vehicle", notes: "No out-of-state reciprocity." },
 
@@ -13890,8 +14064,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       // Row 1
 
-      AK: { x: 40, y: 30, w: 55, 
-h: 45, name: "Alaska" },
+      AK: { x: 40, y: 30, w: 55, h: 45, name: "Alaska" },
 
       WA: { x: 120, y: 30, w: 55, h: 45, name: "Washington" },
 
@@ -18295,7 +18468,8 @@ function closeStateModal() {
 <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
 </div>
 <!-- Calendar Days Grid -->
-<div id="bookingCalDaysGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-subtle); border: 1px solid var(--border-subtle); border-radius: 0 0 8px 8px; overflow: hidden;">
+<div id="bookingCalDaysGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-subtle); border: 1px solid var(--border
+-subtle); border-radius: 0 0 8px 8px; overflow: hidden;">
 <!-- Dynamically populated via renderBookingCalendar() -->
 </div>
 <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
@@ -18390,8 +18564,7 @@ function closeStateModal() {
 <li><strong>Virginia:</strong> Open carry legal without permit; concealed carry requires recognized permit or Utah/Florida non-res.</li>
 <li><strong>Pennsylvania:</strong> Maryland permit NOT recognized. Requires PA non-resident permit or peaceable journey FOPA transport.</li>
 <li><strong>Delaware:</strong> Open carry legal without permit; concealed requires Utah or Florida non-resident permit.</li>
-<li><strong>District of Columbia:</strong> Strict prohibition on non-D.C. carry permits. Heavy criminal penalties for 
-accessible firearms or unregistered ammo.</li>
+<li><strong>District of Columbia:</strong> Strict prohibition on non-D.C. carry permits. Heavy criminal penalties for accessible firearms or unregistered ammo.</li>
 <li><strong>New Jersey:</strong> Extremely strict felony penalties. Hollow-point ammo restricted. Strictly follow FOPA trunk standards without stopping.</li>
 </ul>
 </div>
@@ -18777,6 +18950,36 @@ accessible firearms or unregistered ammo.</li>
           </button>
 <div class="status-msg" id="chat-dispatch-status" style="margin-top: 10px; display: none;"></div>
 </form>
+
+<!-- TWO-WAY LIVE RANGE CHAT CLIENT (Real-Time Back-and-Forth Interface) -->
+<div id="liveChatActiveThreadView" style="display: none; background: #070b10; border: 1.5px solid var(--accent-cyan); border-radius: 12px; padding: 16px; margin-top: 14px; box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);">
+  <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+    <div>
+      <span style="font-size: 0.74rem; color: var(--accent-green); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">● Connected to Coach Kai Wade</span>
+      <div style="font-size: 0.82rem; color: #fff; font-weight: 700; margin-top: 2px;">
+        Chatting as: <span id="chatActiveUserTag" style="color: var(--accent-cyan);">Prospective Student</span> (<span id="chatActiveContactTag" style="color: var(--text-muted);">(443) 555-0192</span>)
+      </div>
+    </div>
+    <button type="button" class="btn-spark" onclick="resetLiveChatClient()" style="padding: 4px 10px; font-size: 0.75rem; border-color: var(--border-subtle); color: var(--text-muted);">
+      Start New Chat
+    </button>
+  </div>
+
+  <!-- Messages Stream Area -->
+  <div id="liveChatMessagesStream" style="max-height: 220px; min-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 8px 4px; margin-bottom: 12px; scroll-behavior: smooth;">
+    <!-- Populated dynamically -->
+  </div>
+
+  <!-- Reply Dock Form -->
+  <form id="liveChatReplyForm" onsubmit="handleLiveChatReplySubmit(event)" style="display: flex; gap: 8px; align-items: center;">
+    <input id="chatReplyTextInput" type="text" placeholder="Type message to Coach Wade..." required style="flex: 1; background: #10161f; border: 1px solid var(--accent-cyan); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 0.88rem;">
+    <button type="submit" class="btn-primary" id="btn-send-reply" style="padding: 10px 18px; font-size: 0.88rem; font-weight: 800; text-transform: uppercase; white-space: nowrap;">
+      Send 💬
+    </button>
+  </form>
+  <div class="status-msg" id="chat-reply-status" style="margin-top: 8px; display: none;"></div>
+</div>
+
 </div>
 <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-subtle); text-align: right;">
 <button class="btn-secondary-modal" onclick="closeContactWidgetModal()" style="padding: 8px 18px; font-size: 0.85rem;" type="button">
@@ -18911,5 +19114,46 @@ accessible firearms or unregistered ammo.</li>
 </div>
 </div>
 </div>
+
+<!-- ================= ADMIN HUB: CHAT REPLY MODAL ================= -->
+<div class="goal-modal-overlay" id="adminReplyChatModal" onclick="if(event.target===this) closeAdminReplyModal()" style="display: none; position: fixed; inset: 0; background: rgba(4, 7, 11, 0.94); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 9999999; justify-content: center; align-items: center; padding: 16px;">
+  <div class="goal-modal-box" onclick="event.stopPropagation()" role="dialog" style="max-width: 580px; border-color: var(--accent-cyan); box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 35px var(--accent-cyan-glow);">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 14px;">
+      <div>
+        <span class="goal-header-badge" style="color: var(--accent-amber); border-color: var(--accent-amber); background: rgba(255,183,3,0.15);">INSTRUCTOR TWO-WAY CHAT RESPONSE</span>
+        <h3 style="font-family: var(--font-display); font-size: 1.6rem; color: #fff; margin: 4px 0 2px; text-transform: uppercase;">
+          💬 Reply to <span id="adminReplyStudentName">Student</span>
+        </h3>
+      </div>
+      <button type="button" class="goal-modal-close-btn" onclick="closeAdminReplyModal()" style="position: static; font-size: 1.5rem; color: #fff; background: none; border: none; cursor: pointer; padding: 4px 8px;">✕</button>
+    </div>
+    
+    <div style="margin-bottom: 12px;">
+      <span style="font-size: 0.78rem; color: var(--text-muted);">Direct Contact Details:</span>
+      <div id="adminReplyStudentContact" style="font-size: 0.88rem; color: var(--accent-cyan); font-weight: 700; margin-top: 2px;"></div>
+    </div>
+    
+    <div style="margin-bottom: 12px;">
+      <span style="font-size: 0.78rem; color: var(--text-muted);">Incoming Inquiry:</span>
+      <div id="adminReplyOriginalMsg" style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; color: #cbd5e1; margin-top: 4px; line-height: 1.45;"></div>
+    </div>
+    
+    <form id="adminReplyForm" onsubmit="handleAdminReplySubmit(event)">
+      <input type="hidden" id="adminReplyInquiryId" value="">
+      <label for="adminReplyInput" style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Your Instructor Response (will appear in student's live chat &amp; notify Discord):</label>
+      <textarea id="adminReplyInput" rows="3" required placeholder="Type your response to the student here..." style="width: 100%; background: #10161f; border: 1px solid var(--accent-cyan); color: #fff; padding: 10px; border-radius: 8px; font-size: 0.88rem; margin-bottom: 14px; font-family: inherit;"></textarea>
+      <div style="display: flex; gap: 10px;">
+        <button type="submit" class="btn-primary" id="btn-admin-submit-reply" style="flex: 2; padding: 11px; font-weight: 800; text-transform: uppercase;">
+          🚀 Send Reply to Student &amp; Discord
+        </button>
+        <button type="button" class="btn-secondary-modal" onclick="closeAdminReplyModal()" style="flex: 1; padding: 11px 18px;">
+          Cancel
+        </button>
+      </div>
+      <div class="status-msg" id="admin-reply-status" style="margin-top: 10px; display: none;"></div>
+    </form>
+  </div>
+</div>
+
 </body>
 </html>
