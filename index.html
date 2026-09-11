@@ -5917,6 +5917,12 @@
         }
 
         rawSwitchTab(tabId);
+        if (tabId === 'admin') {
+          const savedPin = localStorage.getItem('fifs_instructor_pin');
+          if (savedPin && isValidInstructorPin(savedPin)) {
+            setTimeout(function() { verifyAdminAccess(savedPin); }, 50);
+          }
+        }
         try { window.scrollTo(0, 0); } catch (e) {}
         if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Navigation', 'Open Section from Landing', tabId);
       } catch (err) {
@@ -7373,6 +7379,235 @@
     }
     window.mountStudentTargets = mountStudentTargets;
 
+    // ==========================================================================
+    // AUTHORITATIVE INSTRUCTOR AUTHENTICATION & TERMINAL CONTROLLER IN <HEAD>
+    // ==========================================================================
+    function isValidInstructorPin(pin) {
+      if (!pin) return false;
+      const clean = pin.toString().trim().toLowerCase().replace(/\s+/g, '');
+      return (
+        clean === 'ultima' ||
+        clean === '5819'
+      );
+    }
+    window.isValidInstructorPin = isValidInstructorPin;
+
+    function verifyAdminAccess(overridePin) {
+      const pinInput = document.getElementById('adminPasscode');
+      const pin = (overridePin || (pinInput ? pinInput.value : '') || localStorage.getItem('fifs_instructor_pin') || '').trim();
+      const statusDiv = document.getElementById('admin-auth-status');
+
+      if (!pin) {
+        if (statusDiv) showStatus(statusDiv, 'Passcode required.', 'error');
+        return;
+      }
+
+      if (statusDiv) showStatus(statusDiv, 'Authenticating Instructor Passcode...', 'success');
+
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleGetAdminDashboardData) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (res && res.status === 'success') {
+              if (statusDiv) statusDiv.style.display = 'none';
+              localStorage.setItem('fifs_instructor_pin', pin);
+              renderAdminTerminal(res);
+            } else {
+              if (statusDiv) showStatus(statusDiv, res.message || 'Access Denied.', 'error');
+            }
+          })
+          .withFailureHandler(function(err) {
+            if (isValidInstructorPin(pin)) {
+              if (statusDiv) statusDiv.style.display = 'none';
+              localStorage.setItem('fifs_instructor_pin', pin);
+              renderAdminTerminal({});
+            } else {
+              if (statusDiv) showStatus(statusDiv, 'Command connection failed: ' + err.message, 'error');
+            }
+          })
+          .handleGetAdminDashboardData(pin);
+      } else {
+        if (isValidInstructorPin(pin)) {
+          if (statusDiv) statusDiv.style.display = 'none';
+          localStorage.setItem('fifs_instructor_pin', pin);
+
+          let realStudents = [];
+          const savedRoster = localStorage.getItem('fifs_roster_students');
+          if (savedRoster) {
+            try { realStudents = JSON.parse(savedRoster); } catch(e) {}
+          }
+          if (!realStudents || !realStudents.length) {
+            realStudents = [
+              { studentId: 'FIFS-4081', fullName: 'Jordan Vance', email: 'jordan@example.com', phone: '(410) 555-0192', course: 'Maryland CCW & HQL Combo', assignedDate: 'Oct 12, 2026', status: 'STEP_3_PREPARATION', profileDocUrl: '#' },
+              { studentId: 'FIFS-1029', fullName: 'Tanae Wade', email: 'tanae@example.com', phone: '(443) 214-9982', course: 'Maryland HQL', assignedDate: 'Oct 19, 2026', status: 'STEP_6_CERTIFIED', profileDocUrl: '#' },
+              { studentId: 'FIFS-8821', fullName: 'Marcus Cole', email: 'mcole@example.com', phone: '(443) 555-8821', course: 'Maryland CCW', assignedDate: 'Nov 02, 2026', status: 'STEP_3_PREPARATION', profileDocUrl: '#' }
+            ];
+            try { localStorage.setItem('fifs_roster_students', JSON.stringify(realStudents)); } catch(e) {}
+          }
+
+          let realClients = [];
+          const savedClients = localStorage.getItem('fifs_client_roster');
+          if (savedClients) {
+            try { realClients = JSON.parse(savedClients); } catch(e) {}
+          }
+          if (!realClients || !realClients.length) {
+            realClients = [
+              { clientId: 'FI-CLIENT-7788', fullName: 'Alex Mercer (Test Client)', email: 'test.client@trainwithfifs.com', phone: '(443) 990-1304', permitState: 'Maryland Wear & Carry', expirationDate: '2026-12-15', status: 'ACTIVE_REGISTERED' }
+            ];
+          }
+
+          renderAdminTerminal({ students: realStudents, clients: realClients });
+        } else {
+          if (statusDiv) showStatus(statusDiv, 'Invalid PIN. Authorized personnel only.', 'error');
+        }
+      }
+    }
+    window.verifyAdminAccess = verifyAdminAccess;
+
+    function renderAdminTerminal(data) {
+      if (typeof checkNewStudentAlert === "function") checkNewStudentAlert();
+      const authBox = document.getElementById('admin-auth-box');
+      const dashBox = document.getElementById('admin-command-dashboard');
+      if (authBox) {
+        authBox.classList.add('hidden');
+        authBox.style.setProperty('display', 'none', 'important');
+      }
+      if (dashBox) {
+        dashBox.classList.remove('hidden');
+        dashBox.style.setProperty('display', 'block', 'important');
+      }
+
+      // Load cached/persisted real student data if available
+      if (data && data.students && data.students.length) {
+        adminCachedStudents = data.students;
+        window.adminCachedStudents = adminCachedStudents;
+        try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch (e) {}
+      } else {
+        const savedRoster = localStorage.getItem('fifs_roster_students');
+        if (savedRoster) {
+          try {
+            adminCachedStudents = JSON.parse(savedRoster);
+            window.adminCachedStudents = adminCachedStudents;
+          } catch (e) {}
+        }
+      }
+
+      const totalCount = adminCachedStudents.length;
+      let pendingCount = 0;
+      let upcomingCount = 0;
+      let completedCount = 0;
+
+      adminCachedStudents.forEach(s => {
+        const stepNum = getStepNumberFromStatus(s.status);
+        if (stepNum <= 3) pendingCount++;
+        else if (stepNum <= 5) upcomingCount++;
+        else completedCount++;
+      });
+
+      const elTot = document.getElementById('metric-total');
+      const elPen = document.getElementById('metric-pending');
+      const elUpc = document.getElementById('metric-upcoming');
+      const elCom = document.getElementById('metric-completed');
+
+      if (elTot) elTot.textContent = totalCount;
+      if (elPen) elPen.textContent = pendingCount;
+      if (elUpc) elUpc.textContent = upcomingCount;
+      if (elCom) elCom.textContent = completedCount;
+
+      if (data && data.clients && typeof renderAdminClientTerminal === 'function') {
+        renderAdminClientTerminal(data);
+      }
+
+      const tbody = document.getElementById('admin-roster-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (adminCachedStudents.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No student bookings recorded yet. Use "SEND PORTAL INVITE" to add someone.</td></tr>';
+        return;
+      }
+
+      adminCachedStudents.forEach(s => {
+        const tr = document.createElement('tr');
+        const stepNum = getStepNumberFromStatus(s.status);
+        tr.innerHTML = `
+          <td><strong style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.95rem;">${s.studentId}</strong></td>
+          <td>
+            <div style="font-weight: 700; color: #fff;">${s.fullName}</div>
+            <div style="font-size: 0.80rem; color: var(--text-muted);">${s.email} • ${s.phone || 'No phone'}</div>
+          </td>
+          <td><span style="font-size: 0.85rem; color: #cbd5e1;">${s.course}</span></td>
+          <td><span style="font-size: 0.85rem; color: var(--accent-amber); font-weight: 600;">${s.assignedDate || 'TBD'}</span></td>
+          <td>
+            <select class="form-select" onchange="updateStudentJourneyStep('${s.studentId}', this.value)" style="background: #070b10; border: 1px solid var(--accent-cyan); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 700;">
+              <option value="STEP_1_REGISTRATION" ${stepNum === 1 ? 'selected' : ''}>1. Registration ✔</option>
+              <option value="STEP_2_CONFIRMATION" ${stepNum === 2 ? 'selected' : ''}>2. Confirmation ✔</option>
+              <option value="STEP_3_PREPARATION" ${stepNum === 3 ? 'selected' : ''}>3. Preparation ⚡</option>
+              <option value="STEP_4_CLASSROOM" ${stepNum === 4 ? 'selected' : ''}>4. Classroom</option>
+              <option value="STEP_5_LIVE_FIRE" ${stepNum === 5 ? 'selected' : ''}>5. Live-Fire</option>
+              <option value="STEP_6_CERTIFIED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
+              <option value="STEP_7_MSP_PORTAL" ${stepNum === 7 ? 'selected' : ''}>7. MSP Portal</option>
+              <option value="STEP_8_LICENSED" ${stepNum === 8 ? 'selected' : ''}>8. Licensed 🛡️</option>
+            </select>
+            <span class="save-indicator" id="save-ind-${s.studentId}" style="display: none; color: #10b981; font-size: 0.72rem; margin-left: 4px;">Saved</span>
+          </td>
+          <td><span class="meta-chip chip-status" id="chip-status-${s.studentId}">${formatStepLabel(stepNum)}</span></td>
+          <td style="text-align: right; white-space: nowrap;">
+            <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${s.studentId}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px;" title="Edit Student Record">✏️ Edit</button>
+            <button type="button" class="btn-spark" onclick="deleteStudentFromAdmin('${s.studentId}')" style="padding: 5px 10px; font-size: 0.78rem; border-color: #ef4444; color: #ef4444;" title="Delete Student Record">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    window.renderAdminTerminal = renderAdminTerminal;
+
+    function getStepNumberFromStatus(statusStr) {
+      const s = (statusStr || '').toUpperCase();
+      if (s.includes('STEP_8') || s.includes('LICENSED') || (s.includes('COMPLETED') && !s.includes('PREP'))) return 8;
+      if (s.includes('STEP_7') || s.includes('MSP') || s.includes('PORTAL')) return 7;
+      if (s.includes('STEP_6') || s.includes('CERTIF') || s.includes('QUALIF')) return 6;
+      if (s.includes('STEP_5') || s.includes('LIVE_FIRE') || s.includes('RANGE')) return 5;
+      if (s.includes('STEP_4') || s.includes('CLASSROOM')) return 4;
+      if (s.includes('STEP_3') || s.includes('PREP')) return 3;
+      if (s.includes('STEP_2') || s.includes('CONFIRM')) return 2;
+      return 1;
+    }
+    window.getStepNumberFromStatus = getStepNumberFromStatus;
+
+    function formatStepLabel(stepNum) {
+      const labels = {
+        1: "1. Registration ✔",
+        2: "2. Confirmation ✔",
+        3: "3. Preparation ⚡",
+        4: "4. Classroom Instruction",
+        5: "5. Live-Fire Range",
+        6: "6. Certification Issued",
+        7: "7. MSP Portal Submitted",
+        8: "8. Licensed & Active 🛡️"
+      };
+      return labels[stepNum] || "Step " + stepNum;
+    }
+    window.formatStepLabel = formatStepLabel;
+
+    function adminSignOut() {
+      localStorage.removeItem('fifs_instructor_pin');
+      const authBox = document.getElementById('admin-auth-box');
+      const dashBox = document.getElementById('admin-command-dashboard');
+      const passInput = document.getElementById('adminPasscode');
+      if (passInput) passInput.value = '';
+      if (dashBox) {
+        dashBox.classList.add('hidden');
+        dashBox.style.setProperty('display', 'none', 'important');
+      }
+      if (authBox) {
+        authBox.classList.remove('hidden');
+        authBox.style.setProperty('display', 'block', 'important');
+      }
+      returnToHome();
+    }
+    window.adminSignOut = adminSignOut;
+
+
 
 
 
@@ -7680,7 +7915,7 @@
       }
 
       // Instructor Authentication Gateway
-      if (query.trim().toLowerCase() === 'ultima') {
+      if (isValidInstructorPin(query)) {
         showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
         localStorage.setItem('fifs_instructor_pin', 'Ultima');
         setTimeout(function() {
@@ -7766,7 +8001,7 @@
       }
 
       // Instructor Authentication Gateway
-      if (query.trim().toLowerCase() === 'ultima') {
+      if (isValidInstructorPin(query)) {
         showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
         localStorage.setItem('fifs_instructor_pin', 'Ultima');
         setTimeout(function() {
@@ -8274,7 +8509,8 @@
 </div>
 <!-- State Dossier Details Modal -->
 <div class="state-dossier-modal-overlay" id="stateDossierModal" onclick="if(event.target===this) closeStateDossier()" style="display: none;">
-<div aria-labelledby="dossierStateTitle" aria-modal="true" class="state-dossier-card" onclick="event.stopPropagation()" role="dialog">
+<div aria-labelledby="dossierStateTitle" 
+aria-modal="true" class="state-dossier-card" onclick="event.stopPropagation()" role="dialog">
 <button aria-label="Close dossier" class="dossier-close-btn" onclick="closeStateDossier()" type="button">✕</button>
 <div class="dossier-header-row">
 <div class="dossier-state-code" id="dossierStateCode">MD</div>
@@ -8452,8 +8688,7 @@
 <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px;">Lead Instructor: Kai Wade</div>
 </div>
 <!-- ================= EXCLUSIVE CLIENT FEATURE: DIGITAL CCW TACTICAL WALLET ================= -->
-<div class="client-ccw-wallet-card" style="background: linear-gradient(135deg, #0d1219 0%, #070b10 100%); border: 2px solid var(--accent-amber); border-radius
-: 16px; padding: 22px 24px; margin-bottom: 24px; box-shadow: 0 12px 35px rgba(0,0,0,0.85), 0 0 25px rgba(255,183,3,0.2); position: relative; overflow: hidden;">
+<div class="client-ccw-wallet-card" style="background: linear-gradient(135deg, #0d1219 0%, #070b10 100%); border: 2px solid var(--accent-amber); border-radius: 16px; padding: 22px 24px; margin-bottom: 24px; box-shadow: 0 12px 35px rgba(0,0,0,0.85), 0 0 25px rgba(255,183,3,0.2); position: relative; overflow: hidden;">
 <div style="position: absolute; top: -10px; right: -10px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(255,183,3,0.12) 0%, transparent 70%); pointer-events: none;"></div>
 <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
 <div>
@@ -8880,7 +9115,7 @@
 <div style="background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 12px; padding: 22px; max-width: 440px; margin: 0 auto;">
 <div class="form-group">
 <label for="adminPasscode">Instructor Command Passcode <span class="req">*</span></label>
-<input id="adminPasscode" placeholder="Enter PIN" type="password"/>
+<input id="adminPasscode" placeholder="Enter PIN or Passcode" type="password" onkeydown="if(event.key==='Enter') verifyAdminAccess()"/>
 </div>
 <button class="btn-primary" onclick="verifyAdminAccess()" type="button">
 
@@ -12505,7 +12740,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }
 
       // Instructor Authentication Gateway
-      if (query.trim().toLowerCase() === 'ultima') {
+      if (isValidInstructorPin(query)) {
         showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
         setTimeout(function() {
           switchTab('admin');
@@ -12938,7 +13173,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         syncTask(taskId, chk.checked);
 
-      }
+ 
+     }
 
     }
 
@@ -13511,8 +13747,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       { text: "The instruction from Mr. Kai is extremely knowledgeable with firearms and firearms safety. Clear, thorough, and professional.", author: "Verified Student" },
 
-      { text: "Top-tier coaching! Patient instruction on grip, recoil manageme
-nt, and practical qualification at Cindy's Hot Shots.", author: "Wear & Carry Qualifier" },
+      { text: "Top-tier coaching! Patient instruction on grip, recoil management, and practical qualification at Cindy's Hot Shots.", author: "Wear & Carry Qualifier" },
 
       { text: "Outstanding class environment. Coach Wade takes the time to make sure everyone understands the legal pillars and feels safe on the range.", author: "HQL Student" }
 
@@ -16313,7 +16548,7 @@ nt, and practical qualification at Cindy's Hot Shots.", author: "Wear & Carry Qu
       }
 
       // Instructor Authentication Gateway
-      if (query.trim().toLowerCase() === 'ultima') {
+      if (isValidInstructorPin(query)) {
         showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
         setTimeout(function() {
           switchTab('admin');
@@ -18242,7 +18477,8 @@ function closeStateModal() {
 <span id="stepModalIcon">⚡</span> <span id="stepModalHeading">Step Details</span>
 </h3>
 <div class="goal-modal-rec" id="stepModalStatus" style="color: var(--accent-cyan); font-weight: 700; text-transform: uppercase; font-size: 0.85rem; margin-bottom: 12px;">Current Status</div>
-<div class="goal-synopsis-card" id="stepModalSynopsis" style="margin-bottom: 16px; background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 16px; font-size: 0.90rem; color: #cbd5e1; line-height: 1.6;">
+<div class="goal-synopsis-card" i
+d="stepModalSynopsis" style="margin-bottom: 16px; background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 16px; font-size: 0.90rem; color: #cbd5e1; line-height: 1.6;">
 <!-- Filled dynamically -->
 </div>
 <div id="stepModalKeyPoints" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
@@ -18389,8 +18625,7 @@ function closeStateModal() {
 <option value="STEP_4_CLASSROOM">4. Classroom Instruction</option>
 <option value="STEP_5_LIVE_FIRE">5. Live-Fire Practical Range</option>
 <option value="STEP_6_CERTIFIED">6. Certified &amp; Score Sheet</option>
-<o
-ption value="STEP_7_MSP_PORTAL">7. MSP Portal Submission</option>
+<option value="STEP_7_MSP_PORTAL">7. MSP Portal Submission</option>
 <option value="STEP_8_LICENSED">8. Licensed &amp; Active</option>
 </select>
 </div>
