@@ -7165,6 +7165,215 @@
     }
     window.generateCoachWadeReply = generateCoachWadeReply;
 
+    // ==========================================================================
+    // AUTHORITATIVE CALENDAR & TARGET MOUNTING ENGINE IN <HEAD> SCRIPT 0
+    // ==========================================================================
+    var calCurrentYear = 2026;
+    window.calCurrentYear = calCurrentYear;
+
+    var calCurrentMonth = 9; // October (0-indexed)
+    window.calCurrentMonth = calCurrentMonth;
+
+    var calSelectedDate = null;
+    window.calSelectedDate = calSelectedDate;
+
+    var calBookedDates = ['2026-10-03', '2026-10-10', '2026-10-17', '2026-10-24', '2026-11-07'];
+    window.calBookedDates = calBookedDates;
+
+    var TARGET_PHOTOS_DATA = [
+      { id: "1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO", course: "Diagnostic Coaching", score: "1-on-1 Session", title: "Lane Diagnostics & Fundamentals", desc: "Student working through 1-on-1 coaching on the firing line at Cindy's Hot Shots. Paced instruction focused on grip friction and smooth trigger press.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps", course: "Wear & Carry", score: "100% Qualified", title: "Center-Mass Cadence Cluster", desc: "Clean vital-zone hits on the official BakerTargets qualification course. Calm coaching built confidence from the first round.", loc: "Certified Range: Cindy's Hot Shots" },
+      { id: "1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv", course: "Maryland CCW", score: "Center-X Grouping", title: "B-27 Precision Grouping", desc: "Tight shot placement centered right in the 9, 10, and X rings following holster draw and sight picture coaching.", loc: "Cindy's Hot Shots • Practical Qualification" },
+      { id: "1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR", course: "Paired Training", score: "Dual Qualifiers", title: "Dual Student Center Clusters", desc: "Both students qualifying side-by-side with tight vital zone clusters during an intensive live-fire training block.", loc: "Cindy's Hot Shots • Paired Session" },
+      { id: "1rUcirGX7jLT0upSobd82iJf91Ycv9xlt", course: "Wear & Carry", score: "Certified Pass", title: "Confidence & Marksmanship", desc: "Solid center-mass spread on silhouette targets, demonstrating steady recoil management and smooth trigger reset.", loc: "Certified Range: Cindy's Hot Shots" },
+      { id: "1Z8VLFy2L1Sd6bASqfpt-BBeRiKpVU9qF", course: "Maryland HQL / CCW", score: "Dead-Center Hits", title: "Precision Vital-Zone Group", desc: "Dead-center vital-zone grouping achieved through individual coaching on grip friction and stance balance.", loc: "Cindy's Hot Shots • Private Coaching" },
+      { id: "1mljZQi7U4-O4vBCldtd5xMqAtbk7xBBl", course: "Range Marksmanship", score: "Center Grouping", title: "Dynamic Range Drills", desc: "Maintaining discipline and tight group consistency across multiple target styles and engagement distances.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "1bQjmsgeIz5AOZbyHLnLe-y84FFmmOQSh", course: "Paired Session", score: "Certified Qualifiers", title: "Paired Class Qualifiers", desc: "Both students achieving passing scores with clean center-mass placement during paired weekend instruction.", loc: "Cindy's Hot Shots • Paired Training" },
+      { id: "1I8SYXbZ8Vs_RoaISP-Oi_yVf8y24wJM_", course: "Small Group", score: "Dual Certified", title: "Small Group Milestone", desc: "Two students completing their Maryland qualification course together with tight clusters and zero intimidation.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV", course: "Firing Line", score: "Live Range", title: "Live Firing Line Perspective", desc: "Active diagnostic shooting and practical qualification downrange at Cindy's Hot Shots in Glen Burnie, MD.", loc: "Primary Range Facility • Cindy's Hot Shots" },
+      { id: "1GKKGtLxhSqGOgfh1-u1_CFNr1af-xFUS", course: "Wear & Carry", score: "100% Qualified", title: "Silhouette Marksmanship", desc: "Focused shot cadence and tight center grouping on the B-27 black silhouette target during practical qualification.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "1Xr431Fu4IWY2KIhpJJ5REskODfpH-X9M", course: "HQL & Fundamentals", score: "Concentric Hits", title: "Marksmanship Diagnostics", desc: "Target drill emphasizing sight alignment, steady trigger press, and recoil recovery mechanics.", loc: "Diagnostic Coaching • Cindy's Hot Shots" },
+      { id: "1O5ON4PlVTuCaW-w09a0zzMnOYBMwQ_6k", course: "Maryland CCW", score: "Center-Mass Certified", title: "B27 Shield Precision", desc: "Clean vital-zone dispersion on the B27 Shield tactical training target during live-fire qualification.", loc: "Cindy's Hot Shots • Practical Qual" },
+      { id: "1-dVzb2ipi3IYNb5dGxUpBCBaEyYJIpZ_", course: "Maryland HQL", score: "100% Passing Score", title: "Vital-Zone Control", desc: "Exceptional recoil management and tight center-ring hits with calm, zero-intimidation instruction.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "1XLGG8VZTEOSdnPF5-SXLVGZmeK9m55rR", course: "Cohort Training", score: "Triple Qualification", title: "Group Class Milestone", desc: "Three students qualifying together with clean, certified blue silhouette target sheets at Cindy's Hot Shots.", loc: "Small Group Cohort • Cindy's Hot Shots" },
+      { id: "1sOye7641V0sTZLrOQ7VHAuEe4wFBdfoL", course: "Wear & Carry Initial", score: "Vital Zone Cluster", title: "BakerTargets Standard", desc: "Dedicated center-mass cluster demonstrating solid trigger reset discipline and sight tracking on the line.", loc: "Maryland Certified • Instructor Wade" },
+      { id: "1bWUFKzFuf-xsE7XSuPEE9mWuyGyVcH_z", course: "CCW Certification", score: "High-Visibility Target", title: "Orange Silhouette Grouping", desc: "Steady cadence and confident gun handling producing tight center-scoring hits during qualification.", loc: "Cindy's Hot Shots • Glen Burnie, MD" },
+      { id: "191TKVFSz48i2NP9T23KKzZcNFIr42Fls", course: "Wear & Carry", score: "Certified Passing", title: "Confident Marksmanship", desc: "Clean grouping right in the vital scoring rings following 1-on-1 diagnostic coaching with Instructor Wade.", loc: "Cindy's Hot Shots • Qualified" },
+      { id: "1-__LG3c5gZA2zAKX-qeX8magmZRBETsY", course: "Paired Session", score: "Dual Qualifiers", title: "Paired Training Cohort", desc: "Two students celebrating successful state qualification following their live-fire practical course of fire.", loc: "Cindy's Hot Shots • Range Exit" },
+      { id: "1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5", course: "Maryland CCW", score: "X-Ring Cluster", title: "Red X-Ring Accuracy", desc: "Dead-center shot placement clustered around the red X-ring on the B-27 qualification target.", loc: "Certified Range • Cindy's Hot Shots" }
+    ];
+    window.TARGET_PHOTOS_DATA = TARGET_PHOTOS_DATA;
+
+    function renderBookingCalendar() {
+      const grid = document.getElementById('bookingCalDaysGrid');
+      const label = document.getElementById('bookingCalMonthLabel');
+      const policyBanner = document.getElementById('calendarPolicyText');
+      if (!grid || !label) return;
+
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      label.textContent = `${monthNames[calCurrentMonth]} ${calCurrentYear}`;
+
+      const selectElem = document.getElementById('courseSelection');
+      const curVal = (selectElem ? selectElem.value : '').toLowerCase();
+      const isVip = curVal.includes('vip') || curVal.includes('turnkey');
+
+      if (policyBanner) {
+        if (isVip) {
+          policyBanner.innerHTML = '👑 <strong style="color: var(--accent-amber);">VIP Turnkey Perk:</strong> Priority <strong>7-Day Flexible Scheduling (Monday–Sunday)</strong> is unlocked! Select any open date below.';
+          policyBanner.style.borderColor = 'var(--accent-amber)';
+          policyBanner.style.background = 'rgba(255, 183, 3, 0.08)';
+        } else {
+          policyBanner.innerHTML = '📅 <strong>Standard Schedule:</strong> Classes held on <strong>Saturdays &amp; Sundays</strong>. Weekdays (Mon–Fri) locked. (Toggle to 👑 VIP to unlock 7-day flexible scheduling).';
+          policyBanner.style.borderColor = 'var(--accent-cyan)';
+          policyBanner.style.background = 'rgba(0, 229, 255, 0.08)';
+        }
+      }
+
+      grid.innerHTML = '';
+
+      const firstDay = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
+      const totalDays = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
+
+      // Empty leading cells
+      for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.style.background = '#070b10';
+        emptyCell.style.minHeight = '42px';
+        grid.appendChild(emptyCell);
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      for (let d = 1; d <= totalDays; d++) {
+        const cellDate = new Date(calCurrentYear, calCurrentMonth, d);
+        cellDate.setHours(0, 0, 0, 0);
+        const dayOfWeek = cellDate.getDay(); // 0 = Sun, 6 = Sat
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const dateKey = `${calCurrentYear}-${String(calCurrentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const isBooked = calBookedDates.includes(dateKey);
+        const isPast = cellDate < today;
+
+        const cell = document.createElement('div');
+        cell.style.background = '#0d1219';
+        cell.style.minHeight = '42px';
+        cell.style.display = 'flex';
+        cell.style.flexDirection = 'column';
+        cell.style.alignItems = 'center';
+        cell.style.justifyContent = 'center';
+        cell.style.fontSize = '0.86rem';
+        cell.style.fontWeight = '700';
+        cell.style.cursor = 'pointer';
+        cell.style.transition = 'all 0.15s ease';
+        cell.setAttribute("data-date", dateKey);
+        cell.textContent = d;
+
+        if (isPast) {
+          cell.style.color = '#334155';
+          cell.style.cursor = 'not-allowed';
+          cell.title = 'Past date';
+        } else if (isBooked) {
+          cell.style.color = '#ef4444';
+          cell.style.cursor = 'not-allowed';
+          cell.title = 'Class session already booked for this date';
+          cell.innerHTML = `${d}<span style="width: 5px; height: 5px; border-radius: 50%; background: #ef4444; margin-top: 2px;"></span>`;
+        } else if (!isVip && !isWeekend) {
+          cell.style.color = '#334155';
+          cell.style.background = '#080c11';
+          cell.style.opacity = '0.25';
+          cell.style.cursor = 'not-allowed';
+          cell.style.pointerEvents = 'none';
+          cell.title = 'Standard Base Track is locked to Saturdays & Sundays only. Upgrade to VIP Turnkey to unlock weekdays!';
+          cell.innerHTML = `<span style="opacity: 0.35;">${d}</span><span style="font-size: 0.65rem; color: #475569; margin-top: 1px;">🔒</span>`;
+        } else {
+          // Available Date
+          cell.style.color = '#fff';
+          if (calSelectedDate === dateKey) {
+            cell.style.background = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+            cell.style.color = '#070b10';
+            cell.style.fontWeight = '900';
+            cell.style.boxShadow = isVip ? '0 0 12px var(--accent-amber)' : '0 0 12px var(--accent-cyan)';
+          } else {
+            cell.onmouseover = function() {
+              this.style.background = isVip ? 'rgba(255, 183, 3, 0.25)' : 'rgba(0, 229, 255, 0.25)';
+            };
+            cell.onmouseout = function() {
+              this.style.background = '#0d1219';
+            };
+          }
+
+          cell.onclick = function() {
+            selectBookingDate(dateKey, cellDate, isVip);
+          };
+        }
+
+        grid.appendChild(cell);
+      }
+    }
+    window.renderBookingCalendar = renderBookingCalendar;
+
+    function changeBookingCalendarMonth(delta) {
+      calCurrentMonth += delta;
+      if (calCurrentMonth > 11) {
+        calCurrentMonth = 0;
+        calCurrentYear++;
+      } else if (calCurrentMonth < 0) {
+        calCurrentMonth = 11;
+        calCurrentYear--;
+      }
+      renderBookingCalendar();
+    }
+    window.changeBookingCalendarMonth = changeBookingCalendarMonth;
+
+    function selectBookingDate(dateKey, cellDate, isVip) {
+      calSelectedDate = dateKey;
+      window.calSelectedDate = dateKey;
+
+      const dateInput = document.getElementById('preferredDates');
+      const dateText = document.getElementById('bookingCalSelectedDateText');
+
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const formatted = cellDate ? cellDate.toLocaleDateString('en-US', options) : dateKey;
+
+      if (dateInput) {
+        dateInput.value = `${formatted} ${isVip ? '(👑 VIP Turnkey)' : '(Standard Base)'}`;
+      }
+
+      if (dateText) {
+        dateText.innerHTML = `Selected Date: <strong style="color: ${isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)'};">${formatted}</strong>`;
+      }
+
+      renderBookingCalendar();
+    }
+    window.selectBookingDate = selectBookingDate;
+
+    function mountStudentTargets() {
+      const container = document.getElementById('targets-grid-container');
+      if (!container) return;
+
+      container.innerHTML = TARGET_PHOTOS_DATA.map(p => `
+        <article class="target-card-student">
+          <div class="target-img-frame">
+            <img src="https://drive.google.com/thumbnail?id=${p.id}&amp;sz=w800" 
+                 onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/${p.id}=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+                 alt="${escapeHtml(p.title)}" loading="lazy">
+            <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+            <span class="badge-course">${escapeHtml(p.course)}</span>
+            <span class="badge-score">${escapeHtml(p.score)}</span>
+          </div>
+          <div class="target-content">
+            <div>
+              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">${escapeHtml(p.title)}</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">${escapeHtml(p.desc)}</p>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">${escapeHtml(p.loc)}</div>
+          </div>
+        </article>
+      `).join('');
+    }
+    window.mountStudentTargets = mountStudentTargets;
+
+
 
 
     
@@ -8243,7 +8452,8 @@
 <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px;">Lead Instructor: Kai Wade</div>
 </div>
 <!-- ================= EXCLUSIVE CLIENT FEATURE: DIGITAL CCW TACTICAL WALLET ================= -->
-<div class="client-ccw-wallet-card" style="background: linear-gradient(135deg, #0d1219 0%, #070b10 100%); border: 2px solid var(--accent-amber); border-radius: 16px; padding: 22px 24px; margin-bottom: 24px; box-shadow: 0 12px 35px rgba(0,0,0,0.85), 0 0 25px rgba(255,183,3,0.2); position: relative; overflow: hidden;">
+<div class="client-ccw-wallet-card" style="background: linear-gradient(135deg, #0d1219 0%, #070b10 100%); border: 2px solid var(--accent-amber); border-radius
+: 16px; padding: 22px 24px; margin-bottom: 24px; box-shadow: 0 12px 35px rgba(0,0,0,0.85), 0 0 25px rgba(255,183,3,0.2); position: relative; overflow: hidden;">
 <div style="position: absolute; top: -10px; right: -10px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(255,183,3,0.12) 0%, transparent 70%); pointer-events: none;"></div>
 <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
 <div>
@@ -8452,8 +8662,7 @@
 </div>
 <!-- ================= EXCLUSIVE CLIENT FEATURE: SMS RENEWAL WATCH ALERTS ================= -->
 <div class="fi-checklist-card" style="border: 1.5px solid var(--accent-amber); background: linear-gradient(135deg, rgba(255, 183, 3, 0.06) 0%, rgba(13, 19, 27, 0.98) 100%); margin-top: 24px;">
-<div style="display: flex; justify-content: space-b
-etween; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
 <div>
 <span class="fi-badge fi-badge-amber">Automated Reminder Service</span>
 <h4 style="font-family: var(--font-display); font-size: 1.45rem; color: #fff; text-transform: uppercase; margin: 4px 0 2px;">
@@ -9395,7 +9604,346 @@ etween; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 14px
         </a>
 </div>
 <div class="gallery-grid-targets" id="targets-grid-container">
-<!-- 20 Photo Cards mounted cleanly here -->
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Lane Diagnostics &amp; Fundamentals" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Diagnostic Coaching</span>
+    <span class="badge-score">1-on-1 Session</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Lane Diagnostics &amp; Fundamentals</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Student working through 1-on-1 coaching on the firing line at Cindy&#039;s Hot Shots. Paced instruction focused on grip friction and smooth trigger press.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Cindy&#039;s Hot Shots • Glen Burnie, MD</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Center-Mass Cadence Cluster" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Wear &amp; Carry</span>
+    <span class="badge-score">100% Qualified</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Center-Mass Cadence Cluster</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Clean vital-zone hits on the official BakerTargets qualification course. Calm coaching built confidence from the first round.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Certified Range: Cindy&#039;s Hot Shots</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="B-27 Precision Grouping" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Maryland CCW</span>
+    <span class="badge-score">Center-X Grouping</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">B-27 Precision Grouping</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Tight shot placement centered right in the 9, 10, and X rings following holster draw and sight picture coaching.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Cindy&#039;s Hot Shots • Practical Qualification</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Dual Student Center Clusters" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Paired Training</span>
+    <span class="badge-score">Dual Qualifiers</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Dual Student Center Clusters</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Both students qualifying side-by-side with tight vital zone clusters during an intensive live-fire training block.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Cindy&#039;s Hot Shots • Paired Session</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1rUcirGX7jLT0upSobd82iJf91Ycv9xlt&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1rUcirGX7jLT0upSobd82iJf91Ycv9xlt=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Confidence &amp; Marksmanship" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Wear &amp; Carry</span>
+    <span class="badge-score">Certified Pass</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Confidence &amp; Marksmanship</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Solid center-mass spread on silhouette targets, demonstrating steady recoil management and smooth trigger reset.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Certified Range: Cindy&#039;s Hot Shots</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1Z8VLFy2L1Sd6bASqfpt-BBeRiKpVU9qF&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1Z8VLFy2L1Sd6bASqfpt-BBeRiKpVU9qF=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Precision Vital-Zone Group" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Maryland HQL / CCW</span>
+    <span class="badge-score">Dead-Center Hits</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Precision Vital-Zone Group</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Dead-center vital-zone grouping achieved through individual coaching on grip friction and stance balance.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Cindy&#039;s Hot Shots • Private Coaching</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1mljZQi7U4-O4vBCldtd5xMqAtbk7xBBl&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1mljZQi7U4-O4vBCldtd5xMqAtbk7xBBl=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Dynamic Range Drills" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Range Marksmanship</span>
+    <span class="badge-score">Center Grouping</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Dynamic Range Drills</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Maintaining discipline and tight group consistency across multiple target styles and engagement distances.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Cindy&#039;s Hot Shots • Glen Burnie, MD</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1bQjmsgeIz5AOZbyHLnLe-y84FFmmOQSh&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1bQjmsgeIz5AOZbyHLnLe-y84FFmmOQSh=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Paired Class Qualifiers" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Paired Session</span>
+    <span class="badge-score">Certified Qualifiers</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Paired Class Qualifiers</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Both students achieving passing scores with clean center-mass placement during paired weekend instruction.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Cindy&#039;s Hot Shots • Paired Training</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1I8SYXbZ8Vs_RoaISP-Oi_yVf8y24wJM_&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1I8SYXbZ8Vs_RoaISP-Oi_yVf8y24wJM_=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Small Group Milestone" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Small Group</span>
+    <span class="badge-score">Dual Certified</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Small Group Milestone</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Two students completing their Maryland qualification course together with tight clusters and zero intimidation.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Cindy&#039;s Hot Shots • Glen Burnie, MD</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Live Firing Line Perspective" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Firing Line</span>
+    <span class="badge-score">Live Range</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Live Firing Line Perspective</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Active diagnostic shooting and practical qualification downrange at Cindy&#039;s Hot Shots in Glen Burnie, MD.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Primary Range Facility • Cindy&#039;s Hot Shots</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1GKKGtLxhSqGOgfh1-u1_CFNr1af-xFUS&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1GKKGtLxhSqGOgfh1-u1_CFNr1af-xFUS=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Silhouette Marksmanship" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Wear &amp; Carry</span>
+    <span class="badge-score">100% Qualified</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Silhouette Marksmanship</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Focused shot cadence and tight center grouping on the B-27 black silhouette target during practical qualification.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Cindy&#039;s Hot Shots • Glen Burnie, MD</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1Xr431Fu4IWY2KIhpJJ5REskODfpH-X9M&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1Xr431Fu4IWY2KIhpJJ5REskODfpH-X9M=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Marksmanship Diagnostics" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">HQL &amp; Fundamentals</span>
+    <span class="badge-score">Concentric Hits</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Marksmanship Diagnostics</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Target drill emphasizing sight alignment, steady trigger press, and recoil recovery mechanics.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Diagnostic Coaching • Cindy&#039;s Hot Shots</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1O5ON4PlVTuCaW-w09a0zzMnOYBMwQ_6k&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1O5ON4PlVTuCaW-w09a0zzMnOYBMwQ_6k=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="B27 Shield Precision" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Maryland CCW</span>
+    <span class="badge-score">Center-Mass Certified</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">B27 Shield Precision</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Clean vital-zone dispersion on the B27 Shield tactical training target during live-fire qualification.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Cindy&#039;s Hot Shots • Practical Qual</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1-dVzb2ipi3IYNb5dGxUpBCBaEyYJIpZ_&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1-dVzb2ipi3IYNb5dGxUpBCBaEyYJIpZ_=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Vital-Zone Control" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Maryland HQL</span>
+    <span class="badge-score">100% Passing Score</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Vital-Zone Control</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Exceptional recoil management and tight center-ring hits with calm, zero-intimidation instruction.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Cindy&#039;s Hot Shots • Glen Burnie, MD</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1XLGG8VZTEOSdnPF5-SXLVGZmeK9m55rR&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1XLGG8VZTEOSdnPF5-SXLVGZmeK9m55rR=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Group Class Milestone" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Cohort Training</span>
+    <span class="badge-score">Triple Qualification</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Group Class Milestone</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Three students qualifying together with clean, certified blue silhouette target sheets at Cindy&#039;s Hot Shots.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Small Group Cohort • Cindy&#039;s Hot Shots</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1sOye7641V0sTZLrOQ7VHAuEe4wFBdfoL&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1sOye7641V0sTZLrOQ7VHAuEe4wFBdfoL=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="BakerTargets Standard" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Wear &amp; Carry Initial</span>
+    <span class="badge-score">Vital Zone Cluster</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">BakerTargets Standard</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Dedicated center-mass cluster demonstrating solid trigger reset discipline and sight tracking on the line.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Maryland Certified • Instructor Wade</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1bWUFKzFuf-xsE7XSuPEE9mWuyGyVcH_z&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1bWUFKzFuf-xsE7XSuPEE9mWuyGyVcH_z=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Orange Silhouette Grouping" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">CCW Certification</span>
+    <span class="badge-score">High-Visibility Target</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Orange Silhouette Grouping</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Steady cadence and confident gun handling producing tight center-scoring hits during qualification.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Cindy&#039;s Hot Shots • Glen Burnie, MD</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=191TKVFSz48i2NP9T23KKzZcNFIr42Fls&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/191TKVFSz48i2NP9T23KKzZcNFIr42Fls=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Confident Marksmanship" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Wear &amp; Carry</span>
+    <span class="badge-score">Certified Passing</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Confident Marksmanship</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Clean grouping right in the vital scoring rings following 1-on-1 diagnostic coaching with Instructor Wade.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Cindy&#039;s Hot Shots • Qualified</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1-__LG3c5gZA2zAKX-qeX8magmZRBETsY&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1-__LG3c5gZA2zAKX-qeX8magmZRBETsY=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Paired Training Cohort" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Paired Session</span>
+    <span class="badge-score">Dual Qualifiers</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Paired Training Cohort</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Two students celebrating successful state qualification following their live-fire practical course of fire.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Cindy&#039;s Hot Shots • Range Exit</div>
+  </div>
+</article>
+<article class="target-card-student">
+  <div class="target-img-frame">
+    <img src="https://drive.google.com/thumbnail?id=1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5&amp;sz=w800" 
+         onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}" 
+         alt="Red X-Ring Accuracy" loading="lazy">
+    <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
+    <span class="badge-course">Maryland CCW</span>
+    <span class="badge-score">X-Ring Cluster</span>
+  </div>
+  <div class="target-content">
+    <div>
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">Red X-Ring Accuracy</h4>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Dead-center shot placement clustered around the red X-ring on the B-27 qualification target.</p>
+    </div>
+    <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">Certified Range • Cindy&#039;s Hot Shots</div>
+  </div>
+</article>
 </div>
 </section>
 <!-- VIEW 6: FREQUENTLY ASKED QUESTIONS -->
@@ -12963,7 +13511,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       { text: "The instruction from Mr. Kai is extremely knowledgeable with firearms and firearms safety. Clear, thorough, and professional.", author: "Verified Student" },
 
-      { text: "Top-tier coaching! Patient instruction on grip, recoil management, and practical qualification at Cindy's Hot Shots.", author: "Wear & Carry Qualifier" },
+      { text: "Top-tier coaching! Patient instruction on grip, recoil manageme
+nt, and practical qualification at Cindy's Hot Shots.", author: "Wear & Carry Qualifier" },
 
       { text: "Outstanding class environment. Coach Wade takes the time to make sure everyone understands the legal pillars and feels safe on the range.", author: "HQL Student" }
 
@@ -14092,8 +14641,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       const state = RECIPROCITY_STATES_DATA[stateCode];
 
-      const resSelect = document.getElementById('resPermitSelect'
-);
+      const resSelect = document.getElementById('resPermitSelect');
 
       const residentState = resSelect ? resSelect.value : 'MD';
 
@@ -17841,7 +18389,8 @@ function closeStateModal() {
 <option value="STEP_4_CLASSROOM">4. Classroom Instruction</option>
 <option value="STEP_5_LIVE_FIRE">5. Live-Fire Practical Range</option>
 <option value="STEP_6_CERTIFIED">6. Certified &amp; Score Sheet</option>
-<option value="STEP_7_MSP_PORTAL">7. MSP Portal Submission</option>
+<o
+ption value="STEP_7_MSP_PORTAL">7. MSP Portal Submission</option>
 <option value="STEP_8_LICENSED">8. Licensed &amp; Active</option>
 </select>
 </div>
@@ -18043,8 +18592,109 @@ function closeStateModal() {
 
             <!-- Calendar Days Grid -->
             <div id="bookingCalDaysGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-subtle); border: 1px solid var(--border-subtle); border-radius: 0 0 8px 8px; overflow: hidden;">
-              <!-- Dynamically populated via renderBookingCalendar() -->
-            </div>
+              <!-- Dy
+<div style="background: #070b10; min-height: 42px;"></div>
+<div style="background: #070b10; min-height: 42px;"></div>
+<div style="background: #070b10; min-height: 42px;"></div>
+<div style="background: #070b10; min-height: 42px;"></div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-01', new Date(2026, 9, 1))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-01">
+  <span>1</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-02', new Date(2026, 9, 2))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-02">
+  <span>2</span>
+</div>
+<div style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: not-allowed; color: #ef4444;" title="Class session already booked for this date" data-date="2026-10-03">
+  <span>3</span>
+  <span style="width: 5px; height: 5px; border-radius: 50%; background: #ef4444; margin-top: 2px;"></span>
+</div>
+<div class="cal-day-cell cal-weekend" onclick="selectBookingDate('2026-10-04', new Date(2026, 9, 4))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Open Training Session" data-date="2026-10-04">
+  <span>4</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-05', new Date(2026, 9, 5))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-05">
+  <span>5</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-06', new Date(2026, 9, 6))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-06">
+  <span>6</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-07', new Date(2026, 9, 7))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-07">
+  <span>7</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-08', new Date(2026, 9, 8))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-08">
+  <span>8</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-09', new Date(2026, 9, 9))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-09">
+  <span>9</span>
+</div>
+<div style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: not-allowed; color: #ef4444;" title="Class session already booked for this date" data-date="2026-10-10">
+  <span>10</span>
+  <span style="width: 5px; height: 5px; border-radius: 50%; background: #ef4444; margin-top: 2px;"></span>
+</div>
+<div class="cal-day-cell cal-weekend" onclick="selectBookingDate('2026-10-11', new Date(2026, 9, 11))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Open Training Session" data-date="2026-10-11">
+  <span>11</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-12', new Date(2026, 9, 12))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-12">
+  <span>12</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-13', new Date(2026, 9, 13))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-13">
+  <span>13</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-14', new Date(2026, 9, 14))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-14">
+  <span>14</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-15', new Date(2026, 9, 15))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-15">
+  <span>15</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-16', new Date(2026, 9, 16))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-16">
+  <span>16</span>
+</div>
+<div style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: not-allowed; color: #ef4444;" title="Class session already booked for this date" data-date="2026-10-17">
+  <span>17</span>
+  <span style="width: 5px; height: 5px; border-radius: 50%; background: #ef4444; margin-top: 2px;"></span>
+</div>
+<div class="cal-day-cell cal-weekend" onclick="selectBookingDate('2026-10-18', new Date(2026, 9, 18))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Open Training Session" data-date="2026-10-18">
+  <span>18</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-19', new Date(2026, 9, 19))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-19">
+  <span>19</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-20', new Date(2026, 9, 20))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-20">
+  <span>20</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-21', new Date(2026, 9, 21))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-21">
+  <span>21</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-22', new Date(2026, 9, 22))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-22">
+  <span>22</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-23', new Date(2026, 9, 23))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-23">
+  <span>23</span>
+</div>
+<div style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: not-allowed; color: #ef4444;" title="Class session already booked for this date" data-date="2026-10-24">
+  <span>24</span>
+  <span style="width: 5px; height: 5px; border-radius: 50%; background: #ef4444; margin-top: 2px;"></span>
+</div>
+<div class="cal-day-cell cal-weekend" onclick="selectBookingDate('2026-10-25', new Date(2026, 9, 25))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Open Training Session" data-date="2026-10-25">
+  <span>25</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-26', new Date(2026, 9, 26))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-26">
+  <span>26</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-27', new Date(2026, 9, 27))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-27">
+  <span>27</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-28', new Date(2026, 9, 28))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-28">
+  <span>28</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-29', new Date(2026, 9, 29))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-29">
+  <span>29</span>
+</div>
+<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-30', new Date(2026, 9, 30))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-30">
+  <span>30</span>
+</div>
+<div class="cal-day-cell cal-weekend" onclick="selectBookingDate('2026-10-31', new Date(2026, 9, 31))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Open Training Session" data-date="2026-10-31">
+  <span>31</span>
+</div>
+</div>
 
             <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
               <span style="font-size: 0.84rem; color: #cbd5e1;">
@@ -18379,8 +19029,7 @@ function closeStateModal() {
 </div>
 <div class="fi-check-item" onclick="fiToggleCheck(this, 'fc3')">
 <input id="fc3" type="checkbox"/>
-<label class="fi-check-label" for="fc3"><strong>Firearm Physically Cleared:</strong> Completely unl
-oaded; chamber empty; bolt/slide locked back or action closed on empty chamber.</label>
+<label class="fi-check-label" for="fc3"><strong>Firearm Physically Cleared:</strong> Completely unloaded; chamber empty; bolt/slide locked back or action closed on empty chamber.</label>
 </div>
 <div class="fi-check-item" onclick="fiToggleCheck(this, 'fc4')">
 <input id="fc4" type="checkbox"/>
