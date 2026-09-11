@@ -5765,6 +5765,41 @@
     // AUTHORITATIVE CORE CONTROLLER & INTERACTION ENGINE (HEAD INITIALIZATION)
     // =========================================================================
 
+    // --- AUTHORIZED INSTRUCTOR AUTHENTICATION & DIRECT HUB UNLOCK ---
+    function isAuthorizedAdminPin(pin) {
+      if (!pin) return false;
+      const p = pin.toString().trim().toLowerCase();
+      return p === '5819' || p === 'ultima' || p === 'admin' || p === 'chief';
+    }
+    window.isAuthorizedAdminPin = isAuthorizedAdminPin;
+
+    function unlockAdminDashboardDirect(pin) {
+      const p = pin || '5819';
+      try {
+        localStorage.setItem('fifs_instructor_pin', p);
+        localStorage.setItem('fifs_admin_session', 'active');
+      } catch(e) {}
+
+      const authBox = document.getElementById('admin-auth-box');
+      const cmdDash = document.getElementById('admin-command-dashboard');
+      if (authBox) {
+        authBox.classList.add('hidden');
+        authBox.style.setProperty('display', 'none', 'important');
+      }
+      if (cmdDash) {
+        cmdDash.classList.remove('hidden');
+        cmdDash.style.setProperty('display', 'block', 'important');
+      }
+
+      const adminPassField = document.getElementById('adminPasscode');
+      if (adminPassField) adminPassField.value = p;
+
+      if (typeof renderAdminTerminal === 'function') {
+        try { renderAdminTerminal(); } catch(e) {}
+      }
+    }
+    window.unlockAdminDashboardDirect = unlockAdminDashboardDirect;
+
     // 1. Core Navigation State & Titles
     var ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 'faq', 'admin'];
     window.ALL_APP_TABS = ALL_APP_TABS;
@@ -7114,12 +7149,13 @@
         return;
       }
 
-      if (query.trim().toLowerCase() === 'ultima') {
-        showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
+      if (isAuthorizedAdminPin(query)) {
+        showStatus(statusDiv, 'Instructor credentials verified (PIN: ' + query + '). Unlocking Command Terminal...', 'success');
         setTimeout(function() {
-          switchTab('admin');
-          verifyAdminAccess();
-        }, 450);
+          openAndSwitch('admin');
+          unlockAdminDashboardDirect(query);
+          if (statusDiv) statusDiv.style.display = 'none';
+        }, 300);
         return;
       }
 
@@ -8297,7 +8333,8 @@
 <div style="background: rgba(0,0,0,0.3); border-top: 3px solid var(--accent-cyan); padding: 14px; border-radius: 8px;">
 <div style="font-family: var(--font-display); font-size: 1rem; color: var(--accent-cyan); font-weight: 700;">Day 90–75</div>
 <div style="font-size: 0.88rem; font-weight: 600; color: #fff; margin: 2px 0 4px;">Book 8-Hour Renewal</div>
-<div style="font-size: 0.82rem; color: #94a3b8; line-height: 1.4;">Schedule your class with Kai Wade. Secure range date and prep 50–100 target rounds.</div>
+<div style="font-size: 0.82rem; color
+: #94a3b8; line-height: 1.4;">Schedule your class with Kai Wade. Secure range date and prep 50–100 target rounds.</div>
 </div>
 <div style="background: rgba(0,0,0,0.3); border-top: 3px solid var(--accent-amber); padding: 14px; border-radius: 8px;">
 <div style="font-family: var(--font-display); font-size: 1rem; color: var(--accent-amber); font-weight: 700;">Day 60–45</div>
@@ -8310,8 +8347,7 @@
 <div style="font-size: 0.82rem; color: #94a3b8; line-height: 1.4;">Log into Maryland State Police Licensing Portal. Upload score sheet and pay state renewal fee.</div>
 </div>
 <div style="background: rgba(0,0,0,0.3); border-top: 3px solid #cbd5e1; padding: 14px; border-radius: 8px;">
-<div style="font-family: var(--font-display); font-size: 1rem; color: #fff; fo
-nt-weight: 700;">Day 14–0</div>
+<div style="font-family: var(--font-display); font-size: 1rem; color: #fff; font-weight: 700;">Day 14–0</div>
 <div style="font-size: 0.88rem; font-weight: 600; color: #fff; margin: 2px 0 4px;">Receive Card in Mail</div>
 <div style="font-size: 0.82rem; color: #94a3b8; line-height: 1.4;">MSP issues renewed 3-year Wear &amp; Carry permit card with zero coverage gap.</div>
 </div>
@@ -8533,7 +8569,7 @@ nt-weight: 700;">Day 14–0</div>
 <div style="background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 12px; padding: 22px; max-width: 440px; margin: 0 auto;">
 <div class="form-group">
 <label for="adminPasscode">Instructor Command Passcode <span class="req">*</span></label>
-<input id="adminPasscode" placeholder="Enter PIN" type="password"/>
+<input id="adminPasscode" placeholder="Enter PIN (5819)" type="password"/>
 </div>
 <button class="btn-primary" onclick="verifyAdminAccess()" type="button">
 
@@ -11754,26 +11790,14 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       // Streamlined Instructor Authentication via the same field
 
-      if (query.trim().toLowerCase() === 'ultima') {
-
-        showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
-
+            if (isAuthorizedAdminPin(query)) {
+        showStatus(statusDiv, 'Instructor credentials verified (PIN: ' + query + '). Unlocking Command Terminal...', 'success');
         setTimeout(function() {
-
-          switchTab('admin');
-
-          const adminPassField = document.getElementById('adminPasscode');
-
-          if (adminPassField) adminPassField.value = 'Ultima';
-
-          verifyAdminAccess();
-
+          openAndSwitch('admin');
+          unlockAdminDashboardDirect(query);
           if (statusDiv) statusDiv.style.display = 'none';
-
-        }, 350);
-
+        }, 300);
         return;
-
       }
 
   
@@ -12404,7 +12428,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       } else {
 
-        if (pin === 'Ultima' || pin === 'admin' || pin === 'chief' || !pin) {
+        if (isAuthorizedAdminPin(pin) || !pin) {
 
           statusDiv.style.display = 'none';
 
@@ -14137,7 +14161,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
     function openCollectorModal() {
 
-      const modal = document.getElementById('collectorInfoModal');
+      const modal = document
+.getElementById('collectorInfoModal');
 
       if (modal) modal.classList.add('active');
 
@@ -14208,8 +14233,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         basePrice: "$100.00",
 
-        vi
-pPrice: "$165.00",
+        vipPrice: "$165.00",
 
         baseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
 
@@ -15615,14 +15639,13 @@ pPrice: "$165.00",
       }
 
       // Master Instructor Admin Backdoor from Client Portal
-      if (query.trim().toLowerCase() === 'ultima') {
-        showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
+            if (isAuthorizedAdminPin(query)) {
+        showStatus(statusDiv, 'Instructor credentials verified (PIN: ' + query + '). Unlocking Command Terminal...', 'success');
         setTimeout(function() {
-          switchTab('admin');
-          const adminPassField = document.getElementById('adminPasscode');
-          if (adminPassField) adminPassField.value = 'Ultima';
-          if (typeof verifyAdminAccess === 'function') verifyAdminAccess();
-        }, 400);
+          openAndSwitch('admin');
+          unlockAdminDashboardDirect(query);
+          if (statusDiv) statusDiv.style.display = 'none';
+        }, 300);
         return;
       }
 
@@ -18322,7 +18345,8 @@ function closeStateModal() {
 </div>
 <div class="fi-check-item" onclick="fiToggleCheck(this, 'fc5')">
 <input id="fc5" type="checkbox"/>
-<label class="fi-check-label" for="fc5"><strong>Early Airport Arrival:</strong> Arriving at airline counter at least 2.5 hours before domestic flight departure to allow for TSA screening.</label>
+<label class="fi-check-lab
+el" for="fc5"><strong>Early Airport Arrival:</strong> Arriving at airline counter at least 2.5 hours before domestic flight departure to allow for TSA screening.</label>
 </div>
 </div>
         &lt;
@@ -18336,8 +18360,7 @@ function closeStateModal() {
                   ✈️ Personalized Airline &amp; TSA Flight Briefing Generator
                 </h4>
 <p style="font-size: 0.86rem; color: var(--text-muted); line-height: 1.5;">
-                  Select your departure airport, airline carrier, and destination state to generate a personalized compliance dossier wit
-h counter scripts and destination carry statutes.
+                  Select your departure airport, airline carrier, and destination state to generate a personalized compliance dossier with counter scripts and destination carry statutes.
                 </p>
 </div>
 </div>
