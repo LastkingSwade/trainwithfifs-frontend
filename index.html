@@ -5786,6 +5786,54 @@
     window.escapeHtml = escapeHtml;
 
     // ==========================================================================
+    // STREAMLINED TELEMETRY ENGINE IN <HEAD> SCRIPT 0
+    // ==========================================================================
+    function logAnalyticsEvent(category, action, label) {
+      try {
+        const highValueActions = [
+          'Course Booking Confirmed',
+          'Client Profile Registered',
+          'Live Chat Initiated',
+          'Live Chat Started'
+        ];
+
+        const isHighValue = highValueActions.includes(action) ||
+                            category === 'Conversion' ||
+                            category === 'Engagement';
+
+        if (!isHighValue) return;
+
+        const dev = typeof detectUserDevice === 'function' ? detectUserDevice() : { deviceName: 'Web Device', category: 'Standard' };
+        const entry = {
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          category: category,
+          action: action,
+          label: label || '',
+          device: dev.deviceName || 'Web Device',
+          deviceCategory: dev.category || 'Standard',
+          timestamp: new Date().toISOString()
+        };
+
+        const log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
+        log.unshift(entry);
+        if (log.length > 50) log.pop();
+        localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
+
+        const counts = JSON.parse(localStorage.getItem('fifs_analytics_counts') || '{}');
+        counts[action] = (counts[action] || 0) + 1;
+        localStorage.setItem('fifs_analytics_counts', JSON.stringify(counts));
+
+        if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
+          google.script.run.logAnalyticsEvent(entry);
+        }
+      } catch (e) {
+        console.warn('Telemetry milestone notice:', e);
+      }
+    }
+    window.logAnalyticsEvent = logAnalyticsEvent;
+
+
+    // ==========================================================================
     // AUTHORITATIVE CORE NAVIGATION ENGINE (DEFINED IN <HEAD> FOR INSTANT TAP/CLICK)
     // ==========================================================================
     var ALL_APP_TABS = ['booking', 'portal', 'fi-portal', 'about', 'testimonial', 'faq', 'admin'];
@@ -7608,6 +7656,168 @@
     window.adminSignOut = adminSignOut;
 
     // ==========================================================================
+    // CLIENT PORTAL REGISTRATION & ACTIVE DASHBOARD CONTROLLER IN <HEAD>
+    // ==========================================================================
+    function handleClientRegisterSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+
+      const nameEl = document.getElementById('regClientName');
+      const emailEl = document.getElementById('regClientEmail');
+      const phoneEl = document.getElementById('regClientPhone');
+      const stateEl = document.getElementById('regClientPermitState');
+      const expDateEl = document.getElementById('regClientExpDate');
+      const optInEl = document.getElementById('regClientOptIn');
+
+      const statusDiv = document.getElementById('client-register-status');
+      const btn = document.getElementById('btn-client-register-submit');
+
+      const name = nameEl ? nameEl.value.trim() : '';
+      const email = emailEl ? emailEl.value.trim() : '';
+      const phone = phoneEl ? phoneEl.value.trim() : '';
+      const permitState = stateEl ? stateEl.value : 'Maryland Wear & Carry';
+      const expDate = expDateEl ? expDateEl.value : '';
+      const optIn = optInEl ? optInEl.checked : true;
+
+      if (!name || !email) {
+        showStatus(statusDiv, 'Full Name and Email Address are required.', 'error');
+        alert('Please provide your Full Legal Name and Email Address to establish your permit profile.');
+        return;
+      }
+
+      const clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
+      const clientRecord = {
+        clientId: clientId,
+        fullName: name,
+        email: email,
+        phone: phone,
+        permitState: permitState,
+        expirationDate: expDate,
+        optInReminder: optIn,
+        savedAt: new Date().toISOString()
+      };
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Establishing Permit Profile...';
+      }
+      showStatus(statusDiv, 'Creating profile & setting renewal watch...', 'success');
+
+      // Store in client session
+      localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord));
+
+      // Append to administrative client roster cache so it reflects immediately in Admin Terminal
+      try {
+        let currentRoster = JSON.parse(localStorage.getItem('fifs_client_roster') || '[]');
+        currentRoster.unshift(clientRecord);
+        localStorage.setItem('fifs_client_roster', JSON.stringify(currentRoster));
+        if (typeof adminCachedClients !== 'undefined' && Array.isArray(adminCachedClients)) {
+          adminCachedClients.unshift(clientRecord);
+        }
+      } catch (cacheErr) {
+        console.warn('Client roster cache update:', cacheErr);
+      }
+
+      // 1. Dispatch Discord Webhook Alert
+      sendClientDiscordAlert(
+        "🛡️ Client Portal Registration: " + name,
+        "A student / permit holder registered their profile in the **Future Initiative Client Portal**.",
+        [
+          { name: "Client Name", value: name, inline: true },
+          { name: "Client ID", value: "`" + clientId + "`", inline: true },
+          { name: "Email & Phone", value: email + " • " + (phone || "None"), inline: false },
+          { name: "Permit State", value: permitState, inline: true },
+          { name: "Expiration Date", value: expDate || "Not Provided", inline: true },
+          { name: "90-Day Renewal Watch", value: optIn ? "Active (90-Day Alerts Enabled)" : "Standard", inline: true }
+        ],
+        0xFFB703
+      );
+
+      // 2. Log high-value business milestone in telemetry
+      logAnalyticsEvent('Conversion', 'Client Profile Registered', `${name} (${permitState})`);
+
+      // 3. Dispatch to Apps Script backend if available
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleClientRegistration) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (btn) {
+              btn.disabled = false;
+              btn.textContent = 'Create Profile & Activate Renewal Watch 🛡️';
+            }
+            showStatus(statusDiv, 'Profile established! Client ID: ' + (res.clientId || clientId) + '. Opening Dashboard...', 'success');
+            setTimeout(function() {
+              renderClientDashboard(clientRecord);
+            }, 300);
+          })
+          .withFailureHandler(function(err) {
+            if (btn) {
+              btn.disabled = false;
+              btn.textContent = 'Create Profile & Activate Renewal Watch 🛡️';
+            }
+            showStatus(statusDiv, 'Profile saved! Opening Dashboard...', 'success');
+            setTimeout(function() {
+              renderClientDashboard(clientRecord);
+            }, 300);
+          })
+          .handleClientRegistration(clientRecord);
+      } else {
+        // Direct local/web execution path (guaranteed immediate transition)
+        setTimeout(function() {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Create Profile & Activate Renewal Watch 🛡️';
+          }
+          showStatus(statusDiv, 'Profile established! Client ID: ' + clientId + '. Opening Dashboard...', 'success');
+          setTimeout(function() {
+            renderClientDashboard(clientRecord);
+          }, 350);
+        }, 250);
+      }
+    }
+    window.handleClientRegisterSubmit = handleClientRegisterSubmit;
+
+    function renderClientDashboard(client) {
+      const authBox = document.getElementById('client-auth-box');
+      const dashBox = document.getElementById('client-active-dashboard');
+
+      if (authBox) {
+        authBox.style.setProperty('display', 'none', 'important');
+      }
+      if (dashBox) {
+        dashBox.style.setProperty('display', 'block', 'important');
+      }
+
+      const nameEl = document.getElementById('dash-client-name');
+      const idEl = document.getElementById('dash-client-id');
+      const permitEl = document.getElementById('dash-client-permit');
+      const expBadge = document.getElementById('dash-client-exp-badge');
+
+      if (nameEl) nameEl.textContent = (client.fullName || 'Client').split(' ')[0];
+      if (idEl) idEl.textContent = 'ID: ' + (client.clientId || 'Registered Client');
+      if (permitEl) permitEl.textContent = client.permitState || 'Maryland Wear & Carry';
+
+      if (expBadge) {
+        if (client.expirationDate) {
+          expBadge.textContent = 'Expiration: ' + client.expirationDate;
+        } else {
+          expBadge.textContent = 'Status: Planning / In Progress';
+        }
+      }
+
+      // Sync the Expiration Calculator automatically
+      const calcInput = document.getElementById('fiPermitExpInput');
+      if (calcInput && client.expirationDate) {
+        calcInput.value = client.expirationDate;
+        if (typeof fiCalculateExpiration === 'function') fiCalculateExpiration();
+      }
+
+      const userTag = document.getElementById('portal-user-tag');
+      if (userTag) userTag.textContent = "Client: " + client.fullName + " (" + (client.clientId || 'Verified') + ")";
+      try { window.scrollTo(0, 0); } catch (e) {}
+    }
+    window.renderClientDashboard = renderClientDashboard;
+
+
+    // ==========================================================================
     // COMPLETE ADMIN TERMINAL ENGINE IN <HEAD> (INSTANT INTERACTION & MODULES)
     // ==========================================================================
     
@@ -8541,7 +8751,8 @@
         {
           "@type": "Course",
           "name": "Maryland Wear & Carry (16-Hour Initial)",
-          "description": "State-approved 16-hour Wear & Carry permit course covering State v. Faulkner self-defense legal pillars, safe storage (Jaelynn's Law), and MSP Form 29-14 certified qualification.",
+          "description": "State-approved 16-hour Wear & Carry permit 
+course covering State v. Faulkner self-defense legal pillars, safe storage (Jaelynn's Law), and MSP Form 29-14 certified qualification.",
           "offers": { "@type": "Offer", "price": "199.99", "priceCurrency": "USD" }
         },
         {
@@ -8681,8 +8892,7 @@
 <!-- VIEW 1: AUTHENTICATED STUDENT DASHBOARD -->
 <section class="panel hidden" id="view-portal" role="tabpanel">
 <!-- PWA Mobile Home Screen Callout Banner -->
-<div class="pwa-install-banner" id="pwaStudentBanner" style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(16, 22, 31, 0.95) 100%); border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; justify-content: space-between; al
-ign-items: center; flex-wrap: wrap; gap: 12px;">
+<div class="pwa-install-banner" id="pwaStudentBanner" style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(16, 22, 31, 0.95) 100%); border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
 <div style="display: flex; align-items: center; gap: 12px;">
 <span style="font-size: 1.6rem; flex-shrink: 0;">📱</span>
 <div>
@@ -9015,7 +9225,7 @@ ign-items: center; flex-wrap: wrap; gap: 12px;">
                     </span>
 </label>
 </div>
-<button class="btn-primary" id="btn-client-register-submit" style="width: 100%; padding: 12px;" type="submit">
+<button class="btn-primary" id="btn-client-register-submit" onclick="handleClientRegisterSubmit(event)" style="width: 100%; padding: 12px; pointer-events: auto !important; touch-action: manipulation !important; cursor: pointer;" type="button">
                   Create Profile &amp; Activate Renewal Watch 🛡️
                 </button>
 <div class="status-msg" id="client-register-status"></div>
@@ -11055,22 +11265,43 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
     }
     window.sendClientDiscordAlert = sendClientDiscordAlert;
 
+    // ==========================================================================
+    // STREAMLINED TELEMETRY ENGINE (FOCUSED STRICTLY ON HIGH-VALUE MILESTONES)
+    // Eliminates micro-interaction I/O overhead while capturing business events
+    // ==========================================================================
     function logAnalyticsEvent(category, action, label) {
       try {
-        const dev = detectUserDevice();
-        const log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
+        // High-value business milestones filter
+        const highValueActions = [
+          'Course Booking Confirmed',
+          'Client Profile Registered',
+          'Live Chat Initiated',
+          'Live Chat Started'
+        ];
+
+        const isHighValue = highValueActions.includes(action) ||
+                            category === 'Conversion' ||
+                            category === 'Engagement';
+
+        if (!isHighValue) {
+          // Bypasses micro-interactions (tab switching, UI toggles, modal closes)
+          return;
+        }
+
+        const dev = typeof detectUserDevice === 'function' ? detectUserDevice() : { deviceName: 'Web Device', category: 'Standard' };
         const entry = {
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
           category: category,
           action: action,
           label: label || '',
-          device: dev.deviceName,
-          deviceCategory: dev.category,
-          icon: dev.icon,
-          screenRes: dev.screenRes
+          device: dev.deviceName || 'Web Device',
+          deviceCategory: dev.category || 'Standard',
+          timestamp: new Date().toISOString()
         };
+
+        const log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
         log.unshift(entry);
-        if (log.length > 150) log.pop();
+        if (log.length > 50) log.pop();
         localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
 
         // Update action counters
@@ -11078,16 +11309,13 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
         counts[action] = (counts[action] || 0) + 1;
         localStorage.setItem('fifs_analytics_counts', JSON.stringify(counts));
 
-        // Update device breakdown counters
-        const devCounts = JSON.parse(localStorage.getItem('fifs_device_counts') || '{"Mobile Phone":0,"Tablet / iPad":0,"Desktop / Laptop":0,"Handheld PC":0}');
-        devCounts[dev.category] = (devCounts[dev.category] || 0) + 1;
-        localStorage.setItem('fifs_device_counts', JSON.stringify(devCounts));
-
-        // Sync with Google Apps Script backend if available
+        // Sync with backend asynchronously if available
         if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
           google.script.run.logAnalyticsEvent(entry);
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('Telemetry milestone notice:', e);
+      }
     }
     window.logAnalyticsEvent = logAnalyticsEvent;
 
@@ -12694,7 +12922,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         return "Our pricing is 100% transparent with zero hidden fees:<br>• <strong>Maryland CCW & HQL Combo:</strong> $249.99 Base / $375 VIP Turnkey<br>• <strong>Wear & Carry (16-Hr Initial):</strong> $199.99 Base / $325 VIP<br>• <strong>Wear & Carry (8-Hr Renewal):</strong> $175 Base (10% off with promo code <code>RENEWAL10</code>)<br>• <strong>Maryland HQL:</strong> $100 Base / $165 VIP<br>• <strong>1-on-1 Private Range Coaching:</strong> $125/hr Base / $195/hr VIP";
       }
       if (m.includes('where') || m.includes('location') || m.includes('range') || m.includes('address') || m.includes('cindy')) {
-        return "All our practical live-fire range qualifications take place at <strong>Cindy\'s Hot Shots</strong>, located at <strong>115 Holsum Way, Glen Burnie, MD 21060</strong>. It\'s a premier, state-of-the-art indoor climate-controlled range.";
+        return "All our practical live-fire range qualifications take place at <strong>Cindy\'s Hot Shots</strong>, located at <strong>115 Holsum Way, Glen Burnie, MD 21060</strong>. It\'s a premier, state-of-the-art indoor climate-c
+ontrolled range.";
       }
       if (m.includes('ammo') || m.includes('ammunition') || m.includes('round') || m.includes('caliber')) {
         return "You\'ll need <strong>50 to 100 rounds</strong> of clean factory target brass ammunition (9mm, .380, etc.). It\'s available on-site at Cindy\'s Hot Shots or included in our VIP Turnkey package. <em>Mandatory safety rule:</em> strictly zero live ammo in the classroom—keep it locked in your trunk until range live-fire!";
@@ -12980,8 +13209,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     window.mountStudentTargets = mountStudentTargets;
 
     function selectCourse(courseValue) {
-      const valClean = (courseValue || '').toLowerCas
-e().trim();
+      const valClean = (courseValue || '').toLowerCase().trim();
 
       // REQUIREMENT 9: Lock Alumni Clinic down to registered clients
       if (valClean.includes('alumni') || valClean.includes('clinic')) {
@@ -13994,6 +14222,7 @@ e().trim();
       submitBtn.disabled = true;
 
       showStatus(statusDiv, 'Registering student session with Future Initiative...', 'success');
+      logAnalyticsEvent('Conversion', 'Course Booking Confirmed', `${payload.fullName} - ${payload.courseSelection}`);
 
       // 1. Discord Webhook Alert: New Class Booking
       sendClientDiscordAlert(
@@ -18189,24 +18418,57 @@ function closeStateModal() {
     // ==========================================================================
     // FIFS ADVANCED WEBSITE ANALYTICS & TELEMETRY ENGINE
     // ==========================================================================
+    // ==========================================================================
+    // STREAMLINED TELEMETRY ENGINE (FOCUSED STRICTLY ON HIGH-VALUE MILESTONES)
+    // Eliminates micro-interaction I/O overhead while capturing business events
+    // ==========================================================================
     function logAnalyticsEvent(category, action, label) {
       try {
-        const log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
+        // High-value business milestones filter
+        const highValueActions = [
+          'Course Booking Confirmed',
+          'Client Profile Registered',
+          'Live Chat Initiated',
+          'Live Chat Started'
+        ];
+
+        const isHighValue = highValueActions.includes(action) ||
+                            category === 'Conversion' ||
+                            category === 'Engagement';
+
+        if (!isHighValue) {
+          // Bypasses micro-interactions (tab switching, UI toggles, modal closes)
+          return;
+        }
+
+        const dev = typeof detectUserDevice === 'function' ? detectUserDevice() : { deviceName: 'Web Device', category: 'Standard' };
         const entry = {
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
           category: category,
           action: action,
-          label: label || ''
+          label: label || '',
+          device: dev.deviceName || 'Web Device',
+          deviceCategory: dev.category || 'Standard',
+          timestamp: new Date().toISOString()
         };
+
+        const log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
         log.unshift(entry);
-        if (log.length > 100) log.pop(); // keep last 100 events
+        if (log.length > 50) log.pop();
         localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
 
-        // Update counters
+        // Update action counters
         const counts = JSON.parse(localStorage.getItem('fifs_analytics_counts') || '{}');
         counts[action] = (counts[action] || 0) + 1;
         localStorage.setItem('fifs_analytics_counts', JSON.stringify(counts));
-      } catch (e) {}
+
+        // Sync with backend asynchronously if available
+        if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
+          google.script.run.logAnalyticsEvent(entry);
+        }
+      } catch (e) {
+        console.warn('Telemetry milestone notice:', e);
+      }
     }
     window.logAnalyticsEvent = logAnalyticsEvent;
 
@@ -18419,7 +18681,8 @@ function closeStateModal() {
 <div class="filter-pills-wrap">
 <button class="filter-btn-pill active" data-filter="all" onclick="setCategoryFilter('all')">All States</button>
 <button class="filter-btn-pill" data-filter="can_carry" onclick="setCategoryFilter('can_carry')">Where You Can Carry</button>
-<button class="filter-btn-pill" data-filter="constitutional" onclick="setCategoryFilter('constitutional')">Constitutional</button>
+<button class="filter-btn-pill" data-filter="constitutional" oncl
+ick="setCategoryFilter('constitutional')">Constitutional</button>
 <button class="filter-btn-pill" data-filter="not_honored" onclick="setCategoryFilter('not_honored')">Restricted</button>
 </div>
 </div>
@@ -18586,8 +18849,7 @@ function closeStateModal() {
 </div>
 <div class="fifs-action-dock" style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.12) 0%, rgba(13, 19, 27, 0.98) 100%); border: 2px solid var(--accent-cyan); box-shadow: 0 0 25px var(--accent-cyan-glow); border-radius: 16px; padding: 26px 20px; margin-top: 32px; text-align: center;">
 <span class="badge-instructor" style="margin-bottom: 8px;">Future Initiative Firearm Services</span>
-<h3 style="font-family: var(-
--font-display); font-size: 1.85rem; color: #fff; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 4px;">Ready to Expand Your Multi-State Carry Footprint?</h3>
+<h3 style="font-family: var(--font-display); font-size: 1.85rem; color: #fff; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 4px;">Ready to Expand Your Multi-State Carry Footprint?</h3>
 <p style="color: #cbd5e1; font-size: 0.92rem; max-width: 780px; margin: 6px auto 18px; line-height: 1.55;">
         Train with Lead Instructor Kai Wade (Certified MSP Qualified Handgun Instructor § 5-101 and NRA Certified) at Cindy's Hot Shots. Build real confidence, master Maryland self-defense law, and obtain multi-state carry authorization across 34+ states.
       </p>
@@ -20020,3 +20282,4 @@ function closeStateModal() {
       z-index: 70 !important;
     }
 
+    
