@@ -1,26 +1,5 @@
 <!DOCTYPE html>
-
-<html
-
-          <!-- New Client Registration Notification Alert Beacon -->
-          <div id="admin-new-client-alert-box" style="display: none; background: linear-gradient(135deg, rgba(255, 183, 3, 0.15) 0%, rgba(13, 19, 27, 0.98) 100%); border: 2px solid var(--accent-amber); box-shadow: 0 0 25px var(--accent-amber-glow); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <span class="live-dot" style="width: 12px; height: 12px; background: var(--accent-amber); box-shadow: 0 0 12px var(--accent-amber); flex-shrink: 0;"></span>
-              <div>
-                <strong id="admin-client-alert-title" style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; text-transform: uppercase; letter-spacing: 1px; display: block;">🛡️ NEW CLIENT PORTAL REGISTRATION</strong>
-                <p id="admin-client-alert-desc" style="font-size: 0.86rem; color: #cbd5e1; margin-top: 2px;">A new permit holder has registered in the Future Initiative Client Portal.</p>
-              </div>
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button class="btn-spark" onclick="switchAdminTab('clients'); acknowledgeNewClientAlert();" style="padding: 8px 16px; font-size: 0.82rem; border-color: var(--accent-amber); color: var(--accent-amber);" type="button">
-                👁️ View Client Roster
-              </button>
-              <button class="btn-spark" onclick="acknowledgeNewClientAlert()" style="padding: 8px 16px; font-size: 0.82rem; border-color: var(--border-subtle); color: var(--text-muted);" type="button">
-                Dismiss
-              </button>
-            </div>
-          </div>
- lang="en">
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
@@ -5849,6 +5828,26 @@
       z-index: 70 !important;
     }
 
+
+    /* Dynamic Button Animations & Feedback States */
+/* Dynamic Button Animations & Feedback States */
+    @keyframes fifsSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spin-icon {
+      display: inline-block;
+      animation: fifsSpin 0.75s linear infinite;
+    }
+    .btn-animated-loading {
+      opacity: 0.85 !important;
+      pointer-events: none !important;
+    }
+    .btn-animated-success {
+      border-color: #10b981 !important;
+      color: #10b981 !important;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.45) !important;
+    }
 </style>
 <script>
 
@@ -8713,8 +8712,7 @@
       if (!confirm('Are you sure you want to remove student ' + studentId + ' from the administrative roster?')) return;
       const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
 
-  
-    if (typeof adminCachedStudents !== 'undefined' && Array.isArray(adminCachedStudents)) {
+      if (typeof adminCachedStudents !== 'undefined' && Array.isArray(adminCachedStudents)) {
         adminCachedStudents = adminCachedStudents.filter(s => s.studentId !== studentId);
         window.adminCachedStudents = adminCachedStudents;
         try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch(e) {}
@@ -8737,7 +8735,8 @@
       const nameInput = document.getElementById('editClientName');
       const emailInput = document.getElementById('editClientEmail');
       const phoneInput = document.getElementById('editClientPhone');
-      const stateInput = document.getElementById('editClientPermitState');
+      const stateInput = document.getElement
+ById('editClientPermitState');
       const expInput = document.getElementById('editClientExpDate');
 
       if (idInput) idInput.value = c.clientId;
@@ -10487,6 +10486,25 @@
 </div>
 <!-- ================= SUB-PANEL 2: FUTURE INITIATIVE CLIENT ROSTER ================= -->
 <div id="admin-subpanel-clients" style="display: none;">
+<!-- New Client Registration Notification Alert Beacon -->
+          <div id="admin-new-client-alert-box" style="display: none; background: linear-gradient(135deg, rgba(255, 183, 3, 0.15) 0%, rgba(13, 19, 27, 0.98) 100%); border: 2px solid var(--accent-amber); box-shadow: 0 0 25px var(--accent-amber-glow); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="live-dot" style="width: 12px; height: 12px; background: var(--accent-amber); box-shadow: 0 0 12px var(--accent-amber); flex-shrink: 0;"></span>
+              <div>
+                <strong id="admin-client-alert-title" style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; text-transform: uppercase; letter-spacing: 1px; display: block;">🛡️ NEW CLIENT PORTAL REGISTRATION</strong>
+                <p id="admin-client-alert-desc" style="font-size: 0.86rem; color: #cbd5e1; margin-top: 2px;">A new permit holder has registered in the Future Initiative Client Portal.</p>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-spark" onclick="switchAdminTab('clients'); acknowledgeNewClientAlert();" style="padding: 8px 16px; font-size: 0.82rem; border-color: var(--accent-amber); color: var(--accent-amber);" type="button">
+                👁️ View Client Roster
+              </button>
+              <button class="btn-spark" onclick="acknowledgeNewClientAlert()" style="padding: 8px 16px; font-size: 0.82rem; border-color: var(--border-subtle); color: var(--text-muted);" type="button">
+                Dismiss
+              </button>
+            </div>
+          </div>
+
 <div class="admin-metrics-grid">
 <div class="metric-card" style="border-color: var(--accent-amber);"><div class="metric-val" id="metric-client-total" style="color: var(--accent-amber);">0</div><div class="metric-name">Total Clients</div></div>
 <div class="metric-card" style="border-color: #10b981;"><div class="metric-val" id="metric-client-active" style="color: #10b981;">0</div><div class="metric-name">Active Permits (&gt;90d)</div></div>
@@ -12788,7 +12806,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       document.getElementById('editClientFullName').value = c.fullName || '';
       document.getElementById('editClientEmail').value = c.email || '';
       document.getElementById('editClientPhone').value = c.phone || '';
-      document.getElementById('editClientPermitState').value = c.permitState || 'Maryland Wear & Carry';
+      document.getElemen
+tById('editClientPermitState').value = c.permitState || 'Maryland Wear & Carry';
       document.getElementById('editClientExpDate').value = c.expirationDate || '';
       document.getElementById('editClientStatus').value = c.status || 'ACTIVE_REGISTERED';
 
@@ -12800,8 +12819,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         modal.style.display = 'flex';
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
-      
-}
+      }
     }
     window.openAdminEditClientModal = openAdminEditClientModal;
 
@@ -18473,7 +18491,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         // Status Symbol / Checkmark (like reference video)
         const sub = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        sub.setAttribute('class', 'state-status-indicator');
+        sub.setAttribute('class'
+, 'state-status-indicator');
         sub.setAttribute('x', coord.x + coord.w / 2);
         sub.setAttribute('y', coord.y + coord.h / 2 + 12);
         
@@ -18489,8 +18508,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         }
 
         group.appendChild(rect);
-        group.appe
-ndChild(text);
+        group.appendChild(text);
         group.appendChild(sub);
         svg.appendChild(group);
       });
@@ -20990,23 +21008,3 @@ function closeStateModal() {
 
 </body>
 </html>
-    /* Dynamic Button Animations & Feedback States */
-    @keyframes fifsSpin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    .spin-icon {
-      display: inline-block;
-      animation: fifsSpin 0.75s linear infinite;
-    }
-    .btn-animated-loading {
-      opacity: 0.85 !important;
-      pointer-events: none !important;
-    }
-    .btn-animated-success {
-      border-color: #10b981 !important;
-      color: #10b981 !important;
-      box-shadow: 0 0 18px rgba(16, 185, 129, 0.45) !important;
-    }
-
-    
