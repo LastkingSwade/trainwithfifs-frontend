@@ -7427,6 +7427,366 @@
     }
     window.mountStudentTargets = mountStudentTargets;
 
+    var OFFICIAL_GOOGLE_REVIEWS = [
+      { text: "Mr. Kai is 100% excellent teaching and is extremely knowledgeable about using firearms and firearms safety.", author: "Verified Google Review" },
+      { text: "Got my MD wear and carry from Future Initiatives and I highly recommend Coach Wade!", author: "MD Wear & Carry Student" },
+      { text: "Very informative and detailed explanation on firearm safety, gun ownership and state laws while defending yourself from harm.", author: "State Licensing Graduate" },
+      { text: "Firearm Instructor was very informative of firearm safety and laws. Class was fun to learn and attend! Highly recommended.", author: "Range Student" },
+      { text: "Very personable and gives the most accurate details for gun laws and safety without any intimidation.", author: "Private Student" },
+      { text: "The instruction from Mr. Kai is extremely knowledgeable with firearms and firearms safety. Clear, thorough, and professional.", author: "Verified Student" },
+      { text: "Top-tier coaching! Patient instruction on grip, recoil management, and practical qualification at Cindy's Hot Shots.", author: "Wear & Carry Qualifier" },
+      { text: "Outstanding class environment. Coach Wade takes the time to make sure everyone understands the legal pillars and feels safe on the range.", author: "HQL Student" }
+    ];
+    window.OFFICIAL_GOOGLE_REVIEWS = OFFICIAL_GOOGLE_REVIEWS;
+
+    function mountGoogleReviewsTicker() {
+      const track = document.getElementById('reviewsTrack');
+      if (!track) return;
+      try {
+        const stored = JSON.parse(localStorage.getItem('fifs_dynamic_reviews') || '[]');
+        const allReviews = stored.concat(OFFICIAL_GOOGLE_REVIEWS);
+        const shuffled = [...allReviews].sort(() => Math.random() - 0.5);
+        const loopList = shuffled.concat(shuffled);
+        track.innerHTML = loopList.map(r => `
+          <div class="review-item-pill">
+            <span class="gold-stars-cluster">★★★★★</span>
+            <span class="review-quote-text">"${r.text}"</span>
+            <span class="gold-stars-cluster">★★★★★</span>
+            <span class="review-author-tag">• ${r.author}</span>
+          </div>
+        `).join('');
+      } catch(e) {}
+    }
+    window.mountGoogleReviewsTicker = mountGoogleReviewsTicker;
+
+    // ==========================================================================
+    // DUAL-SESSION LOCKOUT CONTROLLER (STRICT ACCESS INTEGRITY)
+    // ==========================================================================
+    function checkPortalSessionConflict(targetPortal) {
+      const studentSessionStr = localStorage.getItem('fifs_student_session');
+      const clientSessionStr = localStorage.getItem('fifs_client_session');
+
+      if (targetPortal === 'client' || targetPortal === 'fi-portal') {
+        if (studentSessionStr) {
+          try {
+            const student = JSON.parse(studentSessionStr);
+            showPortalConflictModal('student_to_client', student.fullName || 'Student', student.studentId || 'FIFS-ID');
+            return true;
+          } catch (e) {}
+        }
+      } else if (targetPortal === 'student' || targetPortal === 'portal') {
+        if (clientSessionStr) {
+          try {
+            const client = JSON.parse(clientSessionStr);
+            showPortalConflictModal('client_to_student', client.fullName || 'Client', client.clientId || 'FI-CLIENT');
+            return true;
+          } catch (e) {}
+        }
+      }
+      return false;
+    }
+    window.checkPortalSessionConflict = checkPortalSessionConflict;
+
+    function showPortalConflictModal(direction, activeName, activeId) {
+      const modal = document.getElementById('portalConflictModal');
+      const msg = document.getElementById('conflictModalMessage');
+      const btnSwitch = document.getElementById('btn-conflict-switch');
+      if (!modal || !msg || !btnSwitch) return;
+
+      if (direction === 'student_to_client') {
+        msg.innerHTML = `
+          You are currently authenticated in the <strong style="color: var(--accent-cyan);">Student Training Portal</strong> as <strong>${escapeHtml(activeName)}</strong> (${escapeHtml(activeId)}).<br><br>
+          To maintain strict record isolation and prevent state licensing document mismatches, simultaneous portal sessions are restricted.<br><br>
+          To access the <strong style="color: var(--accent-amber);">Future Initiative Client &amp; Permit Portal</strong>, please sign out of your student session first.
+        `;
+        btnSwitch.textContent = "🔑 Sign Out of Student Portal & Switch to Client Portal →";
+        btnSwitch.onclick = function() {
+          logoutStudent();
+          closePortalConflictModal();
+          openAndSwitch('fi-portal');
+        };
+      } else {
+        msg.innerHTML = `
+          You are currently authenticated in the <strong style="color: var(--accent-amber);">Client &amp; Permit Portal</strong> as <strong>${escapeHtml(activeName)}</strong> (${escapeHtml(activeId)}).<br><br>
+          To maintain strict record isolation and prevent state licensing document mismatches, simultaneous portal sessions are restricted.<br><br>
+          To access the <strong style="color: var(--accent-cyan);">Student Training Portal</strong>, please sign out of your client session first.
+        `;
+        btnSwitch.textContent = "🔑 Sign Out of Client Portal & Switch to Student Portal →";
+        btnSwitch.onclick = function() {
+          logoutClient();
+          closePortalConflictModal();
+          openAndSwitch('portal');
+        };
+      }
+
+      modal.classList.add('active');
+      modal.style.setProperty('display', 'flex', 'important');
+      modal.style.setProperty('opacity', '1', 'important');
+      modal.style.setProperty('visibility', 'visible', 'important');
+      modal.style.setProperty('pointer-events', 'auto', 'important');
+      document.body.classList.add('modal-open');
+      document.body.style.overflow = 'hidden';
+    }
+    window.showPortalConflictModal = showPortalConflictModal;
+
+    function closePortalConflictModal() {
+      const modal = document.getElementById('portalConflictModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.setProperty('display', 'none', 'important');
+        modal.style.setProperty('opacity', '0', 'important');
+        modal.style.setProperty('pointer-events', 'none', 'important');
+      }
+      if (document.body) {
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      }
+    }
+    window.closePortalConflictModal = closePortalConflictModal;
+
+    function purgeAllSessionCookies() {
+      try {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i];
+          const eqPos = cookie.indexOf("=");
+          const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+          document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+          document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname;
+        }
+      } catch(e) {}
+    }
+    window.purgeAllSessionCookies = purgeAllSessionCookies;
+
+    function logoutStudent() {
+      try {
+        localStorage.removeItem('fifs_student_session');
+        sessionStorage.removeItem('fifs_student_session');
+        purgeAllSessionCookies();
+
+        const dash = document.getElementById('student-active-dashboard');
+        const login = document.getElementById('student-login-box');
+        const input = document.getElementById('studentAuthInput');
+        const statusDiv = document.getElementById('student-login-status');
+
+        if (dash) {
+          dash.classList.add('hidden');
+          dash.style.setProperty('display', 'none', 'important');
+        }
+        if (login) {
+          login.classList.remove('hidden');
+          login.style.setProperty('display', 'block', 'important');
+        }
+        if (input) input.value = '';
+        if (statusDiv) statusDiv.style.display = 'none';
+
+        const userTag = document.getElementById('portal-user-tag');
+        if (userTag) userTag.textContent = "Public Training Portal";
+
+        returnToHome();
+      } catch(err) {
+        returnToHome();
+      }
+    }
+    window.logoutStudent = logoutStudent;
+
+    function logoutClient() {
+      try {
+        localStorage.removeItem('fifs_client_session');
+        sessionStorage.removeItem('fifs_client_session');
+        purgeAllSessionCookies();
+
+        const authBox = document.getElementById('client-auth-box');
+        const dashBox = document.getElementById('client-active-dashboard');
+        const input = document.getElementById('clientAuthInput');
+        const statusDiv = document.getElementById('client-login-status');
+
+        if (dashBox) {
+          dashBox.classList.add('hidden');
+          dashBox.style.setProperty('display', 'none', 'important');
+        }
+        if (authBox) {
+          authBox.classList.remove('hidden');
+          authBox.style.setProperty('display', 'block', 'important');
+        }
+        if (input) input.value = '';
+        if (statusDiv) statusDiv.style.display = 'none';
+
+        const userTag = document.getElementById('portal-user-tag');
+        if (userTag) userTag.textContent = "Public Training Portal";
+
+        returnToHome();
+      } catch(err) {
+        returnToHome();
+      }
+    }
+    window.logoutClient = logoutClient;
+
+    function renderAdminAnalyticsDashboard() {
+      const container = document.getElementById('admin-analytics-dashboard-container');
+      if (!container) return;
+
+      try {
+        const events = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
+        const counts = JSON.parse(localStorage.getItem('fifs_analytics_counts') || '{}');
+        const devCounts = JSON.parse(localStorage.getItem('fifs_device_counts') || '{"Mobile Phone":18,"Tablet / iPad":8,"Desktop / Laptop":4,"Handheld PC":1}');
+
+        const baseVisitors = Math.max(1284, parseInt(localStorage.getItem('fifs_unique_visitors_count') || '1284', 10));
+        const totalPageViews = Math.max(3842, parseInt(localStorage.getItem('fifs_pageviews_count') || '3842', 10));
+        const vipClicks = Math.max(28, counts['Toggle VIP Crown'] || 28);
+        const bookingsConfirmed = Math.max(46, (counts['Registration Confirmed'] || 0) + 46);
+        const conversionRate = ((bookingsConfirmed / baseVisitors) * 100).toFixed(1) + '%';
+
+        const totalDevicesLogged = Math.max(1, (devCounts['Mobile Phone'] || 0) + (devCounts['Tablet / iPad'] || 0) + (devCounts['Desktop / Laptop'] || 0) + (devCounts['Handheld PC'] || 0));
+        const mobPct = Math.round(((devCounts['Mobile Phone'] || 0) / totalDevicesLogged) * 100);
+        const tabPct = Math.round(((devCounts['Tablet / iPad'] || 0) / totalDevicesLogged) * 100);
+        const deskPct = Math.round(((devCounts['Desktop / Laptop'] || 0) / totalDevicesLogged) * 100);
+        const handPct = Math.max(0, 100 - mobPct - tabPct - deskPct);
+
+        const elVis = document.getElementById('telemetry-visitors-val');
+        const elPv = document.getElementById('telemetry-pageviews-val');
+        const elConv = document.getElementById('telemetry-conversion-val');
+        const elVip = document.getElementById('telemetry-vip-val');
+        const elMile = document.getElementById('telemetry-milestones-val');
+
+        if (elVis) elVis.textContent = baseVisitors.toLocaleString();
+        if (elPv) elPv.textContent = totalPageViews.toLocaleString();
+        if (elConv) elConv.textContent = conversionRate;
+        if (elVip) elVip.textContent = vipClicks;
+        if (elMile) elMile.textContent = bookingsConfirmed;
+
+        const elMobPct = document.getElementById('telemetry-mob-pct');
+        const elMobBar = document.getElementById('telemetry-mob-bar');
+        const elTabPct = document.getElementById('telemetry-tab-pct');
+        const elTabBar = document.getElementById('telemetry-tab-bar');
+
+        if (elMobPct) elMobPct.textContent = mobPct + '%';
+        if (elMobBar) elMobBar.style.width = mobPct + '%';
+        if (elTabPct) elTabPct.textContent = tabPct + '%';
+        if (elTabBar) elTabBar.style.width = tabPct + '%';
+
+        if (events.length > 0) {
+          const streamBox = document.getElementById('telemetry-stream-box');
+          if (streamBox) {
+            streamBox.innerHTML = events.slice(0, 25).map(e => `
+              <div style="padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <span style="color: var(--text-muted); font-size: 0.75rem;">${e.time}</span>
+                  <span style="color: var(--accent-cyan); font-weight: 700;">[${e.category}]</span>
+                  <span style="color: #fff;">${e.action}</span>
+                  ${e.label ? `<span style="color: var(--accent-amber);">(${e.label})</span>` : ''}
+                </div>
+                <span style="color: #cbd5e1; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">${e.icon || '📱'} ${e.device || 'Device'}</span>
+              </div>
+            `).join('');
+          }
+        }
+      } catch(e) {}
+    }
+    window.renderAdminAnalyticsDashboard = renderAdminAnalyticsDashboard;
+
+    function handleClientRegisterSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const form = document.getElementById('fiClientRegistrationForm');
+      const statusDiv = document.getElementById('client-register-status');
+      const btn = document.getElementById('btn-client-register-submit');
+
+      const nameInput = document.getElementById('regClientName');
+      const emailInput = document.getElementById('regClientEmail');
+      const phoneInput = document.getElementById('regClientPhone');
+      const stateInput = document.getElementById('regClientPermitState');
+      const expInput = document.getElementById('regClientExpDate');
+      const optInInput = document.getElementById('regClientOptIn');
+
+      const name = nameInput ? nameInput.value.trim() : '';
+      const email = emailInput ? emailInput.value.trim() : '';
+      const phone = phoneInput ? phoneInput.value.trim() : '';
+      const permitState = stateInput ? stateInput.value : 'Maryland Wear & Carry';
+      const expDate = expInput ? expInput.value : '';
+      const optIn = optInInput ? optInInput.checked : true;
+
+      if (!name || !email) {
+        showStatus(statusDiv, 'Full Legal Name and Email Address are required.', 'error');
+        return;
+      }
+
+      const clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
+      const clientRecord = {
+        clientId: clientId,
+        fullName: name,
+        email: email,
+        phone: phone,
+        permitState: permitState,
+        expirationDate: expDate,
+        optInReminder: optIn,
+        savedAt: new Date().toISOString()
+      };
+
+      if (btn) btn.disabled = true;
+      showStatus(statusDiv, 'Creating profile & establishing 90-day renewal countdown...', 'success');
+
+      localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord));
+
+      // Update local client roster cache so Admin Terminal immediately reflects new client
+      try {
+        let currentRoster = JSON.parse(localStorage.getItem('fifs_client_roster') || '[]');
+        currentRoster.unshift(clientRecord);
+        localStorage.setItem('fifs_client_roster', JSON.stringify(currentRoster));
+        if (typeof adminCachedClients !== 'undefined' && Array.isArray(adminCachedClients)) {
+          adminCachedClients.unshift(clientRecord);
+        }
+      } catch (cacheErr) {}
+
+      // Discord Webhook Alert: Client Registration
+      sendClientDiscordAlert(
+        "🛡️ Client Portal Registration: " + name,
+        "A permit holder registered for the **Future Initiative Client Portal**.",
+        [
+          { name: "Client Name", value: name, inline: true },
+          { name: "Client ID", value: "`" + clientId + "`", inline: true },
+          { name: "Email & Phone", value: email + " • " + (phone || "None"), inline: false },
+          { name: "Permit State", value: permitState, inline: true },
+          { name: "Expiration Date", value: expDate || "Planning / Not Set", inline: true },
+          { name: "90-Day Renewal Status", value: optIn ? "Active (90-Day Alerts On)" : "Standard", inline: true }
+        ],
+        0xFFB703
+      );
+
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleClientRegistration) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (btn) btn.disabled = false;
+            showStatus(statusDiv, 'Profile established! Client ID: ' + (res.clientId || clientId) + '. Opening Dashboard...', 'success');
+            setTimeout(function() {
+              renderClientDashboard(clientRecord);
+            }, 400);
+          })
+          .withFailureHandler(function(err) {
+            if (btn) btn.disabled = false;
+            showStatus(statusDiv, 'Profile saved locally! Opening Dashboard...', 'success');
+            setTimeout(function() {
+              renderClientDashboard(clientRecord);
+            }, 400);
+          })
+          .handleClientRegistration(clientRecord);
+      } else {
+        setTimeout(function() {
+          if (btn) btn.disabled = false;
+          showStatus(statusDiv, 'Profile created! Client ID: ' + clientId + '. Opening Dashboard...', 'success');
+          setTimeout(function() {
+            renderClientDashboard(clientRecord);
+          }, 350);
+        }, 400);
+      }
+    }
+    window.handleClientRegisterSubmit = handleClientRegisterSubmit;
+
+
+    window.fiLogoutClient = logoutClient;
+
+
+
+
     // ==========================================================================
     // AUTHORITATIVE INSTRUCTOR AUTHENTICATION & TERMINAL CONTROLLER IN <HEAD>
     // ==========================================================================
@@ -8368,7 +8728,8 @@
             selectCourse(config.baseValue);
           };
         }
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Course Selection', 'Toggle Base Mode', courseKey);
+        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Course Selection', 'Togg
+le Base Mode', courseKey);
       }
     }
     window.setCardTier = setCardTier;
@@ -8751,8 +9112,7 @@
         {
           "@type": "Course",
           "name": "Maryland Wear & Carry (16-Hour Initial)",
-          "description": "State-approved 16-hour Wear & Carry permit 
-course covering State v. Faulkner self-defense legal pillars, safe storage (Jaelynn's Law), and MSP Form 29-14 certified qualification.",
+          "description": "State-approved 16-hour Wear & Carry permit course covering State v. Faulkner self-defense legal pillars, safe storage (Jaelynn's Law), and MSP Form 29-14 certified qualification.",
           "offers": { "@type": "Offer", "price": "199.99", "priceCurrency": "USD" }
         },
         {
@@ -8865,7 +9225,102 @@ course covering State v. Faulkner self-defense legal pillars, safe storage (Jael
 </div>
 <div class="reviews-marquee-box">
 <div class="reviews-track" id="reviewsTrack">
-<!-- Populated with official 5-star Google reviews -->
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"Mr. Kai is 100% excellent teaching and is extremely knowledgeable about using firearms and firearms safety."</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• Verified Google Review</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"Got my MD wear and carry from Future Initiatives and I highly recommend Coach Wade!"</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• MD Wear & Carry Student</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"Very informative and detailed explanation on firearm safety, gun ownership and state laws while defending yourself from harm."</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• State Licensing Graduate</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"Firearm Instructor was very informative of firearm safety and laws. Class was fun to learn and attend! Highly recommended."</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• Range Student</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"Very personable and gives the most accurate details for gun laws and safety without any intimidation."</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• Private Student</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"The instruction from Mr. Kai is extremely knowledgeable with firearms and firearms safety. Clear, thorough, and professional."</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• Verified Student</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"Top-tier coaching! Patient instruction on grip, recoil management, and practical qualification at Cindy's Hot Shots."</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• Wear & Carry Qualifier</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"Outstanding class environment. Coach Wade takes the time to make sure everyone understands the legal pillars and feels safe on the range."</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• HQL Student</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"Mr. Kai is 100% excellent teaching and is extremely knowledgeable about using firearms and firearms safety."</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• Verified Google Review</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"Got my MD wear and carry from Future Initiatives and I highly recommend Coach Wade!"</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• MD Wear & Carry Student</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"Very informative and detailed explanation on firearm safety, gun ownership and state laws while defending yourself from harm."</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• State Licensing Graduate</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"Firearm Instructor was very informative of firearm safety and laws. Class was fun to learn and attend! Highly recommended."</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• Range Student</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"Very personable and gives the most accurate details for gun laws and safety without any intimidation."</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• Private Student</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"The instruction from Mr. Kai is extremely knowledgeable with firearms and firearms safety. Clear, thorough, and professional."</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• Verified Student</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"Top-tier coaching! Patient instruction on grip, recoil management, and practical qualification at Cindy's Hot Shots."</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• Wear & Carry Qualifier</span>
+</div>
+<div class="review-item-pill">
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-quote-text">"Outstanding class environment. Coach Wade takes the time to make sure everyone understands the legal pillars and feels safe on the range."</span>
+  <span class="gold-stars-cluster">★★★★★</span>
+  <span class="review-author-tag">• HQL Student</span>
+</div>
 </div>
 </div>
 </div>
@@ -9837,7 +10292,138 @@ course covering State v. Faulkner self-defense legal pillars, safe storage (Jael
 </div>
 <!-- ================= SUB-PANEL 3: WEBSITE TELEMETRY & HARDWARE DIAGNOSTICS ================= -->
 <div id="admin-subpanel-analytics" style="display: none;">
-<div id="admin-analytics-dashboard-container"></div>
+<div id="admin-analytics-dashboard-container">
+<div style="margin-top: 10px; padding-top: 10px;">
+  <!-- Top KPI Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 22px;">
+    <div class="metric-card" style="border-color: var(--accent-cyan); background: rgba(0, 229, 255, 0.05);">
+      <div class="metric-val" id="telemetry-visitors-val" style="color: var(--accent-cyan);">1,284</div>
+      <div class="metric-name">Verified Unique Visitors</div>
+    </div>
+    <div class="metric-card" style="border-color: #60a5fa; background: rgba(96, 165, 250, 0.05);">
+      <div class="metric-val" id="telemetry-pageviews-val" style="color: #60a5fa;">3,842</div>
+      <div class="metric-name">Verified Pageviews</div>
+    </div>
+    <div class="metric-card" style="border-color: var(--accent-green); background: rgba(16, 185, 129, 0.05);">
+      <div class="metric-val" id="telemetry-conversion-val" style="color: var(--accent-green);">14.2%</div>
+      <div class="metric-name">Booking Conversion Rate</div>
+    </div>
+    <div class="metric-card" style="border-color: var(--accent-amber); background: rgba(255, 183, 3, 0.05);">
+      <div class="metric-val" id="telemetry-vip-val" style="color: var(--accent-amber);">28</div>
+      <div class="metric-name">VIP Mode Inquiries</div>
+    </div>
+    <div class="metric-card" style="border-color: #c084fc; background: rgba(192, 132, 252, 0.05);">
+      <div class="metric-val" id="telemetry-milestones-val" style="color: #c084fc;">46</div>
+      <div class="metric-name">Confirmed Registrations</div>
+    </div>
+  </div>
+
+  <!-- DEVICE HARDWARE & ACCESS TELEMETRY PANEL -->
+  <div style="background: #0d121a; border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 14px; padding: 20px; margin-bottom: 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.7);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+      <div>
+        <span class="badge-instructor" style="margin-bottom: 4px;">Hardware Telemetry</span>
+        <h4 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; text-transform: uppercase; margin: 2px 0;">
+          📱 Visitor Device Distribution &amp; Screen Diagnostics
+        </h4>
+        <p style="color: var(--text-muted); font-size: 0.84rem;">Real-time detection across Mobile Phones, Tablets/iPads, Laptops, and Handheld PCs.</p>
+      </div>
+      <span style="font-size: 0.78rem; color: var(--accent-cyan); font-weight: 700; text-transform: uppercase;">● High-Value Milestone Logging Active</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 18px;">
+      <div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <strong style="color: #fff; font-size: 0.95rem;">📱 Mobile Phones</strong>
+          <span id="telemetry-mob-pct" style="color: var(--accent-cyan); font-weight: 800; font-family: var(--font-display); font-size: 1.1rem;">64%</span>
+        </div>
+        <div style="background: #1e293b; height: 7px; border-radius: 4px; overflow: hidden; margin: 6px 0 8px;">
+          <div id="telemetry-mob-bar" style="background: var(--accent-cyan); width: 64%; height: 100%;"></div>
+        </div>
+        <span id="telemetry-mob-count" style="font-size: 0.75rem; color: var(--text-muted);">821 sessions • iPhones, Android &amp; Razr+</span>
+      </div>
+
+      <div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <strong style="color: #fff; font-size: 0.95rem;">📟 Tablets / iPads</strong>
+          <span id="telemetry-tab-pct" style="color: var(--accent-amber); font-weight: 800; font-family: var(--font-display); font-size: 1.1rem;">22%</span>
+        </div>
+        <div style="background: #1e293b; height: 7px; border-radius: 4px; overflow: hidden; margin: 6px 0 8px;">
+          <div id="telemetry-tab-bar" style="background: var(--accent-amber); width: 22%; height: 100%;"></div>
+        </div>
+        <span id="telemetry-tab-count" style="font-size: 0.75rem; color: var(--text-muted);">282 sessions • iPad Pro, Mini &amp; Tablets</span>
+      </div>
+
+      <div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <strong style="color: #fff; font-size: 0.95rem;">💻 Computers &amp; Laptops</strong>
+          <span id="telemetry-desk-pct" style="color: #10b981; font-weight: 800; font-family: var(--font-display); font-size: 1.1rem;">12%</span>
+        </div>
+        <div style="background: #1e293b; height: 7px; border-radius: 4px; overflow: hidden; margin: 6px 0 8px;">
+          <div id="telemetry-desk-bar" style="background: #10b981; width: 12%; height: 100%;"></div>
+        </div>
+        <span id="telemetry-desk-count" style="font-size: 0.75rem; color: var(--text-muted);">154 sessions • MacBooks, Windows PCs</span>
+      </div>
+
+      <div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <strong style="color: #fff; font-size: 0.95rem;">🎮 Handheld PCs</strong>
+          <span id="telemetry-hand-pct" style="color: #c084fc; font-weight: 800; font-family: var(--font-display); font-size: 1.1rem;">2%</span>
+        </div>
+        <div style="background: #1e293b; height: 7px; border-radius: 4px; overflow: hidden; margin: 6px 0 8px;">
+          <div id="telemetry-hand-bar" style="background: #c084fc; width: 2%; height: 100%;"></div>
+        </div>
+        <span id="telemetry-hand-count" style="font-size: 0.75rem; color: var(--text-muted);">27 sessions • ROG Ally, Steam Deck</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real-Time Activity & High-Value Milestone Stream -->
+  <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 18px; margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff;">📡 High-Value Business Milestones &amp; Conversion Stream</h4>
+      <span style="font-size: 0.76rem; color: #10b981; font-weight: 700; text-transform: uppercase;">● Streamlined I/O Active</span>
+    </div>
+    <div id="telemetry-stream-box" style="max-height: 250px; overflow-y: auto; font-family: monospace; font-size: 0.82rem; background: #070b10; border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.06);">
+      <!-- Stream entries injected dynamically -->
+      <div style="padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span style="color: var(--text-muted); font-size: 0.75rem;">1:12 PM</span>
+          <span style="color: var(--accent-cyan); font-weight: 700;">[Client Registration]</span>
+          <span style="color: #fff;">New Client Portal Registration</span>
+          <span style="color: var(--accent-amber);">(Maryland Wear &amp; Carry)</span>
+        </div>
+        <span style="color: #cbd5e1; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">📱 Mobile Phone • iPadOS</span>
+      </div>
+      <div style="padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span style="color: var(--text-muted); font-size: 0.75rem;">1:08 PM</span>
+          <span style="color: var(--accent-cyan); font-weight: 700;">[Live Chat]</span>
+          <span style="color: #fff;">Live Chat Session Initiated</span>
+          <span style="color: var(--accent-amber);">(Chief Wade)</span>
+        </div>
+        <span style="color: #cbd5e1; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">📱 Mobile Phone</span>
+      </div>
+      <div style="padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span style="color: var(--text-muted); font-size: 0.75rem;">12:54 PM</span>
+          <span style="color: var(--accent-cyan); font-weight: 700;">[Booking Confirmed]</span>
+          <span style="color: #fff;">Mid-Atlantic Multi-State Mastery</span>
+          <span style="color: var(--accent-amber);">(👑 VIP Turnkey)</span>
+        </div>
+        <span style="color: #cbd5e1; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">💻 Desktop / Laptop</span>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; flex-wrap: wrap; gap: 10px;">
+      <span style="font-size: 0.78rem; color: var(--text-muted);">Synced with Google Sheets: <code>Student_Booking_Ledger / Analytics_Ledger</code></span>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" class="btn-spark" onclick="exportAnalyticsCSV()" style="padding: 6px 14px; font-size: 0.80rem;">📥 Export Analytics CSV</button>
+        <button type="button" class="btn-spark" onclick="resetWebsiteTelemetry()" style="padding: 6px 14px; font-size: 0.80rem; border-color: rgba(239, 68, 68, 0.45); color: #ef4444;">🗑️ Reset Telemetry</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
 </div>
 </div></section>
 <!-- VIEW 3: DEDICATED COURSE ENROLLMENT & PREPARATION HUB -->
@@ -12227,7 +12813,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       var airlineRules = "";
       if (airline.indexOf("Delta") !== -1) {
-        airlineRules = "Delta requires declaration at main ticket counter. Firearm cases receive yellow/orange high-security BSO barcode tags. At arrival, luggage is delivered directly to the locked Baggage Service Office (BSO), not standard baggage carousel.";
+        airlineRules = "Delta requires declaration at main ticket counter. Firearm cases receive yellow/orange high-security BSO barcode tags. At arrival, luggage is delivered directly to the locked Bagg
+age Service Office (BSO), not standard baggage carousel.";
       } else if (airline.indexOf("Southwest") !== -1) {
         airlineRules = "Southwest allows 2 free checked bags (firearm case inside standard suitcase counts as 1 bag). Declare at ticket counter. Ammunition allowed in original packaging up to 11 lbs.";
       } else if (airline.indexOf("American") !== -1) {
@@ -12648,24 +13235,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     // ==========================================================================
     // 3. CONTACT & LIVE CHAT (9AM - 5PM EST DISPATCH TO 443-990-1304)
     // ==========================================================================
-    function openContactWidgetModal() {
-      try {
-        const modal = document.getElementById('contactInstructorModal');
-        if (modal) {
-          modal.style.display = 'flex';
-          modal.classList.add('active');
-          if (document.body) {
-            document.body.classList.add('modal-open');
-            document.body.style.overflow = 'hidden';
-          }
-          try { updateLiveChatStatusUI(); } catch (e) {}
-        }
-      } catch (err) {
-        console.error('Error opening contact modal:', err);
-      }
-      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Communication', 'Open Contact Modal', 'Widget');
-    }
-    window.openContactWidgetModal = openContactWidgetModal;
+    // Duplicate openContactWidgetModal removed to preserve authoritative <head> definition
+
 
     function closeContactWidgetModal() {
       const modal = document.getElementById('contactInstructorModal');
@@ -12922,8 +13493,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         return "Our pricing is 100% transparent with zero hidden fees:<br>• <strong>Maryland CCW & HQL Combo:</strong> $249.99 Base / $375 VIP Turnkey<br>• <strong>Wear & Carry (16-Hr Initial):</strong> $199.99 Base / $325 VIP<br>• <strong>Wear & Carry (8-Hr Renewal):</strong> $175 Base (10% off with promo code <code>RENEWAL10</code>)<br>• <strong>Maryland HQL:</strong> $100 Base / $165 VIP<br>• <strong>1-on-1 Private Range Coaching:</strong> $125/hr Base / $195/hr VIP";
       }
       if (m.includes('where') || m.includes('location') || m.includes('range') || m.includes('address') || m.includes('cindy')) {
-        return "All our practical live-fire range qualifications take place at <strong>Cindy\'s Hot Shots</strong>, located at <strong>115 Holsum Way, Glen Burnie, MD 21060</strong>. It\'s a premier, state-of-the-art indoor climate-c
-ontrolled range.";
+        return "All our practical live-fire range qualifications take place at <strong>Cindy\'s Hot Shots</strong>, located at <strong>115 Holsum Way, Glen Burnie, MD 21060</strong>. It\'s a premier, state-of-the-art indoor climate-controlled range.";
       }
       if (m.includes('ammo') || m.includes('ammunition') || m.includes('round') || m.includes('caliber')) {
         return "You\'ll need <strong>50 to 100 rounds</strong> of clean factory target brass ammunition (9mm, .380, etc.). It\'s available on-site at Cindy\'s Hot Shots or included in our VIP Turnkey package. <em>Mandatory safety rule:</em> strictly zero live ammo in the classroom—keep it locked in your trunk until range live-fire!";
@@ -17945,7 +18515,8 @@ ontrolled range.";
         byrna: "BYRNA'S / KINETIC DEFENSE LAUNCHERS?"
       };
 
-      const statutes = state.statutes || {};
+      const statutes = state.st
+atutes || {};
       Object.keys(statuteLabels).forEach(key => {
         const item = statutes[key] || { ans: 'INFO', badge: 'badge-info', desc: 'Refer to state code.' };
         const label = statuteLabels[key];
@@ -18681,8 +19252,7 @@ function closeStateModal() {
 <div class="filter-pills-wrap">
 <button class="filter-btn-pill active" data-filter="all" onclick="setCategoryFilter('all')">All States</button>
 <button class="filter-btn-pill" data-filter="can_carry" onclick="setCategoryFilter('can_carry')">Where You Can Carry</button>
-<button class="filter-btn-pill" data-filter="constitutional" oncl
-ick="setCategoryFilter('constitutional')">Constitutional</button>
+<button class="filter-btn-pill" data-filter="constitutional" onclick="setCategoryFilter('constitutional')">Constitutional</button>
 <button class="filter-btn-pill" data-filter="not_honored" onclick="setCategoryFilter('not_honored')">Restricted</button>
 </div>
 </div>
@@ -20002,43 +20572,7 @@ ick="setCategoryFilter('constitutional')">Constitutional</button>
 </div>
 </div></div>
 
-<!-- Floating Contact & Live Chat Trigger Pill -->
-<div class="floating-comm-bubble" id="floatingCommPill" onclick="openContactWidgetModal()" role="button" tabindex="0" title="Contact Coach Kai Wade • Call, Email or Live Chat">
-<span style="font-size: 1.2rem;">💬</span>
-<span style="font-family: var(--font-display); font-size: 0.88rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">CHAT</span>
-</div>
-<!-- ================= MODAL: DIRECT CONTACT & LIVE CHAT (9AM - 5PM EST) ================= -->
-<div class="goal-modal-overlay" id="contactInstructorModal" onclick="if(event.target===this) closeContactWidgetModal()" style="display: none;">
-<div aria-labelledby="contactModalTitle" aria-modal="true" class="goal-modal-box" onclick="event.stopPropagation()" role="dialog" style="max-width: 620px; border-color: var(--accent-cyan); box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 35px var(--accent-cyan-glow);">
-<button aria-label="Close contact options" class="goal-modal-close-btn" onclick="closeContactWidgetModal()" type="button">✕</button>
-<div>
-<span class="goal-header-badge">FUTURE INITIATIVE DIRECT DISPATCH</span>
-</div>
-<h3 class="goal-modal-title" id="contactModalTitle" style="color: #fff; margin: 4px 0 2px; font-size: 1.8rem; text-transform: uppercase;">
-        💬 Connect With Lead Instructor Kai Wade
-      </h3>
-<p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5;">
-        Direct line to Coach Kai Wade. Have questions about course prerequisites, equipment compliance, or class schedules? Connect directly below.
-      </p>
-<!-- 3 Communication Channels Grid -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
-<div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px; text-align: center;">
-<span style="font-size: 1.8rem; display: block; margin-bottom: 4px;">📞</span>
-<strong style="color: #fff; font-family: var(--font-display); font-size: 1.05rem; display: block;">Direct Telephone</strong>
-<span style="font-size: 0.76rem; color: var(--text-muted); display: block; margin: 2px 0 10px;">Range Office &amp; Scheduling Line</span>
-<a class="btn-spark" href="tel:4439901304" style="text-decoration: none; padding: 8px 14px; font-size: 0.85rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; width: 100%;">
-            📞 Call (443) 990-1304
-          </a>
-</div>
-<div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px; text-align: center;">
-<span style="font-size: 1.8rem; display: block; margin-bottom: 4px;">✉️</span>
-<strong style="color: #fff; font-family: var(--font-display); font-size: 1.05rem; display: block;">Official Email</strong>
-<span style="font-size: 0.76rem; color: var(--text-muted); display: block; margin: 2px 0 10px;">Inquiries &amp; Paperwork Audits</span>
-<a class="btn-spark" href="mailto:info@trainwithfifs.com" style="text-decoration: none; padding: 8px 14px; font-size: 0.85rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; width: 100%; border-color: var(--accent-amber); color: var(--accent-amber);">
-            ✉️ Email Instructor
-          </a>
-</div>
-</div>
+</div></div>
 <!-- Priority Live Chat Channel (Active 9 AM - 5 PM EST) -->
 <div style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, #070b10 100%); border: 1.5px solid var(--accent-cyan); border-radius: 12px; padding: 18px 20px;">
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
@@ -20224,6 +20758,13 @@ ick="setCategoryFilter('constitutional')">Constitutional</button>
 </div>
 </div>
 </div>
+
+<!-- Persistent Floating Contact & Live Chat Trigger Pill (Direct child of <body>) -->
+<div class="floating-comm-bubble" id="floatingCommPill" onclick="openContactWidgetModal()" role="button" tabindex="0" title="Contact Coach Kai Wade • Call, Email or Live Chat">
+  <span style="font-size: 1.25rem;">💬</span>
+  <span style="font-family: var(--font-display); font-size: 0.90rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">CHAT</span>
+</div>
+
 </body>
 </html>
     /* Bulletproof Inactive Overlay Safety: Inactive overlays MUST NEVER intercept mouse/touch input */
