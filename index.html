@@ -5865,49 +5865,46 @@
     // ==========================================================================
     // STREAMLINED TELEMETRY ENGINE IN <HEAD> SCRIPT 0
     // ==========================================================================
+    
+    // ==========================================================================
+    // STREAMLINED HIGH-VALUE BUSINESS MILESTONE LOGGER (ZERO MAIN-THREAD BLOCKING)
+    // ==========================================================================
     function logAnalyticsEvent(category, action, label) {
-      try {
-        const highValueActions = [
-          'Course Booking Confirmed',
-          'Client Profile Registered',
-          'Live Chat Initiated',
-          'Live Chat Started'
-        ];
-
-        const isHighValue = highValueActions.includes(action) ||
-                            category === 'Conversion' ||
-                            category === 'Engagement';
-
-        if (!isHighValue) return;
-
-        const dev = typeof detectUserDevice === 'function' ? detectUserDevice() : { deviceName: 'Web Device', category: 'Standard' };
-        const entry = {
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-          category: category,
-          action: action,
-          label: label || '',
-          device: dev.deviceName || 'Web Device',
-          deviceCategory: dev.category || 'Standard',
-          timestamp: new Date().toISOString()
-        };
-
-        const log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
-        log.unshift(entry);
-        if (log.length > 50) log.pop();
-        localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
-
-        const counts = JSON.parse(localStorage.getItem('fifs_analytics_counts') || '{}');
-        counts[action] = (counts[action] || 0) + 1;
-        localStorage.setItem('fifs_analytics_counts', JSON.stringify(counts));
-
-        if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
-          google.script.run.logAnalyticsEvent(entry);
-        }
-      } catch (e) {
-        console.warn('Telemetry milestone notice:', e);
+      // Strictly restricted exclusively to high-value business conversion milestones
+      const highValueActions = [
+        'Course Booking Confirmed',
+        'Client Profile Registered',
+        'Live Chat Initiated'
+      ];
+      if (!highValueActions.includes(action)) {
+        return; // Zero overhead and zero I/O for all micro-interactions
       }
+
+      // Execute asynchronously in micro-task queue to eliminate main-thread blocking
+      setTimeout(function() {
+        try {
+          const entry = {
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            category: category,
+            action: action,
+            label: label || '',
+            device: (window.innerWidth <= 768 ? 'Mobile Phone' : (window.innerWidth <= 1024 ? 'Tablet / iPad' : 'Desktop / Laptop'))
+          };
+
+          const log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
+          log.unshift(entry);
+          if (log.length > 50) log.pop();
+          localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
+
+          // Background sync to GAS ledger if live
+          if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
+            google.script.run.logAnalyticsEvent(entry);
+          }
+        } catch (e) {}
+      }, 20);
     }
     window.logAnalyticsEvent = logAnalyticsEvent;
+
 
 
     // ==========================================================================
@@ -7814,110 +7811,8 @@
     }
     window.renderAdminAnalyticsDashboard = renderAdminAnalyticsDashboard;
 
-    function handleClientRegisterSubmit(e) {
-      if (e && e.preventDefault) e.preventDefault();
-      const form = document.getElementById('fiClientRegistrationForm');
-      const statusDiv = document.getElementById('client-register-status');
-      const btn = document.getElementById('btn-client-register-submit');
+    // Replaced with authoritative handleClientRegisterSubmit
 
-      const nameInput = document.getElementById('regClientName');
-      const emailInput = document.getElementById('regClientEmail');
-      const phoneInput = document.getElementById('regClientPhone');
-      const stateInput = document.getElementById('regClientPermitState');
-      const expInput = document.getElementById('regClientExpDate');
-      const optInInput = document.getElementById('regClientOptIn');
-
-      const name = nameInput ? nameInput.value.trim() : '';
-      const email = emailInput ? emailInput.value.trim() : '';
-      const phone = phoneInput ? phoneInput.value.trim() : '';
-      const permitState = stateInput ? stateInput.value : 'Maryland Wear & Carry';
-      const expDate = expInput ? expInput.value : '';
-      const optIn = optInInput ? optInInput.checked : true;
-
-      if (!name || !email) {
-        showStatus(statusDiv, 'Full Legal Name and Email Address are required.', 'error');
-        return;
-      }
-
-      const clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
-      const clientRecord = {
-        clientId: clientId,
-        fullName: name,
-        email: email,
-        phone: phone,
-        permitState: permitState,
-        expirationDate: expDate,
-        optInReminder: optIn,
-        savedAt: new Date().toISOString()
-      };
-
-      if (btn) btn.disabled = true;
-      showStatus(statusDiv, 'Creating profile & establishing 90-day renewal countdown...', 'success');
-
-      localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord));
-      try {
-        localStorage.setItem('fifs_new_client_alert', JSON.stringify({
-          name: name,
-          email: email,
-          permitState: permitState,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          id: clientId
-        }));
-      } catch(e) {}
-
-      // Update local client roster cache so Admin Terminal immediately reflects new client
-      try {
-        let currentRoster = JSON.parse(localStorage.getItem('fifs_client_roster') || '[]');
-        currentRoster.unshift(clientRecord);
-        localStorage.setItem('fifs_client_roster', JSON.stringify(currentRoster));
-        if (typeof adminCachedClients !== 'undefined' && Array.isArray(adminCachedClients)) {
-          adminCachedClients.unshift(clientRecord);
-        }
-      } catch (cacheErr) {}
-
-      // Discord Webhook Alert: Client Registration
-      sendClientDiscordAlert(
-        "🛡️ Client Portal Registration: " + name,
-        "A permit holder registered for the **Future Initiative Client Portal**.",
-        [
-          { name: "Client Name", value: name, inline: true },
-          { name: "Client ID", value: "`" + clientId + "`", inline: true },
-          { name: "Email & Phone", value: email + " • " + (phone || "None"), inline: false },
-          { name: "Permit State", value: permitState, inline: true },
-          { name: "Expiration Date", value: expDate || "Planning / Not Set", inline: true },
-          { name: "90-Day Renewal Status", value: optIn ? "Active (90-Day Alerts On)" : "Standard", inline: true }
-        ],
-        0xFFB703
-      );
-
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleClientRegistration) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            if (btn) btn.disabled = false;
-            showStatus(statusDiv, 'Profile established! Client ID: ' + (res.clientId || clientId) + '. Opening Dashboard...', 'success');
-            setTimeout(function() {
-              renderClientDashboard(clientRecord);
-            }, 400);
-          })
-          .withFailureHandler(function(err) {
-            if (btn) btn.disabled = false;
-            showStatus(statusDiv, 'Profile saved locally! Opening Dashboard...', 'success');
-            setTimeout(function() {
-              renderClientDashboard(clientRecord);
-            }, 400);
-          })
-          .handleClientRegistration(clientRecord);
-      } else {
-        setTimeout(function() {
-          if (btn) btn.disabled = false;
-          showStatus(statusDiv, 'Profile created! Client ID: ' + clientId + '. Opening Dashboard...', 'success');
-          setTimeout(function() {
-            renderClientDashboard(clientRecord);
-          }, 350);
-        }, 400);
-      }
-    }
-    window.handleClientRegisterSubmit = handleClientRegisterSubmit;
 
 
     window.fiLogoutClient = logoutClient;
@@ -8248,163 +8143,11 @@
     // ==========================================================================
     // CLIENT PORTAL REGISTRATION & ACTIVE DASHBOARD CONTROLLER IN <HEAD>
     // ==========================================================================
-    function handleClientRegisterSubmit(e) {
-      if (e && e.preventDefault) e.preventDefault();
+    // Replaced with authoritative handleClientRegisterSubmit
 
-      const nameEl = document.getElementById('regClientName');
-      const emailEl = document.getElementById('regClientEmail');
-      const phoneEl = document.getElementById('regClientPhone');
-      const stateEl = document.getElementById('regClientPermitState');
-      const expDateEl = document.getElementById('regClientExpDate');
-      const optInEl = document.getElementById('regClientOptIn');
 
-      const statusDiv = document.getElementById('client-register-status');
-      const btn = document.getElementById('btn-client-register-submit');
+    // Replaced with robust renderClientDashboard
 
-      const name = nameEl ? nameEl.value.trim() : '';
-      const email = emailEl ? emailEl.value.trim() : '';
-      const phone = phoneEl ? phoneEl.value.trim() : '';
-      const permitState = stateEl ? stateEl.value : 'Maryland Wear & Carry';
-      const expDate = expDateEl ? expDateEl.value : '';
-      const optIn = optInEl ? optInEl.checked : true;
-
-      if (!name || !email) {
-        showStatus(statusDiv, 'Full Name and Email Address are required.', 'error');
-        alert('Please provide your Full Legal Name and Email Address to establish your permit profile.');
-        return;
-      }
-
-      const clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
-      const clientRecord = {
-        clientId: clientId,
-        fullName: name,
-        email: email,
-        phone: phone,
-        permitState: permitState,
-        expirationDate: expDate,
-        optInReminder: optIn,
-        savedAt: new Date().toISOString()
-      };
-
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Establishing Permit Profile...';
-      }
-      showStatus(statusDiv, 'Creating profile & setting renewal watch...', 'success');
-
-      // Store in client session
-      localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord));
-
-      // Append to administrative client roster cache so it reflects immediately in Admin Terminal
-      try {
-        let currentRoster = JSON.parse(localStorage.getItem('fifs_client_roster') || '[]');
-        currentRoster.unshift(clientRecord);
-        localStorage.setItem('fifs_client_roster', JSON.stringify(currentRoster));
-        if (typeof adminCachedClients !== 'undefined' && Array.isArray(adminCachedClients)) {
-          adminCachedClients.unshift(clientRecord);
-        }
-      } catch (cacheErr) {
-        console.warn('Client roster cache update:', cacheErr);
-      }
-
-      // 1. Dispatch Discord Webhook Alert
-      sendClientDiscordAlert(
-        "🛡️ Client Portal Registration: " + name,
-        "A student / permit holder registered their profile in the **Future Initiative Client Portal**.",
-        [
-          { name: "Client Name", value: name, inline: true },
-          { name: "Client ID", value: "`" + clientId + "`", inline: true },
-          { name: "Email & Phone", value: email + " • " + (phone || "None"), inline: false },
-          { name: "Permit State", value: permitState, inline: true },
-          { name: "Expiration Date", value: expDate || "Not Provided", inline: true },
-          { name: "90-Day Renewal Watch", value: optIn ? "Active (90-Day Alerts Enabled)" : "Standard", inline: true }
-        ],
-        0xFFB703
-      );
-
-      // 2. Log high-value business milestone in telemetry
-      logAnalyticsEvent('Conversion', 'Client Profile Registered', `${name} (${permitState})`);
-
-      // 3. Dispatch to Apps Script backend if available
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleClientRegistration) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            if (btn) {
-              btn.disabled = false;
-              btn.textContent = 'Create Profile & Activate Renewal Watch 🛡️';
-            }
-            showStatus(statusDiv, 'Profile established! Client ID: ' + (res.clientId || clientId) + '. Opening Dashboard...', 'success');
-            setTimeout(function() {
-              renderClientDashboard(clientRecord);
-            }, 300);
-          })
-          .withFailureHandler(function(err) {
-            if (btn) {
-              btn.disabled = false;
-              btn.textContent = 'Create Profile & Activate Renewal Watch 🛡️';
-            }
-            showStatus(statusDiv, 'Profile saved! Opening Dashboard...', 'success');
-            setTimeout(function() {
-              renderClientDashboard(clientRecord);
-            }, 300);
-          })
-          .handleClientRegistration(clientRecord);
-      } else {
-        // Direct local/web execution path (guaranteed immediate transition)
-        setTimeout(function() {
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = 'Create Profile & Activate Renewal Watch 🛡️';
-          }
-          showStatus(statusDiv, 'Profile established! Client ID: ' + clientId + '. Opening Dashboard...', 'success');
-          setTimeout(function() {
-            renderClientDashboard(clientRecord);
-          }, 350);
-        }, 250);
-      }
-    }
-    window.handleClientRegisterSubmit = handleClientRegisterSubmit;
-
-    function renderClientDashboard(client) {
-      const authBox = document.getElementById('client-auth-box');
-      const dashBox = document.getElementById('client-active-dashboard');
-
-      if (authBox) {
-        authBox.style.setProperty('display', 'none', 'important');
-      }
-      if (dashBox) {
-        dashBox.style.setProperty('display', 'block', 'important');
-      }
-
-      const nameEl = document.getElementById('dash-client-name');
-      const idEl = document.getElementById('dash-client-id');
-      const permitEl = document.getElementById('dash-client-permit');
-      const expBadge = document.getElementById('dash-client-exp-badge');
-
-      if (nameEl) nameEl.textContent = (client.fullName || 'Client').split(' ')[0];
-      if (idEl) idEl.textContent = 'ID: ' + (client.clientId || 'Registered Client');
-      if (permitEl) permitEl.textContent = client.permitState || 'Maryland Wear & Carry';
-
-      if (expBadge) {
-        if (client.expirationDate) {
-          expBadge.textContent = 'Expiration: ' + client.expirationDate;
-        } else {
-          expBadge.textContent = 'Status: Planning / In Progress';
-        }
-      }
-
-      // Sync the Expiration Calculator automatically
-      const calcInput = document.getElementById('fiPermitExpInput');
-      if (calcInput && client.expirationDate) {
-        calcInput.value = client.expirationDate;
-        if (typeof fiCalculateExpiration === 'function') fiCalculateExpiration();
-      }
-
-      const userTag = document.getElementById('portal-user-tag');
-      if (userTag) userTag.textContent = "Client: " + client.fullName + " (" + (client.clientId || 'Verified') + ")";
-      try { window.scrollTo(0, 0); } catch (e) {}
-    }
-    window.renderClientDashboard = renderClientDashboard;
 
 
     // ==========================================================================
@@ -8512,17 +8255,293 @@
     }
     window.renderAdminClientTerminal = renderAdminClientTerminal;
 
+    
+    // ==========================================================================
+    // NATIVE ADMIN LIVE CHAT CONSOLE ENGINE & REAL-TIME 2-WAY DISPATCHER
+    // ==========================================================================
+    const FIFS_CHAT_BROADCAST_CHANNEL = (typeof BroadcastChannel !== 'undefined' && typeof process === 'undefined') ? new BroadcastChannel('fifs_chat_channel') : null;
+    window.__activeAdminChatThreadId = null;
+
+    // Cross-tab / cross-window real-time messaging listener
+    if (FIFS_CHAT_BROADCAST_CHANNEL) {
+      FIFS_CHAT_BROADCAST_CHANNEL.onmessage = function(e) {
+        if (!e || !e.data) return;
+        if (e.data.type === 'VISITOR_MESSAGE') {
+          // Update Admin Console in real time
+          if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
+          // Update unread badges
+          updateAdminChatBadgeCount();
+        } else if (e.data.type === 'INSTRUCTOR_REPLY') {
+          // Update Visitor Chat Modal in real time if open
+          const stream = document.getElementById('twoWayChatStream');
+          if (stream && typeof appendTwoWayBubble === 'function') {
+            appendTwoWayBubble('instructor', 'Coach Kai Wade', e.data.text, e.data.time);
+          }
+        }
+      };
+    }
+
+    // Storage event listener fallback for cross-tab communication
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'fifs_live_chat_threads' || e.key === 'fifs_live_chat_sync') {
+        if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
+        updateAdminChatBadgeCount();
+      }
+    });
+
+    function getStoredChatThreads() {
+      try {
+        const data = localStorage.getItem('fifs_live_chat_threads');
+        if (data) return JSON.parse(data);
+      } catch(e) {}
+      return [];
+    }
+
+    function saveChatThreads(threads) {
+      try {
+        localStorage.setItem('fifs_live_chat_threads', JSON.stringify(threads));
+        localStorage.setItem('fifs_live_chat_sync', Date.now().toString());
+      } catch(e) {}
+    }
+
+    function recordVisitorChatMessage(name, phone, text) {
+      const threads = getStoredChatThreads();
+      const cleanPhone = (phone || '').replace(/\D/g, '');
+      let thread = threads.find(t => t.senderPhone.replace(/\D/g, '') === cleanPhone || (t.senderName.toLowerCase() === name.toLowerCase()));
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+      if (!thread) {
+        thread = {
+          id: 'thread_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+          senderName: name || 'Valued Student',
+          senderPhone: phone || 'No phone provided',
+          lastUpdated: timeStr,
+          unread: true,
+          messages: []
+        };
+        threads.unshift(thread);
+      } else {
+        thread.lastUpdated = timeStr;
+        thread.unread = true;
+      }
+
+      thread.messages.push({
+        sender: 'user',
+        senderName: name,
+        text: text,
+        time: timeStr
+      });
+
+      saveChatThreads(threads);
+
+      // Broadcast to Admin Portal Live Console
+      if (FIFS_CHAT_BROADCAST_CHANNEL) {
+        FIFS_CHAT_BROADCAST_CHANNEL.postMessage({
+          type: 'VISITOR_MESSAGE',
+          chat: { name, phone, text, time: timeStr, threadId: thread.id }
+        });
+      }
+
+      updateAdminChatBadgeCount();
+      return thread;
+    }
+    window.recordVisitorChatMessage = recordVisitorChatMessage;
+
+    function renderAdminChatConsole() {
+      const inboxList = document.getElementById('admin-chat-inbox-list');
+      const countBadge = document.getElementById('admin-chat-count-badge');
+      if (!inboxList) return;
+
+      const threads = getStoredChatThreads();
+      if (countBadge) countBadge.textContent = `${threads.length} active`;
+
+      if (threads.length === 0) {
+        inboxList.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.82rem; padding: 24px 8px;">No incoming live chat inquiries yet. New chats appear here in real time.</div>';
+        return;
+      }
+
+      inboxList.innerHTML = threads.map(t => {
+        const isSelected = (window.__activeAdminChatThreadId === t.id);
+        const lastMsg = t.messages && t.messages.length ? t.messages[t.messages.length - 1].text : '';
+        const unreadIndicator = t.unread ? '<span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>' : '';
+
+        return `
+          <div onclick="selectAdminChatThread('${t.id}')" style="background: ${isSelected ? 'rgba(0, 229, 255, 0.12)' : '#0d131b'}; border: 1px solid ${isSelected ? 'var(--accent-cyan)' : 'var(--border-subtle)'}; border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: all 0.2s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <strong style="color: #fff; font-size: 0.90rem; display: inline-flex; align-items: center; gap: 6px;">
+                ${unreadIndicator} ${escapeHtml(t.senderName)}
+              </strong>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">${t.lastUpdated || ''}</span>
+            </div>
+            <div style="font-size: 0.76rem; color: var(--accent-cyan); margin-bottom: 4px;">📞 ${escapeHtml(t.senderPhone)}</div>
+            <div style="font-size: 0.78rem; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${escapeHtml(lastMsg)}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // If active thread selected, update its message stream
+      if (window.__activeAdminChatThreadId) {
+        const activeThread = threads.find(t => t.id === window.__activeAdminChatThreadId);
+        if (activeThread) {
+          renderActiveAdminChatMessages(activeThread);
+        }
+      }
+    }
+    window.renderAdminChatConsole = renderAdminChatConsole;
+
+    function selectAdminChatThread(threadId) {
+      window.__activeAdminChatThreadId = threadId;
+      const threads = getStoredChatThreads();
+      const thread = threads.find(t => t.id === threadId);
+      if (!thread) return;
+
+      // Mark as read
+      thread.unread = false;
+      saveChatThreads(threads);
+      updateAdminChatBadgeCount();
+
+      const nameEl = document.getElementById('admin-active-chat-name');
+      const phoneEl = document.getElementById('admin-active-chat-phone');
+      const callBtn = document.getElementById('admin-active-chat-call-btn');
+      const actionsBox = document.getElementById('admin-active-chat-actions');
+
+      if (nameEl) nameEl.textContent = thread.senderName;
+      if (phoneEl) phoneEl.textContent = `📞 ${thread.senderPhone}`;
+      if (callBtn) callBtn.href = `tel:${thread.senderPhone.replace(/\D/g, '')}`;
+      if (actionsBox) actionsBox.style.display = 'flex';
+
+      renderActiveAdminChatMessages(thread);
+      renderAdminChatConsole();
+
+      const replyInput = document.getElementById('adminLiveChatReplyInput');
+      if (replyInput) replyInput.focus();
+    }
+    window.selectAdminChatThread = selectAdminChatThread;
+
+    function renderActiveAdminChatMessages(thread) {
+      const stream = document.getElementById('admin-active-chat-stream');
+      if (!stream || !thread || !thread.messages) return;
+
+      stream.innerHTML = thread.messages.map(m => {
+        const isCoach = (m.sender === 'instructor');
+        return `
+          <div style="display: flex; flex-direction: column; align-items: ${isCoach ? 'flex-end' : 'flex-start'}; margin-bottom: 8px;">
+            <div style="font-size: 0.70rem; color: ${isCoach ? 'var(--accent-amber)' : 'var(--accent-cyan)'}; margin-bottom: 2px; font-weight: 700;">
+              ${isCoach ? '👑 Coach Kai Wade' : escapeHtml(m.senderName || thread.senderName)} • ${m.time}
+            </div>
+            <div style="background: ${isCoach ? 'linear-gradient(135deg, rgba(255, 183, 3, 0.15) 0%, #141c26 100%)' : '#141c26'}; border: 1px solid ${isCoach ? 'var(--accent-amber)' : 'rgba(0, 229, 255, 0.35)'}; color: #e2e8f0; padding: 8px 12px; border-radius: 10px; max-width: 80%; font-size: 0.88rem; line-height: 1.45;">
+              ${escapeHtml(m.text)}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function handleAdminLiveChatSend(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const input = document.getElementById('adminLiveChatReplyInput');
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      if (!window.__activeAdminChatThreadId) {
+        alert('Please select a student conversation on the left first to reply.');
+        return;
+      }
+
+      const threads = getStoredChatThreads();
+      const thread = threads.find(t => t.id === window.__activeAdminChatThreadId);
+      if (!thread) return;
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+      thread.messages.push({
+        sender: 'instructor',
+        senderName: 'Coach Kai Wade',
+        text: text,
+        time: timeStr
+      });
+      thread.lastUpdated = timeStr;
+      saveChatThreads(threads);
+
+      // Broadcast live reply to student/visitor in real time
+      if (FIFS_CHAT_BROADCAST_CHANNEL) {
+        FIFS_CHAT_BROADCAST_CHANNEL.postMessage({
+          type: 'INSTRUCTOR_REPLY',
+          threadId: thread.id,
+          text: text,
+          time: timeStr
+        });
+      }
+
+      // Also append to visitor chat stream if open in same window
+      const stream = document.getElementById('twoWayChatStream');
+      if (stream && typeof appendTwoWayBubble === 'function') {
+        appendTwoWayBubble('instructor', 'Coach Kai Wade', text, timeStr);
+      }
+
+      // Dispatch notification to Discord
+      sendClientDiscordAlert(
+        "💬 Instructor Reply Sent: Coach Kai Wade",
+        `Coach Kai Wade dispatched a live reply to student **${thread.senderName}** (${thread.senderPhone}).`,
+        [
+          { name: "Student Name", value: thread.senderName, inline: true },
+          { name: "Phone / SMS Callback", value: thread.senderPhone, inline: true },
+          { name: "Reply Message", value: text, inline: false }
+        ],
+        0xFFB703
+      );
+
+      input.value = '';
+      renderActiveAdminChatMessages(thread);
+      renderAdminChatConsole();
+    }
+    window.handleAdminLiveChatSend = handleAdminLiveChatSend;
+
+    function refreshAdminLiveChats() {
+      renderAdminChatConsole();
+    }
+    window.refreshAdminLiveChats = refreshAdminLiveChats;
+
+    function updateAdminChatBadgeCount() {
+      const threads = getStoredChatThreads();
+      const unreadCount = threads.filter(t => t.unread).length;
+      const badgeHdr = document.getElementById('admin-chat-unread-badge');
+      const badgeTab = document.getElementById('admin-tab-chat-unread');
+
+      if (badgeHdr) {
+        badgeHdr.textContent = unreadCount;
+        badgeHdr.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+      }
+      if (badgeTab) {
+        badgeTab.textContent = unreadCount;
+        badgeTab.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+      }
+    }
+    window.updateAdminChatBadgeCount = updateAdminChatBadgeCount;
+
     function switchAdminTab(tab) {
       const subRoster = document.getElementById('admin-subpanel-roster');
       const subClients = document.getElementById('admin-subpanel-clients');
       const subAnalytics = document.getElementById('admin-subpanel-analytics');
+      const subChat = document.getElementById('admin-subpanel-chat');
+
       const btnRoster = document.getElementById('btn-admin-tab-roster');
       const btnClients = document.getElementById('btn-admin-tab-clients');
       const btnAnalytics = document.getElementById('btn-admin-tab-analytics');
+      const btnChat = document.getElementById('btn-admin-tab-chat');
 
       if (subRoster) subRoster.style.setProperty('display', 'none', 'important');
       if (subClients) subClients.style.setProperty('display', 'none', 'important');
       if (subAnalytics) subAnalytics.style.setProperty('display', 'none', 'important');
+      if (subChat) subChat.style.setProperty('display', 'none', 'important');
 
       if (btnRoster) {
         btnRoster.classList.remove('active');
@@ -8542,8 +8561,23 @@
         btnAnalytics.style.color = 'var(--accent-amber)';
         btnAnalytics.style.boxShadow = 'none';
       }
+      if (btnChat) {
+        btnChat.classList.remove('active');
+        btnChat.style.background = 'transparent';
+        btnChat.style.color = 'var(--accent-cyan)';
+        btnChat.style.boxShadow = 'none';
+      }
 
-      if (tab === 'analytics') {
+      if (tab === 'chat') {
+        if (subChat) subChat.style.setProperty('display', 'block', 'important');
+        if (btnChat) {
+          btnChat.classList.add('active');
+          btnChat.style.background = 'var(--accent-cyan)';
+          btnChat.style.color = '#070b10';
+          btnChat.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
+        }
+        if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
+      } else if (tab === 'analytics') {
         if (subAnalytics) subAnalytics.style.setProperty('display', 'block', 'important');
         if (btnAnalytics) {
           btnAnalytics.classList.add('active');
@@ -8552,7 +8586,7 @@
           btnAnalytics.style.boxShadow = '0 0 18px var(--accent-amber-glow)';
         }
         if (typeof renderAdminAnalyticsDashboard === 'function') renderAdminAnalyticsDashboard();
-        } else if (tab === 'clients') {
+      } else if (tab === 'clients') {
         if (subClients) subClients.style.setProperty('display', 'block', 'important');
         if (btnClients) {
           btnClients.classList.add('active');
@@ -8560,8 +8594,10 @@
           btnClients.style.color = '#070b10';
           btnClients.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
         }
-        renderAdminClientTerminal({ clients: adminCachedClients });
-        } else {
+        if (typeof renderAdminClientTerminal === 'function') {
+          renderAdminClientTerminal({ clients: adminCachedClients });
+        }
+      } else {
         if (subRoster) subRoster.style.setProperty('display', 'block', 'important');
         if (btnRoster) {
           btnRoster.classList.add('active');
@@ -8569,7 +8605,7 @@
           btnRoster.style.color = '#070b10';
           btnRoster.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
         }
-        }
+      }
     }
     window.switchAdminTab = switchAdminTab;
 
@@ -8718,7 +8754,8 @@
         try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch(e) {}
       }
 
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminDeleteStudent) {
+      if (typeof google !== 'undefined' && google.script && google
+.script.run && google.script.run.handleAdminDeleteStudent) {
         google.script.run.handleAdminDeleteStudent(pin, studentId);
       }
 
@@ -8735,8 +8772,7 @@
       const nameInput = document.getElementById('editClientName');
       const emailInput = document.getElementById('editClientEmail');
       const phoneInput = document.getElementById('editClientPhone');
-      const stateInput = document.getElement
-ById('editClientPermitState');
+      const stateInput = document.getElementById('editClientPermitState');
       const expInput = document.getElementById('editClientExpDate');
 
       if (idInput) idInput.value = c.clientId;
@@ -9034,6 +9070,157 @@ ById('editClientPermitState');
       }
     }
     window.openAuthModal = openAuthModal;
+
+    
+        function handleClientRegisterSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const statusDiv = document.getElementById('client-register-status');
+      const btn = document.getElementById('btn-client-register-submit');
+
+      try {
+        const nameInput = document.getElementById('regClientName');
+        const emailInput = document.getElementById('regClientEmail');
+        const phoneInput = document.getElementById('regClientPhone');
+        const stateInput = document.getElementById('regClientPermitState');
+        const expInput = document.getElementById('regClientExpDate');
+        const optInInput = document.getElementById('regClientOptIn');
+
+        const name = nameInput ? nameInput.value.trim() : '';
+        const email = emailInput ? emailInput.value.trim() : '';
+        const phone = phoneInput ? phoneInput.value.trim() : '';
+        const permitState = stateInput ? stateInput.value : 'Maryland Wear & Carry';
+        const expDate = expInput ? expInput.value : '';
+        const optIn = optInInput ? optInInput.checked : true;
+
+        if (!name || !email) {
+          if (statusDiv) showStatus(statusDiv, 'Full Legal Name and Email Address are required.', 'error');
+          alert('Please enter your Full Legal Name and Email Address to create your profile.');
+          return;
+        }
+
+        const clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
+        const clientRecord = {
+          clientId: clientId,
+          fullName: name,
+          email: email,
+          phone: phone,
+          permitState: permitState,
+          expirationDate: expDate,
+          optInReminder: optIn,
+          savedAt: new Date().toISOString()
+        };
+
+        // Immediately update button and status
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Profile Established! Opening Portal...';
+        }
+        if (statusDiv) showStatus(statusDiv, 'Profile established! Client ID: ' + clientId + '. Opening Dashboard...', 'success');
+
+        // Store active client session in localStorage
+        localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord));
+
+        // Update local client roster cache for immediate Admin Portal synchronization
+        try {
+          let currentRoster = JSON.parse(localStorage.getItem('fifs_client_roster') || '[]');
+          currentRoster.unshift(clientRecord);
+          localStorage.setItem('fifs_client_roster', JSON.stringify(currentRoster));
+          if (typeof adminCachedClients !== 'undefined' && Array.isArray(adminCachedClients)) {
+            adminCachedClients.unshift(clientRecord);
+          }
+        } catch (cacheErr) {}
+
+        // IMMEDIATELY render active client dashboard (zero delay on mobile/iPad)
+        renderClientDashboard(clientRecord);
+
+        // Asynchronously dispatch Discord alert & telemetry so UI is never blocked
+        setTimeout(function() {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Create Profile & Activate Renewal Watch 🛡️';
+          }
+
+          // 1. Telemetry conversion milestone
+          if (typeof logAnalyticsEvent === 'function') {
+            logAnalyticsEvent('Conversion', 'Client Profile Registered', `${name} (${permitState})`);
+          }
+
+          // 2. Real-time Discord Webhook Notification Sync
+          sendClientDiscordAlert(
+            "🛡️ Client Portal Registration: " + name,
+            "A permit holder registered for the **Future Initiative Client Portal**.",
+            [
+              { name: "Client Name", value: name, inline: true },
+              { name: "Client ID", value: "`" + clientId + "`", inline: true },
+              { name: "Email & Phone", value: email + " • " + (phone || "None"), inline: false },
+              { name: "Permit State", value: permitState, inline: true },
+              { name: "Expiration Date", value: expDate || "Planning / Not Set", inline: true },
+              { name: "90-Day Renewal Status", value: optIn ? "Active (90-Day Alerts On)" : "Standard", inline: true }
+            ],
+            0xFFB703
+          );
+
+          // 3. Dispatch to Google Apps Script backend if available
+          if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleClientRegistration) {
+            google.script.run.handleClientRegistration(clientRecord);
+          }
+        }, 50);
+
+      } catch (err) {
+        console.error("Client registration processing:", err);
+        if (statusDiv) showStatus(statusDiv, 'Notice: Profile saved. Opening dashboard...', 'success');
+        renderClientDashboard(clientRecord);
+      }
+    }
+    window.handleClientRegisterSubmit = handleClientRegisterSubmit;
+
+    function renderClientDashboard(client) {
+      if (!client) return;
+      const authBox = document.getElementById('client-auth-box');
+      const dashBox = document.getElementById('client-active-dashboard');
+
+      if (authBox) {
+        authBox.style.setProperty('display', 'none', 'important');
+      }
+      if (dashBox) {
+        dashBox.classList.remove('hidden');
+        dashBox.style.setProperty('display', 'block', 'important');
+        dashBox.style.setProperty('visibility', 'visible', 'important');
+        dashBox.style.setProperty('opacity', '1', 'important');
+        dashBox.style.setProperty('pointer-events', 'auto', 'important');
+      }
+
+      const nameEl = document.getElementById('dash-client-name');
+      const idEl = document.getElementById('dash-client-id');
+      const permitEl = document.getElementById('dash-client-permit');
+      const expBadge = document.getElementById('dash-client-exp-badge');
+
+      if (nameEl) nameEl.textContent = (client.fullName || 'Client').split(' ')[0];
+      if (idEl) idEl.textContent = 'ID: ' + (client.clientId || 'Registered Client');
+      if (permitEl) permitEl.textContent = client.permitState || 'Maryland Wear & Carry';
+
+      if (expBadge) {
+        if (client.expirationDate) {
+          expBadge.textContent = 'Expiration: ' + client.expirationDate;
+        } else {
+          expBadge.textContent = 'Status: Planning / In Progress';
+        }
+      }
+
+      // Sync the Expiration Calculator automatically
+      const calcInput = document.getElementById('fiPermitExpInput');
+      if (calcInput && client.expirationDate) {
+        calcInput.value = client.expirationDate;
+        if (typeof fiCalculateExpiration === 'function') fiCalculateExpiration();
+      }
+
+      const userTag = document.getElementById('portal-user-tag');
+      if (userTag) userTag.textContent = "Client: " + client.fullName + " (" + (client.clientId || 'Verified') + ")";
+
+      try { window.scrollTo(0, 0); } catch (e) {}
+    }
+    window.renderClientDashboard = renderClientDashboard;
+
 
     function switchClientAuthTab(tab) {
       const pSignin = document.getElementById('panel-client-signin');
@@ -9858,7 +10045,7 @@ ById('editClientPermitState');
 </div>
 <!-- PANEL 2: CREATE FREE CLIENT PROFILE -->
 <div id="panel-client-register" style="display: none;">
-<form id="fiClientRegistrationForm" onsubmit="handleClientRegisterSubmit(event)">
+<form id="fiClientRegistrationForm" onsubmit="handleClientRegisterSubmit(event); return false;">
 <div class="form-group">
 <label for="regClientName">Full Legal Name <span class="req">*</span></label>
 <input id="regClientName" placeholder="e.g., Marcus Vance" required="" type="text"/>
@@ -9901,7 +10088,7 @@ ById('editClientPermitState');
                     </span>
 </label>
 </div>
-<button class="btn-primary" id="btn-client-register-submit" onclick="handleClientRegisterSubmit(event)" style="width: 100%; padding: 12px; pointer-events: auto !important; touch-action: manipulation !important; cursor: pointer;" type="button">
+<button class="btn-primary" id="btn-client-register-submit" onclick="handleClientRegisterSubmit(event)" style="width: 100%; padding: 14px; font-size: 1rem; font-weight: 800; cursor: pointer; pointer-events: auto !important; touch-action: manipulation !important; position: relative; z-index: 20;" type="button">
                   Create Profile &amp; Activate Renewal Watch 🛡️
                 </button>
 <div class="status-msg" id="client-register-status"></div>
@@ -10414,6 +10601,7 @@ ById('editClientPermitState');
 <button class="btn-hero-booking-prime" id="btn-admin-refresh-data" onclick="refreshAdminRoster()" style="width: auto; padding: 10px 20px; font-size: 0.92rem; border-radius: 8px; flex-direction: row; gap: 8px; box-shadow: 0 0 18px var(--accent-cyan-glow);" type="button">
 <span>🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">REFRESH DATA</span>
 </button>
+<button class="btn-spark" id="btn-admin-live-chat-hdr" onclick="switchAdminTab('chat')" style="width: auto; padding: 10px 18px; font-size: 0.90rem; border-color: var(--accent-cyan); color: var(--accent-cyan); box-shadow: 0 0 16px var(--accent-cyan-glow); display: inline-flex; align-items: center; gap: 6px;" type="button"><span>💬</span> <span>LIVE CHAT CONSOLE</span> <span id="admin-chat-unread-badge" style="background: #ef4444; color: #fff; font-size: 0.72rem; padding: 2px 7px; border-radius: 12px; font-weight: 900; display: none;">0</span></button>
 <button class="btn-spark" id="btn-admin-telemetry-hdr" onclick="switchAdminTab('analytics')" style="width: auto; padding: 10px 18px; font-size: 0.90rem; border-color: var(--accent-amber); color: var(--accent-amber); box-shadow: 0 0 16px rgba(255, 183, 3, 0.25); display: inline-flex; align-items: center; gap: 6px;" type="button">
 <span>📊</span> <span>WEBSITE TELEMETRY</span>
 </button>
@@ -10438,6 +10626,9 @@ ById('editClientPermitState');
           </button>
 <button class="admin-toggle-btn" id="btn-admin-tab-clients" onclick="switchAdminTab('clients')" style="flex: 1; min-width: 220px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-subtle); font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.25s ease; background: transparent; color: var(--text-muted);" type="button">
 <span>🛡️</span> Future Initiative Clients
+          </button>
+<button class="admin-toggle-btn" id="btn-admin-tab-chat" onclick="switchAdminTab('chat')" style="flex: 1; min-width: 200px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(0, 229, 255, 0.4); font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.25s ease; background: transparent; color: var(--accent-cyan);" type="button">
+<span>💬</span> Live Chat Console <span id="admin-tab-chat-unread" style="background: #ef4444; color: #fff; font-size: 0.70rem; padding: 2px 6px; border-radius: 10px; font-weight: 900; display: none;">0</span>
           </button>
 <button class="admin-toggle-btn" id="btn-admin-tab-analytics" onclick="switchAdminTab('analytics')" style="flex: 1; min-width: 220px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255, 183, 3, 0.4); font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: all 0.25s ease; background: transparent; color: var(--accent-amber);" type="button">
 <span>📊</span> Website Traffic &amp; Telemetry
@@ -10665,6 +10856,91 @@ ById('editClientPermitState');
 </div>
 </div>
 </div>
+
+<!-- ================= SUB-PANEL 4: INSTRUCTOR LIVE CHAT CONSOLE (EASIEST & NATIVE) ================= -->
+<div id="admin-subpanel-chat" style="display: none; position: relative; z-index: 60;">
+  <div style="background: #0d131b; border: 1.5px solid var(--accent-cyan); border-radius: 14px; padding: 20px; box-shadow: 0 12px 35px rgba(0,0,0,0.85), 0 0 24px rgba(0,229,255,0.18);">
+    
+    <!-- Top Bar: Channel Status & Quick Actions -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle);">
+      <div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span class="pulse-dot" style="width: 10px; height: 10px; background: #10b981; box-shadow: 0 0 12px #10b981;"></span>
+          <h4 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
+            💬 INSTRUCTOR 2-WAY LIVE CHAT CONSOLE
+          </h4>
+        </div>
+        <p style="font-size: 0.84rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 0;">
+          Native real-time communication channel for Coach Kai Wade to reply to incoming student inquiries and live range questions.
+        </p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <span style="font-size: 0.76rem; color: #10b981; background: rgba(16,185,129,0.12); border: 1px solid #10b981; padding: 4px 12px; border-radius: 20px; font-weight: 800; text-transform: uppercase;">
+          ● DISPATCH ACTIVE
+        </span>
+        <button type="button" class="btn-spark" onclick="refreshAdminLiveChats()" style="padding: 6px 14px; font-size: 0.80rem; border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Refresh chat inquiries">
+          🔄 Refresh Inquiries
+        </button>
+      </div>
+    </div>
+
+    <!-- 2-Column Live Console Grid -->
+    <div style="display: grid; grid-template-columns: minmax(260px, 320px) 1fr; gap: 16px; min-height: 480px;">
+      
+      <!-- Left Column: Conversations List -->
+      <div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 12px; display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 10px;">
+          <span style="font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px;">
+            INCOMING INQUIRIES
+          </span>
+          <span id="admin-chat-count-badge" style="font-size: 0.72rem; color: var(--accent-cyan); font-weight: 800;">0 active</span>
+        </div>
+        <div id="admin-chat-inbox-list" style="flex: 1; overflow-y: auto; max-height: 420px; display: flex; flex-direction: column; gap: 8px;">
+          <!-- Populated dynamically via renderAdminChatConsole -->
+        </div>
+      </div>
+
+      <!-- Right Column: Active Thread & Instructor Reply Box -->
+      <div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
+        
+        <!-- Thread Header -->
+        <div id="admin-chat-thread-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px;">
+          <div>
+            <span style="font-size: 0.74rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Active Student:</span>
+            <div id="admin-active-chat-name" style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: #fff;">
+              Select a conversation to reply
+            </div>
+            <span id="admin-active-chat-phone" style="font-size: 0.80rem; color: var(--accent-cyan); font-weight: 600;"></span>
+          </div>
+          <div id="admin-active-chat-actions" style="display: none; gap: 8px;">
+            <a id="admin-active-chat-call-btn" href="#" class="btn-spark" style="padding: 6px 14px; font-size: 0.80rem; text-decoration: none; border-color: #10b981; color: #10b981;">
+              📞 Call Student
+            </a>
+          </div>
+        </div>
+
+        <!-- Thread Messages Stream -->
+        <div id="admin-active-chat-stream" style="flex: 1; min-height: 250px; max-height: 320px; overflow-y: auto; padding: 10px; background: #0a0f16; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 40px 10px;">
+            Select an incoming chat conversation from the list to view the message stream and send replies directly as Coach Kai Wade.
+          </div>
+        </div>
+
+        <!-- Instructor Live Reply Dock -->
+        <form id="adminLiveChatReplyForm" onsubmit="handleAdminLiveChatSend(event)" style="display: flex; gap: 8px; align-items: stretch;">
+          <textarea id="adminLiveChatReplyInput" placeholder="Type your reply to this student as Coach Kai Wade... (Press Enter to Send)" rows="2" style="flex: 1; background: #141c26; border: 1px solid var(--accent-cyan); color: #fff; padding: 10px 14px; border-radius: 8px; font-family: inherit; font-size: 0.90rem; resize: none;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();handleAdminLiveChatSend(event);}"></textarea>
+          <button type="submit" id="btn-admin-send-reply" class="btn-primary" style="width: auto; padding: 0 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.90rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
+            ➤ Send Reply
+          </button>
+        </form>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
 </div></section>
 <!-- VIEW 3: DEDICATED COURSE ENROLLMENT & PREPARATION HUB -->
 <main class="panel hidden" id="view-booking" role="tabpanel">
@@ -12093,52 +12369,38 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
     // Eliminates micro-interaction I/O overhead while capturing business events
     // ==========================================================================
     function logAnalyticsEvent(category, action, label) {
-      try {
-        // High-value business milestones filter
-        const highValueActions = [
-          'Course Booking Confirmed',
-          'Client Profile Registered',
-          'Live Chat Initiated',
-          'Live Chat Started'
-        ];
-
-        const isHighValue = highValueActions.includes(action) ||
-                            category === 'Conversion' ||
-                            category === 'Engagement';
-
-        if (!isHighValue) {
-          // Bypasses micro-interactions (tab switching, UI toggles, modal closes)
-          return;
-        }
-
-        const dev = typeof detectUserDevice === 'function' ? detectUserDevice() : { deviceName: 'Web Device', category: 'Standard' };
-        const entry = {
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-          category: category,
-          action: action,
-          label: label || '',
-          device: dev.deviceName || 'Web Device',
-          deviceCategory: dev.category || 'Standard',
-          timestamp: new Date().toISOString()
-        };
-
-        const log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
-        log.unshift(entry);
-        if (log.length > 50) log.pop();
-        localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
-
-        // Update action counters
-        const counts = JSON.parse(localStorage.getItem('fifs_analytics_counts') || '{}');
-        counts[action] = (counts[action] || 0) + 1;
-        localStorage.setItem('fifs_analytics_counts', JSON.stringify(counts));
-
-        // Sync with backend asynchronously if available
-        if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
-          google.script.run.logAnalyticsEvent(entry);
-        }
-      } catch (e) {
-        console.warn('Telemetry milestone notice:', e);
+      // Strictly restricted exclusively to high-value business conversion milestones
+      const highValueActions = [
+        'Course Booking Confirmed',
+        'Client Profile Registered',
+        'Live Chat Initiated'
+      ];
+      if (!highValueActions.includes(action)) {
+        return; // Zero overhead and zero I/O for all micro-interactions
       }
+
+      // Execute asynchronously in micro-task queue to eliminate main-thread blocking
+      setTimeout(function() {
+        try {
+          const entry = {
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            category: category,
+            action: action,
+            label: label || '',
+            device: (window.innerWidth <= 768 ? 'Mobile Phone' : (window.innerWidth <= 1024 ? 'Tablet / iPad' : 'Desktop / Laptop'))
+          };
+
+          const log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
+          log.unshift(entry);
+          if (log.length > 50) log.pop();
+          localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
+
+          // Background sync to GAS ledger if live
+          if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
+            google.script.run.logAnalyticsEvent(entry);
+          }
+        } catch (e) {}
+      }, 20);
     }
     window.logAnalyticsEvent = logAnalyticsEvent;
 
@@ -12545,7 +12807,8 @@ function openAdminEditStudentModal(studentId) {
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        docum
+ent.body.style.overflow = 'hidden';
       }
     }
     window.openAdminEditStudentModal = openAdminEditStudentModal;
@@ -12806,8 +13069,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       document.getElementById('editClientFullName').value = c.fullName || '';
       document.getElementById('editClientEmail').value = c.email || '';
       document.getElementById('editClientPhone').value = c.phone || '';
-      document.getElemen
-tById('editClientPermitState').value = c.permitState || 'Maryland Wear & Carry';
+      document.getElementById('editClientPermitState').value = c.permitState || 'Maryland Wear & Carry';
       document.getElementById('editClientExpDate').value = c.expirationDate || '';
       document.getElementById('editClientStatus').value = c.status || 'ACTIVE_REGISTERED';
 
@@ -12887,13 +13149,17 @@ tById('editClientPermitState').value = c.permitState || 'Maryland Wear & Carry';
       const subRoster = document.getElementById('admin-subpanel-roster');
       const subClients = document.getElementById('admin-subpanel-clients');
       const subAnalytics = document.getElementById('admin-subpanel-analytics');
+      const subChat = document.getElementById('admin-subpanel-chat');
+
       const btnRoster = document.getElementById('btn-admin-tab-roster');
       const btnClients = document.getElementById('btn-admin-tab-clients');
       const btnAnalytics = document.getElementById('btn-admin-tab-analytics');
+      const btnChat = document.getElementById('btn-admin-tab-chat');
 
-      if (subRoster) subRoster.style.display = 'none';
-      if (subClients) subClients.style.display = 'none';
-      if (subAnalytics) subAnalytics.style.display = 'none';
+      if (subRoster) subRoster.style.setProperty('display', 'none', 'important');
+      if (subClients) subClients.style.setProperty('display', 'none', 'important');
+      if (subAnalytics) subAnalytics.style.setProperty('display', 'none', 'important');
+      if (subChat) subChat.style.setProperty('display', 'none', 'important');
 
       if (btnRoster) {
         btnRoster.classList.remove('active');
@@ -12913,35 +13179,51 @@ tById('editClientPermitState').value = c.permitState || 'Maryland Wear & Carry';
         btnAnalytics.style.color = 'var(--accent-amber)';
         btnAnalytics.style.boxShadow = 'none';
       }
+      if (btnChat) {
+        btnChat.classList.remove('active');
+        btnChat.style.background = 'transparent';
+        btnChat.style.color = 'var(--accent-cyan)';
+        btnChat.style.boxShadow = 'none';
+      }
 
-      if (tab === 'analytics') {
-        if (subAnalytics) subAnalytics.style.display = 'block';
+      if (tab === 'chat') {
+        if (subChat) subChat.style.setProperty('display', 'block', 'important');
+        if (btnChat) {
+          btnChat.classList.add('active');
+          btnChat.style.background = 'var(--accent-cyan)';
+          btnChat.style.color = '#070b10';
+          btnChat.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
+        }
+        if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
+      } else if (tab === 'analytics') {
+        if (subAnalytics) subAnalytics.style.setProperty('display', 'block', 'important');
         if (btnAnalytics) {
           btnAnalytics.classList.add('active');
           btnAnalytics.style.background = 'var(--accent-amber)';
           btnAnalytics.style.color = '#070b10';
-          btnAnalytics.style.boxShadow = '0 0 18px rgba(255, 183, 3, 0.45)';
+          btnAnalytics.style.boxShadow = '0 0 18px var(--accent-amber-glow)';
         }
-        renderAdminAnalyticsDashboard();
-        } else if (tab === 'clients') {
-        if (subClients) subClients.style.display = 'block';
+        if (typeof renderAdminAnalyticsDashboard === 'function') renderAdminAnalyticsDashboard();
+      } else if (tab === 'clients') {
+        if (subClients) subClients.style.setProperty('display', 'block', 'important');
         if (btnClients) {
           btnClients.classList.add('active');
           btnClients.style.background = 'var(--accent-cyan)';
           btnClients.style.color = '#070b10';
           btnClients.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
         }
-        renderAdminClientTerminal();
-        } else {
-        if (subRoster) subRoster.style.display = 'block';
+        if (typeof renderAdminClientTerminal === 'function') {
+          renderAdminClientTerminal({ clients: adminCachedClients });
+        }
+      } else {
+        if (subRoster) subRoster.style.setProperty('display', 'block', 'important');
         if (btnRoster) {
           btnRoster.classList.add('active');
           btnRoster.style.background = 'var(--accent-cyan)';
           btnRoster.style.color = '#070b10';
           btnRoster.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
         }
-        renderAdminTerminal();
-        }
+      }
     }
     window.switchAdminTab = switchAdminTab;
 
@@ -13531,7 +13813,12 @@ tById('editClientPermitState').value = c.permitState || 'Maryland Wear & Carry';
         0x00E5FF
       );
 
-      // 2. Immediately close contact form and open Two-Way Chat window
+      // 2. Record inquiry in Native Admin Live Console
+      if (typeof recordVisitorChatMessage === 'function') {
+        recordVisitorChatMessage(name, phone, msg);
+      }
+
+      // 3. Immediately close contact form and open Two-Way Chat window
       closeContactWidgetModal();
       openTwoWayChat(name, phone, msg);
 
@@ -18042,122 +18329,11 @@ tById('editClientPermitState').value = c.permitState || 'Maryland Wear & Carry';
       };
     }
 
-    function handleClientRegisterSubmit(e) {
-      e.preventDefault();
-      const form = document.getElementById('fiClientRegistrationForm');
-      const statusDiv = document.getElementById('client-register-status');
-      const btn = document.getElementById('btn-client-register-submit');
+    // Replaced with authoritative handleClientRegisterSubmit
 
-      const name = document.getElementById('regClientName').value.trim();
-      const email = document.getElementById('regClientEmail').value.trim();
-      const phone = document.getElementById('regClientPhone').value.trim();
-      const permitState = document.getElementById('regClientPermitState').value;
-      const expDate = document.getElementById('regClientExpDate').value;
-      const optIn = document.getElementById('regClientOptIn').checked;
 
-      if (!name || !email) {
-        showStatus(statusDiv, 'Full Name and Email Address are required.', 'error');
-        return;
-      }
+    // Replaced with robust renderClientDashboard
 
-      const clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
-      const clientRecord = {
-        clientId: clientId,
-        fullName: name,
-        email: email,
-        phone: phone,
-        permitState: permitState,
-        expirationDate: expDate,
-        optInReminder: optIn,
-        savedAt: new Date().toISOString()
-      };
-
-      btn.disabled = true;
-      showStatus(statusDiv, 'Creating profile & setting renewal watch...', 'success');
-
-      localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord));
-
-      // 2. Discord Webhook Alert: Client Registration
-      sendClientDiscordAlert(
-        "🛡️ Client Portal Registration: " + name,
-        "A new client registered for the **Future Initiative Client Portal**.",
-        [
-          { name: "Client Name", value: name, inline: true },
-          { name: "Client ID", value: "`" + clientId + "`", inline: true },
-          { name: "Email & Phone", value: email + " • " + (phone || "None"), inline: false },
-          { name: "Permit State", value: permitState, inline: true },
-          { name: "Expiration Date", value: expDate || "Not Provided", inline: true },
-          { name: "90-Day Renewal Status", value: optIn ? "Active (90-Day Alerts On)" : "Standard", inline: true }
-        ],
-        0xFFB703
-      );
-
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleClientRegistration) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            btn.disabled = false;
-            showStatus(statusDiv, 'Profile established! Client ID: ' + (res.clientId || clientId) + '. Opening Dashboard...', 'success');
-            setTimeout(function() {
-              renderClientDashboard(clientRecord);
-            }, 600);
-          })
-          .withFailureHandler(function(err) {
-            btn.disabled = false;
-            showStatus(statusDiv, 'Profile saved locally! Opening Dashboard...', 'success');
-            setTimeout(function() {
-              renderClientDashboard(clientRecord);
-            }, 600);
-          })
-          .handleClientRegistration(clientRecord);
-      } else {
-        setTimeout(function() {
-          btn.disabled = false;
-          showStatus(statusDiv, 'Profile created! Client ID: ' + clientId + '. Opening Dashboard...', 'success');
-          setTimeout(function() {
-            renderClientDashboard(clientRecord);
-          }, 600);
-        }, 500);
-      }
-    }
-    window.handleClientRegisterSubmit = handleClientRegisterSubmit;
-
-    function renderClientDashboard(client) {
-      const authBox = document.getElementById('client-auth-box');
-      const dashBox = document.getElementById('client-active-dashboard');
-
-      if (authBox) authBox.style.display = 'none';
-      if (dashBox) dashBox.style.display = 'block';
-
-      const nameEl = document.getElementById('dash-client-name');
-      const idEl = document.getElementById('dash-client-id');
-      const permitEl = document.getElementById('dash-client-permit');
-      const expBadge = document.getElementById('dash-client-exp-badge');
-
-      if (nameEl) nameEl.textContent = (client.fullName || 'Client').split(' ')[0];
-      if (idEl) idEl.textContent = 'ID: ' + (client.clientId || 'Registered Client');
-      if (permitEl) permitEl.textContent = client.permitState || 'Maryland Wear & Carry';
-
-      if (expBadge) {
-        if (client.expirationDate) {
-          expBadge.textContent = 'Expiration: ' + client.expirationDate;
-        } else {
-          expBadge.textContent = 'Status: Planning / In Progress';
-        }
-      }
-
-      // Sync the Expiration Calculator automatically
-      const calcInput = document.getElementById('fiPermitExpInput');
-      if (calcInput && client.expirationDate) {
-        calcInput.value = client.expirationDate;
-        if (typeof fiCalculateExpiration === 'function') fiCalculateExpiration();
-      }
-
-      const userTag = document.getElementById('portal-user-tag');
-      if (userTag) userTag.textContent = "Client: " + client.fullName + " (" + (client.clientId || 'Verified') + ")";
-
-      if (typeof window.scrollTo === 'function' && currentActiveView === 'fi-portal') window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    window.renderClientDashboard = renderClientDashboard;
 
     function fiLogoutClient() {
       localStorage.removeItem('fifs_client_session');
@@ -18202,7 +18378,8 @@ tById('editClientPermitState').value = c.permitState || 'Maryland Wear & Carry';
     const STATES_DATA = {"AL": {"name": "Alabama", "status_type": "constitutional", "age": 19, "duty": "Only when requested by officer", "mag_limit": "None (No state limit)", "vehicle": "Permitless carry in vehicle legal", "open_carry": "Yes (Permitless)", "non_lethal": "Yes (Tasers, stun guns, pepper spray allowed)", "byrna": "Yes (No permit required)", "neighbors": ["MS", "TN", "GA", "FL"], "x": 620, "y": 420, "summary": "Constitutional carry state. Anyone 19+ legally allowed to possess firearms may carry concealed without a permit.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Permitless carry applies to handguns. Other dangerous concealed weapons may have restrictions."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Permits issued to residents 19+ on a shall-issue basis by county sheriffs; not required for carry."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "No magazine capacity limitations under Alabama state law."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "19 years of age for permitless concealed carry and state permit issuance."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "No restrictions on hollow points or ammunition types except armor-piercing handgun rounds (federal)."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless concealed carry took effect January 1, 2023 for all eligible residents and non-residents 19+."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Open carry of a handgun is lawful without a permit for anyone 19+ who may legally possess a firearm."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Pepper spray, stun guns, and Tasers are lawful for defensive carry without registration."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Byrna CO2 kinetic/chemical pepper launchers are completely legal as non-firearm personal security devices."}}}, "AK": {"name": "Alaska", "status_type": "constitutional", "age": 21, "duty": "Immediate upon contact", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["WA"], "x": 120, "y": 510, "summary": "Constitutional carry pioneer. Immediate duty to inform law enforcement upon contact.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Applies strictly to handguns."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Optional permits issued for reciprocity purposes."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "No magazine limit."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years old for concealed carry."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "No restrictions."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal since 2003."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted for 21+ without license."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted without license."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted without license."}}}, "AZ": {"name": "Arizona", "status_type": "constitutional", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["CA", "NV", "UT", "NM"], "x": 195, "y": 360, "summary": "Constitutional carry state. Issues widely recognized non-resident multiplier permits.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry includes various deadly weapons for 21+."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Non-resident permits widely honored across 30+ states."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "No state limits."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 for permitless; 19 for active military."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "No ammunition bans."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless concealed carry since 2010."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal for anyone 18+."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Allowed for self defense."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Non-firearm kinetic launcher is 100% legal."}}}, "AR": {"name": "Arkansas", "status_type": "constitutional", "age": 18, "duty": "Immediate upon contact", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["MO", "TN", "MS", "LA", "TX", "OK"], "x": 525, "y": 365, "summary": "Constitutional carry state. Duty to inform law enforcement immediately.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Firearms only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Standard and Enhanced licenses available."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "No magazine restrictions."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "18 years old."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry fully recognized."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Lawful without permit."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Lawful."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Lawful."}}}, "CA": {"name": "California", "status_type": "not_honored", "age": 21, "duty": "When requested by officer", "mag_limit": "10-round maximum", "vehicle": "Unloaded in locked container only", "open_carry": "Prohibited", "non_lethal": "Restricted (Tear gas under 2.5 oz)", "byrna": "Restricted (Chemical irritants restricted)", "neighbors": ["OR", "NV", "AZ"], "x": 95, "y": 270, "summary": "Zero reciprocity. Does not honor any out-of-state permits. Strict 10-round magazine limit.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Strictly restricted under California penal code."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Does NOT recognize any out-of-state CCW permits."}, "mag_limits": {"ans": "YES", "badge": "badge-yes", "desc": "Strict 10-round magazine limit. Severe criminal penalties for bringing magazines >10 rounds into state."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "YES", "badge": "badge-yes", "desc": "Ammunition background checks required for in-state sales. Lead-free required for hunting."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "No permitless carry. Concealed carry without CA permit is a misdemeanor/felony."}, "open_carry": {"ans": "NO", "badge": "badge-no", "desc": "Open carry is strictly prohibited in incorporated areas and most public spaces."}, "non_lethal": {"ans": "INFO", "badge": "badge-info", "desc": "Pepper spray canisters limited to 2.5 oz net weight. Tasers legal for adults."}, "byrna": {"ans": "INFO", "badge": "badge-info", "desc": "Kinetic/solid projectiles allowed; CS/tear gas rounds face strict state chemical laws."}}}, "CO": {"name": "Colorado", "status_type": "special", "age": 21, "duty": "When requested by officer", "mag_limit": "15-round limit", "vehicle": "Loaded handgun in vehicle legal", "open_carry": "Yes (except Denver)", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["WY", "NE", "KS", "OK", "NM", "UT"], "x": 305, "y": 260, "summary": "Honors RESIDENT permits only from reciprocal states for 21+. 15-round magazine limit.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Only honors permits from residents of issuing states. Does NOT honor non-resident permits."}, "mag_limits": {"ans": "YES", "badge": "badge-yes", "desc": "15-round limit on magazines manufactured after July 1, 2013."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "No hollow point bans."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Permit required for concealed carry off personal property."}, "open_carry": {"ans": "INFO", "badge": "badge-info", "desc": "Legal statewide except prohibited in Denver city/county."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal for self defense."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal non-lethal device."}}}, "CT": {"name": "Connecticut", "status_type": "not_honored", "age": 21, "duty": "When requested by officer", "mag_limit": "10-round limit", "vehicle": "Permit required to transport loaded", "open_carry": "Prohibited in public", "non_lethal": "Restricted", "byrna": "Yes", "neighbors": ["NY", "MA", "RI"], "x": 860, "y": 180, "summary": "Zero reciprocity. Must hold CT Non-Resident Pistol Permit to carry.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Zero out-of-state recognition."}, "mag_limits": {"ans": "YES", "badge": "badge-yes", "desc": "10-round capacity limitation."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years old."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "No hollow-point ban."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "No permitless carry."}, "open_carry": {"ans": "NO", "badge": "badge-no", "desc": "Open carry prohibited in public."}, "non_lethal": {"ans": "INFO", "badge": "badge-info", "desc": "Permit required for stun guns/tasers."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Allowed for personal protection."}}}, "DE": {"name": "Delaware", "status_type": "not_honored", "age": 21, "duty": "Immediate upon contact", "mag_limit": "17-round limit", "vehicle": "Must be in plain view or locked in trunk unless permitted", "open_carry": "Yes (without permit)", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["MD", "PA", "NJ"], "x": 805, "y": 235, "summary": "Does NOT honor Maryland permits! Honors Utah, Florida, and Arizona non-resident permits.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Concealed deadly weapons license covers handguns."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Delaware Attorney General explicitly DOES NOT honor Maryland CCW. It DOES honor Utah, Florida, and Arizona permits."}, "mag_limits": {"ans": "YES", "badge": "badge-yes", "desc": "17-round magazine limit (SB 6) enacted in 2022. Qualified CCW holders exempt."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age for concealed carry."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "Hollow points allowed for CCW holders."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Concealed carry requires a valid recognized license."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Open carry is constitutionally protected in DE without a permit, but highly scrutinized in New Castle County."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Pepper spray and stun guns lawful for adults."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Lawful non-firearm personal defense device."}}}, "FL": {"name": "Florida", "status_type": "constitutional", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit (handgun in closed container)", "open_carry": "Prohibited (except hunting/fishing)", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["GA", "AL"], "x": 715, "y": 515, "summary": "Constitutional carry state since July 1, 2023. Issues premier non-resident multiplier permit.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Concealed carry law applies to handguns, stun guns, tear gas, or billies."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Permits still issued and highly recommended for multi-state reciprocity (e.g. Delaware, New Mexico)."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "No magazine limit."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "Armor-piercing banned; hollow points fully legal."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "HB 543 authorized permitless concealed carry for residents and non-residents 21+."}, "open_carry": {"ans": "NO", "badge": "badge-no", "desc": "General open carry is prohibited in Florida."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Chemical dispensers under 2 oz legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Lawful non-lethal launcher."}}}, "GA": {"name": "Georgia", "status_type": "constitutional", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["FL", "AL", "TN", "NC", "SC"], "x": 675, "y": 425, "summary": "Constitutional carry state. I-95 South legal carry highway link.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns and knives over 12 inches require lawful weapons status."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Georgia Weapons Carry License (GWCL) available."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "No limit."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years old (18 for military)."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry signed in 2022."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal for any lawful weapons carrier."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}}}, "HI": {"name": "Hawaii", "status_type": "not_honored", "age": 21, "duty": "Immediate upon contact", "mag_limit": "10-round limit for handguns", "vehicle": "Unloaded in locked container only", "open_carry": "Prohibited", "non_lethal": "Restricted", "byrna": "Restricted", "neighbors": [], "x": 280, "y": 550, "summary": "Zero reciprocity. Extreme firearms registration and transport controls.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Strictly restricted."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Zero out-of-state recognition."}, "mag_limits": {"ans": "YES", "badge": "badge-yes", "desc": "10-round handgun magazine limit."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "No general hollow point ban, but transport highly regulated."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Strict licensing required."}, "open_carry": {"ans": "NO", "badge": "badge-no", "desc": "Prohibited."}, "non_lethal": {"ans": "INFO", "badge": "badge-info", "desc": "Pepper spray canisters under 0.5 oz."}, "byrna": {"ans": "INFO", "badge": "badge-info", "desc": "Requires review by Honolulu police dept."}}}, "ID": {"name": "Idaho", "status_type": "constitutional", "age": 18, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["WA", "OR", "NV", "UT", "WY", "MT"], "x": 190, "y": 140, "summary": "Constitutional carry state for 18+.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Enhanced permit available for reciprocity."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "18 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal for 18+."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "IL": {"name": "Illinois", "status_type": "not_honored", "age": 21, "duty": "Immediate upon contact", "mag_limit": "15-round handgun limit", "vehicle": "Legal in vehicle for out-of-state CCW permit holders", "open_carry": "Prohibited", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["WI", "IA", "MO", "KY", "IN"], "x": 565, "y": 255, "summary": "Does NOT honor out-of-state permits for general carry. In-vehicle carry safe harbor permitted for valid out-of-state CCW holders.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Illinois does NOT honor any other state permits. Non-residents can only obtain IL CCL if from Hawaii or Virginia."}, "mag_limits": {"ans": "YES", "badge": "badge-yes", "desc": "PICA law limits handgun magazines to 15 rounds and rifle magazines to 10 rounds."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "Hollow points legal for carry."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Concealed carry requires Illinois CCL."}, "open_carry": {"ans": "NO", "badge": "badge-no", "desc": "Open carry prohibited."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Pepper spray legal for 18+."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted non-firearm device."}}}, "IN": {"name": "Indiana", "status_type": "constitutional", "age": 18, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["MI", "OH", "KY", "IL"], "x": 615, "y": 255, "summary": "Constitutional carry state since July 1, 2022.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Optional licenses available."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "18 years old."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal for 18+."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "IA": {"name": "Iowa", "status_type": "constitutional", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["MN", "WI", "IL", "MO", "NE", "SD"], "x": 490, "y": 225, "summary": "Constitutional carry state since 2021.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Honors all other state permits."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "KS": {"name": "Kansas", "status_type": "constitutional", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["NE", "MO", "OK", "CO"], "x": 420, "y": 280, "summary": "Constitutional carry state.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Honors all 50 state permits."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 for permitless."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "KY": {"name": "Kentucky", "status_type": "constitutional", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["IN", "OH", "WV", "VA", "TN", "MO", "IL"], "x": 645, "y": 295, "summary": "Constitutional carry state.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Honors all valid out of state licenses."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "LA": {"name": "Louisiana", "status_type": "constitutional", "age": 18, "duty": "Immediate upon contact", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["AR", "MS", "TX"], "x": 540, "y": 450, "summary": "Constitutional carry state took effect July 4, 2024 for 18+.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Concealed handgun permits still available."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "18 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry signed in 2024."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "ME": {"name": "Maine", "status_type": "constitutional", "age": 21, "duty": "Immediate upon contact", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["NH"], "x": 905, "y": 80, "summary": "Constitutional carry state. Duty to inform officer immediately.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Resident and non-resident permits available."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 for permitless (18 for military)."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "MD": {"name": "Maryland", "status_type": "home_state", "age": 21, "duty": "When requested by officer", "mag_limit": "10-round purchase/transfer limit (Possession legal)", "vehicle": "Wear & Carry permit required to transport loaded", "open_carry": "Wear & Carry permit required", "non_lethal": "Yes (Pepper spray, stun guns legal)", "byrna": "Yes (Not classified as firearm)", "neighbors": ["PA", "DE", "VA", "WV", "DC"], "x": 780, "y": 255, "summary": "Headquarters of Future Initiative Firearm Services. Wear & Carry Permit issued by MSP required for public carry.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Maryland Wear & Carry Permit authorizes handguns only. Knives and other weapons subject to separate statutes."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Wear & Carry permit issued by Maryland State Police (16-hr initial course / 8-hr renewal). FIFS provides official training."}, "mag_limits": {"ans": "INFO", "badge": "badge-info", "desc": "Illegal to buy, sell, or manufacture magazines holding >10 rounds inside MD. Possession and out-of-state purchase is completely legal under MD law."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age (18 for employment-required carry)."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "Hollow-point ammunition is legal to possess and carry in Maryland by permit holders."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Permitless carry is NOT lawful in Maryland. Carrying without a valid permit is a misdemeanor/felony."}, "open_carry": {"ans": "INFO", "badge": "badge-info", "desc": "SB1 restricted open carry; concealed carry is the standard lawful method with an active Wear & Carry permit."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Pepper spray and stun guns are legal for defensive carry by adults 18+ without a permit."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Byrna kinetic and pepper launchers are non-lethal, unregulated as firearms under Maryland Public Safety Code."}}}, "MA": {"name": "Massachusetts", "status_type": "not_honored", "age": 21, "duty": "Immediate upon contact", "mag_limit": "10-round maximum", "vehicle": "LTC required (locked unless under direct control)", "open_carry": "Restricted", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["NY", "VT", "NH", "CT", "RI"], "x": 875, "y": 155, "summary": "Zero reciprocity. Mandatory minimum 18-month jail sentence for carrying without MA license.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Strict firearms laws."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Zero reciprocity. Must apply for MA Non-Resident LTC."}, "mag_limits": {"ans": "YES", "badge": "badge-yes", "desc": "10-round magazine capacity restriction."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "FID/LTC required to buy ammo."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Strict licensing required."}, "open_carry": {"ans": "NO", "badge": "badge-no", "desc": "Concealed preferred; open carry prohibited in public places."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Pepper spray legal without license."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Kinetic launchers permitted."}}}, "MI": {"name": "Michigan", "status_type": "honored", "age": 21, "duty": "Immediate upon contact", "mag_limit": "None", "vehicle": "CPL required", "open_carry": "Yes (with CPL)", "non_lethal": "Restricted", "byrna": "Yes", "neighbors": ["WI", "IN", "OH"], "x": 665, "y": 190, "summary": "Honors RESIDENT permits from all 50 states! Does not honor non-resident permits.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Pistols only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Honors resident permits from ALL states. Does NOT honor non-resident permits."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "No magazine limit."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Permit required."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Open carry lawful for CPL holders."}, "non_lethal": {"ans": "INFO", "badge": "badge-info", "desc": "Pepper spray limited to 18% OC."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}}}, "MN": {"name": "Minnesota", "status_type": "special", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Permit required", "open_carry": "Yes (with permit)", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["ND", "SD", "IA", "WI"], "x": 485, "y": 140, "summary": "Does NOT honor Maryland. Honors Utah non-resident permit!", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Department of Public Safety lists honored states. Utah is honored; MD is not."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years old."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Permit required."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Permit holders may carry open or concealed."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}}}, "MS": {"name": "Mississippi", "status_type": "constitutional", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["LA", "AR", "TN", "AL"], "x": 580, "y": 420, "summary": "Constitutional carry state.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Enhanced endorsement available."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years old."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "MO": {"name": "Missouri", "status_type": "constitutional", "age": 19, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["IA", "IL", "KY", "TN", "AR", "OK", "KS", "NE"], "x": 505, "y": 300, "summary": "Constitutional carry state for 19+.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Honors all 50 state permits."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "19 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "MT": {"name": "Montana", "status_type": "constitutional", "age": 18, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["ID", "WY", "ND", "SD"], "x": 265, "y": 105, "summary": "Constitutional carry state.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Honors most permits."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "18 years old."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "NE": {"name": "Nebraska", "status_type": "constitutional", "age": 21, "duty": "Immediate upon contact", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["SD", "IA", "MO", "KS", "CO", "WY"], "x": 405, "y": 225, "summary": "Constitutional carry state took effect September 2023. Immediate duty to inform.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "CHP permits still issued."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal since 2023."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "NV": {"name": "Nevada", "status_type": "special", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["OR", "ID", "UT", "AZ", "CA"], "x": 150, "y": 230, "summary": "Does NOT honor Maryland. Honors Utah and Arizona permits!", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Honors select states annually approved by DPS (UT, AZ, FL honored; MD not)."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Permit required."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Open carry legal without permit."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "NH": {"name": "New Hampshire", "status_type": "constitutional", "age": 18, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["VT", "ME", "MA"], "x": 860, "y": 120, "summary": "Constitutional carry state for 18+.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Pistol/revolver licenses available."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "18 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "NJ": {"name": "New Jersey", "status_type": "not_honored", "age": 21, "duty": "Immediate upon contact", "mag_limit": "10-round limit", "vehicle": "Unloaded in locked trunk only", "open_carry": "Prohibited", "non_lethal": "Restricted (0.75 oz pepper spray max)", "byrna": "Restricted (Severe chemical regulations)", "neighbors": ["NY", "PA", "DE"], "x": 825, "y": 215, "summary": "Zero reciprocity. Severe criminal penalties for carrying without NJ Permit to Carry.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Strict firearms laws."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Zero reciprocity with any state."}, "mag_limits": {"ans": "YES", "badge": "badge-yes", "desc": "Strict 10-round magazine capacity restriction."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "YES", "badge": "badge-yes", "desc": "Hollow-point ammunition illegal except for transport directly to range or inside home."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Unlawful to carry without NJ Permit to Carry."}, "open_carry": {"ans": "NO", "badge": "badge-no", "desc": "Prohibited."}, "non_lethal": {"ans": "INFO", "badge": "badge-info", "desc": "Pepper spray limited to 0.75 oz."}, "byrna": {"ans": "INFO", "badge": "badge-info", "desc": "Chemical cartridges heavily restricted."}}}, "NM": {"name": "New Mexico", "status_type": "special", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["AZ", "UT", "CO", "OK", "TX"], "x": 285, "y": 360, "summary": "Does NOT honor Maryland. Honors Florida non-resident permit!", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Honors select reciprocal states (FL honored; MD not)."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Permit required for concealed carry off property."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal without permit."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "NY": {"name": "New York", "status_type": "not_honored", "age": 21, "duty": "Immediate upon contact", "mag_limit": "10-round limit", "vehicle": "Unloaded in locked container only", "open_carry": "Prohibited", "non_lethal": "Restricted (0.75 oz pepper spray)", "byrna": "Restricted", "neighbors": ["PA", "NJ", "CT", "MA", "VT"], "x": 800, "y": 150, "summary": "Zero reciprocity. Mandatory felony charges for unlicensed carry in New York state and NYC.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Strict firearms laws."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Zero reciprocity. New York City requires separate municipal permit."}, "mag_limits": {"ans": "YES", "badge": "badge-yes", "desc": "Strict 10-round capacity limit."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "Ammunition background checks required at point of sale."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Strict licensing required under CCIA."}, "open_carry": {"ans": "NO", "badge": "badge-no", "desc": "Prohibited."}, "non_lethal": {"ans": "INFO", "badge": "badge-info", "desc": "Pepper spray must be purchased in person in NY with identity check."}, "byrna": {"ans": "INFO", "badge": "badge-info", "desc": "CO2 projectile launchers face local NYC and state restrictions."}}}, "NC": {"name": "North Carolina", "status_type": "honored", "age": 21, "duty": "Immediate upon contact", "mag_limit": "None", "vehicle": "Must be in plain view or CCW permitted", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["VA", "TN", "GA", "SC"], "x": 755, "y": 340, "summary": "HONORS MARYLAND WEAR & CARRY! Immediate duty to inform law enforcement when approached.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "YES", "badge": "badge-yes", "desc": "North Carolina honors concealed handgun permits from ALL 50 states!"}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "No magazine limit."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age for concealed handgun."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Permit required for concealed carry."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Open carry is legal without a permit for 18+."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Pepper spray and stun guns lawful."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Lawful personal defense device."}}}, "ND": {"name": "North Dakota", "status_type": "constitutional", "age": 18, "duty": "Immediate upon contact", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["MT", "SD", "MN"], "x": 405, "y": 95, "summary": "Constitutional carry state. Duty to inform officer immediately.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Firearms only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Class 1 and Class 2 permits available."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "18 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal for residents and non-residents."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "OH": {"name": "Ohio", "status_type": "constitutional", "age": 21, "duty": "Immediate upon contact", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["MI", "IN", "KY", "WV", "PA"], "x": 680, "y": 240, "summary": "Constitutional carry state since June 2022. I-70 carry route through Midwest.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "CHL licenses still issued."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal for 21+."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "OK": {"name": "Oklahoma", "status_type": "constitutional", "age": 21, "duty": "Immediate upon contact", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["KS", "MO", "AR", "TX", "NM", "CO"], "x": 435, "y": 345, "summary": "Constitutional carry state. Duty to inform officer immediately.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "SDA permits available."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years old."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "OR": {"name": "Oregon", "status_type": "not_honored", "age": 21, "duty": "When requested by officer", "mag_limit": "Pending Measure 114 (10 rounds in litigation)", "vehicle": "Unloaded in trunk or permit required", "open_carry": "Permitted except cities", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["WA", "ID", "NV", "CA"], "x": 110, "y": 145, "summary": "Zero reciprocity. Does not honor any out-of-state permits.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Zero reciprocity with any state."}, "mag_limits": {"ans": "INFO", "badge": "badge-info", "desc": "Measure 114 10-round restriction currently enjoined in state courts."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Permit required."}, "open_carry": {"ans": "INFO", "badge": "badge-info", "desc": "Allowed statewide, but local bans (Portland) prohibit open carry without CHL."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "PA": {"name": "Pennsylvania", "status_type": "special", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "PA License to Carry Firearms required to carry loaded", "open_carry": "Yes (without permit except Philadelphia)", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["NY", "NJ", "DE", "MD", "WV", "OH"], "x": 755, "y": 200, "summary": "Crucial MD Border State! MD permit not directly reciprocal for concealed carry; MD residents easily obtain $20 PA Non-Resident LTCF.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Pennsylvania LTCF covers firearms only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "PA does NOT have general reciprocity with Maryland. However, MD residents can obtain a PA Non-Resident LTCF in ~15 mins for $20 from York or Adams County sheriffs."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "No magazine limit under PA state law."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "No hollow point bans."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Permit required for concealed carry off personal property or in vehicle."}, "open_carry": {"ans": "INFO", "badge": "badge-info", "desc": "Open carry legal without permit throughout PA except in Philadelphia (City of First Class) which requires LTCF."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Pepper spray and stun guns legal for adults."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Lawful non-firearm personal security device."}}}, "RI": {"name": "Rhode Island", "status_type": "not_honored", "age": 21, "duty": "When requested by officer", "mag_limit": "10-round limit", "vehicle": "Permit required", "open_carry": "Prohibited", "non_lethal": "Restricted", "byrna": "Yes", "neighbors": ["CT", "MA"], "x": 890, "y": 175, "summary": "Zero reciprocity. Strict 10-round magazine limitation.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Zero reciprocity."}, "mag_limits": {"ans": "YES", "badge": "badge-yes", "desc": "10-round capacity limit."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Strict licensing required."}, "open_carry": {"ans": "NO", "badge": "badge-no", "desc": "Prohibited."}, "non_lethal": {"ans": "INFO", "badge": "badge-info", "desc": "Stun gun restrictions."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}}}, "SC": {"name": "South Carolina", "status_type": "constitutional", "age": 18, "duty": "Immediate upon contact", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["NC", "GA"], "x": 725, "y": 380, "summary": "Constitutional carry state took effect March 7, 2024. Immediate duty to inform.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "CWP permits still available for multi-state travel."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "18 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "HB 3594 legalized permitless carry for residents and non-residents 18+."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Open carry lawful without permit."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "SD": {"name": "South Dakota", "status_type": "constitutional", "age": 18, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["ND", "MN", "IA", "NE", "WY", "MT"], "x": 405, "y": 160, "summary": "Constitutional carry state.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Enhanced and Gold Card permits available."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "18 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "TN": {"name": "Tennessee", "status_type": "constitutional", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["KY", "VA", "NC", "GA", "AL", "MS", "AR", "MO"], "x": 625, "y": 350, "summary": "Constitutional carry state. I-40 corridor connecting East Coast to Midwest/South.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Concealed and Enhanced carry permits available."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age (18 for military)."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "TX": {"name": "Texas", "status_type": "constitutional", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes (in holster)", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["NM", "OK", "AR", "LA"], "x": 420, "y": 450, "summary": "Constitutional carry state since September 1, 2021. Firearm Carry Act.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Handguns and knives."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "LTC permits still issued for reciprocal benefits."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age (18+ under federal injunction)."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal in holster."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "UT": {"name": "Utah", "status_type": "constitutional", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["NV", "ID", "WY", "CO", "AZ", "NM"], "x": 215, "y": 240, "summary": "Constitutional carry state. Nation's gold-standard non-resident permit unlocks DE, WA, NV, MN.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Handguns."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Utah Concealed Firearm Permit (CFP) is the #1 non-resident permit for expanding reciprocity across the nation."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 for general permitless; 18 for provisional CFP."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "VT": {"name": "Vermont", "status_type": "constitutional", "age": 21, "duty": "When requested by officer", "mag_limit": "15-round handgun limit", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["NY", "NH", "MA"], "x": 840, "y": 105, "summary": "Original constitutional carry state. 15-round handgun magazine restriction.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Vermont has NEVER issued carry permits."}, "mag_limits": {"ans": "YES", "badge": "badge-yes", "desc": "15-round limit for handguns, 10 for long guns."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry has always been legal in VT."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "VA": {"name": "Virginia", "status_type": "honored", "age": 21, "duty": "Immediate upon contact", "mag_limit": "None (20+ round mag has restricted locations in certain cities)", "vehicle": "Legal in secured compartment without permit", "open_carry": "Yes (without permit 18+)", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["MD", "DC", "WV", "KY", "TN", "NC"], "x": 750, "y": 280, "summary": "HONORS MARYLAND WEAR & CARRY! Immediate neighbor for MD drivers crossing American Legion or Woodrow Wilson Bridge.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "YES", "badge": "badge-yes", "desc": "Virginia honors Maryland Wear & Carry permits for individuals 21+."}, "mag_limits": {"ans": "INFO", "badge": "badge-info", "desc": "No state limit; certain localities restrict carrying centerfire rifles/handguns with >20-round mags in public streets."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Permit required for concealed carry."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Open carry lawful without permit for 18+."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Pepper spray and stun guns legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Lawful personal defense device."}}}, "WA": {"name": "Washington", "status_type": "not_honored", "age": 21, "duty": "When requested by officer", "mag_limit": "10-round limit", "vehicle": "CPL required to carry loaded", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["OR", "ID"], "x": 130, "y": 80, "summary": "Does NOT honor MD. Honors Utah permit if resident of Utah. Strict 10-round magazine limit.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Pistols only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Does NOT honor Maryland."}, "mag_limits": {"ans": "YES", "badge": "badge-yes", "desc": "10-round magazine limit on sales/distribution."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "CPL required."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Open carry lawful without permit."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "WV": {"name": "West Virginia", "status_type": "constitutional", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["MD", "PA", "OH", "KY", "VA"], "x": 715, "y": 265, "summary": "Constitutional carry state. Key I-68 / I-70 westbound transit route for MD carriers.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "CHL licenses issued for reciprocity."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 for permitless (18-20 provisional CHL)."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal since 2016."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "WI": {"name": "Wisconsin", "status_type": "honored", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit (handgun uncased in car)", "open_carry": "Yes", "non_lethal": "Restricted", "byrna": "Yes", "neighbors": ["MN", "IA", "IL", "MI"], "x": 560, "y": 160, "summary": "HONORS MARYLAND WEAR & CARRY!", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns, electric weapons, billies."}, "licensure": {"ans": "YES", "badge": "badge-yes", "desc": "DOJ reciprocity list includes Maryland!"}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "Permit required for concealed carry off property."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal without permit."}, "non_lethal": {"ans": "INFO", "badge": "badge-info", "desc": "Pepper spray restrictions (max 10% OC)."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}}}, "WY": {"name": "Wyoming", "status_type": "constitutional", "age": 21, "duty": "When requested by officer", "mag_limit": "None", "vehicle": "Legal without permit", "open_carry": "Yes", "non_lethal": "Yes", "byrna": "Yes", "neighbors": ["MT", "ID", "UT", "CO", "NE", "SD"], "x": 280, "y": 180, "summary": "Constitutional carry state.", "statutes": {"weapons_other": {"ans": "YES", "badge": "badge-yes", "desc": "Permitted."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Honors permits from states with reciprocal agreements."}, "mag_limits": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "NO", "badge": "badge-no", "desc": "None."}, "constitutional": {"ans": "YES", "badge": "badge-yes", "desc": "Permitless carry legal."}, "open_carry": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "non_lethal": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}, "byrna": {"ans": "YES", "badge": "badge-yes", "desc": "Legal."}}}, "DC": {"name": "District of Columbia", "status_type": "not_honored", "age": 21, "duty": "Immediate upon contact", "mag_limit": "Strict 10-round limit", "vehicle": "Unloaded in locked container; no stops allowed", "open_carry": "Prohibited", "non_lethal": "Restricted (Must register pepper spray with MPD)", "byrna": "Restricted (Treated as firearm under DC code)", "neighbors": ["MD", "VA"], "x": 782, "y": 272, "summary": "ZERO reciprocity. Strict felony penalties for unlicensed firearm possession in the District. Crossing MD/VA bridges into DC without a DC Concealed Carry Pistol License is illegal.", "statutes": {"weapons_other": {"ans": "NO", "badge": "badge-no", "desc": "Handguns only."}, "licensure": {"ans": "INFO", "badge": "badge-info", "desc": "Does NOT recognize Maryland, Virginia, or any other state permits. Non-residents must apply directly to MPD for a DC CCPL."}, "mag_limits": {"ans": "YES", "badge": "badge-yes", "desc": "Strict 10-round limit. Even empty magazines over 10 rounds are illegal to possess."}, "min_age": {"ans": "INFO", "badge": "badge-info", "desc": "21 years of age."}, "ammo_rest": {"ans": "YES", "badge": "badge-yes", "desc": "Possession of ammunition without DC registration certificate is a crime."}, "constitutional": {"ans": "NO", "badge": "badge-no", "desc": "No permitless carry. Strict criminal enforcement."}, "open_carry": {"ans": "NO", "badge": "badge-no", "desc": "Strictly prohibited."}, "non_lethal": {"ans": "INFO", "badge": "badge-info", "desc": "Pepper spray must be registered with MPD at point of acquisition."}, "byrna": {"ans": "NO", "badge": "badge-no", "desc": "DC classifies CO2 projectile launchers under destructive/firearm definitions unless registered."}}}};
 
     // SVG Layout coordinates for interactive map grid (960 x 600 canvas)
-    const SVG_COORDS = {
+ 
+   const SVG_COORDS = {
       // Row 1
       AK: { x: 30, y: 35, w: 60, h: 50 },
       WA: { x: 110, y: 35, w: 60, h: 50 },
@@ -18491,8 +18668,7 @@ tById('editClientPermitState').value = c.permitState || 'Maryland Wear & Carry';
 
         // Status Symbol / Checkmark (like reference video)
         const sub = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        sub.setAttribute('class'
-, 'state-status-indicator');
+        sub.setAttribute('class', 'state-status-indicator');
         sub.setAttribute('x', coord.x + coord.w / 2);
         sub.setAttribute('y', coord.y + coord.h / 2 + 12);
         
@@ -19201,52 +19377,38 @@ function closeStateModal() {
     // Eliminates micro-interaction I/O overhead while capturing business events
     // ==========================================================================
     function logAnalyticsEvent(category, action, label) {
-      try {
-        // High-value business milestones filter
-        const highValueActions = [
-          'Course Booking Confirmed',
-          'Client Profile Registered',
-          'Live Chat Initiated',
-          'Live Chat Started'
-        ];
-
-        const isHighValue = highValueActions.includes(action) ||
-                            category === 'Conversion' ||
-                            category === 'Engagement';
-
-        if (!isHighValue) {
-          // Bypasses micro-interactions (tab switching, UI toggles, modal closes)
-          return;
-        }
-
-        const dev = typeof detectUserDevice === 'function' ? detectUserDevice() : { deviceName: 'Web Device', category: 'Standard' };
-        const entry = {
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-          category: category,
-          action: action,
-          label: label || '',
-          device: dev.deviceName || 'Web Device',
-          deviceCategory: dev.category || 'Standard',
-          timestamp: new Date().toISOString()
-        };
-
-        const log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
-        log.unshift(entry);
-        if (log.length > 50) log.pop();
-        localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
-
-        // Update action counters
-        const counts = JSON.parse(localStorage.getItem('fifs_analytics_counts') || '{}');
-        counts[action] = (counts[action] || 0) + 1;
-        localStorage.setItem('fifs_analytics_counts', JSON.stringify(counts));
-
-        // Sync with backend asynchronously if available
-        if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
-          google.script.run.logAnalyticsEvent(entry);
-        }
-      } catch (e) {
-        console.warn('Telemetry milestone notice:', e);
+      // Strictly restricted exclusively to high-value business conversion milestones
+      const highValueActions = [
+        'Course Booking Confirmed',
+        'Client Profile Registered',
+        'Live Chat Initiated'
+      ];
+      if (!highValueActions.includes(action)) {
+        return; // Zero overhead and zero I/O for all micro-interactions
       }
+
+      // Execute asynchronously in micro-task queue to eliminate main-thread blocking
+      setTimeout(function() {
+        try {
+          const entry = {
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            category: category,
+            action: action,
+            label: label || '',
+            device: (window.innerWidth <= 768 ? 'Mobile Phone' : (window.innerWidth <= 1024 ? 'Tablet / iPad' : 'Desktop / Laptop'))
+          };
+
+          const log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
+          log.unshift(entry);
+          if (log.length > 50) log.pop();
+          localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
+
+          // Background sync to GAS ledger if live
+          if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
+            google.script.run.logAnalyticsEvent(entry);
+          }
+        } catch (e) {}
+      }, 20);
     }
     window.logAnalyticsEvent = logAnalyticsEvent;
 
