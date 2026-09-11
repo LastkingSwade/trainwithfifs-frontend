@@ -5771,6 +5771,64 @@
 
     /* Natural responsive fluid layout restored */
 
+
+    /* Bulletproof Inactive Overlay Safety: Inactive overlays MUST NEVER intercept mouse/touch input */
+    .goal-modal-overlay:not(.active),
+    .fi-portal-modal-overlay:not(.active),
+    .reciprocity-hub-modal-overlay:not(.active),
+    .state-drawer-overlay:not(.active):not(.open),
+    .state-dossier-modal-overlay:not(.active) {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      z-index: -10 !important;
+    }
+
+
+    /* Authoritative Admin Command Terminal Stacking Context & Touch Responsiveness */
+    #view-admin {
+      position: relative;
+      z-index: 50 !important;
+      pointer-events: auto !important;
+    }
+    #admin-command-dashboard {
+      position: relative;
+      z-index: 60 !important;
+      pointer-events: auto !important;
+      width: 100%;
+    }
+    #admin-command-dashboard button,
+    #admin-command-dashboard a,
+    #admin-command-dashboard select,
+    #admin-command-dashboard input {
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
+      cursor: pointer;
+    }
+    .admin-view-toggle-bar,
+    .admin-view-toggle-btn {
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
+      cursor: pointer;
+      position: relative;
+      z-index: 65 !important;
+    }
+    #admin-roster-tbody tr,
+    #admin-client-tbody tr {
+      pointer-events: auto !important;
+    }
+    #admin-roster-tbody button,
+    #admin-client-tbody button,
+    #admin-roster-tbody select,
+    #admin-client-tbody select {
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
+      cursor: pointer;
+      position: relative;
+      z-index: 70 !important;
+    }
+
 </style>
 <script>
 
@@ -5926,8 +5984,7 @@
       currentActiveView = tab;
       window.currentActiveView = tab;
       rawSwitchTab(tab);
-      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Navigation', 'Switch Tab', tab);
-    }
+      }
     window.switchTab = switchTab;
 
     function openAndSwitch(tabId) {
@@ -5972,8 +6029,7 @@
           }
         }
         try { window.scrollTo(0, 0); } catch (e) {}
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Navigation', 'Open Section from Landing', tabId);
-      } catch (err) {
+        } catch (err) {
         console.error('Error in openAndSwitch:', err);
       }
     }
@@ -6021,8 +6077,7 @@
         });
 
         try { window.scrollTo(0, 0); } catch (e) {}
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Navigation', 'Return Home', 'Landing Page');
-      } catch (err) {
+        } catch (err) {
         console.error('Error in returnToHome:', err);
       }
     }
@@ -6094,8 +6149,7 @@
       } catch (err) {
         console.error('Error opening contact modal:', err);
       }
-      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Communication', 'Open Contact Modal', 'Widget');
-    }
+      }
     window.openContactWidgetModal = openContactWidgetModal;
 
     function closeContactWidgetModal() {
@@ -7108,6 +7162,8 @@
 
       // 2. Immediately close contact form and open Two-Way Chat window
       closeContactWidgetModal();
+      logAnalyticsEvent('Engagement', 'Live Chat Initiated', );
+      logAnalyticsEvent('Engagement', 'Live Chat Initiated', name + ' (' + phone + ')');
       openTwoWayChat(name, phone, msg);
 
       if (btn) {
@@ -8322,8 +8378,7 @@
           btnAnalytics.style.boxShadow = '0 0 18px var(--accent-amber-glow)';
         }
         if (typeof renderAdminAnalyticsDashboard === 'function') renderAdminAnalyticsDashboard();
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Website Telemetry');
-      } else if (tab === 'clients') {
+        } else if (tab === 'clients') {
         if (subClients) subClients.style.setProperty('display', 'block', 'important');
         if (btnClients) {
           btnClients.classList.add('active');
@@ -8332,8 +8387,7 @@
           btnClients.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
         }
         renderAdminClientTerminal({ clients: adminCachedClients });
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Client Roster');
-      } else {
+        } else {
         if (subRoster) subRoster.style.setProperty('display', 'block', 'important');
         if (btnRoster) {
           btnRoster.classList.add('active');
@@ -8341,8 +8395,7 @@
           btnRoster.style.color = '#070b10';
           btnRoster.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
         }
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Student Operations');
-      }
+        }
     }
     window.switchAdminTab = switchAdminTab;
 
@@ -8700,8 +8753,7 @@
             selectCourse(config.vipValue);
           };
         }
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Course Selection', 'Toggle VIP Crown', courseKey);
-      } else {
+        } else {
         card.classList.remove('vip-mode-active');
         card.style.setProperty('background', '#0d121a', 'important');
         card.style.setProperty('border', '1px solid rgba(0, 229, 255, 0.35)', 'important');
@@ -8712,7 +8764,8 @@
         if (vipBox) vipBox.style.setProperty('display', 'none', 'important');
 
         if (priceElem) {
-          priceElem.innerHTML = `
+      
+    priceElem.innerHTML = `
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">${config.basePrice}</span>
             <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>
           `;
@@ -8728,9 +8781,7 @@
             selectCourse(config.baseValue);
           };
         }
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Course Selection', 'Togg
-le Base Mode', courseKey);
-      }
+        }
     }
     window.setCardTier = setCardTier;
 
@@ -9326,7 +9377,7 @@ le Base Mode', courseKey);
 </div>
 </section>
 <!-- ================= SCREEN 2: MAIN TRAINING PORTAL & BUSINESS SYSTEM ================= -->
-<div class="container" id="app-container" style="display: none;">
+<div class="container" id="app-container">
 <header class="app-header">
 <div class="brand-identity-group" onclick="returnToHome()" style="cursor: pointer;" title="Return to Main Home">
 <img alt="Future Initiative Logo" class="app-nav-logo" src="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&amp;sz=w500"/>
@@ -11544,8 +11595,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
       }
       currentActiveView = tab;
       rawSwitchTab(tab);
-      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Navigation', 'Switch Tab', tab);
-    }
+      }
     window.switchTab = switchTab;
 
     function openAndSwitch(tabId) {
@@ -11580,8 +11630,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
         }
 
         rawSwitchTab(tabId);
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Navigation', 'Open Section from Landing', tabId);
-      } catch (err) {
+        } catch (err) {
         console.error('Error in openAndSwitch:', err);
       }
     }
@@ -11621,7 +11670,6 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
             panel.style.setProperty('display', 'none', 'important');
           }
         });
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Navigation', 'Return Home', 'Landing Page');
         try { window.scrollTo(0, 0); } catch (e) {}
       } catch (err) {
         console.error('Error in returnToHome:', err);
@@ -12684,8 +12732,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           btnAnalytics.style.boxShadow = '0 0 18px rgba(255, 183, 3, 0.45)';
         }
         renderAdminAnalyticsDashboard();
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Website Telemetry');
-      } else if (tab === 'clients') {
+        } else if (tab === 'clients') {
         if (subClients) subClients.style.display = 'block';
         if (btnClients) {
           btnClients.classList.add('active');
@@ -12694,8 +12741,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           btnClients.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
         }
         renderAdminClientTerminal();
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Client Roster');
-      } else {
+        } else {
         if (subRoster) subRoster.style.display = 'block';
         if (btnRoster) {
           btnRoster.classList.add('active');
@@ -12704,8 +12750,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           btnRoster.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
         }
         renderAdminTerminal();
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Command', 'Switch Tab', 'Student Roster');
-      }
+        }
     }
     window.switchAdminTab = switchAdminTab;
 
@@ -12813,8 +12858,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       var airlineRules = "";
       if (airline.indexOf("Delta") !== -1) {
-        airlineRules = "Delta requires declaration at main ticket counter. Firearm cases receive yellow/orange high-security BSO barcode tags. At arrival, luggage is delivered directly to the locked Bagg
-age Service Office (BSO), not standard baggage carousel.";
+        airlineRules = "Delta requires declaration at main ticket counter. Fir
+earm cases receive yellow/orange high-security BSO barcode tags. At arrival, luggage is delivered directly to the locked Baggage Service Office (BSO), not standard baggage carousel.";
       } else if (airline.indexOf("Southwest") !== -1) {
         airlineRules = "Southwest allows 2 free checked bags (firearm case inside standard suitcase counts as 1 bag). Declare at ticket counter. Ammunition allowed in original packaging up to 11 lbs.";
       } else if (airline.indexOf("American") !== -1) {
@@ -12859,8 +12904,7 @@ age Service Office (BSO), not standard baggage carousel.";
 
       resBox.style.display = 'block';
       resBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Travel Tool', 'Generated Flight Briefing', dep + '-' + dest);
-    }
+      }
     window.generateFlightBriefingPacket = generateFlightBriefingPacket;
 
     function handleSmsAlertSubmit(e) {
@@ -12896,8 +12940,7 @@ age Service Office (BSO), not standard baggage carousel.";
         showStatus(st, "SMS Renewal Watch active for " + phone + "! You will receive notifications at 120, 90, 60, and 30 days.", "success");
       }, 500);
 
-      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Client Portal', 'Activated SMS Renewal Watch', phone);
-    }
+      }
     window.handleSmsAlertSubmit = handleSmsAlertSubmit;
 
     
@@ -12953,8 +12996,6 @@ age Service Office (BSO), not standard baggage carousel.";
         google.script.run.handleLeadMagnetSubmission({ fullName: name, email: email, source: '50-State Reciprocity Hub Lead Magnet' });
       }
 
-      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Lead Magnet', 'Downloaded Travel Guide', email);
-
       setTimeout(function() {
         showStatus(st, 'Success! Download starting. Thank you for training with Future Initiative.', 'success');
         window.open('https://drive.google.com/file/d/1WIoQO00ALNalIuTjSNacZbBNLYIrVHGN/view?usp=sharing', '_blank');
@@ -12977,8 +13018,7 @@ age Service Office (BSO), not standard baggage carousel.";
       } else {
         alert(`Range Day Briefing dispatched to ${s ? s.email : 'student'}! Includes Cindy's Hot Shots directions and zero-ammo policy.`);
       }
-      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Dispatch', 'Range Day Briefing Dispatched', studentId);
-    }
+      }
     window.dispatchRangeBriefing = dispatchRangeBriefing;
 
     function dispatchReviewRequest(studentId) {
@@ -12994,8 +13034,7 @@ age Service Office (BSO), not standard baggage carousel.";
       } else {
         alert(`Google Review acceleration email sent to ${s ? s.email : 'student'} with direct 1-click link!`);
       }
-      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Admin Dispatch', 'Google Review Request Dispatched', studentId);
-    }
+      }
     window.dispatchReviewRequest = dispatchReviewRequest;
 
 
@@ -13008,8 +13047,7 @@ age Service Office (BSO), not standard baggage carousel.";
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
       }
-      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Client Portal', 'Open Vehicle Travel Modal', 'FOPA Guide');
-    }
+      }
     window.openVehicleTravelModal = openVehicleTravelModal;
 
     function closeVehicleTravelModal() {
@@ -13030,8 +13068,7 @@ age Service Office (BSO), not standard baggage carousel.";
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
       }
-      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Client Portal', 'Open Flying Firearm Modal', 'TSA Guide');
-    }
+      }
     window.openFlyingWithFirearmModal = openFlyingWithFirearmModal;
 
     function closeFlyingWithFirearmModal() {
@@ -13056,8 +13093,7 @@ age Service Office (BSO), not standard baggage carousel.";
           document.body.style.overflow = 'hidden';
         }
       }
-      if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Client Portal', 'Open Client Profile Modal', 'Registry');
-    }
+      }
     window.openClientProfileModal = openClientProfileModal;
 
     function closeClientProfileModal() {
@@ -13634,8 +13670,7 @@ age Service Office (BSO), not standard baggage carousel.";
           localStorage.setItem('fifs_visitor_id', visitorId);
           let vCount = parseInt(localStorage.getItem('fifs_unique_visitors_count') || '0', 10) + 1;
           localStorage.setItem('fifs_unique_visitors_count', vCount.toString());
-          if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Visitor', 'New Unique Visitor', visitorId);
-        }
+          }
         let pvCount = parseInt(localStorage.getItem('fifs_pageviews_count') || '0', 10) + 1;
         localStorage.setItem('fifs_pageviews_count', pvCount.toString());
       } catch(e) {}
@@ -17012,8 +17047,7 @@ age Service Office (BSO), not standard baggage carousel.";
             selectCourse(config.vipValue);
           };
         }
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Course Selection', 'Toggle VIP Crown', courseKey);
-      } else {
+        } else {
         // RETURN TO BASE MODE
         card.classList.remove('vip-mode-active');
         card.style.setProperty('background', '#0d131b', 'important');
@@ -17041,8 +17075,7 @@ age Service Office (BSO), not standard baggage carousel.";
             selectCourse(config.baseValue);
           };
         }
-        if (typeof logAnalyticsEvent === 'function') logAnalyticsEvent('Course Selection', 'Toggle Base Mode', courseKey);
-      }
+        }
     }
     window.setCardTier = setCardTier;
 
@@ -18515,8 +18548,7 @@ age Service Office (BSO), not standard baggage carousel.";
         byrna: "BYRNA'S / KINETIC DEFENSE LAUNCHERS?"
       };
 
-      const statutes = state.st
-atutes || {};
+      const statutes = state.statutes || {};
       Object.keys(statuteLabels).forEach(key => {
         const item = statutes[key] || { ans: 'INFO', badge: 'badge-info', desc: 'Refer to state code.' };
         const label = statuteLabels[key];
@@ -18539,7 +18571,8 @@ atutes || {};
       // Populate Tab 2 & 3 text
       document.getElementById('modalStatuteReciprocityText').textContent = state.summary || 'Statutes updated for 2026.';
       document.getElementById('modalDutyToInformText').textContent = state.duty || 'Refer to officer instruction.';
-      document.getElementById('modalMagAmmoText').textContent = 'Handgun Magazine Restrictions: ' + (state.mag_limit || 'None') + '. Ammunition: Standard defensive hollow-point rounds are lawful unless specifically restricted on public transport.';
+      document.getElementById('modalMagAmmoText').textContent = 'Handgun Magazine Restrictions: ' + (state.mag_limit || 'None') + '. Ammunition: Standard defens
+ive hollow-point rounds are lawful unless specifically restricted on public transport.';
       document.getElementById('modalVehicleCarryText').textContent = state.vehicle || 'Handgun in vehicle permitted with valid recognized license or under FOPA safe harbor.';
 
       switchModalTab('basics');
@@ -20048,7 +20081,7 @@ function closeStateModal() {
 
             <!-- Calendar Days Grid -->
             <div id="bookingCalDaysGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border-subtle); border: 1px solid var(--border-subtle); border-radius: 0 0 8px 8px; overflow: hidden;">
-              <!-- Dy
+              <!-- Dynamically populated via renderBookingCalendar() -->
 <div style="background: #070b10; min-height: 42px;"></div>
 <div style="background: #070b10; min-height: 42px;"></div>
 <div style="background: #070b10; min-height: 42px;"></div>
@@ -20572,18 +20605,52 @@ function closeStateModal() {
 </div>
 </div></div>
 
-</div></div>
+<!-- Floating Contact & Live Chat Trigger Pill -->
+
+
+<!-- ================= MODAL: DIRECT CONTACT & LIVE CHAT (9AM - 5PM EST) ================= -->
+<div class="goal-modal-overlay" id="contactInstructorModal" onclick="if(event.target===this) closeContactWidgetModal()" style="display: none;">
+<div aria-labelledby="contactModalTitle" aria-modal="true" class="goal-modal-box" onclick="event.stopPropagation()" role="dialog" style="max-width: 620px; border-color: var(--accent-cyan); box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 35px var(--accent-cyan-glow);">
+<button aria-label="Close contact options" class="goal-modal-close-btn" onclick="closeContactWidgetModal()" type="button">✕</button>
+<div>
+<span class="goal-header-badge">FUTURE INITIATIVE DIRECT DISPATCH</span>
+</div>
+<h3 class="goal-modal-title" id="contactModalTitle" style="color: #fff; margin: 4px 0 2px; font-size: 1.8rem; text-transform: uppercase;">
+        💬 Connect With Lead Instructor Kai Wade
+      </h3>
+<p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5;">
+        Direct line to Coach Kai Wade. Have questions about course prerequisites, equipment compliance, or class schedules? Connect directly below.
+      </p>
+<!-- 3 Communication Channels Grid -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+<div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px; text-align: center;">
+<span style="font-size: 1.8rem; display: block; margin-bottom: 4px;">📞</span>
+<strong style="color: #fff; font-family: var(--font-display); font-size: 1.05rem; display: block;">Direct Telephone</strong>
+<span style="font-size: 0.76rem; color: var(--text-muted); display: block; margin: 2px 0 10px;">Range Office &amp; Scheduling Line</span>
+<a class="btn-spark" href="tel:4439901304" style="text-decoration: none; padding: 8px 14px; font-size: 0.85rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; width: 100%;">
+            📞 Call (443) 990-1304
+          </a>
+</div>
+<div style="background: #070b10; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px; text-align: center;">
+<span style="font-size: 1.8rem; display: block; margin-bottom: 4px;">✉️</span>
+<strong style="color: #fff; font-family: var(--font-display); font-size: 1.05rem; display: block;">Official Email</strong>
+<span style="font-size: 0.76rem; color: var(--text-muted); display: block; margin: 2px 0 10px;">Inquiries &amp; Paperwork Audits</span>
+<a class="btn-spark" href="mailto:info@trainwithfifs.com" style="text-decoration: none; padding: 8px 14px; font-size: 0.85rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; width: 100%; border-color: var(--accent-amber); color: var(--accent-amber);">
+            ✉️ Email Instructor
+          </a>
+</div>
+</div>
 <!-- Priority Live Chat Channel (Active 9 AM - 5 PM EST) -->
 <div style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, #070b10 100%); border: 1.5px solid var(--accent-cyan); border-radius: 12px; padding: 18px 20px;">
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
 <div style="display: flex; align-items: center; gap: 8px;">
 <span class="pulse-dot" id="liveChatPulseDot" style="width: 8px; height: 8px;"></span>
-<strong style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; text-transform: uppercase;">💬 Chat</strong>
+<strong style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; text-transform: uppercase;">💬 Priority Live Range Chat</strong>
 </div>
 <span id="liveChatOperatingTag" style="font-size: 0.74rem; font-weight: 800; text-transform: uppercase; color: var(--accent-cyan);">Active 9 AM – 5 PM EST</span>
 </div>
 <p id="liveChatStatusDescription" style="font-size: 0.82rem; color: #cbd5e1; margin-bottom: 12px; line-height: 1.45;">
-          Direct 2-way live chat with Coach Kai Wade. Send your initial message below to open our live communication window.
+          Direct dispatch to Coach Kai Wade. Messages submitted during business hours trigger instant priority notification.
         </p>
 <form id="liveChatDispatchForm" onsubmit="handleLiveChatSubmit(event)">
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
@@ -20592,7 +20659,7 @@ function closeStateModal() {
 </div>
 <textarea id="chatMessageText" placeholder="How can Coach Wade assist you today? (Course dates, equipment questions, etc.)" required="" rows="2" style="background: #10161f; border: 1px solid var(--border-subtle); color: #fff; padding: 10px; border-radius: 8px; width: 100%; font-family: inherit; font-size: 0.88rem; margin-bottom: 10px;"></textarea>
 <button class="btn-primary" id="btn-send-chat" style="width: 100%; padding: 11px; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;" type="submit">
-            💬 Send Message & Open Live Chat →
+            🚀 Dispatch Live Chat Message →
           </button>
 <div class="status-msg" id="chat-dispatch-status" style="margin-top: 10px; display: none;"></div>
 </form>
@@ -20767,60 +20834,3 @@ function closeStateModal() {
 
 </body>
 </html>
-    /* Bulletproof Inactive Overlay Safety: Inactive overlays MUST NEVER intercept mouse/touch input */
-    .goal-modal-overlay:not(.active),
-    .fi-portal-modal-overlay:not(.active),
-    .reciprocity-hub-modal-overlay:not(.active),
-    .state-drawer-overlay:not(.active):not(.open),
-    .state-dossier-modal-overlay:not(.active) {
-      display: none !important;
-      opacity: 0 !important;
-      visibility: hidden !important;
-      pointer-events: none !important;
-      z-index: -10 !important;
-    }
-
-    /* Authoritative Admin Command Terminal Stacking Context & Touch Responsiveness */
-    #view-admin {
-      position: relative;
-      z-index: 50 !important;
-      pointer-events: auto !important;
-    }
-    #admin-command-dashboard {
-      position: relative;
-      z-index: 60 !important;
-      pointer-events: auto !important;
-      width: 100%;
-    }
-    #admin-command-dashboard button,
-    #admin-command-dashboard a,
-    #admin-command-dashboard select,
-    #admin-command-dashboard input {
-      pointer-events: auto !important;
-      touch-action: manipulation !important;
-      cursor: pointer;
-    }
-    .admin-view-toggle-bar,
-    .admin-view-toggle-btn {
-      pointer-events: auto !important;
-      touch-action: manipulation !important;
-      cursor: pointer;
-      position: relative;
-      z-index: 65 !important;
-    }
-    #admin-roster-tbody tr,
-    #admin-client-tbody tr {
-      pointer-events: auto !important;
-    }
-    #admin-roster-tbody button,
-    #admin-client-tbody button,
-    #admin-roster-tbody select,
-    #admin-client-tbody select {
-      pointer-events: auto !important;
-      touch-action: manipulation !important;
-      cursor: pointer;
-      position: relative;
-      z-index: 70 !important;
-    }
-
-    
