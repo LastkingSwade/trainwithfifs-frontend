@@ -6677,11 +6677,40 @@
     };
     window.FORM_COURSE_PRICING = FORM_COURSE_PRICING;
 
-    // Secure stub: Webhook alerts handled server-side in Code.gs
-function sendClientDiscordAlert(title, description, fields, colorInt) {
-  console.log('[FIFS Operational Alert] ' + title);
-}
-window.sendClientDiscordAlert = sendClientDiscordAlert;
+    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1547779726746320958/nu4yar-r8aR3c6-P-mm8YeprX5bou1uqej24tEuYhNS5LVusMuBtADVcv1vf1oJp_bum";
+    window.DISCORD_WEBHOOK_URL = DISCORD_WEBHOOK_URL;
+
+    function sendClientDiscordAlert(title, description, fields, colorInt) {
+      try {
+        if (!DISCORD_WEBHOOK_URL) return;
+        const payload = {
+          username: "FIFS Command Center",
+          avatar_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w256",
+          embeds: [{
+            title: title || "FIFS Operational Notification",
+            description: description || "",
+            color: colorInt || 0x00E5FF,
+            fields: fields || [],
+            footer: {
+              text: "Future Initiative Firearm Services • trainwithfifs.com",
+              icon_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w128"
+            },
+            timestamp: new Date().toISOString()
+          }]
+        };
+
+        fetch(DISCORD_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }).catch(function(err) {
+          console.log("Discord alert delivery notice:", err);
+        });
+      } catch (e) {
+        console.log("Discord notification catch:", e);
+      }
+    }
+    window.sendClientDiscordAlert = sendClientDiscordAlert;
 
     function isLiveChatActiveNow() {
       try {
@@ -12301,11 +12330,39 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
     // ==========================================================================
     // DISCORD WEBHOOK REAL-TIME OPERATIONAL ALERT ENGINE
     // ==========================================================================
-    // Secure stub: Webhook alerts handled server-side in Code.gs
-function sendClientDiscordAlert(title, description, fields, colorInt) {
-  console.log('[FIFS Operational Alert] ' + title);
-}
-window.sendClientDiscordAlert = sendClientDiscordAlert;
+    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1547779726746320958/nu4yar-r8aR3c6-P-mm8YeprX5bou1uqej24tEuYhNS5LVusMuBtADVcv1vf1oJp_bum";
+
+    function sendClientDiscordAlert(title, description, fields, colorInt) {
+      try {
+        if (!DISCORD_WEBHOOK_URL) return;
+        const payload = {
+          username: "FIFS Command Center",
+          avatar_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w256",
+          embeds: [{
+            title: title || "FIFS Operational Notification",
+            description: description || "",
+            color: colorInt || 0x00E5FF,
+            fields: fields || [],
+            footer: {
+              text: "Future Initiative Firearm Services • trainwithfifs.com",
+              icon_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w128"
+            },
+            timestamp: new Date().toISOString()
+          }]
+        };
+
+        fetch(DISCORD_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }).catch(function(err) {
+          console.log("Discord alert delivery notice:", err);
+        });
+      } catch (e) {
+        console.log("Discord notification catch:", e);
+      }
+    }
+    window.sendClientDiscordAlert = sendClientDiscordAlert;
 
     // ==========================================================================
     // STREAMLINED TELEMETRY ENGINE (FOCUSED STRICTLY ON HIGH-VALUE MILESTONES)
@@ -15182,167 +15239,205 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
   
   
 
+    // Global variable to store active invoice payload
+    window.currentInvoiceData = null;
+
     function submitBooking(e) {
-
       e.preventDefault();
+      const form = document.getElementById("booking-form");
+      const submitBtn = document.getElementById("btn-booking-submit");
+      const statusDiv = document.getElementById("booking-status");
 
-      const form = document.getElementById('booking-form');
-
-      const submitBtn = document.getElementById('btn-booking-submit');
-
-      const statusDiv = document.getElementById('booking-status');
-
-  
-  
-  
-  
-  
-  
-  
-  
+      const selectedCourse = form.courseSelection ? form.courseSelection.value : "";
+      const priceMatch = selectedCourse.match(/\$(\d+(?:\.\d{2})?)/);
+      const extractedAmount = priceMatch ? ("$" + priceMatch[1]) : "$249.99";
 
       const payload = {
-
-        courseSelection: form.courseSelection.value,
-
-        fullName: form.fullName.value.trim(),
-
-        email: form.email.value.trim(),
-
-        phone: form.phone.value.trim(),
-
-        preferredDates: form.preferredDates.value.trim(),
-
-        groupSize: form.groupSize.value,
-
-        comments: form.comments.value.trim()
-
+        courseSelection: selectedCourse,
+        fullName: form.fullName ? form.fullName.value.trim() : "",
+        email: form.email ? form.email.value.trim() : "",
+        phone: form.phone ? form.phone.value.trim() : "",
+        preferredDates: form.preferredDates ? form.preferredDates.value.trim() : "",
+        groupSize: form.groupSize ? form.groupSize.value : "1",
+        comments: form.comments ? form.comments.value.trim() : "",
+        amount: extractedAmount
       };
 
-  
-  
-  
-  
-  
-  
-  
-  
-
-      submitBtn.disabled = true;
-
-      showStatus(statusDiv, 'Registering student session with Future Initiative...', 'success');
-      logAnalyticsEvent('Conversion', 'Course Booking Confirmed', `${payload.fullName} - ${payload.courseSelection}`);
-
-      // 1. Discord Webhook Alert: New Class Booking
-      sendClientDiscordAlert(
-        "🎯 New Class Booking: " + payload.fullName,
-        "A student has submitted a new class reservation on **trainwithfifs.com**.",
-        [
-          { name: "Student Name", value: payload.fullName, inline: true },
-          { name: "Contact Details", value: payload.email + " • " + payload.phone, inline: true },
-          { name: "Selected Curriculum", value: payload.courseSelection, inline: false },
-          { name: "Requested Date", value: payload.preferredDates || "Flexible / To Be Scheduled", inline: true },
-          { name: "Group Format", value: payload.groupSize || "1 (Private One-on-One)", inline: true },
-          { name: "Student Notes", value: payload.comments || "None", inline: false }
-        ],
-        0x00E5FF
-      );
-
-  
-  
-  
-  
-  
-  
-  
-  
-
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-
-        google.script.run
-
-          .withSuccessHandler(function(res) {
-
-            submitBtn.disabled = false;
-
-            if (res && res.status === 'success') {
-
-              showStatus(statusDiv, 'Registration Confirmed! Your Student ID is ' + res.studentId + '. Opening Student Portal...', 'success');
-              try {
-                localStorage.setItem('fifs_new_student_alert', JSON.stringify({
-                  name: payload.fullName,
-                  course: payload.courseSelection,
-                  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                  id: res.studentId
-                }));
-              } catch(e) {}
-
-              form.reset();
-
-              setTimeout(function() {
-
-                switchTab('portal');
-
-                const authInput = document.getElementById('studentAuthInput');
-
-                if (authInput) authInput.value = res.studentId;
-
-                lookupStudentAccount();
-
-              }, 1800);
-
-            } else {
-
-              showStatus(statusDiv, res.message || 'Submission failed. Please try again.', 'error');
-
-            }
-
-          })
-
-          .withFailureHandler(function(err) {
-
-            submitBtn.disabled = false;
-
-            showStatus(statusDiv, 'Error connecting to registration server. Please call (443) 990-1304.', 'error');
-
-          })
-
-          .handleBookingSubmission(payload);
-
-      } else {
-
-        setTimeout(function() {
-
-          submitBtn.disabled = false;
-
-          const simId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000);
-
-          showStatus(statusDiv, 'Registration Confirmed! Your Student ID is ' + simId + ' (Demo). Opening Student Portal...', 'success');
-
-          form.reset();
-
-          setTimeout(function() {
-
-            switchTab('portal');
-
-            lookupStudentAccount();
-
-          }, 1500);
-
-        }, 600);
-
+      if (!payload.fullName || !payload.email || !payload.phone) {
+        showStatus(statusDiv, "Please provide your full name, email, and phone number.", "error");
+        return;
       }
 
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = "<span>⏳ Preparing Registration & Invoice...</span>";
+      showStatus(statusDiv, "Registering student session with Future Initiative...", "success");
+
+      if (typeof google !== "undefined" && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = "<span>Reserve Booking Now →</span>";
+
+            if (res && res.status === "success") {
+              payload.studentId = res.studentId;
+              payload.invoiceId = "INV-FIFS-" + Math.floor(100000 + Math.random() * 900000);
+              window.currentInvoiceData = payload;
+
+              // 1. Close Booking Modal cleanly
+              if (typeof closeCourseBookingModal === "function") {
+                closeCourseBookingModal();
+              }
+
+              // 2. Open Auto-Generated Invoice Modal
+              displayGeneratedInvoice(payload);
+              form.reset();
+            } else {
+              showStatus(statusDiv, res.message || "Submission failed. Please try again.", "error");
+            }
+          })
+          .withFailureHandler(function(err) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = "<span>Reserve Booking Now →</span>";
+            showStatus(statusDiv, "Error connecting to registration server. Please call (443) 990-1304.", "error");
+          })
+          .handleBookingSubmission(payload);
+      } else {
+        setTimeout(function() {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = "<span>Reserve Booking Now →</span>";
+          payload.studentId = "FIFS-" + Math.floor(1000 + Math.random() * 9000);
+          payload.invoiceId = "INV-FIFS-" + Math.floor(100000 + Math.random() * 900000);
+          window.currentInvoiceData = payload;
+
+          if (typeof closeCourseBookingModal === "function") {
+            closeCourseBookingModal();
+          }
+          displayGeneratedInvoice(payload);
+          form.reset();
+        }, 500);
+      }
     }
 
-  
-  
-  
-  
-  
-  
-  
-  
+    function displayGeneratedInvoice(data) {
+      const invIdElem = document.getElementById("inv-display-id");
+      if (invIdElem) invIdElem.textContent = data.invoiceId;
+
+      const stuIdElem = document.getElementById("inv-display-student-id");
+      if (stuIdElem) stuIdElem.textContent = data.studentId;
+
+      const nameElem = document.getElementById("inv-display-name");
+      if (nameElem) nameElem.textContent = data.fullName;
+
+      const emailElem = document.getElementById("inv-display-email");
+      if (emailElem) emailElem.textContent = data.email;
+
+      const phoneElem = document.getElementById("inv-display-phone");
+      if (phoneElem) phoneElem.textContent = data.phone;
+
+      const dateElem = document.getElementById("inv-display-date");
+      if (dateElem) dateElem.textContent = data.preferredDates || "To Be Arranged";
+
+      const courseElem = document.getElementById("inv-display-course");
+      if (courseElem) courseElem.textContent = data.courseSelection;
+
+      const amountElem = document.getElementById("inv-display-amount");
+      if (amountElem) amountElem.textContent = data.amount;
+
+      const totalElem = document.getElementById("inv-display-total");
+      if (totalElem) totalElem.textContent = data.amount;
+
+      const confirmBtn = document.getElementById("btn-confirm-invoice");
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = "<span>Confirm &amp; Dispatch Invoice to Email ✉️</span>";
+      }
+
+      const statusDiv = document.getElementById("invoice-dispatch-status");
+      if (statusDiv) statusDiv.style.display = "none";
+
+      const modal = document.getElementById("fifsInvoiceModal");
+      if (modal) {
+        modal.style.setProperty("display", "flex", "important");
+        modal.classList.add("active");
+        document.body.classList.add("modal-open");
+        document.body.style.overflow = "hidden";
+      }
+    }
+
+    function closeInvoiceModal() {
+      const modal = document.getElementById("fifsInvoiceModal");
+      if (modal) {
+        modal.style.setProperty("display", "none", "important");
+        modal.classList.remove("active");
+      }
+      document.body.classList.remove("modal-open");
+      document.body.style.overflow = "";
+    }
+
+    function confirmAndSendInvoiceAction() {
+      if (!window.currentInvoiceData) return;
+      const confirmBtn = document.getElementById("btn-confirm-invoice");
+      const statusDiv = document.getElementById("invoice-dispatch-status");
+
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = "<span>⏳ Dispatching Copies to Student &amp; Instructor...</span>";
+      }
+      if (statusDiv) {
+        statusDiv.style.display = "block";
+        statusDiv.className = "status-msg success";
+        statusDiv.textContent = "Recording invoice and sending emails...";
+      }
+
+      if (typeof google !== "undefined" && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (confirmBtn) confirmBtn.disabled = false;
+            if (res && res.status === "success") {
+              if (confirmBtn) {
+                confirmBtn.innerHTML = "<span>✅ Confirmed &amp; Dispatched!</span>";
+                confirmBtn.style.background = "#10b981";
+              }
+              if (statusDiv) statusDiv.textContent = res.message;
+
+              setTimeout(function() {
+                closeInvoiceModal();
+                if (typeof switchTab === "function") switchTab("portal");
+                const authInput = document.getElementById("studentAuthInput");
+                if (authInput) authInput.value = window.currentInvoiceData.studentId;
+                if (typeof lookupStudentAccount === "function") lookupStudentAccount();
+              }, 2200);
+            } else {
+              if (confirmBtn) confirmBtn.innerHTML = "<span>Confirm &amp; Dispatch Invoice to Email ✉️</span>";
+              if (statusDiv) {
+                statusDiv.className = "status-msg error";
+                statusDiv.textContent = (res && res.message) ? res.message : "Failed to dispatch invoice. Please try again.";
+              }
+            }
+          })
+          .withFailureHandler(function(err) {
+            if (confirmBtn) {
+              confirmBtn.disabled = false;
+              confirmBtn.innerHTML = "<span>Confirm &amp; Dispatch Invoice to Email ✉️</span>";
+            }
+            if (statusDiv) {
+              statusDiv.className = "status-msg error";
+              statusDiv.textContent = "Server connection error. Please call (443) 990-1304.";
+            }
+          })
+          .handleConfirmAndSendInvoice(window.currentInvoiceData);
+      } else {
+        setTimeout(function() {
+          if (confirmBtn) {
+            confirmBtn.innerHTML = "<span>✅ Confirmed &amp; Dispatched (Demo)!</span>";
+            confirmBtn.style.background = "#10b981";
+          }
+          if (statusDiv) {
+            statusDiv.textContent = "Invoice confirmed! Dispatched copies to " + window.currentInvoiceData.email + " and Instructor Kai Wade.";
+          }
+        }, 800);
+      }
+    }
 
     function showStatus(elem, text, type) {
 
@@ -21112,54 +21207,85 @@ function closeStateModal() {
 </div>
 
 
-<!-- ================= BOOKING SUCCESS & CELEBRATION MODAL ================= -->
-<div id="bookingCelebrationModal" style="display: none; position: fixed; inset: 0; background: rgba(7, 11, 16, 0.95); z-index: 99999; align-items: center; justify-content: center; padding: 20px;">
-  <div style="background: #10161f; border: 1px solid #00e5ff; border-radius: 12px; max-width: 500px; width: 100%; padding: 32px; box-shadow: 0 0 35px rgba(0, 229, 255, 0.25); text-align: center;">
-    <div style="font-size: 48px; margin-bottom: 12px;">🎯</div>
-    <h2 style="font-family: 'Rajdhani', sans-serif; font-size: 28px; color: #fff; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Registration Confirmed</h2>
-    <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 24px;">Your student intake file has been generated. An email confirmation has been dispatched to your inbox.</p>
+<!-- AUTO-GENERATED INVOICE MODAL -->
+<div id="fifsInvoiceModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.88); z-index: 10000; align-items: center; justify-content: center; padding: 16px; overflow-y: auto;">
+  <div style="background: #0d121a; border: 1px solid var(--accent-cyan, #00e5ff); border-radius: 12px; max-width: 620px; width: 100%; box-shadow: 0 0 35px rgba(0, 229, 255, 0.25); padding: 26px; color: #e2e8f0; font-family: inherit;">
     
-    <div style="background: rgba(0, 229, 255, 0.05); border: 1px dashed #00e5ff; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #00e5ff; margin-bottom: 4px;">Assigned Student ID</div>
-      <div id="modalSuccessStudentId" style="font-family: monospace; font-size: 24px; font-weight: 700; color: #fff; letter-spacing: 2px;">FIFS-0000</div>
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1e293b; padding-bottom: 14px; margin-bottom: 18px;">
+      <div>
+        <span style="background: rgba(0, 229, 255, 0.15); color: #00e5ff; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 4px; letter-spacing: 1px;">AUTO-GENERATED INVOICE</span>
+        <h2 style="margin: 8px 0 0 0; font-size: 1.4rem; color: #fff;">Future Initiative Firearm Services</h2>
+        <p style="margin: 2px 0 0 0; font-size: 0.85rem; color: #94a3b8;">Instructor Kai Wade • (443) 990-1304 • info@trainwithfifs.com</p>
+      </div>
+      <button type="button" onclick="closeInvoiceModal()" style="background: transparent; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; padding: 0 6px;">&times;</button>
     </div>
 
-    <div style="display: flex; gap: 12px; flex-direction: column;">
-      <button onclick="launchPortalWithStudentId()" style="background: #00e5ff; color: #000; font-weight: 700; border: none; padding: 14px; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-family: 'Rajdhani', sans-serif;">Access Student Portal</button>
-      <button onclick="closeBookingSuccessModal()" style="background: transparent; border: 1px solid #1e293b; color: #cbd5e1; padding: 12px; border-radius: 6px; cursor: pointer;">Return to Home</button>
+    <!-- Invoice Details Meta -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: #070b10; border-radius: 8px; padding: 14px; margin-bottom: 16px; font-size: 0.88rem;">
+      <div>
+        <p style="margin: 0; color: #94a3b8;">Invoice Number:</p>
+        <p id="inv-display-id" style="margin: 2px 0 8px 0; color: #ffb703; font-weight: 700;">INV-FIFS-000000</p>
+        <p style="margin: 0; color: #94a3b8;">Student ID:</p>
+        <p id="inv-display-student-id" style="margin: 2px 0 0 0; color: #00e5ff; font-weight: 700;">FIFS-0000</p>
+      </div>
+      <div>
+        <p style="margin: 0; color: #94a3b8;">Billed To:</p>
+        <p id="inv-display-name" style="margin: 2px 0 2px 0; font-weight: 700; color: #fff;">Student Name</p>
+        <p id="inv-display-email" style="margin: 0; color: #cbd5e1; word-break: break-all;">student@email.com</p>
+        <p id="inv-display-phone" style="margin: 2px 0 0 0; color: #94a3b8;">(000) 000-0000</p>
+      </div>
+    </div>
+
+    <!-- Curriculum & Tuition Line Items -->
+    <div style="background: #070b10; border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+        <thead>
+          <tr style="border-bottom: 1px solid #1e293b; color: #94a3b8; text-align: left;">
+            <th style="padding-bottom: 8px;">Description / Session</th>
+            <th style="padding-bottom: 8px; text-align: right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 10px 0;">
+              <strong id="inv-display-course" style="color: #fff;">Selected Course Curriculum</strong>
+              <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 2px;">
+                Requested Date: <span id="inv-display-date" style="color: #cbd5e1;">Flexible</span>
+              </div>
+            </td>
+            <td id="inv-display-amount" style="text-align: right; font-weight: 700; color: #00e5ff;">$0.00</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="border-top: 1px solid #1e293b; padding-top: 10px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: 700; color: #cbd5e1;">Total Balance Due:</span>
+        <span id="inv-display-total" style="font-size: 1.3rem; font-weight: 800; color: #ffb703;">$0.00</span>
+      </div>
+    </div>
+
+    <!-- Payment Notice -->
+    <div style="background: rgba(255, 183, 3, 0.08); border-left: 3px solid #ffb703; padding: 10px 14px; border-radius: 4px; margin-bottom: 18px; font-size: 0.82rem; color: #e2e8f0;">
+      <strong>Payment & Range Policy:</strong> Tuition can be remitted in advance via Zelle to <strong>info@trainwithfifs.com</strong> or settled at range check-in. Range Facility: Cindy's Hot Shots.
+    </div>
+
+    <div id="invoice-dispatch-status" style="display: none; padding: 10px; margin-bottom: 14px; border-radius: 6px; font-size: 0.88rem; text-align: center;"></div>
+
+    <!-- Actions -->
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button id="btn-confirm-invoice" type="button" onclick="confirmAndSendInvoiceAction()" style="flex: 2; min-width: 220px; background: var(--accent-cyan, #00e5ff); color: #070b10; border: none; padding: 13px 18px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; transition: all 0.2s ease;">
+        Confirm &amp; Dispatch Invoice to Email ✉️
+      </button>
+      <button type="button" onclick="window.print()" style="flex: 1; background: #1e293b; color: #e2e8f0; border: 1px solid #334155; padding: 13px 14px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer;">
+        Print / Save
+      </button>
+      <button type="button" onclick="closeInvoiceModal()" style="background: transparent; color: #94a3b8; border: 1px solid #334155; padding: 13px 14px; border-radius: 8px; font-size: 0.9rem; cursor: pointer;">
+        Close
+      </button>
     </div>
   </div>
 </div>
-
-<script>
-let lastGeneratedStudentId = "";
-
-function showBookingSuccessModal(studentId, name, course) {
-  lastGeneratedStudentId = studentId;
-  const idDisplay = document.getElementById('modalSuccessStudentId');
-  if (idDisplay) idDisplay.innerText = studentId;
-  
-  const modal = document.getElementById('bookingCelebrationModal');
-  if (modal) modal.style.display = 'flex';
-}
-
-function closeBookingSuccessModal() {
-  const modal = document.getElementById('bookingCelebrationModal');
-  if (modal) modal.style.display = 'none';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function launchPortalWithStudentId() {
-  closeBookingSuccessModal();
-  const portalInput = document.getElementById('studentIdInput') || document.querySelector('input[name="studentEmailOrId"]');
-  if (portalInput) portalInput.value = lastGeneratedStudentId;
-  
-  const portalNav = document.getElementById('nav-student-portal') || document.querySelector('[data-screen="portal"]');
-  if (portalNav) portalNav.click();
-}
-</script>
 </body>
-
 </html>
 
 
