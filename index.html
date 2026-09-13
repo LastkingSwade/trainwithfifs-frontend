@@ -6677,40 +6677,11 @@
     };
     window.FORM_COURSE_PRICING = FORM_COURSE_PRICING;
 
-    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1547779726746320958/nu4yar-r8aR3c6-P-mm8YeprX5bou1uqej24tEuYhNS5LVusMuBtADVcv1vf1oJp_bum";
-    window.DISCORD_WEBHOOK_URL = DISCORD_WEBHOOK_URL;
-
-    function sendClientDiscordAlert(title, description, fields, colorInt) {
-      try {
-        if (!DISCORD_WEBHOOK_URL) return;
-        const payload = {
-          username: "FIFS Command Center",
-          avatar_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w256",
-          embeds: [{
-            title: title || "FIFS Operational Notification",
-            description: description || "",
-            color: colorInt || 0x00E5FF,
-            fields: fields || [],
-            footer: {
-              text: "Future Initiative Firearm Services • trainwithfifs.com",
-              icon_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w128"
-            },
-            timestamp: new Date().toISOString()
-          }]
-        };
-
-        fetch(DISCORD_WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        }).catch(function(err) {
-          console.log("Discord alert delivery notice:", err);
-        });
-      } catch (e) {
-        console.log("Discord notification catch:", e);
-      }
-    }
-    window.sendClientDiscordAlert = sendClientDiscordAlert;
+    // Secure stub: Webhook alerts handled server-side in Code.gs
+function sendClientDiscordAlert(title, description, fields, colorInt) {
+  console.log('[FIFS Operational Alert] ' + title);
+}
+window.sendClientDiscordAlert = sendClientDiscordAlert;
 
     function isLiveChatActiveNow() {
       try {
@@ -12330,39 +12301,11 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
     // ==========================================================================
     // DISCORD WEBHOOK REAL-TIME OPERATIONAL ALERT ENGINE
     // ==========================================================================
-    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1547779726746320958/nu4yar-r8aR3c6-P-mm8YeprX5bou1uqej24tEuYhNS5LVusMuBtADVcv1vf1oJp_bum";
-
-    function sendClientDiscordAlert(title, description, fields, colorInt) {
-      try {
-        if (!DISCORD_WEBHOOK_URL) return;
-        const payload = {
-          username: "FIFS Command Center",
-          avatar_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w256",
-          embeds: [{
-            title: title || "FIFS Operational Notification",
-            description: description || "",
-            color: colorInt || 0x00E5FF,
-            fields: fields || [],
-            footer: {
-              text: "Future Initiative Firearm Services • trainwithfifs.com",
-              icon_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w128"
-            },
-            timestamp: new Date().toISOString()
-          }]
-        };
-
-        fetch(DISCORD_WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        }).catch(function(err) {
-          console.log("Discord alert delivery notice:", err);
-        });
-      } catch (e) {
-        console.log("Discord notification catch:", e);
-      }
-    }
-    window.sendClientDiscordAlert = sendClientDiscordAlert;
+    // Secure stub: Webhook alerts handled server-side in Code.gs
+function sendClientDiscordAlert(title, description, fields, colorInt) {
+  console.log('[FIFS Operational Alert] ' + title);
+}
+window.sendClientDiscordAlert = sendClientDiscordAlert;
 
     // ==========================================================================
     // STREAMLINED TELEMETRY ENGINE (FOCUSED STRICTLY ON HIGH-VALUE MILESTONES)
@@ -21168,6 +21111,55 @@ function closeStateModal() {
   <span style="font-family: var(--font-display); font-size: 0.90rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">CHAT</span>
 </div>
 
+
+<!-- ================= BOOKING SUCCESS & CELEBRATION MODAL ================= -->
+<div id="bookingCelebrationModal" style="display: none; position: fixed; inset: 0; background: rgba(7, 11, 16, 0.95); z-index: 99999; align-items: center; justify-content: center; padding: 20px;">
+  <div style="background: #10161f; border: 1px solid #00e5ff; border-radius: 12px; max-width: 500px; width: 100%; padding: 32px; box-shadow: 0 0 35px rgba(0, 229, 255, 0.25); text-align: center;">
+    <div style="font-size: 48px; margin-bottom: 12px;">🎯</div>
+    <h2 style="font-family: 'Rajdhani', sans-serif; font-size: 28px; color: #fff; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Registration Confirmed</h2>
+    <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 24px;">Your student intake file has been generated. An email confirmation has been dispatched to your inbox.</p>
+    
+    <div style="background: rgba(0, 229, 255, 0.05); border: 1px dashed #00e5ff; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #00e5ff; margin-bottom: 4px;">Assigned Student ID</div>
+      <div id="modalSuccessStudentId" style="font-family: monospace; font-size: 24px; font-weight: 700; color: #fff; letter-spacing: 2px;">FIFS-0000</div>
+    </div>
+
+    <div style="display: flex; gap: 12px; flex-direction: column;">
+      <button onclick="launchPortalWithStudentId()" style="background: #00e5ff; color: #000; font-weight: 700; border: none; padding: 14px; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-family: 'Rajdhani', sans-serif;">Access Student Portal</button>
+      <button onclick="closeBookingSuccessModal()" style="background: transparent; border: 1px solid #1e293b; color: #cbd5e1; padding: 12px; border-radius: 6px; cursor: pointer;">Return to Home</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let lastGeneratedStudentId = "";
+
+function showBookingSuccessModal(studentId, name, course) {
+  lastGeneratedStudentId = studentId;
+  const idDisplay = document.getElementById('modalSuccessStudentId');
+  if (idDisplay) idDisplay.innerText = studentId;
+  
+  const modal = document.getElementById('bookingCelebrationModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeBookingSuccessModal() {
+  const modal = document.getElementById('bookingCelebrationModal');
+  if (modal) modal.style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function launchPortalWithStudentId() {
+  closeBookingSuccessModal();
+  const portalInput = document.getElementById('studentIdInput') || document.querySelector('input[name="studentEmailOrId"]');
+  if (portalInput) portalInput.value = lastGeneratedStudentId;
+  
+  const portalNav = document.getElementById('nav-student-portal') || document.querySelector('[data-screen="portal"]');
+  if (portalNav) portalNav.click();
+}
+</script>
 </body>
+
 </html>
+
 
