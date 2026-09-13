@@ -7845,7 +7845,7 @@
 
       if (statusDiv) showStatus(statusDiv, 'Authenticating Instructor Passcode...', 'success');
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleGetAdminDashboardData) {
         google.script.run
           .withSuccessHandler(function(res) {
             if (res && res.status === 'success') {
@@ -8084,22 +8084,45 @@
       const btn = document.getElementById('btn-admin-refresh-data');
       if (btn) {
         btn.classList.add('btn-animated-loading');
-        btn.innerHTML = '<span class="spin-icon">🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">SYNCING DATA...</span>';
+        btn.innerHTML = '<span class="spin-icon">🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">SYNCING ALL DATA FROM GOOGLE SHEETS...</span>';
       }
-      const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
-      verifyAdminAccess(pin);
 
-      setTimeout(function() {
-        if (btn) {
-          btn.classList.remove('btn-animated-loading');
-          btn.classList.add('btn-animated-success');
-          btn.innerHTML = '<span>✓</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">DATA SYNCED</span>';
-          setTimeout(function() {
-            btn.classList.remove('btn-animated-success');
-            btn.innerHTML = '<span>🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">REFRESH DATA</span>';
-          }, 1200);
-        }
-      }, 800);
+      const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (btn) {
+              btn.classList.remove('btn-animated-loading');
+              btn.classList.add('btn-animated-success');
+              btn.innerHTML = '<span>✓</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">ALL SITE DATA SYNCED</span>';
+              setTimeout(function() {
+                btn.classList.remove('btn-animated-success');
+                btn.innerHTML = '<span>🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">REFRESH ALL DATA</span>';
+              }, 1200);
+            }
+            if (res && res.status === 'success') {
+              renderAdminTerminal(res);
+              if (res.clients && typeof renderAdminClientTerminal === 'function') {
+                renderAdminClientTerminal(res);
+              }
+            }
+          })
+          .withFailureHandler(function(err) {
+            if (btn) {
+              btn.classList.remove('btn-animated-loading');
+              btn.innerHTML = '<span>⚠️</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">SYNC RETRY</span>';
+            }
+          })
+          .handleGetAdminDashboardData(pin);
+      } else {
+        setTimeout(function() {
+          if (btn) {
+            btn.classList.remove('btn-animated-loading');
+            btn.innerHTML = '<span>🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">REFRESH ALL DATA</span>';
+          }
+        }, 500);
+      }
     }
     window.refreshAdminRoster = refreshAdminRoster;
 
@@ -9077,107 +9100,70 @@
       const statusDiv = document.getElementById('client-register-status');
       const btn = document.getElementById('btn-client-register-submit');
 
-      try {
-        const nameInput = document.getElementById('regClientName');
-        const emailInput = document.getElementById('regClientEmail');
-        const phoneInput = document.getElementById('regClientPhone');
-        const stateInput = document.getElementById('regClientPermitState');
-        const expInput = document.getElementById('regClientExpDate');
-        const optInInput = document.getElementById('regClientOptIn');
+      const nameInput = document.getElementById('regClientName');
+      const emailInput = document.getElementById('regClientEmail');
+      const phoneInput = document.getElementById('regClientPhone');
+      const stateInput = document.getElementById('regClientPermitState');
+      const expInput = document.getElementById('regClientExpDate');
 
-        const name = nameInput ? nameInput.value.trim() : '';
-        const email = emailInput ? emailInput.value.trim() : '';
-        const phone = phoneInput ? phoneInput.value.trim() : '';
-        const permitState = stateInput ? stateInput.value : 'Maryland Wear & Carry';
-        const expDate = expInput ? expInput.value : '';
-        const optIn = optInInput ? optInInput.checked : true;
+      const name = nameInput ? nameInput.value.trim() : '';
+      const email = emailInput ? emailInput.value.trim() : '';
+      const phone = phoneInput ? phoneInput.value.trim() : '';
+      const permitState = stateInput ? stateInput.value : 'Maryland Wear & Carry';
+      const expDate = expInput ? expInput.value : '';
 
-        if (!name || !email) {
-          if (statusDiv) showStatus(statusDiv, 'Full Legal Name and Email Address are required.', 'error');
-          alert('Please enter your Full Legal Name and Email Address to create your profile.');
-          return;
-        }
+      if (!name || !email) {
+        if (statusDiv) showStatus(statusDiv, 'Full Legal Name and Email Address are required.', 'error');
+        return;
+      }
 
-        const clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
-        const clientRecord = {
-          clientId: clientId,
-          fullName: name,
-          email: email,
-          phone: phone,
-          permitState: permitState,
-          expirationDate: expDate,
-          optInReminder: optIn,
-          savedAt: new Date().toISOString()
-        };
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳ Saving directly to FIFS Cloud Ledger...</span>';
+      }
+      if (statusDiv) showStatus(statusDiv, 'Connecting to Google Sheets ledger...', 'success');
 
-        // Immediately update button and status
-        if (btn) {
-          btn.disabled = true;
-          btn.textContent = 'Profile Established! Opening Portal...';
-        }
-        if (statusDiv) showStatus(statusDiv, 'Profile established! Client ID: ' + clientId + '. Opening Dashboard...', 'success');
+      const clientPayload = {
+        fullName: name,
+        email: email,
+        phone: phone,
+        permitState: permitState,
+        expirationDate: expDate
+      };
 
-        // Store active client session in localStorage
-        localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord));
-
-        // Update local client roster cache for immediate Admin Portal synchronization
-        try {
-          let currentRoster = JSON.parse(localStorage.getItem('fifs_client_roster') || '[]');
-          currentRoster.unshift(clientRecord);
-          localStorage.setItem('fifs_client_roster', JSON.stringify(currentRoster));
-          if (typeof adminCachedClients !== 'undefined' && Array.isArray(adminCachedClients)) {
-            adminCachedClients.unshift(clientRecord);
-          }
-        } catch (cacheErr) {}
-
-        // IMMEDIATELY render active client dashboard (zero delay on mobile/iPad)
-        renderClientDashboard(clientRecord);
-
-        // Asynchronously dispatch Discord alert & telemetry so UI is never blocked
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (btn) {
+              btn.disabled = false;
+              btn.innerHTML = '<span>✓ Profile Created!</span>';
+            }
+            if (res && res.status === 'success') {
+              if (statusDiv) showStatus(statusDiv, 'Registration saved directly to Google Sheets! Client ID: ' + res.clientId, 'success');
+              clientPayload.clientId = res.clientId;
+              renderClientDashboard(clientPayload);
+            } else {
+              if (statusDiv) showStatus(statusDiv, res.message || 'Unable to record registration.', 'error');
+            }
+          })
+          .withFailureHandler(function(err) {
+            if (btn) {
+              btn.disabled = false;
+              btn.innerHTML = '<span>Create Profile & Activate Renewal Watch 🛡️</span>';
+            }
+            if (statusDiv) showStatus(statusDiv, 'Connection error. Please try again.', 'error');
+          })
+          .handleClientRegistration(clientPayload);
+      } else {
         setTimeout(function() {
           if (btn) {
             btn.disabled = false;
-            btn.textContent = 'Create Profile & Activate Renewal Watch 🛡️';
+            btn.innerHTML = '<span>✓ Profile Created!</span>';
           }
-
-          // 1. Telemetry conversion milestone
-          if (typeof logAnalyticsEvent === 'function') {
-            logAnalyticsEvent('Conversion', 'Client Profile Registered', `${name} (${permitState})`);
-          }
-
-          // 2. Real-time Discord Webhook Notification Sync
-          sendClientDiscordAlert(
-            "🛡️ Client Portal Registration: " + name,
-            "A permit holder registered for the **Future Initiative Client Portal**.",
-            [
-              { name: "Client Name", value: name, inline: true },
-              { name: "Client ID", value: "`" + clientId + "`", inline: true },
-              { name: "Email & Phone", value: email + " • " + (phone || "None"), inline: false },
-              { name: "Permit State", value: permitState, inline: true },
-              { name: "Expiration Date", value: expDate || "Planning / Not Set", inline: true },
-              { name: "90-Day Renewal Status", value: optIn ? "Active (90-Day Alerts On)" : "Standard", inline: true }
-            ],
-            0xFFB703
-          );
-
-          // 3. Dispatch to Google Apps Script backend if available
-          if (typeof google !== 'undefined' && google.script && google.script.run) {
-            google.script.run
-              .withSuccessHandler(function(res) {
-                console.log('Client profile synchronized with Google Sheets:', res);
-                if (statusDiv) showStatus(statusDiv, 'Profile established & synced with Cloud! Client ID: ' + clientId, 'success');
-              })
-              .withFailureHandler(function(err) {
-                console.warn('Backend sync deferred, saved to local cache:', err);
-              })
-              .handleClientRegistration(clientRecord);
-          }
-        }, 50);
-
-      } catch (err) {
-        console.error("Client registration processing:", err);
-        if (statusDiv) showStatus(statusDiv, 'Notice: Profile saved. Opening dashboard...', 'success');
-        renderClientDashboard(clientRecord);
+          clientPayload.clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
+          if (statusDiv) showStatus(statusDiv, 'Profile established! Client ID: ' + clientPayload.clientId, 'success');
+          renderClientDashboard(clientPayload);
+        }, 500);
       }
     }
     window.handleClientRegisterSubmit = handleClientRegisterSubmit;
@@ -15331,7 +15317,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
             submitBtn.disabled = false;
 
             if (res && res.status === 'success') {
-              showStatus(statusDiv, 'Course Reserved! Student ID: ' + res.studentId + '. Generating your official invoice...', 'success');
+
+              showStatus(statusDiv, 'Registration Confirmed! Your Student ID is ' + res.studentId + '. Opening Student Portal...', 'success');
               try {
                 localStorage.setItem('fifs_new_student_alert', JSON.stringify({
                   name: payload.fullName,
@@ -15341,21 +15328,19 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
                 }));
               } catch(e) {}
 
-              // Launch interactive FIFS Auto-Generated Invoice Modal
-              const invoiceDetails = {
-                studentId: res.studentId,
-                invoiceId: res.invoiceId || ('FIFS-INV-' + Math.floor(100000 + Math.random() * 900000)),
-                fullName: payload.fullName,
-                email: payload.email,
-                phone: payload.phone,
-                courseSelection: payload.courseSelection,
-                amount: res.tuition || 150,
-                preferredDates: payload.preferredDates || 'To Be Scheduled'
-              };
-              
               form.reset();
-              showBookingInvoiceModal(invoiceDetails);
 
+              setTimeout(function() {
+
+                switchTab('portal');
+
+                const authInput = document.getElementById('studentAuthInput');
+
+                if (authInput) authInput.value = res.studentId;
+
+                lookupStudentAccount();
+
+              }, 1800);
 
             } else {
 
@@ -21178,194 +21163,72 @@ function closeStateModal() {
 </div>
 
 
-<!-- ===================================================================== -->
-<!-- FIFS AUTO-GENERATED INVOICE & BOOKING CONFIRMATION MODAL -->
-<!-- ===================================================================== -->
+<!-- FIFS AUTO-GENERATED INVOICE MODAL -->
 <div id="fifs-invoice-modal" style="display:none; position:fixed; z-index:99999; inset:0; background:rgba(7,11,16,0.92); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:16px; overflow-y:auto;">
-  <div style="background:#10161f; border:1px solid #1f2937; border-top:4px solid #00e5ff; border-radius:12px; width:100%; max-width:620px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7); overflow:hidden; animation:fifsFadeIn 0.3s ease;">
-    <!-- Modal Header -->
+  <div style="background:#10161f; border:1px solid #1f2937; border-top:4px solid #00e5ff; border-radius:12px; width:100%; max-width:620px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7); overflow:hidden;">
     <div style="padding:20px 24px; border-bottom:1px solid #1f2937; display:flex; justify-content:space-between; align-items:center;">
-      <div>
-        <div style="font-family:'Rajdhani', sans-serif; font-size:20px; font-weight:700; color:#00e5ff; letter-spacing:1px; display:flex; align-items:center; gap:8px;">
-          <span>TRAIN WITH FIFS</span>
-          <span style="background:#00e5ff22; color:#00e5ff; font-size:11px; padding:2px 8px; border-radius:4px; border:1px solid #00e5ff44;">OFFICIAL INVOICE</span>
-        </div>
-        <p style="font-size:12px; color:#9ca3af; margin:2px 0 0 0;">Future Initiative Firearm Services • Lead Instructor Kai Wade</p>
-      </div>
-      <button onclick="closeBookingInvoiceModal()" style="background:transparent; border:none; color:#9ca3af; font-size:24px; cursor:pointer; line-height:1;">&times;</button>
+      <div style="font-family:'Rajdhani', sans-serif; font-size:20px; font-weight:700; color:#00e5ff;">TRAIN WITH FIFS • OFFICIAL INVOICE</div>
+      <button onclick="closeBookingInvoiceModal()" style="background:transparent; border:none; color:#9ca3af; font-size:24px; cursor:pointer;">&times;</button>
     </div>
-
-    <!-- Modal Body -->
     <div style="padding:24px;">
-      <!-- Invoice Meta Grid -->
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:12px; background:#070b10; padding:14px; border-radius:8px; border:1px solid #1f2937; margin-bottom:18px;">
-        <div>
-          <span style="font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Invoice Number</span>
-          <div id="inv-modal-id" style="font-family:'Rajdhani', monospace; font-weight:700; color:#00e5ff; font-size:15px;">FIFS-INV-000000</div>
-        </div>
-        <div>
-          <span style="font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Student ID</span>
-          <div id="inv-modal-student-id" style="font-weight:600; color:#ffffff; font-size:14px;">FIFS-0000</div>
-        </div>
-        <div>
-          <span style="font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Status</span>
-          <div style="color:#10b981; font-weight:600; font-size:13px; display:flex; align-items:center; gap:4px;">
-            <span style="display:inline-block; width:6px; height:6px; background:#10b981; border-radius:50%;"></span>
-            <span>RESERVED</span>
-          </div>
-        </div>
+      <div style="background:#070b10; padding:14px; border-radius:8px; border:1px solid #1f2937; margin-bottom:18px;">
+        <div style="color:#00e5ff; font-weight:700;" id="inv-modal-id">FIFS-INV-000000</div>
+        <div style="color:#fff;" id="inv-modal-name">Student Name</div>
+        <div style="color:#9ca3af; font-size:13px;" id="inv-modal-course">Course Curriculum</div>
+        <div style="color:#10b981; font-size:18px; font-weight:700; margin-top:6px;" id="inv-modal-total">$150.00</div>
       </div>
-
-      <!-- Bill To & Course Line Item -->
-      <div style="margin-bottom:18px;">
-        <h4 style="margin:0 0 8px 0; font-size:13px; color:#9ca3af; text-transform:uppercase;">Student Information</h4>
-        <div style="background:#161f2e; padding:12px 16px; border-radius:6px; border-left:3px solid #00e5ff;">
-          <div id="inv-modal-name" style="font-size:16px; font-weight:600; color:#ffffff;">Student Name</div>
-          <div id="inv-modal-email-phone" style="font-size:13px; color:#9ca3af; margin-top:2px;">email • phone</div>
-          <div id="inv-modal-dates" style="font-size:12px; color:#38bdf8; margin-top:4px;">Date: Requested</div>
-        </div>
-      </div>
-
-      <div style="margin-bottom:20px;">
-        <h4 style="margin:0 0 8px 0; font-size:13px; color:#9ca3af; text-transform:uppercase;">Curriculum & Tuition Breakdown</h4>
-        <div style="border:1px solid #1f2937; border-radius:6px; overflow:hidden;">
-          <div style="display:flex; justify-content:space-between; padding:10px 14px; background:#0d131c; border-bottom:1px solid #1f2937; font-size:12px; color:#9ca3af; font-weight:600;">
-            <span>DESCRIPTION</span>
-            <span>AMOUNT</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:12px 14px; font-size:14px; color:#ffffff; background:#10161f;">
-            <span id="inv-modal-course">Course Curriculum</span>
-            <span id="inv-modal-amount" style="font-weight:700; color:#00e5ff;">$150.00</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:12px 14px; background:#070b10; border-top:1px solid #1f2937; font-size:15px; font-weight:700;">
-            <span style="color:#ffffff;">Total Tuition Due</span>
-            <span id="inv-modal-total" style="color:#10b981;">$150.00</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Payment Instructions -->
       <div style="background:#070b10; border:1px dashed #374151; padding:14px; border-radius:8px; margin-bottom:20px; font-size:13px; color:#cbd5e1;">
-        <div style="font-weight:600; color:#fbbf24; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
-          <span>💳</span> Accepted Payment Options
-        </div>
-        <div>• <strong>Zelle:</strong> <code style="color:#00e5ff;">info@trainwithfifs.com</code> or <code style="color:#00e5ff;">(443) 990-1304</code></div>
-        <div style="margin-top:3px;">• <strong>Credit / Debit Card:</strong> Payment link delivered in official confirmation email.</div>
-        <div style="margin-top:3px;">• <strong>Cash:</strong> Accepted on site prior to range live-fire briefing.</div>
+        <p style="margin:2px 0;">• <strong>Zelle:</strong> info@trainwithfifs.com or (443) 990-1304</p>
+        <p style="margin:2px 0;">• <strong>Credit / Debit Card:</strong> Link delivered to your email</p>
+        <p style="margin:2px 0;">• <strong>Cash:</strong> Accepted on site before range live-fire</p>
       </div>
-
       <div id="inv-dispatch-status" style="display:none; padding:10px 14px; border-radius:6px; margin-bottom:16px; font-size:13px;"></div>
-
-      <!-- Action Buttons -->
-      <div style="display:flex; flex-direction:column; gap:10px;">
-        <button id="btn-confirm-send-invoice" onclick="confirmAndDispatchInvoice()" style="width:100%; background:linear-gradient(135deg, #00e5ff, #00b4d8); color:#070b10; font-family:'Rajdhani', sans-serif; font-size:17px; font-weight:700; letter-spacing:0.5px; border:none; padding:14px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
-          <span>📧 Confirm & Send Official Invoice to My Email</span>
-        </button>
-        <div style="display:flex; gap:10px;">
-          <button onclick="goToStudentPortalFromInvoice()" style="flex:1; background:#1f2937; color:#f3f4f6; border:1px solid #374151; padding:10px; border-radius:6px; font-weight:600; font-size:13px; cursor:pointer;">
-            🔑 Enter Student Portal
-          </button>
-          <button onclick="window.print()" style="flex:1; background:#1f2937; color:#f3f4f6; border:1px solid #374151; padding:10px; border-radius:6px; font-weight:600; font-size:13px; cursor:pointer;">
-            🖨️ Print / Save PDF
-          </button>
-        </div>
-      </div>
+      <button id="btn-confirm-send-invoice" onclick="confirmAndDispatchInvoice()" style="width:100%; background:linear-gradient(135deg, #00e5ff, #00b4d8); color:#070b10; font-weight:700; border:none; padding:14px; border-radius:6px; cursor:pointer;">
+        📧 Confirm & Send Official Invoice to My Email
+      </button>
     </div>
   </div>
 </div>
 
 <script>
 var currentActiveInvoiceData = null;
-
 function showBookingInvoiceModal(data) {
   currentActiveInvoiceData = data;
   document.getElementById('inv-modal-id').textContent = data.invoiceId;
-  document.getElementById('inv-modal-student-id').textContent = data.studentId;
-  document.getElementById('inv-modal-name').textContent = data.fullName;
-  document.getElementById('inv-modal-email-phone').textContent = data.email + ' • ' + (data.phone || 'Phone on file');
-  document.getElementById('inv-modal-dates').textContent = 'Preferred Schedule: ' + (data.preferredDates || 'To be coordinated with Instructor');
+  document.getElementById('inv-modal-name').textContent = data.fullName + ' (' + data.studentId + ')';
   document.getElementById('inv-modal-course').textContent = data.courseSelection;
-  document.getElementById('inv-modal-amount').textContent = '$' + Number(data.amount).toFixed(2);
   document.getElementById('inv-modal-total').textContent = '$' + Number(data.amount).toFixed(2);
-
-  const statusBox = document.getElementById('inv-dispatch-status');
-  if (statusBox) statusBox.style.display = 'none';
-
   const modal = document.getElementById('fifs-invoice-modal');
-  if (modal) {
-    modal.style.display = 'flex';
-  }
+  if (modal) modal.style.display = 'flex';
 }
-
 function closeBookingInvoiceModal() {
   const modal = document.getElementById('fifs-invoice-modal');
   if (modal) modal.style.display = 'none';
 }
-
 function confirmAndDispatchInvoice() {
   if (!currentActiveInvoiceData) return;
   const btn = document.getElementById('btn-confirm-send-invoice');
   const statusBox = document.getElementById('inv-dispatch-status');
-
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<span>⏳ Dispatching Official Invoice & Ledger Sync...</span>';
+    btn.textContent = '⏳ Dispatching Official Invoice...';
   }
-
   if (typeof google !== 'undefined' && google.script && google.script.run) {
     google.script.run
       .withSuccessHandler(function(res) {
         if (btn) {
-          btn.innerHTML = '<span>✔ Official Invoice Emailed!</span>';
+          btn.textContent = '✔ Official Invoice Emailed!';
           btn.style.background = '#10b981';
-          btn.style.color = '#ffffff';
+          btn.style.color = '#fff';
         }
         if (statusBox) {
           statusBox.style.display = 'block';
           statusBox.style.background = '#064e3b';
           statusBox.style.color = '#a7f3d0';
-          statusBox.innerHTML = '<strong>Success!</strong> Invoice ' + currentActiveInvoiceData.invoiceId + ' sent to ' + currentActiveInvoiceData.email + ' and Instructor Kai Wade.';
-        }
-      })
-      .withFailureHandler(function(err) {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = '<span>⚠️ Retry Email Dispatch</span>';
-        }
-        if (statusBox) {
-          statusBox.style.display = 'block';
-          statusBox.style.background = '#7f1d1d';
-          statusBox.style.color = '#fecaca';
-          statusBox.textContent = 'Notice: Server invoice logged. If email does not arrive in 5 minutes, please reach out to info@trainwithfifs.com.';
+          statusBox.textContent = 'Success! Invoice sent to ' + currentActiveInvoiceData.email + ' and Instructor Kai Wade.';
         }
       })
       .handleConfirmAndSendInvoice(currentActiveInvoiceData);
-  } else {
-    setTimeout(function() {
-      if (btn) {
-        btn.innerHTML = '<span>✔ Official Invoice Recorded</span>';
-        btn.style.background = '#10b981';
-        btn.style.color = '#ffffff';
-      }
-      if (statusBox) {
-        statusBox.style.display = 'block';
-        statusBox.style.background = '#064e3b';
-        statusBox.style.color = '#a7f3d0';
-        statusBox.textContent = 'Invoice confirmed! Your reservation is logged.';
-      }
-    }, 600);
-  }
-}
-
-function goToStudentPortalFromInvoice() {
-  closeBookingInvoiceModal();
-  if (currentActiveInvoiceData && currentActiveInvoiceData.studentId) {
-    switchTab('portal');
-    const authInput = document.getElementById('studentAuthInput');
-    if (authInput) authInput.value = currentActiveInvoiceData.studentId;
-    lookupStudentAccount();
-  } else {
-    switchTab('portal');
   }
 }
 </script>
