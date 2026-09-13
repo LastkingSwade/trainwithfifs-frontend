@@ -5856,12 +5856,11 @@
     // ==========================================================================
     // FIFS GITHUB PAGES <-> GOOGLE APPS SCRIPT API BRIDGE
     // ==========================================================================
-    // PASTE YOUR PUBLISHED GOOGLE APPS SCRIPT WEB APP URL BELOW:
-    var FIFS_GAS_API_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+    var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbz9X2h0o5_pmNafKXRY9hSeGiGpHerp_JMWie8wg9FmSir0W3mrZAnk5nw-Zs9xH9BY/exec";
 
     function callFifsBackend(action, payload, onSuccess, onError) {
-      if (!FIFS_GAS_API_URL || FIFS_GAS_API_URL.includes("PASTE_YOUR")) {
-        console.warn("FIFS_GAS_API_URL not configured. Running offline simulation.");
+      if (!FIFS_GAS_API_URL) {
+        console.warn("FIFS_GAS_API_URL not configured.");
         if (onSuccess) onSuccess({ status: "success", clientId: "FI-" + Date.now() });
         return;
       }
