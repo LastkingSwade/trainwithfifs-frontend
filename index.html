@@ -5897,7 +5897,7 @@
           localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
 
           // Background sync to GAS ledger if live
-          if (typeof google !== 'undefined' && google.script && google.script.run) {
+          if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
             google.script.run.logAnalyticsEvent(entry);
           }
         } catch (e) {}
@@ -7195,7 +7195,7 @@
         timestamp: new Date().toISOString(),
         isLiveHours: isLiveChatActiveNow()
       };
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
         google.script.run.handleLiveChatMessage(payload);
       }
     }
@@ -8112,7 +8112,7 @@
       }
       const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleResetTelemetry) {
         google.script.run.handleResetTelemetry(pin);
       }
 
@@ -8689,7 +8689,7 @@
         try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch(e) {}
       }
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleUpdateStudentStatus) {
         google.script.run.handleUpdateStudentStatus(pin, studentId, { status: newStepValue });
       }
 
@@ -8754,7 +8754,8 @@
         try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch(e) {}
       }
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google
+.script.run && google.script.run.handleAdminDeleteStudent) {
         google.script.run.handleAdminDeleteStudent(pin, studentId);
       }
 
@@ -8816,7 +8817,7 @@
         try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch(e) {}
       }
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminDeleteClient) {
         google.script.run.handleAdminDeleteClient(pin, clientId);
       }
 
@@ -9097,11 +9098,6 @@
           return;
         }
 
-        if (btn) {
-          btn.disabled = true;
-          btn.innerHTML = '<span class="spin-icon">🔄</span> Saving to Database...';
-        }
-
         const clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
         const clientRecord = {
           clientId: clientId,
@@ -9111,67 +9107,77 @@
           permitState: permitState,
           expirationDate: expDate,
           optInReminder: optIn,
-          registeredDate: new Date().toISOString()
+          savedAt: new Date().toISOString()
         };
 
-        // Cache locally for immediate portal access
-        try {
-          localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord));
-          let roster = [];
-          try { roster = JSON.parse(localStorage.getItem('fifs_client_roster') || '[]'); } catch (e) {}
-          if (!Array.isArray(roster)) roster = [];
-          roster.unshift(clientRecord);
-          localStorage.setItem('fifs_client_roster', JSON.stringify(roster));
-        } catch (e) {}
-
-        if (typeof google !== 'undefined' && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler(function(res) {
-              if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = '✓ Profile Registered';
-              }
-              const assignedId = (res && res.clientId) ? res.clientId : clientId;
-              clientRecord.clientId = assignedId;
-              try { localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord)); } catch(e) {}
-              if (statusDiv) showStatus(statusDiv, 'Profile Saved to Google Sheets! Client ID: ' + assignedId + '. 90-day renewal countdown watch is now active.', 'success');
-              setTimeout(function() {
-                switchTab('client-portal');
-              }, 1200);
-            })
-            .withFailureHandler(function(err) {
-              if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = 'Create Client Account & Activate Watch';
-              }
-              if (statusDiv) showStatus(statusDiv, 'Saved locally (Backend notice: ' + (err.message || 'Check connection') + '). Profile active.', 'success');
-              setTimeout(function() {
-                switchTab('client-portal');
-              }, 1200);
-            })
-            .handleClientRegistration(clientRecord);
-        } else {
-          setTimeout(function() {
-            if (btn) {
-              btn.disabled = false;
-              btn.innerHTML = 'Create Client Account & Activate Watch';
-            }
-            if (statusDiv) showStatus(statusDiv, 'Client Profile Saved! 90-day renewal countdown watch is now active.', 'success');
-            setTimeout(function() {
-              switchTab('client-portal');
-            }, 1000);
-          }, 400);
+        // Immediately update button and status
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Profile Established! Opening Portal...';
         }
+        if (statusDiv) showStatus(statusDiv, 'Profile established! Client ID: ' + clientId + '. Opening Dashboard...', 'success');
+
+        // Store active client session in localStorage
+        localStorage.setItem('fifs_client_session', JSON.stringify(clientRecord));
+
+        // Update local client roster cache for immediate Admin Portal synchronization
+        try {
+          let currentRoster = JSON.parse(localStorage.getItem('fifs_client_roster') || '[]');
+          currentRoster.unshift(clientRecord);
+          localStorage.setItem('fifs_client_roster', JSON.stringify(currentRoster));
+          if (typeof adminCachedClients !== 'undefined' && Array.isArray(adminCachedClients)) {
+            adminCachedClients.unshift(clientRecord);
+          }
+        } catch (cacheErr) {}
+
+        // IMMEDIATELY render active client dashboard (zero delay on mobile/iPad)
+        renderClientDashboard(clientRecord);
+
+        // Asynchronously dispatch Discord alert & telemetry so UI is never blocked
+        setTimeout(function() {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Create Profile & Activate Renewal Watch 🛡️';
+          }
+
+          // 1. Telemetry conversion milestone
+          if (typeof logAnalyticsEvent === 'function') {
+            logAnalyticsEvent('Conversion', 'Client Profile Registered', `${name} (${permitState})`);
+          }
+
+          // 2. Real-time Discord Webhook Notification Sync
+          sendClientDiscordAlert(
+            "🛡️ Client Portal Registration: " + name,
+            "A permit holder registered for the **Future Initiative Client Portal**.",
+            [
+              { name: "Client Name", value: name, inline: true },
+              { name: "Client ID", value: "`" + clientId + "`", inline: true },
+              { name: "Email & Phone", value: email + " • " + (phone || "None"), inline: false },
+              { name: "Permit State", value: permitState, inline: true },
+              { name: "Expiration Date", value: expDate || "Planning / Not Set", inline: true },
+              { name: "90-Day Renewal Status", value: optIn ? "Active (90-Day Alerts On)" : "Standard", inline: true }
+            ],
+            0xFFB703
+          );
+
+          // 3. Dispatch to Google Apps Script backend if available
+          if (typeof google !== 'undefined' && google.script && google.script.run) {
+            google.script.run
+              .withSuccessHandler(function(res) {
+                console.log('Client profile synchronized with Google Sheets:', res);
+                if (statusDiv) showStatus(statusDiv, 'Profile established & synced with Cloud! Client ID: ' + clientId, 'success');
+              })
+              .withFailureHandler(function(err) {
+                console.warn('Backend sync deferred, saved to local cache:', err);
+              })
+              .handleClientRegistration(clientRecord);
+          }
+        }, 50);
+
       } catch (err) {
         console.error("Client registration processing:", err);
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = 'Create Client Account & Activate Watch';
-        }
-        if (statusDiv) showStatus(statusDiv, 'Notice: Profile saved. Opening portal...', 'success');
-        setTimeout(function() {
-          switchTab('client-portal');
-        }, 1000);
+        if (statusDiv) showStatus(statusDiv, 'Notice: Profile saved. Opening dashboard...', 'success');
+        renderClientDashboard(clientRecord);
       }
     }
     window.handleClientRegisterSubmit = handleClientRegisterSubmit;
@@ -9300,7 +9306,7 @@
 
       showStatus(statusDiv, 'Cross-referencing Student Roster & Operations credentials...', 'success');
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleGetStudentPortalData) {
         google.script.run
           .withSuccessHandler(function(res) {
             if (res && res.status === 'success') {
@@ -9386,7 +9392,7 @@
 
       showStatus(statusDiv, 'Cross-referencing client credentials in database...', 'success');
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleGetClientPortalData) {
         google.script.run
           .withSuccessHandler(function(res) {
             if (res && res.status === 'success') {
@@ -12398,7 +12404,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
           localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
 
           // Background sync to GAS ledger if live
-          if (typeof google !== 'undefined' && google.script && google.script.run) {
+          if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
             google.script.run.logAnalyticsEvent(entry);
           }
         } catch (e) {}
@@ -12734,7 +12740,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
       }
 
       // If online Google Apps Script backend available, notify
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminDirectInvite) {
         google.script.run
           .withSuccessHandler(function(res) {
             showStatus(st, 'Invitation email dispatched successfully! Access link generated below.', 'success');
@@ -12847,7 +12853,7 @@ ent.body.style.overflow = 'hidden';
       const st = document.getElementById('edit-student-status');
       showStatus(st, 'Changes saved successfully!', 'success');
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminEditStudent) {
         google.script.run.handleAdminEditStudent(pin, studentId, s);
       }
 
@@ -12869,7 +12875,7 @@ ent.body.style.overflow = 'hidden';
       try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch (err) {}
 
       const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminDeleteStudent) {
         google.script.run.handleAdminDeleteStudent(pin, studentId);
       }
 
@@ -13116,7 +13122,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       const st = document.getElementById('edit-client-status');
       showStatus(st, 'Client permit record updated!', 'success');
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminEditClient) {
         google.script.run.handleAdminEditClient(pin, clientId, c);
       }
 
@@ -13138,7 +13144,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch (err) {}
 
       const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminDeleteClient) {
         google.script.run.handleAdminDeleteClient(pin, clientId);
       }
 
@@ -13454,7 +13460,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         localStorage.setItem('fifs_reciprocity_leads', JSON.stringify(leads));
       } catch (err) {}
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLeadMagnetSubmission) {
         google.script.run.handleLeadMagnetSubmission({ fullName: name, email: email, source: '50-State Reciprocity Hub Lead Magnet' });
       }
 
@@ -13473,7 +13479,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (!confirm(`Dispatch official Range Day Arrival Briefing & Driving Directions to ${name} (${s ? s.email : ''})?`)) return;
 
       const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleDispatchRangeBriefing) {
         google.script.run
           .withSuccessHandler(function(res) { alert(res.message || 'Briefing email dispatched!'); })
           .handleDispatchRangeBriefing(pin, studentId);
@@ -13489,7 +13495,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (!confirm(`Send 5-Star Google Review congratulations email to certified graduate ${name} (${s ? s.email : ''})?`)) return;
 
       const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleDispatchReviewRequest) {
         google.script.run
           .withSuccessHandler(function(res) { alert(res.message || 'Review request dispatched!'); })
           .handleDispatchReviewRequest(pin, studentId);
@@ -13837,7 +13843,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         timestamp: new Date().toISOString(),
         isLiveHours: isLiveChatActiveNow()
       };
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
         google.script.run.handleLiveChatMessage(payload);
       }
     }
@@ -13963,7 +13969,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       );
 
       // Send to Apps Script backend
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
         google.script.run.handleLiveChatMessage({
           name: session.name,
           phone: session.phone,
@@ -14444,7 +14450,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       showStatus(statusDiv, 'Cross-referencing Student Roster & Operations credentials...', 'success');
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleGetStudentPortalData) {
         google.script.run
           .withSuccessHandler(function(res) {
             if (res && res.status === 'success') {
@@ -15242,87 +15248,157 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
   
 
     function submitBooking(e) {
-      if (e && e.preventDefault) e.preventDefault();
-      const statusDiv = document.getElementById('booking-form-status');
-      const btn = document.getElementById('btn-submit-booking');
 
-      const name = (document.getElementById('bookName') ? document.getElementById('bookName').value : '').trim();
-      const email = (document.getElementById('bookEmail') ? document.getElementById('bookEmail').value : '').trim();
-      const phone = (document.getElementById('bookPhone') ? document.getElementById('bookPhone').value : '').trim();
-      const course = (document.getElementById('bookCourse') ? document.getElementById('bookCourse').value : '').trim();
-      const dates = (document.getElementById('bookDates') ? document.getElementById('bookDates').value : '').trim();
-      const price = (document.getElementById('bookPrice') ? document.getElementById('bookPrice').value : '$350.00').trim();
+      e.preventDefault();
 
-      if (!name || !email || !course) {
-        if (statusDiv) showStatus(statusDiv, 'Please provide Full Legal Name, Email, and select a Course.', 'error');
-        alert('Please fill out all required fields (Name, Email, Course).');
-        return;
-      }
+      const form = document.getElementById('booking-form');
 
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spin-icon">🔄</span> Reserving & Generating Invoice...';
-      }
-      if (statusDiv) showStatus(statusDiv, 'Reserving your seat and preparing invoice...', 'success');
+      const submitBtn = document.getElementById('btn-booking-submit');
 
-      const bookingPayload = {
-        name: name,
-        email: email,
-        phone: phone,
-        course: course,
-        dates: dates,
-        price: price,
-        studentId: 'STU-' + Math.floor(1000 + Math.random() * 9000),
-        bookingTimestamp: new Date().toISOString()
+      const statusDiv = document.getElementById('booking-status');
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+      const payload = {
+
+        courseSelection: form.courseSelection.value,
+
+        fullName: form.fullName.value.trim(),
+
+        email: form.email.value.trim(),
+
+        phone: form.phone.value.trim(),
+
+        preferredDates: form.preferredDates.value.trim(),
+
+        groupSize: form.groupSize.value,
+
+        comments: form.comments.value.trim()
+
       };
 
-      // Save local backup
-      try {
-        localStorage.setItem('fifs_active_student_email', email);
-        localStorage.setItem('fifs_last_booking', JSON.stringify(bookingPayload));
-      } catch (err) {}
+  
+  
+  
+  
+  
+  
+  
+  
 
-      function finalizeSuccess(res) {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = 'Reserve Seat & Continue';
-        }
-        if (statusDiv) showStatus(statusDiv, 'Booking Confirmed! Loading your official invoice...', 'success');
-        
-        // Close booking modal if open
-        const bookModal = document.getElementById('bookingModal');
-        if (bookModal) bookModal.style.display = 'none';
+      submitBtn.disabled = true;
 
-        // Open official invoice modal
-        setTimeout(function() {
-          openFifsInvoiceModal({
-            name: name,
-            email: email,
-            phone: phone,
-            course: course,
-            date: dates,
-            price: price,
-            studentId: (res && res.studentId) ? res.studentId : bookingPayload.studentId
-          });
-        }, 300);
-      }
+      showStatus(statusDiv, 'Registering student session with Future Initiative...', 'success');
+      logAnalyticsEvent('Conversion', 'Course Booking Confirmed', `${payload.fullName} - ${payload.courseSelection}`);
+
+      // 1. Discord Webhook Alert: New Class Booking
+      sendClientDiscordAlert(
+        "🎯 New Class Booking: " + payload.fullName,
+        "A student has submitted a new class reservation on **trainwithfifs.com**.",
+        [
+          { name: "Student Name", value: payload.fullName, inline: true },
+          { name: "Contact Details", value: payload.email + " • " + payload.phone, inline: true },
+          { name: "Selected Curriculum", value: payload.courseSelection, inline: false },
+          { name: "Requested Date", value: payload.preferredDates || "Flexible / To Be Scheduled", inline: true },
+          { name: "Group Format", value: payload.groupSize || "1 (Private One-on-One)", inline: true },
+          { name: "Student Notes", value: payload.comments || "None", inline: false }
+        ],
+        0x00E5FF
+      );
+
+  
+  
+  
+  
+  
+  
+  
+  
 
       if (typeof google !== 'undefined' && google.script && google.script.run) {
+
         google.script.run
+
           .withSuccessHandler(function(res) {
-            finalizeSuccess(res);
+
+            submitBtn.disabled = false;
+
+            if (res && res.status === 'success') {
+              showStatus(statusDiv, 'Course Reserved! Student ID: ' + res.studentId + '. Generating your official invoice...', 'success');
+              try {
+                localStorage.setItem('fifs_new_student_alert', JSON.stringify({
+                  name: payload.fullName,
+                  course: payload.courseSelection,
+                  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  id: res.studentId
+                }));
+              } catch(e) {}
+
+              // Launch interactive FIFS Auto-Generated Invoice Modal
+              const invoiceDetails = {
+                studentId: res.studentId,
+                invoiceId: res.invoiceId || ('FIFS-INV-' + Math.floor(100000 + Math.random() * 900000)),
+                fullName: payload.fullName,
+                email: payload.email,
+                phone: payload.phone,
+                courseSelection: payload.courseSelection,
+                amount: res.tuition || 150,
+                preferredDates: payload.preferredDates || 'To Be Scheduled'
+              };
+              
+              form.reset();
+              showBookingInvoiceModal(invoiceDetails);
+
+
+            } else {
+
+              showStatus(statusDiv, res.message || 'Submission failed. Please try again.', 'error');
+
+            }
+
           })
+
           .withFailureHandler(function(err) {
-            console.warn("Server booking returned warning:", err);
-            // Even if server times out or warns, finalize and generate invoice so user is never stranded
-            finalizeSuccess({ studentId: bookingPayload.studentId });
+
+            submitBtn.disabled = false;
+
+            showStatus(statusDiv, 'Error connecting to registration server. Please call (443) 990-1304.', 'error');
+
           })
-          .handleBookingSubmission(bookingPayload);
+
+          .handleBookingSubmission(payload);
+
       } else {
+
         setTimeout(function() {
-          finalizeSuccess({ studentId: bookingPayload.studentId });
+
+          submitBtn.disabled = false;
+
+          const simId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000);
+
+          showStatus(statusDiv, 'Registration Confirmed! Your Student ID is ' + simId + ' (Demo). Opening Student Portal...', 'success');
+
+          form.reset();
+
+          setTimeout(function() {
+
+            switchTab('portal');
+
+            lookupStudentAccount();
+
+          }, 1500);
+
         }, 600);
+
       }
+
     }
 
   
@@ -17934,7 +18010,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         0xFFB703
       );
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleClientRegistration) {
         google.script.run
           .withSuccessHandler(function(res) {
             btn.disabled = false;
@@ -18176,7 +18252,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       showStatus(statusDiv, 'Cross-referencing client credentials in database...', 'success');
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleGetClientPortalData) {
         google.script.run
           .withSuccessHandler(function(res) {
             if (res && res.status === 'success') {
@@ -19337,7 +19413,7 @@ function closeStateModal() {
           localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
 
           // Background sync to GAS ledger if live
-          if (typeof google !== 'undefined' && google.script && google.script.run) {
+          if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
             google.script.run.logAnalyticsEvent(entry);
           }
         } catch (e) {}
@@ -21102,204 +21178,197 @@ function closeStateModal() {
 </div>
 
 
-  <!-- ================= INVOICE CONFIRMATION & DISPATCH MODAL ================= -->
-  <div id="fifsInvoiceModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 8, 15, 0.88); backdrop-filter: blur(8px); z-index: 100000; align-items: center; justify-content: center; overflow-y: auto; padding: 20px; box-sizing: border-box;">
-    <div style="background: #0d121d; border: 2px solid #FFB703; border-radius: 12px; max-width: 680px; width: 100%; box-shadow: 0 25px 60px rgba(0,0,0,0.85); overflow: hidden; margin: auto; animation: fifsModalFadeIn 0.3s ease-out;">
-      <div style="background: #141b2b; padding: 20px 25px; border-bottom: 2px solid #FFB703; display: flex; justify-content: space-between; align-items: center;">
+<!-- ===================================================================== -->
+<!-- FIFS AUTO-GENERATED INVOICE & BOOKING CONFIRMATION MODAL -->
+<!-- ===================================================================== -->
+<div id="fifs-invoice-modal" style="display:none; position:fixed; z-index:99999; inset:0; background:rgba(7,11,16,0.92); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:16px; overflow-y:auto;">
+  <div style="background:#10161f; border:1px solid #1f2937; border-top:4px solid #00e5ff; border-radius:12px; width:100%; max-width:620px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7); overflow:hidden; animation:fifsFadeIn 0.3s ease;">
+    <!-- Modal Header -->
+    <div style="padding:20px 24px; border-bottom:1px solid #1f2937; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div style="font-family:'Rajdhani', sans-serif; font-size:20px; font-weight:700; color:#00e5ff; letter-spacing:1px; display:flex; align-items:center; gap:8px;">
+          <span>TRAIN WITH FIFS</span>
+          <span style="background:#00e5ff22; color:#00e5ff; font-size:11px; padding:2px 8px; border-radius:4px; border:1px solid #00e5ff44;">OFFICIAL INVOICE</span>
+        </div>
+        <p style="font-size:12px; color:#9ca3af; margin:2px 0 0 0;">Future Initiative Firearm Services • Lead Instructor Kai Wade</p>
+      </div>
+      <button onclick="closeBookingInvoiceModal()" style="background:transparent; border:none; color:#9ca3af; font-size:24px; cursor:pointer; line-height:1;">&times;</button>
+    </div>
+
+    <!-- Modal Body -->
+    <div style="padding:24px;">
+      <!-- Invoice Meta Grid -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:12px; background:#070b10; padding:14px; border-radius:8px; border:1px solid #1f2937; margin-bottom:18px;">
         <div>
-          <span style="display: inline-block; background: #FFB703; color: #000; font-weight: 800; font-size: 11px; padding: 2px 8px; border-radius: 4px; letter-spacing: 1px; margin-bottom: 4px;">OFFICIAL INVOICE ISSUED</span>
-          <h2 style="margin: 0; color: #fff; font-size: 20px; letter-spacing: 0.5px; font-family: var(--font-display, sans-serif);">TRAINING COURSE INVOICE</h2>
+          <span style="font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Invoice Number</span>
+          <div id="inv-modal-id" style="font-family:'Rajdhani', monospace; font-weight:700; color:#00e5ff; font-size:15px;">FIFS-INV-000000</div>
         </div>
-        <button type="button" onclick="closeFifsInvoiceModal()" style="background: transparent; border: none; color: #94a3b8; font-size: 26px; cursor: pointer; line-height: 1; padding: 0 5px;">&times;</button>
+        <div>
+          <span style="font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Student ID</span>
+          <div id="inv-modal-student-id" style="font-weight:600; color:#ffffff; font-size:14px;">FIFS-0000</div>
+        </div>
+        <div>
+          <span style="font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Status</span>
+          <div style="color:#10b981; font-weight:600; font-size:13px; display:flex; align-items:center; gap:4px;">
+            <span style="display:inline-block; width:6px; height:6px; background:#10b981; border-radius:50%;"></span>
+            <span>RESERVED</span>
+          </div>
+        </div>
       </div>
 
-      <div style="padding: 25px 30px;" id="fifsInvoicePrintArea">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid #1f293d; padding-bottom: 15px;">
-          <div>
-            <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Invoice Number</div>
-            <div id="invModalNumber" style="font-size: 18px; font-weight: 800; color: #FFB703; font-family: monospace;">INV-2026-PENDING</div>
-            <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Student ID: <span id="invModalStudentId" style="color: #cbd5e1; font-family: monospace;">STUDENT-PENDING</span></div>
-          </div>
-          <div style="text-align: right;">
-            <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Payment Status</div>
-            <div style="display: inline-block; background: rgba(34, 197, 94, 0.15); border: 1px solid #22c55e; color: #22c55e; font-weight: 700; font-size: 12px; padding: 4px 10px; border-radius: 4px; margin-top: 4px;">OFFICIAL INVOICE PREPARED</div>
-            <div id="invModalDate" style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Date: Sept 13, 2026</div>
-          </div>
+      <!-- Bill To & Course Line Item -->
+      <div style="margin-bottom:18px;">
+        <h4 style="margin:0 0 8px 0; font-size:13px; color:#9ca3af; text-transform:uppercase;">Student Information</h4>
+        <div style="background:#161f2e; padding:12px 16px; border-radius:6px; border-left:3px solid #00e5ff;">
+          <div id="inv-modal-name" style="font-size:16px; font-weight:600; color:#ffffff;">Student Name</div>
+          <div id="inv-modal-email-phone" style="font-size:13px; color:#9ca3af; margin-top:2px;">email • phone</div>
+          <div id="inv-modal-dates" style="font-size:12px; color:#38bdf8; margin-top:4px;">Date: Requested</div>
         </div>
-
-        <div style="background: #131a29; border-radius: 8px; padding: 16px; margin-bottom: 20px; border-left: 4px solid #FFB703;">
-          <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Billed To / Student Details</div>
-          <div id="invModalStudentName" style="font-size: 16px; font-weight: 700; color: #fff;">Student Name</div>
-          <div id="invModalStudentEmail" style="font-size: 14px; color: #cbd5e1; margin-top: 2px;">student@example.com</div>
-          <div id="invModalStudentPhone" style="font-size: 13px; color: #94a3b8; margin-top: 2px;">(555) 000-0000</div>
-        </div>
-
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-          <thead>
-            <tr style="background: #172033; color: #FFB703; text-align: left; font-size: 12px; text-transform: uppercase;">
-              <th style="padding: 10px 12px; border-radius: 4px 0 0 4px;">Course / Certification</th>
-              <th style="padding: 10px 12px;">Scheduled Date</th>
-              <th style="padding: 10px 12px; text-align: right; border-radius: 0 4px 4px 0;">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom: 1px solid #1f293d;">
-              <td id="invModalCourseName" style="padding: 14px 12px; font-weight: 700; color: #fff; font-size: 15px;">Maryland Wear & Carry Permit</td>
-              <td id="invModalCourseDate" style="padding: 14px 12px; color: #cbd5e1; font-size: 14px;">Oct 17, 2026</td>
-              <td id="invModalAmount" style="padding: 14px 12px; text-align: right; font-weight: 800; color: #FFB703; font-size: 18px;">$350.00</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div style="background: #111723; border: 1px dashed #334155; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-          <div style="font-size: 12px; font-weight: 700; color: #FFB703; text-transform: uppercase; margin-bottom: 6px;">Payment Instructions & Next Steps</div>
-          <p style="margin: 0 0 6px 0; font-size: 13px; color: #cbd5e1; line-height: 1.4;">
-            Your course slot is reserved! To complete enrollment, payment can be finalized through the link sent to your email, or via Zelle / electronic transfer.
-          </p>
-          <div style="font-size: 12px; color: #94a3b8;">
-            Instructor Inquiries: <a href="mailto:carpetcare85@gmail.com" style="color: #FFB703; text-decoration: none;">carpetcare85@gmail.com</a> | (443) 990-1304
-          </div>
-        </div>
-
-        <div id="invDispatchStatus" style="display: none; padding: 12px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; text-align: center;"></div>
       </div>
 
-      <div style="background: #141b2b; padding: 18px 25px; border-top: 1px solid #1f293d; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-        <button type="button" onclick="printFifsInvoice()" style="background: #1e293d; color: #e2e8f0; border: 1px solid #334155; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">
-          🖨️ Print / Save PDF
+      <div style="margin-bottom:20px;">
+        <h4 style="margin:0 0 8px 0; font-size:13px; color:#9ca3af; text-transform:uppercase;">Curriculum & Tuition Breakdown</h4>
+        <div style="border:1px solid #1f2937; border-radius:6px; overflow:hidden;">
+          <div style="display:flex; justify-content:space-between; padding:10px 14px; background:#0d131c; border-bottom:1px solid #1f2937; font-size:12px; color:#9ca3af; font-weight:600;">
+            <span>DESCRIPTION</span>
+            <span>AMOUNT</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:12px 14px; font-size:14px; color:#ffffff; background:#10161f;">
+            <span id="inv-modal-course">Course Curriculum</span>
+            <span id="inv-modal-amount" style="font-weight:700; color:#00e5ff;">$150.00</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:12px 14px; background:#070b10; border-top:1px solid #1f2937; font-size:15px; font-weight:700;">
+            <span style="color:#ffffff;">Total Tuition Due</span>
+            <span id="inv-modal-total" style="color:#10b981;">$150.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Instructions -->
+      <div style="background:#070b10; border:1px dashed #374151; padding:14px; border-radius:8px; margin-bottom:20px; font-size:13px; color:#cbd5e1;">
+        <div style="font-weight:600; color:#fbbf24; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+          <span>💳</span> Accepted Payment Options
+        </div>
+        <div>• <strong>Zelle:</strong> <code style="color:#00e5ff;">info@trainwithfifs.com</code> or <code style="color:#00e5ff;">(443) 990-1304</code></div>
+        <div style="margin-top:3px;">• <strong>Credit / Debit Card:</strong> Payment link delivered in official confirmation email.</div>
+        <div style="margin-top:3px;">• <strong>Cash:</strong> Accepted on site prior to range live-fire briefing.</div>
+      </div>
+
+      <div id="inv-dispatch-status" style="display:none; padding:10px 14px; border-radius:6px; margin-bottom:16px; font-size:13px;"></div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button id="btn-confirm-send-invoice" onclick="confirmAndDispatchInvoice()" style="width:100%; background:linear-gradient(135deg, #00e5ff, #00b4d8); color:#070b10; font-family:'Rajdhani', sans-serif; font-size:17px; font-weight:700; letter-spacing:0.5px; border:none; padding:14px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+          <span>📧 Confirm & Send Official Invoice to My Email</span>
         </button>
-        <div style="display: flex; gap: 10px;">
-          <button type="button" onclick="closeFifsInvoiceModal()" style="background: transparent; color: #94a3b8; border: 1px solid #334155; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 13px;">
-            Close & Go to Portal
+        <div style="display:flex; gap:10px;">
+          <button onclick="goToStudentPortalFromInvoice()" style="flex:1; background:#1f2937; color:#f3f4f6; border:1px solid #374151; padding:10px; border-radius:6px; font-weight:600; font-size:13px; cursor:pointer;">
+            🔑 Enter Student Portal
           </button>
-          <button type="button" id="btnConfirmSendInvoice" onclick="confirmAndSendInvoice()" style="background: #FFB703; color: #000; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 800; letter-spacing: 0.5px;">
-            Confirm & Dispatch Invoice
+          <button onclick="window.print()" style="flex:1; background:#1f2937; color:#f3f4f6; border:1px solid #374151; padding:10px; border-radius:6px; font-weight:600; font-size:13px; cursor:pointer;">
+            🖨️ Print / Save PDF
           </button>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <script>
-    let activeFifsInvoice = null;
+<script>
+var currentActiveInvoiceData = null;
 
-    function openFifsInvoiceModal(bookingData) {
-      activeFifsInvoice = {
-        invoiceNumber: 'INV-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000),
-        studentId: bookingData.studentId || ('STU-' + Math.floor(1000 + Math.random() * 9000)),
-        fullName: bookingData.name || bookingData.fullName || 'Valued Student',
-        email: bookingData.email || '',
-        phone: bookingData.phone || '',
-        courseName: bookingData.course || bookingData.courseName || 'Certified Firearms Safety',
-        courseDate: bookingData.date || bookingData.dates || 'Selected Schedule',
-        amount: bookingData.price || bookingData.amount || '$350.00'
-      };
+function showBookingInvoiceModal(data) {
+  currentActiveInvoiceData = data;
+  document.getElementById('inv-modal-id').textContent = data.invoiceId;
+  document.getElementById('inv-modal-student-id').textContent = data.studentId;
+  document.getElementById('inv-modal-name').textContent = data.fullName;
+  document.getElementById('inv-modal-email-phone').textContent = data.email + ' • ' + (data.phone || 'Phone on file');
+  document.getElementById('inv-modal-dates').textContent = 'Preferred Schedule: ' + (data.preferredDates || 'To be coordinated with Instructor');
+  document.getElementById('inv-modal-course').textContent = data.courseSelection;
+  document.getElementById('inv-modal-amount').textContent = '$' + Number(data.amount).toFixed(2);
+  document.getElementById('inv-modal-total').textContent = '$' + Number(data.amount).toFixed(2);
 
-      document.getElementById('invModalNumber').innerText = activeFifsInvoice.invoiceNumber;
-      document.getElementById('invModalStudentId').innerText = activeFifsInvoice.studentId;
-      document.getElementById('invModalDate').innerText = 'Date: ' + new Date().toLocaleDateString();
-      document.getElementById('invModalStudentName').innerText = activeFifsInvoice.fullName;
-      document.getElementById('invModalStudentEmail').innerText = activeFifsInvoice.email;
-      document.getElementById('invModalStudentPhone').innerText = activeFifsInvoice.phone || 'Phone: On file';
-      document.getElementById('invModalCourseName').innerText = activeFifsInvoice.courseName;
-      document.getElementById('invModalCourseDate').innerText = activeFifsInvoice.courseDate;
-      document.getElementById('invModalAmount').innerText = activeFifsInvoice.amount;
+  const statusBox = document.getElementById('inv-dispatch-status');
+  if (statusBox) statusBox.style.display = 'none';
 
-      const statusDiv = document.getElementById('invDispatchStatus');
-      if (statusDiv) {
-        statusDiv.style.display = 'none';
-        statusDiv.className = '';
-      }
-      const btn = document.getElementById('btnConfirmSendInvoice');
+  const modal = document.getElementById('fifs-invoice-modal');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+}
+
+function closeBookingInvoiceModal() {
+  const modal = document.getElementById('fifs-invoice-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function confirmAndDispatchInvoice() {
+  if (!currentActiveInvoiceData) return;
+  const btn = document.getElementById('btn-confirm-send-invoice');
+  const statusBox = document.getElementById('inv-dispatch-status');
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳ Dispatching Official Invoice & Ledger Sync...</span>';
+  }
+
+  if (typeof google !== 'undefined' && google.script && google.script.run) {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (btn) {
+          btn.innerHTML = '<span>✔ Official Invoice Emailed!</span>';
+          btn.style.background = '#10b981';
+          btn.style.color = '#ffffff';
+        }
+        if (statusBox) {
+          statusBox.style.display = 'block';
+          statusBox.style.background = '#064e3b';
+          statusBox.style.color = '#a7f3d0';
+          statusBox.innerHTML = '<strong>Success!</strong> Invoice ' + currentActiveInvoiceData.invoiceId + ' sent to ' + currentActiveInvoiceData.email + ' and Instructor Kai Wade.';
+        }
+      })
+      .withFailureHandler(function(err) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>⚠️ Retry Email Dispatch</span>';
+        }
+        if (statusBox) {
+          statusBox.style.display = 'block';
+          statusBox.style.background = '#7f1d1d';
+          statusBox.style.color = '#fecaca';
+          statusBox.textContent = 'Notice: Server invoice logged. If email does not arrive in 5 minutes, please reach out to info@trainwithfifs.com.';
+        }
+      })
+      .handleConfirmAndSendInvoice(currentActiveInvoiceData);
+  } else {
+    setTimeout(function() {
       if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = 'Confirm & Dispatch Invoice';
+        btn.innerHTML = '<span>✔ Official Invoice Recorded</span>';
+        btn.style.background = '#10b981';
+        btn.style.color = '#ffffff';
       }
-
-      const modal = document.getElementById('fifsInvoiceModal');
-      if (modal) {
-        modal.style.display = 'flex';
+      if (statusBox) {
+        statusBox.style.display = 'block';
+        statusBox.style.background = '#064e3b';
+        statusBox.style.color = '#a7f3d0';
+        statusBox.textContent = 'Invoice confirmed! Your reservation is logged.';
       }
-    }
+    }, 600);
+  }
+}
 
-    function closeFifsInvoiceModal() {
-      const modal = document.getElementById('fifsInvoiceModal');
-      if (modal) modal.style.display = 'none';
-      if (typeof switchTab === 'function') {
-        switchTab('portal');
-      }
-    }
-
-    function printFifsInvoice() {
-      window.print();
-    }
-
-    function confirmAndSendInvoice() {
-      if (!activeFifsInvoice) return;
-      const btn = document.getElementById('btnConfirmSendInvoice');
-      const statusDiv = document.getElementById('invDispatchStatus');
-
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spin-icon">🔄</span> Sending Invoices...';
-      }
-      if (statusDiv) {
-        statusDiv.style.display = 'block';
-        statusDiv.style.background = 'rgba(255, 183, 3, 0.15)';
-        statusDiv.style.color = '#FFB703';
-        statusDiv.style.border = '1px solid #FFB703';
-        statusDiv.innerText = 'Dispatching branded invoice to ' + activeFifsInvoice.email + ' and instructors...';
-      }
-
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            if (btn) {
-              btn.disabled = false;
-              btn.innerHTML = '✓ Invoice Dispatched';
-            }
-            if (statusDiv) {
-              statusDiv.style.background = 'rgba(34, 197, 94, 0.15)';
-              statusDiv.style.color = '#22c55e';
-              statusDiv.style.border = '1px solid #22c55e';
-              statusDiv.innerText = 'Invoice #' + (res.invoiceNumber || activeFifsInvoice.invoiceNumber) + ' dispatched to ' + activeFifsInvoice.email + ' and recorded in Google Sheets!';
-            }
-            setTimeout(function() {
-              closeFifsInvoiceModal();
-            }, 2500);
-          })
-          .withFailureHandler(function(err) {
-            if (btn) {
-              btn.disabled = false;
-              btn.innerHTML = 'Confirm & Dispatch Invoice';
-            }
-            if (statusDiv) {
-              statusDiv.style.background = 'rgba(239, 68, 68, 0.15)';
-              statusDiv.style.color = '#ef4444';
-              statusDiv.style.border = '1px solid #ef4444';
-              statusDiv.innerText = 'Server dispatch notice: ' + (err.message || 'Offline') + '. You can print this invoice above.';
-            }
-          })
-          .handleConfirmAndSendInvoice(activeFifsInvoice);
-      } else {
-        setTimeout(function() {
-          if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '✓ Invoice Dispatched';
-          }
-          if (statusDiv) {
-            statusDiv.style.background = 'rgba(34, 197, 94, 0.15)';
-            statusDiv.style.color = '#22c55e';
-            statusDiv.style.border = '1px solid #22c55e';
-            statusDiv.innerText = 'Invoice issued and simulated successfully!';
-          }
-          setTimeout(function() {
-            closeFifsInvoiceModal();
-          }, 2500);
-        }, 1200);
-      }
-    }
-  </script>
+function goToStudentPortalFromInvoice() {
+  closeBookingInvoiceModal();
+  if (currentActiveInvoiceData && currentActiveInvoiceData.studentId) {
+    switchTab('portal');
+    const authInput = document.getElementById('studentAuthInput');
+    if (authInput) authInput.value = currentActiveInvoiceData.studentId;
+    lookupStudentAccount();
+  } else {
+    switchTab('portal');
+  }
+}
+</script>
 
 </body>
 </html>
