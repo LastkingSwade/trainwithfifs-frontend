@@ -7488,8 +7488,7 @@
       const dateInput = document.getElementById('preferredDates');
       const dateText = document.getElementById('bookingCalSelectedDateText');
 
-      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-      const formatted = cellDate ? cellDate.toLocaleDateString('en-US', options) : dateKey;
+      const options = { weekday: 'long', year: 'numeric', month: 'lon     const formatted = cellDate ? cellDate.toLocaleDateString('en-US', options) : dateKey;
 
       if (dateInput) {
         dateInput.value = `${formatted} ${isVip ? '(👑 VIP Turnkey)' : '(Standard Base)'}`;
@@ -9543,9 +9542,7 @@
   <span class="gold-stars-cluster">★★★★★</span>
   <span class="review-quote-text">"Got my MD wear and carry from Future Initiatives and I highly recommend Coach Wade!"</span>
   <span class="gold-stars-cluster">★★★★★</span>
-  <span class="review-author-tag">• MD Wear & Carry Student</span>
-</div>
-<div class="review-item-pill">
+  <span class="review-author-tag">• MD Wear & Carrydiv class="review-item-pill">
   <span class="gold-stars-cluster">★★★★★</span>
   <span class="review-quote-text">"Very informative and detailed explanation on firearm safety, gun ownership and state laws while defending yourself from harm."</span>
   <span class="gold-stars-cluster">★★★★★</span>
@@ -10863,7 +10860,7 @@
 <div class="journey-grid">
 <div class="j-card" onclick="openStepDetailModal(1)" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Step 1 Infographic Breakdown"><div class="j-num">01</div><div class="j-title">Register</div><div class="j-desc">Initialize your online student dossier and obtain your Student ID.</div></div>
 <div class="j-card" onclick="openStepDetailModal(2)" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Step 2 Infographic Breakdown"><div class="j-num">02</div><div class="j-title">Confirm</div><div class="j-desc">Lock in your scheduled training session at Cindy's Hot Shots.</div></div>
-<div class="j-card" onclick="openStepDetailModal(3)" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Step 3 Infographic Breakdown"><div class="j-num">03</div><div class="j-title">Prepare</div><div class="j-desc">Complete your readiness checklist inside your personal Student Portal.</div></div>
+<div class="j-card" onclick="openStepDetailModal(3)" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Step 3 Infographic Breakdown">ass="j-desc">Complete your readiness checklist inside your personal Student Portal.</div></div>
 <div class="j-card" onclick="openStepDetailModal(4)" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Step 4 Infographic Breakdown"><div class="j-num">04</div><div class="j-title">Classroom</div><div class="j-desc">Master Maryland self-defense law, safe storage, and firearm handling.</div></div>
 <div class="j-card" onclick="openStepDetailModal(5)" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Step 5 Infographic Breakdown"><div class="j-num">05</div><div class="j-title">Live-Fire</div><div class="j-desc">Diagnostic shooting drills and the official 25-round live-fire qualification.</div></div>
 <div class="j-card" onclick="openStepDetailModal(6)" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Step 6 Infographic Breakdown"><div class="j-num">06</div><div class="j-title">Certificate</div><div class="j-desc">Receive your official signed Maryland State Police Training Certificate.</div></div>
@@ -12372,7 +12369,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
               <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff;">📡 Live Interaction &amp; Device Stream</h4>
               <span style="font-size: 0.76rem; color: #10b981; font-weight: 700; text-transform: uppercase;">● Verified Activity Log</span>
             </div>
-            <div style="max-height: 250px; overflow-y: auto; font-family: monospace; font-size: 0.82rem; background: #070b10; border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.06);">
+      border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.06);">
               ${events.length ? events.map(e => `
                 <div style="padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
                   <div style="display: flex; gap: 8px; align-items: center;">
@@ -14664,7 +14661,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         if (heroDesc) heroDesc.textContent = "Live-fire evaluation at Cindy's Hot Shots. Focus on master grip, trigger press, and the 25-round Maryland State Police qualification course.";
 
-        if (heroBtn) { heroBtn.textContent = "View Official Score Sheet (MSP 29-14) 🎯"; heroBtn.onclick = function() { window.open('https://drive.google.com/file/d/1zKrRHowlg1GSewhLISZFrLvr91gxYQBP/view?usp=sharing', '_blank'); }; }
+      Btn.textContent = "View Official Score Sheet (MSP 29-14) 🎯"; heroBtn.onclick = function() { window.open('https://drive.google.com/file/d/1zKrRHowlg1GSewhLISZFrLvr91gxYQBP/view?usp=sharing', '_blank'); }; }
 
       } else if (stepNum === 6) {
 
@@ -17963,7 +17960,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
                   },
                   {
                         "title": "Bringing Your Own Handgun?",
-                        "desc": "If bringing your own firearm, it must be Maryland transport compliant: 100% completely unloaded and enclosed inside a rigid locked case or secured in your vehicle trunk. Strictly NO firearms may be uncased outside the firing line."
+                        "desc": "If bringing your own firearm, it must be Maryland transely unloaded and enclosed inside a rigid locked case or secured in your vehicle trunk. Strictly NO firearms may be uncased outside the firing line."
                   },
                   {
                         "title": "Holster Standards (Wear & Carry Only)",
@@ -20393,7 +20390,7 @@ function closeStateModal() {
 <div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-26', new Date(2026, 9, 26))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-26">
   <span>26</span>
 </div>
-<div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-27', new Date(2026, 9, 27))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-27">
+<div class="cal-day-cell cal-weekd10-27', new Date(2026, 9, 27))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-27">
   <span>27</span>
 </div>
 <div class="cal-day-cell cal-weekday" onclick="selectBookingDate('2026-10-28', new Date(2026, 9, 28))" style="background: #0d1219; min-height: 42px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.86rem; font-weight: 700; cursor: pointer; color: #fff;" title="Available Training Date" data-date="2026-10-28">
@@ -21133,3 +21130,8 @@ function confirmAndDispatchInvoice() {
 
 
 
+
+ay" onclick="selectBookingDate('2026-port compliant: 100% complet  if (heroBtn) { hero       <div style="max-height: 250px; overflow-y: auto; font-family: monospace; font-size: 0.82rem; background: #070b10;<div class="j-num">03</div><div class="j-title">Prepare</div><div cl Student</span>
+</div>
+<g', day: 'numeric' };
+ 
