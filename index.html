@@ -6427,9 +6427,9 @@
         title: "Seat Confirmation & Training Date Assignment",
         icon: "📅",
         status: "Completed ✔",
-        synopsis: "Your training cohort date and firing line reservation at Cindy&#39;s Hot Shots have been assigned.",
+        synopsis: "Your training cohort date and qualification shooting lane reservation at Cindy&#39;s Hot Shots have been assigned.",
         points: [
-          "✔ Firing line lane slot reserved at Cindy&#39;s Hot Shots (Glen Burnie, MD).",
+          "✔ Qualification lane reserved at Cindy&#39;s Hot Shots (Glen Burnie, MD).",
           "✔ Confirmation notification and preparation briefing sent to student email.",
           "✔ Access granted to the Future Initiative Student Operations Portal."
         ],
@@ -6468,7 +6468,7 @@
         title: "Live-Fire Practical Range Qualification",
         icon: "🎯",
         status: "Range Practical",
-        synopsis: "Live-fire shooting evolution conducted on the firing line at Cindy&#39;s Hot Shots under the direct supervision of Certified Instructor Kai Wade.",
+        synopsis: "Live-fire qualification shots conducted downrange at Cindy&#39;s Hot Shots (course instruction led by FIFS) under the direct supervision of Certified Instructor Kai Wade.",
         points: [
           "✔ Wear & Carry: 25-round course of fire at 3, 5, 7, and 15 yards on B-27 targets (70% passing score).",
           "✔ HQL: Demonstration of safe loading, firing, and unloading mechanics.",
@@ -6552,7 +6552,7 @@
             "sections": [
                   {
                         "title": "100% Zero-Live-Ammunition Classroom Mandate",
-                        "desc": "Absolutely zero live ammunition is permitted inside the classroom environment under any circumstance. All live ammunition must remain secured in your vehicle trunk until Instructor Kai Wade conducts the live-fire evolution downrange at Cindy&#39;s Hot Shots."
+                        "desc": "Absolutely zero live ammunition is permitted inside the classroom environment under any circumstance. All live ammunition must remain secured in your vehicle trunk until Instructor Kai Wade conducts the live-fire qualification shots downrange at Cindy&#39;s Hot Shots."
                   },
                   {
                         "title": "Required Ammo Quantity",
@@ -6699,7 +6699,7 @@
 
         vip: "$65.00",
 
-        baseDesc: "FIFS alumni exclusive clinic. 2-hour practical diagnostic shooting workshop at Cindy&#39;s Hot Shots (Glen Burnie, MD) coached directly by Lead Instructor Kai Wade.",
+        baseDesc: "FIFS alumni exclusive clinic. 2-hour practical diagnostic qualification shooting at Cindy&#39;s Hot Shots (Glen Burnie, MD) coached directly by Lead Instructor Kai Wade.",
 
         vipDesc: "Flat rate for certified graduates and permit holders ($65.00/session). No VIP package needed—all training and lane access included!"
 
@@ -7307,13 +7307,13 @@
     function generateCoachWadeReply(msg) {
       const m = msg.toLowerCase();
       if (m.includes('cost') || m.includes('price') || m.includes('tuition') || m.includes('how much')) {
-        return "Our courses start at $100 for Maryland HQL and $249.99 for the complete Wear & Carry + HQL Combo (which saves you $100). All classes include live-fire practical range qualification at Cindy&#39;s Hot Shots. You can view full transparent pricing in our course catalog!";
+        return "Our courses start at $100 for Maryland HQL and $249.99 for the complete Wear & Carry + HQL Combo (which saves you $100). All classes include live-fire qualification shots conducted downrange at Cindy&#39;s Hot Shots. You can view full transparent pricing in our course catalog!";
       }
       if (m.includes('schedule') || m.includes('date') || m.includes('when') || m.includes('weekend') || m.includes('weekday')) {
         return "We offer flexible scheduling: Standard courses run on Saturdays & Sundays, while VIP Turnkey enrollments unlock 7-day flexible scheduling (Monday through Sunday anytime) to match your personal schedule!";
       }
       if (m.includes('range') || m.includes('location') || m.includes('where')) {
-        return "All live-fire marksmanship training and practical qualifications are conducted at Cindy&#39;s Hot Shots (115 Holsum Way, Glen Burnie, MD 21060). It's a clean, safe, and professional certified indoor range facility.";
+        return "All live-fire marksmanship training and practical qualification shots are conducted at Cindy&#39;s Hot Shots (classroom instruction conducted by FIFS) (115 Holsum Way, Glen Burnie, MD 21060). It's a clean, safe, and professional certified indoor range facility.";
       }
       if (m.includes('gun') || m.includes('firearm') || m.includes('rent') || m.includes('ammo')) {
         return "You do NOT need to own a handgun to start! Loaner 9mm firearms and factory target ammo can be provided or coordinated directly on-site at Cindy&#39;s Hot Shots for your live-fire shoot.";
@@ -7339,15 +7339,15 @@
 
     var TARGET_PHOTOS_DATA = [
       { id: "1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO", course: "Diagnostic Coaching", score: "1-on-1 Session", title: "Lane Diagnostics & Fundamentals", desc: "Student working through 1-on-1 coaching on the firing line at Cindy&#39;s Hot Shots. Paced instruction focused on grip friction and smooth trigger press.", loc: "Cindy&#39;s Hot Shots • Glen Burnie, MD" },
-      { id: "10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps", course: "Wear & Carry", score: "100% Qualified", title: "Center-Mass Cadence Cluster", desc: "Clean vital-zone hits on the official BakerTargets qualification course. Calm coaching built confidence from the first round.", loc: "Certified Range: Cindy&#39;s Hot Shots" },
+      { id: "10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps", course: "Wear & Carry", score: "100% Qualified", title: "Center-Mass Cadence Cluster", desc: "Clean vital-zone hits on the official BakerTargets qualification course. Calm coaching built confidence from the first round.", loc: "Partner Range (Live-Fire Quals): Cindy&#39;s Hot Shots" },
       { id: "1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv", course: "Maryland CCW", score: "Center-X Grouping", title: "B-27 Precision Grouping", desc: "Tight shot placement centered right in the 9, 10, and X rings following holster draw and sight picture coaching.", loc: "Cindy&#39;s Hot Shots • Practical Qualification" },
       { id: "1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR", course: "Paired Training", score: "Dual Qualifiers", title: "Dual Student Center Clusters", desc: "Both students qualifying side-by-side with tight vital zone clusters during an intensive live-fire training block.", loc: "Cindy&#39;s Hot Shots • Paired Session" },
-      { id: "1rUcirGX7jLT0upSobd82iJf91Ycv9xlt", course: "Wear & Carry", score: "Certified Pass", title: "Confidence & Marksmanship", desc: "Solid center-mass spread on silhouette targets, demonstrating steady recoil management and smooth trigger reset.", loc: "Certified Range: Cindy&#39;s Hot Shots" },
+      { id: "1rUcirGX7jLT0upSobd82iJf91Ycv9xlt", course: "Wear & Carry", score: "Certified Pass", title: "Confidence & Marksmanship", desc: "Solid center-mass spread on silhouette targets, demonstrating steady recoil management and smooth trigger reset.", loc: "Partner Range (Live-Fire Quals): Cindy&#39;s Hot Shots" },
       { id: "1Z8VLFy2L1Sd6bASqfpt-BBeRiKpVU9qF", course: "Maryland HQL / CCW", score: "Dead-Center Hits", title: "Precision Vital-Zone Group", desc: "Dead-center vital-zone grouping achieved through individual coaching on grip friction and stance balance.", loc: "Cindy&#39;s Hot Shots • Private Coaching" },
       { id: "1mljZQi7U4-O4vBCldtd5xMqAtbk7xBBl", course: "Range Marksmanship", score: "Center Grouping", title: "Dynamic Range Drills", desc: "Maintaining discipline and tight group consistency across multiple target styles and engagement distances.", loc: "Cindy&#39;s Hot Shots • Glen Burnie, MD" },
       { id: "1bQjmsgeIz5AOZbyHLnLe-y84FFmmOQSh", course: "Paired Session", score: "Certified Qualifiers", title: "Paired Class Qualifiers", desc: "Both students achieving passing scores with clean center-mass placement during paired weekend instruction.", loc: "Cindy&#39;s Hot Shots • Paired Training" },
       { id: "1I8SYXbZ8Vs_RoaISP-Oi_yVf8y24wJM_", course: "Small Group", score: "Dual Certified", title: "Small Group Milestone", desc: "Two students completing their Maryland qualification course together with tight clusters and zero intimidation.", loc: "Cindy&#39;s Hot Shots • Glen Burnie, MD" },
-      { id: "1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV", course: "Firing Line", score: "Live Range", title: "Live Firing Line Perspective", desc: "Active diagnostic shooting and practical qualification downrange at Cindy&#39;s Hot Shots in Glen Burnie, MD.", loc: "Primary Range Facility • Cindy&#39;s Hot Shots" },
+      { id: "1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV", course: "Firing Line", score: "Live Range", title: "Live Firing Line Perspective", desc: "Active diagnostic shooting and practical qualification downrange at Cindy&#39;s Hot Shots in Glen Burnie, MD.", loc: "Partner Range (Qualification Shots Only) • Cindy&#39;s Hot Shots" },
       { id: "1GKKGtLxhSqGOgfh1-u1_CFNr1af-xFUS", course: "Wear & Carry", score: "100% Qualified", title: "Silhouette Marksmanship", desc: "Focused shot cadence and tight center grouping on the B-27 black silhouette target during practical qualification.", loc: "Cindy&#39;s Hot Shots • Glen Burnie, MD" },
       { id: "1Xr431Fu4IWY2KIhpJJ5REskODfpH-X9M", course: "HQL & Fundamentals", score: "Concentric Hits", title: "Marksmanship Diagnostics", desc: "Target drill emphasizing sight alignment, steady trigger press, and recoil recovery mechanics.", loc: "Diagnostic Coaching • Cindy&#39;s Hot Shots" },
       { id: "1O5ON4PlVTuCaW-w09a0zzMnOYBMwQ_6k", course: "Maryland CCW", score: "Center-Mass Certified", title: "B27 Shield Precision", desc: "Clean vital-zone dispersion on the B27 Shield tactical training target during live-fire qualification.", loc: "Cindy&#39;s Hot Shots • Practical Qual" },
@@ -7357,7 +7357,7 @@
       { id: "1bWUFKzFuf-xsE7XSuPEE9mWuyGyVcH_z", course: "CCW Certification", score: "High-Visibility Target", title: "Orange Silhouette Grouping", desc: "Steady cadence and confident gun handling producing tight center-scoring hits during qualification.", loc: "Cindy&#39;s Hot Shots • Glen Burnie, MD" },
       { id: "191TKVFSz48i2NP9T23KKzZcNFIr42Fls", course: "Wear & Carry", score: "Certified Passing", title: "Confident Marksmanship", desc: "Clean grouping right in the vital scoring rings following 1-on-1 diagnostic coaching with Instructor Wade.", loc: "Cindy&#39;s Hot Shots • Qualified" },
       { id: "1-__LG3c5gZA2zAKX-qeX8magmZRBETsY", course: "Paired Session", score: "Dual Qualifiers", title: "Paired Training Cohort", desc: "Two students celebrating successful state qualification following their live-fire practical course of fire.", loc: "Cindy&#39;s Hot Shots • Range Exit" },
-      { id: "1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5", course: "Maryland CCW", score: "X-Ring Cluster", title: "Red X-Ring Accuracy", desc: "Dead-center shot placement clustered around the red X-ring on the B-27 qualification target.", loc: "Certified Range • Cindy&#39;s Hot Shots" }
+      { id: "1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5", course: "Maryland CCW", score: "X-Ring Cluster", title: "Red X-Ring Accuracy", desc: "Dead-center shot placement clustered around the red X-ring on the B-27 qualification target.", loc: "Partner Range (Live-Fire Quals) • Cindy&#39;s Hot Shots" }
     ];
     window.TARGET_PHOTOS_DATA = TARGET_PHOTOS_DATA;
 
@@ -9667,7 +9667,7 @@
 <div class="next-step-badge">🚀 Priority Action Required</div>
 <div class="next-step-title" id="dash-next-step-title">Complete Your Class Preparation Checklist</div>
 <div class="next-step-desc" id="dash-next-step-desc">
-            Your class session is approaching. Please verify your ammunition count (50–100 rounds factory target ammo), wrap-around eye protection, and Maryland firearm transport compliance prior to arrival at Cindy&#39;s Hot Shots.
+            Your class session is approaching. Please verify your ammunition count (50–100 rounds factory target ammo), wrap-around eye protection, and Maryland firearm transport compliance prior to arrival at Cindy&#39;s Hot Shots for your qualification shoot.
           </div>
 <button class="btn-primary" id="dash-next-step-btn" style="max-width: 320px;" type="button">
             Complete Preparation Checklist ↓
@@ -9702,7 +9702,7 @@
 <input class="task-checkbox" id="chk-transport_law" onclick="event.stopPropagation(); syncTask('transport_law', this.checked)" type="checkbox"/>
 <div>
 <strong style="color: #fff; font-family: var(--font-display); font-size: 1.05rem; display: block;">Maryland Transport Compliance Confirmed</strong>
-<p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">Firearm must be unloaded and enclosed in a locked case or trunk during transit to Cindy&#39;s Hot Shots.</p>
+<p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">Firearm must be unloaded and enclosed in a locked case or trunk during transit to Cindy&#39;s Hot Shots for qualification shots.</p>
 </div>
 </div>
 <div class="task-item-card" id="task-card-ammo" onclick="toggleTaskCheckbox('ammo_acquired')">
@@ -10173,7 +10173,7 @@
                 10% Off Your Maryland Wear &amp; Carry (8-Hour Renewal)
               </h4>
 <p style="font-size: 0.9rem; color: #e2e8f0; line-height: 1.5;">
-                Renewing your permit with Future Initiative ensures complete compliance with Maryland Senate Bill 1 and Faulkner standards, including live-fire range qualification at Cindy&#39;s Hot Shots.
+                Renewing your permit with Future Initiative ensures complete compliance with Maryland Senate Bill 1 and Faulkner standards, including live-fire qualification shots conducted at Cindy&#39;s Hot Shots.
               </p>
 <div style="margin-top: 8px; font-family: var(--font-display); font-size: 1.05rem; color: var(--accent-amber); font-weight: 700;">
                 Promo Code: <code style="background: rgba(0,0,0,0.5); padding: 3px 10px; border-radius: 6px; border: 1px solid var(--accent-amber); color: #fff;">RENEWAL10</code>
@@ -10278,7 +10278,7 @@
 <span class="fi-badge fi-badge-amber">8-Hour Mandate</span>
 <h3 class="fi-feature-title">Maryland Wear &amp; Carry (8-Hour Renewal)</h3>
 <p class="fi-feature-desc">
-                State-mandated refresher course covering SB 1 legal updates, conflict de-escalation, safe storage mandates, and live-fire range qualification at Cindy&#39;s Hot Shots.
+                State-mandated refresher course covering SB 1 legal updates, conflict de-escalation, safe storage mandates, and live-fire qualification shots conducted at Cindy&#39;s Hot Shots.
               </p>
 <div style="font-family: var(--font-display); font-size: 1.3rem; color: #fff; margin-bottom: 12px;">
                 $175 <span style="font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-body);">Base</span> • $325 <span style="font-size: 0.85rem; color: var(--accent-amber); font-family: var(--font-body);">VIP Turnkey</span>
@@ -10863,7 +10863,7 @@
 </div>
 <div class="journey-grid">
 <div class="j-card" onclick="openStepDetailModal(1)" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Step 1 Infographic Breakdown"><div class="j-num">01</div><div class="j-title">Register</div><div class="j-desc">Initialize your online student dossier and obtain your Student ID.</div></div>
-<div class="j-card" onclick="openStepDetailModal(2)" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Step 2 Infographic Breakdown"><div class="j-num">02</div><div class="j-title">Confirm</div><div class="j-desc">Lock in your scheduled training session at Cindy&#39;s Hot Shots.</div></div>
+<div class="j-card" onclick="openStepDetailModal(2)" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Step 2 Infographic Breakdown"><div class="j-num">02</div><div class="j-title">Confirm</div><div class="j-desc">Lock in your scheduled qualification shots at Cindy&#39;s Hot Shots.</div></div>
 <div class="j-card" onclick="openStepDetailModal(3)" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Step 3 Infographic Breakdown"><div class="j-num">03</div><div class="j-title">Prepare</div><div class="j-desc">Complete your readiness checklist inside your personal Student Portal.</div></div>
 <div class="j-card" onclick="openStepDetailModal(4)" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Step 4 Infographic Breakdown"><div class="j-num">04</div><div class="j-title">Classroom</div><div class="j-desc">Master Maryland self-defense law, safe storage, and firearm handling.</div></div>
 <div class="j-card" onclick="openStepDetailModal(5)" style="cursor: pointer; transition: all 0.25s ease;" title="Click for Step 5 Infographic Breakdown"><div class="j-num">05</div><div class="j-title">Live-Fire</div><div class="j-desc">Diagnostic shooting drills and the official 25-round live-fire qualification.</div></div>
@@ -10962,7 +10962,7 @@
 <div class="tuition-desc">Full 16-hour Maryland Wear &amp; Carry qualification + application preparation for Virginia, Florida, Arizona, and Pennsylvania non-resident carry.</div>
 <div class="tuition-bullets" id="bullets-course-mastery">
 <div>✔ 16-Hour Maryland State-Approved Class</div>
-<div>✔ Live-Fire Qualification at Cindy&#39;s Hot Shots</div>
+<div>✔ Practical Qualification Shots at Cindy&#39;s Hot Shots</div>
 <div>✔ VA, FL, AZ Documentation &amp; Affidavits</div>
 <div>✔ PA $20 Non-Resident LTCF Roadmap</div>
 </div>
@@ -12016,13 +12016,13 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
 
             { id: "1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO", course: "Diagnostic Coaching", score: "1-on-1 Session", title: "Lane Diagnostics & Fundamentals", desc: "Student working through 1-on-1 coaching on the firing line at Cindy&#39;s Hot Shots. Paced instruction focused on grip friction and smooth trigger press.", loc: "Cindy&#39;s Hot Shots • Glen Burnie, MD" },
 
-      { id: "10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps", course: "Wear & Carry", score: "100% Qualified", title: "Center-Mass Cadence Cluster", desc: "Clean vital-zone hits on the official BakerTargets qualification course. Calm coaching built confidence from the first round.", loc: "Certified Range: Cindy&#39;s Hot Shots" },
+      { id: "10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps", course: "Wear & Carry", score: "100% Qualified", title: "Center-Mass Cadence Cluster", desc: "Clean vital-zone hits on the official BakerTargets qualification course. Calm coaching built confidence from the first round.", loc: "Partner Range (Live-Fire Quals): Cindy&#39;s Hot Shots" },
 
       { id: "1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv", course: "Maryland CCW", score: "Center-X Grouping", title: "B-27 Precision Grouping", desc: "Tight shot placement centered right in the 9, 10, and X rings following holster draw and sight picture coaching.", loc: "Cindy&#39;s Hot Shots • Practical Qualification" },
 
       { id: "1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR", course: "Paired Training", score: "Dual Qualifiers", title: "Dual Student Center Clusters", desc: "Both students qualifying side-by-side with tight vital zone clusters during an intensive live-fire training block.", loc: "Cindy&#39;s Hot Shots • Paired Session" },
 
-      { id: "1rUcirGX7jLT0upSobd82iJf91Ycv9xlt", course: "Wear & Carry", score: "Certified Pass", title: "Confidence & Marksmanship", desc: "Solid center-mass spread on silhouette targets, demonstrating steady recoil management and smooth trigger reset.", loc: "Certified Range: Cindy&#39;s Hot Shots" },
+      { id: "1rUcirGX7jLT0upSobd82iJf91Ycv9xlt", course: "Wear & Carry", score: "Certified Pass", title: "Confidence & Marksmanship", desc: "Solid center-mass spread on silhouette targets, demonstrating steady recoil management and smooth trigger reset.", loc: "Partner Range (Live-Fire Quals): Cindy&#39;s Hot Shots" },
 
       { id: "1Z8VLFy2L1Sd6bASqfpt-BBeRiKpVU9qF", course: "Maryland HQL / CCW", score: "Dead-Center Hits", title: "Precision Vital-Zone Group", desc: "Dead-center vital-zone grouping achieved through individual coaching on grip friction and stance balance.", loc: "Cindy&#39;s Hot Shots • Private Coaching" },
 
@@ -12032,7 +12032,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
 
       { id: "1I8SYXbZ8Vs_RoaISP-Oi_yVf8y24wJM_", course: "Small Group", score: "Dual Certified", title: "Small Group Milestone", desc: "Two students completing their Maryland qualification course together with tight clusters and zero intimidation.", loc: "Cindy&#39;s Hot Shots • Glen Burnie, MD" },
 
-      { id: "1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV", course: "Firing Line", score: "Live Range", title: "Live Firing Line Perspective", desc: "Active diagnostic shooting and practical qualification downrange at Cindy&#39;s Hot Shots in Glen Burnie, MD.", loc: "Primary Range Facility • Cindy&#39;s Hot Shots" },
+      { id: "1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV", course: "Firing Line", score: "Live Range", title: "Live Firing Line Perspective", desc: "Active diagnostic shooting and practical qualification downrange at Cindy&#39;s Hot Shots in Glen Burnie, MD.", loc: "Partner Range (Qualification Shots Only) • Cindy&#39;s Hot Shots" },
 
       { id: "1GKKGtLxhSqGOgfh1-u1_CFNr1af-xFUS", course: "Wear & Carry", score: "100% Qualified", title: "Silhouette Marksmanship", desc: "Focused shot cadence and tight center grouping on the B-27 black silhouette target during practical qualification.", loc: "Cindy&#39;s Hot Shots • Glen Burnie, MD" },
 
@@ -12052,7 +12052,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
 
       { id: "1-__LG3c5gZA2zAKX-qeX8magmZRBETsY", course: "Paired Session", score: "Dual Qualifiers", title: "Paired Training Cohort", desc: "Two students celebrating successful state qualification following their live-fire practical course of fire.", loc: "Cindy&#39;s Hot Shots • Range Exit" },
 
-      { id: "1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5", course: "Maryland CCW", score: "X-Ring Cluster", title: "Red X-Ring Accuracy", desc: "Dead-center shot placement clustered around the red X-ring on the B-27 qualification target.", loc: "Certified Range • Cindy&#39;s Hot Shots" }
+      { id: "1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5", course: "Maryland CCW", score: "X-Ring Cluster", title: "Red X-Ring Accuracy", desc: "Dead-center shot placement clustered around the red X-ring on the B-27 qualification target.", loc: "Partner Range (Live-Fire Quals) • Cindy&#39;s Hot Shots" }
 
     ];
 
@@ -15215,7 +15215,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         '<div style="background:#070b11;border:1px solid #1e293b;border-radius:8px;padding:14px;margin-bottom:20px;font-size:0.85rem;">' +
           '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
-            '<strong style="color:var(--accent-cyan);font-size:0.8rem;letter-spacing:0.05em;text-transform:uppercase;">📍 Live-Fire Qualification Range:</strong>' +
+            '<strong style="color:var(--accent-cyan);font-size:0.8rem;letter-spacing:0.05em;text-transform:uppercase;">📍 Partner Range for Qualification Shots Only:</strong>' +
             '<a href="https://maps.google.com/?q=Cindy%27s+Hot+Shots+115+Holsum+Way+Glen+Burnie+MD+21060" target="_blank" rel="noopener noreferrer" style="color:var(--accent-cyan);font-size:0.75rem;text-decoration:underline;">Directions ↗</a>' +
           '</div>' +
           '<div style="color:#e2e8f0;line-height:1.4;"><strong>Cindy&#39;s Hot Shots</strong>: 115 Holsum Way, Glen Burnie, MD 21060</div>' +
@@ -17020,7 +17020,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         vip: "$65.00",
 
-        baseDesc: "FIFS alumni exclusive clinic. 2-hour practical diagnostic shooting workshop at Cindy&#39;s Hot Shots (Glen Burnie, MD) coached directly by Lead Instructor Kai Wade.",
+        baseDesc: "FIFS alumni exclusive clinic. 2-hour practical diagnostic qualification shooting at Cindy&#39;s Hot Shots (Glen Burnie, MD) coached directly by Lead Instructor Kai Wade.",
 
         vipDesc: "Flat rate for certified graduates and permit holders ($65.00/session). No VIP package needed—all training and lane access included!"
 
@@ -17952,7 +17952,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
             "sections": [
                   {
                         "title": "100% Zero-Live-Ammunition Classroom Mandate",
-                        "desc": "Absolutely zero live ammunition is permitted inside the classroom environment under any circumstance. All live ammunition must remain secured in your vehicle trunk until Instructor Kai Wade conducts the live-fire evolution downrange at Cindy&#39;s Hot Shots."
+                        "desc": "Absolutely zero live ammunition is permitted inside the classroom environment under any circumstance. All live ammunition must remain secured in your vehicle trunk until Instructor Kai Wade conducts the live-fire qualification shots downrange at Cindy&#39;s Hot Shots."
                   },
                   {
                         "title": "Required Ammo Quantity",
@@ -18882,9 +18882,9 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         title: "Seat Confirmation & Training Date Assignment",
         icon: "📅",
         status: "Completed ✔",
-        synopsis: "Your training cohort date and firing line reservation at Cindy&#39;s Hot Shots have been assigned.",
+        synopsis: "Your training cohort date and qualification shooting lane reservation at Cindy&#39;s Hot Shots have been assigned.",
         points: [
-          "✔ Firing line lane slot reserved at Cindy&#39;s Hot Shots (Glen Burnie, MD).",
+          "✔ Qualification lane reserved at Cindy&#39;s Hot Shots (Glen Burnie, MD).",
           "✔ Confirmation notification and preparation briefing sent to student email.",
           "✔ Access granted to the Future Initiative Student Operations Portal."
         ],
@@ -18923,7 +18923,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         title: "Live-Fire Practical Range Qualification",
         icon: "🎯",
         status: "Range Practical",
-        synopsis: "Live-fire shooting evolution conducted on the firing line at Cindy&#39;s Hot Shots under the direct supervision of Certified Instructor Kai Wade.",
+        synopsis: "Live-fire qualification shots conducted downrange at Cindy&#39;s Hot Shots (course instruction led by FIFS) under the direct supervision of Certified Instructor Kai Wade.",
         points: [
           "✔ Wear & Carry: 25-round course of fire at 3, 5, 7, and 15 yards on B-27 targets (70% passing score).",
           "✔ HQL: Demonstration of safe loading, firing, and unloading mechanics.",
@@ -20390,7 +20390,7 @@ function closeStateModal() {
               </div>
             </div>
 
-            <input type="hidden" id="preferredDates" name="preferredDates" required>
+            <input type="hidden" id="preferredDates" name="preferredDates">
           </div>
 </div>
 <div class="form-group" style="margin-bottom: 14px;">
@@ -20418,7 +20418,7 @@ function closeStateModal() {
 <div class="status-msg" id="booking-status" style="margin-top: 12px; display: none;"></div>
 </form>
 <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-<span style="font-size: 0.78rem; color: var(--text-muted);">Lead Instructor: Kai Wade • Cindy&#39;s Hot Shots (Glen Burnie, MD)</span>
+<span style="font-size: 0.78rem; color: var(--text-muted);">Lead Instructor: Kai Wade • Qualification Shots at Cindy&#39;s Hot Shots (Glen Burnie, MD)</span>
 <button class="btn-secondary-modal" onclick="closeCourseBookingModal()" style="padding: 8px 18px; font-size: 0.85rem; font-weight: 700;" type="button">
           ← Return to Course Catalog
         </button>
