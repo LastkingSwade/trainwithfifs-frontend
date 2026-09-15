@@ -13625,41 +13625,9 @@
 
 
     .pulse-dot.pulse-red {
-
-
-
-
-
-
-
-
       background: #ef4444 !important;
-
-
-
-
-
-
-
-
-      box-shadow: 0 0 12px #ef4444 !important;
-
-
-
-
-
-
-
-
-      animation: livePulseRed 1.8s infinite ease-in-out !important;
-
-
-
-
-
-
-
-
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.6) !important;
+      animation: none !important;
     }
 
 
@@ -32515,40 +32483,43 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         // Active Operations: 9:00 AM to 5:00 PM EST (09:00 to 17:00)
         var isOpen = (currentHour >= 9 && currentHour < 17);
 
-
-
-
-
-
-
-
         if (dot) {
-          dot.className = 'pulse-dot';
-          dot.style.background = '#10b981';
-          dot.style.boxShadow = '0 0 12px #10b981';
-          dot.title = isOpen
-            ? 'Live Training & Student Operations Active (9 AM - 5 PM EST)'
-            : 'Online Student Intake & Registration Active 24/7 (Range Line Opens 9 AM EST)';
+          if (isOpen) {
+            dot.className = 'pulse-dot';
+            dot.style.background = '#10b981';
+            dot.style.boxShadow = '0 0 12px #10b981';
+            dot.style.animation = 'livePulseGreen 1.8s infinite ease-in-out';
+            dot.title = 'Live Training & Student Operations Active (9 AM - 5 PM EST)';
+          } else {
+            dot.className = 'pulse-dot pulse-red';
+            dot.style.background = '#ef4444';
+            dot.style.boxShadow = '0 0 8px rgba(239, 68, 68, 0.6)';
+            dot.style.animation = 'none';
+            dot.title = 'Standby Mode — Live ops resume at 9 AM ET (online booking open 24/7)';
+          }
         }
 
-
-
-
-
-
-
-
         if (arrowGuide) {
-          arrowGuide.className = 'neon-arrow-badge neon-mode-cyan';
-          arrowGuide.style.background = 'rgba(0, 229, 255, 0.12)';
-          arrowGuide.style.borderColor = 'var(--accent-cyan)';
-          arrowGuide.style.color = 'var(--accent-cyan)';
-          arrowGuide.title = 'Future Initiative Operations Active • Click to Start Training';
+          if (isOpen) {
+            arrowGuide.className = 'neon-arrow-badge neon-mode-cyan';
+            arrowGuide.style.background = 'rgba(0, 229, 255, 0.12)';
+            arrowGuide.style.borderColor = 'var(--accent-cyan)';
+            arrowGuide.style.color = 'var(--accent-cyan)';
+            arrowGuide.style.animation = 'neonCyanPulse 2s infinite ease-in-out';
+            arrowGuide.title = 'Future Initiative Operations Active • Click to Start Training';
+          } else {
+            arrowGuide.className = 'neon-arrow-badge neon-mode-red';
+            arrowGuide.style.background = 'rgba(239, 68, 68, 0.14)';
+            arrowGuide.style.borderColor = '#ef4444';
+            arrowGuide.style.color = '#ef4444';
+            arrowGuide.style.animation = 'none';
+            arrowGuide.title = 'Standby Mode — Live ops resume at 9 AM ET • Booking open 24/7';
+          }
         }
         return;
       } catch(e) {
-        if (dot) { dot.className = 'pulse-dot'; dot.style.background = '#10b981'; }
-        if (arrowGuide) { arrowGuide.className = 'neon-arrow-badge neon-mode-cyan'; }
+        if (dot) { dot.className = 'pulse-dot'; }
+        if (arrowGuide) { arrowGuide.className = 'neon-arrow-badge'; }
       }
     }
     window.updateLivePulseTicker = updateLivePulseTicker;
