@@ -7173,62 +7173,57 @@
     }
     window.closeTwoWayChat = closeTwoWayChat;
 
+    function showChatTypingIndicator() {
+      var stream = document.getElementById('twoWayChatStream');
+      if (!stream) return;
+      var existing = document.getElementById('fifs-typing-indicator');
+      if (existing) return;
+      var ind = document.createElement('div');
+      ind.id = 'fifs-typing-indicator';
+      ind.style.cssText = 'display:flex;align-items:center;gap:6px;padding:8px 14px;background:#1e293b;border-radius:12px;width:fit-content;margin:6px 0;font-size:0.8rem;color:#00e5ff;';
+      ind.innerHTML = '<span style="display:inline-block;animation:pulse 1s infinite;">⚡</span> FIFS Assistant is thinking...';
+      stream.appendChild(ind);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function removeChatTypingIndicator() {
+      var ind = document.getElementById('fifs-typing-indicator');
+      if (ind && ind.parentNode) ind.parentNode.removeChild(ind);
+    }
+
     function handleLiveChatSubmit(e) {
       if (e && e.preventDefault) e.preventDefault();
-      const nameEl = document.getElementById('chatSenderName');
-      const phoneEl = document.getElementById('chatSenderPhone');
-      const msgEl = document.getElementById('chatMessageText');
-      const btn = document.getElementById('btn-send-chat');
+      var input = document.getElementById('twoWayChatInput');
+      if (!input) return false;
+      var msg = input.value.trim();
+      if (!msg) return false;
 
-      const name = nameEl ? nameEl.value.trim() : '';
-      const phone = phoneEl ? phoneEl.value.trim() : '';
-      const msg = msgEl ? msgEl.value.trim() : '';
+      var name = document.getElementById('twoWayChatName') ? document.getElementById('twoWayChatName').value.trim() : 'Website Visitor';
+      var phone = document.getElementById('twoWayChatPhone') ? document.getElementById('twoWayChatPhone').value.trim() : '';
 
-      if (!name || !phone || !msg) {
-        alert('Please fill out your Name, Phone, and Question to open live chat.');
-        return;
-      }
+      var timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      appendTwoWayBubble('user', name || 'You', msg, timeStr);
+      input.value = '';
 
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Opening Live Chat Window...';
-      }
+      showChatTypingIndicator();
 
-      // 1. Dispatch Discord Alert
-      sendClientDiscordAlert(
-        "💬 Incoming Live Chat: " + name,
-        "A visitor initiated a conversation via the website live chat widget.",
-        [
-          { name: "Sender Name", value: name, inline: true },
-          { name: "Phone / SMS Callback", value: phone, inline: true },
-          { name: "Operating Window", value: isLiveChatActiveNow() ? "ONLINE NOW (9 AM – 5 PM EST)" : "AFTER HOURS", inline: true },
-          { name: "Initial Message Content", value: msg, inline: false }
-        ],
-        0x00E5FF
-      );
-
-      // 2. Immediately close contact form and open Two-Way Chat window
-      closeContactWidgetModal();
-      logAnalyticsEvent('Engagement', 'Live Chat Initiated', );
-      logAnalyticsEvent('Engagement', 'Live Chat Initiated', name + ' (' + phone + ')');
-      openTwoWayChat(name, phone, msg);
-
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = '💬 Send Message & Open Live Chat →';
-      }
-
-      // 3. Dispatch to backend asynchronously if available
-      const payload = {
+      var payload = {
         name: name,
         phone: phone,
         message: msg,
         timestamp: new Date().toISOString(),
         isLiveHours: isLiveChatActiveNow()
       };
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
-        google.script.run.handleLiveChatMessage(payload);
-      }
+
+      callFifsBackend('handleLiveChatMessage', payload).then(function(res) {
+          removeChatTypingIndicator();
+          var reply = (res && res.reply) ? res.reply : 'Thank you for reaching out to FIFS! Instructor Kai Wade has received your message and will be in touch shortly.';
+          appendTwoWayBubble('support', 'FIFS Assistant (AI)', reply, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        }).catch(function(err) {
+          removeChatTypingIndicator();
+          appendTwoWayBubble('support', 'FIFS Assistant', 'Thank you for your message! Instructor Kai Wade has received your inquiry and will follow up shortly.', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        });
+      return false;
     }
     window.handleLiveChatSubmit = handleLiveChatSubmit;
 
@@ -15206,53 +15201,72 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       var groupSize = form.groupSize ? form.groupSize.value : '1 (Private One-on-One)';
       var comments = form.comments ? form.comments.value.trim() : '';
 
-      // Reset any previous input error borders
       [fullNameInput, emailInput, phoneInput].forEach(function(inp) {
-        if (inp) inp.style.borderColor = 'var(--border-subtle)';
+        if (inp) {
+          inp.style.borderColor = 'var(--border-subtle)';
+          inp.style.boxShadow = 'none';
+        }
       });
 
+      function reportBookingError(element, message) {
+        if (element) {
+          element.style.borderColor = '#ef4444';
+          element.style.boxShadow = '0 0 12px rgba(239, 68, 68, 0.4)';
+          try {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            element.focus();
+          } catch (err) {}
+        }
+        if (statusDiv) {
+          statusDiv.style.display = 'block';
+          statusDiv.className = 'status-msg error';
+          statusDiv.style.color = '#ef4444';
+          statusDiv.style.background = 'rgba(239, 68, 68, 0.1)';
+          statusDiv.style.border = '1px solid #ef4444';
+          statusDiv.style.padding = '10px 14px';
+          statusDiv.style.borderRadius = '8px';
+          statusDiv.style.marginBottom = '12px';
+          statusDiv.innerHTML = message;
+        }
+        alert(message);
+      }
+
       if (!fullName) {
-        if (fullNameInput) { fullNameInput.style.borderColor = '#ef4444'; fullNameInput.focus(); }
-        alert('⚠️ Please enter your Full Legal Name before continuing.');
+        reportBookingError(fullNameInput, '⚠️ Please enter your Full Legal Name before continuing.');
         return false;
       }
       if (!email || !email.includes('@')) {
-        if (emailInput) { emailInput.style.borderColor = '#ef4444'; emailInput.focus(); }
-        alert('⚠️ Please enter a valid Email Address for your invoice and student portal login link.');
+        reportBookingError(emailInput, '⚠️ Please enter a valid Email Address for your invoice and student portal login.');
         return false;
       }
       if (!phone) {
-        if (phoneInput) { phoneInput.style.borderColor = '#ef4444'; phoneInput.focus(); }
-        alert('⚠️ Please enter your Phone Number so Instructor Kai Wade can coordinate range details.');
+        reportBookingError(phoneInput, '⚠️ Please enter your Phone Number so Instructor Kai Wade can coordinate range details.');
         return false;
       }
 
       var is16Hr = typeof is16HourCourseSelected === 'function' ? is16HourCourseSelected() : false;
       if (is16Hr) {
         if (!calSelectedDate1 || !calSelectedDate2) {
-          alert('📅 16-Hour Course Requirement:
-
-Please select 2 dates on the calendar:
-• Day 1: FIFS Classroom Instruction
-• Day 2: Cindy\'s Hot Shots Live-Fire Practical Qualification');
-          var calElem = document.getElementById('bookingCalendarPolicyBanner');
-          if (calElem) calElem.scrollIntoView({ behavior: 'smooth' });
+          var calElem = document.getElementById('bookingCalendarPolicyBanner') || document.getElementById('bookingCalDaysGrid');
+          reportBookingError(calElem, '📅 16-Hour Course Requirement:\n\nPlease select 2 dates on the calendar:\n• Day 1: FIFS Classroom Instruction\n• Day 2: Cindy\'s Hot Shots Live-Fire Practical Qualification');
           return false;
         }
       } else {
         if (!calSelectedDate1 && (!form.preferredDates || !form.preferredDates.value.trim())) {
-          alert('📅 Please select your training session date on the calendar above.');
-          var calElem = document.getElementById('bookingCalendarPolicyBanner');
-          if (calElem) calElem.scrollIntoView({ behavior: 'smooth' });
+          var calElem = document.getElementById('bookingCalendarPolicyBanner') || document.getElementById('bookingCalDaysGrid');
+          reportBookingError(calElem, '📅 Please select your training session date on the calendar above.');
           return false;
         }
       }
 
       if (safetyCheck && !safetyCheck.checked) {
-        safetyCheck.focus();
-        alert('⚠️ MANDATORY SAFETY POLICY:
-Please check the box accepting the Range Safety Policy (no live ammunition in classroom) to proceed.');
+        reportBookingError(safetyCheck, '⚠️ MANDATORY SAFETY POLICY:\nPlease check the box accepting the Range Safety Policy (no live ammunition in classroom) to proceed.');
         return false;
+      }
+
+      if (statusDiv) {
+        statusDiv.style.display = 'none';
+        statusDiv.innerHTML = '';
       }
 
       var invoiceId = 'INV-FI-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
@@ -15321,7 +15335,7 @@ Please check the box accepting the Range Safety Policy (no live ammunition in cl
           '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.85rem;">' +
             '<div><span style="color:#64748b;display:block;font-size:0.74rem;">STUDENT</span><strong style="color:#f8fafc;">' + p.fullName + '</strong></div>' +
             '<div><span style="color:#64748b;display:block;font-size:0.74rem;">PHONE / EMAIL</span><strong style="color:#f8fafc;">' + p.phone + '<br>' + p.email + '</strong></div>' +
-            '<div><span style="color:#64748b;display:block;font-size:0.74rem;">REQUESTED DATE</span><strong style="color:#f8fafc;">' + p.preferredDates + '</strong></div>' +
+            '<div><span style="color:#64748b;display:block;font-size:0.74rem;">REQUESTED SCHEDULE</span><strong style="color:#f8fafc;">' + p.preferredDates + '</strong></div>' +
             '<div><span style="color:#64748b;display:block;font-size:0.74rem;">FORMAT / SIZE</span><strong style="color:#f8fafc;">' + p.groupSize + '</strong></div>' +
           '</div>' +
         '</div>' +
@@ -15358,6 +15372,7 @@ Please check the box accepting the Range Safety Policy (no live ammunition in cl
       '</div>';
 
       modalBox.innerHTML = invoiceHtml;
+      modalBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return false;
     }
     window.showBookingInvoiceModal = showBookingInvoiceModal;
