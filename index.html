@@ -15194,38 +15194,80 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       var statusDiv = document.getElementById('booking-status');
       if (!form) return false;
 
-      var fullName = form.fullName ? form.fullName.value.trim() : '';
-      var email = form.email ? form.email.value.trim() : '';
-      var phone = form.phone ? form.phone.value.trim() : '';
-      var courseSelection = form.courseSelection ? form.courseSelection.value : 'Maryland Firearms Training';
-      var preferredDates = (form.preferredDates && form.preferredDates.value.trim()) ? form.preferredDates.value.trim() : 'Flexible / Coordinated with Instructor';
-      var groupSize = form.groupSize ? form.groupSize.value : '1 (Private One-on-One)';
-      var comments = form.comments ? form.comments.value.trim() : '';
+      var fullNameInput = document.getElementById('fullName');
+      var emailInput = document.getElementById('email');
+      var phoneInput = document.getElementById('phone');
       var safetyCheck = document.getElementById('safety-check');
 
-      if (!fullName || !email || !phone) {
-        if (statusDiv) {
-          showStatus(statusDiv, 'Please provide your Full Legal Name, Email, and Phone Number.', 'error');
-        } else {
-          alert('Please provide your Full Legal Name, Email, and Phone Number.');
-        }
+      var fullName = fullNameInput ? fullNameInput.value.trim() : '';
+      var email = emailInput ? emailInput.value.trim() : '';
+      var phone = phoneInput ? phoneInput.value.trim() : '';
+      var courseSelection = form.courseSelection ? form.courseSelection.value : 'Maryland Firearms Training';
+      var groupSize = form.groupSize ? form.groupSize.value : '1 (Private One-on-One)';
+      var comments = form.comments ? form.comments.value.trim() : '';
+
+      // Reset any previous input error borders
+      [fullNameInput, emailInput, phoneInput].forEach(function(inp) {
+        if (inp) inp.style.borderColor = 'var(--border-subtle)';
+      });
+
+      if (!fullName) {
+        if (fullNameInput) { fullNameInput.style.borderColor = '#ef4444'; fullNameInput.focus(); }
+        alert('⚠️ Please enter your Full Legal Name before continuing.');
+        return false;
+      }
+      if (!email || !email.includes('@')) {
+        if (emailInput) { emailInput.style.borderColor = '#ef4444'; emailInput.focus(); }
+        alert('⚠️ Please enter a valid Email Address for your invoice and student portal login link.');
+        return false;
+      }
+      if (!phone) {
+        if (phoneInput) { phoneInput.style.borderColor = '#ef4444'; phoneInput.focus(); }
+        alert('⚠️ Please enter your Phone Number so Instructor Kai Wade can coordinate range details.');
         return false;
       }
 
-      if (safetyCheck && !safetyCheck.checked) {
-        if (statusDiv) {
-          showStatus(statusDiv, 'Please check and accept the Mandatory Range Safety Policy to continue.', 'error');
-        } else {
-          alert('Please accept the Mandatory Range Safety Policy.');
+      var is16Hr = typeof is16HourCourseSelected === 'function' ? is16HourCourseSelected() : false;
+      if (is16Hr) {
+        if (!calSelectedDate1 || !calSelectedDate2) {
+          alert('📅 16-Hour Course Requirement:
+
+Please select 2 dates on the calendar:
+• Day 1: FIFS Classroom Instruction
+• Day 2: Cindy\'s Hot Shots Live-Fire Practical Qualification');
+          var calElem = document.getElementById('bookingCalendarPolicyBanner');
+          if (calElem) calElem.scrollIntoView({ behavior: 'smooth' });
+          return false;
         }
+      } else {
+        if (!calSelectedDate1 && (!form.preferredDates || !form.preferredDates.value.trim())) {
+          alert('📅 Please select your training session date on the calendar above.');
+          var calElem = document.getElementById('bookingCalendarPolicyBanner');
+          if (calElem) calElem.scrollIntoView({ behavior: 'smooth' });
+          return false;
+        }
+      }
+
+      if (safetyCheck && !safetyCheck.checked) {
+        safetyCheck.focus();
+        alert('⚠️ MANDATORY SAFETY POLICY:
+Please check the box accepting the Range Safety Policy (no live ammunition in classroom) to proceed.');
         return false;
       }
 
       var invoiceId = 'INV-FI-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
-      var studentId = invoiceId.replace('INV-', '');
+      var studentId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000);
 
       var priceMatch = courseSelection.match(/\$([0-9,]+(?:\.[0-9]{2})?)/);
       var priceStr = priceMatch ? ('$' + priceMatch[1]) : '$249.99';
+
+      var options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+      var date1Str = calSelectedDate1Obj ? calSelectedDate1Obj.toLocaleDateString('en-US', options) : (calSelectedDate1 || 'TBD');
+      var date2Str = calSelectedDate2Obj ? calSelectedDate2Obj.toLocaleDateString('en-US', options) : (calSelectedDate2 || 'TBD');
+
+      var scheduleSummary = is16Hr
+        ? ('Day 1: ' + date1Str + ' (FIFS Classroom) | Day 2: ' + date2Str + ' (Cindy\'s Hot Shots Qualification)')
+        : (calSelectedDate1Obj ? ('Session Date: ' + date1Str) : (form.preferredDates ? form.preferredDates.value : 'Flexible / Coordinated with Instructor'));
 
       __fifsCurrentBookingPayload = {
         invoiceId: invoiceId,
@@ -15234,7 +15276,10 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         email: email,
         phone: phone,
         courseSelection: courseSelection,
-        preferredDates: preferredDates,
+        preferredDates: scheduleSummary,
+        date1: date1Str,
+        date2: date2Str,
+        is16Hr: is16Hr,
         groupSize: groupSize,
         comments: comments,
         priceStr: priceStr,
