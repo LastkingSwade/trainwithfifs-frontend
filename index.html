@@ -32245,7 +32245,7 @@
           var log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
           log.unshift(entry);
           if (log.length > 50) log.pop();
-          localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
+          /* cloud only: no localStorage */
 
 
 
@@ -32479,7 +32479,7 @@
 
 
       var userTag = document.getElementById('portal-user-tag');
-      var savedSession = localStorage.getItem('fifs_student_session');
+      var savedSession = sessionStorage.getItem('fifs_student_session');
       if (tab !== 'portal' || !savedSession) {
         if (userTag && SECTION_TITLES[tab]) {
           userTag.textContent = SECTION_TITLES[tab];
@@ -32641,7 +32641,7 @@
 
         rawSwitchTab(tabId);
         if (tabId === 'admin') {
-          var savedPin = localStorage.getItem('fifs_instructor_pin');
+          var savedPin = sessionStorage.getItem('fifs_instructor_pin');
           if (savedPin && isValidInstructorPin(savedPin)) {
             setTimeout(function() { verifyAdminAccess(savedPin); }, 50);
           }
@@ -37966,8 +37966,8 @@
     // DUAL-SESSION LOCKOUT CONTROLLER (STRICT ACCESS INTEGRITY)
     // ==========================================================================
     function checkPortalSessionConflict(targetPortal) {
-      var studentSessionStr = localStorage.getItem('fifs_student_session');
-      var clientSessionStr = localStorage.getItem('fifs_client_session');
+      var studentSessionStr = sessionStorage.getItem('fifs_student_session');
+      var clientSessionStr = sessionStorage.getItem('fifs_client_session');
 
 
 
@@ -38168,7 +38168,7 @@
 
     function logoutStudent() {
       try {
-        localStorage.removeItem('fifs_student_session');
+        sessionStorage.removeItem('fifs_student_session');
         sessionStorage.removeItem('fifs_student_session');
         purgeAllSessionCookies();
 
@@ -38275,7 +38275,7 @@
 
     function logoutClient() {
       try {
-        localStorage.removeItem('fifs_client_session');
+        sessionStorage.removeItem('fifs_client_session');
         sessionStorage.removeItem('fifs_client_session');
         purgeAllSessionCookies();
 
@@ -38798,7 +38798,7 @@
 
     function verifyAdminAccess(overridePin) {
       var pinInput = document.getElementById('adminPasscode');
-      var pin = (overridePin || (pinInput ? pinInput.value : '') || localStorage.getItem('fifs_instructor_pin') || '').trim();
+      var pin = (overridePin || (pinInput ? pinInput.value : '') || sessionStorage.getItem('fifs_instructor_pin') || '').trim();
       var statusDiv = document.getElementById('admin-auth-status');
 
 
@@ -38856,12 +38856,12 @@
       callFifsBackend('getAdminDashboardData', { pin: pin }, function(res) {
         if (res && res.status === 'success') {
           if (statusDiv) statusDiv.style.display = 'none';
-          localStorage.setItem('fifs_instructor_pin', pin);
+          sessionStorage.setItem('fifs_instructor_pin', pin);
           renderAdminTerminal(res);
         } else {
           if (isValidInstructorPin(pin)) {
             if (statusDiv) statusDiv.style.display = 'none';
-            localStorage.setItem('fifs_instructor_pin', pin);
+            sessionStorage.setItem('fifs_instructor_pin', pin);
             renderAdminTerminal({});
           } else {
             if (statusDiv) showStatus(statusDiv, (res && res.message) || 'Access Denied.', 'error');
@@ -38870,7 +38870,7 @@
       }, function(err) {
         if (isValidInstructorPin(pin)) {
           if (statusDiv) statusDiv.style.display = 'none';
-          localStorage.setItem('fifs_instructor_pin', pin);
+          sessionStorage.setItem('fifs_instructor_pin', pin);
           renderAdminTerminal({});
         } else {
           if (statusDiv) showStatus(statusDiv, 'Authentication error.', 'error');
@@ -38948,7 +38948,7 @@
       if (data && data.students && data.students.length) {
         adminCachedStudents = data.students;
         window.adminCachedStudents = adminCachedStudents;
-        try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch (e) {}
+        /* cloud only: no localStorage */
       } else {
         var savedRoster = localStorage.getItem('fifs_roster_students');
         if (savedRoster) {
@@ -39227,7 +39227,7 @@
 
     function adminSignOut()  {
       try {
-        localStorage.removeItem('fifs_instructor_pin');
+        sessionStorage.removeItem('fifs_instructor_pin');
         sessionStorage.removeItem('fifs_instructor_pin');
         var passInput = document.getElementById('adminPasscode');
         if (passInput) passInput.value = '';
@@ -39344,7 +39344,7 @@
 
 
 
-      var pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
 
 
 
@@ -39408,7 +39408,7 @@
         btn.classList.add('btn-animated-loading');
         btn.innerHTML = '<span class="spin-icon">🔄</span> <span>RESETTING LEDGER...</span>';
       }
-      var pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
 
 
 
@@ -39573,7 +39573,7 @@
       if (data && data.clients && data.clients.length) {
         adminCachedClients = data.clients;
         window.adminCachedClients = adminCachedClients;
-        try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch (e) {}
+        /* cloud only: no localStorage */
       } else {
         var savedClientRoster = localStorage.getItem('fifs_client_roster');
         if (savedClientRoster) {
@@ -39589,7 +39589,7 @@
             { clientId: 'FI-CLIENT-3088', fullName: 'Derrick Ross', email: 'd.ross@example.com', phone: '(443) 555-3088', permitState: 'Virginia Concealed Handgun', expirationDate: '2026-11-20', status: 'ACTIVE_REGISTERED' },
             { clientId: 'FI-CLIENT-4192', fullName: 'Shannon Miller', email: 'smiller@example.com', phone: '(240) 555-4192', permitState: 'Maryland Wear & Carry', expirationDate: '2026-09-25', status: 'RENEWAL_PENDING' }
           ];
-          try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch (e) {}
+          /* cloud only: no localStorage */
         }
       }
 
@@ -39921,7 +39921,7 @@
             if (parsed && (parsed.passcode || parsed.pin)) return parsed.passcode || parsed.pin;
           } catch(e) {}
         }
-        var pin = localStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
+        var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
         if (pin) return pin;
         if (typeof getInstructorPasscode === 'function') {
           var p = getInstructorPasscode();
@@ -40000,7 +40000,7 @@
     function saveChatThreads(threads) {
       __fifsCachedBackendChatThreads = threads || [];
       try {
-        localStorage.setItem('fifs_live_chat_threads', JSON.stringify(__fifsCachedBackendChatThreads));
+        /* cloud only: no localStorage */
         localStorage.setItem('fifs_live_chat_sync', Date.now().toString());
       } catch(e) {}
     }
@@ -40497,7 +40497,7 @@
 
 
       // Sync Admin Reply to Google Sheets Live_Chats tab via Google Apps Script
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       var replyPayload = {
         threadId: thread.id,
         text: text,
@@ -40598,7 +40598,7 @@
 
 
     function refreshAdminLiveChats() {
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('getLiveChats', { passcode: pin }, function(res) {
           if (res && res.status === 'success' && Array.isArray(res.threads)) {
@@ -40955,7 +40955,7 @@
         profileDocUrl: '#',
         prepTasks: { transport_law: true, ammo_acquired: true, eye_ear_pro: false, id_ready: true }
       };
-      localStorage.setItem('fifs_student_session', JSON.stringify(demo));
+      sessionStorage.setItem('fifs_student_session', JSON.stringify(demo));
       openAndSwitch('portal');
       if (typeof renderStudentDashboard === 'function') renderStudentDashboard(demo);
     }
@@ -40987,7 +40987,7 @@
         daysLeft: 50,
         status: 'ACTIVE_REGISTERED'
       };
-      localStorage.setItem('fifs_client_session', JSON.stringify(demo));
+      sessionStorage.setItem('fifs_client_session', JSON.stringify(demo));
       openAndSwitch('fi-portal');
       if (typeof renderClientDashboard === 'function') renderClientDashboard(demo);
     }
@@ -41009,7 +41009,7 @@
 
 
     function updateStudentJourneyStep(studentId, newStepValue) {
-      var pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       var ind = document.getElementById('save-ind-' + studentId);
       var chip = document.getElementById('chip-status-' + studentId);
       var stepNum = getStepNumberFromStatus(newStepValue);
@@ -41033,7 +41033,7 @@
       var stu = (adminCachedStudents || []).find(s => s.studentId === studentId);
       if (stu) {
         stu.status = newStepValue;
-        try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch(e) {}
+        /* cloud only: no localStorage */
       }
 
 
@@ -41211,7 +41211,7 @@
 
     function deleteStudentFromAdmin(studentId) {
       if (!confirm('Are you sure you want to remove student ' + studentId + ' from the administrative roster?')) return;
-      var pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
 
 
 
@@ -41231,7 +41231,7 @@
       if (typeof adminCachedStudents !== 'undefined' && Array.isArray(adminCachedStudents)) {
         adminCachedStudents = adminCachedStudents.filter(s => s.studentId !== studentId);
         window.adminCachedStudents = adminCachedStudents;
-        try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch(e) {}
+        /* cloud only: no localStorage */
       }
 
 
@@ -41409,7 +41409,7 @@
 
     function deleteClientFromAdmin(clientId) {
       if (!confirm('Are you sure you want to remove client ' + clientId + ' from the client portal registry?')) return;
-      var pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
 
 
 
@@ -41429,7 +41429,7 @@
       if (typeof adminCachedClients !== 'undefined' && Array.isArray(adminCachedClients)) {
         adminCachedClients = adminCachedClients.filter(c => c.clientId !== clientId);
         window.adminCachedClients = adminCachedClients;
-        try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch(e) {}
+        /* cloud only: no localStorage */
       }
 
 
@@ -41879,9 +41879,9 @@
 
 
       if (valClean.includes('alumni') || valClean.includes('clinic')) {
-        var clientSession = localStorage.getItem('fifs_client_session');
+        var clientSession = sessionStorage.getItem('fifs_client_session');
         if (!clientSession) {
-          localStorage.setItem('fifs_pending_alumni_booking', 'true');
+          /* cloud only: no localStorage */
           if (typeof openAlumniAccessGateModal === 'function') openAlumniAccessGateModal();
           return;
         }
@@ -42463,7 +42463,7 @@
 
       if (isValidInstructorPin(query)) {
         showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
-        localStorage.setItem('fifs_instructor_pin', 'Ultima');
+        sessionStorage.setItem('fifs_instructor_pin', 'Ultima');
         setTimeout(function() {
           openAndSwitch('admin');
           var adminPassField = document.getElementById('adminPasscode');
@@ -42509,7 +42509,7 @@
       callFifsBackend('getStudentPortalData', { email: query.includes('@') ? query : '', studentId: query.includes('@') ? '' : query }, function(res) {
         if (res && res.status === 'success') {
           if (statusDiv) statusDiv.style.display = 'none';
-          localStorage.setItem('fifs_student_session', JSON.stringify(res.student));
+          sessionStorage.setItem('fifs_student_session', JSON.stringify(res.student));
           renderStudentDashboard(res.student);
         } else {
           showStatus(statusDiv, res.message || 'Identifier not found in Student Roster.', 'error');
@@ -42595,7 +42595,7 @@
       callFifsBackend('getClientPortalData', { email: query.includes('@') ? query : '', clientId: query.includes('@') ? '' : query }, function(res) {
         if (res && res.status === 'success') {
           if (statusDiv) statusDiv.style.display = 'none';
-          localStorage.setItem('fifs_client_session', JSON.stringify(res.client));
+          sessionStorage.setItem('fifs_client_session', JSON.stringify(res.client));
           renderClientDashboard(res.client);
         } else {
           showStatus(statusDiv, res.message || 'Client record not found.', 'error');
@@ -46824,7 +46824,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
 
 
       var userTag = document.getElementById('portal-user-tag');
-      var savedSession = localStorage.getItem('fifs_student_session');
+      var savedSession = sessionStorage.getItem('fifs_student_session');
       if (tab !== 'portal' || !savedSession) {
         if (userTag && SECTION_TITLES[tab]) {
           userTag.textContent = SECTION_TITLES[tab];
@@ -48170,7 +48170,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
           var log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
           log.unshift(entry);
           if (log.length > 50) log.pop();
-          localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
+          /* cloud only: no localStorage */
 
 
 
@@ -48522,8 +48522,8 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
     // 2. SINGLE PORTAL SESSION ENFORCER & CONFLICT POPUP
     // ==========================================================================
     function checkPortalSessionConflict(targetPortal) {
-      var studentSessionStr = localStorage.getItem('fifs_student_session');
-      var clientSessionStr = localStorage.getItem('fifs_client_session');
+      var studentSessionStr = sessionStorage.getItem('fifs_student_session');
+      var clientSessionStr = sessionStorage.getItem('fifs_client_session');
 
 
 
@@ -48784,7 +48784,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
 
     function handleAdminInviteSubmit(e) {
       e.preventDefault();
-      var pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       var name = document.getElementById('invFullName').value.trim();
       var email = document.getElementById('invEmail').value.trim();
       var phone = document.getElementById('invPhone').value.trim();
@@ -48865,7 +48865,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
         // Add to roster array and localStorage
         adminCachedStudents.unshift(newStudent);
         window.adminCachedStudents = adminCachedStudents;
-        try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch (err) {}
+        /* cloud only: no localStorage */
       } else {
         newId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
         magicLink = `https://trainwithfifs.com/?tab=fi-portal&client=${newId}`;
@@ -48878,7 +48878,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
           expirationDate: dates || '2026-10-31',
           optInReminder: true
         };
-        try { localStorage.setItem('fifs_client_session', JSON.stringify(newClient)); } catch (err) {}
+        try { sessionStorage.setItem('fifs_client_session', JSON.stringify(newClient)); } catch (err) {}
       }
 
 
@@ -49183,7 +49183,7 @@ function openAdminEditStudentModal(studentId) {
 
     function handleAdminEditStudentSubmit(e) {
       e.preventDefault();
-      var pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       var studentId = document.getElementById('editStudentId').value;
       var s = adminCachedStudents.find(item => item.studentId === studentId);
       if (!s) return;
@@ -49228,7 +49228,7 @@ function openAdminEditStudentModal(studentId) {
 
 
 
-      try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch (err) {}
+      /* cloud only: no localStorage */
 
 
 
@@ -49325,7 +49325,7 @@ function openAdminEditStudentModal(studentId) {
 
 
       adminCachedStudents = adminCachedStudents.filter(item => item.studentId !== studentId);
-      try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch (err) {}
+      /* cloud only: no localStorage */
 
 
 
@@ -49342,7 +49342,7 @@ function openAdminEditStudentModal(studentId) {
 
 
 
-      var pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       if (typeof callFifsBackend === 'function') { callFifsBackend('adminDeleteStudent', { passcode: pin, studentId: studentId }); }
 
 
@@ -49405,7 +49405,7 @@ function openAdminEditStudentModal(studentId) {
       if (data && data.students && data.students.length) {
         adminCachedStudents = data.students;
         window.adminCachedStudents = adminCachedStudents;
-        try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch (e) {}
+        /* cloud only: no localStorage */
       } else {
         var savedRoster = localStorage.getItem('fifs_roster_students');
         if (savedRoster) {
@@ -49625,7 +49625,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     // ADMIN CLIENT ROSTER CONTROLLER & CLIENT EDIT/DELETE ACTIONS
     // ==========================================================================
     var adminCachedClients = [{ clientId: 'FI-CLIENT-7788', fullName: 'Alex Mercer (Test Client)', email: 'test.client@trainwithfifs.com', phone: '(443) 990-1304', permitState: 'Maryland Wear & Carry', expirationDate: '2026-12-15', status: 'ACTIVE_REGISTERED' }];
-          try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch(e) {}
+          /* cloud only: no localStorage */
     window.adminCachedClients = adminCachedClients;
 
 
@@ -49646,7 +49646,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     function renderAdminClientTerminal(data) {
       if (data && data.clients && data.clients.length) {
         adminCachedClients = data.clients;
-        try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch (e) {}
+        /* cloud only: no localStorage */
       } else {
         var savedClientRoster = localStorage.getItem('fifs_client_roster');
         if (savedClientRoster) {
@@ -49655,7 +49655,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         if (!adminCachedClients || !adminCachedClients.length) {
           // Default empty or stored clients
           adminCachedClients = [{ clientId: 'FI-CLIENT-7788', fullName: 'Alex Mercer (Test Client)', email: 'test.client@trainwithfifs.com', phone: '(443) 990-1304', permitState: 'Maryland Wear & Carry', expirationDate: '2026-12-15', status: 'ACTIVE_REGISTERED' }];
-          try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch(e) {}
+          /* cloud only: no localStorage */
         }
       }
       window.adminCachedClients = adminCachedClients;
@@ -49987,7 +49987,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
     function handleAdminEditClientSubmit(e) {
       e.preventDefault();
-      var pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       var clientId = document.getElementById('editClientId').value;
       var c = adminCachedClients.find(item => item.clientId === clientId);
       if (!c) return;
@@ -50029,7 +50029,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
 
-      try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch (err) {}
+      /* cloud only: no localStorage */
 
 
 
@@ -50126,7 +50126,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
       adminCachedClients = adminCachedClients.filter(item => item.clientId !== clientId);
-      try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch (err) {}
+      /* cloud only: no localStorage */
 
 
 
@@ -50143,7 +50143,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
 
-      var pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       if (typeof callFifsBackend === 'function') { callFifsBackend('adminDeleteClient', { passcode: pin, clientId: clientId }); }
 
 
@@ -50741,7 +50741,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
       try {
-        var savedClientStr = localStorage.getItem('fifs_client_session');
+        var savedClientStr = sessionStorage.getItem('fifs_client_session');
         if (savedClientStr) {
           var client = JSON.parse(savedClientStr);
           client.smsAlertPhone = phone;
@@ -50752,7 +50752,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
             m60: document.getElementById('chkSms60').checked,
             m30: document.getElementById('chkSms30').checked
           };
-          localStorage.setItem('fifs_client_session', JSON.stringify(client));
+          sessionStorage.setItem('fifs_client_session', JSON.stringify(client));
         }
       } catch (err) {}
 
@@ -50926,7 +50926,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       try {
         var leads = JSON.parse(localStorage.getItem('fifs_reciprocity_leads') || '[]');
         leads.unshift({ name: name, email: email, time: new Date().toISOString() });
-        localStorage.setItem('fifs_reciprocity_leads', JSON.stringify(leads));
+        /* cloud only: no localStorage */
       } catch (err) {}
 
 
@@ -51003,7 +51003,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
 
-      var pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleDispatchRangeBriefing) {
         google.script.run
           .withSuccessHandler(function(res) { alert(res.message || 'Briefing email dispatched!'); })
@@ -51049,7 +51049,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
 
-      var pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleDispatchReviewRequest) {
         google.script.run
           .withSuccessHandler(function(res) { alert(res.message || 'Review request dispatched!'); })
@@ -52475,7 +52475,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
     function adminSignOut()  {
       try {
-        localStorage.removeItem('fifs_instructor_pin');
+        sessionStorage.removeItem('fifs_instructor_pin');
         sessionStorage.removeItem('fifs_instructor_pin');
         var passInput = document.getElementById('adminPasscode');
         if (passInput) passInput.value = '';
@@ -52558,7 +52558,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
 
-      var savedClientSession = localStorage.getItem('fifs_client_session');
+      var savedClientSession = sessionStorage.getItem('fifs_client_session');
       if (savedClientSession) {
         try { renderClientDashboard(JSON.parse(savedClientSession)); } catch(e) {}
       }
@@ -52943,7 +52943,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
 
-        var savedSession = localStorage.getItem('fifs_student_session');
+        var savedSession = sessionStorage.getItem('fifs_student_session');
 
 
 
@@ -53155,9 +53155,9 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       // REQUIREMENT 9: Lock Alumni Clinic down to registered clients
       if (valClean.includes('alumni') || valClean.includes('clinic')) {
-        var clientSession = localStorage.getItem('fifs_client_session');
+        var clientSession = sessionStorage.getItem('fifs_client_session');
         if (!clientSession) {
-          localStorage.setItem('fifs_pending_alumni_booking', 'true');
+          /* cloud only: no localStorage */
           openAlumniAccessGateModal();
           return;
         }
@@ -53506,7 +53506,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           .withSuccessHandler(function(res) {
             if (res && res.status === 'success') {
               statusDiv.style.display = 'none';
-              localStorage.setItem('fifs_student_session', JSON.stringify(res.student));
+              sessionStorage.setItem('fifs_student_session', JSON.stringify(res.student));
               renderStudentDashboard(res.student);
             } else {
               showStatus(statusDiv, res.message || 'Unauthorized access: Email or Student ID is not present in Student Roster, Operations, or Client database.', 'error');
@@ -53568,7 +53568,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
           if (found) {
             statusDiv.style.display = 'none';
-            localStorage.setItem('fifs_student_session', JSON.stringify(found));
+            sessionStorage.setItem('fifs_student_session', JSON.stringify(found));
             renderStudentDashboard(found);
           } else {
             showStatus(statusDiv, 'Unauthorized access: Provided email or identifier was not found in the Student Roster, Operations, or Future Initiative Clients database.', 'error');
@@ -53627,7 +53627,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
 
-      localStorage.setItem('fifs_student_session', JSON.stringify(demo));
+      sessionStorage.setItem('fifs_student_session', JSON.stringify(demo));
 
 
 
@@ -55662,7 +55662,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
 
-      var session = localStorage.getItem('fifs_student_session');
+      var session = sessionStorage.getItem('fifs_student_session');
 
 
 
@@ -55747,7 +55747,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
 
-        localStorage.setItem('fifs_student_session', JSON.stringify(student));
+        sessionStorage.setItem('fifs_student_session', JSON.stringify(student));
 
 
 
@@ -55832,7 +55832,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
 
-      localStorage.removeItem('fifs_student_session');
+      sessionStorage.removeItem('fifs_student_session');
 
 
 
@@ -56223,7 +56223,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
 
-              localStorage.setItem('fifs_instructor_pin', pin);
+              sessionStorage.setItem('fifs_instructor_pin', pin);
 
 
 
@@ -56444,7 +56444,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
 
-          localStorage.setItem('fifs_instructor_pin', pin);
+          sessionStorage.setItem('fifs_instructor_pin', pin);
 
 
 
@@ -56473,7 +56473,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
               { studentId: 'FIFS-1029', fullName: 'Tanae Wade', email: 'tanae@example.com', phone: '(443) 214-9982', course: 'Maryland HQL', assignedDate: 'Oct 19, 2026', status: 'STEP_6_CERTIFIED', profileDocUrl: '#' },
               { studentId: 'FIFS-8821', fullName: 'Marcus Cole', email: 'mcole@example.com', phone: '(443) 555-8821', course: 'Maryland CCW', assignedDate: 'Nov 02, 2026', status: 'STEP_3_PREPARATION', profileDocUrl: '#' }
             ];
-            try { localStorage.setItem('fifs_roster_students', JSON.stringify(realStudents)); } catch(e) {}
+            /* cloud only: no localStorage */
           }
           renderAdminTerminal({ students: realStudents });
 
@@ -57019,7 +57019,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
 
-      var pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
 
 
 
@@ -58984,7 +58984,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (!author || !text) return;
       var stored = JSON.parse(localStorage.getItem('fifs_dynamic_reviews') || '[]');
       stored.unshift({ author: author, text: text });
-      localStorage.setItem('fifs_dynamic_reviews', JSON.stringify(stored));
+      /* cloud only: no localStorage */
       mountGoogleReviewsTicker();
     }
     window.addNewGoogleReview = addNewGoogleReview;
@@ -73081,7 +73081,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           .withSuccessHandler(function(res) {
             if (res && res.status === 'success') {
               statusDiv.style.display = 'none';
-              localStorage.setItem('fifs_client_session', JSON.stringify(res.client));
+              sessionStorage.setItem('fifs_client_session', JSON.stringify(res.client));
               renderClientDashboard(res.client);
             } else {
               showStatus(statusDiv, res.message || 'Unauthorized access: Provided email or Client ID is not registered in Future Initiative records.', 'error');
@@ -73193,7 +73193,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
           if (foundClient) {
             statusDiv.style.display = 'none';
-            localStorage.setItem('fifs_client_session', JSON.stringify(foundClient));
+            sessionStorage.setItem('fifs_client_session', JSON.stringify(foundClient));
             renderClientDashboard(foundClient);
           } else {
             showStatus(statusDiv, 'Unauthorized access: Provided email or identifier was not found in the Student Roster, Operations, or Future Initiative Clients database.', 'error');
@@ -73220,7 +73220,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
     function loadDemoClient() {
       var demo = getMockClient('FI-CLIENT-1042');
-      localStorage.setItem('fifs_client_session', JSON.stringify(demo));
+      sessionStorage.setItem('fifs_client_session', JSON.stringify(demo));
       renderClientDashboard(demo);
     }
     window.loadDemoClient = loadDemoClient;
@@ -73302,7 +73302,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
 
     function fiLogoutClient() {
-      localStorage.removeItem('fifs_client_session');
+      sessionStorage.removeItem('fifs_client_session');
       var authBox = document.getElementById('client-auth-box');
       var dashBox = document.getElementById('client-active-dashboard');
 
@@ -76067,7 +76067,7 @@ function closeStateModal() {
           var log = JSON.parse(localStorage.getItem('fifs_analytics_events') || '[]');
           log.unshift(entry);
           if (log.length > 50) log.pop();
-          localStorage.setItem('fifs_analytics_events', JSON.stringify(log));
+          /* cloud only: no localStorage */
 
 
 
@@ -79132,7 +79132,7 @@ function deleteAdminChatThread(threadId, event) {
   if (!confirm("Are you sure you want to permanently delete this live chat thread from Google Sheets and the admin hub?")) {
     return;
   }
-  var pin = localStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+  var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
   if (typeof callFifsBackend === 'function') {
     callFifsBackend('deleteLiveChatThread', { threadId: threadId, passcode: pin }, function(res) {
       alert("Chat thread deleted successfully from registry.");
@@ -79165,7 +79165,7 @@ function deleteAdminChatThread(threadId, event) {
 // ==========================================================================
 function clearChatNotificationOnOpen(threadId) {
   if (!threadId) return;
-  var pin = localStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+  var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
   if (typeof callFifsBackend === 'function') {
     callFifsBackend('markLiveChatRead', { threadId: threadId, passcode: pin }, function(res) {
       console.log('Thread notification cleared across devices:', res);
@@ -79353,7 +79353,7 @@ function sendSplashQuickReply(threadId, idx) {
   var input = document.getElementById('splash-reply-input-' + idx);
   if (!input || !input.value.trim()) return;
   var text = input.value.trim();
-  var pin = localStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+  var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
 
 
 
@@ -80591,7 +80591,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
 
 
     // 4. Send delete request to Google Apps Script backend
-    var pin = sessionStorage.getItem('fifs_instructor_pin') || localStorage.getItem('fifs_instructor_pin') || 'Ultima';
+    var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
     if (typeof callFifsBackend === 'function') {
       callFifsBackend('deleteLiveChatThread', { passcode: pin, threadId: threadId }, function(res) {
         console.log('Chat thread deleted on backend:', res);
@@ -81488,3 +81488,4 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
 
 </body>
 </html>
+
