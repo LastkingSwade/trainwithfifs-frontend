@@ -15093,63 +15093,209 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
   
     
     // ==========================================================================
-    // FIFS IN-MODAL CONFIRMATION RECEIPT & BOOKING SUBMISSION HANDLER
+    // FIFS TWO-STEP INVOICE & BOOKING CONFIRMATION WORKFLOW
     // ==========================================================================
-    function submitBooking(e) {
+    var __fifsOriginalBookingFormHtml = null;
+    var __fifsCurrentBookingPayload = null;
+
+    function showBookingInvoiceModal(e) {
       if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
+
       var form = document.getElementById('booking-form');
-      var submitBtn = document.getElementById('btn-booking-submit');
       var statusDiv = document.getElementById('booking-status');
+      if (!form) return false;
 
-      if (!form) return;
+      var fullName = form.fullName ? form.fullName.value.trim() : '';
+      var email = form.email ? form.email.value.trim() : '';
+      var phone = form.phone ? form.phone.value.trim() : '';
+      var courseSelection = form.courseSelection ? form.courseSelection.value : 'Maryland Firearms Training';
+      var preferredDates = (form.preferredDates && form.preferredDates.value.trim()) ? form.preferredDates.value.trim() : 'Flexible / Coordinated with Instructor';
+      var groupSize = form.groupSize ? form.groupSize.value : '1 (Private One-on-One)';
+      var comments = form.comments ? form.comments.value.trim() : '';
+      var safetyCheck = document.getElementById('safety-check');
 
-      var payload = {
-        courseSelection: form.courseSelection ? form.courseSelection.value : '',
-        fullName: form.fullName ? form.fullName.value.trim() : '',
-        email: form.email ? form.email.value.trim() : '',
-        phone: form.phone ? form.phone.value.trim() : '',
-        preferredDates: form.preferredDates ? form.preferredDates.value.trim() : '',
-        groupSize: form.groupSize ? form.groupSize.value : '1',
-        comments: form.comments ? form.comments.value.trim() : ''
+      if (!fullName || !email || !phone) {
+        if (statusDiv) {
+          showStatus(statusDiv, 'Please provide your Full Legal Name, Email, and Phone Number.', 'error');
+        } else {
+          alert('Please provide your Full Legal Name, Email, and Phone Number.');
+        }
+        return false;
+      }
+
+      if (safetyCheck && !safetyCheck.checked) {
+        if (statusDiv) {
+          showStatus(statusDiv, 'Please check and accept the Mandatory Range Safety Policy to continue.', 'error');
+        } else {
+          alert('Please accept the Mandatory Range Safety Policy.');
+        }
+        return false;
+      }
+
+      var invoiceId = 'INV-FI-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+      var studentId = invoiceId.replace('INV-', '');
+
+      var priceMatch = courseSelection.match(/\$([0-9,]+(?:\.[0-9]{2})?)/);
+      var priceStr = priceMatch ? ('$' + priceMatch[1]) : '$249.99';
+
+      __fifsCurrentBookingPayload = {
+        invoiceId: invoiceId,
+        studentId: studentId,
+        fullName: fullName,
+        email: email,
+        phone: phone,
+        courseSelection: courseSelection,
+        preferredDates: preferredDates,
+        groupSize: groupSize,
+        comments: comments,
+        priceStr: priceStr,
+        dateIssued: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
       };
 
-      if (!payload.fullName || !payload.email || !payload.phone) {
-        if (statusDiv) showStatus(statusDiv, 'Please complete all required fields.', 'error');
-        return;
+      var modalBox = document.querySelector('#courseBookingModal .goal-modal-box') || document.getElementById('courseBookingModal');
+      if (!modalBox) return false;
+
+      if (!__fifsOriginalBookingFormHtml) {
+        __fifsOriginalBookingFormHtml = modalBox.innerHTML;
       }
 
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span>⚡ Securing Seat Reservation...</span>';
+      var p = __fifsCurrentBookingPayload;
+
+      var invoiceHtml = '<div id="fifs-invoice-step" style="animation: fadeIn 0.25s ease; text-align: left;">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;padding-bottom:14px;margin-bottom:16px;">' +
+          '<div>' +
+            '<span style="background:rgba(0,229,255,0.12);color:var(--accent-cyan);border:1px solid var(--accent-cyan);font-size:0.75rem;font-weight:800;padding:4px 10px;border-radius:4px;letter-spacing:0.08em;text-transform:uppercase;">STEP 1 OF 2: ENROLLMENT INVOICE</span>' +
+            '<h3 style="color:#fff;font-size:1.6rem;margin:8px 0 2px;font-family:var(--font-display);font-weight:700;">Official Training Invoice</h3>' +
+            '<p style="color:var(--text-muted);font-size:0.82rem;margin:0;">Future Initiative Firearm Services (FIFS) &bull; Instructor Kai Wade</p>' +
+          '</div>' +
+          '<button type="button" onclick="closeCourseBookingModal()" style="background:none;border:none;color:#94a3b8;font-size:1.4rem;cursor:pointer;">&times;</button>' +
+        '</div>' +
+
+        '<div style="background:#0d131d;border:1px solid #1e293b;border-radius:8px;padding:14px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
+          '<div>' +
+            '<div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Invoice &amp; Record Number</div>' +
+            '<div style="font-size:1.25rem;font-weight:800;color:var(--accent-cyan);font-family:monospace;">' + p.invoiceId + '</div>' +
+          '</div>' +
+          '<div style="text-align:right;">' +
+            '<div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;">Date Issued</div>' +
+            '<div style="font-size:0.95rem;font-weight:700;color:#fff;">' + p.dateIssued + '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div style="background:#10161f;border:1px solid #1e293b;border-radius:8px;padding:16px;margin-bottom:16px;">' +
+          '<div style="font-size:0.75rem;font-weight:800;color:var(--accent-cyan);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">STUDENT &amp; SESSION DETAILS</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.85rem;">' +
+            '<div><span style="color:#64748b;display:block;font-size:0.74rem;">STUDENT</span><strong style="color:#f8fafc;">' + p.fullName + '</strong></div>' +
+            '<div><span style="color:#64748b;display:block;font-size:0.74rem;">PHONE / EMAIL</span><strong style="color:#f8fafc;">' + p.phone + '<br>' + p.email + '</strong></div>' +
+            '<div><span style="color:#64748b;display:block;font-size:0.74rem;">REQUESTED DATE</span><strong style="color:#f8fafc;">' + p.preferredDates + '</strong></div>' +
+            '<div><span style="color:#64748b;display:block;font-size:0.74rem;">FORMAT / SIZE</span><strong style="color:#f8fafc;">' + p.groupSize + '</strong></div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div style="background:#070b11;border:1px solid #1e293b;border-radius:8px;padding:16px;margin-bottom:16px;">' +
+          '<div style="font-size:0.75rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">ITEMIZED ENROLLMENT CHARGES</div>' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.86rem;">' +
+            '<span style="color:#e2e8f0;">' + p.courseSelection + '</span>' +
+            '<strong style="color:#fff;">' + p.priceStr + '</strong>' +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.82rem;color:#94a3b8;">' +
+            '<span>Classroom Instruction &amp; Course Materials (FIFS)</span>' +
+            '<span style="color:#10b981;font-weight:700;">INCLUDED</span>' +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.82rem;color:#94a3b8;">' +
+            '<span>Practical Qualification Shots (Cindy&#39;s Hot Shots &mdash; Glen Burnie, MD)</span>' +
+            '<span style="color:#10b981;font-weight:700;">VERIFIED</span>' +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;font-size:1.15rem;">' +
+            '<strong style="color:#fff;">Total Balance Due:</strong>' +
+            '<strong style="color:var(--accent-cyan);font-family:var(--font-display);font-size:1.35rem;">' + p.priceStr + '</strong>' +
+          '</div>' +
+        '</div>' +
+
+        '<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:0.80rem;color:#fcd34d;line-height:1.4;">' +
+          '&#9888;&#65039; <strong>Payment &amp; Logistics Notice:</strong> Review your invoice carefully before confirming. Once authorized, Instructor Kai Wade will contact you directly to finalize payment coordination (Zelle, Card, Cash App, or Cash) and assign your range time.' +
+        '</div>' +
+
+        '<div style="display:flex;gap:12px;flex-wrap:wrap;">' +
+          '<button type="button" onclick="returnToBookingForm()" style="flex:1;min-width:130px;background:#1e293b;color:#f1f5f9;border:1px solid #334155;padding:14px;border-radius:8px;font-weight:700;font-size:0.9rem;cursor:pointer;">&larr; Edit Information</button>' +
+          '<button type="button" id="btn-confirm-invoice" onclick="confirmAndFinalizeBooking()" style="flex:2;min-width:200px;background:linear-gradient(135deg,var(--accent-cyan) 0%,#0099cc 100%);color:#070b10;border:none;padding:14px;border-radius:8px;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 0 20px var(--accent-cyan-glow);text-transform:uppercase;">Confirm &amp; Authorize Enrollment &rarr;</button>' +
+        '</div>' +
+        '<div id="invoice-status-div" style="margin-top:12px;display:none;" class="status-msg"></div>' +
+      '</div>';
+
+      modalBox.innerHTML = invoiceHtml;
+      return false;
+    }
+    window.showBookingInvoiceModal = showBookingInvoiceModal;
+    window.submitBooking = showBookingInvoiceModal;
+
+    function submitBooking(e) {
+      return showBookingInvoiceModal(e);
+    }
+
+    function returnToBookingForm() {
+      var modalBox = document.querySelector('#courseBookingModal .goal-modal-box') || document.getElementById('courseBookingModal');
+      if (modalBox && __fifsOriginalBookingFormHtml) {
+        modalBox.innerHTML = __fifsOriginalBookingFormHtml;
+        if (__fifsCurrentBookingPayload) {
+          var form = document.getElementById('booking-form');
+          if (form) {
+            if (form.fullName) form.fullName.value = __fifsCurrentBookingPayload.fullName || '';
+            if (form.email) form.email.value = __fifsCurrentBookingPayload.email || '';
+            if (form.phone) form.phone.value = __fifsCurrentBookingPayload.phone || '';
+            if (form.courseSelection) form.courseSelection.value = __fifsCurrentBookingPayload.courseSelection || '';
+            if (form.comments) form.comments.value = __fifsCurrentBookingPayload.comments || '';
+          }
+        }
       }
-      if (statusDiv) showStatus(statusDiv, 'Registering session in FIFS Training Ledger...', 'success');
+    }
+    window.returnToBookingForm = returnToBookingForm;
+
+    function confirmAndFinalizeBooking() {
+      var p = __fifsCurrentBookingPayload;
+      if (!p) return;
+
+      var btn = document.getElementById('btn-confirm-invoice');
+      var statusDiv = document.getElementById('invoice-status-div');
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>&#9889; Securing Reservation &amp; Registering Ledger...</span>';
+      }
+      if (statusDiv) {
+        showStatus(statusDiv, 'Registering session in FIFS Training Ledger...', 'success');
+      }
 
       var onComplete = function(res) {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<span>Lock In Seat Reservation &amp; Register Record</span>';
-        }
-
-        var studentId = (res && res.studentId) || ('FI-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000));
-        renderInModalReceipt(payload, studentId);
+        var studentId = (res && res.studentId) || p.studentId;
+        renderFinalConfirmationScreen(p, studentId);
 
         if (typeof sendClientDiscordAlert === 'function') {
-          sendClientDiscordAlert('🎯 Confirmed Seat Booking: ' + payload.fullName, 'New enrollment reserved at FIFS', [
-            { name: 'Student ID', value: studentId, inline: true },
-            { name: 'Course', value: payload.courseSelection, inline: false },
-            { name: 'Contact', value: payload.phone + ' | ' + payload.email, inline: false },
-            { name: 'Dates', value: payload.preferredDates || 'To be scheduled with Instructor', inline: true }
+          sendClientDiscordAlert('🎯 Authorized Seat Booking: ' + p.fullName, 'New enrollment reserved at FIFS', [
+            { name: 'Invoice / Student ID', value: p.invoiceId + ' (' + studentId + ')', inline: true },
+            { name: 'Course', value: p.courseSelection, inline: false },
+            { name: 'Contact', value: p.phone + ' | ' + p.email, inline: false },
+            { name: 'Schedule', value: p.preferredDates, inline: true },
+            { name: 'Total Tuition', value: p.priceStr, inline: true }
           ], 0x00E5FF);
         }
       };
 
       var onError = function(err) {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<span>Lock In Seat Reservation &amp; Register Record</span>';
-        }
-        var fallbackId = 'FI-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
-        renderInModalReceipt(payload, fallbackId);
+        renderFinalConfirmationScreen(p, p.studentId);
+      };
+
+      var payload = {
+        invoiceId: p.invoiceId,
+        studentId: p.studentId,
+        fullName: p.fullName,
+        email: p.email,
+        phone: p.phone,
+        courseSelection: p.courseSelection,
+        preferredDates: p.preferredDates,
+        groupSize: p.groupSize,
+        comments: p.comments
       };
 
       if (typeof callFifsBackend === 'function') {
@@ -15160,84 +15306,92 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           .withFailureHandler(onError)
           .submitBooking(payload);
       } else {
-        onComplete({ status: 'success' });
+        onComplete({ status: 'success', studentId: p.studentId });
       }
     }
-    window.submitBooking = submitBooking;
+    window.confirmAndFinalizeBooking = confirmAndFinalizeBooking;
 
-    function renderInModalReceipt(payload, studentId) {
-      var modalBox = document.querySelector('#courseBookingModal .goal-modal-box');
+    function renderFinalConfirmationScreen(p, studentId) {
+      var modalBox = document.querySelector('#courseBookingModal .goal-modal-box') || document.getElementById('courseBookingModal');
       if (!modalBox) return;
 
       window.__lastConfirmedBooking = {
         studentId: studentId,
-        fullName: payload.fullName || '',
-        email: payload.email || '',
-        phone: payload.phone || '',
-        courseSelection: payload.courseSelection || '',
-        preferredDates: payload.preferredDates || 'Flexible / To Be Scheduled'
+        fullName: p.fullName,
+        email: p.email,
+        phone: p.phone,
+        courseSelection: p.courseSelection,
+        preferredDates: p.preferredDates
       };
 
-      var title = encodeURIComponent("FIFS Training: " + (payload.courseSelection || "Firearms Training"));
+      var safeId = String(studentId).replace(/[^a-zA-Z0-9_-]/g, '');
+      var title = encodeURIComponent("FIFS Training: " + (p.courseSelection || "Firearms Training"));
       var loc = encodeURIComponent("Cindy's Hot Shots, 115 Holsum Way, Glen Burnie, MD 21060");
-      var details = encodeURIComponent("Student ID: " + studentId + "\nInstructor: Kai Wade (443) 990-1304\nRange: 50-100 rds target ammo. Zero live ammo in classroom.");
+      var details = encodeURIComponent("Student ID: " + safeId + "\nInstructor: Kai Wade (443) 990-1304\nPractical Qualification Shots downrange at Cindy's Hot Shots. Zero live ammo in classroom.");
       var gcalUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + title + "&location=" + loc + "&details=" + details;
 
-      var safeId = String(studentId).replace(/[^a-zA-Z0-9_-]/g, "");
-
-      var html = '<div id="fifs-receipt-view" style="animation: fadeIn 0.3s ease; text-align: left;">' +
-        '<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;padding-bottom:16px;margin-bottom:20px;">' +
+      var finalHtml = '<div id="fifs-confirmation-step" style="animation: fadeIn 0.3s ease; text-align: left;">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;padding-bottom:16px;margin-bottom:18px;">' +
           '<div>' +
-            '<span style="background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.3);font-size:0.75rem;font-weight:800;padding:4px 10px;border-radius:4px;letter-spacing:0.08em;text-transform:uppercase;">✓ RESERVATION CONFIRMED</span>' +
-            '<h3 style="color:#fff;font-size:1.5rem;margin:8px 0 2px;font-family:var(--font-display);font-weight:700;">Official Training Receipt</h3>' +
-            '<p style="color:var(--text-muted);font-size:0.85rem;margin:0;">Future Initiative Firearm Services (FIFS) • Instructor Kai Wade</p>' +
+            '<span style="background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.3);font-size:0.75rem;font-weight:800;padding:4px 10px;border-radius:4px;letter-spacing:0.08em;text-transform:uppercase;">&#10003; RESERVATION CONFIRMED</span>' +
+            '<h3 style="color:#fff;font-size:1.6rem;margin:8px 0 2px;font-family:var(--font-display);font-weight:700;">Enrollment Confirmed!</h3>' +
+            '<p style="color:var(--text-muted);font-size:0.85rem;margin:0;">Future Initiative Firearm Services (FIFS) &bull; Instructor Kai Wade</p>' +
           '</div>' +
-          '<button type="button" onclick="closeCourseBookingModal()" style="background:none;border:none;color:#94a3b8;font-size:1.4rem;cursor:pointer;">✕</button>' +
+          '<button type="button" onclick="closeCourseBookingModal()" style="background:none;border:none;color:#94a3b8;font-size:1.4rem;cursor:pointer;">&times;</button>' +
         '</div>' +
 
-        '<div style="background:#0d131d;border:1px solid var(--accent-cyan);border-radius:8px;padding:16px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
+        '<div style="background:linear-gradient(135deg, rgba(0,229,255,0.12) 0%, rgba(16,185,129,0.12) 100%);border:2px solid var(--accent-cyan);border-radius:10px;padding:18px;margin-bottom:18px;">' +
+          '<div style="font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:6px;font-family:var(--font-display);">' +
+            '&#127919; Thanks for booking your class!' +
+          '</div>' +
+          '<p style="color:#e2e8f0;font-size:0.95rem;line-height:1.55;margin:0;">' +
+            '<strong>Instructor Kai Wade will be reaching out to you directly</strong> to finalize payment coordination, confirm your preferred range cohort date, and provide your preparation checklist.' +
+          '</p>' +
+        '</div>' +
+
+        '<div style="background:#0d131d;border:1px solid #1e293b;border-radius:8px;padding:14px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
           '<div>' +
-            '<div style="font-size:0.75rem;text-transform:uppercase;color:var(--accent-cyan);letter-spacing:0.05em;font-weight:700;">Official Student Record ID</div>' +
-            '<div style="font-size:1.4rem;font-weight:800;color:#fff;font-family:monospace;letter-spacing:0.05em;">' + safeId + '</div>' +
+            '<div style="font-size:0.75rem;text-transform:uppercase;color:var(--accent-cyan);letter-spacing:0.05em;font-weight:700;">Student Record ID &amp; Invoice</div>' +
+            '<div style="font-size:1.35rem;font-weight:800;color:#fff;font-family:monospace;">' + safeId + '</div>' +
           '</div>' +
-          '<button type="button" id="btn-copy-receipt-id" style="background:rgba(0,229,255,0.12);border:1px solid var(--accent-cyan);color:var(--accent-cyan);font-weight:700;font-size:0.8rem;padding:8px 14px;border-radius:6px;cursor:pointer;">📋 Copy ID</button>' +
+          '<button type="button" id="btn-copy-receipt-id" style="background:rgba(0,229,255,0.12);border:1px solid var(--accent-cyan);color:var(--accent-cyan);font-weight:700;font-size:0.82rem;padding:8px 14px;border-radius:6px;cursor:pointer;">&#128203; Copy Record ID</button>' +
         '</div>' +
 
-        '<div style="background:#10161f;border:1px solid #1e293b;border-radius:8px;padding:16px;margin-bottom:18px;">' +
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.85rem;">' +
-            '<div><span style="color:#64748b;display:block;font-size:0.75rem;">STUDENT NAME</span><strong style="color:#f1f5f9;">' + (payload.fullName || 'Student') + '</strong></div>' +
-            '<div><span style="color:#64748b;display:block;font-size:0.75rem;">CONTACT</span><strong style="color:#f1f5f9;">' + (payload.phone || '') + '</strong></div>' +
-            '<div style="grid-column:1 / -1;"><span style="color:#64748b;display:block;font-size:0.75rem;">CURRICULUM</span><strong style="color:var(--accent-cyan);">' + (payload.courseSelection || '') + '</strong></div>' +
-            '<div><span style="color:#64748b;display:block;font-size:0.75rem;">DATES REQUESTED</span><strong style="color:#f1f5f9;">' + (payload.preferredDates || 'To be scheduled') + '</strong></div>' +
-            '<div><span style="color:#64748b;display:block;font-size:0.75rem;">ATTENDANCE</span><strong style="color:#f1f5f9;">' + (payload.groupSize || '1 (Private)') + '</strong></div>' +
+        '<div style="background:#10161f;border:1px solid #1e293b;border-radius:8px;padding:14px 16px;margin-bottom:16px;">' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.85rem;">' +
+            '<div><span style="color:#64748b;display:block;font-size:0.74rem;">STUDENT</span><strong style="color:#f1f5f9;">' + p.fullName + '</strong></div>' +
+            '<div><span style="color:#64748b;display:block;font-size:0.74rem;">CONTACT</span><strong style="color:#f1f5f9;">' + p.phone + '</strong></div>' +
+            '<div style="grid-column:1 / -1;"><span style="color:#64748b;display:block;font-size:0.74rem;">CURRICULUM</span><strong style="color:var(--accent-cyan);">' + p.courseSelection + '</strong></div>' +
+            '<div><span style="color:#64748b;display:block;font-size:0.74rem;">SCHEDULE PREFERENCE</span><strong style="color:#f1f5f9;">' + p.preferredDates + '</strong></div>' +
+            '<div><span style="color:#64748b;display:block;font-size:0.74rem;">TUITION BALANCE</span><strong style="color:#10b981;">' + p.priceStr + '</strong></div>' +
           '</div>' +
         '</div>' +
 
-        '<div style="background:#070b11;border:1px solid #1e293b;border-radius:8px;padding:14px;margin-bottom:20px;font-size:0.85rem;">' +
+        '<div style="background:#070b11;border:1px solid #1e293b;border-radius:8px;padding:14px;margin-bottom:18px;font-size:0.83rem;">' +
           '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
-            '<strong style="color:var(--accent-cyan);font-size:0.8rem;letter-spacing:0.05em;text-transform:uppercase;">📍 Partner Range for Qualification Shots Only:</strong>' +
-            '<a href="https://maps.google.com/?q=Cindy%27s+Hot+Shots+115+Holsum+Way+Glen+Burnie+MD+21060" target="_blank" rel="noopener noreferrer" style="color:var(--accent-cyan);font-size:0.75rem;text-decoration:underline;">Directions ↗</a>' +
+            '<strong style="color:var(--accent-cyan);font-size:0.8rem;letter-spacing:0.05em;text-transform:uppercase;">&#128205; Live-Fire Qualification Range:</strong>' +
+            '<a href="https://maps.google.com/?q=Cindy%27s+Hot+Shots+115+Holsum+Way+Glen+Burnie+MD+21060" target="_blank" rel="noopener noreferrer" style="color:var(--accent-cyan);font-size:0.75rem;text-decoration:underline;">Directions &#8599;</a>' +
           '</div>' +
           '<div style="color:#e2e8f0;line-height:1.4;"><strong>Cindy&#39;s Hot Shots</strong>: 115 Holsum Way, Glen Burnie, MD 21060</div>' +
-          '<div style="color:#f59e0b;font-size:0.75rem;margin-top:6px;line-height:1.3;">⚠️ <strong>Range Protocol:</strong> 50–100 rounds factory target ammo. NO live ammunition in classroom sessions.</div>' +
+          '<div style="color:#f59e0b;font-size:0.76rem;margin-top:6px;line-height:1.35;">&#9888;&#65039; <strong>Note:</strong> Classroom and theory instruction is conducted with FIFS. Cindy&#39;s Hot Shots is strictly our partner facility for executing your live-fire qualification shots. Absolutely ZERO live ammunition permitted in the classroom.</div>' +
         '</div>' +
 
         '<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;">' +
-          '<a href="' + gcalUrl + '" target="_blank" rel="noopener noreferrer" style="flex:1;min-width:140px;background:#1e293b;border:1px solid #334155;color:#f8fafc;padding:10px 14px;border-radius:6px;text-align:center;font-size:0.85rem;font-weight:600;text-decoration:none;display:inline-block;">📅 Google Calendar</a>' +
-          '<button type="button" id="btn-print-receipt" style="flex:1;min-width:140px;background:#1e293b;border:1px solid #334155;color:#f8fafc;padding:10px 14px;border-radius:6px;font-size:0.85rem;font-weight:600;cursor:pointer;">🖨️ Print Receipt</button>' +
-          '<button type="button" id="btn-portal-receipt" style="flex:100%;background:linear-gradient(135deg,var(--accent-cyan) 0%,#0099cc 100%);color:#070b10;border:none;padding:12px;border-radius:6px;font-weight:800;font-size:0.9rem;cursor:pointer;margin-top:4px;">🔑 Open Student Portal →</button>' +
+          '<a href="' + gcalUrl + '" target="_blank" rel="noopener noreferrer" style="flex:1;min-width:140px;background:#1e293b;border:1px solid #334155;color:#f8fafc;padding:10px 14px;border-radius:6px;text-align:center;font-size:0.85rem;font-weight:600;text-decoration:none;display:inline-block;">&#128197; Google Calendar</a>' +
+          '<button type="button" id="btn-print-receipt" style="flex:1;min-width:140px;background:#1e293b;border:1px solid #334155;color:#f8fafc;padding:10px 14px;border-radius:6px;font-size:0.85rem;font-weight:600;cursor:pointer;">&#128424;&#65039; Print Invoice &amp; Receipt</button>' +
+          '<button type="button" id="btn-portal-receipt" style="flex:100%;background:linear-gradient(135deg,var(--accent-cyan) 0%,#0099cc 100%);color:#070b10;border:none;padding:12px;border-radius:6px;font-weight:800;font-size:0.9rem;cursor:pointer;margin-top:4px;">&#128273; Open Student Portal &rarr;</button>' +
         '</div>' +
       '</div>';
 
-      modalBox.innerHTML = html;
+      modalBox.innerHTML = finalHtml;
 
       var copyBtn = document.getElementById('btn-copy-receipt-id');
       if (copyBtn) {
         copyBtn.onclick = function() {
           navigator.clipboard.writeText(safeId).then(function() {
-            alert('Student ID (' + safeId + ') copied to clipboard!');
+            alert('Student Record ID (' + safeId + ') copied to clipboard!');
           }).catch(function() {
-            alert('Student ID: ' + safeId);
+            alert('Student Record ID: ' + safeId);
           });
         };
       }
@@ -15258,6 +15412,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         };
       }
     }
+    window.renderFinalConfirmationScreen = renderFinalConfirmationScreen;
+    window.renderInModalReceipt = renderFinalConfirmationScreen;
 
     function showStatus(elem, text, type) {
 
@@ -20184,7 +20340,7 @@ function closeStateModal() {
         Submit your student details directly to Instructor Kai Wade to establish your official training record and lock in your range date.
       </p>
 <!-- Clean Form Container (Extracted from old bottom section) -->
-<form id="booking-form" onsubmit="submitBooking(event)">
+<form id="booking-form" onsubmit="event.preventDefault(); return false;">
 <div class="form-group">
 <label for="courseSelection">Selected Course Curriculum &amp; Tuition <span class="req">*</span></label>
 <select class="form-select" id="courseSelection" onchange="updateFormPriceDisplay()" required="" style="background: #070b10; border: 1px solid var(--accent-cyan); color: #fff; padding: 12px; border-radius: 8px; width: 100%; font-size: 0.95rem; font-weight: 700;">
@@ -20412,7 +20568,7 @@ function closeStateModal() {
 <strong>MANDATORY RANGE SAFETY POLICY:</strong> I understand that absolutely zero live ammunition is permitted in the classroom. Ammunition must remain locked in my vehicle trunk until range live-fire.
           </label>
 </div>
-<button class="btn-primary" id="btn-booking-submit" style="width: 100%; padding: 14px; font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; box-shadow: 0 0 20px var(--accent-cyan-glow);" type="submit">
+<button class="btn-primary" id="btn-booking-submit" style="width: 100%; padding: 14px; font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; box-shadow: 0 0 20px var(--accent-cyan-glow);" type="button" onclick="showBookingInvoiceModal(event)">
           Confirm Training Reservation 🎯
         </button>
 <div class="status-msg" id="booking-status" style="margin-top: 12px; display: none;"></div>
