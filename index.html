@@ -7368,19 +7368,26 @@
       if (!grid || !label) return;
 
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      label.textContent = `${monthNames[calCurrentMonth]} ${calCurrentYear}`;
+      label.textContent = monthNames[calCurrentMonth] + ' ' + calCurrentYear;
 
       const selectElem = document.getElementById('courseSelection');
       const curVal = (selectElem ? selectElem.value : '').toLowerCase();
       const isVip = curVal.includes('vip') || curVal.includes('turnkey');
+      const is16Hr = typeof is16HourCourseSelected === 'function' ? is16HourCourseSelected() : false;
 
       if (policyBanner) {
-        if (isVip) {
+        if (is16Hr) {
+          policyBanner.innerHTML = '📌 <strong style="color:#00e5ff;">16-Hour Maryland Requirement:</strong> Please select <strong>2 dates</strong> on the calendar below:<br>' +
+            '<span style="display:inline-block;margin-top:4px;">• <strong>Day 1:</strong> Classroom Instruction & Firearms Safety (FIFS Classroom)<br>• <strong>Day 2:</strong> Live-Fire Practical Qualification (Cindy\'s Hot Shots Partner Range)</span>' +
+            (isVip ? '<br><span style="color:var(--accent-amber);font-weight:700;">👑 VIP Turnkey: 7-day flexible scheduling unlocked.</span>' : '<br><span style="color:#94a3b8;">📅 Standard Schedule: Saturday & Sunday cohorts.</span>');
+          policyBanner.style.borderColor = '#00e5ff';
+          policyBanner.style.background = 'rgba(0, 229, 255, 0.09)';
+        } else if (isVip) {
           policyBanner.innerHTML = '👑 <strong style="color: var(--accent-amber);">VIP Turnkey Perk:</strong> Priority <strong>7-Day Flexible Scheduling (Monday–Sunday)</strong> is unlocked! Select any open date below.';
           policyBanner.style.borderColor = 'var(--accent-amber)';
           policyBanner.style.background = 'rgba(255, 183, 3, 0.08)';
         } else {
-          policyBanner.innerHTML = '📅 <strong>Standard Schedule:</strong> Classes held on <strong>Saturdays &amp; Sundays</strong>. Weekdays (Mon–Fri) locked. (Toggle to 👑 VIP to unlock 7-day flexible scheduling).';
+          policyBanner.innerHTML = '📅 <strong>Standard Schedule:</strong> Classes held on <strong>Saturdays & Sundays</strong>. Weekdays (Mon–Fri) locked. (Toggle to 👑 VIP to unlock 7-day flexible scheduling).';
           policyBanner.style.borderColor = 'var(--accent-cyan)';
           policyBanner.style.background = 'rgba(0, 229, 255, 0.08)';
         }
@@ -7407,13 +7414,13 @@
         cellDate.setHours(0, 0, 0, 0);
         const dayOfWeek = cellDate.getDay(); // 0 = Sun, 6 = Sat
         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-        const dateKey = `${calCurrentYear}-${String(calCurrentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const dateKey = calCurrentYear + '-' + String(calCurrentMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
         const isBooked = calBookedDates.includes(dateKey);
         const isPast = cellDate < today;
 
         const cell = document.createElement('div');
         cell.style.background = '#0d1219';
-        cell.style.minHeight = '42px';
+        cell.style.minHeight = '46px';
         cell.style.display = 'flex';
         cell.style.flexDirection = 'column';
         cell.style.alignItems = 'center';
@@ -7433,41 +7440,46 @@
           cell.style.color = '#ef4444';
           cell.style.cursor = 'not-allowed';
           cell.title = 'Class session already booked for this date';
-          cell.innerHTML = `${d}<span style="width: 5px; height: 5px; border-radius: 50%; background: #ef4444; margin-top: 2px;"></span>`;
+          cell.innerHTML = d + '<span style="width: 5px; height: 5px; border-radius: 50%; background: #ef4444; margin-top: 2px;"></span>';
         } else if (!isVip && !isWeekend) {
-          cell.style.color = '#334155';
-          cell.style.background = '#080c11';
-          cell.style.opacity = '0.25';
+          cell.style.color = '#475569';
           cell.style.cursor = 'not-allowed';
-          cell.style.pointerEvents = 'none';
-          cell.title = 'Standard Base Track is locked to Saturdays & Sundays only. Upgrade to VIP Turnkey to unlock weekdays!';
-          cell.innerHTML = `<span style="opacity: 0.35;">${d}</span><span style="font-size: 0.65rem; color: #475569; margin-top: 1px;">🔒</span>`;
+          cell.title = 'Weekday locked (Upgrade to VIP for 7-day flexible scheduling)';
+          cell.innerHTML = '<span style="opacity: 0.5;">' + d + '</span><span style="font-size: 0.60rem; color: #64748b; margin-top: 1px;">🔒</span>';
         } else {
-          // Available Date
-          cell.style.color = '#fff';
-          if (calSelectedDate === dateKey) {
-            cell.style.background = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+          // Available date
+          const isDate1 = (calSelectedDate1 === dateKey);
+          const isDate2 = (calSelectedDate2 === dateKey);
+
+          if (isDate1) {
+            cell.style.background = 'linear-gradient(135deg, #00e5ff 0%, #0284c7 100%)';
             cell.style.color = '#070b10';
             cell.style.fontWeight = '900';
-            cell.style.boxShadow = isVip ? '0 0 12px var(--accent-amber)' : '0 0 12px var(--accent-cyan)';
+            cell.style.boxShadow = '0 0 12px var(--accent-cyan-glow)';
+            cell.innerHTML = d + '<span style="font-size:0.62rem;font-weight:800;background:#070b10;color:#00e5ff;padding:1px 4px;border-radius:3px;margin-top:2px;">' + (is16Hr ? 'DAY 1' : 'PICKED') + '</span>';
+          } else if (isDate2) {
+            cell.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+            cell.style.color = '#070b10';
+            cell.style.fontWeight = '900';
+            cell.style.boxShadow = '0 0 12px rgba(16, 185, 129, 0.6)';
+            cell.innerHTML = d + '<span style="font-size:0.62rem;font-weight:800;background:#070b10;color:#10b981;padding:1px 4px;border-radius:3px;margin-top:2px;">DAY 2</span>';
           } else {
-            cell.onmouseover = function() {
-              this.style.background = isVip ? 'rgba(255, 183, 3, 0.25)' : 'rgba(0, 229, 255, 0.25)';
-            };
-            cell.onmouseout = function() {
-              this.style.background = '#0d1219';
-            };
+            cell.style.color = '#fff';
+            cell.classList.add('cal-day-cell');
+            if (isWeekend) cell.classList.add('cal-weekend');
+            else cell.classList.add('cal-weekday');
           }
 
-          cell.onclick = function() {
+          cell.addEventListener('click', function() {
             selectBookingDate(dateKey, cellDate, isVip);
-          };
+          });
         }
 
         grid.appendChild(cell);
       }
     }
     window.renderBookingCalendar = renderBookingCalendar;
+
 
     function changeBookingCalendarMonth(delta) {
       calCurrentMonth += delta;
@@ -7482,27 +7494,103 @@
     }
     window.changeBookingCalendarMonth = changeBookingCalendarMonth;
 
+    
+    // ==========================================================================
+    // FIFS 16-HOUR DUAL-DATE SELECTION & CALENDAR LOGIC
+    // ==========================================================================
+    var calSelectedDate1 = null;
+    var calSelectedDate2 = null;
+    var calSelectedDate1Obj = null;
+    var calSelectedDate2Obj = null;
+
+    function is16HourCourseSelected() {
+      var selectElem = document.getElementById('courseSelection');
+      var val = (selectElem ? selectElem.value : '').toLowerCase();
+      // 16-hour courses in MD: Wear & Carry (CCW), CCW & HQL Combo, Multi-State Mastery
+      if (val.includes('wear & carry') || val.includes('ccw') || val.includes('multi-state') || val.includes('16-hour') || val.includes('16hr')) {
+        // Exclude renewals or explicitly single-session courses if any
+        if (val.includes('renewal') || val.includes('8-hour') || val.includes('8hr')) return false;
+        return true;
+      }
+      return false;
+    }
+    window.is16HourCourseSelected = is16HourCourseSelected;
+
     function selectBookingDate(dateKey, cellDate, isVip) {
-      calSelectedDate = dateKey;
-      window.calSelectedDate = dateKey;
+      var is16Hr = is16HourCourseSelected();
+      var dateInput = document.getElementById('preferredDates');
+      var dateText = document.getElementById('bookingCalSelectedDateText');
+      var options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
 
-      const dateInput = document.getElementById('preferredDates');
-      const dateText = document.getElementById('bookingCalSelectedDateText');
-
-      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-      const formatted = cellDate ? cellDate.toLocaleDateString('en-US', options) : dateKey;
-
-      if (dateInput) {
-        dateInput.value = `${formatted} ${isVip ? '(👑 VIP Turnkey)' : '(Standard Base)'}`;
+      if (is16Hr) {
+        if (!calSelectedDate1 || (calSelectedDate1 && calSelectedDate2)) {
+          // First pick or resetting
+          calSelectedDate1 = dateKey;
+          calSelectedDate1Obj = cellDate;
+          calSelectedDate2 = null;
+          calSelectedDate2Obj = null;
+        } else if (calSelectedDate1 && !calSelectedDate2) {
+          if (calSelectedDate1 === dateKey) {
+            // Deselect
+            calSelectedDate1 = null;
+            calSelectedDate1Obj = null;
+          } else {
+            // Second pick
+            // Ensure date1 is earlier than date2 for clean order
+            var d1 = new Date(calSelectedDate1 + 'T00:00:00');
+            var d2 = new Date(dateKey + 'T00:00:00');
+            if (d2 < d1) {
+              calSelectedDate2 = calSelectedDate1;
+              calSelectedDate2Obj = calSelectedDate1Obj;
+              calSelectedDate1 = dateKey;
+              calSelectedDate1Obj = cellDate;
+            } else {
+              calSelectedDate2 = dateKey;
+              calSelectedDate2Obj = cellDate;
+            }
+          }
+        }
+      } else {
+        // 1-day course
+        calSelectedDate1 = dateKey;
+        calSelectedDate1Obj = cellDate;
+        calSelectedDate2 = null;
+        calSelectedDate2Obj = null;
       }
 
-      if (dateText) {
-        dateText.innerHTML = `Selected Date: <strong style="color: ${isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)'};">${formatted}</strong>`;
+      window.calSelectedDate = calSelectedDate1;
+      window.calSelectedDate1 = calSelectedDate1;
+      window.calSelectedDate2 = calSelectedDate2;
+
+      // Update input and status display
+      var f1 = calSelectedDate1Obj ? calSelectedDate1Obj.toLocaleDateString('en-US', options) : calSelectedDate1;
+      var f2 = calSelectedDate2Obj ? calSelectedDate2Obj.toLocaleDateString('en-US', options) : calSelectedDate2;
+
+      if (is16Hr) {
+        if (calSelectedDate1 && calSelectedDate2) {
+          if (dateInput) dateInput.value = 'Day 1: ' + f1 + ' (FIFS Classroom) | Day 2: ' + f2 + ' (Cindy\'s Hot Shots Qualification)';
+          if (dateText) dateText.innerHTML = '<span style="color:#10b981;">✔ Day 1 (Classroom): <strong>' + f1 + '</strong></span> &bull; <span style="color:#00e5ff;">✔ Day 2 (Cindy\'s Qualification): <strong>' + f2 + '</strong></span>';
+        } else if (calSelectedDate1) {
+          if (dateInput) dateInput.value = 'Day 1: ' + f1 + ' (FIFS Classroom) — [Day 2 Required]';
+          if (dateText) dateText.innerHTML = '<span style="color:#00e5ff;">Day 1 Selected: <strong>' + f1 + '</strong></span> &bull; <span style="color:#f59e0b;font-weight:700;">👉 Please select Day 2 on the calendar</span>';
+        } else {
+          if (dateInput) dateInput.value = '';
+          if (dateText) dateText.innerHTML = '<span style="color:#f59e0b;">16-Hr Requirement: Select 2 dates (Day 1 Classroom &bull; Day 2 Range Qualification)</span>';
+        }
+      } else {
+        if (calSelectedDate1) {
+          if (dateInput) dateInput.value = f1 + (isVip ? ' (👑 VIP Turnkey)' : ' (Standard Base)');
+          if (dateText) dateText.innerHTML = 'Selected Training Date: <strong style="color:' + (isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)') + ';">' + f1 + '</strong>';
+        } else {
+          if (dateInput) dateInput.value = '';
+          if (dateText) dateText.innerHTML = 'No training date selected';
+        }
       }
 
       renderBookingCalendar();
     }
     window.selectBookingDate = selectBookingDate;
+
 
     function mountStudentTargets() {
       const container = document.getElementById('targets-grid-container');
@@ -21183,79 +21271,6 @@ function closeStateModal() {
 </div>
 
 
-<!-- FIFS AUTO-GENERATED INVOICE MODAL -->
-<div id="fifs-invoice-modal" style="display:none; position:fixed; z-index:99999; inset:0; background:rgba(7,11,16,0.92); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:16px; overflow-y:auto;">
-  <div style="background:#10161f; border:1px solid #1f2937; border-top:4px solid #00e5ff; border-radius:12px; width:100%; max-width:620px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7); overflow:hidden;">
-    <div style="padding:20px 24px; border-bottom:1px solid #1f2937; display:flex; justify-content:space-between; align-items:center;">
-      <div style="font-family:'Rajdhani', sans-serif; font-size:20px; font-weight:700; color:#00e5ff;">TRAIN WITH FIFS • OFFICIAL INVOICE</div>
-      <button onclick="closeBookingInvoiceModal()" style="background:transparent; border:none; color:#9ca3af; font-size:24px; cursor:pointer;">&times;</button>
-    </div>
-    <div style="padding:24px;">
-      <div style="background:#070b10; padding:14px; border-radius:8px; border:1px solid #1f2937; margin-bottom:18px;">
-        <div style="color:#00e5ff; font-weight:700;" id="inv-modal-id">FIFS-INV-000000</div>
-        <div style="color:#fff;" id="inv-modal-name">Student Name</div>
-        <div style="color:#9ca3af; font-size:13px;" id="inv-modal-course">Course Curriculum</div>
-        <div style="color:#10b981; font-size:18px; font-weight:700; margin-top:6px;" id="inv-modal-total">$150.00</div>
-      </div>
-      <div style="background:#070b10; border:1px dashed #374151; padding:14px; border-radius:8px; margin-bottom:20px; font-size:13px; color:#cbd5e1;">
-        <p style="margin:2px 0;">• <strong>Zelle:</strong> info@trainwithfifs.com or (443) 990-1304</p>
-        <p style="margin:2px 0;">• <strong>Credit / Debit Card:</strong> Link delivered to your email</p>
-        <p style="margin:2px 0;">• <strong>Cash:</strong> Accepted on site before range live-fire</p>
-      </div>
-      <div id="inv-dispatch-status" style="display:none; padding:10px 14px; border-radius:6px; margin-bottom:16px; font-size:13px;"></div>
-      <button id="btn-confirm-send-invoice" onclick="confirmAndDispatchInvoice()" style="width:100%; background:linear-gradient(135deg, #00e5ff, #00b4d8); color:#070b10; font-weight:700; border:none; padding:14px; border-radius:6px; cursor:pointer;">
-        📧 Confirm & Send Official Invoice to My Email
-      </button>
-    </div>
-  </div>
-</div>
-
-<script>
-var currentActiveInvoiceData = null;
-function showBookingInvoiceModal(data) {
-  currentActiveInvoiceData = data;
-  document.getElementById('inv-modal-id').textContent = data.invoiceId;
-  document.getElementById('inv-modal-name').textContent = data.fullName + ' (' + data.studentId + ')';
-  document.getElementById('inv-modal-course').textContent = data.courseSelection;
-  document.getElementById('inv-modal-total').textContent = '$' + Number(data.amount).toFixed(2);
-  const modal = document.getElementById('fifs-invoice-modal');
-  if (modal) modal.style.display = 'flex';
-}
-function closeBookingInvoiceModal() {
-  const modal = document.getElementById('fifs-invoice-modal');
-  if (modal) modal.style.display = 'none';
-}
-function confirmAndDispatchInvoice() {
-  if (!currentActiveInvoiceData) return;
-  const btn = document.getElementById('btn-confirm-send-invoice');
-  const statusBox = document.getElementById('inv-dispatch-status');
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = '⏳ Dispatching Official Invoice...';
-  }
-  if (typeof google !== 'undefined' && google.script && google.script.run) {
-    google.script.run
-      .withSuccessHandler(function(res) {
-        if (btn) {
-          btn.textContent = '✔ Official Invoice Emailed!';
-          btn.style.background = '#10b981';
-          btn.style.color = '#fff';
-        }
-        if (statusBox) {
-          statusBox.style.display = 'block';
-          statusBox.style.background = '#064e3b';
-          statusBox.style.color = '#a7f3d0';
-          statusBox.textContent = 'Success! Invoice sent to ' + currentActiveInvoiceData.email + ' and Instructor Kai Wade.';
-        }
-      })
-      .handleConfirmAndSendInvoice(currentActiveInvoiceData);
-  }
-}
-</script>
 
 </body>
 </html>
-
-
-
-
