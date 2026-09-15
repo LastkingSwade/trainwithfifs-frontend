@@ -8378,7 +8378,28 @@
     });
 
     
-    // Centralized Google Sheets Live Chat Integration
+    // Universal Passcode Resolver for Admin Hub across all mobile/desktop devices
+    function resolveCurrentInstructorPasscode() {
+      try {
+        if (window.__fifsCurrentInstructorPin) return window.__fifsCurrentInstructorPin;
+        var sess = sessionStorage.getItem('FIFS_ADMIN_SESSION_KEY') || localStorage.getItem('FIFS_ADMIN_SESSION_KEY');
+        if (sess) {
+          try {
+            var parsed = JSON.parse(sess);
+            if (parsed && (parsed.passcode || parsed.pin)) return parsed.passcode || parsed.pin;
+          } catch(e) {}
+        }
+        var pin = localStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
+        if (pin) return pin;
+        if (typeof getInstructorPasscode === 'function') {
+          var p = getInstructorPasscode();
+          if (p) return p;
+        }
+      } catch(e) {}
+      return '';
+    }
+    window.resolveCurrentInstructorPasscode = resolveCurrentInstructorPasscode;
+
     var __fifsCachedBackendChatThreads = [];
 
     function getStoredChatThreads() {
@@ -8397,6 +8418,7 @@
       } catch(e) {}
       return [];
     }
+    window.getStoredChatThreads = getStoredChatThreads;
 
     function saveChatThreads(threads) {
       __fifsCachedBackendChatThreads = threads || [];
@@ -8405,9 +8427,10 @@
         localStorage.setItem('fifs_live_chat_sync', Date.now().toString());
       } catch(e) {}
     }
+    window.saveChatThreads = saveChatThreads;
 
     function refreshAdminLiveChats(callback) {
-      var pin = (typeof getInstructorPasscode === 'function') ? getInstructorPasscode() : localStorage.getItem('fifs_instructor_pin');
+      var pin = resolveCurrentInstructorPasscode();
       if (!pin) {
         if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
         if (typeof updateAdminChatBadgeCount === 'function') updateAdminChatBadgeCount();
@@ -8470,7 +8493,7 @@
       if (typeof renderActiveAdminChatMessages === 'function') renderActiveAdminChatMessages(thread);
       if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
 
-      var pin = (typeof getInstructorPasscode === 'function') ? getInstructorPasscode() : localStorage.getItem('fifs_instructor_pin');
+      var pin = resolveCurrentInstructorPasscode();
       callFifsBackend('sendAdminLiveChatReply', {
         passcode: pin,
         threadId: thread.id,
@@ -13535,22 +13558,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     }
     window.changeBookingCalendarMonth = changeBookingCalendarMonth;
 
-    function selectBookingDate(dateKey, dateObj, isVip) {
-      calSelectedDate = dateKey;
-      var dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-      var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      var formatted = `${dayNames[dateObj.getDay()]}, ${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()} • 9:00 AM (${isVip ? 'VIP Priority Session' : 'Weekend Session'})`;
-
-      var input = document.getElementById('preferredDates');
-      var text = document.getElementById('bookingCalSelectedDateText');
-      if (input) input.value = formatted;
-      if (text) {
-        text.textContent = formatted;
-        text.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
-      }
-      renderBookingCalendar();
-    }
-    window.selectBookingDate = selectBookingDate;
+// Legacy selectBookingDate removed to preserve authoritative 2-date selection
 
     // Call renderBookingCalendar whenever courseSelection changes or modal opens
     if (typeof openCourseBookingModal === 'function') {
@@ -15079,6 +15087,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     var __fifsCurrentBookingPayload = null;
 
     function showBookingInvoiceModal(e) {
+      var isVipCourse = false;
+
       if (e && e.preventDefault) e.preventDefault();
       if (e && e.stopPropagation) e.stopPropagation();
 
@@ -15170,13 +15180,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       var studentId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000);
 
       var priceMatch = courseSelection.match(/\$([0-9,]+(?:\.[0-9]{2})?)/);
-      var baseTuition = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : 249.99;
-      var priceStr = '$' + baseTuition.toFixed(2);
-
-      var isVipCourse = /VIP/i.test(courseSelection);
-      var cindysRangeFee = isVipCourse ? 0.00 : 45.00;
-      var totalBalanceDue = baseTuition + cindysRangeFee;
-      var totalBalanceStr = '$' + totalBalanceDue.toFixed(2);
+      var priceStr = priceMatch ? ('$' + priceMatch[1]) : '$249.99';
 
       var options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
       var date1Str = calSelectedDate1Obj ? calSelectedDate1Obj.toLocaleDateString('en-US', options) : (calSelectedDate1 || 'TBD');
@@ -15210,7 +15214,21 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         __fifsOriginalBookingFormHtml = modalBox.innerHTML;
       }
 
+      
+      
+
       var p = __fifsCurrentBookingPayload;
+      var isVipCourse = /VIP/i.test(courseSelection || (p && p.courseSelection) || '');
+      var priceMatch = (courseSelection || (p && p.courseSelection) || '').match(/\$([0-9,]+(?:\.[0-9]{2})?)/);
+      var baseTuition = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : 249.99;
+      var cindysRangeFee = isVipCourse ? 0.00 : 45.00;
+      var totalBalanceDue = baseTuition + cindysRangeFee;
+      var totalBalanceStr = '$' + totalBalanceDue.toFixed(2);
+      if (p) {
+        p.totalBalanceStr = totalBalanceStr;
+        p.cindysRangeFee = cindysRangeFee;
+        p.isVipCourse = isVipCourse;
+      }
 
       var invoiceHtml = '<div id="fifs-invoice-step" style="animation: fadeIn 0.25s ease; text-align: left;">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;padding-bottom:14px;margin-bottom:16px;">' +
@@ -21238,6 +21256,23 @@ function closeStateModal() {
 </div>
 
 
+
+
+    // Event delegation for booking calendar grid
+    document.addEventListener('DOMContentLoaded', function() {
+      var grid = document.getElementById('bookingCalDaysGrid');
+      if (grid) {
+        grid.addEventListener('click', function(e) {
+          var cell = e.target.closest('[data-date]');
+          if (cell) {
+            var dateKey = cell.getAttribute('data-date');
+            if (dateKey) {
+              window.selectBookingDate(dateKey);
+            }
+          }
+        });
+      }
+    });
 
 </body>
 </html>
