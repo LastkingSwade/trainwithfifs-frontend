@@ -7120,7 +7120,7 @@
         appendTwoWayBubble('user', name, initialMsg, timeStr);
 
         setTimeout(function() {
-          var welcomeReply = "Hello " + escapeHtml(name) + "! Coach Kai Wade here. I\'ve received your message on my direct line. How can I assist you with Maryland Wear & Carry, HQL, 8-hour renewal, or private range training at Cindy\'s Hot Shots?";
+          var welcomeReply = "Hello " + escapeHtml(name) + "! Coach Kai Wade here. Thanks for reaching out to Future Initiative Firearm Services (FIFS). Not sure which training or permit you need? Here is a quick guide: (1) 16-Hour Maryland Wear & Carry (CCW) - if you want to legally carry a concealed handgun in public for personal defense (includes HQL training free). (2) 4-Hour Handgun Qualification License (HQL) - if you only want to purchase, rent, or keep a handgun at home or take it to a range. (3) 8-Hour CCW Renewal - for current Maryland permit holders whose permit is expiring. (4) Private 1-on-1 Coaching or Range Tune-Up - for live-fire marksmanship, holster skills, or confidence building at Cindy's Hot Shots. Tell me a bit about your experience level and what you want to accomplish, and I will point you to the right class. You can also just describe your situation and I will walk you through it!";
           appendTwoWayBubble('instructor', 'Coach Kai Wade', welcomeReply, timeStr);
         }, 400);
       }
@@ -7192,37 +7192,62 @@
 
     function handleLiveChatSubmit(e) {
       if (e && e.preventDefault) e.preventDefault();
-      var input = document.getElementById('twoWayChatInput');
-      if (!input) return false;
-      var msg = input.value.trim();
-      if (!msg) return false;
+      var nameEl = document.getElementById('chatSenderName');
+      var phoneEl = document.getElementById('chatSenderPhone');
+      var msgEl = document.getElementById('chatMessageText');
+      var btn = document.getElementById('btn-send-chat');
 
-      var name = document.getElementById('twoWayChatName') ? document.getElementById('twoWayChatName').value.trim() : 'Website Visitor';
-      var phone = document.getElementById('twoWayChatPhone') ? document.getElementById('twoWayChatPhone').value.trim() : '';
+      var name = nameEl ? nameEl.value.trim() : '';
+      var phone = phoneEl ? phoneEl.value.trim() : '';
+      var msg = msgEl ? msgEl.value.trim() : '';
 
-      var timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      appendTwoWayBubble('user', name || 'You', msg, timeStr);
-      input.value = '';
+      if (!name || !phone || !msg) {
+        alert('Please fill out your Name, Phone, and Question to open live chat.');
+        return;
+      }
 
-      showChatTypingIndicator();
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Opening Live Chat Window...';
+      }
 
+      // 1. Dispatch Discord Alert directly from client
+      sendClientDiscordAlert(
+        "💬 Incoming Live Chat: " + name,
+        "A visitor initiated a conversation via the website live chat widget.",
+        [
+          { name: "Sender Name", value: name, inline: true },
+          { name: "Phone / SMS Callback", value: phone, inline: true },
+          { name: "Operating Window", value: isLiveChatActiveNow() ? "ONLINE NOW (9 AM – 5 PM EST)" : "AFTER HOURS", inline: true },
+          { name: "Initial Inquiry", value: msg, inline: false }
+        ],
+        0x00E5FF
+      );
+
+      // 2. Open Two-Way Chat window immediately
+      closeContactWidgetModal();
+      openTwoWayChat(name, phone, msg);
+
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '💬 Send Message & Open Live Chat →';
+      }
+
+      // 3. Dispatch to backend via callFifsBackend (triggers server-side Discord webhook & email notification)
       var payload = {
         name: name,
+        senderName: name,
         phone: phone,
         message: msg,
         timestamp: new Date().toISOString(),
         isLiveHours: isLiveChatActiveNow()
       };
-
-      callFifsBackend('handleLiveChatMessage', payload).then(function(res) {
-          removeChatTypingIndicator();
-          var reply = (res && res.reply) ? res.reply : 'Thank you for reaching out to FIFS! Instructor Kai Wade has received your message and will be in touch shortly.';
-          appendTwoWayBubble('support', 'FIFS Assistant (AI)', reply, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-        }).catch(function(err) {
-          removeChatTypingIndicator();
-          appendTwoWayBubble('support', 'FIFS Assistant', 'Thank you for your message! Instructor Kai Wade has received your inquiry and will follow up shortly.', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      
+      if (typeof callFifsBackend === 'function') {
+        callFifsBackend('handleLiveChatMessage', payload).catch(function(err) {
+          console.warn("Backend chat notification notice:", err);
         });
-      return false;
+      }
     }
     window.handleLiveChatSubmit = handleLiveChatSubmit;
 
@@ -13517,7 +13542,113 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     var calSelectedDate = null;
     var calBookedDates = ['2026-10-03', '2026-10-10', '2026-10-17', '2026-10-24', '2026-11-07'];
 
-    /* Removed legacy duplicate renderBookingCalendar */
+    function renderBookingCalendar() {
+      var grid = document.getElementById('bookingCalDaysGrid');
+      var label = document.getElementById('bookingCalMonthLabel');
+      var policyBanner = document.getElementById('calendarPolicyText');
+      if (!grid || !label) return;
+
+      var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      label.textContent = `${monthNames[calCurrentMonth]} ${calCurrentYear}`;
+
+      // Check current selected course VIP status
+      var selectElem = document.getElementById('courseSelection');
+      var curVal = (selectElem ? selectElem.value : '').toLowerCase();
+      var isVip = curVal.includes('vip') || curVal.includes('turnkey');
+
+      if (policyBanner) {
+        if (isVip) {
+          policyBanner.innerHTML = '👑 <strong style="color: var(--accent-amber);">VIP Turnkey Perk:</strong> Priority <strong>7-Day Flexible Scheduling (Monday–Sunday)</strong> is unlocked! Select any open date below.';
+          policyBanner.style.borderColor = 'var(--accent-amber)';
+          policyBanner.style.background = 'rgba(255, 183, 3, 0.08)';
+        } else {
+          policyBanner.innerHTML = '📅 <strong>Standard Schedule:</strong> Classes held on <strong>Saturdays &amp; Sundays</strong>. Weekdays (Mon–Fri) locked. (Toggle to 👑 VIP to unlock 7-day flexible scheduling).';
+          policyBanner.style.borderColor = 'var(--accent-cyan)';
+          policyBanner.style.background = 'rgba(0, 229, 255, 0.08)';
+        }
+      }
+
+      grid.innerHTML = '';
+
+      var firstDay = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
+      var totalDays = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
+
+      // Empty leading cells
+      for (let i = 0; i < firstDay; i++) {
+        var emptyCell = document.createElement('div');
+        emptyCell.style.background = '#070b10';
+        emptyCell.style.minHeight = '42px';
+        grid.appendChild(emptyCell);
+      }
+
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      for (let d = 1; d <= totalDays; d++) {
+        var cellDate = new Date(calCurrentYear, calCurrentMonth, d);
+        cellDate.setHours(0, 0, 0, 0);
+        var dayOfWeek = cellDate.getDay(); // 0 = Sun, 6 = Sat
+        var isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        var dateKey = `${calCurrentYear}-${String(calCurrentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        var isBooked = calBookedDates.includes(dateKey);
+        var isPast = cellDate < today;
+
+        var cell = document.createElement('div');
+        cell.style.background = '#0d1219';
+        cell.style.minHeight = '42px';
+        cell.style.display = 'flex';
+        cell.style.flexDirection = 'column';
+        cell.style.alignItems = 'center';
+        cell.style.justifyContent = 'center';
+        cell.style.fontSize = '0.86rem';
+        cell.style.fontWeight = '700';
+        cell.style.cursor = 'pointer';
+        cell.style.transition = 'all 0.15s ease';
+        cell.textContent = d;
+
+        if (isPast) {
+          cell.style.color = '#334155';
+          cell.style.cursor = 'not-allowed';
+          cell.title = 'Past date';
+        } else if (isBooked) {
+          cell.style.color = '#ef4444';
+          cell.style.cursor = 'not-allowed';
+          cell.title = 'Class session already booked for this date';
+          cell.innerHTML = `${d}<span style="width: 5px; height: 5px; border-radius: 50%; background: #ef4444; margin-top: 2px;"></span>`;
+        } else if (!isVip && !isWeekend) {
+          cell.style.color = '#334155';
+          cell.style.background = '#080c11';
+          cell.style.opacity = '0.25';
+          cell.style.cursor = 'not-allowed';
+          cell.style.pointerEvents = 'none';
+          cell.title = 'Standard Base Track is locked to Saturdays & Sundays only. Upgrade to VIP Turnkey to unlock weekdays!';
+          cell.innerHTML = `<span style="opacity: 0.35;">${d}</span><span style="font-size: 0.65rem; color: #475569; margin-top: 1px;">🔒</span>`;
+        } else {
+          // Available Date!
+          cell.style.color = '#fff';
+          if (calSelectedDate === dateKey) {
+            cell.style.background = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+            cell.style.color = '#070b10';
+            cell.style.fontWeight = '900';
+            cell.style.boxShadow = isVip ? '0 0 12px var(--accent-amber)' : '0 0 12px var(--accent-cyan)';
+          } else {
+            cell.onmouseover = function() {
+              this.style.background = isVip ? 'rgba(255, 183, 3, 0.25)' : 'rgba(0, 229, 255, 0.25)';
+            };
+            cell.onmouseout = function() {
+              this.style.background = '#0d1219';
+            };
+          }
+
+          cell.onclick = function() {
+            selectBookingDate(dateKey, cellDate, isVip);
+          };
+        }
+
+        grid.appendChild(cell);
+      }
+    }
+    window.renderBookingCalendar = renderBookingCalendar;
 
     function changeBookingCalendarMonth(delta) {
       calCurrentMonth += delta;
@@ -13532,7 +13663,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     }
     window.changeBookingCalendarMonth = changeBookingCalendarMonth;
 
-    /* Removed legacy duplicate selectBookingDate */
+    // Duplicate selectBookingDate removed
 
     // Call renderBookingCalendar whenever courseSelection changes or modal opens
     if (typeof openCourseBookingModal === 'function') {
@@ -13651,7 +13782,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         isLiveHours: isLiveChatActiveNow()
       };
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
-        google.script.run.handleLiveChatMessage(payload);
+        if (typeof callFifsBackend === 'function') { callFifsBackend('handleLiveChatMessage', payload); }
       }
     }
     window.handleLiveChatSubmit = handleLiveChatSubmit;
@@ -13694,7 +13825,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         // 2. Append Coach Wade automated greeting
         setTimeout(function() {
-          var welcomeReply = "Hello " + escapeHtml(name) + "! Coach Kai Wade here. I\'ve received your message on my direct line. How can I assist you with Maryland Wear & Carry, HQL, 8-hour renewal, or private range training at Cindy\'s Hot Shots?";
+          var welcomeReply = "Hello " + escapeHtml(name) + "! Coach Kai Wade here. Thanks for reaching out to Future Initiative Firearm Services (FIFS). Not sure which training or permit you need? Here is a quick guide: (1) 16-Hour Maryland Wear & Carry (CCW) - if you want to legally carry a concealed handgun in public for personal defense (includes HQL training free). (2) 4-Hour Handgun Qualification License (HQL) - if you only want to purchase, rent, or keep a handgun at home or take it to a range. (3) 8-Hour CCW Renewal - for current Maryland permit holders whose permit is expiring. (4) Private 1-on-1 Coaching or Range Tune-Up - for live-fire marksmanship, holster skills, or confidence building at Cindy's Hot Shots. Tell me a bit about your experience level and what you want to accomplish, and I will point you to the right class. You can also just describe your situation and I will walk you through it!";
           appendTwoWayBubble('instructor', 'Coach Kai Wade', welcomeReply, timeStr);
         }, 500);
       }
