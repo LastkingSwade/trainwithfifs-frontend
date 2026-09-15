@@ -7120,7 +7120,8 @@
         appendTwoWayBubble('user', name, initialMsg, timeStr);
 
         setTimeout(function() {
-          var welcomeReply = "Hello " + escapeHtml(name) + "! Coach Kai Wade here. Not sure what you need? Quick guide: 16-Hour MD Wear & Carry (carry concealed), 4-Hour HQL (buy/own a gun), 8-Hour Renewal (permit expiring), or private 1-on-1 coaching. Tell me your goals and I will guide you to the exact right option!";
+          window.__instructorHasTakenOverChat = false;
+          var welcomeReply = "Hello " + escapeHtml(name) + "! Coach Kai Wade here. Not sure what you need? Quick guide: 16-Hour MD Wear & Carry (carry concealed), 4-Hour HQL (buy/own a gun), 8-Hour Renewal (permit expiring), or private 1-on-1 coaching. Tell me your goals and I will guide you to the exact right option! Please leave this chat window open for at least 5 minutes when waiting on a live response.";
           appendTwoWayBubble('instructor', 'Coach Kai Wade', welcomeReply, timeStr);
         }, 400);
       }
@@ -7196,31 +7197,17 @@
       var phoneEl = document.getElementById('chatSenderPhone');
       var msgEl = document.getElementById('chatMessageText');
       var btn = document.getElementById('btn-send-chat');
-
       var name = nameEl ? nameEl.value.trim() : '';
       var phone = phoneEl ? phoneEl.value.trim() : '';
       var msg = msgEl ? msgEl.value.trim() : '';
-
       if (!name || !phone || !msg) {
         alert('Please fill out your Name, Phone, and Question to open live chat.');
         return;
       }
-
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Opening Live Chat Window...';
-      }
-
-      // 1. Immediately open Two-Way Chat window
+      if (btn) { btn.disabled = true; btn.textContent = 'Opening Live Chat Window...'; }
       closeContactWidgetModal();
       openTwoWayChat(name, phone, msg);
-
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = '💬 Send Message & Open Live Chat →';
-      }
-
-      // 2. Dispatch to backend: saves in Google Sheet 'Live_Chats', dispatches Discord operational alert & email
+      if (btn) { btn.disabled = false; btn.textContent = '💬 Send Message & Open Live Chat →'; }
       var payload = {
         name: name,
         senderName: name,
@@ -7231,7 +7218,7 @@
       };
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('handleLiveChatMessage', payload).catch(function(err) {
-          console.warn("Backend chat notification notice:", err);
+          console.warn('Backend chat notification notice:', err);
         });
       }
     }
@@ -8585,7 +8572,8 @@
       // Also append to visitor chat stream if open in same window
       var stream = document.getElementById('twoWayChatStream');
       if (stream && typeof appendTwoWayBubble === 'function') {
-        appendTwoWayBubble('instructor', 'Coach Kai Wade', text, timeStr);
+        window.__instructorHasTakenOverChat = true;
+      appendTwoWayBubble('instructor', 'Coach Kai Wade', text, timeStr);
       }
 
       // Dispatch notification to Discord
@@ -13813,7 +13801,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         // 2. Append Coach Wade automated greeting
         setTimeout(function() {
-          var welcomeReply = "Hello " + escapeHtml(name) + "! Coach Kai Wade here. Not sure what you need? Quick guide: 16-Hour MD Wear & Carry (carry concealed), 4-Hour HQL (buy/own a gun), 8-Hour Renewal (permit expiring), or private 1-on-1 coaching. Tell me your goals and I will guide you to the exact right option!";
+          window.__instructorHasTakenOverChat = false;
+          var welcomeReply = "Hello " + escapeHtml(name) + "! Coach Kai Wade here. Not sure what you need? Quick guide: 16-Hour MD Wear & Carry (carry concealed), 4-Hour HQL (buy/own a gun), 8-Hour Renewal (permit expiring), or private 1-on-1 coaching. Tell me your goals and I will guide you to the exact right option! Please leave this chat window open for at least 5 minutes when waiting on a live response.";
           appendTwoWayBubble('instructor', 'Coach Kai Wade', welcomeReply, timeStr);
         }, 500);
       }
@@ -21332,3 +21321,4 @@ function closeStateModal() {
 
 </body>
 </html>
+
