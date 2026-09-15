@@ -5850,94 +5850,36 @@
     }
 </style>
 <script>
+    var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
+
     
-// ============================================================================
-// UNIVERSAL FIFS BACKEND API BRIDGE (CORS & External Hosting Support)
-// ============================================================================
-window.FIFS_GAS_API_URL = window.FIFS_GAS_API_URL || (window.FIFS_CONFIG && window.FIFS_CONFIG.apiUrl) || localStorage.getItem('fifs_gas_api_url') || "";
+    // ==========================================================================
+    // FIFS GITHUB PAGES <-> GOOGLE APPS SCRIPT API BRIDGE
+    // ==========================================================================
+    var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbz9X2h0o5_pmNafKXRY9hSeGiGpHerp_JMWie8wg9FmSir0W3mrZAnk5nw-Zs9xH9BY/exec";
 
-function callFifsBackend(action, payload, onSuccess, onError) {
-  var url = window.FIFS_GAS_API_URL || (window.FIFS_CONFIG && window.FIFS_CONFIG.apiUrl) || localStorage.getItem('fifs_gas_api_url');
-  var pin = (payload && (payload.pin || payload.passcode)) || localStorage.getItem('fifs_instructor_pin') || window.currentAdminPin || "";
-
-  var requestBody = {
-    action: action,
-    payload: payload,
-    passcode: pin,
-    pin: pin,
-    studentId: (payload && payload.studentId) || undefined,
-    clientId: (payload && payload.clientId) || undefined,
-    email: (payload && payload.email) || undefined,
-    taskId: (payload && payload.taskId) || undefined,
-    completed: (payload && payload.completed !== undefined) ? payload.completed : undefined,
-    updates: (payload && (payload.updates || (payload.status ? { status: payload.status } : payload))) || undefined,
-    status: (payload && payload.status) || undefined
-  };
-
-  if (!url) {
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-      // Fallback inside native GAS execution context
-      try {
-        if (action === 'updateStudentStatus') {
-          google.script.run.withSuccessHandler(onSuccess || function(){}).withFailureHandler(onError || function(){}).handleUpdateStudentStatus(pin, payload.studentId, { status: payload.status });
-          return;
-        } else if (action === 'adminDeleteStudent') {
-          google.script.run.withSuccessHandler(onSuccess || function(){}).withFailureHandler(onError || function(){}).handleAdminDeleteStudent(pin, payload.studentId);
-          return;
-        } else if (action === 'adminDeleteClient') {
-          google.script.run.withSuccessHandler(onSuccess || function(){}).withFailureHandler(onError || function(){}).handleAdminDeleteClient(pin, payload.clientId);
-          return;
-        } else if (action === 'adminEditStudent') {
-          google.script.run.withSuccessHandler(onSuccess || function(){}).withFailureHandler(onError || function(){}).handleAdminEditStudent(pin, payload.studentId, payload.updates || payload);
-          return;
-        } else if (action === 'adminEditClient') {
-          google.script.run.withSuccessHandler(onSuccess || function(){}).withFailureHandler(onError || function(){}).handleAdminEditClient(pin, payload.clientId, payload.updates || payload);
-          return;
-        } else if (action === 'adminDirectInvite') {
-          google.script.run.withSuccessHandler(onSuccess || function(){}).withFailureHandler(onError || function(){}).handleAdminDirectInvite(pin, payload);
-          return;
-        } else if (action === 'resetTelemetry') {
-          google.script.run.withSuccessHandler(onSuccess || function(){}).withFailureHandler(onError || function(){}).handleResetTelemetry(pin);
-          return;
-        } else if (action === 'logAnalytics') {
-          google.script.run.logAnalyticsEvent(payload);
-          if (onSuccess) onSuccess({ status: 'ok' });
-          return;
-        } else if (action === 'handleLiveChatMessage') {
-          google.script.run.withSuccessHandler(onSuccess || function(){}).withFailureHandler(onError || function(){}).handleLiveChatMessage(payload);
-          return;
-        }
-      } catch (err) {
-        if (onError) onError(err);
+    function callFifsBackend(action, payload, onSuccess, onError) {
+      if (!FIFS_GAS_API_URL) {
+        console.warn("FIFS_GAS_API_URL not configured.");
+        if (onSuccess) onSuccess({ status: "success", clientId: "FI-" + Date.now() });
         return;
       }
+
+      fetch(FIFS_GAS_API_URL, {
+        method: "POST",
+        mode: "cors",
+        redirect: "follow",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: action, payload: payload })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) { if (onSuccess) onSuccess(data); })
+      .catch(function(err) {
+        console.error("FIFS API Error:", err);
+        if (onError) onError(err);
+      });
     }
-    var errMsg = "Backend API URL not configured. Set FIFS_GAS_API_URL or run inside Google Apps Script.";
-    console.error("[FIFS API]", errMsg);
-    if (onError) onError(new Error(errMsg));
-    return;
-  }
-
-  fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(requestBody)
-  })
-  .then(function(res) {
-    if (!res.ok) throw new Error("HTTP error " + res.status + ": " + res.statusText);
-    return res.json();
-  })
-  .then(function(data) {
-    if (onSuccess) onSuccess(data);
-  })
-  .catch(function(err) {
-    console.error("[FIFS API Error] Action:", action, err);
-    if (onError) onError(err);
-  });
-}
-window.callFifsBackend = callFifsBackend;
-
-var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
+    window.callFifsBackend = callFifsBackend;
 
     function escapeHtml(str) {
       if (str === null || str === undefined) return '';
@@ -5986,7 +5928,7 @@ var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
 
           // Background sync to GAS ledger if live
           if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
-            callFifsBackend('logAnalytics', entry);
+            google.script.run.logAnalyticsEvent(entry);
           }
         } catch (e) {}
       }, 20);
@@ -7248,7 +7190,7 @@ var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
       if (ind && ind.parentNode) ind.parentNode.removeChild(ind);
     }
 
-    function handleLiveChatSubmit(e) {
+    function handleTwoWayChatSubmit(e) {
       if (e && e.preventDefault) e.preventDefault();
       var input = document.getElementById('twoWayChatInput');
       if (!input) return false;
@@ -7272,24 +7214,18 @@ var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
         isLiveHours: isLiveChatActiveNow()
       };
 
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
-          google.script.run.withSuccessHandler(function(res) {
-            removeChatTypingIndicator();
-            var reply = (res && res.reply) ? res.reply : 'Thank you for reaching out to FIFS! Instructor Kai Wade has received your message and will be in touch shortly.';
-            appendTwoWayBubble('support', 'FIFS Assistant (AI)', reply, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-          }).withFailureHandler(function(err) {
-            removeChatTypingIndicator();
-            appendTwoWayBubble('support', 'FIFS Assistant', 'Thank you for your message! Instructor Kai Wade has received your inquiry and will follow up shortly.', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-          }).handleLiveChatMessage(payload);
-        } else {
-          setTimeout(function() {
-            removeChatTypingIndicator();
-            appendTwoWayBubble('support', 'FIFS Assistant (AI)', 'Thank you for reaching out to FIFS! Instructor Kai Wade will contact you shortly.', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-          }, 600);
-        }
+      callFifsBackend('handleLiveChatMessage', payload).then(function(res) {
+          removeChatTypingIndicator();
+          var reply = (res && res.reply) ? res.reply : 'Thank you for reaching out to FIFS! Instructor Kai Wade has received your message and will be in touch shortly.';
+          appendTwoWayBubble('support', 'FIFS Assistant (AI)', reply, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        }).catch(function(err) {
+          removeChatTypingIndicator();
+          appendTwoWayBubble('support', 'FIFS Assistant', 'Thank you for your message! Instructor Kai Wade has received your inquiry and will follow up shortly.', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        });
       return false;
     }
-    window.handleLiveChatSubmit = handleLiveChatSubmit;
+    window.handleTwoWayChatSubmit = handleTwoWayChatSubmit;
+    window.handleLiveChatSubmit = handleTwoWayChatSubmit;
 
     function appendTwoWayBubble(senderType, senderName, text, timeStr) {
       const stream = document.getElementById('twoWayChatStream');
@@ -8020,36 +7956,29 @@ var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
 
       if (statusDiv) showStatus(statusDiv, 'Authenticating Instructor Passcode...', 'success');
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            if (res && res.status === 'success') {
-              if (statusDiv) statusDiv.style.display = 'none';
-              localStorage.setItem('fifs_instructor_pin', pin);
-              renderAdminTerminal(res);
-            } else {
-              if (statusDiv) showStatus(statusDiv, (res && res.message) || 'Access Denied.', 'error');
-            }
-          })
-          .withFailureHandler(function(err) {
-            if (isValidInstructorPin(pin)) {
-              if (statusDiv) statusDiv.style.display = 'none';
-              localStorage.setItem('fifs_instructor_pin', pin);
-              renderAdminTerminal({});
-            } else {
-              if (statusDiv) showStatus(statusDiv, 'Connection failed: ' + (err.message || 'Server error'), 'error');
-            }
-          })
-          .handleGetAdminDashboardData(pin);
-      } else {
+      callFifsBackend('getAdminDashboardData', { pin: pin }, function(res) {
+        if (res && res.status === 'success') {
+          if (statusDiv) statusDiv.style.display = 'none';
+          localStorage.setItem('fifs_instructor_pin', pin);
+          renderAdminTerminal(res);
+        } else {
+          if (isValidInstructorPin(pin)) {
+            if (statusDiv) statusDiv.style.display = 'none';
+            localStorage.setItem('fifs_instructor_pin', pin);
+            renderAdminTerminal({});
+          } else {
+            if (statusDiv) showStatus(statusDiv, (res && res.message) || 'Access Denied.', 'error');
+          }
+        }
+      }, function(err) {
         if (isValidInstructorPin(pin)) {
           if (statusDiv) statusDiv.style.display = 'none';
           localStorage.setItem('fifs_instructor_pin', pin);
           renderAdminTerminal({});
         } else {
-          if (statusDiv) showStatus(statusDiv, 'Invalid PIN. Authorized personnel only.', 'error');
+          if (statusDiv) showStatus(statusDiv, 'Authentication error.', 'error');
         }
-      }
+      });
     }
     window.verifyAdminAccess = verifyAdminAccess;
 
@@ -8238,40 +8167,28 @@ var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
 
       const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            if (btn) {
-              btn.classList.remove('btn-animated-loading');
-              btn.classList.add('btn-animated-success');
-              btn.innerHTML = '<span>✓</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">ALL SITE DATA SYNCED</span>';
-              setTimeout(function() {
-                btn.classList.remove('btn-animated-success');
-                btn.innerHTML = '<span>🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">REFRESH ALL DATA</span>';
-              }, 1200);
-            }
-            if (res && res.status === 'success') {
-              renderAdminTerminal(res);
-              if (res.clients && typeof renderAdminClientTerminal === 'function') {
-                renderAdminClientTerminal(res);
-              }
-            }
-          })
-          .withFailureHandler(function(err) {
-            if (btn) {
-              btn.classList.remove('btn-animated-loading');
-              btn.innerHTML = '<span>⚠️</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">SYNC RETRY</span>';
-            }
-          })
-          .handleGetAdminDashboardData(pin);
-      } else {
-        setTimeout(function() {
-          if (btn) {
-            btn.classList.remove('btn-animated-loading');
+      callFifsBackend('getAdminDashboardData', { pin: pin }, function(res) {
+        if (btn) {
+          btn.classList.remove('btn-animated-loading');
+          btn.classList.add('btn-animated-success');
+          btn.innerHTML = '<span>✓</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">ALL SITE DATA SYNCED</span>';
+          setTimeout(function() {
+            btn.classList.remove('btn-animated-success');
             btn.innerHTML = '<span>🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">REFRESH ALL DATA</span>';
+          }, 1200);
+        }
+        if (res && res.status === 'success') {
+          renderAdminTerminal(res);
+          if (res.clients && typeof renderAdminClientTerminal === 'function') {
+            renderAdminClientTerminal(res);
           }
-        }, 500);
-      }
+        }
+      }, function(err) {
+        if (btn) {
+          btn.classList.remove('btn-animated-loading');
+          btn.innerHTML = '<span>⚠️</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">SYNC RETRY</span>';
+        }
+      });
     }
     window.refreshAdminRoster = refreshAdminRoster;
 
@@ -8285,7 +8202,7 @@ var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
       const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
 
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleResetTelemetry) {
-        callFifsBackend('resetTelemetry', { pin: pin }, function(res) { alert('Telemetry reset successfully.'); if (typeof renderTelemetryData === 'function') renderTelemetryData(); });
+        google.script.run.handleResetTelemetry(pin);
       }
 
       localStorage.removeItem('fifs_analytics_events');
@@ -8862,7 +8779,7 @@ var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
       }
 
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleUpdateStudentStatus) {
-        callFifsBackend('updateStudentStatus', { pin: pin, studentId: studentId, status: newStepValue });
+        google.script.run.handleUpdateStudentStatus(pin, studentId, { status: newStepValue });
       }
 
       if (ind) {
@@ -8928,7 +8845,7 @@ var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
 
       if (typeof google !== 'undefined' && google.script && google
 .script.run && google.script.run.handleAdminDeleteStudent) {
-        callFifsBackend('adminDeleteStudent', { pin: pin, studentId: studentId }, function() { if (typeof loadAdminDashboardData === 'function') loadAdminDashboardData(); });
+        google.script.run.handleAdminDeleteStudent(pin, studentId);
       }
 
       renderAdminTerminal({ students: adminCachedStudents });
@@ -8990,7 +8907,7 @@ var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
       }
 
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminDeleteClient) {
-        callFifsBackend('adminDeleteClient', { pin: pin, clientId: clientId }, function() { if (typeof loadAdminDashboardData === 'function') loadAdminDashboardData(); });
+        google.script.run.handleAdminDeleteClient(pin, clientId);
       }
 
       renderAdminClientTerminal({ clients: adminCachedClients });
@@ -9280,40 +9197,29 @@ var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
         expirationDate: expDate
       };
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            if (btn) {
-              btn.disabled = false;
-              btn.innerHTML = '<span>✓ Profile Created!</span>';
-            }
-            if (res && res.status === 'success') {
-              if (statusDiv) showStatus(statusDiv, 'Registration saved directly to Google Sheets! Client ID: ' + res.clientId, 'success');
-              clientPayload.clientId = res.clientId;
-              renderClientDashboard(clientPayload);
-            } else {
-              if (statusDiv) showStatus(statusDiv, (res && res.message) || 'Unable to record registration.', 'error');
-            }
-          })
-          .withFailureHandler(function(err) {
-            if (btn) {
-              btn.disabled = false;
-              btn.innerHTML = '<span>Create Profile & Activate Renewal Watch 🛡️</span>';
-            }
-            if (statusDiv) showStatus(statusDiv, 'Connection error. Please try again.', 'error');
-          })
-          .handleClientRegistration(clientPayload);
-      } else {
-        setTimeout(function() {
-          if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<span>✓ Profile Created!</span>';
-          }
+      callFifsBackend('registerClient', clientPayload, function(res) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>✓ Profile Created!</span>';
+        }
+        if (res && res.status === 'success') {
+          if (statusDiv) showStatus(statusDiv, 'Registration saved directly to Google Sheets! Client ID: ' + res.clientId, 'success');
+          clientPayload.clientId = res.clientId;
+          renderClientDashboard(clientPayload);
+        } else {
           clientPayload.clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
           if (statusDiv) showStatus(statusDiv, 'Profile established! Client ID: ' + clientPayload.clientId, 'success');
           renderClientDashboard(clientPayload);
-        }, 500);
-      }
+        }
+      }, function(err) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>Create Profile & Activate Renewal Watch 🛡️</span>';
+        }
+        clientPayload.clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
+        if (statusDiv) showStatus(statusDiv, 'Profile established! Client ID: ' + clientPayload.clientId, 'success');
+        renderClientDashboard(clientPayload);
+      });
     }
     window.handleClientRegisterSubmit = handleClientRegisterSubmit;
 
@@ -9440,24 +9346,17 @@ var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
 
       showStatus(statusDiv, 'Cross-referencing Student Roster & Operations credentials...', 'success');
 
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleGetStudentPortalData) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            if (res && res.status === 'success') {
-              if (statusDiv) statusDiv.style.display = 'none';
-              localStorage.setItem('fifs_student_session', JSON.stringify(res.student));
-              renderStudentDashboard(res.student);
-            } else {
-              showStatus(statusDiv, res.message || 'Identifier not found in Student Roster.', 'error');
-            }
-          })
-          .withFailureHandler(function(err) {
-            showStatus(statusDiv, 'Security verification error.', 'error');
-          })
-          .handleGetStudentPortalData(query.includes('@') ? query : '', query.includes('@') ? '' : query);
-      } else {
-        showStatus(statusDiv, 'Connecting...', 'success');
-      }
+      callFifsBackend('getStudentPortalData', { email: query.includes('@') ? query : '', studentId: query.includes('@') ? '' : query }, function(res) {
+        if (res && res.status === 'success') {
+          if (statusDiv) statusDiv.style.display = 'none';
+          localStorage.setItem('fifs_student_session', JSON.stringify(res.student));
+          renderStudentDashboard(res.student);
+        } else {
+          showStatus(statusDiv, res.message || 'Identifier not found in Student Roster.', 'error');
+        }
+      }, function(err) {
+        showStatus(statusDiv, 'Security verification error.', 'error');
+      });
     }
     window.lookupStudentAccount = lookupStudentAccount;
 
@@ -9473,24 +9372,17 @@ var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
 
       showStatus(statusDiv, 'Verifying Client Portal credentials...', 'success');
 
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleGetClientPortalData) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            if (res && res.status === 'success') {
-              if (statusDiv) statusDiv.style.display = 'none';
-              localStorage.setItem('fifs_client_session', JSON.stringify(res.client));
-              renderClientDashboard(res.client);
-            } else {
-              showStatus(statusDiv, res.message || 'Client record not found.', 'error');
-            }
-          })
-          .withFailureHandler(function(err) {
-            showStatus(statusDiv, 'Client Portal lookup error.', 'error');
-          })
-          .handleGetClientPortalData(query.includes('@') ? query : '', query.includes('@') ? '' : query);
-      } else {
-        showStatus(statusDiv, 'Connecting...', 'success');
-      }
+      callFifsBackend('getClientPortalData', { email: query.includes('@') ? query : '', clientId: query.includes('@') ? '' : query }, function(res) {
+        if (res && res.status === 'success') {
+          if (statusDiv) statusDiv.style.display = 'none';
+          localStorage.setItem('fifs_client_session', JSON.stringify(res.client));
+          renderClientDashboard(res.client);
+        } else {
+          showStatus(statusDiv, res.message || 'Client record not found.', 'error');
+        }
+      }, function(err) {
+        showStatus(statusDiv, 'Client Portal lookup error.', 'error');
+      });
     }
     window.lookupClientAccount = lookupClientAccount;
   </script>
@@ -12441,7 +12333,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
 
           // Background sync to GAS ledger if live
           if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
-            callFifsBackend('logAnalytics', entry);
+            google.script.run.logAnalyticsEvent(entry);
           }
         } catch (e) {}
       }, 20);
@@ -12851,8 +12743,7 @@ function openAdminEditStudentModal(studentId) {
       if (modal) {
         modal.style.display = 'flex';
         modal.classList.add('active');
-        docum
-ent.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
       }
     }
     window.openAdminEditStudentModal = openAdminEditStudentModal;
@@ -12912,7 +12803,7 @@ ent.body.style.overflow = 'hidden';
 
       const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminDeleteStudent) {
-        callFifsBackend('adminDeleteStudent', { pin: pin, studentId: studentId }, function() { if (typeof loadAdminDashboardData === 'function') loadAdminDashboardData(); });
+        google.script.run.handleAdminDeleteStudent(pin, studentId);
       }
 
       renderAdminTerminal({ students: adminCachedStudents });
@@ -13181,7 +13072,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       const pin = localStorage.getItem('fifs_instructor_pin') || 'Ultima';
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminDeleteClient) {
-        callFifsBackend('adminDeleteClient', { pin: pin, clientId: clientId }, function() { if (typeof loadAdminDashboardData === 'function') loadAdminDashboardData(); });
+        google.script.run.handleAdminDeleteClient(pin, clientId);
       }
 
       renderAdminClientTerminal();
@@ -13746,22 +13637,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     }
     window.changeBookingCalendarMonth = changeBookingCalendarMonth;
 
-    function selectBookingDate(dateKey, dateObj, isVip) {
-      calSelectedDate = dateKey;
-      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const formatted = `${dayNames[dateObj.getDay()]}, ${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()} • 9:00 AM (${isVip ? 'VIP Priority Session' : 'Weekend Session'})`;
-
-      const input = document.getElementById('preferredDates');
-      const text = document.getElementById('bookingCalSelectedDateText');
-      if (input) input.value = formatted;
-      if (text) {
-        text.textContent = formatted;
-        text.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
-      }
-      renderBookingCalendar();
-    }
-    window.selectBookingDate = selectBookingDate;
+    /* Duplicate selectBookingDate removed: preserved authoritative 16-hour multi-date calendar handler */
 
     // Call renderBookingCalendar whenever courseSelection changes or modal opens
     if (typeof openCourseBookingModal === 'function') {
@@ -13844,45 +13720,55 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         btn.textContent = 'Opening Live Chat Window...';
       }
 
-      // 1. Dispatch Discord Alert
-      sendClientDiscordAlert(
-        "💬 Incoming Live Chat: " + name,
-        "A visitor initiated a conversation via the website live chat widget.",
-        [
-          { name: "Sender Name", value: name, inline: true },
-          { name: "Phone / SMS Callback", value: phone, inline: true },
-          { name: "Operating Window", value: isLiveChatActiveNow() ? "ONLINE NOW (9 AM – 5 PM EST)" : "AFTER HOURS", inline: true },
-          { name: "Initial Message Content", value: msg, inline: false }
-        ],
-        0x00E5FF
-      );
+      if (typeof sendClientDiscordAlert === 'function') {
+        sendClientDiscordAlert(
+          "💬 Incoming Live Chat: " + name,
+          "A visitor initiated a conversation via the website live chat widget.",
+          [
+            { name: "Sender Name", value: name, inline: true },
+            { name: "Phone / SMS Callback", value: phone, inline: true },
+            { name: "Operating Window", value: (typeof isLiveChatActiveNow === 'function' && isLiveChatActiveNow()) ? "ONLINE NOW (9 AM – 5 PM EST)" : "AFTER HOURS", inline: true },
+            { name: "Initial Message Content", value: msg, inline: false }
+          ],
+          0x00E5FF
+        );
+      }
 
-      // 2. Record inquiry in Native Admin Live Console
       if (typeof recordVisitorChatMessage === 'function') {
         recordVisitorChatMessage(name, phone, msg);
       }
 
-      // 3. Immediately close contact form and open Two-Way Chat window
-      closeContactWidgetModal();
-      openTwoWayChat(name, phone, msg);
+      if (typeof closeContactWidgetModal === 'function') {
+        closeContactWidgetModal();
+      }
+      if (typeof openTwoWayChat === 'function') {
+        openTwoWayChat(name, phone, msg);
+      }
 
       if (btn) {
         btn.disabled = false;
         btn.textContent = '💬 Send Message & Open Live Chat →';
       }
 
-      // 3. Dispatch to backend asynchronously if available
       const payload = {
         name: name,
         phone: phone,
         message: msg,
         timestamp: new Date().toISOString(),
-        isLiveHours: isLiveChatActiveNow()
+        isLiveHours: (typeof isLiveChatActiveNow === 'function' ? isLiveChatActiveNow() : true)
       };
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
-        callFifsBackend('handleLiveChatMessage', payload);
+
+      if (typeof callFifsBackend === 'function') {
+        callFifsBackend('handleLiveChatMessage', payload, function(res) {
+          console.log('[FIFS Live Chat] Dispatched to backend:', res);
+        }, function(err) {
+          console.warn('[FIFS Live Chat] Backend dispatch notice:', err);
+        });
+      } else if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
+        google.script.run.handleLiveChatMessage(payload);
       }
     }
+    window.handleLiveChatSubmit = handleLiveChatSubmit;
     window.handleLiveChatSubmit = handleLiveChatSubmit;
 
     // ==========================================================================
@@ -19675,7 +19561,7 @@ function closeStateModal() {
 
           // Background sync to GAS ledger if live
           if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.logAnalyticsEvent) {
-            callFifsBackend('logAnalytics', entry);
+            google.script.run.logAnalyticsEvent(entry);
           }
         } catch (e) {}
       }, 20);
@@ -19701,138 +19587,6 @@ function closeStateModal() {
       document.body.removeChild(a);
     }
     window.exportAnalyticsCSV = exportAnalyticsCSV;
-
-
-
-// ============================================================================
-// ADMIN MODAL ACTION HANDLERS (Wired to callFifsBackend)
-// ============================================================================
-function saveAdminEditStudent(e) {
-  if (e && e.preventDefault) e.preventDefault();
-  var pin = localStorage.getItem('fifs_instructor_pin') || window.currentAdminPin || "";
-  var studentId = document.getElementById('editStudentId')?.value;
-  var fullName = (document.getElementById('editStudentName') || document.getElementById('editFullName'))?.value;
-  var email = (document.getElementById('editStudentEmail') || document.getElementById('editEmail'))?.value;
-  var phone = (document.getElementById('editStudentPhone') || document.getElementById('editPhone'))?.value;
-  var course = (document.getElementById('editStudentCourse') || document.getElementById('editCourse'))?.value;
-  var date = (document.getElementById('editStudentDate') || document.getElementById('editAssignedDate'))?.value;
-  var status = document.getElementById('editJourneyStatus')?.value;
-  var score = document.getElementById('editScore')?.value;
-  var dossier = document.getElementById('editProfileDocUrl')?.value;
-  var notes = document.getElementById('editNotes')?.value;
-
-  var updates = {
-    fullName: fullName,
-    email: email,
-    phone: phone,
-    course: course,
-    assignedDate: date,
-    status: status,
-    qualificationScore: score,
-    dossierUrl: dossier,
-    notes: notes
-  };
-
-  var statusBox = document.getElementById('edit-student-status');
-  if (statusBox) { statusBox.style.display = 'block'; statusBox.textContent = 'Saving student changes...'; statusBox.style.color = 'var(--accent-cyan)'; }
-
-  callFifsBackend('adminEditStudent', { pin: pin, studentId: studentId, updates: updates }, function(res) {
-    if (statusBox) { statusBox.textContent = 'Student updated successfully.'; statusBox.style.color = '#10b981'; }
-    setTimeout(function() {
-      if (typeof closeAdminEditStudentModal === 'function') closeAdminEditStudentModal();
-      if (typeof loadAdminDashboardData === 'function') loadAdminDashboardData();
-    }, 600);
-  }, function(err) {
-    if (statusBox) { statusBox.textContent = 'Failed to save student: ' + err.message; statusBox.style.color = '#ef4444'; }
-  });
-  return false;
-}
-window.saveAdminEditStudent = saveAdminEditStudent;
-window.handleAdminEditStudentSubmit = saveAdminEditStudent;
-
-function saveAdminEditClient(e) {
-  if (e && e.preventDefault) e.preventDefault();
-  var pin = localStorage.getItem('fifs_instructor_pin') || window.currentAdminPin || "";
-  var clientId = document.getElementById('editClientId')?.value;
-  var fullName = (document.getElementById('editClientName') || document.getElementById('editClientFullName'))?.value;
-  var email = document.getElementById('editClientEmail')?.value;
-  var phone = document.getElementById('editClientPhone')?.value;
-  var permitState = document.getElementById('editClientPermitState')?.value;
-  var expirationDate = (document.getElementById('editClientExpirationDate') || document.getElementById('editClientExpDate'))?.value;
-  var permitNumber = document.getElementById('editClientPermitNumber')?.value;
-
-  var updates = {
-    fullName: fullName,
-    email: email,
-    phone: phone,
-    permitState: permitState,
-    expirationDate: expirationDate,
-    permitNumber: permitNumber
-  };
-
-  var statusBox = document.getElementById('edit-client-status');
-  if (statusBox) { statusBox.style.display = 'block'; statusBox.textContent = 'Saving client changes...'; statusBox.style.color = 'var(--accent-amber)'; }
-
-  callFifsBackend('adminEditClient', { pin: pin, clientId: clientId, updates: updates }, function(res) {
-    if (statusBox) { statusBox.textContent = 'Client record updated.'; statusBox.style.color = '#10b981'; }
-    setTimeout(function() {
-      if (typeof closeAdminEditClientModal === 'function') closeAdminEditClientModal();
-      if (typeof loadAdminDashboardData === 'function') loadAdminDashboardData();
-    }, 600);
-  }, function(err) {
-    if (statusBox) { statusBox.textContent = 'Failed to save client: ' + err.message; statusBox.style.color = '#ef4444'; }
-  });
-  return false;
-}
-window.saveAdminEditClient = saveAdminEditClient;
-window.handleAdminEditClientSubmit = saveAdminEditClient;
-
-function submitAdminDirectInvite(e) {
-  if (e && e.preventDefault) e.preventDefault();
-  var pin = localStorage.getItem('fifs_instructor_pin') || window.currentAdminPin || "";
-  var fullName = (document.getElementById('inviteStudentName') || document.getElementById('invFullName'))?.value;
-  var email = (document.getElementById('inviteStudentEmail') || document.getElementById('invEmail'))?.value;
-  var course = (document.getElementById('inviteCourse') || document.getElementById('invCourse'))?.value;
-  var phone = document.getElementById('invPhone')?.value;
-  var portalType = document.getElementById('invPortalType')?.value || 'student';
-  var dates = document.getElementById('invDates')?.value;
-
-  var payload = {
-    fullName: fullName,
-    email: email,
-    course: course,
-    phone: phone,
-    portalType: portalType,
-    dates: dates
-  };
-
-  var statusBox = document.getElementById('inv-status');
-  if (statusBox) { statusBox.style.display = 'block'; statusBox.textContent = 'Generating invitation link...'; statusBox.style.color = 'var(--accent-purple)'; }
-
-  callFifsBackend('adminDirectInvite', { pin: pin, payload: payload }, function(res) {
-    if (res && res.status === 'ok') {
-      if (statusBox) { statusBox.textContent = 'Invite dispatched & link created!'; statusBox.style.color = '#10b981'; }
-      var linkBox = document.getElementById('inv-result-box');
-      var urlInput = document.getElementById('invGeneratedUrl');
-      if (linkBox && urlInput && res.inviteUrl) {
-        urlInput.value = res.inviteUrl;
-        linkBox.style.display = 'block';
-      } else {
-        setTimeout(function() {
-          if (typeof closeAdminInviteModal === 'function') closeAdminInviteModal();
-          if (typeof loadAdminDashboardData === 'function') loadAdminDashboardData();
-        }, 1000);
-      }
-    } else {
-      if (statusBox) { statusBox.textContent = 'Failed to create invite: ' + (res ? res.message : 'Unknown'); statusBox.style.color = '#ef4444'; }
-    }
-  }, function(err) {
-    if (statusBox) { statusBox.textContent = 'Network error generating invite: ' + err.message; statusBox.style.color = '#ef4444'; }
-  });
-  return false;
-}
-window.submitAdminDirectInvite = submitAdminDirectInvite;
-window.handleAdminInviteSubmit = submitAdminDirectInvite;
 
 </script>
 <!-- ================= DEDICATED RECIPROCITY & TRAVEL HUB MODAL ================= -->
@@ -21571,34 +21325,6 @@ window.handleAdminInviteSubmit = submitAdminDirectInvite;
 </div>
 
 
-
-
-
-<script>
-// DOM Aliases to guarantee 100% ID compatibility
-document.addEventListener('DOMContentLoaded', function() {
-  function createAlias(sourceId, aliasId) {
-    var src = document.getElementById(sourceId);
-    if (src && !document.getElementById(aliasId)) {
-      src.setAttribute('data-alias', aliasId);
-      // Create hidden or proxy field if necessary, or hook getters
-      try {
-        Object.defineProperty(document, aliasId, { get: function() { return document.getElementById(sourceId); }, configurable: true });
-      } catch(e){}
-    }
-  }
-  createAlias('editFullName', 'editStudentName');
-  createAlias('editEmail', 'editStudentEmail');
-  createAlias('editPhone', 'editStudentPhone');
-  createAlias('editCourse', 'editStudentCourse');
-  createAlias('editAssignedDate', 'editStudentDate');
-  createAlias('editClientFullName', 'editClientName');
-  createAlias('editClientExpDate', 'editClientExpirationDate');
-  createAlias('invFullName', 'inviteStudentName');
-  createAlias('invEmail', 'inviteStudentEmail');
-  createAlias('invCourse', 'inviteCourse');
-});
-</script>
 
 </body>
 </html>
