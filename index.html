@@ -7120,7 +7120,7 @@
         appendTwoWayBubble('user', name, initialMsg, timeStr);
 
         setTimeout(function() {
-          var welcomeReply = "Hello " + escapeHtml(name) + "! Coach Kai Wade here. Thanks for reaching out to Future Initiative Firearm Services (FIFS). Not sure which training or permit you need? Here is a quick guide: (1) 16-Hour Maryland Wear & Carry (CCW) - if you want to legally carry a concealed handgun in public for personal defense (includes HQL training free). (2) 4-Hour Handgun Qualification License (HQL) - if you only want to purchase, rent, or keep a handgun at home or take it to a range. (3) 8-Hour CCW Renewal - for current Maryland permit holders whose permit is expiring. (4) Private 1-on-1 Coaching or Range Tune-Up - for live-fire marksmanship, holster skills, or confidence building at Cindy's Hot Shots. Tell me a bit about your experience level and what you want to accomplish, and I will point you to the right class. You can also just describe your situation and I will walk you through it!";
+          var welcomeReply = "Hello " + escapeHtml(name) + "! Coach Kai Wade here. Not sure what you need? Quick guide: 16-Hour MD Wear & Carry (carry concealed), 4-Hour HQL (buy/own a gun), 8-Hour Renewal (permit expiring), or private 1-on-1 coaching. Tell me your goals and I will guide you to the exact right option!";
           appendTwoWayBubble('instructor', 'Coach Kai Wade', welcomeReply, timeStr);
         }, 400);
       }
@@ -7211,20 +7211,7 @@
         btn.textContent = 'Opening Live Chat Window...';
       }
 
-      // 1. Dispatch Discord Alert directly from client
-      sendClientDiscordAlert(
-        "💬 Incoming Live Chat: " + name,
-        "A visitor initiated a conversation via the website live chat widget.",
-        [
-          { name: "Sender Name", value: name, inline: true },
-          { name: "Phone / SMS Callback", value: phone, inline: true },
-          { name: "Operating Window", value: isLiveChatActiveNow() ? "ONLINE NOW (9 AM – 5 PM EST)" : "AFTER HOURS", inline: true },
-          { name: "Initial Inquiry", value: msg, inline: false }
-        ],
-        0x00E5FF
-      );
-
-      // 2. Open Two-Way Chat window immediately
+      // 1. Immediately open Two-Way Chat window
       closeContactWidgetModal();
       openTwoWayChat(name, phone, msg);
 
@@ -7233,7 +7220,7 @@
         btn.textContent = '💬 Send Message & Open Live Chat →';
       }
 
-      // 3. Dispatch to backend via callFifsBackend (triggers server-side Discord webhook & email notification)
+      // 2. Dispatch to backend: saves in Google Sheet 'Live_Chats', dispatches Discord operational alert & email
       var payload = {
         name: name,
         senderName: name,
@@ -7242,7 +7229,6 @@
         timestamp: new Date().toISOString(),
         isLiveHours: isLiveChatActiveNow()
       };
-      
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('handleLiveChatMessage', payload).catch(function(err) {
           console.warn("Backend chat notification notice:", err);
@@ -12824,6 +12810,7 @@ function openAdminEditStudentModal(studentId) {
         return;
       }
 
+      if (typeof callFifsBackend === 'function') { var p1 = localStorage.getItem('fifs_instructor_pin') || 'Ultima'; callFifsBackend('adminDeleteStudent', {}, { passcode: p1, studentId: studentId }); }
       adminCachedStudents = adminCachedStudents.filter(item => item.studentId !== studentId);
       try { localStorage.setItem('fifs_roster_students', JSON.stringify(adminCachedStudents)); } catch (err) {}
 
@@ -13093,6 +13080,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         return;
       }
 
+      if (typeof callFifsBackend === 'function') { var p2 = localStorage.getItem('fifs_instructor_pin') || 'Ultima'; callFifsBackend('adminDeleteClient', {}, { passcode: p2, clientId: clientId }); }
       adminCachedClients = adminCachedClients.filter(item => item.clientId !== clientId);
       try { localStorage.setItem('fifs_client_roster', JSON.stringify(adminCachedClients)); } catch (err) {}
 
@@ -13782,7 +13770,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         isLiveHours: isLiveChatActiveNow()
       };
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleLiveChatMessage) {
-        if (typeof callFifsBackend === 'function') { callFifsBackend('handleLiveChatMessage', payload); }
+        google.script.run.handleLiveChatMessage(payload);
       }
     }
     window.handleLiveChatSubmit = handleLiveChatSubmit;
@@ -13825,7 +13813,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
         // 2. Append Coach Wade automated greeting
         setTimeout(function() {
-          var welcomeReply = "Hello " + escapeHtml(name) + "! Coach Kai Wade here. Thanks for reaching out to Future Initiative Firearm Services (FIFS). Not sure which training or permit you need? Here is a quick guide: (1) 16-Hour Maryland Wear & Carry (CCW) - if you want to legally carry a concealed handgun in public for personal defense (includes HQL training free). (2) 4-Hour Handgun Qualification License (HQL) - if you only want to purchase, rent, or keep a handgun at home or take it to a range. (3) 8-Hour CCW Renewal - for current Maryland permit holders whose permit is expiring. (4) Private 1-on-1 Coaching or Range Tune-Up - for live-fire marksmanship, holster skills, or confidence building at Cindy's Hot Shots. Tell me a bit about your experience level and what you want to accomplish, and I will point you to the right class. You can also just describe your situation and I will walk you through it!";
+          var welcomeReply = "Hello " + escapeHtml(name) + "! Coach Kai Wade here. Not sure what you need? Quick guide: 16-Hour MD Wear & Carry (carry concealed), 4-Hour HQL (buy/own a gun), 8-Hour Renewal (permit expiring), or private 1-on-1 coaching. Tell me your goals and I will guide you to the exact right option!";
           appendTwoWayBubble('instructor', 'Coach Kai Wade', welcomeReply, timeStr);
         }, 500);
       }
