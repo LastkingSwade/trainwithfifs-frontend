@@ -7982,6 +7982,12 @@
     window.verifyAdminAccess = verifyAdminAccess;
 
     function renderAdminTerminal(data) {
+      if (data && data.liveChats && Array.isArray(data.liveChats)) {
+        if (typeof saveChatThreads === 'function') saveChatThreads(data.liveChats);
+        if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
+        if (typeof updateAdminChatBadgeCount === 'function') updateAdminChatBadgeCount();
+      }
+
       if (typeof checkNewStudentAlert === "function") checkNewStudentAlert();
       if (typeof checkNewClientAlert === "function") checkNewClientAlert();
       var authBox = document.getElementById('admin-auth-box');
@@ -8429,39 +8435,105 @@
     }
     window.saveChatThreads = saveChatThreads;
 
-    function refreshAdminLiveChats(callback) {
-      var pin = resolveCurrentInstructorPasscode();
-      if (!pin) {
-        if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
-        if (typeof updateAdminChatBadgeCount === 'function') updateAdminChatBadgeCount();
-        if (callback) callback();
+    function renderAdminChatConsole() {
+      const inboxList = document.getElementById('admin-chat-inbox-list');
+      const countBadge = document.getElementById('admin-chat-count-badge');
+      if (!inboxList) return;
+
+      const threads = getStoredChatThreads();
+      if (countBadge) countBadge.textContent = `${threads.length} active`;
+
+      if (threads.length === 0) {
+        inboxList.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.82rem; padding: 24px 8px;">No incoming live chat inquiries yet. New chats appear here in real time.</div>';
         return;
       }
 
-      callFifsBackend('getLiveChats', { passcode: pin }, function(res) {
-        if (res && res.status === 'success' && Array.isArray(res.threads)) {
-          __fifsCachedBackendChatThreads = res.threads;
-          saveChatThreads(res.threads);
-          if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
-          if (typeof updateAdminChatBadgeCount === 'function') updateAdminChatBadgeCount();
-        } else {
-          if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
-          if (typeof updateAdminChatBadgeCount === 'function') updateAdminChatBadgeCount();
+      inboxList.innerHTML = threads.map(t => {
+        const isSelected = (window.__activeAdminChatThreadId === t.id);
+        const lastMsg = t.messages && t.messages.length ? t.messages[t.messages.length - 1].text : '';
+        const unreadIndicator = t.unread ? '<span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>' : '';
+
+        return `
+          <div onclick="selectAdminChatThread('${t.id}')" style="background: ${isSelected ? 'rgba(0, 229, 255, 0.12)' : '#0d131b'}; border: 1px solid ${isSelected ? 'var(--accent-cyan)' : 'var(--border-subtle)'}; border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: all 0.2s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <strong style="color: #fff; font-size: 0.90rem; display: inline-flex; align-items: center; gap: 6px;">
+                ${unreadIndicator} ${escapeHtml(t.senderName)}
+              </strong>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">${t.lastUpdated || ''}</span>
+            </div>
+            <div style="font-size: 0.76rem; color: var(--accent-cyan); margin-bottom: 4px;">📞 ${escapeHtml(t.senderPhone)}</div>
+            <div style="font-size: 0.78rem; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${escapeHtml(lastMsg)}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // If active thread selected, update its message stream
+      if (window.__activeAdminChatThreadId) {
+        const activeThread = threads.find(t => t.id === window.__activeAdminChatThreadId);
+        if (activeThread) {
+          renderActiveAdminChatMessages(activeThread);
         }
-        if (callback) callback(res);
-      }, function(err) {
-        if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
-        if (typeof updateAdminChatBadgeCount === 'function') updateAdminChatBadgeCount();
-        if (callback) callback({ status: 'error', error: err });
-      });
+      }
     }
-    window.refreshAdminLiveChats = refreshAdminLiveChats;
+    window.renderAdminChatConsole = renderAdminChatConsole;
+
+    function selectAdminChatThread(threadId) {
+      window.__activeAdminChatThreadId = threadId;
+      const threads = getStoredChatThreads();
+      const thread = threads.find(t => t.id === threadId);
+      if (!thread) return;
+
+      // Mark as read
+      thread.unread = false;
+      saveChatThreads(threads);
+      updateAdminChatBadgeCount();
+
+      const nameEl = document.getElementById('admin-active-chat-name');
+      const phoneEl = document.getElementById('admin-active-chat-phone');
+      const callBtn = document.getElementById('admin-active-chat-call-btn');
+      const actionsBox = document.getElementById('admin-active-chat-actions');
+
+      if (nameEl) nameEl.textContent = thread.senderName;
+      if (phoneEl) phoneEl.textContent = `📞 ${thread.senderPhone}`;
+      if (callBtn) callBtn.href = `tel:${thread.senderPhone.replace(/\D/g, '')}`;
+      if (actionsBox) actionsBox.style.display = 'flex';
+
+      renderActiveAdminChatMessages(thread);
+      renderAdminChatConsole();
+
+      const replyInput = document.getElementById('adminLiveChatReplyInput');
+      if (replyInput) replyInput.focus();
+    }
+    window.selectAdminChatThread = selectAdminChatThread;
+
+    function renderActiveAdminChatMessages(thread) {
+      const stream = document.getElementById('admin-active-chat-stream');
+      if (!stream || !thread || !thread.messages) return;
+
+      stream.innerHTML = thread.messages.map(m => {
+        const isCoach = (m.sender === 'instructor');
+        return `
+          <div style="display: flex; flex-direction: column; align-items: ${isCoach ? 'flex-end' : 'flex-start'}; margin-bottom: 8px;">
+            <div style="font-size: 0.70rem; color: ${isCoach ? 'var(--accent-amber)' : 'var(--accent-cyan)'}; margin-bottom: 2px; font-weight: 700;">
+              ${isCoach ? '👑 Coach Kai Wade' : escapeHtml(m.senderName || thread.senderName)} • ${m.time}
+            </div>
+            <div style="background: ${isCoach ? 'linear-gradient(135deg, rgba(255, 183, 3, 0.15) 0%, #141c26 100%)' : '#141c26'}; border: 1px solid ${isCoach ? 'var(--accent-amber)' : 'rgba(0, 229, 255, 0.35)'}; color: #e2e8f0; padding: 8px 12px; border-radius: 10px; max-width: 80%; font-size: 0.88rem; line-height: 1.45;">
+              ${escapeHtml(m.text)}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      stream.scrollTop = stream.scrollHeight;
+    }
 
     function handleAdminLiveChatSend(e) {
       if (e && e.preventDefault) e.preventDefault();
-      var input = document.getElementById('adminLiveChatReplyInput');
+      const input = document.getElementById('adminLiveChatReplyInput');
       if (!input) return;
-      var text = input.value.trim();
+      const text = input.value.trim();
       if (!text) return;
 
       if (!window.__activeAdminChatThreadId) {
@@ -8469,51 +8541,55 @@
         return;
       }
 
-      var threads = getStoredChatThreads();
-      var thread = threads.find(function(t) { return t.id === window.__activeAdminChatThreadId; });
+      const threads = getStoredChatThreads();
+      const thread = threads.find(t => t.id === window.__activeAdminChatThreadId);
       if (!thread) return;
 
-      var now = new Date();
-      var timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
-      var msgObj = {
+      thread.messages.push({
         sender: 'instructor',
         senderName: 'Coach Kai Wade',
         text: text,
-        timestamp: now.toISOString()
-      };
-
-      if (!thread.messages) thread.messages = [];
-      thread.messages.push(msgObj);
+        time: timeStr
+      });
       thread.lastUpdated = timeStr;
-      thread.unread = false;
-
       saveChatThreads(threads);
-      input.value = '';
-      if (typeof renderActiveAdminChatMessages === 'function') renderActiveAdminChatMessages(thread);
-      if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
 
-      var pin = resolveCurrentInstructorPasscode();
-      callFifsBackend('sendAdminLiveChatReply', {
-        passcode: pin,
-        threadId: thread.id,
-        text: text,
-        phone: thread.senderPhone,
-        email: thread.senderEmail
-      }, function(res) {});
+      // Broadcast live reply to student/visitor in real time
+      if (FIFS_CHAT_BROADCAST_CHANNEL) {
+        FIFS_CHAT_BROADCAST_CHANNEL.postMessage({
+          type: 'INSTRUCTOR_REPLY',
+          threadId: thread.id,
+          text: text,
+          time: timeStr
+        });
+      }
+
+      // Also append to visitor chat stream if open in same window
+      const stream = document.getElementById('twoWayChatStream');
+      if (stream && typeof appendTwoWayBubble === 'function') {
+        appendTwoWayBubble('instructor', 'Coach Kai Wade', text, timeStr);
+      }
+
+      // Dispatch notification to Discord
+      sendClientDiscordAlert(
+        "💬 Instructor Reply Sent: Coach Kai Wade",
+        `Coach Kai Wade dispatched a live reply to student **${thread.senderName}** (${thread.senderPhone}).`,
+        [
+          { name: "Student Name", value: thread.senderName, inline: true },
+          { name: "Phone / SMS Callback", value: thread.senderPhone, inline: true },
+          { name: "Reply Message", value: text, inline: false }
+        ],
+        0xFFB703
+      );
+
+      input.value = '';
+      renderActiveAdminChatMessages(thread);
+      renderAdminChatConsole();
     }
     window.handleAdminLiveChatSend = handleAdminLiveChatSend;
-
-    // Auto-poll live chats every 15 seconds if on admin screen
-    if (!window.__fifsAdminChatPollTimer) {
-      window.__fifsAdminChatPollTimer = setInterval(function() {
-        var adminConsole = document.getElementById('admin-chat-inbox-list');
-        if (adminConsole && adminConsole.offsetParent !== null) {
-          refreshAdminLiveChats();
-        }
-      }, 15000);
-    }
-
 
     function refreshAdminLiveChats() {
       renderAdminChatConsole();
@@ -8521,10 +8597,10 @@
     window.refreshAdminLiveChats = refreshAdminLiveChats;
 
     function updateAdminChatBadgeCount() {
-      var threads = getStoredChatThreads();
-      var unreadCount = threads.filter(t => t.unread).length;
-      var badgeHdr = document.getElementById('admin-chat-unread-badge');
-      var badgeTab = document.getElementById('admin-tab-chat-unread');
+      const threads = getStoredChatThreads();
+      const unreadCount = threads.filter(t => t.unread).length;
+      const badgeHdr = document.getElementById('admin-chat-unread-badge');
+      const badgeTab = document.getElementById('admin-tab-chat-unread');
 
       if (badgeHdr) {
         badgeHdr.textContent = unreadCount;
@@ -8536,6 +8612,7 @@
       }
     }
     window.updateAdminChatBadgeCount = updateAdminChatBadgeCount;
+
 
     function switchAdminTab(tab) {
       var subRoster = document.getElementById('admin-subpanel-roster');
@@ -21258,6 +21335,7 @@ function closeStateModal() {
 
 
 
+<script>
     // Event delegation for booking calendar grid
     document.addEventListener('DOMContentLoaded', function() {
       var grid = document.getElementById('bookingCalDaysGrid');
@@ -21273,6 +21351,7 @@ function closeStateModal() {
         });
       }
     });
+</script>
 
 </body>
 </html>
