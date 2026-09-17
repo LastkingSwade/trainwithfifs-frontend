@@ -1,22 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-// Safe server-side secret key from environment variables (never exposed to client)
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
 export async function POST(req: NextRequest) {
   try {
     if (!stripeSecretKey) {
-      console.error('Missing STRIPE_SECRET_KEY environment variable on server.');
       return NextResponse.json(
-        { error: 'Stripe configuration missing on server. Set STRIPE_SECRET_KEY in environment variables (.env.local).' },
+        { error: 'Missing STRIPE_SECRET_KEY in server environment variables.' },
         { status: 500 }
       );
     }
 
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: '2023-10-16' as any,
-    });
+    const stripe = new Stripe(stripeSecretKey);
 
     const body = await req.json().catch(() => ({}));
     const {
@@ -27,26 +23,22 @@ export async function POST(req: NextRequest) {
       phone = '',
       courseSelection = 'Maryland Firearms Training Course',
       preferredDates = 'Coordinated with Lead Instructor Kai Wade',
-      amount = 24999, // default in cents ($249.99)
+      amount = 9381, // deposit in cents ($93.81)
       groupSize = '1',
       comments = '',
     } = body;
 
-    // Normalize amount into cents
-    let unitAmount = 24999;
+    // Convert dollar or cent amount to integer cents
+    let unitAmount = 9381;
     if (typeof amount === 'number' && amount > 0) {
       unitAmount = amount > 1000 ? Math.round(amount) : Math.round(amount * 100);
     }
 
-    // Determine host origin for redirect callbacks
-    const origin = req.headers.get('origin') || req.headers.get('referer') || 'http://localhost:3000';
+    const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://trainwithfifs.com';
     const baseUrl = origin.replace(/\/+$/, '');
 
-    // Create official Stripe Checkout Session with Wallet support (Apple Pay & Google Pay)
+    // Note: Do NOT include automatic_payment_methods here
     const session = await stripe.checkout.sessions.create({
-      automatic_payment_methods: {
-        enabled: true,
-      },
       mode: 'payment',
       customer_email: email && email.includes('@') ? email : undefined,
       client_reference_id: studentId,
@@ -81,7 +73,6 @@ export async function POST(req: NextRequest) {
       throw new Error('Stripe did not return a valid session redirect URL.');
     }
 
-    // Return both checkoutUrl and url for complete client compatibility
     return NextResponse.json({
       status: 'success',
       url: session.url,
@@ -93,7 +84,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error('Error creating Stripe checkout session:', error);
     return NextResponse.json(
-      { error: error?.message || 'Internal server error while initializing payment checkout.' },
+      { error: error?.message || 'Unable to initialize Stripe checkout.' },
       { status: 500 }
     );
   }
