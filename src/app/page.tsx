@@ -70,7 +70,7 @@ export default function TrainWithFIFS(props: any) {
       if (!target) return;
       let handlerStr = target.getAttribute('data-onclick');
       if (!handlerStr) return;
-      handlerStr = decodeEntities(handlerStr);
+      handlerStr = decodeEntities(handlerStr).replace(/\\('|")/g, "$1");
       try {
         const fn = new Function('event', handlerStr);
         fn.call(target, e);
@@ -84,7 +84,7 @@ export default function TrainWithFIFS(props: any) {
       if (!target) return;
       let handlerStr = target.getAttribute('data-onchange');
       if (!handlerStr) return;
-      handlerStr = decodeEntities(handlerStr);
+      handlerStr = decodeEntities(handlerStr).replace(/\\('|")/g, "$1");
       try {
         const fn = new Function('event', handlerStr);
         fn.call(target, e);
@@ -3134,7 +3134,7 @@ export default function TrainWithFIFS(props: any) {
                 <button className="tier-option-btn btn-base-side" id="tog-base-mastery" data-onclick="setCardTier('mastery', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-mastery" data-onclick="setCardTier(\'mastery\', \'vip\', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-mastery" data-onclick="setCardTier('mastery', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3225,7 +3225,7 @@ export default function TrainWithFIFS(props: any) {
                 <button className="tier-option-btn btn-base-side" id="tog-base-combo" data-onclick="setCardTier('combo', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-combo" data-onclick="setCardTier(\'combo\', \'vip\', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-combo" data-onclick="setCardTier('combo', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3313,7 +3313,7 @@ export default function TrainWithFIFS(props: any) {
                 <button className="tier-option-btn btn-base-side" id="tog-base-ccw" data-onclick="setCardTier('ccw', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-ccw" data-onclick="setCardTier(\'ccw\', \'vip\', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-ccw" data-onclick="setCardTier('ccw', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3395,7 +3395,7 @@ export default function TrainWithFIFS(props: any) {
                 <button className="tier-option-btn btn-base-side" id="tog-base-hql" data-onclick="setCardTier('hql', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-hql" data-onclick="setCardTier(\'hql\', \'vip\', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-hql" data-onclick="setCardTier('hql', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3477,7 +3477,7 @@ export default function TrainWithFIFS(props: any) {
                 <button className="tier-option-btn btn-base-side" id="tog-base-coaching" data-onclick="setCardTier('coaching', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-coaching" data-onclick="setCardTier(\'coaching\', \'vip\', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-coaching" data-onclick="setCardTier('coaching', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3559,7 +3559,7 @@ export default function TrainWithFIFS(props: any) {
                 <button className="tier-option-btn btn-base-side" id="tog-base-cleaning" data-onclick="setCardTier('cleaning', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-cleaning" data-onclick="setCardTier(\'cleaning\', \'vip\', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-cleaning" data-onclick="setCardTier('cleaning', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3638,7 +3638,7 @@ export default function TrainWithFIFS(props: any) {
                 <button className="tier-option-btn btn-base-side" id="tog-base-children" data-onclick="setCardTier('children', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-children" data-onclick="setCardTier(\'children\', \'vip\', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-children" data-onclick="setCardTier('children', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3691,7 +3691,7 @@ export default function TrainWithFIFS(props: any) {
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-children" data-onclick="selectCourse('Children\'s Safety Class — Base Track ($199.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-children" data-onclick="selectCourse('Children's Safety Class — Base Track ($199.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($199.99) & Reserve Seat →
             
@@ -3727,7 +3727,7 @@ export default function TrainWithFIFS(props: any) {
                 <button className="tier-option-btn btn-base-side" id="tog-base-alumni" data-onclick="setCardTier('alumni', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-alumni" data-onclick="setCardTier(\'alumni\', \'vip\', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-alumni" data-onclick="setCardTier('alumni', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
