@@ -42,9 +42,11 @@ export async function POST(req: NextRequest) {
     const origin = req.headers.get('origin') || req.headers.get('referer') || 'http://localhost:3000';
     const baseUrl = origin.replace(/\/+$/, '');
 
-    // Create official Stripe Checkout Session
+    // Create official Stripe Checkout Session with Wallet support (Apple Pay & Google Pay)
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      automatic_payment_methods: {
+        enabled: true,
+      },
       mode: 'payment',
       customer_email: email && email.includes('@') ? email : undefined,
       client_reference_id: studentId,
