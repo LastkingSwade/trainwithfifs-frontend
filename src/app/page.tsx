@@ -124,10 +124,10 @@ export default function TrainWithFIFS(props: any) {
       <Script src="https://js.stripe.com/v3/" strategy="afterInteractive" />
       <Script src="https://js.stripe.com/dahlia/stripe.js" strategy="afterInteractive" />
       <Script 
-      src="/Scripts/TrainWithFIFS_scripts.js"
+        src="/Scripts/TrainWithFIFS_scripts.js" 
         strategy="afterInteractive"
         onLoad={() => console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch)}
-        onError={(e) => console.error("FIFS: Failed to load /scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
+        onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
       {/* Main Converted JSX Structure Wrapped in Single Parent */}
@@ -288,7 +288,7 @@ export default function TrainWithFIFS(props: any) {
             <span style={{"color": "var(--border-subtle)"}}>
               •
             </span>
-            <button className="btn-hero-aux" id="btn-hero-contact" data-onclick="openP2pCommsHud()" type="button" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "cursor": "pointer"}}>
+            <button className="btn-hero-aux" id="btn-hero-contact" data-onclick="openContactWidgetModal()" type="button" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "cursor": "pointer"}}>
               💬 Chat
             </button>
           </div>
@@ -7870,7 +7870,7 @@ export default function TrainWithFIFS(props: any) {
         </div>
       </div>
       {/* Persistent Floating Contact & Live Chat Trigger Pill (Direct child of <body>) */}
-      <div className="floating-comm-bubble" id="floatingCommPill" data-onclick="openP2pCommsHud()" role="button" tabIndex="0" title="Contact Coach Kai Wade • Call, Email or Live Chat">
+      <div className="floating-comm-bubble" id="floatingCommPill" data-onclick="openContactWidgetModal()" role="button" tabIndex="0" title="Contact Coach Kai Wade • Call, Email or Live Chat">
         <span style={{"fontSize": "1.25rem"}}>
           💬
         </span>
