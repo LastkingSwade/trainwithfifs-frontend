@@ -93,12 +93,29 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+    const handleDelegatedSubmit = (e: Event) => {
+      const target = (e.target as HTMLElement).closest('[data-onsubmit]') as HTMLElement | null;
+      if (!target) return;
+      e.preventDefault();
+      let handlerStr = target.getAttribute('data-onsubmit');
+      if (!handlerStr) return;
+      handlerStr = decodeEntities(handlerStr).replace(/\('|")/g, "");
+      try {
+        const fn = new Function('event', handlerStr);
+        fn.call(target, e);
+      } catch (err) {
+        console.error('Error executing data-onsubmit handler: "' + handlerStr + '"', err);
+      }
+    };
+
     document.addEventListener('click', handleDelegatedClick);
     document.addEventListener('change', handleDelegatedChange);
+    document.addEventListener('submit', handleDelegatedSubmit);
 
     return () => {
       document.removeEventListener('click', handleDelegatedClick);
       document.removeEventListener('change', handleDelegatedChange);
+      document.removeEventListener('submit', handleDelegatedSubmit);
     };
   }, []);
 
@@ -127,7 +144,7 @@ export default function TrainWithFIFS(props: any) {
       src="/Scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
         onLoad={() => console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch)}
-        onError={(e) => console.error("FIFS: Failed to load /scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
+        onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
       {/* Main Converted JSX Structure Wrapped in Single Parent */}
@@ -7598,7 +7615,7 @@ export default function TrainWithFIFS(props: any) {
               </div>
               <textarea id="chatMessageText" placeholder="How can Coach Wade assist you today? (Course dates, equipment questions, etc.)" required="" rows="2" style={{"background": "#10161f", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%", "fontFamily": "inherit", "fontSize": "0.88rem", "marginBottom": "10px"}}>
               </textarea>
-              <button className="btn-primary" id="btn-send-chat" style={{"width": "100%", "padding": "11px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px"}} type="submit">
+              <button className="btn-primary" id="btn-send-chat" data-onclick="handleLiveChatSubmit(event)" style={{"width": "100%", "padding": "11px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px"}} type="submit">
                 
             🚀 Dispatch Live Chat Message →
           
