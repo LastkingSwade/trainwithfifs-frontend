@@ -263,7 +263,7 @@ const CertificatePdf: React.FC<CertificateProps> = ({
 
 export async function POST(req: Request) {
   try {
-    const apiKey = process.env.RESEND_API_KEY || 're_3TsZu2Z6_NwGRkSVnEtrgLQmaTFs7XYQz';
+const resendApiKey = process.env.RESEND_API_KEY;
     const body = await req.json().catch(() => ({}));
 
     const rawEmail =
@@ -332,7 +332,7 @@ export async function POST(req: Request) {
     }
 
     // 3. Send Email via Resend
-    const resend = new Resend(apiKey);
+    const resendApiKey = process.env.RESEND_API_KEY;
     const fromAddress =
       process.env.RESEND_FROM_EMAIL ||
       process.env.EMAIL_FROM ||
