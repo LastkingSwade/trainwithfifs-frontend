@@ -70,7 +70,7 @@ export default function TrainWithFIFS(props: any) {
       if (!target) return;
       let handlerStr = target.getAttribute('data-onclick');
       if (!handlerStr) return;
-      handlerStr = decodeEntities(handlerStr).replace(/\\('|")/g, "$1");
+      handlerStr = decodeEntities(handlerStr).replace(/\\(['"])/g, "$1");
       try {
         const fn = new Function('event', handlerStr);
         fn.call(target, e);
@@ -84,7 +84,7 @@ export default function TrainWithFIFS(props: any) {
       if (!target) return;
       let handlerStr = target.getAttribute('data-onchange');
       if (!handlerStr) return;
-      handlerStr = decodeEntities(handlerStr).replace(/\\('|")/g, "$1");
+      handlerStr = decodeEntities(handlerStr).replace(/\\(['"])/g, "$1");
       try {
         const fn = new Function('event', handlerStr);
         fn.call(target, e);
@@ -99,7 +99,7 @@ export default function TrainWithFIFS(props: any) {
       e.preventDefault();
       let handlerStr = target.getAttribute('data-onsubmit');
       if (!handlerStr) return;
-      handlerStr = decodeEntities(handlerStr).replace(/\('|")/g, "");
+      handlerStr = decodeEntities(handlerStr).replace(/\\(['"])/g, "$1");
       try {
         const fn = new Function('event', handlerStr);
         fn.call(target, e);
