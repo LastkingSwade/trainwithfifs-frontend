@@ -332,7 +332,7 @@ const resendApiKey = process.env.RESEND_API_KEY;
     }
 
     // 3. Send Email via Resend
-    const resendApiKey = process.env.RESEND_API_KEY;
+      resendApiKey = process.env.RESEND_API_KEY;
     const fromAddress =
       process.env.RESEND_FROM_EMAIL ||
       process.env.EMAIL_FROM ||
