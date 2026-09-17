@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import Script from "next/script";
 import Head from "next/head";
+import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
 
 /**
  * TrainWithFIFS - Maryland Firearms Training Platform Next.js Component
@@ -110,7 +111,74 @@ export default function TrainWithFIFS(props: any) {
 
     document.addEventListener('click', handleDelegatedClick);
     document.addEventListener('change', handleDelegatedChange);
-    document.addEventListener('submit', handleDelegatedSubmit);
+    
+    // Ensure live chat opens the real 2-way chat console with background polling
+    (window as any).handleLiveChatSubmit = function(e: any) {
+      if (e && e.preventDefault) e.preventDefault();
+      const nameEl = document.getElementById('chatSenderName') as HTMLInputElement | null;
+      const phoneEl = document.getElementById('chatSenderPhone') as HTMLInputElement | null;
+      const msgEl = document.getElementById('chatMessageText') as HTMLTextAreaElement | null;
+      const btn = document.getElementById('btn-send-chat') as HTMLButtonElement | null;
+      const name = nameEl ? nameEl.value.trim() : '';
+      const phone = phoneEl ? phoneEl.value.trim() : '';
+      const msg = msgEl ? msgEl.value.trim() : '';
+      if (!name || !phone || !msg) {
+        alert('Please fill out your Name, Phone, and Question to open live chat.');
+        return;
+      }
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Opening Live Chat Window...';
+      }
+      if (typeof (window as any).sendClientDiscordAlert === 'function') {
+        try {
+          (window as any).sendClientDiscordAlert(
+            "💬 Incoming Live Chat: " + name,
+            "A visitor initiated a conversation via the website live chat widget.",
+            [
+              { name: "Sender Name", value: name, inline: true },
+              { name: "Phone / SMS Callback", value: phone, inline: true },
+              { name: "Operating Window", value: typeof (window as any).isLiveChatActiveNow === 'function' && (window as any).isLiveChatActiveNow() ? "ONLINE NOW (9 AM – 5 PM EST)" : "AFTER HOURS", inline: true },
+              { name: "Initial Message Content", value: msg, inline: false }
+            ],
+            0x00E5FF
+          );
+        } catch(err) {}
+      }
+      if (typeof (window as any).closeContactWidgetModal === 'function') {
+        (window as any).closeContactWidgetModal();
+      }
+      if (typeof (window as any).openTwoWayChat === 'function') {
+        (window as any).openTwoWayChat(name, phone, msg);
+      } else if (typeof (window as any).openP2pCommsHud === 'function') {
+        (window as any).openP2pCommsHud(name, phone, msg);
+      }
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '💬 Send Message & Open Live Chat →';
+      }
+      const cleanPhone = phone.replace(/\D/g, '');
+      const threadId = cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now());
+      if ((window as any).__currentChatSession) {
+        (window as any).__currentChatSession.threadId = threadId;
+      }
+      const payload = {
+        senderName: name,
+        senderPhone: phone,
+        senderEmail: '',
+        message: msg,
+        threadId: threadId
+      };
+      if (typeof (window as any).callFifsBackend === 'function') {
+        (window as any).callFifsBackend('handleLiveChatMessage', payload, function(res: any) {
+          console.log('Message logged in Google Sheets Live_Chats tab:', res);
+        }, function(err: any) {
+          console.error('Failed to log message in Google Sheets:', err);
+        });
+      }
+    };
+
+document.addEventListener('submit', handleDelegatedSubmit);
 
     return () => {
       document.removeEventListener('click', handleDelegatedClick);
@@ -1087,9 +1155,23 @@ export default function TrainWithFIFS(props: any) {
                         *
                       </span>
                     </label>
-                    <input id="clientAuthInput" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupClientAccount()" placeholder="e.g., marcus@example.com or FI-CLIENT-1042" type="text" />
+                    <input id="clientAuthInput" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupClientAccount()" placeholder="e.g., marcus@example.com" type="email" />
                   </div>
-                  <button className="btn-primary" data-onclick="lookupClientAccount()" type="button">
+                  <div className="form-group" style={{"marginTop": "14px"}}>
+                    <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "4px"}}>
+                      <label htmlFor="clientAuthPassword" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.85rem", "margin": "0"}}>
+                        Portal Password 
+                        <span className="req">
+                          *
+                        </span>
+                      </label>
+                      <a href="javascript:void(0)" data-onclick="handleClientForgotPassword()" style={{"color": "var(--text-muted)", "fontSize": "0.78rem", "textDecoration": "underline"}}>
+                        Forgot password?
+                      </a>
+                    </div>
+                    <input id="clientAuthPassword" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupClientAccount()" placeholder="Enter your portal password" type="password" />
+                  </div>
+                  <button className="btn-primary" data-onclick="lookupClientAccount()" style={{"marginTop": "12px"}} type="button">
                     
                 Sign In to Client Portal →
               
@@ -1181,6 +1263,20 @@ export default function TrainWithFIFS(props: any) {
                         <span style={{"fontSize": "0.72rem", "color": "var(--text-muted)", "display": "block", "marginTop": "2px"}}>
                           Leave blank if planning to apply
                         </span>
+                      </div>
+                    </div>
+                    <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginTop": "12px"}}>
+                      <div className="form-group">
+                        <label htmlFor="regClientPassword">
+                          Create Password <span className="req">*</span>
+                        </label>
+                        <input id="regClientPassword" placeholder="Minimum 6 characters" required="" type="password" />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="regClientPasswordConfirm">
+                          Confirm Password <span className="req">*</span>
+                        </label>
+                        <input id="regClientPasswordConfirm" placeholder="Re-enter password" required="" type="password" />
                       </div>
                     </div>
                     <div className="form-group" style={{"margin": "14px 0 18px"}}>
