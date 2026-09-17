@@ -124,7 +124,7 @@ export default function TrainWithFIFS(props: any) {
       <Script src="https://js.stripe.com/v3/" strategy="afterInteractive" />
       <Script src="https://js.stripe.com/dahlia/stripe.js" strategy="afterInteractive" />
       <Script 
-        src="/scripts/TrainWithFIFS_scripts.js" 
+      src="/Scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
         onLoad={() => console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch)}
         onError={(e) => console.error("FIFS: Failed to load /scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
