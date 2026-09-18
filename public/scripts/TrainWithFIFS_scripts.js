@@ -2699,76 +2699,74 @@ function updateAdminChatBadgeCount() {
     }
     window.updateAdminChatBadgeCount = updateAdminChatBadgeCount;
         function switchAdminTab(tab) {
-      var subRoster = document.getElementById("admin-subpanel-roster");
-      var subClients = document.getElementById("admin-subpanel-clients");
-      var subAnalytics = document.getElementById("admin-subpanel-analytics");
-      var subChat = document.getElementById("admin-subpanel-chat");
-      var btnRoster = document.getElementById("btn-admin-tab-roster");
-      var btnClients = document.getElementById("btn-admin-tab-clients");
-      var btnAnalytics = document.getElementById("btn-admin-tab-analytics") || document.getElementById("btn-admin-tab-telemetry");
-      var btnChat = document.getElementById("btn-admin-tab-chat");
+      window.openAdminSubpanelModal(tab);
+    }
 
-      if (subRoster) subRoster.style.setProperty("display", "none", "important");
-      if (subClients) subClients.style.setProperty("display", "none", "important");
-      if (subAnalytics) subAnalytics.style.setProperty("display", "none", "important");
-      if (subChat) subChat.style.setProperty("display", "none", "important");
+    function openAdminSubpanelModal(tab) {
+      var overlay = document.getElementById('adminSubpanelModalOverlay');
+      var modalTitle = document.getElementById('adminSubpanelModalTitle');
+      var modalEyebrow = document.getElementById('adminSubpanelModalEyebrow');
+      var subRoster = document.getElementById('admin-subpanel-roster');
+      var subClients = document.getElementById('admin-subpanel-clients');
+      var subAnalytics = document.getElementById('admin-subpanel-analytics');
+      var subChat = document.getElementById('admin-subpanel-chat');
 
-      var allCards = [
-        { btn: btnRoster, glow: "0 0 25px rgba(0, 229, 255, 0.45)" },
-        { btn: btnClients, glow: "0 0 25px rgba(255, 183, 3, 0.45)" },
-        { btn: btnChat, glow: "0 0 25px rgba(168, 85, 247, 0.45)" },
-        { btn: btnAnalytics, glow: "0 0 25px rgba(16, 185, 129, 0.45)" }
-      ];
+      // Hide all subpanels first
+      if (subRoster) subRoster.style.setProperty('display', 'none', 'important');
+      if (subClients) subClients.style.setProperty('display', 'none', 'important');
+      if (subAnalytics) subAnalytics.style.setProperty('display', 'none', 'important');
+      if (subChat) subChat.style.setProperty('display', 'none', 'important');
 
-      allCards.forEach(function(item) {
-        if (item.btn) {
-          item.btn.classList.remove("active");
-          item.btn.style.boxShadow = "none";
-          item.btn.style.transform = "none";
-        }
-      });
+      var tabMeta = {
+        roster: { title: '👥 Student Roster & Operations', eyebrow: 'STUDENT ENROLLMENT & OPS', el: subRoster, color: 'var(--accent-cyan)' },
+        clients: { title: '🛡️ Future Initiative Clients', eyebrow: 'VIP PERMIT TRACKING & REGISTRY', el: subClients, color: 'var(--accent-amber)' },
+        chat: { title: '💬 Live Chat Command', eyebrow: 'TWO-WAY SECURE COMMS', el: subChat, color: '#a855f7' },
+        telemetry: { title: '📡 Website Telemetry & Radar', eyebrow: 'SYSTEM INTELLIGENCE & TRAFFIC', el: subAnalytics, color: '#10b981' },
+        analytics: { title: '📡 Website Telemetry & Radar', eyebrow: 'SYSTEM INTELLIGENCE & TRAFFIC', el: subAnalytics, color: '#10b981' }
+      };
 
-      if (tab === "chat") {
-        if (subChat) subChat.style.setProperty("display", "block", "important");
-        if (btnChat) {
-          btnChat.classList.add("active");
-          btnChat.style.boxShadow = "0 0 25px rgba(168, 85, 247, 0.45)";
-          btnChat.style.transform = "translateY(-2px)";
-        }
-        if (typeof window.refreshAdminLiveChats === "function") {
-          window.refreshAdminLiveChats();
-        }
-      } else if (tab === "clients") {
-        if (subClients) subClients.style.setProperty("display", "block", "important");
-        if (btnClients) {
-          btnClients.classList.add("active");
-          btnClients.style.boxShadow = "0 0 25px rgba(255, 183, 3, 0.45)";
-          btnClients.style.transform = "translateY(-2px)";
-        }
-        var pin = sessionStorage.getItem("fifs_instructor_pin");
-        if (pin && typeof window.callFifsBackend === "function") {
-          window.callFifsBackend("getAdminDashboardData", { pin: pin }, function(res) {
-            if (res && res.status === "success" && typeof window.renderAdminClientTerminal === "function") {
-              window.renderAdminClientTerminal(res);
-            }
-          });
-        }
-      } else if (tab === "telemetry" || tab === "analytics") {
-        if (subAnalytics) subAnalytics.style.setProperty("display", "block", "important");
-        if (btnAnalytics) {
-          btnAnalytics.classList.add("active");
-          btnAnalytics.style.boxShadow = "0 0 25px rgba(16, 185, 129, 0.45)";
-          btnAnalytics.style.transform = "translateY(-2px)";
-        }
-      } else {
-        if (subRoster) subRoster.style.setProperty("display", "block", "important");
-        if (btnRoster) {
-          btnRoster.classList.add("active");
-          btnRoster.style.boxShadow = "0 0 25px rgba(0, 229, 255, 0.45)";
-          btnRoster.style.transform = "translateY(-2px)";
-        }
+      var target = tabMeta[tab] || tabMeta.roster;
+      if (modalTitle) {
+        modalTitle.textContent = target.title;
+        modalTitle.style.color = '#fff';
+      }
+      if (modalEyebrow) {
+        modalEyebrow.textContent = target.eyebrow;
+        modalEyebrow.style.color = target.color;
+      }
+
+      if (target.el) {
+        target.el.style.setProperty('display', 'block', 'important');
+      }
+
+      if (overlay) {
+        overlay.style.setProperty('display', 'flex', 'important');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
+      // Trigger automatic live sync
+      if (tab === 'roster' && typeof refreshAdminRoster === 'function') {
+        refreshAdminRoster();
+      } else if (tab === 'clients' && typeof refreshAdminClients === 'function') {
+        refreshAdminClients();
+      } else if (tab === 'chat' && typeof refreshAdminLiveChats === 'function') {
+        refreshAdminLiveChats();
+      } else if ((tab === 'telemetry' || tab === 'analytics') && typeof refreshAdminTelemetry === 'function') {
+        refreshAdminTelemetry();
       }
     }
+    window.openAdminSubpanelModal = openAdminSubpanelModal;
+
+    function closeAdminSubpanelModal() {
+      var overlay = document.getElementById('adminSubpanelModalOverlay');
+      if (overlay) {
+        overlay.style.setProperty('display', 'none', 'important');
+        overlay.classList.remove('active');
+      }
+      document.body.style.overflow = '';
+    }
+    window.closeAdminSubpanelModal = closeAdminSubpanelModal;
     window.switchAdminTab = switchAdminTab;
 // Duplicate refreshAdminRoster removed
     function openAdminInviteModal() {
@@ -9710,6 +9708,19 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
       }
     }, 150);
   };
+
+  function bootStickmanActionChoreography() {
+    var cv = document.getElementById('sectionStickmanCanvas') || document.getElementById('stickmanActionCanvas');
+    if (cv && typeof window.playStickmanActionMovieScene === 'function') {
+      window.playStickmanActionMovieScene(false);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootStickmanActionChoreography);
+  } else {
+    setTimeout(bootStickmanActionChoreography, 150);
+  }
+  window.addEventListener('load', bootStickmanActionChoreography);
 })();
 
 // --- NEXT SCRIPT BLOCK ---
