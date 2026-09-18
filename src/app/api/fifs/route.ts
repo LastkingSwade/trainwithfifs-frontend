@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Server-side Supabase client using Service Role key
+// Server-side Supabase client using Service Role key (bypasses RLS for secure server operations)
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
@@ -18,6 +18,7 @@ function verifyAdminPasscode(passcode?: string): boolean {
   return Boolean(passcode && passcode.trim().toLowerCase() === expected.trim().toLowerCase());
 }
 
+// Helper to normalize student fields to both camelCase and snake_case for UI compatibility
 function normalizeStudent(s: any) {
   if (!s) return s;
   return {
@@ -42,6 +43,7 @@ function normalizeStudent(s: any) {
   };
 }
 
+// Helper to normalize client fields
 function normalizeClient(c: any) {
   if (!c) return c;
   return {
@@ -57,6 +59,7 @@ function normalizeClient(c: any) {
   };
 }
 
+// Helper to normalize invoice fields
 function normalizeInvoice(i: any) {
   if (!i) return i;
   return {
@@ -73,75 +76,6 @@ function normalizeInvoice(i: any) {
     facility: i.facility,
     paymentMethod: i.payment_method || i.paymentMethod,
   };
-}
-
-// Normalizes single message so both client and admin scripts can read properties
-function normalizeMessage(m: any) {
-  if (!m) return m;
-  const isInstructor = m.sender === 'instructor' || m.sender_type === 'admin' || m.name === 'Coach Kai Wade';
-  return {
-    ...m,
-    text: m.message || m.text || '',
-    message: m.message || m.text || '',
-    timestamp: m.sent_at || m.timestamp || new Date().toISOString(),
-    sent_at: m.sent_at || m.timestamp || new Date().toISOString(),
-    senderName: m.name || (isInstructor ? 'Coach Kai Wade' : 'Student'),
-    name: m.name || (isInstructor ? 'Coach Kai Wade' : 'Student'),
-    sender: isInstructor ? 'instructor' : 'student',
-  };
-}
-
-// Group raw messages into inquiry threads matching TrainWithFIFS_scripts.js expectations
-function groupMessagesIntoThreads(rawMessages: any[]) {
-  if (!Array.isArray(rawMessages) || rawMessages.length === 0) return [];
-
-  const threadMap = new Map<string, any>();
-
-  for (const rawM of rawMessages) {
-    const m = normalizeMessage(rawM);
-    // Thread key: prioritize phone or email, else sanitized sender name or inquiry ID
-    const threadKey = (m.phone && m.phone.trim()) || 
-                      (m.email && m.email.trim()) || 
-                      (m.student_id && m.student_id.trim()) || 
-                      (m.name && m.name !== 'Anonymous Visitor' && m.name !== 'Coach Kai Wade' ? m.name.trim() : 'inquiry-' + (m.id || 'default'));
-
-    const senderName = (m.name && m.name !== 'Coach Kai Wade') ? m.name : 'Web Visitor';
-    const senderPhone = m.phone || '(No Phone Provided)';
-
-    const msgObj = {
-      id: m.id || String(Date.now()),
-      sender: m.sender,
-      text: m.text,
-      time: m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'NOW'
-    };
-
-    if (!threadMap.has(threadKey)) {
-      threadMap.set(threadKey, {
-        id: threadKey,
-        senderName: senderName,
-        senderPhone: senderPhone,
-        unread: m.sender === 'student', // Unread only if waiting on instructor response
-        messages: [msgObj]
-      });
-    } else {
-      const existing = threadMap.get(threadKey);
-      if (senderName !== 'Web Visitor' && existing.senderName === 'Web Visitor') {
-        existing.senderName = senderName;
-      }
-      if (senderPhone !== '(No Phone Provided)' && existing.senderPhone === '(No Phone Provided)') {
-        existing.senderPhone = senderPhone;
-      }
-      existing.messages.push(msgObj);
-      // If the last message was sent by the instructor, mark as already synced/read
-      if (m.sender === 'instructor') {
-        existing.unread = false;
-      } else {
-        existing.unread = true;
-      }
-    }
-  }
-
-  return Array.from(threadMap.values());
 }
 
 export async function POST(req: NextRequest) {
@@ -164,73 +98,278 @@ export async function POST(req: NextRequest) {
     }
 
     switch (action) {
-      // -----------------------------------------------------------------------
-      // 1. ADMIN DASHBOARD SYNC
-      // -----------------------------------------------------------------------
+      // =========================================================================
+      // SECTION A: ADMIN HUB ACTIONS (Passcode protected)
+      // =========================================================================
       case 'getAdminDashboardData': {
         if (!verifyAdminPasscode(passcode)) {
           return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
         }
 
-        const [studentsRes, clientsRes, invoicesRes, messagesRes] = await Promise.allSettled([
+        const [studentsRes, clientsRes, invoicesRes, messagesRes] = await Promise.all([
           supabase.from('students').select('*').order('created_at', { ascending: false }),
           supabase.from('clients').select('*').order('created_at', { ascending: false }),
           supabase.from('invoices').select('*').order('created_at', { ascending: false }),
-          supabase.from('messages').select('*').order('sent_at', { ascending: true }).limit(200),
+          supabase.from('messages').select('*').order('sent_at', { ascending: false }).limit(100),
         ]);
 
-        const rawStudents = (studentsRes.status === 'fulfilled' && studentsRes.value.data) ? studentsRes.value.data : [];
-        const rawClients = (clientsRes.status === 'fulfilled' && clientsRes.value.data) ? clientsRes.value.data : [];
-        const rawInvoices = (invoicesRes.status === 'fulfilled' && invoicesRes.value.data) ? invoicesRes.value.data : [];
-        const rawMessages = (messagesRes.status === 'fulfilled' && messagesRes.value.data) ? messagesRes.value.data.map(normalizeMessage) : [];
+        if (studentsRes.error) console.error('Error fetching students:', studentsRes.error);
+        if (clientsRes.error) console.error('Error fetching clients:', clientsRes.error);
+        if (invoicesRes.error) console.error('Error fetching invoices:', invoicesRes.error);
+        if (messagesRes.error) console.error('Error fetching messages:', messagesRes.error);
+
+        const rawStudents = studentsRes.data || [];
+        const rawClients = clientsRes.data || [];
+        const rawInvoices = invoicesRes.data || [];
+        const rawMessages = messagesRes.data || [];
 
         const students = rawStudents.map(normalizeStudent);
         const clients = rawClients.map(normalizeClient);
         const invoices = rawInvoices.map(normalizeInvoice);
-        const threads = groupMessagesIntoThreads(rawMessages);
 
-        const totalRevenue = invoices.reduce((sum: number, inv: any) => sum + (parseFloat(inv.total_amount || inv.totalAmount || 0) || 0), 0);
-        const outstandingBalance = invoices.reduce((sum: number, inv: any) => sum + (parseFloat(inv.balance_due || inv.balanceDue || 0) || 0), 0);
+        // Aggregate metrics
+        const totalStudents = students.length;
+        const activeClients = clients.length;
+        let totalRevenue = 0;
+        let outstandingBalance = 0;
+
+        for (const inv of rawInvoices) {
+          totalRevenue += Number(inv.amount_paid || 0);
+          outstandingBalance += Number(inv.balance_due || 0);
+        }
 
         return NextResponse.json({
           success: true,
           status: 'success',
-          totalStudents: students.length,
-          activeClients: clients.length,
-          totalRevenue,
-          outstandingBalance,
+          totalStudents,
+          activeClients,
+          totalRevenue: Math.round(totalRevenue * 100) / 100,
+          outstandingBalance: Math.round(outstandingBalance * 100) / 100,
           students,
           clients,
           invoices,
           messages: rawMessages,
           liveChats: rawMessages,
-          threads,
         });
       }
 
-      // -----------------------------------------------------------------------
-      // 2. LIVE CHAT INQUIRIES & REPLIES
-      // -----------------------------------------------------------------------
-      case 'getLiveChats':
-      case 'getVisitorChatMessages': {
+      case 'adminEditStudent': {
+        if (!verifyAdminPasscode(passcode)) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
+        }
+        const studentId = payload.studentId || payload.student_id;
+        if (!studentId) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing studentId.' }, { status: 400 });
+        }
+
+        const updates = payload.updates || payload;
+        const dbUpdates: Record<string, any> = {
+          updated_at: new Date().toISOString(),
+        };
+
+        if (updates.fullName !== undefined) dbUpdates.full_name = updates.fullName;
+        if (updates.full_name !== undefined) dbUpdates.full_name = updates.full_name;
+        if (updates.email !== undefined) dbUpdates.email = updates.email;
+        if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
+        if (updates.courseSelection !== undefined) dbUpdates.course_selection = updates.courseSelection;
+        if (updates.course_selection !== undefined) dbUpdates.course_selection = updates.course_selection;
+        if (updates.preferredDates !== undefined) dbUpdates.preferred_dates = updates.preferredDates;
+        if (updates.preferred_dates !== undefined) dbUpdates.preferred_dates = updates.preferred_dates;
+        if (updates.status !== undefined) dbUpdates.status = updates.status;
+        if (updates.prepTasks !== undefined) dbUpdates.prep_tasks = updates.prepTasks;
+        if (updates.prep_tasks !== undefined) dbUpdates.prep_tasks = updates.prep_tasks;
+        if (updates.waiverCompleted !== undefined) dbUpdates.waiver_completed = Boolean(updates.waiverCompleted);
+        if (updates.waiver_completed !== undefined) dbUpdates.waiver_completed = Boolean(updates.waiver_completed);
+        if (updates.assignedDate !== undefined) dbUpdates.assigned_date = updates.assignedDate;
+        if (updates.assigned_date !== undefined) dbUpdates.assigned_date = updates.assigned_date;
+        if (updates.qualificationScore !== undefined) dbUpdates.qualification_score = updates.qualificationScore;
+        if (updates.qualification_score !== undefined) dbUpdates.qualification_score = updates.qualification_score;
+
         const { data, error } = await supabase
-          .from('messages')
-          .select('*')
-          .order('sent_at', { ascending: true })
-          .limit(200);
+          .from('students')
+          .update(dbUpdates)
+          .eq('student_id', studentId)
+          .select()
+          .single();
 
         if (error) {
           return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
         }
+        return NextResponse.json({ success: true, status: 'success', student: normalizeStudent(data) });
+      }
 
-        const raw = (data || []).map(normalizeMessage);
-        const threads = groupMessagesIntoThreads(raw);
+      case 'adminDeleteStudent': {
+        if (!verifyAdminPasscode(passcode)) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
+        }
+        const studentId = payload.studentId || payload.student_id;
+        if (!studentId) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing studentId.' }, { status: 400 });
+        }
+
+        // Delete associated invoices first (to respect foreign key)
+        const { error: invoiceErr } = await supabase
+          .from('invoices')
+          .delete()
+          .eq('student_id', studentId);
+
+        if (invoiceErr) {
+          console.warn('Notice deleting associated student invoices:', invoiceErr.message);
+        }
+
+        const { error: studentErr } = await supabase
+          .from('students')
+          .delete()
+          .eq('student_id', studentId);
+
+        if (studentErr) {
+          return NextResponse.json({ success: false, status: 'error', error: studentErr.message }, { status: 400 });
+        }
+
+        return NextResponse.json({ success: true, status: 'success', message: 'Student and related records deleted.' });
+      }
+
+      case 'adminEditClient': {
+        if (!verifyAdminPasscode(passcode)) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
+        }
+        const clientId = payload.clientId || payload.client_id;
+        if (!clientId) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing clientId.' }, { status: 400 });
+        }
+
+        const updates = payload.updates || payload;
+        const dbUpdates: Record<string, any> = {
+          updated_at: new Date().toISOString(),
+        };
+
+        if (updates.fullName !== undefined) dbUpdates.full_name = updates.fullName;
+        if (updates.full_name !== undefined) dbUpdates.full_name = updates.full_name;
+        if (updates.email !== undefined) dbUpdates.email = updates.email;
+        if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
+        if (updates.permitState !== undefined) dbUpdates.permit_state = updates.permitState;
+        if (updates.permit_state !== undefined) dbUpdates.permit_state = updates.permit_state;
+        if (updates.expirationDate !== undefined) dbUpdates.expiration_date = updates.expirationDate;
+        if (updates.expiration_date !== undefined) dbUpdates.expiration_date = updates.expiration_date;
+
+        const { data, error } = await supabase
+          .from('clients')
+          .update(dbUpdates)
+          .eq('client_id', clientId)
+          .select()
+          .single();
+
+        if (error) {
+          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
+        }
+        return NextResponse.json({ success: true, status: 'success', client: normalizeClient(data) });
+      }
+
+      case 'adminDeleteClient': {
+        if (!verifyAdminPasscode(passcode)) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
+        }
+        const clientId = payload.clientId || payload.client_id;
+        if (!clientId) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing clientId.' }, { status: 400 });
+        }
+
+        const { error } = await supabase
+          .from('clients')
+          .delete()
+          .eq('client_id', clientId);
+
+        if (error) {
+          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
+        }
+        return NextResponse.json({ success: true, status: 'success', message: 'Client deleted from database.' });
+      }
+
+      case 'adminDirectInvite': {
+        if (!verifyAdminPasscode(passcode)) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
+        }
+
+        const portalType = payload.portalType || 'student';
+        const generatedId = payload.generatedId || ('FIFS-' + Math.floor(1000 + Math.random() * 9000));
+        const now = new Date().toISOString();
+
+        if (portalType === 'client') {
+          const clientId = payload.clientId || ('FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000));
+          const { data, error } = await supabase
+            .from('clients')
+            .upsert({
+              client_id: clientId,
+              full_name: payload.fullName || payload.name || 'Agent Invite',
+              email: payload.email || '',
+              phone: payload.phone || '',
+              permit_state: payload.course || payload.permitState || 'Maryland Wear & Carry',
+              expiration_date: payload.dates || payload.expirationDate || null,
+              created_at: now,
+              updated_at: now,
+            })
+            .select()
+            .single();
+
+          if (error) {
+            return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
+          }
+          return NextResponse.json({ success: true, status: 'success', client: normalizeClient(data), clientId });
+        }
+
+        // Student direct invite
+        const defaultTasks = {
+          waiverSigned: false,
+          gearConfirmed: false,
+          rangeRulesAccepted: false,
+          calendarSynced: false,
+        };
+
+        const { data: student, error: studentError } = await supabase
+          .from('students')
+          .insert({
+            student_id: generatedId,
+            full_name: payload.fullName || payload.name || 'Invited Student',
+            email: payload.email || '',
+            phone: payload.phone || '',
+            course_selection: payload.course || 'Maryland Wear & Carry Permit',
+            preferred_dates: payload.dates || 'Upcoming Cohort',
+            group_size: 1,
+            comments: 'Direct invite dispatched by Instructor',
+            status: 'STEP_1_REGISTERED',
+            prep_tasks: defaultTasks,
+            waiver_completed: false,
+            created_at: now,
+            updated_at: now,
+          })
+          .select()
+          .single();
+
+        if (studentError) {
+          return NextResponse.json({ success: false, status: 'error', error: studentError.message }, { status: 400 });
+        }
+
+        // Create associated invoice if total specified or default
+        const invoiceId = 'INV-' + Math.floor(10000 + Math.random() * 90000);
+        await supabase
+          .from('invoices')
+          .insert({
+            invoice_id: invoiceId,
+            student_id: generatedId,
+            course: payload.course || 'Maryland Wear & Carry Permit',
+            total_amount: Number(payload.totalAmount || 312.69),
+            amount_paid: 0.0,
+            balance_due: Number(payload.totalAmount || 312.69),
+            status: 'ISSUED',
+            facility: 'Main Training Facility',
+            payment_method: 'Stripe / Pending',
+          });
 
         return NextResponse.json({
           success: true,
           status: 'success',
-          messages: raw,
-          threads: threads
+          studentId: generatedId,
+          student: normalizeStudent(student),
         });
       }
 
@@ -239,174 +378,422 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
         }
 
-        const replyData = payload.payload || payload;
-        const text = replyData.message || replyData.text;
-        const studentPhone = replyData.studentPhone || replyData.phone || '';
-        const studentName = replyData.studentName || replyData.name || 'Student';
+        const replyMessage = payload.replyText || payload.message || '';
+        const studentId = payload.studentId || payload.student_id || null;
+        const now = new Date().toISOString();
 
-        if (!text) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Missing reply message text.' }, { status: 400 });
-        }
-
-        const { data, error } = await supabase.from('messages').insert({
-          name: 'Coach Kai Wade',
-          phone: studentPhone,
-          message: text,
-          sender: 'instructor',
-          sent_at: new Date().toISOString(),
-          urgency: 'NORMAL'
-        }).select().single();
+        const { data, error } = await supabase
+          .from('messages')
+          .insert({
+            name: 'Instructor Kai Wade',
+            phone: '',
+            email: 'admin@trainwithfifs.com',
+            message: replyMessage,
+            urgency: 'HIGH',
+            sender: 'admin',
+            student_id: studentId,
+            sent_at: now,
+          })
+          .select()
+          .single();
 
         if (error) {
           return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
         }
 
-        return NextResponse.json({ success: true, status: 'success', reply: normalizeMessage(data) });
+        return NextResponse.json({ success: true, status: 'success', message: 'Reply sent', data });
       }
 
-      case 'handleLiveChatMessage': {
-        const msg = (payload.message || payload.text || '').trim();
-        const name = payload.name || payload.senderName || 'Anonymous Visitor';
-        const phone = payload.phone || payload.senderPhone || '';
-        const email = payload.email || '';
-
-        if (!msg) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Empty message text.' }, { status: 400 });
+      // =========================================================================
+      // SECTION B: STUDENT & CLIENT PORTAL ACTIONS
+      // =========================================================================
+      case 'getStudentPortalData': {
+        const queryTerm = (payload.studentId || payload.id || payload.email || '').toString().trim();
+        if (!queryTerm) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier or email.' }, { status: 400 });
         }
 
-        // Server-side deduplication: if exact duplicate sent in last 5 seconds, return success without inserting
-        const fiveSecondsAgo = new Date(Date.now() - 5000).toISOString();
-        const { data: recentDupes } = await supabase
-          .from('messages')
-          .select('id')
-          .eq('message', msg)
-          .gte('sent_at', fiveSecondsAgo)
-          .limit(1);
-
-        if (recentDupes && recentDupes.length > 0) {
-          return NextResponse.json({ success: true, status: 'success', duplicate: true });
+        let studentQuery = supabase.from('students').select('*');
+        if (queryTerm.includes('@')) {
+          studentQuery = studentQuery.ilike('email', queryTerm);
+        } else {
+          studentQuery = studentQuery.eq('student_id', queryTerm);
         }
 
-        const { data, error } = await supabase.from('messages').insert({
-          name,
-          phone,
-          email,
-          message: msg,
-          sender: 'student',
-          urgency: payload.urgency || 'NORMAL',
-          sent_at: new Date().toISOString()
-        }).select().single();
+        const { data: student, error: studentError } = await studentQuery.maybeSingle();
 
-        if (error) {
-          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
+        if (studentError) {
+          return NextResponse.json({ success: false, status: 'error', error: studentError.message }, { status: 400 });
+        }
+        if (!student) {
+          return NextResponse.json({ success: false, status: 'not_found', message: 'Student record not found.' }, { status: 404 });
         }
 
-        return NextResponse.json({ success: true, status: 'success', message: normalizeMessage(data) });
+        // Fetch related invoices
+        const { data: invoices } = await supabase
+          .from('invoices')
+          .select('*')
+          .eq('student_id', student.student_id);
+
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          student: normalizeStudent(student),
+          invoices: (invoices || []).map(normalizeInvoice),
+        });
       }
 
-      case 'deleteLiveChatThread': {
-        if (!verifyAdminPasscode(passcode)) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
+      case 'getClientPortalData': {
+        const queryTerm = (payload.clientId || payload.id || payload.email || '').toString().trim();
+        if (!queryTerm) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing client identifier or email.' }, { status: 400 });
         }
 
-        const threadId = payload.threadId || payload.id;
-        if (!threadId) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Missing threadId.' }, { status: 400 });
+        let clientQuery = supabase.from('clients').select('*');
+        if (queryTerm.includes('@')) {
+          clientQuery = clientQuery.ilike('email', queryTerm);
+        } else {
+          clientQuery = clientQuery.eq('client_id', queryTerm);
         }
 
-        // Extract identifier: if inquiry-UUID or raw UUID or phone number
-        const cleanId = threadId.replace('inquiry-', '');
+        const { data: client, error: clientError } = await clientQuery.maybeSingle();
 
-        // Delete any matching messages by id, phone, or name
-        const { error } = await supabase
-          .from('messages')
-          .delete()
-          .or(`id.eq.${cleanId},phone.eq.${threadId},name.eq.${threadId}`);
-
-        if (error) {
-          console.error('Delete chat thread error:', error.message);
-          return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+        if (clientError) {
+          return NextResponse.json({ success: false, status: 'error', error: clientError.message }, { status: 400 });
+        }
+        if (!client) {
+          return NextResponse.json({ success: false, status: 'not_found', message: 'Client profile not found.' }, { status: 404 });
         }
 
-        return NextResponse.json({ success: true, status: 'success', message: 'Chat thread purged permanently from Supabase.' });
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          client: normalizeClient(client),
+        });
       }
 
-      // -----------------------------------------------------------------------
-      // 3. CLIENT REGISTRATION & PORTAL
-      // -----------------------------------------------------------------------
-      case 'registerClient': {
-        const fullName = payload.fullName || payload.name || payload.legalName;
-        const email = payload.email;
-        const phone = payload.phone;
-        const permitState = payload.permitState || payload.permitType || 'Maryland Wear & Carry';
-        const expirationDate = payload.expirationDate || payload.expDate || '';
+      case 'registerClient':
+      case 'createClient': {
+        const clientId = payload.clientId || ('FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000));
+        const email = (payload.email || '').trim().toLowerCase();
+        const now = new Date().toISOString();
 
-        if (!fullName || !email) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Full name and email are required to create a client profile.' }, { status: 400 });
-        }
-
-        const clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
-
-        const { data, error } = await supabase.from('clients').insert({
+        const row = {
           client_id: clientId,
-          full_name: fullName,
-          email: email.trim().toLowerCase(),
-          phone: phone || '',
-          permit_state: permitState,
-          expiration_date: expirationDate,
-          created_at: new Date().toISOString()
-        }).select().single();
+          full_name: payload.fullName || payload.name || 'FIFS Agent',
+          email: email,
+          phone: payload.phone || '',
+          permit_state: payload.permitState || 'Maryland Wear & Carry',
+          expiration_date: payload.expirationDate || null,
+          created_at: now,
+          updated_at: now,
+        };
+
+        const { data, error } = await supabase
+          .from('clients')
+          .upsert(row, { onConflict: 'email' })
+          .select()
+          .single();
 
         if (error) {
-          console.error('Supabase client insert error:', error.message);
+          console.error('Supabase registerClient error:', error);
           return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
         }
 
         return NextResponse.json({
           success: true,
           status: 'success',
-          clientId: clientId,
-          client: normalizeClient(data)
+          clientId: data.client_id || clientId,
+          client: normalizeClient(data),
         });
       }
 
-      // -----------------------------------------------------------------------
-      // 4. ADMIN CLIENT & STUDENT ACTIONS
-      // -----------------------------------------------------------------------
-      case 'adminEditClient': {
-        if (!verifyAdminPasscode(passcode)) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
-        }
-        const clientId = payload.clientId || payload.client_id;
-        const { error } = await supabase.from('clients').update({
-          full_name: payload.fullName || payload.name,
-          email: payload.email,
-          phone: payload.phone,
-          permit_state: payload.permitState,
-          expiration_date: payload.expirationDate
-        }).eq('client_id', clientId);
-
-        if (error) return NextResponse.json({ success: false, error: error.message }, { status: 400 });
-        return NextResponse.json({ success: true, status: 'success' });
-      }
-
-      case 'adminDeleteClient': {
-        if (!verifyAdminPasscode(passcode)) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
-        }
-        const clientId = payload.clientId || payload.client_id;
-        const { error } = await supabase.from('clients').delete().eq('client_id', clientId);
-        if (error) return NextResponse.json({ success: false, error: error.message }, { status: 400 });
-        return NextResponse.json({ success: true, status: 'success' });
-      }
-
-      case 'adminDeleteStudent': {
-        if (!verifyAdminPasscode(passcode)) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
-        }
+      case 'updateStudentTask': {
         const studentId = payload.studentId || payload.student_id;
-        const { error } = await supabase.from('students').delete().eq('student_id', studentId);
-        if (error) return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+        const taskKey = payload.taskId || payload.taskKey;
+        const isDone = Boolean(payload.completed !== undefined ? payload.completed : payload.isDone);
+
+        if (!studentId) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing studentId.' }, { status: 400 });
+        }
+
+        // Get current tasks
+        const { data: currentStudent, error: fetchErr } = await supabase
+          .from('students')
+          .select('prep_tasks')
+          .eq('student_id', studentId)
+          .single();
+
+        if (fetchErr) {
+          return NextResponse.json({ success: false, status: 'error', error: fetchErr.message }, { status: 400 });
+        }
+
+        const existingTasks = (currentStudent && typeof currentStudent.prep_tasks === 'object' && currentStudent.prep_tasks !== null)
+          ? currentStudent.prep_tasks
+          : {};
+
+        if (taskKey) {
+          existingTasks[taskKey] = isDone;
+        } else if (payload.tasks && typeof payload.tasks === 'object') {
+          Object.assign(existingTasks, payload.tasks);
+        }
+
+        const { data: updated, error: updateErr } = await supabase
+          .from('students')
+          .update({
+            prep_tasks: existingTasks,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('student_id', studentId)
+          .select()
+          .single();
+
+        if (updateErr) {
+          return NextResponse.json({ success: false, status: 'error', error: updateErr.message }, { status: 400 });
+        }
+
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          studentId,
+          prepTasks: existingTasks,
+          student: normalizeStudent(updated),
+        });
+      }
+
+      case 'submitStudentWaiver': {
+        const studentId = payload.studentId || payload.student_id;
+        if (!studentId) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing studentId.' }, { status: 400 });
+        }
+
+        const { data, error } = await supabase
+          .from('students')
+          .update({
+            waiver_completed: true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('student_id', studentId)
+          .select()
+          .single();
+
+        if (error) {
+          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
+        }
+
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          message: 'Liability waiver submitted and confirmed.',
+          student: normalizeStudent(data),
+        });
+      }
+
+      // =========================================================================
+      // SECTION C: PUBLIC SUBMISSIONS & CHAT
+      // =========================================================================
+      case 'handleLiveChatMessage': {
+        const now = new Date().toISOString();
+        const { data, error } = await supabase
+          .from('messages')
+          .insert({
+            name: payload.name || payload.fullName || 'Anonymous Visitor',
+            phone: payload.phone || '',
+            email: payload.email || '',
+            message: payload.message || payload.text || '',
+            urgency: payload.urgency || 'NORMAL',
+            sender: 'student',
+            student_id: payload.studentId || null,
+            sent_at: now,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Supabase live chat error:', error);
+          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
+        }
+
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          messageId: data.id,
+          message: 'Message delivered to instructor hub.',
+          data,
+        });
+      }
+
+      case 'handleLeadMagnetSubmission':
+      case 'leadMagnet': {
+        const now = new Date().toISOString();
+        const { data, error } = await supabase
+          .from('leads')
+          .insert({
+            full_name: payload.fullName || payload.name || 'Reciprocity Lead',
+            email: payload.email || '',
+            source: payload.source || payload.guide || 'State Reciprocity Guide',
+            captured_at: now,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Supabase leadMagnet error:', error);
+          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
+        }
+
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          leadId: data.id,
+          message: 'Guide dispatched to your email.',
+        });
+      }
+
+      case 'handleSmsAlertSubmit':
+      case 'smsAlert': {
+        const now = new Date().toISOString();
+        const { data, error } = await supabase
+          .from('sms_alerts')
+          .insert({
+            phone: payload.phone || '',
+            carrier: payload.carrier || 'Unknown',
+            milestones: payload.milestones || payload.options || '30_60_90_RENEWAL',
+            status: 'ACTIVE',
+            registered_at: now,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Supabase sms_alerts error:', error);
+          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
+        }
+
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          alertId: data.id,
+          message: 'SMS milestone alerts activated.',
+        });
+      }
+
+      case 'submitBooking': {
+        const generatedStudentId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000);
+        const invoiceId = 'INV-' + Math.floor(10000 + Math.random() * 90000);
+        const now = new Date().toISOString();
+
+        const defaultTasks = {
+          waiverSigned: false,
+          gearConfirmed: false,
+          rangeRulesAccepted: false,
+          calendarSynced: false,
+        };
+
+        const totalAmount = Number(payload.totalAmount || 312.69);
+        const depositAmount = Number(payload.depositAmount || 93.81);
+
+        const { data: student, error: studentError } = await supabase
+          .from('students')
+          .insert({
+            student_id: generatedStudentId,
+            full_name: payload.fullName || payload.name || 'New Enrollee',
+            email: payload.email || '',
+            phone: payload.phone || '',
+            course_selection: payload.course || payload.courseSelection || 'Maryland Wear & Carry Permit',
+            preferred_dates: payload.dates || payload.preferredDates || 'Upcoming Range Cohort',
+            group_size: Number(payload.groupSize || 1),
+            comments: payload.comments || '',
+            status: 'STEP_1_REGISTERED',
+            prep_tasks: defaultTasks,
+            waiver_completed: false,
+            created_at: now,
+            updated_at: now,
+          })
+          .select()
+          .single();
+
+        if (studentError) {
+          console.error('Error creating student on booking:', studentError);
+          return NextResponse.json({ success: false, status: 'error', error: studentError.message }, { status: 400 });
+        }
+
+        const { data: invoice } = await supabase
+          .from('invoices')
+          .insert({
+            invoice_id: invoiceId,
+            student_id: generatedStudentId,
+            course: payload.course || 'Maryland Wear & Carry Permit',
+            total_amount: totalAmount,
+            amount_paid: 0.0,
+            balance_due: totalAmount,
+            status: 'PENDING_DEPOSIT',
+            facility: 'Main Training Facility',
+            payment_method: 'Stripe Checkout',
+          })
+          .select()
+          .single();
+
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          studentId: generatedStudentId,
+          invoiceId: invoiceId,
+          student: normalizeStudent(student),
+          invoice: normalizeInvoice(invoice),
+        });
+      }
+
+      case 'updateStudentStatus': {
+        const studentId = payload.studentId || payload.student_id;
+        const newStatus = payload.status;
+        if (!studentId || !newStatus) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing studentId or status.' }, { status: 400 });
+        }
+
+        const { data, error } = await supabase
+          .from('students')
+          .update({
+            status: newStatus,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('student_id', studentId)
+          .select()
+          .single();
+
+        if (error) {
+          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
+        }
+
+        return NextResponse.json({ success: true, status: 'success', student: normalizeStudent(data) });
+      }
+
+      case 'getLiveChats':
+      case 'getVisitorChatMessages': {
+        let query = supabase.from('messages').select('*').order('sent_at', { ascending: true });
+        if (payload.studentId) {
+          query = query.eq('student_id', payload.studentId);
+        }
+        const { data, error } = await query.limit(100);
+        if (error) {
+          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
+        }
+        return NextResponse.json({ success: true, status: 'success', messages: data || [] });
+      }
+
+      case 'deleteLiveChatThread': {
+        if (!verifyAdminPasscode(passcode)) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
+        }
+        const threadId = payload.threadId || payload.id;
+        if (threadId) {
+          await supabase.from('messages').delete().eq('id', threadId);
+        }
+        return NextResponse.json({ success: true, status: 'success', message: 'Thread cleared.' });
+      }
+
+      case 'logAnalytics':
+      case 'resetTelemetry': {
         return NextResponse.json({ success: true, status: 'success' });
       }
 
@@ -414,15 +801,15 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
           success: false,
           status: 'error',
-          error: `Unhandled action: "${action}"`
+          error: `Unhandled action: "${action}"`,
         }, { status: 400 });
     }
   } catch (error: any) {
-    console.error('Unhandled exception in /api/fifs:', error);
+    console.error('Unhandled exception in /api/fifs route:', error);
     return NextResponse.json({
       success: false,
       status: 'error',
-      error: error.message || 'Internal server error'
+      error: error.message || 'Internal server error',
     }, { status: 500 });
   }
 }
