@@ -143,6 +143,42 @@ function groupMessagesIntoThreads(messages: any[] = []) {
   return Object.values(threadsMap).sort((a: any, b: any) => b.lastTimestamp - a.lastTimestamp);
 }
 
+
+async function sendDiscordChatAlert(payload: { name: string; phone: string; email: string; message: string; sessionId?: string }) {
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  if (!webhookUrl) return;
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trainwithfifs.com';
+  const body = {
+    content: '@everyone [Live Chat Lead]',
+    embeds: [
+      {
+        title: '🚨 New Student Chat Initiated',
+        description: payload.message || 'New inbound message received.',
+        color: 16753920,
+        fields: [
+          { name: 'Student Name', value: payload.name || 'Anonymous Visitor', inline: true },
+          { name: 'Phone', value: payload.phone || 'N/A', inline: true },
+          { name: 'Email', value: payload.email || 'N/A', inline: false },
+          { name: 'Admin Hub', value: appUrl },
+        ],
+        timestamp: new Date().toISOString(),
+        footer: { text: payload.sessionId ? 'Session ID: ' + payload.sessionId : 'Train With FIFS Live Chat' },
+      },
+    ],
+  };
+
+  try {
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    console.error('Failed to send Discord webhook alert:', err);
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
@@ -458,6 +494,8 @@ export async function POST(req: NextRequest) {
         const studentId = payload.studentId || payload.student_id || null;
         const now = new Date().toISOString();
 
+        const adminThreadId = payload.thread_id || payload.threadId || (studentId ? 'thread_' + studentId : 'thread_' + Date.now());
+
         const { data, error } = await supabase
           .from('messages')
           .insert({
@@ -468,6 +506,7 @@ export async function POST(req: NextRequest) {
             urgency: 'HIGH',
             sender: 'admin',
             student_id: studentId,
+            thread_id: adminThreadId,
             sent_at: now,
           })
           .select()
@@ -676,6 +715,9 @@ export async function POST(req: NextRequest) {
         const messageText = payload.message || payload.text || '';
         const studentId = payload.studentId || payload.student_id || null;
 
+        const cleanPhone = (senderPhone || '').replace(/\D/g, '');
+        const computedThreadId = payload.thread_id || payload.threadId || (cleanPhone ? 'thread_' + cleanPhone : (studentId ? 'thread_' + studentId : 'thread_' + Date.now()));
+
         const { data, error } = await supabase
           .from('messages')
           .insert({
@@ -686,6 +728,7 @@ export async function POST(req: NextRequest) {
             urgency: payload.urgency || 'NORMAL',
             sender: 'student',
             student_id: studentId,
+            thread_id: computedThreadId,
             sent_at: now,
           })
           .select()
@@ -695,6 +738,15 @@ export async function POST(req: NextRequest) {
           console.error('Supabase live chat error:', error);
           return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
         }
+
+        // Dispatch audible Discord push alert with @everyone
+        sendDiscordChatAlert({
+          name: senderName,
+          phone: senderPhone,
+          email: senderEmail,
+          message: messageText,
+          sessionId: data.id,
+        }).catch(console.error);
 
         return NextResponse.json({
           success: true,
