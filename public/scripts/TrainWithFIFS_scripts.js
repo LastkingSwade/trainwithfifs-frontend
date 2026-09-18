@@ -2114,30 +2114,29 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       var btn = document.getElementById('btn-admin-refresh-data');
       if (btn && btn.dataset.animating !== 'true') {
         btn.dataset.animating = 'true';
-        var shots = ["🔫 CHAMBERING ROUND...", "💥 ROUND 1/5 SYNCED", "💥 ROUND 2/5 SYNCED", "💥 ROUND 3/5 SYNCED", "💥 ROUND 4/5 SYNCED", "💥 FULL MAG LOADED", "🔄 TACTICAL RELOAD COMPLETE"];
+        var shots = ["🔫 CHAMBERING ROUND...", "💥 ROUND 1/5 SYNCED", "💥 ROUND 2/5 SYNCED", "💥 ROUND 3/5 SYNCED", "💥 ROUND 4/5 SYNCED", "💥 FULL MAG LOADED", "✓ TACTICAL RELOAD COMPLETE"];
         var step = 0;
         var animInterval = setInterval(function() {
           if (step < shots.length) {
-            btn.innerHTML = '<span style="color:#fbbf24; font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">' + shots[step] + '</span>';
+            if (btn) {
+              btn.innerHTML = '<span style="color:#fbbf24; font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">' + shots[step] + '</span>';
+            }
             step++;
           } else {
             clearInterval(animInterval);
-            btn.dataset.animating = 'false';
-            btn.innerHTML = '<span class="spin-icon">🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">ROSTER SYNCED</span>';
+            if (btn) {
+              btn.dataset.animating = 'false';
+              btn.innerHTML = '<span>✓</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">ROSTER SYNCED</span>';
+              setTimeout(function() {
+                btn.innerHTML = '<span>🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">REFRESH ALL DATA</span>';
+              }, 1500);
+            }
           }
         }, 500);
       }
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
+      if (!pin) return;
       callFifsBackend('getAdminDashboardData', { pin: pin }, function(res) {
-        if (btn) {
-          btn.classList.remove('btn-animated-loading');
-          btn.classList.add('btn-animated-success');
-          btn.innerHTML = '<span>✓</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">ALL SITE DATA SYNCED</span>';
-          setTimeout(function() {
-            btn.classList.remove('btn-animated-success');
-            btn.innerHTML = '<span>🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">REFRESH ALL DATA</span>';
-          }, 1200);
-        }
         if (res && res.status === 'success') {
           renderAdminTerminal(res);
           if (res.clients && typeof renderAdminClientTerminal === 'function') {
@@ -2145,10 +2144,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           }
         }
       }, function(err) {
-        if (btn) {
-          btn.classList.remove('btn-animated-loading');
-          btn.innerHTML = '<span>⚠️</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">SYNC RETRY</span>';
-        }
+        console.warn('Roster sync failed:', err);
       });
     }
     window.refreshAdminRoster = refreshAdminRoster;
@@ -9655,12 +9651,19 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
     ctx.restore();
   }
   window.playStickmanActionMovieScene = function(forceNext) {
-    var canvas = document.getElementById('stickmanActionCanvas');
-    var timerEl = document.getElementById('stickmanTimer');
-    var titleEl = document.getElementById('stickmanSceneName');
-    if (!canvas) return;
-    var ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    var canvases = [
+      document.getElementById('sectionStickmanCanvas'),
+      document.getElementById('stickmanActionCanvas')
+    ].filter(Boolean);
+    if (!canvases.length) return;
+    var timerEls = [
+      document.getElementById('sectionStickmanTimer'),
+      document.getElementById('stickmanTimer')
+    ].filter(Boolean);
+    var titleEls = [
+      document.getElementById('sectionStickmanName'),
+      document.getElementById('stickmanSceneName')
+    ].filter(Boolean);
     if (stickmanAnimFrame) {
       cancelAnimationFrame(stickmanAnimFrame);
       stickmanAnimFrame = null;
@@ -9672,38 +9675,43 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
       currentSceneIdx = Math.floor(Math.random() * SCENES.length);
     }
     var activeScene = SCENES[currentSceneIdx];
-    if (titleEl) {
-      titleEl.textContent = activeScene.name;
-      titleEl.style.color = activeScene.heroColor;
-    }
+    titleEls.forEach(function(el) { el.textContent = activeScene.name; el.style.color = activeScene.heroColor; });
     stickmanStartTime = performance.now();
     function renderFrame(now) {
       var elapsed = now - stickmanStartTime;
       if (elapsed > sceneDuration) elapsed = sceneDuration;
       var t = elapsed / 1000;
       var remaining = Math.max(0, (10 - t)).toFixed(1);
-      if (timerEl) {
-        timerEl.textContent = remaining + 's';
-        if (t >= 9.0) timerEl.textContent = '✓ MISSION READY';
-      }
-      var w = canvas.width;
-      var h = canvas.height;
-      var groundY = h - 3;
-      ctx.clearRect(0, 0, w, h);
-      // Ground line with active scene glow
-      ctx.save();
-      ctx.strokeStyle = activeScene.groundColor || 'rgba(0, 229, 255, 0.4)';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(0, groundY);
-      ctx.lineTo(w, groundY);
-      ctx.stroke();
-      ctx.restore();
-      // Render the active scene choreography
-      activeScene.render(ctx, w, h, t, groundY);
+      timerEls.forEach(function(el) {
+        el.textContent = remaining + 's';
+        if (t >= 9.0) el.textContent = '✓ MISSION READY';
+      });
+      canvases.forEach(function(cv) {
+        var ctx = cv.getContext('2d');
+        if (!ctx) return;
+        var w = cv.width;
+        var h = cv.height;
+        var groundY = h - 3;
+        ctx.clearRect(0, 0, w, h);
+        ctx.save();
+        ctx.strokeStyle = activeScene.groundColor || 'rgba(0, 229, 255, 0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(0, groundY);
+        ctx.lineTo(w, groundY);
+        ctx.stroke();
+        ctx.restore();
+        activeScene.render(ctx, w, h, t, groundY);
+      });
       if (elapsed < sceneDuration) {
         stickmanAnimFrame = requestAnimationFrame(renderFrame);
+      } else {
+        setTimeout(function() {
+          if (typeof window.playNextStickmanScene === 'function') {
+            window.playNextStickmanScene();
+          }
+        }, 1200);
       }
     }
     stickmanAnimFrame = requestAnimationFrame(renderFrame);
@@ -10402,3 +10410,22 @@ if (typeof window !== 'undefined') {
       setCardTier(courseKey, isVip ? 'base' : 'vip', evt);
     }
     window.toggleCardTier = toggleCardTier;
+
+// Auto-start stickman action animation on page load
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        if (typeof window.playStickmanActionMovieScene === 'function') {
+          window.playStickmanActionMovieScene(false);
+        }
+      }, 500);
+    });
+  } else {
+    setTimeout(function() {
+      if (typeof window.playStickmanActionMovieScene === 'function') {
+        window.playStickmanActionMovieScene(false);
+      }
+    }, 500);
+  }
+}
