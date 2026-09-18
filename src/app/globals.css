@@ -5439,3 +5439,149 @@ body.in-home .sticky-bottom-dock,
     width: 100% !important;
   }
 }
+
+
+/* ==========================================================================
+   CYBERPUNK INSTRUCTOR LIVE CHAT CONSOLE HUD (FIFS BRAND PALETTE)
+   ========================================================================== */
+.cyber-chat-container {
+  background: radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.08) 0%, rgba(7, 11, 16, 0.98) 75%), #05080e !important;
+  border: 1.5px solid #00e5ff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 0 35px rgba(0, 229, 255, 0.22), inset 0 0 30px rgba(0, 229, 255, 0.05), 0 20px 50px rgba(0, 0, 0, 0.9) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.cyber-chat-container::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #00e5ff, #ffb703, #00e5ff, transparent);
+  animation: cyberScanline 4s linear infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+@keyframes cyberScanline {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.cyber-hud-header {
+  border-bottom: 1px solid rgba(0, 229, 255, 0.25) !important;
+  background: rgba(0, 229, 255, 0.03) !important;
+  padding: 16px 20px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+}
+.cyber-panel-tag {
+  font-family: var(--font-mono, "Courier New", monospace) !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 2px !important;
+  color: #00e5ff !important;
+  text-transform: uppercase !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.cyber-badge-active {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border: 1px solid #10b981 !important;
+  color: #10b981 !important;
+  font-family: var(--font-mono, "Courier New", monospace) !important;
+  font-size: 0.74rem !important;
+  font-weight: 800 !important;
+  padding: 4px 12px !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3) !important;
+}
+.cyber-inquiries-col {
+  background: rgba(6, 10, 16, 0.85) !important;
+  border: 1px solid rgba(0, 229, 255, 0.2) !important;
+  border-radius: 8px !important;
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.8) !important;
+}
+.cyber-dock-col {
+  background: rgba(10, 15, 24, 0.92) !important;
+  border: 1px solid rgba(255, 183, 3, 0.3) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 24px rgba(255, 183, 3, 0.08), inset 0 0 20px rgba(0, 0, 0, 0.7) !important;
+}
+.cyber-textarea {
+  background: #06090f !important;
+  border: 1px solid rgba(0, 229, 255, 0.4) !important;
+  color: #f8fafc !important;
+  font-family: var(--font-mono, "Courier New", monospace) !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+.cyber-textarea:focus {
+  outline: none !important;
+  border-color: #00e5ff !important;
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.4) !important;
+}
+.cyber-send-btn {
+  background: linear-gradient(135deg, #00e5ff 0%, #0077b6 100%) !important;
+  color: #070b10 !important;
+  font-family: var(--font-display) !important;
+  font-weight: 900 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  border: none !important;
+  border-radius: 6px !important;
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.45) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+.cyber-send-btn:hover {
+  transform: translateY(-1px) scale(1.02) !important;
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.7) !important;
+}
+
+/* ==========================================================================
+   GUN REFRESH GYRATION & SCARED BACK/HOME BUTTON ANIMATIONS
+   ========================================================================== */
+@keyframes gunGyrateRecoil {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); box-shadow: 0 0 15px #00e5ff; }
+  15% { transform: translate(-4px, -3px) rotate(-8deg) scale(1.12); box-shadow: 0 0 28px #fbbf24; }
+  30% { transform: translate(5px, 4px) rotate(8deg) scale(1.16); box-shadow: 0 0 35px #ef4444; }
+  45% { transform: translate(-6px, 3px) rotate(-10deg) scale(1.10); box-shadow: 0 0 32px #f59e0b; }
+  60% { transform: translate(4px, -4px) rotate(7deg) scale(1.14); box-shadow: 0 0 30px #00e5ff; }
+  75% { transform: translate(-3px, 4px) rotate(-6deg) scale(1.06); box-shadow: 0 0 24px #ef4444; }
+  100% { transform: translate(0, 0) rotate(0deg) scale(1); box-shadow: 0 0 15px #00e5ff; }
+}
+.btn-gun-gyrate {
+  animation: gunGyrateRecoil 0.12s infinite ease-in-out !important;
+  border-color: #fbbf24 !important;
+  color: #fbbf24 !important;
+  -webkit-text-fill-color: #fbbf24 !important;
+}
+
+@keyframes scaredTrembleRun {
+  0% { transform: translateX(-48px) scale(0.72) rotate(-8deg); opacity: 0.35; filter: blur(0.4px); }
+  25% { transform: translateX(-52px) scale(0.68) rotate(10deg); opacity: 0.28; filter: blur(0.6px); }
+  50% { transform: translateX(-46px) scale(0.74) rotate(-10deg); opacity: 0.38; filter: blur(0.3px); }
+  75% { transform: translateX(-50px) scale(0.70) rotate(8deg); opacity: 0.30; filter: blur(0.5px); }
+  100% { transform: translateX(-48px) scale(0.72) rotate(-8deg); opacity: 0.35; filter: blur(0.4px); }
+}
+.btn-flee-scared {
+  animation: scaredTrembleRun 0.11s infinite alternate !important;
+  pointer-events: none !important;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.25s ease !important;
+}
+
+/* Ensure text on top nav buttons stays vibrant cyan and never turns black */
+#topNavRefreshBtn,
+#topNavBackBtn,
+#topNavHomeBtn,
+.admin-header-nav-btn {
+  color: #00e5ff !important;
+  -webkit-text-fill-color: #00e5ff !important;
+}
+#topNavRefreshBtn span,
+#topNavBackBtn span,
+#topNavHomeBtn span {
+  color: #00e5ff !important;
+  -webkit-text-fill-color: #00e5ff !important;
+}

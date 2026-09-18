@@ -2845,9 +2845,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
           {/* ================= SUB-PANEL 4: INSTRUCTOR LIVE CHAT CONSOLE (EASIEST & NATIVE) ================= */}
           <div id="admin-subpanel-chat" style={{"display": "none", "position": "relative", "zIndex": "60"}}>
-            <div style={{"background": "#0d131b", "border": "1.5px solid var(--accent-cyan)", "borderRadius": "14px", "padding": "20px", "boxShadow": "0 12px 35px rgba(0,0,0,0.85), 0 0 24px rgba(0,229,255,0.18)"}}>
+            <div className="cyber-chat-container" style={{"padding": "22px"}}>
               {/* Top Bar: Channel Status & Quick Actions */}
-              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "12px", "marginBottom": "18px", "paddingBottom": "14px", "borderBottom": "1px solid var(--border-subtle)"}}>
+              <div className="cyber-hud-header" style={{"marginBottom": "20px", "borderRadius": "8px"}}>
                 <div>
                   <div style={{"display": "flex", "alignItems": "center", "gap": "10px"}}>
                     <span className="pulse-dot" style={{"width": "10px", "height": "10px", "background": "#10b981", "boxShadow": "0 0 12px #10b981"}}>
@@ -3406,13 +3406,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             {/* Interactive Tier Toggle Switch */}
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-mastery" onClick={(e) => (window as any).toggleCardTier ? (window as any).toggleCardTier('mastery', e) : null} data-onclick="toggleCardTier('mastery', event)">
+              <div className="tier-sliding-switch" id="switch-mastery" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('mastery', e); } }} data-onclick="">
                 <div className="tier-sliding-pill" id="slider-mastery">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-mastery" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('mastery', 'base', e) : null; }} data-onclick="setCardTier('mastery', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-mastery" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('mastery', 'base', e) : null; }} data-onclick="setCardTier('mastery', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-mastery" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('mastery', 'vip', e) : null; }} data-onclick="setCardTier('mastery', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-mastery" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('mastery', 'vip', e) : null; }} data-onclick="setCardTier('mastery', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3497,13 +3497,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-combo" onClick={(e) => (window as any).toggleCardTier ? (window as any).toggleCardTier('combo', e) : null} data-onclick="toggleCardTier('combo', event)">
+              <div className="tier-sliding-switch" id="switch-combo" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('combo', e); } }} data-onclick="">
                 <div className="tier-sliding-pill" id="slider-combo">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-combo" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('combo', 'base', e) : null; }} data-onclick="setCardTier('combo', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-combo" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('combo', 'base', e) : null; }} data-onclick="setCardTier('combo', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-combo" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('combo', 'vip', e) : null; }} data-onclick="setCardTier('combo', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-combo" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('combo', 'vip', e) : null; }} data-onclick="setCardTier('combo', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3585,13 +3585,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-ccw" onClick={(e) => (window as any).toggleCardTier ? (window as any).toggleCardTier('ccw', e) : null} data-onclick="toggleCardTier('ccw', event)">
+              <div className="tier-sliding-switch" id="switch-ccw" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('ccw', e); } }} data-onclick="">
                 <div className="tier-sliding-pill" id="slider-ccw">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-ccw" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('ccw', 'base', e) : null; }} data-onclick="setCardTier('ccw', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-ccw" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('ccw', 'base', e) : null; }} data-onclick="setCardTier('ccw', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-ccw" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('ccw', 'vip', e) : null; }} data-onclick="setCardTier('ccw', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-ccw" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('ccw', 'vip', e) : null; }} data-onclick="setCardTier('ccw', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3667,13 +3667,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-hql" onClick={(e) => (window as any).toggleCardTier ? (window as any).toggleCardTier('hql', e) : null} data-onclick="toggleCardTier('hql', event)">
+              <div className="tier-sliding-switch" id="switch-hql" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('hql', e); } }} data-onclick="">
                 <div className="tier-sliding-pill" id="slider-hql">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-hql" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('hql', 'base', e) : null; }} data-onclick="setCardTier('hql', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-hql" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('hql', 'base', e) : null; }} data-onclick="setCardTier('hql', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-hql" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('hql', 'vip', e) : null; }} data-onclick="setCardTier('hql', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-hql" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('hql', 'vip', e) : null; }} data-onclick="setCardTier('hql', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3749,13 +3749,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-coaching" onClick={(e) => (window as any).toggleCardTier ? (window as any).toggleCardTier('coaching', e) : null} data-onclick="toggleCardTier('coaching', event)">
+              <div className="tier-sliding-switch" id="switch-coaching" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('coaching', e); } }} data-onclick="">
                 <div className="tier-sliding-pill" id="slider-coaching">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-coaching" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('coaching', 'base', e) : null; }} data-onclick="setCardTier('coaching', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-coaching" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('coaching', 'base', e) : null; }} data-onclick="setCardTier('coaching', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-coaching" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('coaching', 'vip', e) : null; }} data-onclick="setCardTier('coaching', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-coaching" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('coaching', 'vip', e) : null; }} data-onclick="setCardTier('coaching', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3831,13 +3831,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-cleaning" onClick={(e) => (window as any).toggleCardTier ? (window as any).toggleCardTier('cleaning', e) : null} data-onclick="toggleCardTier('cleaning', event)">
+              <div className="tier-sliding-switch" id="switch-cleaning" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('cleaning', e); } }} data-onclick="">
                 <div className="tier-sliding-pill" id="slider-cleaning">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-cleaning" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('cleaning', 'base', e) : null; }} data-onclick="setCardTier('cleaning', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-cleaning" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('cleaning', 'base', e) : null; }} data-onclick="setCardTier('cleaning', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-cleaning" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('cleaning', 'vip', e) : null; }} data-onclick="setCardTier('cleaning', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-cleaning" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('cleaning', 'vip', e) : null; }} data-onclick="setCardTier('cleaning', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3910,13 +3910,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-children" onClick={(e) => (window as any).toggleCardTier ? (window as any).toggleCardTier('children', e) : null} data-onclick="toggleCardTier('children', event)">
+              <div className="tier-sliding-switch" id="switch-children" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('children', e); } }} data-onclick="">
                 <div className="tier-sliding-pill" id="slider-children">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-children" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('children', 'base', e) : null; }} data-onclick="setCardTier('children', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-children" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('children', 'base', e) : null; }} data-onclick="setCardTier('children', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-children" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('children', 'vip', e) : null; }} data-onclick="setCardTier('children', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-children" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('children', 'vip', e) : null; }} data-onclick="setCardTier('children', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3999,13 +3999,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-alumni" onClick={(e) => (window as any).toggleCardTier ? (window as any).toggleCardTier('alumni', e) : null} data-onclick="toggleCardTier('alumni', event)">
+              <div className="tier-sliding-switch" id="switch-alumni" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('alumni', e); } }} data-onclick="">
                 <div className="tier-sliding-pill" id="slider-alumni">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-alumni" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('alumni', 'base', e) : null; }} data-onclick="setCardTier('alumni', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-alumni" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('alumni', 'base', e) : null; }} data-onclick="setCardTier('alumni', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-alumni" onClick={(e) => { e.stopPropagation(); (window as any).setCardTier ? (window as any).setCardTier('alumni', 'vip', e) : null; }} data-onclick="setCardTier('alumni', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-alumni" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('alumni', 'vip', e) : null; }} data-onclick="setCardTier('alumni', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
