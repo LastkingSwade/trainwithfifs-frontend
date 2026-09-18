@@ -111,102 +111,6 @@ export default function TrainWithFIFS(props: any) {
 
     document.addEventListener('click', handleDelegatedClick);
     document.addEventListener('change', handleDelegatedChange);
-
-    // Self-contained VIP Crown and Standard Tier Switcher
-    const COURSE_CONFIGS: Record<string, { basePrice: string; vipPrice: string; baseVal: string; vipVal: string }> = {
-      mastery: { basePrice: "$425.00", vipPrice: "$550.00", baseVal: "Mid-Atlantic Multi-State Mastery — Base Track ($425.00)", vipVal: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)" },
-      combo: { basePrice: "$249.99", vipPrice: "$375.00", baseVal: "Maryland CCW & HQL Combo — Base Track ($249.99)", vipVal: "Maryland CCW & HQL Combo — VIP Turnkey ($375.00)" },
-      ccw: { basePrice: "$199.99", vipPrice: "$325.00", baseVal: "Maryland Wear & Carry (CCW) — Base Track ($199.99)", vipVal: "Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)" },
-      hql: { basePrice: "$100.00", vipPrice: "$165.00", baseVal: "Maryland HQL (Purchase License) — Base Track ($100.00)", vipVal: "Maryland HQL (Purchase License) — VIP Turnkey ($165.00)" },
-      coaching: { basePrice: "$125.00", vipPrice: "$195.00", baseVal: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)", vipVal: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)" },
-      cleaning: { basePrice: "$75.00", vipPrice: "$110.00", baseVal: "Firearm Deep Cleaning & Inspection — Base Track ($75.00)", vipVal: "Firearm Deep Cleaning & Inspection — VIP Turnkey ($110.00)" },
-      children: { basePrice: "$199.99", vipPrice: "$240.00", baseVal: "Youth & Family Firearm Safety — Base Track ($199.99)", vipVal: "Youth & Family Firearm Safety — VIP Turnkey ($240.00)" },
-      alumni: { basePrice: "$65.00", vipPrice: "$115.00", baseVal: "FIFS Alumni Marksmanship Clinic — Base Track ($65.00)", vipVal: "FIFS Alumni Marksmanship Clinic — VIP Turnkey ($115.00)" }
-    };
-
-    (window as any).setCardTier = function(courseKey: string, targetTier: string, evt: any) {
-      if (evt && evt.stopPropagation) evt.stopPropagation();
-      const cfg = COURSE_CONFIGS[courseKey];
-      if (!cfg) return;
-      const card = document.getElementById('card-course-' + courseKey);
-      const switchBox = document.getElementById('switch-' + courseKey);
-      const badge = document.getElementById('badge-course-' + courseKey);
-      const priceElem = document.getElementById('price-course-' + courseKey);
-      const vipBox = document.getElementById('vip-box-course-' + courseKey) || document.getElementById('vip-box-' + courseKey);
-      const btnSelect = document.getElementById('btn-select-course-' + courseKey);
-      if (!card) return;
-
-      if (targetTier === 'vip') {
-        card.classList.add('vip-mode-active');
-        card.style.setProperty('background', 'linear-gradient(135deg, rgba(255, 183, 3, 0.14) 0%, rgba(13, 19, 27, 0.98) 100%)', 'important');
-        card.style.setProperty('border', '2px solid var(--accent-amber)', 'important');
-        card.style.setProperty('box-shadow', '0 0 28px rgba(255, 183, 3, 0.4), 0 12px 36px rgba(0, 0, 0, 0.85)', 'important');
-        if (switchBox) switchBox.classList.add('vip-active');
-        if (badge) badge.style.setProperty('display', 'block', 'important');
-        if (vipBox) vipBox.style.setProperty('display', 'block', 'important');
-        if (priceElem) {
-          priceElem.innerHTML = `<span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-amber);">${cfg.vipPrice}</span><span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>`;
-        }
-        if (btnSelect) {
-          btnSelect.textContent = `Select 👑 VIP (${cfg.vipPrice}) & Reserve Seat →`;
-          btnSelect.className = "btn-select-course btn-vip-select";
-          btnSelect.style.setProperty('background', 'linear-gradient(135deg, #ffb703 0%, #d49000 100%)', 'important');
-          btnSelect.style.setProperty('color', '#070b10', 'important');
-          btnSelect.setAttribute('data-onclick', `selectCourse("${cfg.vipVal}")`);
-        }
-      } else {
-        card.classList.remove('vip-mode-active');
-        card.style.setProperty('background', '#0d131b', 'important');
-        card.style.setProperty('border', '1px solid rgba(0, 229, 255, 0.35)', 'important');
-        card.style.setProperty('box-shadow', 'none', 'important');
-        if (switchBox) switchBox.classList.remove('vip-active');
-        if (badge) badge.style.setProperty('display', 'none', 'important');
-        if (vipBox) vipBox.style.setProperty('display', 'none', 'important');
-        if (priceElem) {
-          priceElem.innerHTML = `<span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">${cfg.basePrice}</span><span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>`;
-        }
-        if (btnSelect) {
-          btnSelect.textContent = `Select Base (${cfg.basePrice}) & Reserve Seat →`;
-          btnSelect.className = "btn-select-course";
-          btnSelect.style.setProperty('background', 'var(--accent-cyan)', 'important');
-          btnSelect.style.setProperty('color', '#070b10', 'important');
-          btnSelect.setAttribute('data-onclick', `selectCourse("${cfg.baseVal}")`);
-        }
-      }
-    };
-
-    (window as any).toggleCardTier = function(courseKey: string, evt: any) {
-      if (evt && evt.stopPropagation) evt.stopPropagation();
-      const card = document.getElementById('card-course-' + courseKey);
-      const isVip = card && card.classList.contains('vip-mode-active');
-      (window as any).setCardTier(courseKey, isVip ? 'base' : 'vip', evt);
-    };
-
-    // After-Hours 5 PM EST Status Light Synchronizer
-    const syncOperatingHoursDisplay = () => {
-      try {
-        const estStr = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour12: false, hour: 'numeric' }).format(new Date());
-        const hour = parseInt(estStr, 10);
-        const isOpen = (hour >= 9 && hour < 17);
-        const dot = document.getElementById('live-status-dot');
-        const arrowGuide = document.getElementById('neon-start-guide');
-        if (dot) {
-          dot.style.setProperty('background', isOpen ? '#10b981' : '#ef4444', 'important');
-          dot.style.setProperty('box-shadow', isOpen ? '0 0 12px #10b981' : '0 0 12px #ef4444', 'important');
-          dot.title = isOpen ? 'Live Training & Student Operations Active (9 AM – 5 PM EST)' : 'Standby Mode — Live ops resume at 9 AM EST (booking open 24/7)';
-        }
-        if (arrowGuide) {
-          arrowGuide.style.setProperty('border-color', isOpen ? 'var(--accent-cyan)' : '#ef4444', 'important');
-          arrowGuide.style.setProperty('background', isOpen ? 'rgba(0, 229, 255, 0.12)' : 'rgba(239, 68, 68, 0.16)', 'important');
-          arrowGuide.style.setProperty('color', isOpen ? 'var(--accent-cyan)' : '#ef4444', 'important');
-        }
-      } catch (err) {
-        console.error('Error syncing operating hours display:', err);
-      }
-    };
-    syncOperatingHoursDisplay();
-    const operatingHoursInterval = setInterval(syncOperatingHoursDisplay, 30000);
-
     
     // Ensure live chat opens the real 2-way chat console with background polling
     (window as any).handleLiveChatSubmit = function(e: any) {
@@ -745,7 +649,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           ← BACK
         
             </button>
-            <button type="button" aria-label="Refresh and sync application data" className="btn-return-home btn-universal-refresh" id="topNavRefreshBtn" onClick={(e) => (window as any).triggerTopNavGunReload ? (window as any).triggerTopNavGunReload(e) : null} data-onclick="window.triggerTopNavGunReload(event)" style={{"background": "rgba(16, 22, 31, 0.9)", "border": "2px solid var(--accent-cyan)", "color": "#00f0ff", "minHeight": "44px", "padding": "8px 16px"}}>
+            <button type="button" aria-label="Refresh and sync application data" className="btn-return-home btn-universal-refresh" id="topNavRefreshBtn" data-onclick="window.triggerTopNavGunReload(event)" style={{"background": "rgba(16, 22, 31, 0.9)", "border": "2px solid var(--accent-cyan)", "color": "#00f0ff", "minHeight": "44px", "padding": "8px 16px"}}>
               <span className="refresh-ui-text">
                 🔄 REFRESH
               </span>
@@ -2275,7 +2179,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           {/* 4 INTERACTIVE INTELLIGENCE CARDS (Primary Navigation Deck - MSP Portal Styling) */}
           <div className="admin-intel-cards-container msp-intel-deck-grid" style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(260px, 1fr))", "gap": "16px", "margin": "20px 0 24px"}}>
             {/* Card 1: Student Roster & Ops */}
-            <div className="portal-feature-launcher-card msp-intel-card msp-card-cyan active" id="btn-admin-tab-roster" onClick={() => (window as any).openAdminSubpanelModal ? (window as any).openAdminSubpanelModal('roster') : (window as any).switchAdminTab?.('roster')} data-onclick="openAdminSubpanelModal('roster')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.25)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-cyan active" id="btn-admin-tab-roster" data-onclick="switchAdminTab('roster')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.25)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-cyan" style={{"color": "var(--accent-cyan)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                   STUDENT ENROLLMENT & OPS
@@ -2288,14 +2192,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </p>
               </div>
               <div>
-                <button className="btn-primary msp-card-action-btn action-cyan" type="button" onClick={(e) => { e.stopPropagation(); (window as any).openAdminSubpanelModal ? (window as any).openAdminSubpanelModal('roster') : (window as any).switchAdminTab?.('roster'); }} data-onclick="openAdminSubpanelModal('roster'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-cyan)", "color": "#070b10", "cursor": "pointer"}}>
-                  LAUNCH ROSTER PORTAL
+                <button className="btn-primary msp-card-action-btn action-cyan" type="button" data-onclick="switchAdminTab('roster'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-cyan)", "color": "#070b10", "cursor": "pointer"}}>
+                  LAUNCH ROSTER PORTAL ↗
                 </button>
               </div>
             </div>
 
             {/* Card 2: Future Initiative Clients */}
-            <div className="portal-feature-launcher-card msp-intel-card msp-card-amber" id="btn-admin-tab-clients" onClick={() => (window as any).openAdminSubpanelModal ? (window as any).openAdminSubpanelModal('clients') : (window as any).switchAdminTab?.('clients')} data-onclick="openAdminSubpanelModal('clients')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-amber" id="btn-admin-tab-clients" data-onclick="switchAdminTab('clients')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-amber" style={{"color": "var(--accent-amber)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                   VIP PERMIT TRACKING & REGISTRY
@@ -2308,14 +2212,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </p>
               </div>
               <div>
-                <button className="btn-primary msp-card-action-btn action-amber" type="button" onClick={(e) => { e.stopPropagation(); (window as any).openAdminSubpanelModal ? (window as any).openAdminSubpanelModal('clients') : (window as any).switchAdminTab?.('clients'); }} data-onclick="openAdminSubpanelModal('clients'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(255, 183, 3, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-amber)", "color": "#070b10", "cursor": "pointer"}}>
-                  LAUNCH CLIENT REGISTRY
+                <button className="btn-primary msp-card-action-btn action-amber" type="button" data-onclick="switchAdminTab('clients'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(255, 183, 3, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-amber)", "color": "#070b10", "cursor": "pointer"}}>
+                  LAUNCH CLIENT REGISTRY ↗
                 </button>
               </div>
             </div>
 
             {/* Card 3: Live Chat Command */}
-            <div className="portal-feature-launcher-card msp-intel-card msp-card-purple" id="btn-admin-tab-chat" onClick={() => (window as any).openAdminSubpanelModal ? (window as any).openAdminSubpanelModal('chat') : (window as any).switchAdminTab?.('chat')} data-onclick="openAdminSubpanelModal('chat')" role="button" tabIndex={0} style={{"border": "2px solid #a855f7", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(168, 85, 247, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-purple" id="btn-admin-tab-chat" data-onclick="switchAdminTab('chat')" role="button" tabIndex={0} style={{"border": "2px solid #a855f7", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(168, 85, 247, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <span className="card-badge msp-card-unread-badge hidden" id="admin-tab-chat-unread" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "#ef4444", "color": "#fff", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px #ef4444"}}>0</span>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-purple" style={{"color": "#c084fc", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
@@ -2329,14 +2233,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </p>
               </div>
               <div>
-                <button className="btn-primary msp-card-action-btn action-purple" type="button" onClick={(e) => { e.stopPropagation(); (window as any).openAdminSubpanelModal ? (window as any).openAdminSubpanelModal('chat') : (window as any).switchAdminTab?.('chat'); }} data-onclick="openAdminSubpanelModal('chat'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(168, 85, 247, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#a855f7", "color": "#070b10", "cursor": "pointer"}}>
-                  OPEN CHAT COMMAND
+                <button className="btn-primary msp-card-action-btn action-purple" type="button" data-onclick="switchAdminTab('chat'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(168, 85, 247, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#a855f7", "color": "#070b10", "cursor": "pointer"}}>
+                  OPEN CHAT COMMAND ↗
                 </button>
               </div>
             </div>
 
             {/* Card 4: Website Telemetry */}
-            <div className="portal-feature-launcher-card msp-intel-card msp-card-emerald" id="btn-admin-tab-telemetry" onClick={() => (window as any).openAdminSubpanelModal ? (window as any).openAdminSubpanelModal('telemetry') : (window as any).switchAdminTab?.('telemetry')} data-onclick="openAdminSubpanelModal('telemetry')" role="button" tabIndex={0} style={{"border": "2px solid #10b981", "background": "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(16, 185, 129, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-emerald" id="btn-admin-tab-telemetry" data-onclick="switchAdminTab('telemetry')" role="button" tabIndex={0} style={{"border": "2px solid #10b981", "background": "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(16, 185, 129, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-emerald" style={{"color": "#34d399", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                   SYSTEM INTELLIGENCE & TRAFFIC
@@ -2349,8 +2253,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </p>
               </div>
               <div>
-                <button className="btn-primary msp-card-action-btn action-emerald" type="button" onClick={(e) => { e.stopPropagation(); (window as any).openAdminSubpanelModal ? (window as any).openAdminSubpanelModal('telemetry') : (window as any).switchAdminTab?.('telemetry'); }} data-onclick="openAdminSubpanelModal('telemetry'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(16, 185, 129, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#10b981", "color": "#070b10", "cursor": "pointer"}}>
-                  VIEW LIVE RADAR
+                <button className="btn-primary msp-card-action-btn action-emerald" type="button" data-onclick="switchAdminTab('telemetry'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(16, 185, 129, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#10b981", "color": "#070b10", "cursor": "pointer"}}>
+                  VIEW LIVE RADAR ↗
                 </button>
               </div>
             </div>
@@ -2358,19 +2262,19 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
 {/* SECONDARY TACTICAL UTILITY TOOLBAR */}
           <div className="admin-secondary-toolbar">
-            <button className="btn-tactical-hud hud-cyan" id="btn-admin-refresh-data" onClick={() => (window as any).refreshAdminRoster?.()} data-onclick="refreshAdminRoster()" title="Synchronize student and client records from Supabase" type="button">
+            <button className="btn-tactical-hud hud-cyan" id="btn-admin-refresh-data" data-onclick="refreshAdminRoster()" title="Synchronize student and client records from Supabase" type="button">
               <span>🔄</span> <span>REFRESH ROSTER</span>
             </button>
-            <button className="btn-tactical-hud hud-purple" id="btn-admin-invite-hdr" onClick={() => (window as any).openAdminInviteModal?.()} data-onclick="openAdminInviteModal()" title="Dispatch student/client portal onboarding invitation" type="button">
+            <button className="btn-tactical-hud hud-purple" id="btn-admin-invite-hdr" data-onclick="openAdminInviteModal()" title="Dispatch student/client portal onboarding invitation" type="button">
               <span>✉️</span> <span>SEND INVITE</span>
             </button>
-            <button className="btn-tactical-hud hud-cyan" onClick={() => (window as any).loadDemoStudent?.()} data-onclick="loadDemoStudent()" title="Test Student Portal Dashboard with Mock Student Data" type="button">
+            <button className="btn-tactical-hud hud-cyan" data-onclick="loadDemoStudent()" title="Test Student Portal Dashboard with Mock Student Data" type="button">
               <span>👁️</span> <span>DEMO STUDENT</span>
             </button>
-            <button className="btn-tactical-hud hud-amber" onClick={() => (window as any).loadDemoClient?.()} data-onclick="loadDemoClient()" title="Test Client Portal Dashboard with Mock Client Data" type="button">
+            <button className="btn-tactical-hud hud-amber" data-onclick="loadDemoClient()" title="Test Client Portal Dashboard with Mock Client Data" type="button">
               <span>👁️</span> <span>DEMO CLIENT</span>
             </button>
-            <button className="btn-tactical-hud hud-red" id="btn-admin-sign-out" onClick={() => (window as any).adminSignOut?.()} data-onclick="adminSignOut()" title="Sign out and lock Admin Command Center" type="button">
+            <button className="btn-tactical-hud hud-red" id="btn-admin-sign-out" data-onclick="adminSignOut()" title="Sign out and lock Admin Command Center" type="button">
               <span>🚪</span> <span>LOCK TERMINAL</span>
             </button>
           </div>
@@ -2397,26 +2301,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           >
             ✕
           </button>
-          <div style={{"display": "flex", "alignItems": "center", "justifyContent": "space-between", "flexWrap": "wrap", "gap": "10px", "marginBottom": "16px", "paddingRight": "50px"}}>
-            <div>
-              <span id="adminSubpanelModalEyebrow" style={{"color": "var(--accent-cyan)", "fontFamily": "var(--font-display)", "fontSize": "0.82rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase", "display": "block", "marginBottom": "4px"}}>
-                ADMIN INTELLIGENCE PORTAL
-              </span>
-              <h3 id="adminSubpanelModalTitle" style={{"fontFamily": "var(--font-display)", "fontSize": "1.65rem", "color": "#fff", "margin": 0, "fontWeight": "800"}}>
-                Portal View
-              </h3>
-            </div>
-            <button 
-              className="btn-tactical-hud hud-cyan" 
-              id="btn-modal-intel-refresh" 
-              onClick={(e) => (window as any).triggerModalAdminRefresh ? (window as any).triggerModalAdminRefresh(e.currentTarget) : null} 
-              data-onclick="triggerModalAdminRefresh(this)" 
-              title="Synchronize active subpanel data with tactical reload animation" 
-              type="button"
-              style={{"minHeight": "38px", "padding": "8px 16px", "borderRadius": "8px", "background": "rgba(0, 229, 255, 0.12)", "border": "1.5px solid var(--accent-cyan)", "color": "#00f0ff", "cursor": "pointer", "fontWeight": "800", "fontSize": "0.85rem", "display": "inline-flex", "alignItems": "center", "gap": "8px"}}
-            >
-              <span>🔄</span> <span>REFRESH INTEL</span>
-            </button>
+          <div style={{"marginBottom": "16px", "paddingRight": "50px"}}>
+            <span id="adminSubpanelModalEyebrow" style={{"color": "var(--accent-cyan)", "fontFamily": "var(--font-display)", "fontSize": "0.82rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase", "display": "block", "marginBottom": "4px"}}>
+              ADMIN INTELLIGENCE PORTAL
+            </span>
+            <h3 id="adminSubpanelModalTitle" style={{"fontFamily": "var(--font-display)", "fontSize": "1.65rem", "color": "#fff", "margin": 0, "fontWeight": "800"}}>
+              Portal View
+            </h3>
           </div>
           
           {/* SUBPANEL 1: STUDENT ROSTER */}
@@ -2845,9 +2736,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
           {/* ================= SUB-PANEL 4: INSTRUCTOR LIVE CHAT CONSOLE (EASIEST & NATIVE) ================= */}
           <div id="admin-subpanel-chat" style={{"display": "none", "position": "relative", "zIndex": "60"}}>
-            <div className="cyber-chat-container" style={{"padding": "22px"}}>
+            <div style={{"background": "#0d131b", "border": "1.5px solid var(--accent-cyan)", "borderRadius": "14px", "padding": "20px", "boxShadow": "0 12px 35px rgba(0,0,0,0.85), 0 0 24px rgba(0,229,255,0.18)"}}>
               {/* Top Bar: Channel Status & Quick Actions */}
-              <div className="cyber-hud-header" style={{"marginBottom": "20px", "borderRadius": "8px"}}>
+              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "12px", "marginBottom": "18px", "paddingBottom": "14px", "borderBottom": "1px solid var(--border-subtle)"}}>
                 <div>
                   <div style={{"display": "flex", "alignItems": "center", "gap": "10px"}}>
                     <span className="pulse-dot" style={{"width": "10px", "height": "10px", "background": "#10b981", "boxShadow": "0 0 12px #10b981"}}>
@@ -3243,7 +3134,17 @@ document.addEventListener('submit', handleDelegatedSubmit);
               Important guidelines to ensure your class day is smooth, safe, and stress-free. Click any section for detailed equipment standards and rental procedures.
             </p>
           </div>
-          
+          {/* Stickmen Action Movie Reenactment Banner Stage */}
+          <div style={{"maxWidth": "720px", "margin": "0 auto 20px auto", "overflow": "hidden", "borderRadius": "12px", "border": "1.5px solid rgba(0, 229, 255, 0.3)", "background": "linear-gradient(180deg, rgba(3, 7, 12, 0.95) 0%, rgba(0, 229, 255, 0.08) 100%)", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.15)"}}>
+            <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "padding": "8px 14px", "fontFamily": "monospace", "fontSize": "0.74rem", "color": "var(--accent-cyan)", "borderBottom": "1px dashed rgba(0, 229, 255, 0.25)"}}>
+              <span id="sectionStickmanTitle" style={{"display": "flex", "alignItems": "center", "gap": "6px", "cursor": "pointer"}} data-onclick="if(typeof window.playNextStickmanScene==='function'){window.playNextStickmanScene();}" title="Click to cycle action choreography">
+                🎬 <strong>10s ACTION REENACTMENT:</strong> <span id="sectionStickmanName" style={{"color": "#00e5ff", "fontWeight": "800"}}>MATRIX ROOFTOP GUN-FU</span>
+                <span style={{"fontSize": "0.70rem", "color": "var(--text-muted)", "border": "1px solid rgba(255,255,255,0.2)", "borderRadius": "4px", "padding": "1px 5px", "marginLeft": "6px"}}>🎲 TAP TO CYCLE</span>
+              </span>
+              <span id="sectionStickmanTimer" style={{"color": "var(--accent-amber)", "fontWeight": "800"}}>10.0s</span>
+            </div>
+            <canvas id="sectionStickmanCanvas" width="720" height="110" style={{"width": "100%", "height": "110px", "display": "block", "cursor": "pointer"}} data-onclick="if(typeof window.playNextStickmanScene==='function'){window.playNextStickmanScene();}" title="Tap to cycle action sequence"></canvas>
+          </div>
           <div className="checklist-grid">
             <div className="checklist-box interactive-expect-card" data-onclick="openExpectationModal('handgun')" role="button" tabIndex="0" title="Click to view detailed handgun &amp; equipment breakdown">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
@@ -3406,13 +3307,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             {/* Interactive Tier Toggle Switch */}
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-mastery" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('mastery', e); } }} data-onclick="">
-                <div className="tier-sliding-pill" id="slider-mastery">
+              <div className="tier-sliding-switch" id="switch-mastery" data-onclick="toggleCardTier('mastery', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.toggleCardTier) window.toggleCardTier('mastery', e); }}>
+                <div className="tier-sliding-pill" id="slider-mastery" style={{ pointerEvents: 'none' }}>
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-mastery" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('mastery', 'base', e) : null; }} data-onclick="setCardTier('mastery', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-mastery" data-onclick="setCardTier('mastery', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('mastery', 'base', e); }} type="button" aria-label="Standard Mode">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-mastery" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('mastery', 'vip', e) : null; }} data-onclick="setCardTier('mastery', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-mastery" data-onclick="setCardTier('mastery', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('mastery', 'vip', e); }} type="button" aria-label="VIP Mode">
                   👑
                 </button>
               </div>
@@ -3497,13 +3398,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-combo" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('combo', e); } }} data-onclick="">
+              <div className="tier-sliding-switch" id="switch-combo" data-onclick="toggleCardTier('combo', event)">
                 <div className="tier-sliding-pill" id="slider-combo">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-combo" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('combo', 'base', e) : null; }} data-onclick="setCardTier('combo', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-combo" data-onclick="setCardTier('combo', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-combo" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('combo', 'vip', e) : null; }} data-onclick="setCardTier('combo', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-combo" data-onclick="setCardTier('combo', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3585,13 +3486,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-ccw" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('ccw', e); } }} data-onclick="">
+              <div className="tier-sliding-switch" id="switch-ccw" data-onclick="toggleCardTier('ccw', event)">
                 <div className="tier-sliding-pill" id="slider-ccw">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-ccw" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('ccw', 'base', e) : null; }} data-onclick="setCardTier('ccw', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-ccw" data-onclick="setCardTier('ccw', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-ccw" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('ccw', 'vip', e) : null; }} data-onclick="setCardTier('ccw', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-ccw" data-onclick="setCardTier('ccw', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3667,13 +3568,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-hql" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('hql', e); } }} data-onclick="">
+              <div className="tier-sliding-switch" id="switch-hql" data-onclick="toggleCardTier('hql', event)">
                 <div className="tier-sliding-pill" id="slider-hql">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-hql" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('hql', 'base', e) : null; }} data-onclick="setCardTier('hql', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-hql" data-onclick="setCardTier('hql', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-hql" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('hql', 'vip', e) : null; }} data-onclick="setCardTier('hql', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-hql" data-onclick="setCardTier('hql', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3749,13 +3650,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-coaching" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('coaching', e); } }} data-onclick="">
+              <div className="tier-sliding-switch" id="switch-coaching" data-onclick="toggleCardTier('coaching', event)">
                 <div className="tier-sliding-pill" id="slider-coaching">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-coaching" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('coaching', 'base', e) : null; }} data-onclick="setCardTier('coaching', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-coaching" data-onclick="setCardTier('coaching', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-coaching" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('coaching', 'vip', e) : null; }} data-onclick="setCardTier('coaching', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-coaching" data-onclick="setCardTier('coaching', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3831,13 +3732,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-cleaning" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('cleaning', e); } }} data-onclick="">
+              <div className="tier-sliding-switch" id="switch-cleaning" data-onclick="toggleCardTier('cleaning', event)">
                 <div className="tier-sliding-pill" id="slider-cleaning">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-cleaning" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('cleaning', 'base', e) : null; }} data-onclick="setCardTier('cleaning', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-cleaning" data-onclick="setCardTier('cleaning', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-cleaning" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('cleaning', 'vip', e) : null; }} data-onclick="setCardTier('cleaning', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-cleaning" data-onclick="setCardTier('cleaning', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3910,13 +3811,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-children" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('children', e); } }} data-onclick="">
+              <div className="tier-sliding-switch" id="switch-children" data-onclick="toggleCardTier('children', event)">
                 <div className="tier-sliding-pill" id="slider-children">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-children" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('children', 'base', e) : null; }} data-onclick="setCardTier('children', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-children" data-onclick="setCardTier('children', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-children" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('children', 'vip', e) : null; }} data-onclick="setCardTier('children', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-children" data-onclick="setCardTier('children', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
@@ -3999,13 +3900,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-alumni" onClick={(e) => { if (e.target === e.currentTarget) { (window as any).toggleCardTier && (window as any).toggleCardTier('alumni', e); } }} data-onclick="">
+              <div className="tier-sliding-switch" id="switch-alumni" data-onclick="toggleCardTier('alumni', event)">
                 <div className="tier-sliding-pill" id="slider-alumni">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-alumni" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('alumni', 'base', e) : null; }} data-onclick="setCardTier('alumni', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-alumni" data-onclick="setCardTier('alumni', 'base', event)" type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-alumni" onClick={(e) => { e.stopPropagation(); if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) e.nativeEvent.stopImmediatePropagation(); (window as any).setCardTier ? (window as any).setCardTier('alumni', 'vip', e) : null; }} data-onclick="setCardTier('alumni', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-alumni" data-onclick="setCardTier('alumni', 'vip', event)" type="button">
                   👑
                 </button>
               </div>
