@@ -2162,103 +2162,64 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </div>
         <div className="hidden" id="admin-command-dashboard">
           {/* High-Tech Instructor Terminal Header Bar */}
-          <div className="panel-header" style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "16px", "marginBottom": "22px"}}>
+          <div className="panel-header" style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "16px", "marginBottom": "18px"}}>
             <div>
               <span className="badge-instructor" style={{"marginBottom": "6px"}}>
                 Lead Instructor Operations
               </span>
               <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.85rem", "color": "#fff", "textTransform": "uppercase", "letterSpacing": "1.2px", "margin": "4px 0 2px"}}>
-                
-              Instructor Operations & Intelligence Terminal
-            
+                Instructor Operations & Intelligence Terminal
               </h3>
               <p style={{"color": "var(--text-muted)", "fontSize": "0.88rem"}}>
                 Synchronized student roster, client permit tracking, and verified real-time device telemetry.
               </p>
             </div>
-            <div className="admin-top-actions-cluster" style={{"display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap"}}>
-              <button className="btn-tactical-hud hud-cyan" id="btn-admin-refresh-data" data-onclick="refreshAdminRoster()" title="Synchronize student and client records from Google Cloud" type="button">
-                <span>
-                  🔄
-                </span>
-                <span>
-                  REFRESH ROSTER
-                </span>
-              </button>
-              <button className="btn-tactical-hud hud-purple" id="btn-admin-invite-hdr" data-onclick="openAdminInviteModal()" title="Dispatch student/client portal onboarding invitation" type="button">
-                <span>
-                  ✉️
-                </span>
-                <span>
-                  SEND INVITE
-                </span>
-              </button>
-              <button className="btn-tactical-hud hud-cyan" data-onclick="loadDemoStudent()" title="Test Student Portal Dashboard with Mock Student Data" type="button">
-                <span>
-                  👁️
-                </span>
-                <span>
-                  DEMO STUDENT
-                </span>
-              </button>
-              <button className="btn-tactical-hud hud-amber" data-onclick="loadDemoClient()" title="Test Client Portal Dashboard with Mock Client Data" type="button">
-                <span>
-                  👁️
-                </span>
-                <span>
-                  DEMO CLIENT
-                </span>
-              </button>
-              <button className="btn-tactical-hud hud-red" id="btn-admin-sign-out" data-onclick="adminSignOut()" title="Sign out and lock Admin Command Center" type="button">
-                <span>
-                  🚪
-                </span>
-                <span>
-                  LOCK TERMINAL
-                </span>
-              </button>
+          </div>
+
+          {/* 4 INTERACTIVE INTELLIGENCE CARDS (Primary Navigation Deck) */}
+          <div className="admin-intel-cards-container">
+            <div className="admin-intel-card active" id="btn-admin-tab-roster" data-onclick="switchAdminTab('roster')">
+              <div className="card-icon">👥</div>
+              <div className="card-title">Student Roster & Ops</div>
+              <div className="card-meta">Live training attendees & certifications</div>
+            </div>
+            <div className="admin-intel-card" id="btn-admin-tab-clients" data-onclick="switchAdminTab('clients')">
+              <div className="card-icon">🛡️</div>
+              <div className="card-title">Future Initiative Clients</div>
+              <div className="card-meta">Permit tracking & private consultation clients</div>
+            </div>
+            <div className="admin-intel-card" id="btn-admin-tab-chat" data-onclick="switchAdminTab('chat')">
+              <div className="card-icon">💬</div>
+              <div className="card-title">Live Chat Command</div>
+              <div className="card-meta">Two-way visitor communications</div>
+              <span className="card-badge hidden" id="admin-tab-chat-unread">0</span>
+            </div>
+            <div className="admin-intel-card" id="btn-admin-tab-telemetry" data-onclick="switchAdminTab('telemetry')">
+              <div className="card-icon">📡</div>
+              <div className="card-title">Website Telemetry</div>
+              <div className="card-meta">Live visitor radar & system health</div>
             </div>
           </div>
-          {/* High-Visibility 4-Way Unified HUD Viewport Navigation Deck */}
-          <div className="admin-view-toggle-bar tactical-tab-deck">
-            <button className="admin-toggle-btn active" id="btn-admin-tab-roster" data-onclick="switchAdminTab('roster')" type="button">
-              <span>
-                👥
-              </span>
-              <span>
-                Student Roster & Ops
-              </span>
+
+          {/* SECONDARY TACTICAL UTILITY TOOLBAR */}
+          <div className="admin-secondary-toolbar">
+            <button className="btn-tactical-hud hud-cyan" id="btn-admin-refresh-data" data-onclick="refreshAdminRoster()" title="Synchronize student and client records from Supabase" type="button">
+              <span>🔄</span> <span>REFRESH ROSTER</span>
             </button>
-            <button className="admin-toggle-btn" id="btn-admin-tab-clients" data-onclick="switchAdminTab('clients')" type="button">
-              <span>
-                🛡️
-              </span>
-              <span>
-                Future Initiative Clients
-              </span>
+            <button className="btn-tactical-hud hud-purple" id="btn-admin-invite-hdr" data-onclick="openAdminInviteModal()" title="Dispatch student/client portal onboarding invitation" type="button">
+              <span>✉️</span> <span>SEND INVITE</span>
             </button>
-            <button className="admin-toggle-btn" id="btn-admin-tab-chat" data-onclick="switchAdminTab('chat')" type="button">
-              <span>
-                💬
-              </span>
-              <span>
-                Live Chat Command
-              </span>
-              <span className="hud-unread-pill" id="admin-tab-chat-unread" style={{"display": "none"}}>
-                0
-              </span>
+            <button className="btn-tactical-hud hud-cyan" data-onclick="loadDemoStudent()" title="Test Student Portal Dashboard with Mock Student Data" type="button">
+              <span>👁️</span> <span>DEMO STUDENT</span>
             </button>
-            <button className="admin-toggle-btn" id="btn-admin-tab-analytics" data-onclick="switchAdminTab('analytics')" type="button">
-              <span>
-                📊
-              </span>
-              <span>
-                Website Telemetry
-              </span>
+            <button className="btn-tactical-hud hud-amber" data-onclick="loadDemoClient()" title="Test Client Portal Dashboard with Mock Client Data" type="button">
+              <span>👁️</span> <span>DEMO CLIENT</span>
+            </button>
+            <button className="btn-tactical-hud hud-red" id="btn-admin-sign-out" data-onclick="adminSignOut()" title="Sign out and lock Admin Command Center" type="button">
+              <span>🚪</span> <span>LOCK TERMINAL</span>
             </button>
           </div>
-          {/* ================= SUB-PANEL 1: STUDENT ROSTER ================= */}
-          <div id="admin-subpanel-roster">
+          id="admin-subpanel-roster">
             {/* New Student Registration Notification Alert Beacon */}
             <div id="admin-new-student-alert-box" style={{"display": "none", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(13, 19, 27, 0.98) 100%)", "border": "2px solid var(--accent-cyan)", "boxShadow": "0 0 25px var(--accent-cyan-glow)", "borderRadius": "12px", "padding": "14px 18px", "marginBottom": "20px", "alignItems": "center", "justifyContent": "space-between", "gap": "14px", "flexWrap": "wrap"}}>
               <div style={{"display": "flex", "alignItems": "center", "gap": "12px"}}>
