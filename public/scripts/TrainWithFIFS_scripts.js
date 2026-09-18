@@ -3009,7 +3009,7 @@ function updateAdminChatBadgeCount() {
       }
     }
     window.closeCourseBookingModal = closeCourseBookingModal;
-    var COURSE_TIER_CONFIG = {
+        var COURSE_TIER_CONFIG = {
       mastery: {
         basePrice: "$425.00",
         vipPrice: "$550.00",
@@ -3042,23 +3042,24 @@ function updateAdminChatBadgeCount() {
       },
       cleaning: {
         basePrice: "$75.00",
-        vipPrice: "$115.00",
-        baseValue: "Gun Cleaning & Maintenance — Base Track ($75.00)",
-        vipValue: "Gun Cleaning & Maintenance — VIP Turnkey ($115.00)"
+        vipPrice: "$110.00",
+        baseValue: "Firearm Deep Cleaning & Inspection — Base Track ($75.00)",
+        vipValue: "Firearm Deep Cleaning & Inspection — VIP Turnkey ($110.00)"
       },
       children: {
         basePrice: "$199.99",
-        vipPrice: "$265.00",
-        baseValue: "Children's Safety Class — Base Track ($199.99)",
-        vipValue: "Children's Safety Class — VIP Turnkey ($265.00)"
+        vipPrice: "$240.00",
+        baseValue: "Youth & Family Firearm Safety — Base Track ($199.99)",
+        vipValue: "Youth & Family Firearm Safety — VIP Turnkey ($240.00)"
       },
       alumni: {
         basePrice: "$65.00",
         vipPrice: "$115.00",
-        baseValue: "FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)",
-        vipValue: "FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
+        baseValue: "FIFS Alumni Marksmanship Clinic — Base Track ($65.00)",
+        vipValue: "FIFS Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
       }
     };
+    window.COURSE_TIER_CONFIG = COURSE_TIER_CONFIG;
     window.COURSE_TIER_CONFIG = COURSE_TIER_CONFIG;
     function setCardTier(courseKey, targetTier, evt) {
       if (evt && evt.stopPropagation) evt.stopPropagation();
@@ -6649,7 +6650,7 @@ function getStepNumberFromStatus(statusStr) {
       if (modal) modal.classList.remove('active');
     }
     // ================= DYNAMIC COURSE CARD VIP TOGGLE LOGIC =================
-    var COURSE_TIER_CONFIG = {
+        var COURSE_TIER_CONFIG = {
       mastery: {
         basePrice: "$425.00",
         vipPrice: "$550.00",
@@ -6682,23 +6683,24 @@ function getStepNumberFromStatus(statusStr) {
       },
       cleaning: {
         basePrice: "$75.00",
-        vipPrice: "$115.00",
-        baseValue: "Gun Cleaning & Maintenance — Base Track ($75.00)",
-        vipValue: "Gun Cleaning & Maintenance — VIP Turnkey ($115.00)"
+        vipPrice: "$110.00",
+        baseValue: "Firearm Deep Cleaning & Inspection — Base Track ($75.00)",
+        vipValue: "Firearm Deep Cleaning & Inspection — VIP Turnkey ($110.00)"
       },
       children: {
         basePrice: "$199.99",
-        vipPrice: "$265.00",
-        baseValue: "Children's Safety Class — Base Track ($199.99)",
-        vipValue: "Children's Safety Class — VIP Turnkey ($265.00)"
+        vipPrice: "$240.00",
+        baseValue: "Youth & Family Firearm Safety — Base Track ($199.99)",
+        vipValue: "Youth & Family Firearm Safety — VIP Turnkey ($240.00)"
       },
       alumni: {
         basePrice: "$65.00",
         vipPrice: "$115.00",
-        baseValue: "FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)",
-        vipValue: "FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
+        baseValue: "FIFS Alumni Marksmanship Clinic — Base Track ($65.00)",
+        vipValue: "FIFS Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
       }
     };
+    window.COURSE_TIER_CONFIG = COURSE_TIER_CONFIG;
     function toggleCourseVip(courseKey) {
       var config = COURSE_TIER_CONFIG[courseKey];
       if (!config) return;
@@ -10226,56 +10228,57 @@ if (typeof window !== 'undefined') {
 
 
     // Robust Course Tier Switcher (Standard vs VIP)
-    var COURSE_TIER_CONFIG = {
+        var COURSE_TIER_CONFIG = {
       mastery: {
-        basePrice: "25.00",
-        vipPrice: "50.00",
-        baseValue: "Mid-Atlantic Multi-State Mastery — Base Track (25.00)",
-        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey (50.00)"
+        basePrice: "$425.00",
+        vipPrice: "$550.00",
+        baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($425.00)",
+        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)"
       },
       combo: {
-        basePrice: "49.99",
-        vipPrice: "75.00",
-        baseValue: "Maryland CCW & HQL Combo — Base Track (49.99)",
-        vipValue: "Maryland CCW & HQL Combo — VIP Turnkey (75.00)"
+        basePrice: "$249.99",
+        vipPrice: "$375.00",
+        baseValue: "Maryland CCW & HQL Combo — Base Track ($249.99)",
+        vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($375.00)"
       },
       ccw: {
-        basePrice: "99.99",
-        vipPrice: "25.00",
-        baseValue: "Maryland Wear & Carry (CCW) — Base Track (99.99)",
-        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey (25.00)"
+        basePrice: "$199.99",
+        vipPrice: "$325.00",
+        baseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
+        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)"
       },
       hql: {
-        basePrice: "00.00",
-        vipPrice: "65.00",
-        baseValue: "Maryland HQL (Purchase License) — Base Track (00.00)",
-        vipValue: "Maryland HQL (Purchase License) — VIP Turnkey (65.00)"
+        basePrice: "$100.00",
+        vipPrice: "$165.00",
+        baseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
+        vipValue: "Maryland HQL (Purchase License) — VIP Turnkey ($165.00)"
       },
       coaching: {
-        basePrice: "25.00",
-        vipPrice: "95.00",
-        baseValue: "Personal 1-on-1 Coaching — Base Track (25.00/hr)",
-        vipValue: "Personal 1-on-1 Coaching — VIP Turnkey (95.00/hr)"
+        basePrice: "$125.00",
+        vipPrice: "$195.00",
+        baseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
+        vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
       },
       cleaning: {
-        basePrice: "5.00",
-        vipPrice: "10.00",
-        baseValue: "Firearm Deep Cleaning & Inspection — Base Track (5.00)",
-        vipValue: "Firearm Deep Cleaning & Inspection — VIP Turnkey (10.00)"
+        basePrice: "$75.00",
+        vipPrice: "$110.00",
+        baseValue: "Firearm Deep Cleaning & Inspection — Base Track ($75.00)",
+        vipValue: "Firearm Deep Cleaning & Inspection — VIP Turnkey ($110.00)"
       },
       children: {
-        basePrice: "5.00",
-        vipPrice: "40.00",
-        baseValue: "Youth & Family Firearm Safety — Base Track (5.00)",
-        vipValue: "Youth & Family Firearm Safety — VIP Turnkey (40.00)"
+        basePrice: "$199.99",
+        vipPrice: "$240.00",
+        baseValue: "Youth & Family Firearm Safety — Base Track ($199.99)",
+        vipValue: "Youth & Family Firearm Safety — VIP Turnkey ($240.00)"
       },
       alumni: {
-        basePrice: "5.00",
-        vipPrice: "25.00",
-        baseValue: "FIFS Alumni Marksmanship Clinic — Base Track (5.00)",
-        vipValue: "FIFS Alumni Marksmanship Clinic — VIP Turnkey (25.00)"
+        basePrice: "$65.00",
+        vipPrice: "$115.00",
+        baseValue: "FIFS Alumni Marksmanship Clinic — Base Track ($65.00)",
+        vipValue: "FIFS Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
       }
     };
+    window.COURSE_TIER_CONFIG = COURSE_TIER_CONFIG;
 
     function setCardTier(courseKey, targetTier, evt) {
       if (evt) {
@@ -10361,3 +10364,37 @@ if (typeof document !== 'undefined') {
     }, 500);
   }
 }
+
+// Gun Refresh Animation & Top Nav Handler
+function triggerGunRefreshAnimation(btn) {
+  if (!btn) return;
+  var originalHtml = btn.innerHTML;
+  btn.classList.add('gun-shooting-active');
+  var shots = 0;
+  var shotInterval = setInterval(function() {
+    shots++;
+    var sparks = "💥 " + "• ".repeat(shots);
+    btn.innerHTML = '<span>🔫</span> <span>' + sparks + ' (' + shots + '/5)</span>';
+    if (shots >= 5) {
+      clearInterval(shotInterval);
+      btn.innerHTML = '<span>🔄</span> <span>*TACTICAL RELOAD*</span>';
+      setTimeout(function() {
+        btn.classList.remove('gun-shooting-active');
+        btn.innerHTML = originalHtml;
+      }, 700);
+    }
+  }, 180);
+}
+window.triggerGunRefreshAnimation = triggerGunRefreshAnimation;
+
+function triggerTopNavGunReload(e) {
+  var btn = document.getElementById('topNavRefreshBtn');
+  if (!btn && e && e.currentTarget) btn = e.currentTarget;
+  if (btn) triggerGunRefreshAnimation(btn);
+
+  if (typeof window.refreshAdminRoster === 'function') window.refreshAdminRoster();
+  if (typeof window.refreshAdminClients === 'function') window.refreshAdminClients();
+  if (typeof window.refreshAdminLiveChats === 'function') window.refreshAdminLiveChats();
+  if (typeof window.refreshAdminTelemetry === 'function') window.refreshAdminTelemetry();
+}
+window.triggerTopNavGunReload = triggerTopNavGunReload;
