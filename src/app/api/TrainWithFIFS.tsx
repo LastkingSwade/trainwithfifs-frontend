@@ -2064,7 +2064,7 @@ export default function TrainWithFIFS(props: any) {
               </p>
             </div>
             <div className="admin-top-actions-cluster" style={{"display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap"}}>
-              <button className="btn-tactical-hud hud-cyan" id="btn-admin-refresh-data" data-onclick="refreshAdminRoster()" title="Synchronize student and client records from Google Cloud" type="button">
+              <button className="btn-tactical-hud hud-cyan" id="btn-admin-refresh-data" data-onclick="refreshAdminRoster()" title="Synchronize student and client records from Supabase Cloud Database" type="button">
                 <span>
                   🔄
                 </span>
@@ -2115,6 +2115,9 @@ export default function TrainWithFIFS(props: any) {
               <span>
                 Student Roster & Ops
               </span>
+              <span className="terminal-tab-badge" id="admin-tab-roster-badge" style={{"display": "none"}}>
+                0
+              </span>
             </button>
             <button className="admin-toggle-btn" id="btn-admin-tab-clients" data-onclick="switchAdminTab('clients')" type="button">
               <span>
@@ -2122,6 +2125,9 @@ export default function TrainWithFIFS(props: any) {
               </span>
               <span>
                 Future Initiative Clients
+              </span>
+              <span className="terminal-tab-badge" id="admin-tab-clients-badge" style={{"display": "none"}}>
+                0
               </span>
             </button>
             <button className="admin-toggle-btn" id="btn-admin-tab-chat" data-onclick="switchAdminTab('chat')" type="button">
@@ -2131,7 +2137,7 @@ export default function TrainWithFIFS(props: any) {
               <span>
                 Live Chat Command
               </span>
-              <span className="hud-unread-pill" id="admin-tab-chat-unread" style={{"display": "none"}}>
+              <span className="terminal-tab-badge" id="admin-tab-chat-badge" style={{"display": "none"}}>
                 0
               </span>
             </button>
@@ -2668,7 +2674,7 @@ export default function TrainWithFIFS(props: any) {
                   </div>
                   {/* Tactical Quick Intel Chips */}
                   <div style={{"display": "flex", "gap": "6px", "flexWrap": "wrap", "marginBottom": "8px"}}>
-                    <button type="button" onClick={() => { const el = document.getElementById('adminLiveChatReplyInput'); if (el) { el.value = 'Hello! Classes run 9 AM – 5 PM at Cindy's Hot Shots. Range fees and ammo are included.'; el.focus(); } }} style={{"background": "rgba(0,229,255,0.06)", "border": "1px solid rgba(0,229,255,0.3)", "color": "#00e5ff", "borderRadius": "16px", "padding": "4px 10px", "fontSize": "0.74rem", "cursor": "pointer", "fontWeight": "600"}}>
+                    <button type="button" onClick={() => { const el = document.getElementById('adminLiveChatReplyInput'); if (el) { el.value = "Hello! Classes run 9 AM – 5 PM at Cindys Hot Shots. Range fees and ammo are included."; el.focus(); } }} style={{"background": "rgba(0,229,255,0.06)", "border": "1px solid rgba(0,229,255,0.3)", "color": "#00e5ff", "borderRadius": "16px", "padding": "4px 10px", "fontSize": "0.74rem", "cursor": "pointer", "fontWeight": "600"}}>
                       ⚡ Hours & Range Info
                     </button>
                     <button type="button" onClick={() => { const el = document.getElementById('adminLiveChatReplyInput'); if (el) { el.value = 'Feel free to call or text me directly at (443) 990-1304 so we can get you scheduled right away.'; el.focus(); } }} style={{"background": "rgba(0,229,255,0.06)", "border": "1px solid rgba(0,229,255,0.3)", "color": "#00e5ff", "borderRadius": "16px", "padding": "4px 10px", "fontSize": "0.74rem", "cursor": "pointer", "fontWeight": "600"}}>
@@ -8170,9 +8176,7 @@ export default function TrainWithFIFS(props: any) {
       {/* ================= P2P ENCRYPTED COMMS HUD MODAL ================= */}
       <div id="fifsP2pCommsModal" className="goal-modal-overlay" style={{"display": "none", "zIndex": "100000", "padding": "0"}} data-onclick="if(event.target===this) closeP2pCommsHud()">
         <div className="goal-modal-box" style={{"maxWidth": "1200px", "width": "95vw", "height": "88vh", "padding": "0", "overflow": "hidden", "border": "1.5px solid var(--accent-cyan)", "borderRadius": "14px", "background": "#070b10", "boxShadow": "0 25px 60px rgba(0,0,0,0.98), 0 0 35px rgba(0,229,255,0.25)", "position": "relative", "display": "flex", "flexDirection": "column"}} data-onclick="event.stopPropagation()">
-          <button type="button" data-onclick="closeP2pCommsHud()" style={{"position": "absolute", "top": "12px", "right": "16px", "zIndex": "100", "background": "rgba(0,0,0,0.6)", "border": "1px solid rgba(244,208,63,0.3)", "color": "#EDEDED", "borderRadius": "6px", "padding": "4px 12px", "fontFamily": "'JetBrains Mono', monospace", "fontSize": "0.85rem", "cursor": "pointer"}}>
-            ✕ CLOSE HUD
-          </button>
+          
           <div className="hud-scanlines">
           </div>
           <div className="app-shell">
@@ -8260,7 +8264,7 @@ export default function TrainWithFIFS(props: any) {
                   </div>
                 </div>
                 <div className="header-actions">
-                  <button className="btn-header-action" data-onclick="exportChatSession()" title="Export Session Briefing">
+                  <button type="button" className="btn-header-action" data-onclick="exportChatSession()" title="Export Session Briefing">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
                     </svg>
@@ -8268,13 +8272,16 @@ export default function TrainWithFIFS(props: any) {
                       EXPORT
                     </span>
                   </button>
-                  <button className="btn-header-action" data-onclick="clearChatStream()" title="Purge Terminal Session">
+                  <button type="button" className="btn-header-action" data-onclick="clearChatStream()" title="Purge Terminal Session">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
                     </svg>
                     <span>
                       PURGE
                     </span>
+                  </button>
+                  <button type="button" className="btn-header-action close-hud-btn" data-onclick="closeP2pCommsHud()" title="Close Comms HUD">
+                    <span>✕ CLOSE</span>
                   </button>
                 </div>
               </header>
@@ -8287,65 +8294,7 @@ export default function TrainWithFIFS(props: any) {
                   <span>
                     P2P ENCRYPTED CHANNEL ESTABLISHED • ZERO PERSISTENT TRACE
                   </span>
-                </div>
-                {/* Incoming Sample */}
-                <div className="message-row incoming">
-                  <div className="message-header">
-                    <span className="message-sender">
-                      Tanae’ Wade [STUDENT]
-                    </span>
-                    <span className="message-timestamp">
-                      19:42 EST
-                    </span>
-                  </div>
-                  <div className="message-bubble">
-                    
-            Good evening Instructor Wade. I have completed the MD wear & carry classroom modules and acquired eye and ear protection for Cindy's Hot Shots range qualification. Are my documents synchronized?
-            
-                    <div className="bubble-meta-tag">
-                      <span>
-                        ORIGIN: MOBILE-CLIENT
-                      </span>
-                      <span>
-                        SHA-256: 7F9A...B31C
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                {/* System Sample */}
-                <div className="system-banner">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" />
-                  </svg>
-                  <span>
-                    HANDGUN TRAINING DOCUMENTATION VERIFIED BY CHIEF INSTRUCTOR
-                  </span>
-                </div>
-                {/* Outgoing Sample */}
-                <div className="message-row outgoing">
-                  <div className="message-header">
-                    <span className="message-sender">
-                      Instructor Kai Wade [CHIEF CMD]
-                    </span>
-                    <span className="message-timestamp">
-                      19:45 EST
-                    </span>
-                  </div>
-                  <div className="message-bubble">
-                    
-            Copy that. Your training packet and live range slot are locked for Sunday at 0900. Bring 50 rounds of factory-sealed 9mm and your government ID. Telemetry is verified in the master ledger.
-            
-                    <div className="bubble-meta-tag">
-                      <span>
-                        DISPATCH: SECURE HUD
-                      </span>
-                      <span style={{"color": "var(--brand-primary)"}}>
-                        DELIVERED ✓
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </section>
+                </div></section>
               {/* Input Console */}
               <footer className="input-console-wrapper">
                 <div className="input-console-card">
