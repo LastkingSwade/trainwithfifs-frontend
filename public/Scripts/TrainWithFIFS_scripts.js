@@ -2476,6 +2476,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         threadId: thread.id,
         text: text,
         senderPhone: thread.senderPhone || '',
+        studentPhone: thread.senderPhone || '',
+        studentName: thread.senderName || '',
         senderEmail: thread.senderEmail || ''
       };
       if (typeof callFifsBackend === 'function') {
@@ -10059,6 +10061,12 @@ function openP2pCommsHud(name, phone, initialMsg) {
     m.style.display = 'flex';
     m.classList.add('active');
     document.body.style.overflow = 'hidden';
+  }
+  // Start active polling for incoming instructor replies
+  if (typeof startVisitorChatPolling === 'function') {
+    var cleanP = (phone || '').replace(/\D/g, '');
+    var tId = cleanP ? ('thread_' + cleanP) : ('thread_' + Date.now());
+    startVisitorChatPolling(tId);
   }
   var studentName = name || (window.__currentChatSession ? window.__currentChatSession.name : '');
   var nameEl = document.getElementById('activeContactName');
