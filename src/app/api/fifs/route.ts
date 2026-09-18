@@ -83,102 +83,55 @@ function normalizeInvoice(i: any) {
 function groupMessagesIntoThreads(messages: any[] = []) {
   const threadsMap: { [key: string]: any } = {};
 
-  for (const m of messages) {
+  // Sort chronologically ascending so messages read in order
+  const sortedMessages = [...messages].sort((a, b) => 
+    new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime()
+  );
+
+  for (const m of sortedMessages) {
     const rawPhone = (m.phone || '').toString().trim();
     const cleanPhone = rawPhone.replace(/\D/g, '');
     const studentId = (m.student_id || m.studentId || '').toString().trim();
-    const name = (m.name || m.fullName || 'Anonymous Visitor').toString().trim();
-    
-    // Determine unique thread key
-    let threadId = cleanPhone ? ('thread_' + cleanPhone) : (studentId ? ('thread_' + studentId) : ('thread_visitor_' + name.toLowerCase().replace(/\s+/g, '_')));
-    if (!threadId || threadId === 'thread_') {
-      threadId = 'thread_' + (m.id || 'general');
-    }
 
-    if (!threadsMap[threadId]) {
-      threadsMap[threadId] = {
-        id: threadId,
-        senderName: name,
-        senderPhone: rawPhone || '(Website Live Visitor)',
+    // Use thread_id as primary key
+    let threadKey = m.thread_id || (cleanPhone ? 'thread_' + cleanPhone : (studentId ? 'thread_' + studentId : 'thread_' + (m.id || 'general')));
+    if (!threadsMap[threadKey]) {
+      threadsMap[threadKey] = {
+        id: threadKey,
+        senderName: (m.sender === 'student' || m.sender === 'visitor') ? (m.name || 'Valued Visitor') : 'Inquirer',
+        senderPhone: rawPhone || 'Online Visitor',
         senderEmail: m.email || '',
         studentId: studentId || null,
-        lastUpdated: m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' EST' : '',
+        lastUpdated: m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '',
         lastTimestamp: m.sent_at ? new Date(m.sent_at).getTime() : 0,
         unread: false,
         messages: []
       };
     }
-
-    const t = threadsMap[threadId];
-    // Update name/phone if earlier message had placeholder
-    if (name && name !== 'Anonymous Visitor' && (!t.senderName || t.senderName === 'Anonymous Visitor')) {
-      t.senderName = name;
+    const t = threadsMap[threadKey];
+    if (m.sender === 'student' || m.sender === 'visitor') {
+      if (m.name && m.name !== 'Coach Kai Wade') t.senderName = m.name;
+      if (rawPhone) t.senderPhone = rawPhone;
+      if (m.email) t.senderEmail = m.email;
     }
-    if (rawPhone && (!t.senderPhone || t.senderPhone.includes('Website Live Visitor'))) {
-      t.senderPhone = rawPhone;
-    }
-
-    const isStudent = (m.sender === 'student' || m.sender === 'visitor');
-    const msgTime = m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' EST' : '';
     const msgObj = {
       id: m.id,
-      sender: m.sender || 'student',
-      name: isStudent ? t.senderName : 'Instructor Kai Wade',
+      sender: (m.sender === 'admin' || m.sender === 'instructor') ? 'instructor' : 'user',
+      senderName: (m.sender === 'admin' || m.sender === 'instructor') ? 'Coach Kai Wade' : t.senderName,
       text: m.message || '',
-      time: msgTime,
+      time: m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '',
       sent_at: m.sent_at
     };
-
     t.messages.push(msgObj);
     const sentTime = m.sent_at ? new Date(m.sent_at).getTime() : 0;
     if (sentTime >= t.lastTimestamp) {
       t.lastTimestamp = sentTime;
-      t.lastUpdated = msgTime;
-      // If latest message is from student, mark thread unread
-      t.unread = isStudent;
+      t.lastUpdated = msgObj.time;
+      t.unread = (m.sender === 'student' || m.sender === 'visitor');
     }
   }
-
-  // Return threads sorted with newest activity first
   return Object.values(threadsMap).sort((a: any, b: any) => b.lastTimestamp - a.lastTimestamp);
 }
-
-
-async function sendDiscordChatAlert(payload: { name: string; phone: string; email: string; message: string; sessionId?: string }) {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
-  if (!webhookUrl) return;
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trainwithfifs.com';
-  const body = {
-    content: '@everyone [Live Chat Lead]',
-    embeds: [
-      {
-        title: '🚨 New Student Chat Initiated',
-        description: payload.message || 'New inbound message received.',
-        color: 16753920,
-        fields: [
-          { name: 'Student Name', value: payload.name || 'Anonymous Visitor', inline: true },
-          { name: 'Phone', value: payload.phone || 'N/A', inline: true },
-          { name: 'Email', value: payload.email || 'N/A', inline: false },
-          { name: 'Admin Hub', value: appUrl },
-        ],
-        timestamp: new Date().toISOString(),
-        footer: { text: payload.sessionId ? 'Session ID: ' + payload.sessionId : 'Train With FIFS Live Chat' },
-      },
-    ],
-  };
-
-  try {
-    await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-  } catch (err) {
-    console.error('Failed to send Discord webhook alert:', err);
-  }
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
@@ -489,224 +442,40 @@ export async function POST(req: NextRequest) {
         if (!verifyAdminPasscode(passcode)) {
           return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
         }
-
-        const replyMessage = payload.replyText || payload.message || '';
+        const replyMessage = payload.replyText || payload.text || payload.message || '';
+        const targetThreadId = payload.thread_id || payload.threadId || '';
+        const targetPhone = payload.senderPhone || payload.phone || '';
         const studentId = payload.studentId || payload.student_id || null;
-        const now = new Date().toISOString();
-
-        const adminThreadId = payload.thread_id || payload.threadId || (studentId ? 'thread_' + studentId : 'thread_' + Date.now());
 
         const { data, error } = await supabase
           .from('messages')
           .insert({
-            name: 'Instructor Kai Wade',
-            phone: '',
-            email: 'admin@trainwithfifs.com',
+            name: 'Coach Kai Wade',
+            phone: targetPhone,
+            email: payload.senderEmail || 'info@trainwithfifs.com',
             message: replyMessage,
             urgency: 'HIGH',
             sender: 'admin',
             student_id: studentId,
-            thread_id: adminThreadId,
-            sent_at: now,
+            thread_id: targetThreadId,
+            sent_at: new Date().toISOString()
           })
           .select()
           .single();
 
         if (error) {
-          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
-        }
-
-        return NextResponse.json({ success: true, status: 'success', message: 'Reply sent', data });
-      }
-
-      // =========================================================================
-      // SECTION B: STUDENT & CLIENT PORTAL ACTIONS
-      // =========================================================================
-      case 'getStudentPortalData': {
-        const queryTerm = (payload.studentId || payload.id || payload.email || '').toString().trim();
-        if (!queryTerm) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier or email.' }, { status: 400 });
-        }
-
-        let studentQuery = supabase.from('students').select('*');
-        if (queryTerm.includes('@')) {
-          studentQuery = studentQuery.ilike('email', queryTerm);
-        } else {
-          studentQuery = studentQuery.eq('student_id', queryTerm);
-        }
-
-        const { data: student, error: studentError } = await studentQuery.maybeSingle();
-
-        if (studentError) {
-          return NextResponse.json({ success: false, status: 'error', error: studentError.message }, { status: 400 });
-        }
-        if (!student) {
-          return NextResponse.json({ success: false, status: 'not_found', message: 'Student record not found.' }, { status: 404 });
-        }
-
-        // Fetch related invoices
-        const { data: invoices } = await supabase
-          .from('invoices')
-          .select('*')
-          .eq('student_id', student.student_id);
-
-        return NextResponse.json({
-          success: true,
-          status: 'success',
-          student: normalizeStudent(student),
-          invoices: (invoices || []).map(normalizeInvoice),
-        });
-      }
-
-      case 'getClientPortalData': {
-        const queryTerm = (payload.clientId || payload.id || payload.email || '').toString().trim();
-        if (!queryTerm) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Missing client identifier or email.' }, { status: 400 });
-        }
-
-        let clientQuery = supabase.from('clients').select('*');
-        if (queryTerm.includes('@')) {
-          clientQuery = clientQuery.ilike('email', queryTerm);
-        } else {
-          clientQuery = clientQuery.eq('client_id', queryTerm);
-        }
-
-        const { data: client, error: clientError } = await clientQuery.maybeSingle();
-
-        if (clientError) {
-          return NextResponse.json({ success: false, status: 'error', error: clientError.message }, { status: 400 });
-        }
-        if (!client) {
-          return NextResponse.json({ success: false, status: 'not_found', message: 'Client profile not found.' }, { status: 404 });
-        }
-
-        return NextResponse.json({
-          success: true,
-          status: 'success',
-          client: normalizeClient(client),
-        });
-      }
-
-      case 'registerClient':
-      case 'createClient': {
-        const clientId = payload.clientId || ('FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000));
-        const email = (payload.email || '').trim().toLowerCase();
-        const now = new Date().toISOString();
-
-        const row = {
-          client_id: clientId,
-          full_name: payload.fullName || payload.name || 'FIFS Agent',
-          email: email,
-          phone: payload.phone || '',
-          permit_state: payload.permitState || 'Maryland Wear & Carry',
-          expiration_date: payload.expirationDate || null,
-          created_at: now,
-          updated_at: now,
-        };
-
-        const { data, error } = await supabase
-          .from('clients')
-          .upsert(row, { onConflict: 'email' })
-          .select()
-          .single();
-
-        if (error) {
-          console.error('Supabase registerClient error:', error);
+          console.error('Supabase admin reply error:', error);
           return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
         }
 
         return NextResponse.json({
           success: true,
           status: 'success',
-          clientId: data.client_id || clientId,
-          client: normalizeClient(data),
+          message: 'Reply sent.',
+          data,
         });
       }
 
-      case 'updateStudentTask': {
-        const studentId = payload.studentId || payload.student_id;
-        const taskKey = payload.taskId || payload.taskKey;
-        const isDone = Boolean(payload.completed !== undefined ? payload.completed : payload.isDone);
-
-        if (!studentId) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Missing studentId.' }, { status: 400 });
-        }
-
-        // Get current tasks
-        const { data: currentStudent, error: fetchErr } = await supabase
-          .from('students')
-          .select('prep_tasks')
-          .eq('student_id', studentId)
-          .single();
-
-        if (fetchErr) {
-          return NextResponse.json({ success: false, status: 'error', error: fetchErr.message }, { status: 400 });
-        }
-
-        const existingTasks = (currentStudent && typeof currentStudent.prep_tasks === 'object' && currentStudent.prep_tasks !== null)
-          ? currentStudent.prep_tasks
-          : {};
-
-        if (taskKey) {
-          existingTasks[taskKey] = isDone;
-        } else if (payload.tasks && typeof payload.tasks === 'object') {
-          Object.assign(existingTasks, payload.tasks);
-        }
-
-        const { data: updated, error: updateErr } = await supabase
-          .from('students')
-          .update({
-            prep_tasks: existingTasks,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('student_id', studentId)
-          .select()
-          .single();
-
-        if (updateErr) {
-          return NextResponse.json({ success: false, status: 'error', error: updateErr.message }, { status: 400 });
-        }
-
-        return NextResponse.json({
-          success: true,
-          status: 'success',
-          studentId,
-          prepTasks: existingTasks,
-          student: normalizeStudent(updated),
-        });
-      }
-
-      case 'submitStudentWaiver': {
-        const studentId = payload.studentId || payload.student_id;
-        if (!studentId) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Missing studentId.' }, { status: 400 });
-        }
-
-        const { data, error } = await supabase
-          .from('students')
-          .update({
-            waiver_completed: true,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('student_id', studentId)
-          .select()
-          .single();
-
-        if (error) {
-          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
-        }
-
-        return NextResponse.json({
-          success: true,
-          status: 'success',
-          message: 'Liability waiver submitted and confirmed.',
-          student: normalizeStudent(data),
-        });
-      }
-
-      // =========================================================================
-      // SECTION C: PUBLIC SUBMISSIONS & CHAT
-      // =========================================================================
       case 'handleLiveChatMessage': {
         const now = new Date().toISOString();
         const senderName = payload.name || payload.senderName || payload.fullName || 'Anonymous Visitor';
@@ -714,7 +483,6 @@ export async function POST(req: NextRequest) {
         const senderEmail = payload.email || payload.senderEmail || '';
         const messageText = payload.message || payload.text || '';
         const studentId = payload.studentId || payload.student_id || null;
-
         const cleanPhone = (senderPhone || '').replace(/\D/g, '');
         const computedThreadId = payload.thread_id || payload.threadId || (cleanPhone ? 'thread_' + cleanPhone : (studentId ? 'thread_' + studentId : 'thread_' + Date.now()));
 
@@ -745,13 +513,14 @@ export async function POST(req: NextRequest) {
           phone: senderPhone,
           email: senderEmail,
           message: messageText,
-          sessionId: data.id,
+          sessionId: computedThreadId,
         }).catch(console.error);
 
         return NextResponse.json({
           success: true,
           status: 'success',
           messageId: data.id,
+          threadId: computedThreadId,
           message: 'Message delivered to instructor hub.',
           data,
         });
@@ -904,32 +673,35 @@ export async function POST(req: NextRequest) {
 
       case 'getLiveChats':
       case 'getVisitorChatMessages': {
+        const threadId = payload.threadId || payload.thread_id;
         let query = supabase.from('messages').select('*').order('sent_at', { ascending: true });
-        if (payload.studentId) {
-          query = query.eq('student_id', payload.studentId);
+        if (threadId) {
+          query = query.eq('thread_id', threadId);
+        } else if (payload.phone) {
+          const clean = payload.phone.replace(/\D/g, '');
+          query = query.or();
         }
         const { data, error } = await query.limit(100);
-        if (error) {
-          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
-        }
-        const rawList = data || [];
-        const threads = groupMessagesIntoThreads(rawList);
-        return NextResponse.json({
-          success: true,
-          status: 'success',
-          messages: rawList,
-          threads: threads,
-          liveChats: threads
-        });
+        if (error) return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
+
+        const messages = (data || []).map(m => ({
+          id: m.id,
+          sender: (m.sender === 'admin' || m.sender === 'instructor') ? 'instructor' : 'user',
+          senderName: m.name || ((m.sender === 'admin' || m.sender === 'instructor') ? 'Coach Kai Wade' : 'Student'),
+          text: m.message || '',
+          sent_at: m.sent_at,
+          time: m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : ''
+        }));
+        return NextResponse.json({ success: true, status: 'success', messages });
       }
 
       case 'deleteLiveChatThread': {
         if (!verifyAdminPasscode(passcode)) {
           return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
         }
-        const threadId = payload.threadId || payload.id;
+        const threadId = payload.threadId || payload.id || payload.thread_id;
         if (threadId) {
-          await supabase.from('messages').delete().eq('id', threadId);
+          await supabase.from('messages').delete().or();
         }
         return NextResponse.json({ success: true, status: 'success', message: 'Thread cleared.' });
       }
