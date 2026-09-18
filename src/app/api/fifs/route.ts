@@ -132,6 +132,61 @@ function groupMessagesIntoThreads(messages: any[] = []) {
   }
   return Object.values(threadsMap).sort((a: any, b: any) => b.lastTimestamp - a.lastTimestamp);
 }
+
+async function sendDiscordChatAlert({
+  name,
+  phone,
+  email,
+  message,
+  sessionId,
+}: {
+  name: string;
+  phone: string;
+  email?: string;
+  message: string;
+  sessionId?: string;
+}) {
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  if (!webhookUrl) {
+    console.warn('[FIFS] DISCORD_WEBHOOK_URL not configured');
+    return;
+  }
+  const cleanPhone = (phone || '').replace(/\D/g, '');
+  const telLink = cleanPhone ? `tel:${cleanPhone}` : '';
+
+  const payload = {
+    content: '@everyone 🚨 **NEW INCOMING TRAINING INQUIRY**',
+    embeds: [
+      {
+        title: 'Direct Dispatch from trainwithfifs.com',
+        description: message,
+        color: 0x00e5ff,
+        fields: [
+          { name: '👤 Student / Visitor', value: name || 'Valued Visitor', inline: true },
+          { name: '📱 Phone', value: phone ? `[${phone}](${telLink})` : 'N/A', inline: true },
+          { name: '✉️ Email', value: email || 'N/A', inline: true },
+        ],
+        timestamp: new Date().toISOString(),
+        footer: { text: `FIFS Dispatch System • ID: ${sessionId || 'direct'}` },
+      },
+    ],
+  };
+
+  try {
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      console.error('[FIFS] Discord webhook error:', res.status, await res.text());
+    }
+  } catch (err) {
+    console.error('[FIFS] Failed to send Discord webhook:', err);
+  }
+}
+
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));

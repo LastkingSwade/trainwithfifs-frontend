@@ -8291,10 +8291,10 @@ export default function TrainWithFIFS(props: any) {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
                   </svg>
-                  <span>
-                    P2P ENCRYPTED CHANNEL ESTABLISHED • ZERO PERSISTENT TRACE
-                  </span>
-                </div></section>
+                  <span>SECURE COMM LINK ESTABLISHED • CHIEF INSTRUCTOR DESK</span>
+                </div>
+                <div id="liveChatMessagesContainer" className="live-chat-messages-container"></div>
+              </section>
               {/* Input Console */}
               <footer className="input-console-wrapper">
                 <div className="input-console-card">
