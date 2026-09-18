@@ -10283,3 +10283,122 @@ if (typeof window !== 'undefined') {
     });
   };
 })();
+
+
+    // Robust Course Tier Switcher (Standard vs VIP)
+    var COURSE_TIER_CONFIG = {
+      mastery: {
+        basePrice: "25.00",
+        vipPrice: "50.00",
+        baseValue: "Mid-Atlantic Multi-State Mastery — Base Track (25.00)",
+        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey (50.00)"
+      },
+      combo: {
+        basePrice: "49.99",
+        vipPrice: "75.00",
+        baseValue: "Maryland CCW & HQL Combo — Base Track (49.99)",
+        vipValue: "Maryland CCW & HQL Combo — VIP Turnkey (75.00)"
+      },
+      ccw: {
+        basePrice: "99.99",
+        vipPrice: "25.00",
+        baseValue: "Maryland Wear & Carry (CCW) — Base Track (99.99)",
+        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey (25.00)"
+      },
+      hql: {
+        basePrice: "00.00",
+        vipPrice: "65.00",
+        baseValue: "Maryland HQL (Purchase License) — Base Track (00.00)",
+        vipValue: "Maryland HQL (Purchase License) — VIP Turnkey (65.00)"
+      },
+      coaching: {
+        basePrice: "25.00",
+        vipPrice: "95.00",
+        baseValue: "Personal 1-on-1 Coaching — Base Track (25.00/hr)",
+        vipValue: "Personal 1-on-1 Coaching — VIP Turnkey (95.00/hr)"
+      },
+      cleaning: {
+        basePrice: "5.00",
+        vipPrice: "10.00",
+        baseValue: "Firearm Deep Cleaning & Inspection — Base Track (5.00)",
+        vipValue: "Firearm Deep Cleaning & Inspection — VIP Turnkey (10.00)"
+      },
+      children: {
+        basePrice: "5.00",
+        vipPrice: "40.00",
+        baseValue: "Youth & Family Firearm Safety — Base Track (5.00)",
+        vipValue: "Youth & Family Firearm Safety — VIP Turnkey (40.00)"
+      },
+      alumni: {
+        basePrice: "5.00",
+        vipPrice: "25.00",
+        baseValue: "FIFS Alumni Marksmanship Clinic — Base Track (5.00)",
+        vipValue: "FIFS Alumni Marksmanship Clinic — VIP Turnkey (25.00)"
+      }
+    };
+
+    function setCardTier(courseKey, targetTier, evt) {
+      if (evt) {
+        if (evt.stopPropagation) evt.stopPropagation();
+        if (evt.preventDefault) evt.preventDefault();
+      }
+      var config = COURSE_TIER_CONFIG[courseKey];
+      if (!config) return;
+      var card = document.getElementById('card-course-' + courseKey);
+      var switchBox = document.getElementById('switch-' + courseKey);
+      var badge = document.getElementById('badge-course-' + courseKey);
+      var priceElem = document.getElementById('price-course-' + courseKey);
+      var vipBox = document.getElementById('vip-box-course-' + courseKey) || document.getElementById('vip-box-' + courseKey);
+      var btnSelect = document.getElementById('btn-select-course-' + courseKey);
+      if (!card) return;
+
+      if (targetTier === 'vip') {
+        card.classList.add('vip-mode-active');
+        card.style.setProperty('background', 'linear-gradient(135deg, rgba(255, 183, 3, 0.14) 0%, rgba(13, 19, 27, 0.98) 100%)', 'important');
+        card.style.setProperty('border', '2px solid var(--accent-amber)', 'important');
+        card.style.setProperty('box-shadow', '0 0 28px rgba(255, 183, 3, 0.4), 0 12px 36px rgba(0, 0, 0, 0.85)', 'important');
+        if (switchBox) switchBox.classList.add('vip-active');
+        if (badge) badge.style.setProperty('display', 'block', 'important');
+        if (vipBox) vipBox.style.setProperty('display', 'block', 'important');
+        if (priceElem) {
+          priceElem.innerHTML = '<span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-amber);">' + config.vipPrice + '</span><span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>';
+        }
+        if (btnSelect) {
+          btnSelect.textContent = 'Select 👑 VIP (' + config.vipPrice + ') & Reserve Seat →';
+          btnSelect.className = 'btn-select-course btn-vip-select';
+          btnSelect.style.setProperty('background', 'linear-gradient(135deg, #ffb703 0%, #d49000 100%)', 'important');
+          btnSelect.style.setProperty('color', '#070b10', 'important');
+          btnSelect.setAttribute('data-onclick', 'selectCourse("' + config.vipValue + '")');
+        }
+      } else {
+        card.classList.remove('vip-mode-active');
+        card.style.setProperty('background', '#0d131b', 'important');
+        card.style.setProperty('border', '1px solid rgba(0, 229, 255, 0.35)', 'important');
+        card.style.setProperty('box-shadow', 'none', 'important');
+        if (switchBox) switchBox.classList.remove('vip-active');
+        if (badge) badge.style.setProperty('display', 'none', 'important');
+        if (vipBox) vipBox.style.setProperty('display', 'none', 'important');
+        if (priceElem) {
+          priceElem.innerHTML = '<span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">' + config.basePrice + '</span><span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>';
+        }
+        if (btnSelect) {
+          btnSelect.textContent = 'Select Base (' + config.basePrice + ') & Reserve Seat →';
+          btnSelect.className = 'btn-select-course';
+          btnSelect.style.setProperty('background', 'var(--accent-cyan)', 'important');
+          btnSelect.style.setProperty('color', '#070b10', 'important');
+          btnSelect.setAttribute('data-onclick', 'selectCourse("' + config.baseValue + '")');
+        }
+      }
+    }
+    window.setCardTier = setCardTier;
+
+    function toggleCardTier(courseKey, evt) {
+      if (evt) {
+        if (evt.stopPropagation) evt.stopPropagation();
+        if (evt.preventDefault) evt.preventDefault();
+      }
+      var card = document.getElementById('card-course-' + courseKey);
+      var isVip = card && card.classList.contains('vip-mode-active');
+      setCardTier(courseKey, isVip ? 'base' : 'vip', evt);
+    }
+    window.toggleCardTier = toggleCardTier;
