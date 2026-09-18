@@ -5034,3 +5034,125 @@ body.in-home .sticky-bottom-dock,
   0%, 100% { transform: scale(1); box-shadow: 0 0 12px #ef4444; }
   50% { transform: scale(1.18); box-shadow: 0 0 22px #ef4444, 0 0 10px #ff7b72; }
 }
+
+
+/* ================= MSP-STYLE ADMIN INTELLIGENCE CARDS ================= */
+.admin-intel-cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 18px 0 22px;
+}
+
+.admin-msp-card {
+  border-radius: 14px;
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.admin-msp-card:hover {
+  transform: translateY(-2px);
+}
+
+.admin-msp-card.active {
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.35) !important;
+}
+
+.admin-msp-card .next-step-badge {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.80rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.admin-msp-card h4 {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: #fff;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-msp-card p {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+/* ================= ELECTRIC MATERIALIZATION BOOT ANIMATION ================= */
+@keyframes fifsElectricBoot {
+  0% {
+    opacity: 0;
+    filter: brightness(2.5) contrast(1.5) drop-shadow(0 0 20px #00e5ff);
+    transform: scale(0.985);
+  }
+  20% {
+    opacity: 0.8;
+    filter: brightness(1.8) drop-shadow(0 0 15px #ffb703);
+  }
+  40% {
+    opacity: 0.6;
+    filter: brightness(2) drop-shadow(0 0 25px #00e5ff);
+  }
+  70% {
+    opacity: 0.95;
+    filter: brightness(1.2) drop-shadow(0 0 10px #00e5ff);
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1) drop-shadow(none);
+    transform: scale(1);
+  }
+}
+
+.electric-boot-active {
+  animation: fifsElectricBoot 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ================= MOBILE VIEWPORT SCALING & DOCK COMPACTING ================= */
+@media (max-width: 640px) {
+  html, body {
+    font-size: 14.5px;
+  }
+  .hero-command-dock {
+    max-width: 94% !important;
+    padding: 12px 12px 10px !important;
+    border-radius: 14px !important;
+  }
+  .btn-hero-booking-prime {
+    padding: 12px 14px !important;
+  }
+  .btn-hero-booking-prime .prime-label {
+    font-size: 1.15rem !important;
+  }
+  .btn-hero-booking-prime .prime-sub {
+    font-size: 0.76rem !important;
+  }
+  .hero-twin-grid {
+    gap: 8px !important;
+  }
+  .btn-hero-twin {
+    padding: 10px 8px !important;
+  }
+  .btn-hero-twin .twin-title {
+    font-size: 0.88rem !important;
+  }
+  .btn-hero-twin .twin-sub {
+    font-size: 0.72rem !important;
+  }
+  .hero-bottom-strip {
+    font-size: 0.76rem !important;
+    padding: 6px 0 !important;
+  }
+}
