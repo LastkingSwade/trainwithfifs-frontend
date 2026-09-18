@@ -17,24 +17,25 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     // ==========================================================================
     // FIFS GITHUB PAGES <-> GOOGLE APPS SCRIPT API BRIDGE
     // ==========================================================================
-    var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbz9X2h0o5_pmNafKXRY9hSeGiGpHerp_JMWie8wg9FmSir0W3mrZAnk5nw-Zs9xH9BY/exec";
+    // Direct unified Next.js API route (/api/fifs) connected to Supabase
     function callFifsBackend(action, payload, onSuccess, onError) {
-      if (!FIFS_GAS_API_URL) {
-        console.warn("FIFS_GAS_API_URL not configured.");
-        if (onSuccess) onSuccess({ status: "success", clientId: "FI-" + Date.now() });
-        return;
-      }
-      fetch(FIFS_GAS_API_URL, {
-        method: "POST",
-        mode: "cors",
-        redirect: "follow",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: action, payload: payload })
+      var requestPayload = Object.assign({ action: action }, payload || {});
+      fetch('/api/fifs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: action, payload: payload || {}, ...requestPayload })
       })
-      .then(function(res) { return res.json(); })
+      .then(function(res) {
+        return res.json().then(function(data) {
+          if (!res.ok || data.status === 'error') {
+            throw new Error(data.message || data.error || 'Server error communicating with Supabase');
+          }
+          return data;
+        });
+      })
       .then(function(data) { if (onSuccess) onSuccess(data); })
       .catch(function(err) {
-        console.error("FIFS API Error:", err);
+        console.error('FIFS Supabase API Error:', err);
         if (onError) onError(err);
       });
     }
@@ -2074,7 +2075,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       var btn = document.getElementById('btn-admin-refresh-data');
       if (btn) {
         btn.classList.add('btn-animated-loading');
-        btn.innerHTML = '<span class="spin-icon">🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">SYNCING ALL DATA FROM GOOGLE SHEETS...</span>';
+        btn.innerHTML = '<span class="spin-icon">🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">SYNCING DATA FROM SUPABASE...</span>';
       }
       var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       callFifsBackend('getAdminDashboardData', { pin: pin }, function(res) {
@@ -2102,7 +2103,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     }
     window.refreshAdminRoster = refreshAdminRoster;
     function resetWebsiteTelemetry() {
-      if (!confirm("Reset all website telemetry counters in Google Sheets and local storage?")) return;
+      if (!confirm("Reset telemetry counters in Supabase and local storage?")) return;
       var btn = document.getElementById('btn-reset-telemetry') || document.querySelector('button[onclick*="resetWebsiteTelemetry"]');
       if (btn) {
         btn.classList.add('btn-animated-loading');
@@ -2391,22 +2392,47 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         stream.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 30px;">No messages in this inquiry thread yet.</div>';
         return;
       }
-      stream.innerHTML = thread.messages.map(m => {
+      
+      const channelBanner = `
+        <div style="text-align: center; margin: 4px 0 14px;">
+          <span style="font-size: 0.70rem; color: #00e5ff; background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.25); padding: 5px 14px; border-radius: 20px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);">
+            🔒 P2P ENCRYPTED DIRECT CHANNEL // AUTH: COACH KAI WADE // SHA-256 VERIFIED
+          </span>
+        </div>
+      `;
+
+      const messagesHtml = thread.messages.map(m => {
         const isAdmin = m.sender === 'instructor' || m.sender === 'admin';
-        return `
-          <div style="display: flex; flex-direction: column; align-items: ${isAdmin ? 'flex-end' : 'flex-start'}; margin-bottom: 8px;">
-            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 0.70rem;">
-              <span style="font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: ${isAdmin ? '#00e5ff' : '#cbd5e1'}; display: inline-flex; align-items: center; gap: 4px;">
-                ${isAdmin ? '<span style="color:#00e5ff;">⚡</span> Coach Kai Wade (Instructor)' : '<span style="color:#94a3b8;">👤</span> ' + escapeHtml(m.senderName || thread.senderName || 'Student Inquirer')}
-              </span>
-              <span style="color: #64748b; font-size: 0.68rem; font-family: monospace;">&bull; ${m.time || ''}</span>
+        if (isAdmin) {
+          return `
+            <div style="display: flex; flex-direction: column; align-items: flex-end; margin-bottom: 12px;">
+              <div style="font-size: 0.70rem; color: #00e5ff; margin-bottom: 3px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                <span>⚡ Coach Kai Wade (Lead Instructor)</span>
+                <span style="color: #64748b; font-size: 0.68rem; font-family: monospace;">• ${m.time || ''}</span>
+              </div>
+              <div style="background: #00e5ff; color: #070b10; padding: 10px 14px; border-radius: 14px 14px 2px 14px; max-width: 82%; font-size: 0.88rem; font-weight: 600; line-height: 1.45; box-shadow: 0 4px 14px rgba(0, 229, 255, 0.25); word-break: break-word;">
+                ${escapeHtml(m.text)}
+              </div>
+              <div style="font-size: 0.65rem; color: #10b981; margin-top: 2px; font-weight: 700;">✓ Delivered to Student (Line & Discord)</div>
             </div>
-            <div style="background: ${isAdmin ? 'linear-gradient(135deg, rgba(0, 229, 255, 0.20) 0%, rgba(2, 132, 199, 0.28) 100%)' : 'linear-gradient(135deg, #131b26 0%, #0d141e 100%)'}; border: 1px solid ${isAdmin ? '#00e5ff' : 'rgba(255,255,255,0.12)'}; box-shadow: ${isAdmin ? '0 0 14px rgba(0,229,255,0.18)' : '0 2px 6px rgba(0,0,0,0.2)'}; color: #f8fafc; padding: 10px 14px; border-radius: ${isAdmin ? '12px 12px 2px 12px' : '12px 12px 12px 2px'}; font-size: 0.88rem; max-width: 82%; line-height: 1.45; word-break: break-word;">
-              ${escapeHtml(m.text)}
+          `;
+        } else {
+          return `
+            <div style="display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 12px;">
+              <div style="font-size: 0.70rem; color: #94a3b8; margin-bottom: 3px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                <span>👤 ${escapeHtml(m.senderName || thread.senderName || 'Student Inquirer')}</span>
+                <span style="color: #64748b; font-size: 0.68rem; font-family: monospace;">• ${m.time || ''}</span>
+              </div>
+              <div style="background: #141c26; border: 1px solid rgba(0, 229, 255, 0.35); color: #f8fafc; padding: 10px 14px; border-radius: 14px 14px 14px 2px; max-width: 82%; font-size: 0.88rem; line-height: 1.45; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6); word-break: break-word;">
+                ${escapeHtml(m.text)}
+              </div>
+              <div style="font-size: 0.65rem; color: #64748b; margin-top: 2px;">Inbound via Web Portal</div>
             </div>
-          </div>
-        `;
+          `;
+        }
       }).join('');
+
+      stream.innerHTML = channelBanner + messagesHtml;
       stream.scrollTop = stream.scrollHeight;
     }
     window.renderActiveAdminChatMessages = renderActiveAdminChatMessages;
@@ -2444,7 +2470,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           });
         } catch(e) {}
       }
-      // Sync Admin Reply to Google Sheets Live_Chats tab via Google Apps Script
+      // Sync Admin Reply to Supabase messages table via Google Apps Script
       var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       var replyPayload = {
         threadId: thread.id,
@@ -2454,10 +2480,10 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       };
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('sendAdminLiveChatReply', { passcode: pin, payload: replyPayload }, function(res) {
-          console.log('Admin reply saved to Google Sheets Live_Chats tab:', res);
+          console.log('Admin reply saved to Supabase messages table:', res);
           refreshAdminLiveChats();
         }, function(err) {
-          console.error('Failed to post admin reply to Google Sheets:', err);
+          console.error('Failed to post admin reply to Supabase Database:', err);
         });
       }
       // Also append to visitor chat stream if open in same window
@@ -2733,7 +2759,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         window.adminCachedStudents = adminCachedStudents;
       }
       callFifsBackend('adminDeleteStudent', { passcode: pin, studentId: studentId }, function(res) {
-        console.log('Student deleted from cloud Google Sheets:', res);
+        console.log('Student deleted from Supabase database:', res);
         refreshAdminRoster();
       }, function(err) {
         console.error('Failed to delete student from cloud:', err);
@@ -3032,9 +3058,9 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
       if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<span>⏳ Saving directly to FIFS Cloud Ledger...</span>';
+        btn.innerHTML = '<span>⏳ Establishing Agent Profile...</span>';
       }
-      if (statusDiv) showStatus(statusDiv, 'Connecting to Google Sheets ledger...', 'success');
+      if (statusDiv) showStatus(statusDiv, 'Adding Agent to Portal...', 'success');
       var clientPayload = {
         fullName: name,
         email: email,
@@ -3048,7 +3074,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           btn.innerHTML = '<span>✓ Profile Created!</span>';
         }
         if (res && res.status === 'success') {
-          if (statusDiv) showStatus(statusDiv, 'Registration saved directly to Google Sheets! Client ID: ' + res.clientId, 'success');
+          if (statusDiv) showStatus(statusDiv, 'Profile saved to Portal Database! Client ID: ' + res.clientId, 'success');
           clientPayload.clientId = res.clientId;
           renderClientDashboard(clientPayload);
         } else {
@@ -3681,7 +3707,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
               `}
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; flex-wrap: wrap; gap: 10px;">
-              <span style="font-size: 0.78rem; color: var(--text-muted);">Synced with Google Sheets: <code>Student_Booking_Ledger / Analytics_Ledger</code></span>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">Synced with Supabase Database: <code>Student_Booking_Ledger / Analytics_Ledger</code></span>
               <div style="display: flex; gap: 8px;">
                 <button type="button" class="btn-spark" onclick="exportAnalyticsCSV()" style="padding: 6px 14px; font-size: 0.80rem;">📥 Export Analytics CSV</button>
                 <button type="button" class="btn-spark" id="btn-reset-telemetry" onclick="resetWebsiteTelemetry()" style="padding: 6px 14px; font-size: 0.80rem; border-color: rgba(239, 68, 68, 0.45); color: #ef4444;">🗑️ Reset Telemetry</button>
@@ -3862,18 +3888,23 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
         };
         try { sessionStorage.setItem('fifs_client_session', JSON.stringify(newClient)); } catch (err) {}
       }
-      // If online Google Apps Script backend available, notify
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminDirectInvite) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            showStatus(st, 'Invitation email dispatched successfully! Access link generated below.', 'success');
-          })
-          .handleAdminDirectInvite(pin, { fullName: name, email: email, phone: phone, portalType: portalType, course: course, dates: dates, generatedId: newId, magicLink: magicLink });
-      } else {
-        setTimeout(function() {
-          showStatus(st, 'Access invitation created! Direct Magic Link ready below.', 'success');
-        }, 400);
-      }
+      // Direct invite via Supabase API
+      callFifsBackend('adminDirectInvite', {
+        pin: pin,
+        passcode: pin,
+        fullName: name,
+        email: email,
+        phone: phone,
+        portalType: portalType,
+        course: course,
+        dates: dates,
+        generatedId: newId,
+        magicLink: magicLink
+      }, function(res) {
+        showStatus(st, 'Access invitation registered in database! Direct Magic Link ready below.', 'success');
+      }, function(err) {
+        showStatus(st, 'Access invitation created! Direct Magic Link ready below.', 'success');
+      });
       if (urlInput) urlInput.value = magicLink;
       if (resBox) resBox.style.display = 'block';
       // Re-render admin roster and recalculate 100% real metrics
@@ -4694,9 +4725,9 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       };
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('handleLiveChatMessage', payload, function(res) {
-          console.log('Message logged in Google Sheets Live_Chats tab:', res);
+          console.log('Message logged in Supabase messages table:', res);
         }, function(err) {
-          console.error('Failed to log message in Google Sheets:', err);
+          console.error('Failed to log message in Supabase Database:', err);
         });
       }
     }
@@ -4820,9 +4851,9 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       };
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('handleLiveChatMessage', payload, function(res) {
-          console.log('Follow-up message logged in Google Sheets Live_Chats tab:', res);
+          console.log('Follow-up message logged in Supabase messages table:', res);
         }, function(err) {
-          console.error('Failed to log follow-up in Google Sheets:', err);
+          console.error('Failed to log follow-up in Supabase Database:', err);
         });
       }
       // Typing indicator
@@ -8493,7 +8524,7 @@ function attachSwipeToDeleteToThread(card, threadId) {
 }
 function deleteAdminChatThread(threadId, event) {
   if (event) event.stopPropagation();
-  if (!confirm("Are you sure you want to permanently delete this live chat thread from Google Sheets and the admin hub?")) {
+  if (!confirm("Are you sure you want to permanently delete this live chat thread from Supabase Database and the admin hub?")) {
     return;
   }
   var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
@@ -8826,7 +8857,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
   var origResetTelemetry = window.resetWebsiteTelemetry;
   window.resetWebsiteTelemetry = function() {
     var btn = document.querySelector('button[onclick*="resetWebsiteTelemetry"]') || document.getElementById('btn-reset-telemetry');
-    if (!confirm("⚠️ TACTICAL PURGE: Reset all website telemetry counters in Google Sheets and local storage?")) return;
+    if (!confirm("⚠️ TACTICAL PURGE: Reset telemetry counters in Supabase and local storage?")) return;
     if (btn) {
       btn.classList.add('btn-emp-purging');
       btn.innerHTML = '<span style="color:#fff; font-weight:800; letter-spacing:1px;">💥 EMP DISCHARGE IN PROGRESS...</span>';
@@ -8915,7 +8946,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
     document.body.appendChild(overlay);
   };
   window.confirmDeleteChatFromSheet = function(threadId) {
-    if (confirm("Are you sure you want to permanently delete this chat thread from Google Sheets and all devices?")) {
+    if (confirm("Are you sure you want to permanently delete this chat thread from Supabase Database and all devices?")) {
       var sheet = document.getElementById('fifsChatActionSheet');
       if (sheet) sheet.remove();
       if (typeof deleteLiveChatThreadOnServer === 'function') {
@@ -9008,7 +9039,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
       alert("Please select a chat thread to delete.");
       return;
     }
-    if (!confirm("⚠️ PERMANENT DELETE: Remove this chat thread permanently from Google Sheets and all devices?")) {
+    if (!confirm("⚠️ PERMANENT DELETE: Remove this chat thread permanently from Supabase Database and all devices?")) {
       return;
     }
     // 1. Instantly remove locally from cached threads so UI updates immediately
@@ -9676,7 +9707,7 @@ var operatives = [
         input.style.height = 'auto';
       }
       renderChatStream(op.messages);
-      // Backend dispatch to Google Apps Script / Google Sheets
+      // Backend dispatch to Google Apps Script / Supabase Database
       var cleanPhone = (session.phone || '').replace(/\D/g, '');
       var threadId = (session && session.threadId) ? session.threadId : (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
       if (window.__currentChatSession) {
@@ -9934,7 +9965,7 @@ var operatives = [
         input.style.height = 'auto';
       }
       renderChatStream(op.messages);
-      // Backend dispatch to Google Apps Script / Google Sheets
+      // Backend dispatch to Google Apps Script / Supabase Database
       var cleanPhone = (session.phone || '').replace(/\D/g, '');
       var threadId = (session && session.threadId) ? session.threadId : (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
       if (window.__currentChatSession) {
