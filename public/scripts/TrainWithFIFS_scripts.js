@@ -2711,7 +2711,7 @@ function updateAdminChatBadgeCount() {
       var subAnalytics = document.getElementById('admin-subpanel-analytics');
       var subChat = document.getElementById('admin-subpanel-chat');
 
-      // Hide all subpanels inside modal first
+      // Hide all subpanels first
       if (subRoster) subRoster.style.setProperty('display', 'none', 'important');
       if (subClients) subClients.style.setProperty('display', 'none', 'important');
       if (subAnalytics) subAnalytics.style.setProperty('display', 'none', 'important');
@@ -2742,23 +2742,43 @@ function updateAdminChatBadgeCount() {
       if (overlay) {
         overlay.style.setProperty('display', 'flex', 'important');
         overlay.classList.add('active');
-        document.body.classList.add('modal-open');
         document.body.style.overflow = 'hidden';
       }
 
-      // Auto-trigger data refresh
-      if (tab === 'roster' && typeof window.refreshAdminRoster === 'function') {
-        window.refreshAdminRoster();
-      } else if (tab === 'clients' && typeof window.refreshAdminClients === 'function') {
-        window.refreshAdminClients();
-      } else if (tab === 'chat' && typeof window.refreshAdminLiveChats === 'function') {
-        window.refreshAdminLiveChats();
-      } else if ((tab === 'telemetry' || tab === 'analytics') && typeof window.refreshAdminTelemetry === 'function') {
-        window.refreshAdminTelemetry();
+      // Trigger automatic live sync
+      if (tab === 'roster' && typeof refreshAdminRoster === 'function') {
+        refreshAdminRoster();
+      } else if (tab === 'clients' && typeof refreshAdminClients === 'function') {
+        refreshAdminClients();
+      } else if (tab === 'chat' && typeof refreshAdminLiveChats === 'function') {
+        refreshAdminLiveChats();
+      } else if ((tab === 'telemetry' || tab === 'analytics') && typeof refreshAdminTelemetry === 'function') {
+        refreshAdminTelemetry();
       }
     }
     window.openAdminSubpanelModal = openAdminSubpanelModal;
-    window.switchAdminTab = openAdminSubpanelModal;
+
+    function triggerModalAdminRefresh(btn) {
+      if (typeof window.triggerGunRefreshAnimation === 'function') {
+        window.triggerGunRefreshAnimation(btn);
+      }
+      var subRoster = document.getElementById('admin-subpanel-roster');
+      var subClients = document.getElementById('admin-subpanel-clients');
+      var subAnalytics = document.getElementById('admin-subpanel-analytics');
+      var subChat = document.getElementById('admin-subpanel-chat');
+
+      if (subRoster && subRoster.style.display !== 'none' && typeof window.refreshAdminRoster === 'function') {
+        window.refreshAdminRoster();
+      } else if (subClients && subClients.style.display !== 'none' && typeof window.refreshAdminClients === 'function') {
+        window.refreshAdminClients();
+      } else if (subChat && subChat.style.display !== 'none' && typeof window.refreshAdminLiveChats === 'function') {
+        window.refreshAdminLiveChats();
+      } else if (subAnalytics && subAnalytics.style.display !== 'none' && typeof window.refreshAdminTelemetry === 'function') {
+        window.refreshAdminTelemetry();
+      }
+    }
+    window.triggerModalAdminRefresh = triggerModalAdminRefresh;
+
 
     function closeAdminSubpanelModal() {
       var overlay = document.getElementById('adminSubpanelModalOverlay');
@@ -2766,7 +2786,6 @@ function updateAdminChatBadgeCount() {
         overlay.style.setProperty('display', 'none', 'important');
         overlay.classList.remove('active');
       }
-      document.body.classList.remove('modal-open');
       document.body.style.overflow = '';
     }
     window.closeAdminSubpanelModal = closeAdminSubpanelModal;
@@ -10289,55 +10308,54 @@ if (typeof window !== 'undefined') {
     // Robust Course Tier Switcher (Standard vs VIP)
     var COURSE_TIER_CONFIG = {
       mastery: {
-        basePrice: "$425.00",
-        vipPrice: "$550.00",
-        baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($425.00)",
-        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)"
+        basePrice: "25.00",
+        vipPrice: "50.00",
+        baseValue: "Mid-Atlantic Multi-State Mastery — Base Track (25.00)",
+        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey (50.00)"
       },
       combo: {
-        basePrice: "$249.99",
-        vipPrice: "$375.00",
-        baseValue: "Maryland CCW & HQL Combo — Base Track ($249.99)",
-        vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($375.00)"
+        basePrice: "49.99",
+        vipPrice: "75.00",
+        baseValue: "Maryland CCW & HQL Combo — Base Track (49.99)",
+        vipValue: "Maryland CCW & HQL Combo — VIP Turnkey (75.00)"
       },
       ccw: {
-        basePrice: "$199.99",
-        vipPrice: "$325.00",
-        baseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
-        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)"
+        basePrice: "99.99",
+        vipPrice: "25.00",
+        baseValue: "Maryland Wear & Carry (CCW) — Base Track (99.99)",
+        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey (25.00)"
       },
       hql: {
-        basePrice: "$100.00",
-        vipPrice: "$165.00",
-        baseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
-        vipValue: "Maryland HQL (Purchase License) — VIP Turnkey ($165.00)"
+        basePrice: "00.00",
+        vipPrice: "65.00",
+        baseValue: "Maryland HQL (Purchase License) — Base Track (00.00)",
+        vipValue: "Maryland HQL (Purchase License) — VIP Turnkey (65.00)"
       },
       coaching: {
-        basePrice: "$125.00",
-        vipPrice: "$195.00",
-        baseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
-        vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
+        basePrice: "25.00",
+        vipPrice: "95.00",
+        baseValue: "Personal 1-on-1 Coaching — Base Track (25.00/hr)",
+        vipValue: "Personal 1-on-1 Coaching — VIP Turnkey (95.00/hr)"
       },
       cleaning: {
-        basePrice: "$75.00",
-        vipPrice: "$110.00",
-        baseValue: "Firearm Deep Cleaning & Inspection — Base Track ($75.00)",
-        vipValue: "Firearm Deep Cleaning & Inspection — VIP Turnkey ($110.00)"
+        basePrice: "5.00",
+        vipPrice: "10.00",
+        baseValue: "Firearm Deep Cleaning & Inspection — Base Track (5.00)",
+        vipValue: "Firearm Deep Cleaning & Inspection — VIP Turnkey (10.00)"
       },
       children: {
-        basePrice: "$199.99",
-        vipPrice: "$240.00",
-        baseValue: "Youth & Family Firearm Safety — Base Track ($199.99)",
-        vipValue: "Youth & Family Firearm Safety — VIP Turnkey ($240.00)"
+        basePrice: "5.00",
+        vipPrice: "40.00",
+        baseValue: "Youth & Family Firearm Safety — Base Track (5.00)",
+        vipValue: "Youth & Family Firearm Safety — VIP Turnkey (40.00)"
       },
       alumni: {
-        basePrice: "$65.00",
-        vipPrice: "$115.00",
-        baseValue: "FIFS Alumni Marksmanship Clinic — Base Track ($65.00)",
-        vipValue: "FIFS Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
+        basePrice: "5.00",
+        vipPrice: "25.00",
+        baseValue: "FIFS Alumni Marksmanship Clinic — Base Track (5.00)",
+        vipValue: "FIFS Alumni Marksmanship Clinic — VIP Turnkey (25.00)"
       }
     };
-    window.COURSE_TIER_CONFIG = COURSE_TIER_CONFIG;
 
     function setCardTier(courseKey, targetTier, evt) {
       if (evt) {
