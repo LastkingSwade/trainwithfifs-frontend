@@ -2278,6 +2278,38 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <span>🚪</span> <span>LOCK TERMINAL</span>
             </button>
           </div>
+          {/* POPUP MODAL DIALOG FOR ADMIN INTEL CARDS (Clean overlay matching What to Expect) */}
+      <div 
+        className="goal-modal-overlay" 
+        id="adminSubpanelModalOverlay" 
+        data-onclick="if(event.target===this) closeAdminSubpanelModal()" 
+        style={{"display": "none", "zIndex": 999999, "alignItems": "center", "justifyContent": "center"}}
+      >
+        <div 
+          aria-modal="true" 
+          className="goal-modal-box" 
+          data-onclick="event.stopPropagation()" 
+          role="dialog" 
+          style={{"maxWidth": "1020px", "width": "96%", "maxHeight": "92vh", "overflowY": "auto", "padding": "28px 24px", "border": "2px solid var(--accent-cyan)", "borderRadius": "16px", "background": "linear-gradient(135deg, rgba(13, 19, 27, 0.98) 0%, rgba(6, 10, 16, 0.99) 100%)", "boxShadow": "0 25px 60px rgba(0,0,0,0.95), 0 0 35px rgba(0, 229, 255, 0.25)", "position": "relative"}}
+        >
+          <button 
+            aria-label="Close details" 
+            className="goal-modal-close-btn" 
+            data-onclick="closeAdminSubpanelModal()" 
+            type="button"
+            style={{"position": "absolute", "top": "18px", "right": "20px", "width": "38px", "height": "38px", "fontSize": "1.4rem", "borderRadius": "50%", "background": "rgba(255,255,255,0.08)", "border": "1px solid var(--border-subtle)", "color": "#fff", "cursor": "pointer", "display": "flex", "alignItems": "center", "justifyContent": "center", "zIndex": 10}}
+          >
+            ✕
+          </button>
+          <div style={{"marginBottom": "16px", "paddingRight": "50px"}}>
+            <span id="adminSubpanelModalEyebrow" style={{"color": "var(--accent-cyan)", "fontFamily": "var(--font-display)", "fontSize": "0.82rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase", "display": "block", "marginBottom": "4px"}}>
+              ADMIN INTELLIGENCE PORTAL
+            </span>
+            <h3 id="adminSubpanelModalTitle" style={{"fontFamily": "var(--font-display)", "fontSize": "1.65rem", "color": "#fff", "margin": 0, "fontWeight": "800"}}>
+              Portal View
+            </h3>
+          </div>
+          
           {/* SUBPANEL 1: STUDENT ROSTER */}
           <div id="admin-subpanel-roster">
             {/* New Student Registration Notification Alert Beacon */}
@@ -2815,6 +2847,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
           </div>
         </div>
+      </div>
+        </div>
       </section>
       {/* VIEW 3: DEDICATED COURSE ENROLLMENT & PREPARATION HUB */}
       <main className="panel hidden" id="view-booking" role="tabpanel">
@@ -3276,10 +3310,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div className="tier-sliding-switch" id="switch-mastery" data-onclick="toggleCardTier('mastery', event)">
                 <div className="tier-sliding-pill" id="slider-mastery">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-mastery" data-onclick="setCardTier('mastery', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-mastery" data-onclick="setCardTier('mastery', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('mastery', 'base', e); }} type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-mastery" data-onclick="setCardTier('mastery', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-mastery" data-onclick="setCardTier('mastery', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('mastery', 'vip', e); }} type="button">
                   👑
                 </button>
               </div>
@@ -3367,10 +3401,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div className="tier-sliding-switch" id="switch-combo" data-onclick="toggleCardTier('combo', event)">
                 <div className="tier-sliding-pill" id="slider-combo">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-combo" data-onclick="setCardTier('combo', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-combo" data-onclick="setCardTier('combo', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('combo', 'base', e); }} type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-combo" data-onclick="setCardTier('combo', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-combo" data-onclick="setCardTier('combo', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('combo', 'vip', e); }} type="button">
                   👑
                 </button>
               </div>
@@ -3455,10 +3489,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div className="tier-sliding-switch" id="switch-ccw" data-onclick="toggleCardTier('ccw', event)">
                 <div className="tier-sliding-pill" id="slider-ccw">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-ccw" data-onclick="setCardTier('ccw', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-ccw" data-onclick="setCardTier('ccw', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('ccw', 'base', e); }} type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-ccw" data-onclick="setCardTier('ccw', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-ccw" data-onclick="setCardTier('ccw', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('ccw', 'vip', e); }} type="button">
                   👑
                 </button>
               </div>
@@ -3537,10 +3571,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div className="tier-sliding-switch" id="switch-hql" data-onclick="toggleCardTier('hql', event)">
                 <div className="tier-sliding-pill" id="slider-hql">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-hql" data-onclick="setCardTier('hql', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-hql" data-onclick="setCardTier('hql', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('hql', 'base', e); }} type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-hql" data-onclick="setCardTier('hql', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-hql" data-onclick="setCardTier('hql', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('hql', 'vip', e); }} type="button">
                   👑
                 </button>
               </div>
@@ -3619,10 +3653,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div className="tier-sliding-switch" id="switch-coaching" data-onclick="toggleCardTier('coaching', event)">
                 <div className="tier-sliding-pill" id="slider-coaching">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-coaching" data-onclick="setCardTier('coaching', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-coaching" data-onclick="setCardTier('coaching', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('coaching', 'base', e); }} type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-coaching" data-onclick="setCardTier('coaching', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-coaching" data-onclick="setCardTier('coaching', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('coaching', 'vip', e); }} type="button">
                   👑
                 </button>
               </div>
@@ -3701,10 +3735,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div className="tier-sliding-switch" id="switch-cleaning" data-onclick="toggleCardTier('cleaning', event)">
                 <div className="tier-sliding-pill" id="slider-cleaning">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-cleaning" data-onclick="setCardTier('cleaning', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-cleaning" data-onclick="setCardTier('cleaning', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('cleaning', 'base', e); }} type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-cleaning" data-onclick="setCardTier('cleaning', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-cleaning" data-onclick="setCardTier('cleaning', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('cleaning', 'vip', e); }} type="button">
                   👑
                 </button>
               </div>
@@ -3780,10 +3814,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div className="tier-sliding-switch" id="switch-children" data-onclick="toggleCardTier('children', event)">
                 <div className="tier-sliding-pill" id="slider-children">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-children" data-onclick="setCardTier('children', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-children" data-onclick="setCardTier('children', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('children', 'base', e); }} type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-children" data-onclick="setCardTier('children', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-children" data-onclick="setCardTier('children', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('children', 'vip', e); }} type="button">
                   👑
                 </button>
               </div>
@@ -3869,10 +3903,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div className="tier-sliding-switch" id="switch-alumni" data-onclick="toggleCardTier('alumni', event)">
                 <div className="tier-sliding-pill" id="slider-alumni">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-alumni" data-onclick="setCardTier('alumni', 'base', event)" type="button">
+                <button className="tier-option-btn btn-base-side" id="tog-base-alumni" data-onclick="setCardTier('alumni', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('alumni', 'base', e); }} type="button">
                   Standard
                 </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-alumni" data-onclick="setCardTier('alumni', 'vip', event)" type="button">
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-alumni" data-onclick="setCardTier('alumni', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('alumni', 'vip', e); }} type="button">
                   👑
                 </button>
               </div>
