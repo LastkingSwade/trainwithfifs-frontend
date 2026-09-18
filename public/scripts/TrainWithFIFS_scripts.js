@@ -2698,95 +2698,74 @@ function updateAdminChatBadgeCount() {
       }
     }
     window.updateAdminChatBadgeCount = updateAdminChatBadgeCount;
-    function switchAdminTab(tab) {
-      var subRoster = document.getElementById('admin-subpanel-roster');
-      var subClients = document.getElementById('admin-subpanel-clients');
-      var subAnalytics = document.getElementById('admin-subpanel-analytics');
-      var subChat = document.getElementById('admin-subpanel-chat');
-      var btnRoster = document.getElementById('btn-admin-tab-roster');
-      var btnClients = document.getElementById('btn-admin-tab-clients');
-      var btnAnalytics = document.getElementById('btn-admin-tab-analytics');
-      var btnChat = document.getElementById('btn-admin-tab-chat');
-      if (subRoster) subRoster.style.setProperty('display', 'none', 'important');
-      if (subClients) subClients.style.setProperty('display', 'none', 'important');
-      if (subAnalytics) subAnalytics.style.setProperty('display', 'none', 'important');
-      if (subChat) subChat.style.setProperty('display', 'none', 'important');
-      if (btnRoster) {
-        btnRoster.classList.remove('active');
-        btnRoster.style.background = 'transparent';
-        btnRoster.style.color = 'var(--text-muted)';
-        btnRoster.style.boxShadow = 'none';
-      }
-      if (btnClients) {
-        btnClients.classList.remove('active');
-        btnClients.style.background = 'transparent';
-        btnClients.style.color = 'var(--text-muted)';
-        btnClients.style.boxShadow = 'none';
-      }
-      if (btnAnalytics) {
-        btnAnalytics.classList.remove('active');
-        btnAnalytics.style.background = 'transparent';
-        btnAnalytics.style.color = 'var(--accent-amber)';
-        btnAnalytics.style.boxShadow = 'none';
-      }
-      if (btnChat) {
-        btnChat.classList.remove('active');
-        btnChat.style.background = 'transparent';
-        btnChat.style.color = 'var(--accent-cyan)';
-        btnChat.style.boxShadow = 'none';
-      }
-      if (tab === 'chat') {
-        if (subChat) subChat.style.setProperty('display', 'block', 'important');
+        function switchAdminTab(tab) {
+      var subRoster = document.getElementById("admin-subpanel-roster");
+      var subClients = document.getElementById("admin-subpanel-clients");
+      var subAnalytics = document.getElementById("admin-subpanel-analytics");
+      var subChat = document.getElementById("admin-subpanel-chat");
+      var btnRoster = document.getElementById("btn-admin-tab-roster");
+      var btnClients = document.getElementById("btn-admin-tab-clients");
+      var btnAnalytics = document.getElementById("btn-admin-tab-analytics") || document.getElementById("btn-admin-tab-telemetry");
+      var btnChat = document.getElementById("btn-admin-tab-chat");
+
+      if (subRoster) subRoster.style.setProperty("display", "none", "important");
+      if (subClients) subClients.style.setProperty("display", "none", "important");
+      if (subAnalytics) subAnalytics.style.setProperty("display", "none", "important");
+      if (subChat) subChat.style.setProperty("display", "none", "important");
+
+      var allCards = [
+        { btn: btnRoster, glow: "0 0 25px rgba(0, 229, 255, 0.45)" },
+        { btn: btnClients, glow: "0 0 25px rgba(255, 183, 3, 0.45)" },
+        { btn: btnChat, glow: "0 0 25px rgba(168, 85, 247, 0.45)" },
+        { btn: btnAnalytics, glow: "0 0 25px rgba(16, 185, 129, 0.45)" }
+      ];
+
+      allCards.forEach(function(item) {
+        if (item.btn) {
+          item.btn.classList.remove("active");
+          item.btn.style.boxShadow = "none";
+          item.btn.style.transform = "none";
+        }
+      });
+
+      if (tab === "chat") {
+        if (subChat) subChat.style.setProperty("display", "block", "important");
         if (btnChat) {
-          btnChat.classList.add('active');
-          btnChat.style.background = 'var(--accent-cyan)';
-          btnChat.style.color = '#070b10';
-          btnChat.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
+          btnChat.classList.add("active");
+          btnChat.style.boxShadow = "0 0 25px rgba(168, 85, 247, 0.45)";
+          btnChat.style.transform = "translateY(-2px)";
         }
-        if (typeof refreshAdminLiveChats === 'function') {
-          refreshAdminLiveChats();
-        } else if (typeof renderAdminChatConsole === 'function') {
-          renderAdminChatConsole();
+        if (typeof window.refreshAdminLiveChats === "function") {
+          window.refreshAdminLiveChats();
         }
-      } else if (tab === 'analytics') {
-        if (subAnalytics) subAnalytics.style.setProperty('display', 'block', 'important');
-        if (btnAnalytics) {
-          btnAnalytics.classList.add('active');
-          btnAnalytics.style.background = 'var(--accent-amber)';
-          btnAnalytics.style.color = '#070b10';
-          btnAnalytics.style.boxShadow = '0 0 18px var(--accent-amber-glow)';
-        }
-        if (typeof renderAdminAnalyticsDashboard === 'function') renderAdminAnalyticsDashboard();
-      } else if (tab === 'clients') {
-        if (subClients) subClients.style.setProperty('display', 'block', 'important');
+      } else if (tab === "clients") {
+        if (subClients) subClients.style.setProperty("display", "block", "important");
         if (btnClients) {
-          btnClients.classList.add('active');
-          btnClients.style.background = 'var(--accent-cyan)';
-          btnClients.style.color = '#070b10';
-          btnClients.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
+          btnClients.classList.add("active");
+          btnClients.style.boxShadow = "0 0 25px rgba(255, 183, 3, 0.45)";
+          btnClients.style.transform = "translateY(-2px)";
         }
-        if (typeof renderAdminClientTerminal === 'function') {
-          renderAdminClientTerminal({ clients: adminCachedClients });
-        }
-        var pin = sessionStorage.getItem('fifs_instructor_pin');
-        if (pin && typeof callFifsBackend === 'function') {
-          callFifsBackend('getAdminDashboardData', { pin: pin }, function(res) {
-            if (res && Array.isArray(res.clients)) {
-              adminCachedClients = res.clients;
-              window.adminCachedClients = adminCachedClients;
-              if (typeof renderAdminClientTerminal === 'function') {
-                renderAdminClientTerminal({ clients: res.clients });
-              }
+        var pin = sessionStorage.getItem("fifs_instructor_pin");
+        if (pin && typeof window.callFifsBackend === "function") {
+          window.callFifsBackend("getAdminDashboardData", { pin: pin }, function(res) {
+            if (res && res.status === "success" && typeof window.renderAdminClientTerminal === "function") {
+              window.renderAdminClientTerminal(res);
             }
           });
         }
+      } else if (tab === "telemetry" || tab === "analytics") {
+        if (subAnalytics) subAnalytics.style.setProperty("display", "block", "important");
+        if (btnAnalytics) {
+          btnAnalytics.classList.add("active");
+          btnAnalytics.style.boxShadow = "0 0 25px rgba(16, 185, 129, 0.45)";
+          btnAnalytics.style.transform = "translateY(-2px)";
+        }
       } else {
-        if (subRoster) subRoster.style.setProperty('display', 'block', 'important');
+        if (subRoster) subRoster.style.setProperty("display", "block", "important");
         if (btnRoster) {
-          btnRoster.classList.add('active');
-          btnRoster.style.background = 'var(--accent-cyan)';
-          btnRoster.style.color = '#070b10';
-          btnRoster.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
+          btnRoster.classList.add("active");
+          btnRoster.style.boxShadow = "0 0 25px rgba(0, 229, 255, 0.45)";
+          btnRoster.style.transform = "translateY(-2px)";
         }
       }
     }
