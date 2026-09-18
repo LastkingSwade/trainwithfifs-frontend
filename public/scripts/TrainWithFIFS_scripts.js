@@ -10216,3 +10216,70 @@ if (typeof window !== 'undefined') {
       }
     }, 5000);
   }
+
+
+/* TACTICAL LIVE CHAT BADGE AUTO-POLL & GUN RELOAD EXTENSIONS */
+(function initTacticalEnhancements() {
+  // 1. One-time electric materialization on first webapp load
+  try {
+    if (!sessionStorage.getItem("fifs_electric_boot_done")) {
+      sessionStorage.setItem("fifs_electric_boot_done", "true");
+      document.addEventListener("DOMContentLoaded", function() {
+        const appRoot = document.querySelector(".app-root") || document.querySelector("main") || document.body;
+        if (appRoot) {
+          appRoot.classList.add("electric-materialize-boot");
+        }
+      });
+      if (document.readyState === "interactive" || document.readyState === "complete") {
+        const appRoot = document.querySelector(".app-root") || document.querySelector("main") || document.body;
+        if (appRoot) {
+          appRoot.classList.add("electric-materialize-boot");
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Electric boot error:", e);
+  }
+
+  // 2. Global Universal Gun Reload Animation Helper
+  window.triggerUniversal6SecGunReload = function(btnElement, targetScope) {
+    const btn = btnElement || document.getElementById("topNavRefreshBtn");
+    if (btn) {
+      btn.classList.add("tactical-recoil-active", "reloading");
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = "<span>🔫 CHAMBERING...</span>";
+      setTimeout(() => {
+        btn.innerHTML = "<span>💥 ROUND CHAMBERED</span>";
+      }, 700);
+      setTimeout(() => {
+        btn.innerHTML = originalHtml;
+        btn.classList.remove("tactical-recoil-active", "reloading");
+      }, 1500);
+    }
+    if (typeof window.refreshAdminRoster === "function") {
+      window.refreshAdminRoster();
+    }
+    if (typeof window.refreshAdminLiveChats === "function") {
+      window.refreshAdminLiveChats();
+    }
+  };
+
+  // 3. Auto-badge listener whenever live chats update
+  window.updateAdminChatBadgesImmediately = function(unreadCount) {
+    const badgeIds = ["admin-tab-chat-unread", "admin-chat-unread-badge", "liveChatBadge", "admin-unread-count"];
+    badgeIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        if (unreadCount > 0) {
+          el.textContent = unreadCount;
+          el.style.display = "inline-flex";
+          el.classList.add("active", "pulse");
+        } else {
+          el.textContent = "0";
+          el.style.display = "none";
+          el.classList.remove("active", "pulse");
+        }
+      }
+    });
+  };
+})();
