@@ -644,12 +644,12 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
           </div>
           <div style={{"display": "flex", "alignItems": "center", "gap": "8px"}}>
-            <button aria-label="Go back to previous view" className="btn-return-home" data-onclick="navigateBack()" style={{"background": "rgba(16, 22, 31, 0.9)", "border": "2px solid var(--border-subtle)", "color": "var(--accent-cyan) !important", "minHeight": "44px", "padding": "8px 16px"}} type="button">
+            <button aria-label="Go back to previous view" className="btn-return-home" data-onclick="navigateBack()" style={{"background": "rgba(16, 22, 31, 0.9)", "border": "2px solid var(--border-subtle)", "color": "#00f0ff", "minHeight": "44px", "padding": "8px 16px"}} type="button">
               
           ← BACK
         
             </button>
-            <button type="button" aria-label="Refresh and sync application data" className="btn-return-home btn-universal-refresh" id="topNavRefreshBtn" data-onclick="window.triggerUniversal6SecGunReload(this, 'all')" style={{"background": "rgba(16, 22, 31, 0.9)", "border": "2px solid var(--accent-cyan)", "color": "var(--accent-cyan) !important", "minHeight": "44px", "padding": "8px 16px"}}>
+            <button type="button" aria-label="Refresh and sync application data" className="btn-return-home btn-universal-refresh" id="topNavRefreshBtn" data-onclick="window.triggerTopNavGunReload(event)" style={{"background": "rgba(16, 22, 31, 0.9)", "border": "2px solid var(--accent-cyan)", "color": "#00f0ff", "minHeight": "44px", "padding": "8px 16px"}}>
               <span className="refresh-ui-text">
                 🔄 REFRESH
               </span>
@@ -8249,12 +8249,12 @@ document.addEventListener('submit', handleDelegatedSubmit);
       </div>
       {/* STICKY BOTTOM DOCK (Visible on all pages except landing/home) */}
       <div id="sticky-bottom-dock" className="sticky-bottom-dock">
-        <button aria-label="Go back to previous view" className="btn-return-home" data-onclick="navigateBack()" style={{"background": "rgba(16, 22, 31, 0.95)", "border": "2px solid var(--border-subtle)", "color": "var(--accent-cyan) !important", "minHeight": "42px", "padding": "8px 16px", "fontSize": "0.90rem"}} type="button">
+        <button aria-label="Go back to previous view" className="btn-return-home" data-onclick="navigateBack()" style={{"background": "rgba(16, 22, 31, 0.95)", "border": "2px solid var(--border-subtle)", "color": "#00f0ff", "minHeight": "42px", "padding": "8px 16px", "fontSize": "0.90rem"}} type="button">
           
     ← BACK
   
         </button>
-        <button type="button" aria-label="Refresh and sync application data" className="btn-return-home btn-universal-refresh" data-onclick="window.triggerUniversal6SecGunReload(this, 'all')" style={{"background": "rgba(16, 22, 31, 0.95)", "border": "2px solid var(--accent-cyan)", "color": "var(--accent-cyan) !important", "minHeight": "42px", "padding": "8px 16px", "fontSize": "0.90rem"}}>
+        <button type="button" aria-label="Refresh and sync application data" className="btn-return-home btn-universal-refresh" data-onclick="window.triggerTopNavGunReload(event)" style={{"background": "rgba(16, 22, 31, 0.95)", "border": "2px solid var(--accent-cyan)", "color": "#00f0ff", "minHeight": "42px", "padding": "8px 16px", "fontSize": "0.90rem"}}>
           <span className="refresh-ui-text">
             🔄 REFRESH
           </span>
