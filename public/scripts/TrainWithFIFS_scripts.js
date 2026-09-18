@@ -1,5 +1,5 @@
 
-    // === AUTHORITATIVE COURSE TIER SYSTEM ===
+    // === AUTHORITATIVE ALL-8 COURSE TIER CONFIGURATION ===
     var COURSE_TIER_CONFIG = {
       mastery: {
         basePrice: '$250.00',
@@ -9,15 +9,77 @@
         baseBadge: '5-STATE EXPANSION (MD+VA+FL+AZ+PA) — 34+ STATES LEGAL CARRY',
         vipBadge: '👑 ALL-INCLUSIVE VIP 5-STATE CONCIERGE EXPERIENCE',
         baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
-        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB',
-        vipPerks: [
-          'All 5 State Applications Included & Notarized',
-          'Live Electronic LiveScan Fingerprinting In Class ($125 Value)',
-          'Complete Passport Photo Service On-Site',
-          'Free Ammo, Gun Rental & Range Fees Included',
-          'Lifetime CCW Permit Renewal Training Access',
-          'Dedicated Direct Phone Line with Lead Instructor Wade'
-        ]
+        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+      },
+      combo: {
+        basePrice: '$249.99',
+        vipPrice: '$375.00',
+        baseTitle: 'Maryland CCW & HQL Combo Certification',
+        vipTitle: '👑 VIP Maryland CCW & HQL Combo Concierge',
+        baseBadge: 'DUAL CERTIFICATION: CONCEALED CARRY + HANDGUN PURCHASE PERMIT',
+        vipBadge: '👑 ALL-INCLUSIVE VIP COMBO CONCIERGE (LIVESCAN + RANGE INCLUDED)',
+        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
+        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+      },
+      ccw: {
+        basePrice: '$199.99',
+        vipPrice: '$325.00',
+        baseTitle: 'Maryland Wear & Carry (CCW) Initial Course',
+        vipTitle: '👑 VIP Maryland Wear & Carry (CCW) Concierge',
+        baseBadge: 'MARYLAND STATE POLICE CERTIFIED 16-HOUR INITIAL CCW',
+        vipBadge: '👑 VIP WEAR & CARRY: EXPEDITED PACKET & FINGERPRINTING ON-SITE',
+        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
+        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+      },
+      hql: {
+        basePrice: '$100.00',
+        vipPrice: '$165.00',
+        baseTitle: 'Maryland Handgun Qualification License (HQL)',
+        vipTitle: '👑 VIP Maryland HQL Concierge Licensing',
+        baseBadge: 'MARYLAND HANDGUN PURCHASE PERMIT MANDATORY TRAINING',
+        vipBadge: '👑 VIP HQL: APPLICATION SUBMISSION ASSISTANCE + LIVE FIRE EXEMPTION',
+        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
+        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+      },
+      coaching: {
+        basePrice: '$125.00',
+        vipPrice: '$195.00',
+        baseTitle: 'Personal 1-on-1 Private Firearms Coaching',
+        vipTitle: '👑 VIP Private Masterclass & Tactical Diagnostics',
+        baseBadge: 'DEDICATED 1-ON-1 INSTRUCTOR TIME & MARKSMANSHIP TARGETING',
+        vipBadge: '👑 VIP PRIVATE SESSION: DUAL-CALIBER RENTALS & VIDEO DIAGNOSTICS',
+        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
+        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+      },
+      cleaning: {
+        basePrice: '$75.00',
+        vipPrice: '$125.00',
+        baseTitle: 'Firearm Maintenance & Deep Cleaning Workshop',
+        vipTitle: '👑 VIP Armorer Inspection & Ultrasonic Deep Clean',
+        baseBadge: 'FIELD-STRIP, CLEANING CHEMICAL SAFETY & PROPER LUBRICATION',
+        vipBadge: '👑 VIP ARMORER SERVICE: ULTRASONIC TANK CLEAN & PRO-GRADE SOLVENTS',
+        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
+        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+      },
+      children: {
+        basePrice: '$199.99',
+        vipPrice: '$275.00',
+        baseTitle: 'Youth & Family Gun Safety Academy',
+        vipTitle: '👑 VIP Family Defensive & Safe Storage Mastery',
+        baseBadge: 'ACCIDENT PREVENTION, EDDIE EAGLE PROTOCOL & RANGE DISCIPLINE',
+        vipBadge: '👑 VIP FAMILY PACK: LOCKBOX INCLUDED & PRIVATE RANGE LANE ACCESS',
+        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
+        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+      },
+      alumni: {
+        basePrice: '$65.00',
+        vipPrice: '$110.00',
+        baseTitle: 'FIFS Graduate Alumni Tactical Marksman Clinic',
+        vipTitle: "👑 VIP Alumni Advanced Shoot/Don't-Shoot Shootout",
+        baseBadge: 'EXCLUSIVELY FOR FIFS GRADUATES — ADVANCED DRILLS & DRAW SPEED',
+        vipBadge: '👑 VIP CLINIC: 100RDS MATCH AMMO & LOW-LIGHT SCENARIO RUNS',
+        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
+        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
       }
     };
 
@@ -91,6 +153,46 @@
       setCardTier(courseKey, isVip ? 'base' : 'vip', evt);
     }
     window.toggleCardTier = toggleCardTier;
+
+    // === TACTICAL GUN REFRESH & SCARED NAVIGATION SYSTEM ===
+    function triggerTopNavGunReload(evt) {
+      if (evt) {
+        if (evt.stopPropagation) evt.stopPropagation();
+        if (evt.preventDefault) evt.preventDefault();
+      }
+      var refreshBtn = document.getElementById('btnNavRefresh') || document.querySelector('.btn-nav-refresh') || document.querySelector('[data-onclick*="triggerTopNavGunReload"]');
+      var backBtn = document.getElementById('btnNavBack') || document.querySelector('.btn-nav-back');
+      var homeBtn = document.getElementById('btnNavHome') || document.querySelector('.btn-return-home');
+
+      if (backBtn) backBtn.classList.add('nav-btn-scared-left');
+      if (homeBtn) homeBtn.classList.add('nav-btn-scared-right');
+
+      if (refreshBtn) {
+        refreshBtn.classList.add('tactical-gun-recoil');
+        var originalText = refreshBtn.innerHTML;
+        
+        refreshBtn.innerHTML = '⚡ RACKING...';
+        setTimeout(function() {
+          refreshBtn.innerHTML = '💥 BANG!';
+        }, 350);
+        setTimeout(function() {
+          refreshBtn.innerHTML = '💨 EJECTING...';
+        }, 700);
+        setTimeout(function() {
+          refreshBtn.innerHTML = '🔄 LOCKED & LOADED';
+        }, 1050);
+        setTimeout(function() {
+          refreshBtn.classList.remove('tactical-gun-recoil');
+          refreshBtn.innerHTML = originalText;
+          if (backBtn) backBtn.classList.remove('nav-btn-scared-left');
+          if (homeBtn) homeBtn.classList.remove('nav-btn-scared-right');
+          if (window.refreshAdminRoster) window.refreshAdminRoster();
+          if (window.refreshAdminClients) window.refreshAdminClients();
+        }, 1500);
+      }
+    }
+    window.triggerTopNavGunReload = triggerTopNavGunReload;
+    window.triggerGunRefreshAnimation = triggerTopNavGunReload;
 
 
 
@@ -2850,7 +2952,34 @@ function updateAdminChatBadgeCount() {
         refreshAdminTelemetry();
       }
     }
-    window.openAdminSubpanelModal = openAdminSubpanelModal;
+    
+    function triggerModalAdminRefresh(evt) {
+      if (evt && evt.preventDefault) evt.preventDefault();
+      var btn = document.getElementById('btnAdminModalRefresh') || (evt ? (evt.target || evt.currentTarget) : null);
+      if (btn) {
+        btn.classList.add('tactical-recoil-active');
+        btn.innerHTML = '⚡ SYNCING INTEL...';
+        setTimeout(function() {
+          btn.classList.remove('tactical-recoil-active');
+          btn.innerHTML = '🔄 REFRESH INTEL';
+        }, 850);
+      }
+      var activeSubpanel = ['roster', 'clients', 'chat', 'telemetry', 'analytics'].find(function(t) {
+        var el = document.getElementById('admin-subpanel-' + t);
+        return el && el.style.display !== 'none';
+      });
+      if (activeSubpanel === 'clients' && typeof window.refreshAdminClients === 'function') {
+        window.refreshAdminClients();
+      } else if (activeSubpanel === 'chat' && typeof window.refreshAdminLiveChats === 'function') {
+        window.refreshAdminLiveChats();
+      } else if ((activeSubpanel === 'telemetry' || activeSubpanel === 'analytics') && typeof window.refreshAdminTelemetry === 'function') {
+        window.refreshAdminTelemetry();
+      } else if (typeof window.refreshAdminRoster === 'function') {
+        window.refreshAdminRoster();
+      }
+    }
+    window.triggerModalAdminRefresh = triggerModalAdminRefresh;
+window.openAdminSubpanelModal = openAdminSubpanelModal;
 
     function closeAdminSubpanelModal() {
       var overlay = document.getElementById('adminSubpanelModalOverlay');
@@ -4457,88 +4586,12 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       renderAdminClientTerminal();
     }
     window.deleteClientFromRoster = deleteClientFromRoster;
-    // Redefine switchAdminTab to handle roster, clients, and analytics
-        function switchAdminTab(tab) {
-      var subRoster = document.getElementById('admin-subpanel-roster');
-      var subClients = document.getElementById('admin-subpanel-clients');
-      var subAnalytics = document.getElementById('admin-subpanel-analytics');
-      var subChat = document.getElementById('admin-subpanel-chat');
-      var btnRoster = document.getElementById('btn-admin-tab-roster');
-      var btnClients = document.getElementById('btn-admin-tab-clients');
-      var btnAnalytics = document.getElementById('btn-admin-tab-analytics');
-      var btnChat = document.getElementById('btn-admin-tab-chat');
-      if (subRoster) subRoster.style.setProperty('display', 'none', 'important');
-      if (subClients) subClients.style.setProperty('display', 'none', 'important');
-      if (subAnalytics) subAnalytics.style.setProperty('display', 'none', 'important');
-      if (subChat) subChat.style.setProperty('display', 'none', 'important');
-      if (btnRoster) {
-        btnRoster.classList.remove('active');
-        btnRoster.style.background = 'transparent';
-        btnRoster.style.color = 'var(--text-muted)';
-        btnRoster.style.boxShadow = 'none';
+    // Redefine switchAdminTab // Delegated to modal-based switchAdminTab
+    window.switchAdminTab = function(tab) {
+      if (typeof window.openAdminSubpanelModal === 'function') {
+        window.openAdminSubpanelModal(tab);
       }
-      if (btnClients) {
-        btnClients.classList.remove('active');
-        btnClients.style.background = 'transparent';
-        btnClients.style.color = 'var(--text-muted)';
-        btnClients.style.boxShadow = 'none';
-      }
-      if (btnAnalytics) {
-        btnAnalytics.classList.remove('active');
-        btnAnalytics.style.background = 'transparent';
-        btnAnalytics.style.color = 'var(--accent-amber)';
-        btnAnalytics.style.boxShadow = 'none';
-      }
-      if (btnChat) {
-        btnChat.classList.remove('active');
-        btnChat.style.background = 'transparent';
-        btnChat.style.color = 'var(--accent-cyan)';
-        btnChat.style.boxShadow = 'none';
-      }
-      if (tab === 'chat') {
-        if (subChat) subChat.style.setProperty('display', 'block', 'important');
-        if (btnChat) {
-          btnChat.classList.add('active');
-          btnChat.style.background = 'var(--accent-cyan)';
-          btnChat.style.color = '#070b10';
-          btnChat.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
-        }
-        if (typeof refreshAdminLiveChats === 'function') {
-          refreshAdminLiveChats();
-        } else if (typeof renderAdminChatConsole === 'function') {
-          renderAdminChatConsole();
-        }
-      } else if (tab === 'analytics') {
-        if (subAnalytics) subAnalytics.style.setProperty('display', 'block', 'important');
-        if (btnAnalytics) {
-          btnAnalytics.classList.add('active');
-          btnAnalytics.style.background = 'var(--accent-amber)';
-          btnAnalytics.style.color = '#070b10';
-          btnAnalytics.style.boxShadow = '0 0 18px var(--accent-amber-glow)';
-        }
-        if (typeof renderAdminAnalyticsDashboard === 'function') renderAdminAnalyticsDashboard();
-      } else if (tab === 'clients') {
-        if (subClients) subClients.style.setProperty('display', 'block', 'important');
-        if (btnClients) {
-          btnClients.classList.add('active');
-          btnClients.style.background = 'var(--accent-cyan)';
-          btnClients.style.color = '#070b10';
-          btnClients.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
-        }
-        if (typeof renderAdminClientTerminal === 'function') {
-          renderAdminClientTerminal({ clients: adminCachedClients });
-        }
-      } else {
-        if (subRoster) subRoster.style.setProperty('display', 'block', 'important');
-        if (btnRoster) {
-          btnRoster.classList.add('active');
-          btnRoster.style.background = 'var(--accent-cyan)';
-          btnRoster.style.color = '#070b10';
-          btnRoster.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
-        }
-      }
-    }
-    window.switchAdminTab = switchAdminTab;
+    };
     function checkNewStudentAlert() {
       try {
         var alertData = _fifsMemStorage.getItem('fifs_new_student_alert');
