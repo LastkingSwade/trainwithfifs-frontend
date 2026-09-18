@@ -2074,7 +2074,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       var btn = document.getElementById('btn-admin-refresh-data');
       if (btn) {
         btn.classList.add('btn-animated-loading');
-        btn.innerHTML = '<span class="spin-icon">🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">SYNCING ALL DATA FROM GOOGLE SHEETS...</span>';
+        btn.innerHTML = '<span class="spin-icon">🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">SYNCING ALL DATA FROM SUPABASE...</span>';
       }
       var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       callFifsBackend('getAdminDashboardData', { pin: pin }, function(res) {
@@ -2102,7 +2102,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     }
     window.refreshAdminRoster = refreshAdminRoster;
     function resetWebsiteTelemetry() {
-      if (!confirm("Reset all website telemetry counters in Google Sheets and local storage?")) return;
+      if (!confirm("Reset all website telemetry counters in Supabase and cache?")) return;
       var btn = document.getElementById('btn-reset-telemetry') || document.querySelector('button[onclick*="resetWebsiteTelemetry"]');
       if (btn) {
         btn.classList.add('btn-animated-loading');
@@ -2444,7 +2444,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           });
         } catch(e) {}
       }
-      // Sync Admin Reply to Google Sheets Live_Chats tab via Google Apps Script
+      // Sync Admin Reply to Supabase messages table via /api/fifs
       var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       var replyPayload = {
         threadId: thread.id,
@@ -2454,10 +2454,10 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       };
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('sendAdminLiveChatReply', { passcode: pin, payload: replyPayload }, function(res) {
-          console.log('Admin reply saved to Google Sheets Live_Chats tab:', res);
+          console.log('Admin reply saved to Supabase messages table:', res);
           refreshAdminLiveChats();
         }, function(err) {
-          console.error('Failed to post admin reply to Google Sheets:', err);
+          console.error('Failed to post admin reply to Supabase:', err);
         });
       }
       // Also append to visitor chat stream if open in same window
@@ -2514,7 +2514,75 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         }
       }, 10000);
     }
-    function updateAdminChatBadgeCount() {
+    
+    function updateTerminalTabBadges(stats) {
+      stats = stats || {};
+      var rosterBadge = document.getElementById('admin-tab-roster-badge');
+      var clientsBadge = document.getElementById('admin-tab-clients-badge');
+      var chatBadge = document.getElementById('admin-tab-chat-badge');
+      var chatHdrBadge = document.getElementById('admin-chat-unread-badge');
+
+      // Student Roster badge: show count of pending or total students
+      var pendingStudents = (typeof stats.pendingStudents === 'number') ? stats.pendingStudents : 0;
+      if (!pendingStudents && window.adminCachedStudents && window.adminCachedStudents.length) {
+        pendingStudents = window.adminCachedStudents.filter(function(s) {
+          var step = (typeof getStepNumberFromStatus === 'function') ? getStepNumberFromStatus(s.status) : 1;
+          return step <= 3;
+        }).length;
+      }
+      if (rosterBadge) {
+        if (pendingStudents > 0) {
+          rosterBadge.textContent = pendingStudents;
+          rosterBadge.style.display = 'inline-flex';
+          rosterBadge.title = pendingStudents + ' students pending waiver/intake';
+        } else {
+          rosterBadge.style.display = 'none';
+        }
+      }
+
+      // Clients badge: show active client count
+      var clientCount = (typeof stats.clientCount === 'number') ? stats.clientCount : 0;
+      if (!clientCount && window.adminCachedClients && window.adminCachedClients.length) {
+        clientCount = window.adminCachedClients.length;
+      }
+      if (clientsBadge) {
+        if (clientCount > 0) {
+          clientsBadge.textContent = clientCount;
+          clientsBadge.style.display = 'inline-flex';
+          clientsBadge.title = clientCount + ' active permit clients registered';
+        } else {
+          clientsBadge.style.display = 'none';
+        }
+      }
+
+      // Live Chat Command badge: show unread threads
+      var threads = (typeof getStoredChatThreads === 'function') ? getStoredChatThreads() : [];
+      var unreadChats = threads.filter(function(t) { return t.unread; }).length;
+      if (typeof stats.unreadChats === 'number') unreadChats = stats.unreadChats;
+
+      if (chatBadge) {
+        if (unreadChats > 0) {
+          chatBadge.textContent = unreadChats;
+          chatBadge.style.display = 'inline-flex';
+          chatBadge.title = unreadChats + ' unread visitor inquiries';
+        } else {
+          chatBadge.style.display = 'none';
+        }
+      }
+      if (chatHdrBadge) {
+        if (unreadChats > 0) {
+          chatHdrBadge.textContent = unreadChats;
+          chatHdrBadge.style.display = 'inline-block';
+        } else {
+          chatHdrBadge.style.display = 'none';
+        }
+      }
+    }
+    window.updateTerminalTabBadges = updateTerminalTabBadges;
+
+function updateAdminChatBadgeCount() {
+  if (typeof updateTerminalTabBadges === "function") updateTerminalTabBadges();
+
       const threads = getStoredChatThreads();
       const unreadCount = threads.filter(t => t.unread).length;
       const badgeHdr = document.getElementById('admin-chat-unread-badge');
@@ -2733,7 +2801,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         window.adminCachedStudents = adminCachedStudents;
       }
       callFifsBackend('adminDeleteStudent', { passcode: pin, studentId: studentId }, function(res) {
-        console.log('Student deleted from cloud Google Sheets:', res);
+        console.log('Student deleted from Supabase:', res);
         refreshAdminRoster();
       }, function(err) {
         console.error('Failed to delete student from cloud:', err);
@@ -3034,7 +3102,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         btn.disabled = true;
         btn.innerHTML = '<span>⏳ Saving directly to FIFS Cloud Ledger...</span>';
       }
-      if (statusDiv) showStatus(statusDiv, 'Connecting to Google Sheets ledger...', 'success');
+      if (statusDiv) showStatus(statusDiv, 'Connecting to Supabase Cloud Database...', 'success');
       var clientPayload = {
         fullName: name,
         email: email,
@@ -3048,7 +3116,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           btn.innerHTML = '<span>✓ Profile Created!</span>';
         }
         if (res && res.status === 'success') {
-          if (statusDiv) showStatus(statusDiv, 'Registration saved directly to Google Sheets! Client ID: ' + res.clientId, 'success');
+          if (statusDiv) showStatus(statusDiv, 'Registration saved directly to Supabase! Client ID: ' + res.clientId, 'success');
           clientPayload.clientId = res.clientId;
           renderClientDashboard(clientPayload);
         } else {
@@ -4679,24 +4747,43 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         btn.disabled = false;
         btn.textContent = '💬 Send Message & Open Live Chat →';
       }
-      // 3. Dispatch structured payload to Google Apps Script backend
+      // 3. Dispatch structured payload to Supabase PostgreSQL /api/fifs
       var cleanPhone = phone.replace(/\D/g, '');
       var threadId = cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now());
       if (window.__currentChatSession) {
         window.__currentChatSession.threadId = threadId;
       }
       var payload = {
+        name: name,
+        fullName: name,
         senderName: name,
+        phone: phone,
         senderPhone: phone,
         senderEmail: '',
+        email: '',
         message: msg,
-        threadId: threadId
+        text: msg,
+        threadId: threadId,
+        thread_id: threadId
       };
+      // Broadcast immediately to Admin Terminal via BroadcastChannel
+      try {
+        if (window.FIFS_CHAT_BROADCAST_CHANNEL) {
+          window.FIFS_CHAT_BROADCAST_CHANNEL.postMessage({
+            type: 'VISITOR_MESSAGE',
+            threadId: threadId,
+            senderName: name,
+            senderPhone: phone,
+            text: msg,
+            time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' EST'
+          });
+        }
+      } catch (bcErr) {}
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('handleLiveChatMessage', payload, function(res) {
-          console.log('Message logged in Google Sheets Live_Chats tab:', res);
+          console.log('Message logged in Supabase messages table:', res);
         }, function(err) {
-          console.error('Failed to log message in Google Sheets:', err);
+          console.error('Failed to log message in Supabase:', err);
         });
       }
     }
@@ -8832,7 +8919,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
   var origResetTelemetry = window.resetWebsiteTelemetry;
   window.resetWebsiteTelemetry = function() {
     var btn = document.querySelector('button[onclick*="resetWebsiteTelemetry"]') || document.getElementById('btn-reset-telemetry');
-    if (!confirm("⚠️ TACTICAL PURGE: Reset all website telemetry counters in Google Sheets and local storage?")) return;
+    if (!confirm("⚠️ TACTICAL PURGE: Reset all website telemetry counters in Supabase and cache?")) return;
     if (btn) {
       btn.classList.add('btn-emp-purging');
       btn.innerHTML = '<span style="color:#fff; font-weight:800; letter-spacing:1px;">💥 EMP DISCHARGE IN PROGRESS...</span>';
@@ -9682,7 +9769,7 @@ var operatives = [
         input.style.height = 'auto';
       }
       renderChatStream(op.messages);
-      // Backend dispatch to Google Apps Script / Google Sheets
+      // Backend dispatch to Supabase PostgreSQL /api/fifs
       var cleanPhone = (session.phone || '').replace(/\D/g, '');
       var threadId = (session && session.threadId) ? session.threadId : (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
       if (window.__currentChatSession) {
@@ -9940,7 +10027,7 @@ var operatives = [
         input.style.height = 'auto';
       }
       renderChatStream(op.messages);
-      // Backend dispatch to Google Apps Script / Google Sheets
+      // Backend dispatch to Supabase PostgreSQL /api/fifs
       var cleanPhone = (session.phone || '').replace(/\D/g, '');
       var threadId = (session && session.threadId) ? session.threadId : (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
       if (window.__currentChatSession) {
@@ -10053,6 +10140,11 @@ function openP2pCommsHud(name, phone, initialMsg) {
       name: name || 'Valued Visitor',
       phone: phone || ''
     };
+  }
+  if (typeof operatives !== 'undefined' && operatives.length > 0) {
+    if (studentName) operatives[0].name = studentName;
+    if (typeof renderRoster === 'function') renderRoster();
+    if (typeof renderChatStream === 'function') renderChatStream(operatives[0].messages);
   }
   if (initialMsg && typeof window.sendP2pMessageDirect === 'function') {
     window.sendP2pMessageDirect(initialMsg);
