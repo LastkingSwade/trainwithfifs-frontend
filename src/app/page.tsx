@@ -2219,7 +2219,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <span>🚪</span> <span>LOCK TERMINAL</span>
             </button>
           </div>
-          id="admin-subpanel-roster">
+          {/* SUBPANEL 1: STUDENT ROSTER */}
+          <div id="admin-subpanel-roster">
             {/* New Student Registration Notification Alert Beacon */}
             <div id="admin-new-student-alert-box" style={{"display": "none", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(13, 19, 27, 0.98) 100%)", "border": "2px solid var(--accent-cyan)", "boxShadow": "0 0 25px var(--accent-cyan-glow)", "borderRadius": "12px", "padding": "14px 18px", "marginBottom": "20px", "alignItems": "center", "justifyContent": "space-between", "gap": "14px", "flexWrap": "wrap"}}>
               <div style={{"display": "flex", "alignItems": "center", "gap": "12px"}}>
