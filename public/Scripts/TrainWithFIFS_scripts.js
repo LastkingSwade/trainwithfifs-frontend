@@ -2497,17 +2497,67 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       renderAdminChatConsole();
     }
     window.handleAdminLiveChatSend = handleAdminLiveChatSend;
+    function groupFlatMessagesIntoClientThreads(messages) {
+      if (!Array.isArray(messages)) return [];
+      var threadsMap = {};
+      var sorted = messages.slice().sort(function(a, b) {
+        return new Date(a.sent_at || 0).getTime() - new Date(b.sent_at || 0).getTime();
+      });
+      sorted.forEach(function(m) {
+        var rawPhone = (m.phone || m.senderPhone || '').toString().trim();
+        var cleanPhone = rawPhone.replace(/[^0-9]/g, '');
+        var key = m.threadId || m.thread_id || (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + (m.senderName || 'visitor')));
+        if (!threadsMap[key]) {
+          threadsMap[key] = {
+            id: key,
+            senderName: (m.sender === 'instructor' || m.sender === 'admin') ? 'Visitor' : (m.senderName || m.name || 'Valued Visitor'),
+            senderPhone: rawPhone || 'Live Visitor',
+            senderEmail: m.email || m.senderEmail || '',
+            lastUpdated: m.time || (m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : ''),
+            lastTimestamp: new Date(m.sent_at || 0).getTime(),
+            unread: false,
+            messages: []
+          };
+        }
+        var t = threadsMap[key];
+        if (m.sender !== 'instructor' && m.sender !== 'admin') {
+          if (m.senderName && m.senderName !== 'Coach Kai Wade') t.senderName = m.senderName;
+          if (rawPhone) t.senderPhone = rawPhone;
+          t.unread = true;
+        }
+        t.messages.push({
+          id: m.id || ('msg_' + Math.random()),
+          sender: (m.sender === 'instructor' || m.sender === 'admin') ? 'instructor' : 'user',
+          senderName: (m.sender === 'instructor' || m.sender === 'admin') ? 'Coach Kai Wade' : t.senderName,
+          text: m.text || m.message || '',
+          sent_at: m.sent_at,
+          time: m.time || (m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '')
+        });
+        t.lastUpdated = t.messages[t.messages.length - 1].time;
+        t.lastTimestamp = new Date(m.sent_at || 0).getTime();
+      });
+      return Object.values(threadsMap).sort(function(a, b) { return b.lastTimestamp - a.lastTimestamp; });
+    }
+
     function refreshAdminLiveChats() {
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('getLiveChats', { passcode: pin }, function(res) {
-          if (res && res.status === 'success' && Array.isArray(res.threads)) {
-            saveChatThreads(res.threads);
-            renderAdminChatConsole();
-            updateAdminChatBadgeCount();
-            if (window.__activeAdminChatThreadId) {
-              var active = res.threads.find(function(t) { return t.id === window.__activeAdminChatThreadId; });
-              if (active) renderActiveAdminChatMessages(active);
+          if (res && res.status === 'success') {
+            var rawThreads = res.threads || res.liveChats;
+            if (!Array.isArray(rawThreads) || rawThreads.length === 0) {
+              if (Array.isArray(res.messages) && res.messages.length > 0) {
+                rawThreads = groupFlatMessagesIntoClientThreads(res.messages);
+              }
+            }
+            if (Array.isArray(rawThreads)) {
+              saveChatThreads(rawThreads);
+              renderAdminChatConsole();
+              updateAdminChatBadgeCount();
+              if (window.__activeAdminChatThreadId) {
+                var active = rawThreads.find(function(t) { return t.id === window.__activeAdminChatThreadId; });
+                if (active) renderActiveAdminChatMessages(active);
+              }
             }
           }
         }, function(err) {
@@ -2658,7 +2708,11 @@ function updateAdminChatBadgeCount() {
           btnChat.style.color = '#070b10';
           btnChat.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
         }
-        if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
+        if (typeof refreshAdminLiveChats === 'function') {
+          refreshAdminLiveChats();
+        } else if (typeof renderAdminChatConsole === 'function') {
+          renderAdminChatConsole();
+        }
       } else if (tab === 'analytics') {
         if (subAnalytics) subAnalytics.style.setProperty('display', 'block', 'important');
         if (btnAnalytics) {
@@ -4331,7 +4385,11 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           btnChat.style.color = '#070b10';
           btnChat.style.boxShadow = '0 0 18px var(--accent-cyan-glow)';
         }
-        if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
+        if (typeof refreshAdminLiveChats === 'function') {
+          refreshAdminLiveChats();
+        } else if (typeof renderAdminChatConsole === 'function') {
+          renderAdminChatConsole();
+        }
       } else if (tab === 'analytics') {
         if (subAnalytics) subAnalytics.style.setProperty('display', 'block', 'important');
         if (btnAnalytics) {
