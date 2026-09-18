@@ -4620,6 +4620,52 @@ body.in-home .sticky-bottom-dock,
       color: var(--brand-primary);
       background: rgba(244, 208, 63, 0.08);
     }
+    .btn-header-action.close-hud-btn {
+      background: rgba(226, 88, 88, 0.18);
+      border: 1px solid rgba(226, 88, 88, 0.5);
+      color: #ff9b9b;
+      font-weight: 600;
+    }
+    .btn-header-action.close-hud-btn:hover {
+      background: rgba(226, 88, 88, 0.35);
+      border-color: #ff5252;
+      color: #ffffff;
+    }
+
+    @media (max-width: 768px) {
+      .chat-header {
+        height: auto;
+        min-height: 56px;
+        padding: 8px 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .header-left {
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+      }
+      .header-contact-meta h2 {
+        font-size: 0.92rem;
+      }
+      .telemetry-cluster {
+        display: none !important;
+      }
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+      .btn-header-action {
+        padding: 4px 8px;
+        font-size: 0.70rem;
+      }
+      .btn-header-action svg {
+        display: none;
+      }
+    }
+
     /* Message Stream Log */
     .chat-stream {
       flex: 1;
