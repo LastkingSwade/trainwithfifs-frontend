@@ -17,25 +17,24 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     // ==========================================================================
     // FIFS GITHUB PAGES <-> GOOGLE APPS SCRIPT API BRIDGE
     // ==========================================================================
-    // Direct unified Next.js API route (/api/fifs) connected to Supabase
+    var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbz9X2h0o5_pmNafKXRY9hSeGiGpHerp_JMWie8wg9FmSir0W3mrZAnk5nw-Zs9xH9BY/exec";
     function callFifsBackend(action, payload, onSuccess, onError) {
-      var requestPayload = Object.assign({ action: action }, payload || {});
-      fetch('/api/fifs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: action, payload: payload || {}, ...requestPayload })
+      if (!FIFS_GAS_API_URL) {
+        console.warn("FIFS_GAS_API_URL not configured.");
+        if (onSuccess) onSuccess({ status: "success", clientId: "FI-" + Date.now() });
+        return;
+      }
+      fetch(FIFS_GAS_API_URL, {
+        method: "POST",
+        mode: "cors",
+        redirect: "follow",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: action, payload: payload })
       })
-      .then(function(res) {
-        return res.json().then(function(data) {
-          if (!res.ok || data.status === 'error') {
-            throw new Error(data.message || data.error || 'Server error communicating with Supabase');
-          }
-          return data;
-        });
-      })
+      .then(function(res) { return res.json(); })
       .then(function(data) { if (onSuccess) onSuccess(data); })
       .catch(function(err) {
-        console.error('FIFS Supabase API Error:', err);
+        console.error("FIFS API Error:", err);
         if (onError) onError(err);
       });
     }
@@ -1127,83 +1126,26 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     window.__visitorChatPollInterval = null;
     function startVisitorChatPolling(threadId) {
       stopVisitorChatPolling();
-      if (!window.__currentChatSession) {
-        window.__currentChatSession = {
-          name: 'Valued Visitor',
-          phone: '',
-          threadId: threadId || ('thread_' + Date.now()),
-          sessionStartTime: Date.now() - 30000,
-          renderedMessages: {}
-        };
-      } else if (!window.__currentChatSession.threadId) {
-        window.__currentChatSession.threadId = threadId || ('thread_' + Date.now());
-      }
-      if (!window.__currentChatSession.renderedMessages) {
-        window.__currentChatSession.renderedMessages = {};
-      }
-      if (!window.__currentChatSession.sessionStartTime) {
-        window.__currentChatSession.sessionStartTime = Date.now() - 30000;
-      }
-
       window.__visitorChatPollInterval = setInterval(function() {
-        if (!window.__currentChatSession) return;
-        var activeThreadId = window.__currentChatSession.threadId || threadId || 'thread_general';
+        if (!window.__currentChatSession || !window.__currentChatSession.threadId) return;
         if (typeof callFifsBackend !== 'function') return;
-
-        callFifsBackend('getVisitorChatMessages', { threadId: activeThreadId }, function(res) {
+        callFifsBackend('getVisitorChatMessages', { threadId: window.__currentChatSession.threadId }, function(res) {
           if (res && res.status === 'success' && Array.isArray(res.messages)) {
             var stream = document.getElementById('twoWayChatStream');
+            if (!stream) return;
             var rendered = window.__currentChatSession.renderedMessages || {};
-            var sessionStart = window.__currentChatSession.sessionStartTime || (Date.now() - 60000);
-
             res.messages.forEach(function(m) {
-              var mText = (m.message || m.text || '').trim();
-              if (!mText) return;
-              var key = (m.id || '') + '_' + (m.sent_at || m.timestamp || '') + '_' + mText;
-              var isInstructor = (m.sender === 'instructor' || m.sender === 'admin' || m.sender_type === 'admin' || m.name === 'Coach Kai Wade');
-
-              if (!rendered[key] && isInstructor) {
-                var msgTime = m.sent_at || m.timestamp ? new Date(m.sent_at || m.timestamp).getTime() : Date.now();
-                // Check if message belongs to current session or current student thread
-                if (msgTime >= sessionStart || (m.threadId && m.threadId === activeThreadId)) {
-                  rendered[key] = true;
-                  var timeStr = m.sent_at || m.timestamp ? new Date(m.sent_at || m.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'NOW';
-
-                  // 1. Deliver to 2-Way Standard Modal
-                  if (stream && typeof appendTwoWayBubble === 'function') {
-                    appendTwoWayBubble('instructor', m.senderName || 'Coach Kai Wade', mText, timeStr);
-                  }
-
-                  // 2. Deliver to P2P Comms Tactical HUD
-                  if (typeof operatives !== 'undefined' && Array.isArray(operatives) && operatives.length > 0) {
-                    var op = operatives.find(function(o) { return o.id === activeContactId; }) || operatives[0];
-                    if (op) {
-                      if (!op.messages) op.messages = [];
-                      var alreadyInOp = op.messages.some(function(msg) {
-                        return (msg.text || '').trim() === mText;
-                      });
-                      if (!alreadyInOp) {
-                        op.messages.push({
-                          sender: 'them',
-                          name: 'Coach Kai Wade [LEAD INSTRUCTOR]',
-                          time: timeStr,
-                          text: mText
-                        });
-                        if (typeof renderChatStream === 'function') {
-                          renderChatStream(op.messages);
-                        }
-                        var p2pStream = document.getElementById('chatStream');
-                        if (p2pStream) p2pStream.scrollTop = p2pStream.scrollHeight;
-                      }
-                    }
-                  }
-                }
+              var key = m.timestamp + '_' + m.text;
+              if (!rendered[key] && m.sender === 'instructor') {
+                rendered[key] = true;
+                var time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
+                appendTwoWayBubble('instructor', m.senderName || 'Coach Kai Wade', m.text, time);
               }
             });
             window.__currentChatSession.renderedMessages = rendered;
           }
         }, function(err) {});
-      }, 3000);
+      }, 5000);
     }
     function stopVisitorChatPolling() {
       if (window.__visitorChatPollInterval) {
@@ -2102,7 +2044,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         returnToHome();
       }
     }
-    window.adminSignOut = adminSignOut;
+    window.adminSignOut = adm    // ==========================================================================
     // CLIENT ALERT & ANIMATED ADMIN ACTION CONTROLLERS
     // ==========================================================================
     function checkNewClientAlert() {
@@ -2132,7 +2074,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       var btn = document.getElementById('btn-admin-refresh-data');
       if (btn) {
         btn.classList.add('btn-animated-loading');
-        btn.innerHTML = '<span class="spin-icon">🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">SYNCING DATA FROM SUPABASE...</span>';
+        btn.innerHTML = '<span class="spin-icon">🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">SYNCING ALL DATA FROM GOOGLE SHEETS...</span>';
       }
       var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       callFifsBackend('getAdminDashboardData', { pin: pin }, function(res) {
@@ -2160,7 +2102,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     }
     window.refreshAdminRoster = refreshAdminRoster;
     function resetWebsiteTelemetry() {
-      if (!confirm("Reset telemetry counters in Supabase and local storage?")) return;
+      if (!confirm("Reset all website telemetry counters in Google Sheets and local storage?")) return;
       var btn = document.getElementById('btn-reset-telemetry') || document.querySelector('button[onclick*="resetWebsiteTelemetry"]');
       if (btn) {
         btn.classList.add('btn-animated-loading');
@@ -2449,47 +2391,22 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         stream.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 30px;">No messages in this inquiry thread yet.</div>';
         return;
       }
-      
-      const channelBanner = `
-        <div style="text-align: center; margin: 4px 0 14px;">
-          <span style="font-size: 0.70rem; color: #00e5ff; background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.25); padding: 5px 14px; border-radius: 20px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);">
-            🔒 P2P ENCRYPTED DIRECT CHANNEL // AUTH: COACH KAI WADE // SHA-256 VERIFIED
-          </span>
-        </div>
-      `;
-
-      const messagesHtml = thread.messages.map(m => {
+      stream.innerHTML = thread.messages.map(m => {
         const isAdmin = m.sender === 'instructor' || m.sender === 'admin';
-        if (isAdmin) {
-          return `
-            <div style="display: flex; flex-direction: column; align-items: flex-end; margin-bottom: 12px;">
-              <div style="font-size: 0.70rem; color: #00e5ff; margin-bottom: 3px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-                <span>⚡ Coach Kai Wade (Lead Instructor)</span>
-                <span style="color: #64748b; font-size: 0.68rem; font-family: monospace;">• ${m.time || ''}</span>
-              </div>
-              <div style="background: #00e5ff; color: #070b10; padding: 10px 14px; border-radius: 14px 14px 2px 14px; max-width: 82%; font-size: 0.88rem; font-weight: 600; line-height: 1.45; box-shadow: 0 4px 14px rgba(0, 229, 255, 0.25); word-break: break-word;">
-                ${escapeHtml(m.text)}
-              </div>
-              <div style="font-size: 0.65rem; color: #10b981; margin-top: 2px; font-weight: 700;">✓ Delivered to Student (Line & Discord)</div>
+        return `
+          <div style="display: flex; flex-direction: column; align-items: ${isAdmin ? 'flex-end' : 'flex-start'}; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 0.70rem;">
+              <span style="font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: ${isAdmin ? '#00e5ff' : '#cbd5e1'}; display: inline-flex; align-items: center; gap: 4px;">
+                ${isAdmin ? '<span style="color:#00e5ff;">⚡</span> Coach Kai Wade (Instructor)' : '<span style="color:#94a3b8;">👤</span> ' + escapeHtml(m.senderName || thread.senderName || 'Student Inquirer')}
+              </span>
+              <span style="color: #64748b; font-size: 0.68rem; font-family: monospace;">&bull; ${m.time || ''}</span>
             </div>
-          `;
-        } else {
-          return `
-            <div style="display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 12px;">
-              <div style="font-size: 0.70rem; color: #94a3b8; margin-bottom: 3px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
-                <span>👤 ${escapeHtml(m.senderName || thread.senderName || 'Student Inquirer')}</span>
-                <span style="color: #64748b; font-size: 0.68rem; font-family: monospace;">• ${m.time || ''}</span>
-              </div>
-              <div style="background: #141c26; border: 1px solid rgba(0, 229, 255, 0.35); color: #f8fafc; padding: 10px 14px; border-radius: 14px 14px 14px 2px; max-width: 82%; font-size: 0.88rem; line-height: 1.45; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6); word-break: break-word;">
-                ${escapeHtml(m.text)}
-              </div>
-              <div style="font-size: 0.65rem; color: #64748b; margin-top: 2px;">Inbound via Web Portal</div>
+            <div style="background: ${isAdmin ? 'linear-gradient(135deg, rgba(0, 229, 255, 0.20) 0%, rgba(2, 132, 199, 0.28) 100%)' : 'linear-gradient(135deg, #131b26 0%, #0d141e 100%)'}; border: 1px solid ${isAdmin ? '#00e5ff' : 'rgba(255,255,255,0.12)'}; box-shadow: ${isAdmin ? '0 0 14px rgba(0,229,255,0.18)' : '0 2px 6px rgba(0,0,0,0.2)'}; color: #f8fafc; padding: 10px 14px; border-radius: ${isAdmin ? '12px 12px 2px 12px' : '12px 12px 12px 2px'}; font-size: 0.88rem; max-width: 82%; line-height: 1.45; word-break: break-word;">
+              ${escapeHtml(m.text)}
             </div>
-          `;
-        }
+          </div>
+        `;
       }).join('');
-
-      stream.innerHTML = channelBanner + messagesHtml;
       stream.scrollTop = stream.scrollHeight;
     }
     window.renderActiveAdminChatMessages = renderActiveAdminChatMessages;
@@ -2527,22 +2444,20 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           });
         } catch(e) {}
       }
-      // Sync Admin Reply to Supabase messages table via Google Apps Script
+      // Sync Admin Reply to Google Sheets Live_Chats tab via Google Apps Script
       var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       var replyPayload = {
         threadId: thread.id,
         text: text,
         senderPhone: thread.senderPhone || '',
-        studentPhone: thread.senderPhone || '',
-        studentName: thread.senderName || '',
         senderEmail: thread.senderEmail || ''
       };
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('sendAdminLiveChatReply', { passcode: pin, payload: replyPayload }, function(res) {
-          console.log('Admin reply saved to Supabase messages table:', res);
+          console.log('Admin reply saved to Google Sheets Live_Chats tab:', res);
           refreshAdminLiveChats();
         }, function(err) {
-          console.error('Failed to post admin reply to Supabase Database:', err);
+          console.error('Failed to post admin reply to Google Sheets:', err);
         });
       }
       // Also append to visitor chat stream if open in same window
@@ -2818,7 +2733,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         window.adminCachedStudents = adminCachedStudents;
       }
       callFifsBackend('adminDeleteStudent', { passcode: pin, studentId: studentId }, function(res) {
-        console.log('Student deleted from Supabase database:', res);
+        console.log('Student deleted from cloud Google Sheets:', res);
         refreshAdminRoster();
       }, function(err) {
         console.error('Failed to delete student from cloud:', err);
@@ -3117,9 +3032,9 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
       if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<span>⏳ Establishing Agent Profile...</span>';
+        btn.innerHTML = '<span>⏳ Saving directly to FIFS Cloud Ledger...</span>';
       }
-      if (statusDiv) showStatus(statusDiv, 'Adding Agent to Portal...', 'success');
+      if (statusDiv) showStatus(statusDiv, 'Connecting to Google Sheets ledger...', 'success');
       var clientPayload = {
         fullName: name,
         email: email,
@@ -3133,7 +3048,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           btn.innerHTML = '<span>✓ Profile Created!</span>';
         }
         if (res && res.status === 'success') {
-          if (statusDiv) showStatus(statusDiv, 'Profile saved to Portal Database! Client ID: ' + res.clientId, 'success');
+          if (statusDiv) showStatus(statusDiv, 'Registration saved directly to Google Sheets! Client ID: ' + res.clientId, 'success');
           clientPayload.clientId = res.clientId;
           renderClientDashboard(clientPayload);
         } else {
@@ -3766,7 +3681,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
               `}
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; flex-wrap: wrap; gap: 10px;">
-              <span style="font-size: 0.78rem; color: var(--text-muted);">Synced with Supabase Database: <code>Student_Booking_Ledger / Analytics_Ledger</code></span>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">Synced with Google Sheets: <code>Student_Booking_Ledger / Analytics_Ledger</code></span>
               <div style="display: flex; gap: 8px;">
                 <button type="button" class="btn-spark" onclick="exportAnalyticsCSV()" style="padding: 6px 14px; font-size: 0.80rem;">📥 Export Analytics CSV</button>
                 <button type="button" class="btn-spark" id="btn-reset-telemetry" onclick="resetWebsiteTelemetry()" style="padding: 6px 14px; font-size: 0.80rem; border-color: rgba(239, 68, 68, 0.45); color: #ef4444;">🗑️ Reset Telemetry</button>
@@ -3947,23 +3862,18 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
         };
         try { sessionStorage.setItem('fifs_client_session', JSON.stringify(newClient)); } catch (err) {}
       }
-      // Direct invite via Supabase API
-      callFifsBackend('adminDirectInvite', {
-        pin: pin,
-        passcode: pin,
-        fullName: name,
-        email: email,
-        phone: phone,
-        portalType: portalType,
-        course: course,
-        dates: dates,
-        generatedId: newId,
-        magicLink: magicLink
-      }, function(res) {
-        showStatus(st, 'Access invitation registered in database! Direct Magic Link ready below.', 'success');
-      }, function(err) {
-        showStatus(st, 'Access invitation created! Direct Magic Link ready below.', 'success');
-      });
+      // If online Google Apps Script backend available, notify
+      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminDirectInvite) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            showStatus(st, 'Invitation email dispatched successfully! Access link generated below.', 'success');
+          })
+          .handleAdminDirectInvite(pin, { fullName: name, email: email, phone: phone, portalType: portalType, course: course, dates: dates, generatedId: newId, magicLink: magicLink });
+      } else {
+        setTimeout(function() {
+          showStatus(st, 'Access invitation created! Direct Magic Link ready below.', 'success');
+        }, 400);
+      }
       if (urlInput) urlInput.value = magicLink;
       if (resBox) resBox.style.display = 'block';
       // Re-render admin roster and recalculate 100% real metrics
@@ -4151,7 +4061,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     // ==========================================================================
     // ADMIN CLIENT ROSTER CONTROLLER & CLIENT EDIT/DELETE ACTIONS
     // ==========================================================================
-    var adminCachedClients = [{ clientId: 'FI-CLIENT-7788', fullName: 'Alex Mercer (Test Client)', email: 'test.client@trainwithfifs.com', phone: '(443) 990-1304', permitState: 'Maryland Wear & Carry', expirationDate: '2026-12-15', status: 'ACTIVE_REGISTERED' }];
+    var adminCachedClients = [];
           /* cloud only: zero browser storage */
     window.adminCachedClients = adminCachedClients;
     function renderAdminClientTerminal(data) {
@@ -4165,7 +4075,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         }
         if (!adminCachedClients || !adminCachedClients.length) {
           // Default empty or stored clients
-          adminCachedClients = [{ clientId: 'FI-CLIENT-7788', fullName: 'Alex Mercer (Test Client)', email: 'test.client@trainwithfifs.com', phone: '(443) 990-1304', permitState: 'Maryland Wear & Carry', expirationDate: '2026-12-15', status: 'ACTIVE_REGISTERED' }];
+          adminCachedClients = [];
           /* cloud only: zero browser storage */
         }
       }
@@ -4784,9 +4694,9 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       };
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('handleLiveChatMessage', payload, function(res) {
-          console.log('Message logged in Supabase messages table:', res);
+          console.log('Message logged in Google Sheets Live_Chats tab:', res);
         }, function(err) {
-          console.error('Failed to log message in Supabase Database:', err);
+          console.error('Failed to log message in Google Sheets:', err);
         });
       }
     }
@@ -4910,9 +4820,9 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       };
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('handleLiveChatMessage', payload, function(res) {
-          console.log('Follow-up message logged in Supabase messages table:', res);
+          console.log('Follow-up message logged in Google Sheets Live_Chats tab:', res);
         }, function(err) {
-          console.error('Failed to log follow-up in Supabase Database:', err);
+          console.error('Failed to log follow-up in Google Sheets:', err);
         });
       }
       // Typing indicator
@@ -5759,11 +5669,11 @@ function getStepNumberFromStatus(statusStr) {
           '</div>' +
         '</div>' +
         '<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:0.80rem;color:#fcd34d;line-height:1.4;">' +
-          '&#9888;&#65039; <strong>Payment &amp; Logistics Notice:</strong> Review your invoice carefully before confirming. Once authorized, you will complete your payment securely via Stripe Checkout, and Instructor Kai Wade will coordinate your range time and training logistics.' +
+          '&#9888;&#65039; <strong>Payment &amp; Logistics Notice:</strong> Review your invoice carefully before confirming. Once authorized, Instructor Kai Wade will contact you directly to finalize payment coordination (Zelle, Card, Cash App, or Cash) and assign your range time.' +
         '</div>' +
         '<div style="display:flex;gap:12px;flex-wrap:wrap;">' +
           '<button type="button" onclick="returnToBookingForm()" style="flex:1;min-width:130px;background:#1e293b;color:#f1f5f9;border:1px solid #334155;padding:14px;border-radius:8px;font-weight:700;font-size:0.9rem;cursor:pointer;">&larr; Edit Information</button>' +
-          '<button type="button" id="btn-confirm-invoice" onclick="confirmAndFinalizeBooking(event)" style="flex:2;min-width:200px;background:linear-gradient(135deg,var(--accent-cyan) 0%,#0099cc 100%);color:#070b10;border:none;padding:14px;border-radius:8px;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 0 20px var(--accent-cyan-glow);text-transform:uppercase;">Confirm &amp; Authorize Enrollment &rarr;</button>' +
+          '<button type="button" id="btn-confirm-invoice" onclick="confirmAndFinalizeBooking()" style="flex:2;min-width:200px;background:linear-gradient(135deg,var(--accent-cyan) 0%,#0099cc 100%);color:#070b10;border:none;padding:14px;border-radius:8px;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 0 20px var(--accent-cyan-glow);text-transform:uppercase;">Confirm &amp; Authorize Enrollment &rarr;</button>' +
         '</div>' +
         '<div id="invoice-status-div" style="margin-top:12px;display:none;" class="status-msg"></div>' +
       '</div>';
@@ -5774,8 +5684,6 @@ function getStepNumberFromStatus(statusStr) {
     window.showBookingInvoiceModal = showBookingInvoiceModal;
     window.submitBooking = showBookingInvoiceModal;
     function submitBooking(e) {
-      if (e && e.preventDefault) e.preventDefault();
-      if (e && e.stopPropagation) e.stopPropagation();
       return showBookingInvoiceModal(e);
     }
     function returnToBookingForm() {
@@ -5795,9 +5703,7 @@ function getStepNumberFromStatus(statusStr) {
       }
     }
     window.returnToBookingForm = returnToBookingForm;
-    function confirmAndFinalizeBooking(e) {
-      if (e && e.preventDefault) e.preventDefault();
-      if (e && e.stopPropagation) e.stopPropagation();
+    function confirmAndFinalizeBooking() {
       var p = __fifsCurrentBookingPayload;
       if (!p) return;
       var btn = document.getElementById('btn-confirm-invoice');
@@ -5809,14 +5715,55 @@ function getStepNumberFromStatus(statusStr) {
       if (statusDiv) {
         showStatus(statusDiv, 'Securing reservation &amp; connecting to Stripe...', 'success');
       }
+      var onComplete = function(res) {
+        if (!res || res.status === 'error') {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = 'Confirm &amp; Authorize Enrollment &rarr;';
+          }
+          if (statusDiv) {
+            showStatus(statusDiv, (res && res.message) ? res.message : 'Unable to create payment session. Please check Stripe configuration.', 'error');
+          }
+          return;
+        }
 
-      var depositAmount = 24999;
-      if (p.pricing && p.pricing.depositDueNow) {
-        depositAmount = Math.round(p.pricing.depositDueNow * 100);
-      } else if (p.depositDueNow) {
-        depositAmount = Math.round(p.depositDueNow * 100);
-      }
+        var studentId = (res && res.studentId) || p.studentId;
+        var clientSecret = res && (res.clientSecret || res.client_secret);
+        var checkoutUrl = res && res.checkoutUrl;
 
+        if (typeof sendClientDiscordAlert === 'function') {
+          sendClientDiscordAlert('🎯 Authorized Seat Booking: ' + p.fullName, 'New enrollment reserved at FIFS', [
+            { name: 'Invoice / Student ID', value: p.invoiceId + ' (' + studentId + ')', inline: true },
+            { name: 'Course', value: p.courseSelection, inline: false },
+            { name: 'Contact', value: p.phone + ' | ' + p.email, inline: false },
+            { name: 'Schedule', value: p.preferredDates, inline: true },
+            { name: 'Total Tuition', value: p.priceStr, inline: true }
+          ], 0x00E5FF);
+        }
+
+        if (clientSecret && typeof Stripe !== 'undefined') {
+          renderStripeCheckoutStep(p, studentId, clientSecret);
+        } else if (checkoutUrl && checkoutUrl.startsWith('http')) {
+          window.location.href = checkoutUrl;
+        } else {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = 'Confirm &amp; Authorize Enrollment &rarr;';
+          }
+          if (statusDiv) {
+            showStatus(statusDiv, 'Stripe payment session was not returned. Please make sure STRIPE_SECRET_KEY is set in Google Apps Script Script Properties.', 'error');
+          }
+        }
+      };
+      var onError = function(err) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = 'Confirm &amp; Authorize Enrollment &rarr;';
+        }
+        if (statusDiv) {
+          showStatus(statusDiv, 'Connection failed: ' + (err && err.message ? err.message : 'Could not reach booking server.'), 'error');
+        }
+      };
       var payload = {
         invoiceId: p.invoiceId,
         studentId: p.studentId,
@@ -5826,47 +5773,18 @@ function getStepNumberFromStatus(statusStr) {
         courseSelection: p.courseSelection,
         preferredDates: p.preferredDates,
         groupSize: p.groupSize,
-        comments: p.comments,
-        amount: depositAmount
+        comments: p.comments
       };
-
-      // Direct POST to internal Next.js API route without legacy Google Apps Script
-      fetch('/api/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(function(res) {
-        return res.json().then(function(data) {
-          if (!res.ok || data.error) {
-            throw new Error(data.error || 'Unable to create Stripe checkout session.');
-          }
-          return data;
-        });
-      })
-      .then(function(data) {
-        var checkoutUrl = data.checkoutUrl || data.url;
-        if (checkoutUrl && checkoutUrl.startsWith('http')) {
-          try {
-            sessionStorage.setItem('fifs_pending_booking', JSON.stringify(payload));
-          } catch (e) {}
-          window.location.href = checkoutUrl;
-        } else {
-          throw new Error('No valid checkout URL returned from payment server.');
-        }
-      })
-      .catch(function(err) {
-        console.error('Checkout error:', err);
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = 'Confirm &amp; Authorize Enrollment &rarr;';
-        }
-        if (statusDiv) {
-          showStatus(statusDiv, '⚠️ ' + (err && err.message ? err.message : 'Could not reach booking server.'), 'error');
-        }
-      });
+      if (typeof callFifsBackend === 'function') {
+        callFifsBackend('submitBooking', payload, onComplete, onError);
+      } else if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(onComplete)
+          .withFailureHandler(onError)
+          .submitBooking(payload);
+      } else {
+        onComplete({ status: 'success', studentId: p.studentId });
+      }
     }
     window.confirmAndFinalizeBooking = confirmAndFinalizeBooking;
 
@@ -5974,7 +5892,7 @@ function getStepNumberFromStatus(statusStr) {
             '&#127919; Thanks for booking your class!' +
           '</div>' +
           '<p style="color:#e2e8f0;font-size:0.95rem;line-height:1.55;margin:0;">' +
-            '<strong>Payment received via Stripe!</strong> Instructor Kai Wade will reach out directly to confirm your preferred range cohort date, assign your range time, and provide your training preparation checklist.' +
+            '<strong>Instructor Kai Wade will be reaching out to you directly</strong> to finalize payment coordination, confirm your preferred range cohort date, and provide your preparation checklist.' +
           '</p>' +
         '</div>' +
         '<div style="background:#0d131d;border:1px solid #1e293b;border-radius:8px;padding:14px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
@@ -8583,7 +8501,7 @@ function attachSwipeToDeleteToThread(card, threadId) {
 }
 function deleteAdminChatThread(threadId, event) {
   if (event) event.stopPropagation();
-  if (!confirm("Are you sure you want to permanently delete this live chat thread from Supabase Database and the admin hub?")) {
+  if (!confirm("Are you sure you want to permanently delete this live chat thread from Google Sheets and the admin hub?")) {
     return;
   }
   var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
@@ -8696,8 +8614,6 @@ function dismissPwaLandingBanner() {
   var b = document.getElementById('pwa-landing-banner');
   if (b) b.style.display = 'none';
 }
-window.dismissPwaLandingBanner = dismissPwaLandingBanner;
-window.promptPwaInstallInstructions = promptPwaInstallInstructions;
 // ==========================================================================
 // DIGITAL WAIVER MODAL & SUBMISSION
 // ==========================================================================
@@ -8916,7 +8832,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
   var origResetTelemetry = window.resetWebsiteTelemetry;
   window.resetWebsiteTelemetry = function() {
     var btn = document.querySelector('button[onclick*="resetWebsiteTelemetry"]') || document.getElementById('btn-reset-telemetry');
-    if (!confirm("⚠️ TACTICAL PURGE: Reset telemetry counters in Supabase and local storage?")) return;
+    if (!confirm("⚠️ TACTICAL PURGE: Reset all website telemetry counters in Google Sheets and local storage?")) return;
     if (btn) {
       btn.classList.add('btn-emp-purging');
       btn.innerHTML = '<span style="color:#fff; font-weight:800; letter-spacing:1px;">💥 EMP DISCHARGE IN PROGRESS...</span>';
@@ -9005,7 +8921,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
     document.body.appendChild(overlay);
   };
   window.confirmDeleteChatFromSheet = function(threadId) {
-    if (confirm("Are you sure you want to permanently delete this chat thread from Supabase Database and all devices?")) {
+    if (confirm("Are you sure you want to permanently delete this chat thread from Google Sheets and all devices?")) {
       var sheet = document.getElementById('fifsChatActionSheet');
       if (sheet) sheet.remove();
       if (typeof deleteLiveChatThreadOnServer === 'function') {
@@ -9098,7 +9014,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
       alert("Please select a chat thread to delete.");
       return;
     }
-    if (!confirm("⚠️ PERMANENT DELETE: Remove this chat thread permanently from Supabase Database and all devices?")) {
+    if (!confirm("⚠️ PERMANENT DELETE: Remove this chat thread permanently from Google Sheets and all devices?")) {
       return;
     }
     // 1. Instantly remove locally from cached threads so UI updates immediately
@@ -9766,7 +9682,7 @@ var operatives = [
         input.style.height = 'auto';
       }
       renderChatStream(op.messages);
-      // Backend dispatch to Google Apps Script / Supabase Database
+      // Backend dispatch to Google Apps Script / Google Sheets
       var cleanPhone = (session.phone || '').replace(/\D/g, '');
       var threadId = (session && session.threadId) ? session.threadId : (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
       if (window.__currentChatSession) {
@@ -10024,7 +9940,7 @@ var operatives = [
         input.style.height = 'auto';
       }
       renderChatStream(op.messages);
-      // Backend dispatch to Google Apps Script / Supabase Database
+      // Backend dispatch to Google Apps Script / Google Sheets
       var cleanPhone = (session.phone || '').replace(/\D/g, '');
       var threadId = (session && session.threadId) ? session.threadId : (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
       if (window.__currentChatSession) {
@@ -10119,40 +10035,7 @@ function openP2pCommsHud(name, phone, initialMsg) {
     m.classList.add('active');
     document.body.style.overflow = 'hidden';
   }
-  var cleanP = (phone || '').replace(/\D/g, '');
-  var existingThreadId = window.__currentChatSession && window.__currentChatSession.threadId;
-  var tId = existingThreadId || (cleanP ? ('thread_' + cleanP) : ('thread_' + Date.now()));
-
-  if (!window.__currentChatSession) {
-    window.__currentChatSession = {};
-  }
-  window.__currentChatSession.name = name || window.__currentChatSession.name || 'Valued Visitor';
-  window.__currentChatSession.phone = phone || window.__currentChatSession.phone || '';
-  window.__currentChatSession.threadId = tId;
-  if (!window.__currentChatSession.sessionStartTime) {
-    window.__currentChatSession.sessionStartTime = Date.now() - 30000;
-  }
-  if (!window.__currentChatSession.renderedMessages) {
-    window.__currentChatSession.renderedMessages = {};
-  }
-
-  // Pre-seed already visible operative messages so they are not re-triggered
-  if (typeof operatives !== 'undefined' && Array.isArray(operatives) && operatives.length > 0) {
-    var op0 = operatives[0];
-    if (op0 && Array.isArray(op0.messages)) {
-      op0.messages.forEach(function(msg) {
-        if (msg.text) {
-          window.__currentChatSession.renderedMessages[msg.text] = true;
-        }
-      });
-    }
-  }
-
-  // Start active polling for incoming instructor replies
-  if (typeof startVisitorChatPolling === 'function') {
-    startVisitorChatPolling(tId);
-  }
-  var studentName = name || window.__currentChatSession.name;
+  var studentName = name || (window.__currentChatSession ? window.__currentChatSession.name : '');
   var nameEl = document.getElementById('activeContactName');
   if (nameEl) {
     if (studentName && studentName !== 'Visitor' && studentName !== 'Valued Visitor') {
@@ -10164,6 +10047,12 @@ function openP2pCommsHud(name, phone, initialMsg) {
   var roleEl = document.getElementById('activeContactRole');
   if (roleEl) {
     roleEl.innerHTML = '<span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ffb703; animation: p2pYellowPulse 1.1s infinite ease-in-out;"></span><span>STATUS PENDING</span>';
+  }
+  if (name || phone) {
+    window.__currentChatSession = {
+      name: name || 'Valued Visitor',
+      phone: phone || ''
+    };
   }
   if (initialMsg && typeof window.sendP2pMessageDirect === 'function') {
     window.sendP2pMessageDirect(initialMsg);
@@ -10233,48 +10122,87 @@ window.closeP2pCommsHud = closeP2pCommsHud;
   }
   window.markWaiverCardComplete = markWaiverCardComplete;
 
-  // Auto-detect return from Stripe Checkout and switch to final confirmation sheet
-  function autoRecoverStripeBookingReceipt() {
-    try {
-      if (typeof window === 'undefined' || !window.location.search) return;
-      var params = new URLSearchParams(window.location.search);
-      if (params.get('booking_confirmed') === 'true' || params.get('session_id')) {
-        var saved = null;
-        try {
-          var raw = sessionStorage.getItem('fifs_pending_booking');
-          if (raw) saved = JSON.parse(raw);
-        } catch (e) {}
+// ==========================================================================
+// ADMIN HUB NOTIFICATION BANNER ENGINE & SOUND CHIME
+// ==========================================================================
+function playAdminNotificationChime() {
+  try {
+    var AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    var ctx = new AudioContext();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.14);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.35);
+  } catch (e) {}
+}
+window.playAdminNotificationChime = playAdminNotificationChime;
 
-        var invoiceId = (saved && saved.invoiceId) || params.get('invoice') || ('INV-FI-' + new Date().getFullYear());
-        var studentId = (saved && saved.studentId) || ('FIFS-' + Math.floor(1000 + Math.random() * 9000));
-        var p = saved || {
-          fullName: 'FIFS Training Student',
-          email: '',
-          phone: '',
-          courseSelection: 'Maryland Firearms Training Course',
-          preferredDates: 'Coordinated with Lead Instructor Kai Wade',
-          invoiceId: invoiceId,
-          studentId: studentId
-        };
+function showAdminHubNotificationBanner(title, message, targetTab) {
+  var existing = document.getElementById('admin-hub-dynamic-alert-banner');
+  if (existing) existing.remove();
 
-        if (typeof openCourseBookingModal === 'function') openCourseBookingModal();
-        if (typeof renderFinalConfirmationScreen === 'function') renderFinalConfirmationScreen(p, studentId);
-      }
-    } catch (err) {
-      console.error('Error recovering Stripe receipt:', err);
-    }
-  }
+  var container = document.getElementById('adminCommandSection') || document.getElementById('admin-view') || document.querySelector('.admin-terminal-wrapper') || document.body;
+  if (!container) return;
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', autoRecoverStripeBookingReceipt);
-  } else {
-    setTimeout(autoRecoverStripeBookingReceipt, 300);
-  }
+  var banner = document.createElement('div');
+  banner.id = 'admin-hub-dynamic-alert-banner';
+  banner.style.cssText = 'position: sticky; top: 12px; z-index: 99999; margin: 10px 14px 16px 14px; padding: 12px 16px; background: rgba(7, 18, 28, 0.96); border: 1px solid #00E5FF; border-left: 4px solid #00E5FF; border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 229, 255, 0.28); display: flex; align-items: center; justify-content: space-between; gap: 12px; backdrop-filter: blur(10px); animation: fadeIn 0.25s ease-out;';
 
-    window.insertQuickReplyToAdminChat = function(text) {
-      var input = document.getElementById('adminLiveChatReplyInput');
-      if (input) {
-        input.value = text;
-        input.focus();
-      }
+  var contentDiv = document.createElement('div');
+  contentDiv.style.cssText = 'display:flex; align-items:center; gap:10px; flex:1; min-width:0;';
+  contentDiv.innerHTML = '<span style="font-size:1.3rem;">🚨</span>' +
+    '<div style="flex:1; min-width:0;">' +
+      '<div style="font-family: Orbitron, sans-serif; font-size: 0.78rem; font-weight:700; color:#00E5FF; letter-spacing:0.08em; text-transform:uppercase;">' + (title || 'INTEL ALERT') + '</div>' +
+      '<div style="font-size: 0.82rem; color: #E2E8F0; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + (message || '') + '</div>' +
+    '</div>';
+
+  var actionsDiv = document.createElement('div');
+  actionsDiv.style.cssText = 'display:flex; align-items:center; gap:8px; flex-shrink:0;';
+
+  if (targetTab) {
+    var viewBtn = document.createElement('button');
+    viewBtn.type = 'button';
+    viewBtn.textContent = 'VIEW';
+    viewBtn.style.cssText = 'background:#00E5FF; color:#050B14; border:none; border-radius:5px; font-weight:700; font-size:0.75rem; padding:6px 12px; cursor:pointer; font-family:Orbitron, sans-serif; letter-spacing:0.05em;';
+    viewBtn.onclick = function() {
+      if (typeof switchAdminTab === 'function') switchAdminTab(targetTab);
+      banner.remove();
     };
+    actionsDiv.appendChild(viewBtn);
+  }
+
+  var closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.textContent = '✕';
+  closeBtn.style.cssText = 'background:rgba(255,255,255,0.08); color:#94A3B8; border:1px solid rgba(255,255,255,0.15); border-radius:5px; font-size:0.85rem; padding:4px 8px; cursor:pointer;';
+  closeBtn.onclick = function() { banner.remove(); };
+  actionsDiv.appendChild(closeBtn);
+
+  banner.appendChild(contentDiv);
+  banner.appendChild(actionsDiv);
+  container.prepend(banner);
+
+  playAdminNotificationChime();
+}
+window.showAdminHubNotificationBanner = showAdminHubNotificationBanner;
+
+// Automatic live site telemetry visit tracker
+if (typeof window !== 'undefined') {
+  window.addEventListener('load', function() {
+    try {
+      var views = parseInt(_fifsMemStorage.getItem('fifs_pageviews_count') || '0', 10) + 1;
+      _fifsMemStorage.setItem('fifs_pageviews_count', String(views));
+      if (typeof logAnalyticsEvent === 'function') {
+        logAnalyticsEvent('Traffic', 'Page View', window.location.pathname || '/');
+      }
+    } catch (e) {}
+  });
+}
