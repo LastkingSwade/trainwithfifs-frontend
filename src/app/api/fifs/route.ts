@@ -506,14 +506,18 @@ export async function POST(req: NextRequest) {
           .from('messages')
           .insert({
             name: 'Coach Kai Wade',
+            sender_name: 'Coach Kai Wade',
             phone: targetPhone,
+            sender_phone: targetPhone,
             email: payload.senderEmail || 'info@trainwithfifs.com',
+            sender_email: payload.senderEmail || 'info@trainwithfifs.com',
             message: replyMessage,
+            body: replyMessage,
             urgency: 'HIGH',
             sender: 'admin',
             student_id: studentId,
             thread_id: targetThreadId,
-            sent_at: new Date().toISOString()
+            sent_at: new Date().toISOString(),
           })
           .select()
           .single();
@@ -545,9 +549,13 @@ export async function POST(req: NextRequest) {
           .from('messages')
           .insert({
             name: senderName,
+            sender_name: senderName,
             phone: senderPhone,
+            sender_phone: senderPhone,
             email: senderEmail,
+            sender_email: senderEmail,
             message: messageText,
+            body: messageText,
             urgency: payload.urgency || 'NORMAL',
             sender: 'student',
             student_id: studentId,
@@ -734,20 +742,30 @@ export async function POST(req: NextRequest) {
           query = query.eq('thread_id', threadId);
         } else if (payload.phone) {
           const clean = payload.phone.replace(/\D/g, '');
-          query = query.or();
+          if (clean) {
+            query = query.or('phone.ilike.%' + clean + '%,sender_phone.ilike.%' + clean + '%');
+          }
         }
         const { data, error } = await query.limit(100);
         if (error) return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
 
-        const messages = (data || []).map(m => ({
+        const rawData = data || [];
+        const messages = rawData.map(m => ({
           id: m.id,
           sender: (m.sender === 'admin' || m.sender === 'instructor') ? 'instructor' : 'user',
-          senderName: m.name || ((m.sender === 'admin' || m.sender === 'instructor') ? 'Coach Kai Wade' : 'Student'),
-          text: m.message || '',
+          senderName: m.sender_name || m.name || ((m.sender === 'admin' || m.sender === 'instructor') ? 'Coach Kai Wade' : 'Student'),
+          text: m.message || m.body || '',
           sent_at: m.sent_at,
           time: m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : ''
         }));
-        return NextResponse.json({ success: true, status: 'success', messages });
+        const groupedThreads = groupMessagesIntoThreads(rawData);
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          messages,
+          threads: groupedThreads,
+          liveChats: groupedThreads
+        });
       }
 
       case 'deleteLiveChatThread': {
@@ -756,7 +774,12 @@ export async function POST(req: NextRequest) {
         }
         const threadId = payload.threadId || payload.id || payload.thread_id;
         if (threadId) {
-          await supabase.from('messages').delete().or();
+          const cleanPhone = threadId.replace('thread_', '').replace(/\D/g, '');
+          if (cleanPhone) {
+            await supabase.from('messages').delete().or('thread_id.eq.' + threadId + ',phone.ilike.%' + cleanPhone + '%,sender_phone.ilike.%' + cleanPhone + '%');
+          } else {
+            await supabase.from('messages').delete().eq('thread_id', threadId);
+          }
         }
         return NextResponse.json({ success: true, status: 'success', message: 'Thread cleared.' });
       }
