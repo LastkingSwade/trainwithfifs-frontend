@@ -1245,31 +1245,59 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       if (!input) return;
       var text = input.value.trim();
       if (!text) return;
-      var session = window.__currentChatSession || { name: 'Valued Student', phone: '(443) 990-1304' };
+      input.value = '';
+
+      var session = window.__currentChatSession || { name: 'Visitor', phone: 'Direct Line' };
+      var cleanPhone = (session.phone || '').replace(/\D/g, '');
+      var threadId = session.threadId || (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
+      session.threadId = threadId;
+
       var now = new Date();
       var timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-      // Append user bubble
       appendTwoWayBubble('user', session.name, text, timeStr);
-      input.value = '';
-      // Discord webhook for follow-up reply
-      sendClientDiscordAlert(
-        "💬 Live Chat Follow-Up: " + session.name,
-        "Student sent a message during the live chat session.",
-        [
-          { name: "Sender Name", value: session.name, inline: true },
-          { name: "Phone / SMS Callback", value: session.phone, inline: true },
-          { name: "Message Content", value: text, inline: false }
-        ],
-        0x00E5FF
-      );
-      // Show typing indicator
-      var typing = document.getElementById('twoWayTypingIndicator');
-      if (typing) typing.style.display = 'block';
-      setTimeout(function() {
-        if (typing) typing.style.display = 'none';
-        var replyText = generateCoachWadeReply(text);
-        appendTwoWayBubble('instructor', 'Coach Kai Wade', replyText, new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
-      }, 900);
+
+      // Discord webhook for follow-up message
+      if (typeof sendClientDiscordAlert === 'function') {
+        sendClientDiscordAlert(
+          "💬 Live Chat Follow-Up: " + session.name,
+          "Student sent a message during active live chat.",
+          [
+            { name: "Sender Name", value: session.name, inline: true },
+            { name: "Phone / SMS Callback", value: session.phone, inline: true },
+            { name: "Thread ID", value: threadId, inline: true },
+            { name: "Message Content", value: text, inline: false }
+          ],
+          0x00E5FF
+        );
+      }
+
+      // Persist to Supabase via Next.js backend API
+      var payload = {
+        name: session.name || 'Visitor',
+        fullName: session.name || 'Visitor',
+        senderName: session.name || 'Visitor',
+        phone: session.phone || '',
+        senderPhone: session.phone || '',
+        senderEmail: session.email || '',
+        message: text,
+        text: text,
+        threadId: threadId,
+        thread_id: threadId,
+        urgency: 'HIGH'
+      };
+
+      if (typeof callFifsBackend === 'function') {
+        callFifsBackend('handleLiveChatMessage', payload, function(res) {
+          console.log('[FIFS] Visitor reply persisted to Supabase:', res);
+        }, function(err) {
+          console.error('[FIFS] Visitor reply failed to persist:', err);
+        });
+      }
+
+      // Keep live instructor polling active
+      if (typeof startVisitorChatPolling === 'function') {
+        startVisitorChatPolling(threadId);
+      }
     }
     window.handleTwoWayChatSend = handleTwoWayChatSend;
     function generateCoachWadeReply(msg) {
@@ -4939,52 +4967,63 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       stream.scrollTop = stream.scrollHeight;
     }
     function handleTwoWayChatSend(e) {
-      e.preventDefault();
+      if (e && e.preventDefault) e.preventDefault();
       var input = document.getElementById('twoWayMessageInput');
       var text = input ? input.value.trim() : '';
       if (!text) return;
       input.value = '';
+
       var session = window.__currentChatSession || { name: 'Visitor', phone: 'Direct Line' };
-      appendTwoWayBubble('user', session.name, text);
-      // Alert Discord of live reply
-      sendClientDiscordAlert(
-        "💬 Live Chat Reply from " + session.name,
-        "Follow-up message in active 2-way chat on **trainwithfifs.com**.",
-        [
-          { name: "Sender Name", value: session.name, inline: true },
-          { name: "Phone / SMS Callback", value: session.phone, inline: true },
-          { name: "Message Content", value: text, inline: false }
-        ],
-        0x00E5FF
-      );
-      // Send structured payload to Google Apps Script backend
       var cleanPhone = (session.phone || '').replace(/\D/g, '');
       var threadId = session.threadId || (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
       session.threadId = threadId;
+
+      var now = new Date();
+      var timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      appendTwoWayBubble('user', session.name, text, timeStr);
+
+      // Alert Discord of live reply
+      if (typeof sendClientDiscordAlert === 'function') {
+        sendClientDiscordAlert(
+          "💬 Live Chat Reply from " + session.name,
+          "Follow-up message in active 2-way chat on **trainwithfifs.com**.",
+          [
+            { name: "Sender Name", value: session.name, inline: true },
+            { name: "Phone / SMS Callback", value: session.phone, inline: true },
+            { name: "Thread ID", value: threadId, inline: true },
+            { name: "Message Content", value: text, inline: false }
+          ],
+          0x00E5FF
+        );
+      }
+
+      // Send structured payload to Supabase backend
       var payload = {
-        senderName: session.name || 'Website Visitor',
+        name: session.name || 'Visitor',
+        fullName: session.name || 'Visitor',
+        senderName: session.name || 'Visitor',
+        phone: session.phone || '',
         senderPhone: session.phone || '',
         senderEmail: session.email || '',
         message: text,
-        threadId: threadId
+        text: text,
+        threadId: threadId,
+        thread_id: threadId,
+        urgency: 'HIGH'
       };
+
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('handleLiveChatMessage', payload, function(res) {
-          console.log('Follow-up message logged in Google Sheets Live_Chats tab:', res);
+          console.log('[FIFS] Follow-up message logged to Supabase:', res);
         }, function(err) {
-          console.error('Failed to log follow-up in Google Sheets:', err);
+          console.error('[FIFS] Failed to log follow-up to Supabase:', err);
         });
       }
-      // Typing indicator
-      var typing = document.getElementById('twoWayTypingIndicator');
-      if (typing) typing.style.display = 'block';
-      var stream = document.getElementById('twoWayChatStream');
-      if (stream) stream.scrollTop = stream.scrollHeight;
-      setTimeout(function() {
-        if (typing) typing.style.display = 'none';
-        var reply = generateCoachWadeReply(session.name, text);
-        appendTwoWayBubble('instructor', 'Coach Kai Wade', reply);
-      }, 900);
+
+      // Ensure live instructor polling is active so Coach Wade replies appear in real-time
+      if (typeof startVisitorChatPolling === 'function') {
+        startVisitorChatPolling(threadId);
+      }
     }
     window.handleTwoWayChatSend = handleTwoWayChatSend;
     function generateCoachWadeReply(name, msg) {
