@@ -2666,15 +2666,30 @@ export default function TrainWithFIFS(props: any) {
                       </div>
                     </div>
                   </div>
-                  {/* Instructor Live Reply Dock */}
-                  <form id="adminLiveChatReplyForm" data-onsubmit="handleAdminLiveChatSend(event)" style={{"display": "flex", "gap": "10px", "alignItems": "stretch", "background": "rgba(15, 23, 42, 0.6)", "border": "1px solid rgba(0, 229, 255, 0.25)", "borderRadius": "10px", "padding": "6px 8px", "boxShadow": "0 0 15px rgba(0, 229, 255, 0.08)"}}>
-                    <textarea id="adminLiveChatReplyInput" placeholder="Dispatch live response to student as Coach Kai Wade... (Instant cloud relay)" rows="2" style={{"flex": "1", "background": "transparent", "border": "none", "padding": "8px 10px", "color": "#fff", "fontSize": "0.86rem", "resize": "none", "fontFamily": "inherit", "outline": "none"}} required="">
-                    </textarea>
-                    <button type="submit" id="adminLiveChatSendBtn" className="btn-spark" style={{"padding": "0 20px", "fontSize": "0.86rem", "background": "linear-gradient(135deg, #00e5ff 0%, #0284c7 100%)", "color": "#070b10", "border": "none", "borderRadius": "8px", "fontWeight": "900", "cursor": "pointer", "whiteSpace": "nowrap", "boxShadow": "0 0 14px rgba(0, 229, 255, 0.4)", "textTransform": "uppercase", "letterSpacing": "0.5px"}}>
-                      
-            Send Reply ⚡
-          
+                  {/* Tactical Quick Intel Chips */}
+                  <div style={{"display": "flex", "gap": "6px", "flexWrap": "wrap", "marginBottom": "8px"}}>
+                    <button type="button" onClick={() => { const el = document.getElementById('adminLiveChatReplyInput'); if (el) { el.value = 'Hello! Classes run 9 AM – 5 PM at Cindy's Hot Shots. Range fees and ammo are included.'; el.focus(); } }} style={{"background": "rgba(0,229,255,0.06)", "border": "1px solid rgba(0,229,255,0.3)", "color": "#00e5ff", "borderRadius": "16px", "padding": "4px 10px", "fontSize": "0.74rem", "cursor": "pointer", "fontWeight": "600"}}>
+                      ⚡ Hours & Range Info
                     </button>
+                    <button type="button" onClick={() => { const el = document.getElementById('adminLiveChatReplyInput'); if (el) { el.value = 'Feel free to call or text me directly at (443) 990-1304 so we can get you scheduled right away.'; el.focus(); } }} style={{"background": "rgba(0,229,255,0.06)", "border": "1px solid rgba(0,229,255,0.3)", "color": "#00e5ff", "borderRadius": "16px", "padding": "4px 10px", "fontSize": "0.74rem", "cursor": "pointer", "fontWeight": "600"}}>
+                      📞 Direct Callback
+                    </button>
+                    <button type="button" onClick={() => { const el = document.getElementById('adminLiveChatReplyInput'); if (el) { el.value = 'Your spot is reserved. Check your email inbox for your full course dossier and preparation instructions.'; el.focus(); } }} style={{"background": "rgba(0,229,255,0.06)", "border": "1px solid rgba(0,229,255,0.3)", "color": "#00e5ff", "borderRadius": "16px", "padding": "4px 10px", "fontSize": "0.74rem", "cursor": "pointer", "fontWeight": "600"}}>
+                      📄 Dossier & Email Sent
+                    </button>
+                  </div>
+                  {/* Instructor Live Reply Dock */}
+                  <form id="adminLiveChatReplyForm" data-onsubmit="handleAdminLiveChatSend(event)" style={{"display": "flex", "flexDirection": "column", "gap": "8px", "background": "rgba(11, 17, 26, 0.95)", "border": "1px solid rgba(0, 229, 255, 0.35)", "borderRadius": "12px", "padding": "10px 12px", "boxShadow": "0 4px 20px rgba(0, 229, 255, 0.12)"}}>
+                    <textarea id="adminLiveChatReplyInput" placeholder="Dispatch encrypted response to student as Coach Kai Wade... (Press Enter to dispatch)" rows="3" style={{"width": "100%", "background": "rgba(0, 0, 0, 0.4)", "border": "1px solid rgba(255, 255, 255, 0.08)", "borderRadius": "8px", "padding": "10px 12px", "color": "#fff", "fontSize": "0.88rem", "resize": "vertical", "fontFamily": "inherit", "outline": "none", "boxSizing": "border-box", "lineHeight": "1.4"}} required="">
+                    </textarea>
+                    <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginTop": "2px"}}>
+                      <span style={{"fontSize": "0.72rem", "color": "#64748b", "fontFamily": "monospace"}}>
+                        SECURE CLOUD RELAY // DIRECT WEBSOCKET & SMS
+                      </span>
+                      <button type="submit" id="adminLiveChatSendBtn" className="btn-spark" style={{"padding": "8px 22px", "fontSize": "0.86rem", "background": "linear-gradient(135deg, #00e5ff 0%, #0284c7 100%)", "color": "#070b10", "border": "none", "borderRadius": "8px", "fontWeight": "900", "cursor": "pointer", "whiteSpace": "nowrap", "boxShadow": "0 0 16px rgba(0, 229, 255, 0.45)", "textTransform": "uppercase", "letterSpacing": "0.5px"}}>
+                        SEND INTEL ⚡
+                      </button>
+                    </div>
                   </form>
                 </div>
               </div>
