@@ -19,22 +19,27 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     // ==========================================================================
     var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbz9X2h0o5_pmNafKXRY9hSeGiGpHerp_JMWie8wg9FmSir0W3mrZAnk5nw-Zs9xH9BY/exec";
     function callFifsBackend(action, payload, onSuccess, onError) {
-      if (!FIFS_GAS_API_URL) {
-        console.warn("FIFS_GAS_API_URL not configured.");
-        if (onSuccess) onSuccess({ status: "success", clientId: "FI-" + Date.now() });
-        return;
-      }
-      fetch(FIFS_GAS_API_URL, {
+      var bodyData = Object.assign({ action: action }, payload || {});
+      // Ensure pin/passcode compatibility
+      if (!bodyData.passcode && bodyData.pin) bodyData.passcode = bodyData.pin;
+      fetch("/api/fifs", {
         method: "POST",
-        mode: "cors",
-        redirect: "follow",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: action, payload: payload })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyData)
       })
-      .then(function(res) { return res.json(); })
-      .then(function(data) { if (onSuccess) onSuccess(data); })
+      .then(function(res) {
+        if (!res.ok) {
+          return res.json().then(function(errData) {
+            throw new Error(errData.error || ("HTTP " + res.status));
+          });
+        }
+        return res.json();
+      })
+      .then(function(data) {
+        if (onSuccess) onSuccess(data);
+      })
       .catch(function(err) {
-        console.error("FIFS API Error:", err);
+        console.error("FIFS Supabase API Error (" + action + "):", err);
         if (onError) onError(err);
       });
     }
@@ -1084,9 +1089,16 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     // 2-WAY LIVE CHAT MODAL ENGINE (REAL-TIME COMMUNICATION WINDOW)
     // ==========================================================================
     function openTwoWayChat(name, phone, initialMsg) {
+      var rawPhone = phone || '';
+      var cleanPhone = rawPhone.replace(/\D/g, '');
+      var storedThreadId = sessionStorage.getItem('fifs_active_thread_id');
+      var activeThreadId = storedThreadId || (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
+      sessionStorage.setItem('fifs_active_thread_id', activeThreadId);
+
       window.__currentChatSession = {
         name: name || 'Valued Student',
-        phone: phone || 'Not provided'
+        phone: rawPhone || 'Not provided',
+        threadId: activeThreadId
       };
       var modal = document.getElementById('twoWayChatModal');
       var stream = document.getElementById('twoWayChatStream');
@@ -2448,8 +2460,12 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       var replyPayload = {
         threadId: thread.id,
+        thread_id: thread.id,
         text: text,
+        message: text,
+        replyText: text,
         senderPhone: thread.senderPhone || '',
+        phone: thread.senderPhone || '',
         senderEmail: thread.senderEmail || ''
       };
       if (typeof callFifsBackend === 'function') {
@@ -4715,44 +4731,24 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       var phoneEl = document.getElementById('chatSenderPhone');
       var msgEl = document.getElementById('chatMessageText');
       var btn = document.getElementById('btn-send-chat');
+      var modal = document.getElementById('liveChatDispatchModal') || document.getElementById('contactWidgetModal');
       var name = nameEl ? nameEl.value.trim() : '';
       var phone = phoneEl ? phoneEl.value.trim() : '';
       var msg = msgEl ? msgEl.value.trim() : '';
+
       if (!name || !phone || !msg) {
-        alert('Please fill out your Name, Phone, and Question to open live chat.');
+        alert('Please fill out your Name, Phone Number, and Message to start two-way live chat.');
         return;
       }
+
       if (btn) {
         btn.disabled = true;
-        btn.textContent = 'Opening Live Chat Window...';
+        btn.textContent = '⏳ Initializing Live Channel...';
       }
-      // 1. Dispatch Discord Alert
-      sendClientDiscordAlert(
-        "💬 Incoming Live Chat: " + name,
-        "A visitor initiated a conversation via the website live chat widget.",
-        [
-          { name: "Sender Name", value: name, inline: true },
-          { name: "Phone / SMS Callback", value: phone, inline: true },
-          { name: "Operating Window", value: isLiveChatActiveNow() ? "ONLINE NOW (9 AM – 5 PM EST)" : "AFTER HOURS", inline: true },
-          { name: "Initial Message Content", value: msg, inline: false }
-        ],
-        0x00E5FF
-      );
-      // 2. Record inquiry in Native Admin Live Console
-      /* recordVisitorChatMessage bypassed */
-      // 3. Immediately close contact form and open Two-Way Chat window
-      closeContactWidgetModal();
-      openP2pCommsHud(name, phone, msg);
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = '💬 Send Message & Open Live Chat →';
-      }
-      // 3. Dispatch structured payload to Supabase PostgreSQL /api/fifs
-      var cleanPhone = phone.replace(/\D/g, '');
+
+      var cleanPhone = phone.replace(/[^0-9]/g, '');
       var threadId = cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now());
-      if (window.__currentChatSession) {
-        window.__currentChatSession.threadId = threadId;
-      }
+
       var payload = {
         name: name,
         fullName: name,
@@ -4760,30 +4756,39 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         phone: phone,
         senderPhone: phone,
         senderEmail: '',
-        email: '',
         message: msg,
         text: msg,
         threadId: threadId,
-        thread_id: threadId
+        thread_id: threadId,
+        urgency: 'HIGH'
       };
-      // Broadcast immediately to Admin Terminal via BroadcastChannel
-      try {
-        if (window.FIFS_CHAT_BROADCAST_CHANNEL) {
-          window.FIFS_CHAT_BROADCAST_CHANNEL.postMessage({
-            type: 'VISITOR_MESSAGE',
-            threadId: threadId,
-            senderName: name,
-            senderPhone: phone,
-            text: msg,
-            time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' EST'
-          });
-        }
-      } catch (bcErr) {}
+
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('handleLiveChatMessage', payload, function(res) {
-          console.log('Message logged in Supabase messages table:', res);
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = '🚀 Start Live Chat →';
+          }
+          if (modal) {
+            modal.style.setProperty('display', 'none', 'important');
+            modal.classList.remove('active');
+          }
+          if (typeof openTwoWayChat === 'function') {
+            openTwoWayChat(name, phone, msg);
+          }
         }, function(err) {
-          console.error('Failed to log message in Supabase:', err);
+          console.error('Error starting live chat:', err);
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = '🚀 Start Live Chat →';
+          }
+          if (modal) {
+            modal.style.setProperty('display', 'none', 'important');
+            modal.classList.remove('active');
+          }
+          if (typeof openTwoWayChat === 'function') {
+            openTwoWayChat(name, phone, msg);
+          }
         });
       }
     }
@@ -9602,519 +9607,209 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
 
 // --- NEXT SCRIPT BLOCK ---
 
-var operatives = [
-      {
-        id: 'op-1',
-        name: (window.__currentChatSession && window.__currentChatSession.name && window.__currentChatSession.name !== 'Visitor') ? window.__currentChatSession.name : 'REDACTED OPERATIVE',
-        status: 'active',
-        role: 'STATUS PENDING',
-        subtext: 'Encrypted Live Dispatch Channel',
-        timestamp: 'NOW',
-        unread: 0,
-        initials: 'RO',
-        messages: [
-          { type: 'system', text: '🔒 DIRECT P2P ENCRYPTED CHANNEL ESTABLISHED WITH CHIEF INSTRUCTOR KAI WADE' },
-          { sender: 'them', name: 'Instructor Kai Wade [LIVE DESK]', time: 'NOW', text: 'Welcome to Future Initiative Firearm Services live comms desk. How can I assist you with Maryland Wear & Carry (HQL/CCW) training, live-fire qualification, or course scheduling today?' }
-        ]
-      },
-      {
-        id: 'op-2',
-        name: 'Whitney Tyree',
-        status: 'gold',
-        role: 'CCW Renewal Client',
-        subtext: 'Maryland Wear & Carry (686d left)',
-        timestamp: '14:15',
-        unread: 1,
-        initials: 'WT',
-        messages: [
-          { sender: 'them', name: 'Whitney Tyree [CLIENT]', time: '14:15 EST', text: 'Instructor Wade, checking on my 8-hour renewal schedule prior to next year’s MSP audit window.' }
-        ]
-      },
-      {
-        id: 'op-3',
-        name: 'Kevin Love',
-        status: 'idle',
-        role: 'Tactical Consultation',
-        subtext: 'Pending Range Holster Verification',
-        timestamp: 'YESTERDAY',
-        unread: 0,
-        initials: 'KL',
-        messages: [
-          { sender: 'them', name: 'Kevin Love [LEAD]', time: 'YESTERDAY', text: 'Sent my firearm specs over. Looking forward to the paired session.' }
-        ]
-      },
-      {
-        id: 'op-4',
-        name: 'Alex Mercer',
-        status: 'alert',
-        role: 'MSP Application Review',
-        subtext: 'Livescan Fingerprints Flagged',
-        timestamp: 'SEP 14',
-        unread: 0,
-        initials: 'AM',
-        messages: [
-          { sender: 'them', name: 'Alex Mercer [CLIENT]', time: 'SEP 14', text: 'Received notice regarding Livescan CJIS tracking number.' },
-          { type: 'system', text: 'APPLICATION FLAGGED FOR REVIEW • LIVESCAN CORRECTION SENT' }
-        ]
-      }
-    ];
-    var activeContactId = 'op-1';
-    function renderRoster() {
-      var container = document.getElementById('contactRosterContainer');
-      container.innerHTML = '';
-      var query = (document.getElementById('contactSearchInput').value || '').toLowerCase();
-      operatives.forEach(function(op) {
-        if (query && !op.name.toLowerCase().includes(query) && !op.role.toLowerCase().includes(query)) {
-          return;
-        }
-        var card = document.createElement('div');
-        card.className = 'contact-card' + (op.id === activeContactId ? ' active' : '');
-        card.onclick = function() { selectContact(op.id); };
-        var statusClass = op.status;
-        card.innerHTML =
-          '<div class="avatar-box">' +
-            op.initials +
-            '<span class="status-indicator ' + statusClass + '"></span>' +
-          '</div>' +
-          '<div class="contact-info">' +
-            '<div class="contact-top-row">' +
-              '<span class="contact-name">' + op.name + '</span>' +
-              '<span class="contact-time">' + op.timestamp + '</span>' +
-            '</div>' +
-            '<div class="contact-meta">' + op.role + '</div>' +
-            '<div class="contact-badges">' +
-              '<span class="tag-badge">' + op.subtext + '</span>' +
-              (op.status === 'alert' ? '<span class="tag-badge warning">ALERT</span>' : '') +
-            '</div>' +
-          '</div>';
-        container.appendChild(card);
-      });
-    }
-    function selectContact(id) {
-      activeContactId = id;
-      var op = operatives.find(function(o) { return o.id === id; });
-      if (!op) return;
-      document.getElementById('activeContactName').innerText = op.name;
-      document.getElementById('activeContactRole').innerText = op.role;
-      document.getElementById('activeContactChannel').innerText = 'CHAN: P2P-ENC-' + op.id.replace('op-', '90');
-      renderRoster();
-      renderChatStream(op.messages);
-      // Close mobile drawer on selection
-      var sidebar = document.getElementById('sidebar');
-      var overlay = document.getElementById('sidebarOverlay');
-      sidebar.classList.remove('open');
-      overlay.classList.remove('active');
-    }
-    function renderChatStream(msgs) {
-      var stream = document.getElementById('chatStream');
-      stream.innerHTML =
-        '<div class="system-banner">' +
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>' +
-          '<span>P2P ENCRYPTED CHANNEL ESTABLISHED • ZERO PERSISTENT TRACE</span>' +
-        '</div>';
-      (msgs || []).forEach(function(m) {
-        if (m.type === 'system') {
-          var sys = document.createElement('div');
-          sys.className = 'system-banner';
-          sys.innerHTML = '<span>' + m.text + '</span>';
-          stream.appendChild(sys);
-        } else {
-          var row = document.createElement('div');
-          row.className = 'message-row ' + (m.sender === 'me' ? 'outgoing' : 'incoming');
-          var metaSub = m.sender === 'me'
-            ? '<span>DISPATCH: SECURE HUD</span><span style="color: var(--brand-primary);">DELIVERED ✓</span>'
-            : '<span>ORIGIN: P2P-CLIENT</span><span>SHA-256: SEC-VERIFIED</span>';
-          row.innerHTML =
-            '<div class="message-header">' +
-              '<span class="message-sender">' + m.name + '</span>' +
-              '<span class="message-timestamp">' + m.time + '</span>' +
-            '</div>' +
-            '<div class="message-bubble">' +
-              m.text +
-              '<div class="bubble-meta-tag">' + metaSub + '</div>' +
-            '</div>';
-          stream.appendChild(row);
-        }
-      });
-      stream.scrollTop = stream.scrollHeight;
-    }
-    function handleInputKey(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        submitCurrentMessage();
-      }
-    }
-    function autoResizeInput(el) {
-      el.style.height = 'auto';
-      el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-    }
-    function submitCurrentMessage(presetText) {
-      var input = document.getElementById('messageInput');
-      var text = (presetText !== undefined ? presetText : (input ? input.value : '')).trim();
-      if (!text) return;
-      var op = operatives.find(function(o) { return o.id === activeContactId; }) || operatives[0];
-      if (!op) return;
-      var session = window.__currentChatSession || { name: 'Visitor', phone: '' };
-      var senderLabel = session.name && session.name !== 'Visitor' ? (session.name + ' [YOU]') : 'Operative [YOU]';
-      var now = new Date();
-      var timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' EST';
-      op.messages.push({
-        sender: 'me',
-        name: senderLabel,
-        time: timeStr,
-        text: text
-      });
-      if (input && presetText === undefined) {
-        input.value = '';
-        input.style.height = 'auto';
-      }
-      renderChatStream(op.messages);
-      // Backend dispatch to Supabase PostgreSQL /api/fifs
-      var cleanPhone = (session.phone || '').replace(/\D/g, '');
-      var threadId = (session && session.threadId) ? session.threadId : (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
-      if (window.__currentChatSession) {
-        window.__currentChatSession.threadId = threadId;
-      }
-      var payload = {
-        senderName: session.name || 'Valued Visitor',
-        senderPhone: session.phone || '',
-        senderEmail: '',
-        message: text,
-        threadId: threadId
-      };
-      if (typeof callFifsBackend === 'function') {
-        callFifsBackend('handleLiveChatMessage', payload, function(res) {
-          if (res && res.reply) {
-            op.messages.push({
-              sender: 'them',
-              name: 'Instructor Kai Wade [CHIEF CMD]',
-              time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' EST',
-              text: res.reply
-            });
-            renderChatStream(op.messages);
-          }
-        }, function(err) {
-          console.warn('Live chat backend notification deferred:', err);
-        });
-      }
-    }
-    window.sendP2pMessageDirect = function(msg) {
-      submitCurrentMessage(msg);
-    };
-    function triggerSecureAction() {
-      var op = operatives.find(function(o) { return o.id === activeContactId; });
-      if (!op) return;
-      var action = prompt("ENTER SECURE HUD ACTION:\n1. ATTACH RANGE CERTIFICATE\n2. ISSUE SAFETY DIRECTIVE\n3. TOGGLE FLIGHT-RECORDER", "1");
-      if (!action) return;
-      var noticeText = "SECURE PROTOCOL DISPATCHED: ACTION #" + action;
-      if (action === '1') noticeText = "RANGE QUALIFICATION CERTIFICATE ATTACHED & CIPHERED";
-      if (action === '2') noticeText = "MANDATORY RANGE SAFETY DIRECTIVE ISSUED TO CLIENT";
-      op.messages.push({
-        type: 'system',
-        text: noticeText
-      });
-      renderChatStream(op.messages);
-    }
-    function exportChatSession() {
-      var op = operatives.find(function(o) { return o.id === activeContactId; });
-      if (!op) return;
-      var transcript = "=== FIFS TACTICAL COMMS TRANSCRIPT ===\n";
-      transcript += "PARTICIPANT: " + op.name + " (" + op.role + ")\n";
-      transcript += "SESSION EXPORT TIME: " + new Date().toISOString() + "\n\n";
-      op.messages.forEach(function(m) {
-        if (m.type === 'system') {
-          transcript += "[SYSTEM] " + m.text + "\n";
-        } else {
-          transcript += "[" + m.time + "] " + m.name + ":\n" + m.text + "\n\n";
-        }
-      });
-      var blob = new Blob([transcript], { type: 'text/plain' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'FIFS_COMMS_' + op.name.replace(/\s+/g, '_') + '.txt';
-      a.click();
-    }
-    function clearChatStream() {
-      if (!confirm('PURGE SESSION: Clear active terminal stream display?')) return;
-      var op = operatives.find(function(o) { return o.id === activeContactId; });
-      if (op) {
-        op.messages = [{ type: 'system', text: 'TERMINAL BUFFER PURGED • SECURE CHANNEL RESET' }];
-        renderChatStream(op.messages);
-      }
-    }
-    function filterContacts() {
-      renderRoster();
-    }
-    function toggleMobileSidebar() {
-      var sidebar = document.getElementById('sidebar');
-      var overlay = document.getElementById('sidebarOverlay');
-      sidebar.classList.toggle('open');
-      overlay.classList.toggle('active');
-    }
-    // Initialize on load
-    window.addEventListener('DOMContentLoaded', function() {
-      renderRoster();
-      var op = operatives.find(function(o) { return o.id === activeContactId; });
-      if (op) renderChatStream(op.messages);
-    });
+// DYNAMIC ZERO-MOCK P2P LIVE CHAT HUD SYSTEM
+window.__activeChatSession = {
+  name: '',
+  phone: '',
+  threadId: '',
+  messages: []
+};
 
-// --- NEXT SCRIPT BLOCK ---
+function escapeChatHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
-var operatives = [
-      {
-        id: 'op-1',
-        name: (window.__currentChatSession && window.__currentChatSession.name && window.__currentChatSession.name !== 'Visitor') ? window.__currentChatSession.name : 'REDACTED OPERATIVE',
-        status: 'active',
-        role: 'STATUS PENDING',
-        subtext: 'Encrypted Live Dispatch Channel',
-        timestamp: 'NOW',
-        unread: 0,
-        initials: 'RO',
-        messages: [
-          { type: 'system', text: '🔒 DIRECT P2P ENCRYPTED CHANNEL ESTABLISHED WITH CHIEF INSTRUCTOR KAI WADE' },
-          { sender: 'them', name: 'Instructor Kai Wade [LIVE DESK]', time: 'NOW', text: 'Welcome to Future Initiative Firearm Services live comms desk. How can I assist you with Maryland Wear & Carry (HQL/CCW) training, live-fire qualification, or course scheduling today?' }
-        ]
-      },
-      {
-        id: 'op-2',
-        name: 'Whitney Tyree',
-        status: 'gold',
-        role: 'CCW Renewal Client',
-        subtext: 'Maryland Wear & Carry (686d left)',
-        timestamp: '14:15',
-        unread: 1,
-        initials: 'WT',
-        messages: [
-          { sender: 'them', name: 'Whitney Tyree [CLIENT]', time: '14:15 EST', text: 'Instructor Wade, checking on my 8-hour renewal schedule prior to next year’s MSP audit window.' }
-        ]
-      },
-      {
-        id: 'op-3',
-        name: 'Kevin Love',
-        status: 'idle',
-        role: 'Tactical Consultation',
-        subtext: 'Pending Range Holster Verification',
-        timestamp: 'YESTERDAY',
-        unread: 0,
-        initials: 'KL',
-        messages: [
-          { sender: 'them', name: 'Kevin Love [LEAD]', time: 'YESTERDAY', text: 'Sent my firearm specs over. Looking forward to the paired session.' }
-        ]
-      },
-      {
-        id: 'op-4',
-        name: 'Alex Mercer',
-        status: 'alert',
-        role: 'MSP Application Review',
-        subtext: 'Livescan Fingerprints Flagged',
-        timestamp: 'SEP 14',
-        unread: 0,
-        initials: 'AM',
-        messages: [
-          { sender: 'them', name: 'Alex Mercer [CLIENT]', time: 'SEP 14', text: 'Received notice regarding Livescan CJIS tracking number.' },
-          { type: 'system', text: 'APPLICATION FLAGGED FOR REVIEW • LIVESCAN CORRECTION SENT' }
-        ]
-      }
-    ];
-    var activeContactId = 'op-1';
-    function renderRoster() {
-      var container = document.getElementById('contactRosterContainer');
-      container.innerHTML = '';
-      var query = (document.getElementById('contactSearchInput').value || '').toLowerCase();
-      operatives.forEach(function(op) {
-        if (query && !op.name.toLowerCase().includes(query) && !op.role.toLowerCase().includes(query)) {
-          return;
-        }
-        var card = document.createElement('div');
-        card.className = 'contact-card' + (op.id === activeContactId ? ' active' : '');
-        card.onclick = function() { selectContact(op.id); };
-        var statusClass = op.status;
-        card.innerHTML =
-          '<div class="avatar-box">' +
-            op.initials +
-            '<span class="status-indicator ' + statusClass + '"></span>' +
-          '</div>' +
-          '<div class="contact-info">' +
-            '<div class="contact-top-row">' +
-              '<span class="contact-name">' + op.name + '</span>' +
-              '<span class="contact-time">' + op.timestamp + '</span>' +
-            '</div>' +
-            '<div class="contact-meta">' + op.role + '</div>' +
-            '<div class="contact-badges">' +
-              '<span class="tag-badge">' + op.subtext + '</span>' +
-              (op.status === 'alert' ? '<span class="tag-badge warning">ALERT</span>' : '') +
-            '</div>' +
-          '</div>';
-        container.appendChild(card);
-      });
-    }
-    function selectContact(id) {
-      activeContactId = id;
-      var op = operatives.find(function(o) { return o.id === id; });
-      if (!op) return;
-      document.getElementById('activeContactName').innerText = op.name;
-      document.getElementById('activeContactRole').innerText = op.role;
-      document.getElementById('activeContactChannel').innerText = 'CHAN: P2P-ENC-' + op.id.replace('op-', '90');
-      renderRoster();
-      renderChatStream(op.messages);
-      // Close mobile drawer on selection
-      var sidebar = document.getElementById('sidebar');
-      var overlay = document.getElementById('sidebarOverlay');
-      sidebar.classList.remove('open');
-      overlay.classList.remove('active');
-    }
-    function renderChatStream(msgs) {
-      var stream = document.getElementById('chatStream');
-      stream.innerHTML =
-        '<div class="system-banner">' +
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>' +
-          '<span>P2P ENCRYPTED CHANNEL ESTABLISHED • ZERO PERSISTENT TRACE</span>' +
+function renderLiveVisitorRoster() {
+  var container = document.getElementById('contactRosterContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  var name = (window.__activeChatSession && window.__activeChatSession.name) || (window.__currentChatSession && window.__currentChatSession.name) || 'Valued Visitor';
+  var card = document.createElement('div');
+  card.className = 'contact-card active';
+  card.innerHTML =
+    '<div class="avatar-box">P2P<span class="status-indicator active"></span></div>' +
+    '<div class="contact-info">' +
+      '<div class="contact-top-row">' +
+        '<span class="contact-name">' + escapeChatHtml(name) + '</span>' +
+        '<span class="contact-time">LIVE</span>' +
+      '</div>' +
+      '<div class="contact-meta">Direct Peer-to-Instructor Comm Link</div>' +
+      '<div class="contact-badges">' +
+        '<span class="tag-badge">SEC-NET v2.4</span>' +
+        '<span class="tag-badge" style="color:var(--accent-cyan);">CHIEF DESK</span>' +
+      '</div>' +
+    '</div>';
+  container.appendChild(card);
+}
+
+function renderLiveVisitorStream(messages) {
+  var container = document.getElementById('liveChatMessagesContainer');
+  var streamEl = document.getElementById('chatStream');
+  if (!container && streamEl) {
+    container = streamEl;
+  }
+  if (!container) return;
+  container.innerHTML = '';
+  
+  if (Array.isArray(messages)) {
+    messages.forEach(function(m) {
+      var isInstructor = m.sender === 'instructor' || m.sender === 'them' || m.isInstructor || (m.role === 'instructor');
+      var row = document.createElement('div');
+      row.className = 'message-row ' + (isInstructor ? 'incoming' : 'outgoing');
+      var senderLabel = isInstructor ? 'Instructor Kai Wade [CHIEF CMD]' : ((window.__activeChatSession && window.__activeChatSession.name) || 'You');
+      var timeStr = m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : (m.time || 'LIVE');
+      var metaSub = isInstructor
+        ? '<span>ORIGIN: CHIEF INSTRUCTOR COMMAND</span><span style="color: var(--accent-cyan);">VERIFIED ✓</span>'
+        : '<span>DISPATCH: CLIENT TERMINAL</span><span style="color: var(--brand-primary);">DELIVERED ✓</span>';
+      row.innerHTML =
+        '<div class="message-header">' +
+          '<span class="message-sender">' + escapeChatHtml(senderLabel) + '</span>' +
+          '<span class="message-timestamp">' + escapeChatHtml(timeStr) + '</span>' +
+        '</div>' +
+        '<div class="message-bubble">' +
+          escapeChatHtml(m.content || m.message || m.text || '') +
+          '<div class="bubble-meta-tag">' + metaSub + '</div>' +
         '</div>';
-      (msgs || []).forEach(function(m) {
-        if (m.type === 'system') {
-          var sys = document.createElement('div');
-          sys.className = 'system-banner';
-          sys.innerHTML = '<span>' + m.text + '</span>';
-          stream.appendChild(sys);
-        } else {
-          var row = document.createElement('div');
-          row.className = 'message-row ' + (m.sender === 'me' ? 'outgoing' : 'incoming');
-          var metaSub = m.sender === 'me'
-            ? '<span>DISPATCH: SECURE HUD</span><span style="color: var(--brand-primary);">DELIVERED ✓</span>'
-            : '<span>ORIGIN: P2P-CLIENT</span><span>SHA-256: SEC-VERIFIED</span>';
-          row.innerHTML =
-            '<div class="message-header">' +
-              '<span class="message-sender">' + m.name + '</span>' +
-              '<span class="message-timestamp">' + m.time + '</span>' +
-            '</div>' +
-            '<div class="message-bubble">' +
-              m.text +
-              '<div class="bubble-meta-tag">' + metaSub + '</div>' +
-            '</div>';
-          stream.appendChild(row);
-        }
-      });
-      stream.scrollTop = stream.scrollHeight;
-    }
-    function handleInputKey(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        submitCurrentMessage();
-      }
-    }
-    function autoResizeInput(el) {
-      el.style.height = 'auto';
-      el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-    }
-    function submitCurrentMessage(presetText) {
-      var input = document.getElementById('messageInput');
-      var text = (presetText !== undefined ? presetText : (input ? input.value : '')).trim();
-      if (!text) return;
-      var op = operatives.find(function(o) { return o.id === activeContactId; }) || operatives[0];
-      if (!op) return;
-      var session = window.__currentChatSession || { name: 'Visitor', phone: '' };
-      var senderLabel = session.name && session.name !== 'Visitor' ? (session.name + ' [YOU]') : 'Operative [YOU]';
-      var now = new Date();
-      var timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' EST';
-      op.messages.push({
-        sender: 'me',
-        name: senderLabel,
-        time: timeStr,
-        text: text
-      });
-      if (input && presetText === undefined) {
-        input.value = '';
-        input.style.height = 'auto';
-      }
-      renderChatStream(op.messages);
-      // Backend dispatch to Supabase PostgreSQL /api/fifs
-      var cleanPhone = (session.phone || '').replace(/\D/g, '');
-      var threadId = (session && session.threadId) ? session.threadId : (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
-      if (window.__currentChatSession) {
-        window.__currentChatSession.threadId = threadId;
-      }
-      var payload = {
-        senderName: session.name || 'Valued Visitor',
-        senderPhone: session.phone || '',
-        senderEmail: '',
-        message: text,
-        threadId: threadId
-      };
-      if (typeof callFifsBackend === 'function') {
-        callFifsBackend('handleLiveChatMessage', payload, function(res) {
-          if (res && res.reply) {
-            op.messages.push({
-              sender: 'them',
-              name: 'Instructor Kai Wade [CHIEF CMD]',
-              time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' EST',
-              text: res.reply
-            });
-            renderChatStream(op.messages);
-          }
-        }, function(err) {
-          console.warn('Live chat backend notification deferred:', err);
-        });
-      }
-    }
-    window.sendP2pMessageDirect = function(msg) {
-      submitCurrentMessage(msg);
-    };
-    function triggerSecureAction() {
-      var op = operatives.find(function(o) { return o.id === activeContactId; });
-      if (!op) return;
-      var action = prompt("ENTER SECURE HUD ACTION:\n1. ATTACH RANGE CERTIFICATE\n2. ISSUE SAFETY DIRECTIVE\n3. TOGGLE FLIGHT-RECORDER", "1");
-      if (!action) return;
-      var noticeText = "SECURE PROTOCOL DISPATCHED: ACTION #" + action;
-      if (action === '1') noticeText = "RANGE QUALIFICATION CERTIFICATE ATTACHED & CIPHERED";
-      if (action === '2') noticeText = "MANDATORY RANGE SAFETY DIRECTIVE ISSUED TO CLIENT";
-      op.messages.push({
-        type: 'system',
-        text: noticeText
-      });
-      renderChatStream(op.messages);
-    }
-    function exportChatSession() {
-      var op = operatives.find(function(o) { return o.id === activeContactId; });
-      if (!op) return;
-      var transcript = "=== FIFS TACTICAL COMMS TRANSCRIPT ===\n";
-      transcript += "PARTICIPANT: " + op.name + " (" + op.role + ")\n";
-      transcript += "SESSION EXPORT TIME: " + new Date().toISOString() + "\n\n";
-      op.messages.forEach(function(m) {
-        if (m.type === 'system') {
-          transcript += "[SYSTEM] " + m.text + "\n";
-        } else {
-          transcript += "[" + m.time + "] " + m.name + ":\n" + m.text + "\n\n";
-        }
-      });
-      var blob = new Blob([transcript], { type: 'text/plain' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'FIFS_COMMS_' + op.name.replace(/\s+/g, '_') + '.txt';
-      a.click();
-    }
-    function clearChatStream() {
-      if (!confirm('PURGE SESSION: Clear active terminal stream display?')) return;
-      var op = operatives.find(function(o) { return o.id === activeContactId; });
-      if (op) {
-        op.messages = [{ type: 'system', text: 'TERMINAL BUFFER PURGED • SECURE CHANNEL RESET' }];
-        renderChatStream(op.messages);
-      }
-    }
-    function filterContacts() {
-      renderRoster();
-    }
-    function toggleMobileSidebar() {
-      var sidebar = document.getElementById('sidebar');
-      var overlay = document.getElementById('sidebarOverlay');
-      sidebar.classList.toggle('open');
-      overlay.classList.toggle('active');
-    }
-    // Initialize on load
-    window.addEventListener('DOMContentLoaded', function() {
-      renderRoster();
-      var op = operatives.find(function(o) { return o.id === activeContactId; });
-      if (op) renderChatStream(op.messages);
+      container.appendChild(row);
     });
+  }
+  
+  if (streamEl) {
+    streamEl.scrollTop = streamEl.scrollHeight;
+  }
+}
+
+function appendOutgoingVisitorBubble(text) {
+  var container = document.getElementById('liveChatMessagesContainer');
+  var streamEl = document.getElementById('chatStream');
+  if (!container && streamEl) {
+    container = streamEl;
+  }
+  if (!container) return;
+  var row = document.createElement('div');
+  row.className = 'message-row outgoing';
+  var senderLabel = (window.__activeChatSession && window.__activeChatSession.name) || (window.__currentChatSession && window.__currentChatSession.name) || 'You';
+  var timeStr = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' EST';
+  row.innerHTML =
+    '<div class="message-header">' +
+      '<span class="message-sender">' + escapeChatHtml(senderLabel) + '</span>' +
+      '<span class="message-timestamp">' + escapeChatHtml(timeStr) + '</span>' +
+    '</div>' +
+    '<div class="message-bubble">' +
+      escapeChatHtml(text) +
+      '<div class="bubble-meta-tag"><span>DISPATCH: CLIENT TERMINAL</span><span>TRANSMITTING...</span></div>' +
+    '</div>';
+  container.appendChild(row);
+  if (streamEl) {
+    streamEl.scrollTop = streamEl.scrollHeight;
+  }
+}
+
+function handleInputKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    submitCurrentMessage();
+  }
+}
+
+function autoResizeInput(el) {
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function submitCurrentMessage(presetText) {
+  var input = document.getElementById('messageInput');
+  var text = (presetText !== undefined ? presetText : (input ? input.value : '')).trim();
+  if (!text) return;
+  if (input && presetText === undefined) {
+    input.value = '';
+    input.style.height = 'auto';
+  }
+  appendOutgoingVisitorBubble(text);
+  
+  var session = window.__activeChatSession || window.__currentChatSession || { name: 'Valued Visitor', phone: '' };
+  var cleanPhone = (session.phone || '').replace(/\D/g, '');
+  var threadId = session.threadId || (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
+  
+  var payload = {
+    senderName: session.name || 'Valued Visitor',
+    senderPhone: cleanPhone,
+    senderEmail: session.email || '',
+    message: text,
+    threadId: threadId
+  };
+  
+  if (typeof callFifsBackend === 'function') {
+    callFifsBackend('handleLiveChatMessage', payload, function(res) {
+      if (res && res.status === 'success' && Array.isArray(res.messages)) {
+        renderLiveVisitorStream(res.messages);
+      }
+    }, function(err) {
+      console.warn('Live chat backend notification deferred:', err);
+    });
+  }
+}
+
+window.sendP2pMessageDirect = function(msg) {
+  submitCurrentMessage(msg);
+};
+
+function triggerSecureAction() {
+  var action = prompt("ENTER SECURE HUD ACTION:\n1. REQUEST WEAR & CARRY CONSULTATION\n2. REQUEST LIVE-FIRE RANGE SLOT\n3. CONFIRM MSP QUALIFICATION STATUS", "1");
+  if (!action) return;
+  var noticeText = "CLIENT ACTION DISPATCHED: OPTION #" + action;
+  if (action === '1') noticeText = "CONSULTATION INQUIRY LOGGED WITH CHIEF INSTRUCTOR";
+  if (action === '2') noticeText = "LIVE-FIRE RANGE SCHEDULING REQUEST TRANSMITTED";
+  if (action === '3') noticeText = "MSP QUALIFICATION VERIFICATION RECORD REQUESTED";
+  submitCurrentMessage('[' + noticeText + ']');
+}
+
+function exportChatSession() {
+  var name = (window.__activeChatSession && window.__activeChatSession.name) || 'Visitor';
+  var transcript = "=== FIFS TACTICAL COMMS TRANSCRIPT ===\n";
+  transcript += "PARTICIPANT: " + name + "\n";
+  transcript += "SESSION EXPORT TIME: " + new Date().toISOString() + "\n\n";
+  var container = document.getElementById('liveChatMessagesContainer') || document.getElementById('chatStream');
+  if (container) {
+    var rows = container.querySelectorAll('.message-row');
+    rows.forEach(function(r) {
+      var s = r.querySelector('.message-sender');
+      var t = r.querySelector('.message-timestamp');
+      var b = r.querySelector('.message-bubble');
+      transcript += "[" + (t ? t.innerText : '') + "] " + (s ? s.innerText : '') + ":\n" + (b ? b.innerText : '') + "\n\n";
+    });
+  }
+  var blob = new Blob([transcript], { type: 'text/plain' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'FIFS_COMMS_' + name.replace(/\s+/g, '_') + '.txt';
+  a.click();
+}
+
+function clearChatStream() {
+  if (!confirm('PURGE SESSION: Clear active terminal stream display?')) return;
+  var container = document.getElementById('liveChatMessagesContainer');
+  if (container) container.innerHTML = '';
+}
+
+function filterContacts() {
+  renderLiveVisitorRoster();
+}
+
+function toggleMobileSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  if (sidebar) sidebar.classList.toggle('open');
+  if (overlay) overlay.classList.toggle('active');
+}
+
 function openP2pCommsHud(name, phone, initialMsg) {
   var m = document.getElementById('fifsP2pCommsModal');
   if (m) {
@@ -10122,35 +9817,93 @@ function openP2pCommsHud(name, phone, initialMsg) {
     m.classList.add('active');
     document.body.style.overflow = 'hidden';
   }
-  var studentName = name || (window.__currentChatSession ? window.__currentChatSession.name : '');
-  var nameEl = document.getElementById('activeContactName');
-  if (nameEl) {
-    if (studentName && studentName !== 'Visitor' && studentName !== 'Valued Visitor') {
-      nameEl.textContent = studentName;
-    } else {
-      nameEl.innerHTML = '<span style="letter-spacing: 2px; color: #ffb703;">████████</span> <span style="font-size: 0.82rem; color: #cbd5e1;">[REDACTED OPERATIVE]</span>';
-    }
-  }
-  var roleEl = document.getElementById('activeContactRole');
-  if (roleEl) {
-    roleEl.innerHTML = '<span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ffb703; animation: p2pYellowPulse 1.1s infinite ease-in-out;"></span><span>STATUS PENDING</span>';
-  }
+  
   if (name || phone) {
-    window.__currentChatSession = {
+    var sessionData = {
       name: name || 'Valued Visitor',
       phone: phone || ''
     };
+    try {
+      sessionStorage.setItem('fifs_visitor_session', JSON.stringify(sessionData));
+    } catch(e) {}
+    window.__currentChatSession = sessionData;
   }
-  if (typeof operatives !== 'undefined' && operatives.length > 0) {
-    if (studentName) operatives[0].name = studentName;
-    if (typeof renderRoster === 'function') renderRoster();
-    if (typeof renderChatStream === 'function') renderChatStream(operatives[0].messages);
+  
+  var visitorPhone = phone || (window.__currentChatSession && window.__currentChatSession.phone) || '';
+  var cleanPhone = visitorPhone.replace(/\D/g, '');
+  var threadId = cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now());
+  var visitorName = name || (window.__currentChatSession && window.__currentChatSession.name) || 'Valued Visitor';
+  
+  window.__activeChatSession = {
+    name: visitorName,
+    phone: cleanPhone,
+    threadId: threadId,
+    messages: []
+  };
+  if (window.__currentChatSession) {
+    window.__currentChatSession.threadId = threadId;
   }
-  if (initialMsg && typeof window.sendP2pMessageDirect === 'function') {
-    window.sendP2pMessageDirect(initialMsg);
+
+  // Update header metadata
+  var nameEl = document.getElementById('activeContactName');
+  if (nameEl) nameEl.textContent = visitorName;
+  var secStatusEl = document.getElementById('activeVerificationStatus');
+  if (secStatusEl) secStatusEl.textContent = 'SEC-STATUS: DIRECT';
+  var roleEl = document.getElementById('activeContactRole');
+  if (roleEl) {
+    roleEl.innerHTML = '<span class="p2p-yellow-beacon" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffb703;animation:p2pYellowPulse 1.1s infinite ease-in-out;"></span><span>Live Range & Course Consultation</span>';
   }
+  var chanEl = document.getElementById('activeContactChannel');
+  if (chanEl) chanEl.textContent = 'CHAN: P2P-LIVE';
+
+  // Clear message container
+  var container = document.getElementById('liveChatMessagesContainer');
+  if (container) {
+    container.innerHTML = '';
+  }
+  
+  renderLiveVisitorRoster();
+
+  // If initialMsg exists, display immediately as an outgoing message bubble from client and dispatch to /api/fifs
+  if (initialMsg) {
+    appendOutgoingVisitorBubble(initialMsg);
+    if (typeof callFifsBackend === 'function') {
+      callFifsBackend('handleLiveChatMessage', {
+        senderName: visitorName,
+        senderPhone: cleanPhone,
+        message: initialMsg,
+        threadId: threadId
+      }, function(res) {
+        if (res && res.status === 'success' && Array.isArray(res.messages)) {
+          renderLiveVisitorStream(res.messages);
+        }
+      });
+    }
+  }
+
+  // Live Polling for Client Phone (Every 3 Seconds)
+  if (window.__p2pPollInterval) clearInterval(window.__p2pPollInterval);
+  
+  function pollVisitorMessages() {
+    var curThreadId = (window.__activeChatSession && window.__activeChatSession.threadId) || (window.__currentChatSession && window.__currentChatSession.threadId);
+    if (!curThreadId || typeof callFifsBackend !== 'function') return;
+    
+    callFifsBackend('getVisitorChatMessages', { threadId: curThreadId }, function(res) {
+      if (res && res.status === 'success' && Array.isArray(res.messages)) {
+        renderLiveVisitorStream(res.messages);
+      }
+    });
+  }
+  
+  pollVisitorMessages();
+  window.__p2pPollInterval = setInterval(pollVisitorMessages, 3000);
 }
+
 function closeP2pCommsHud() {
+  if (window.__p2pPollInterval) {
+    clearInterval(window.__p2pPollInterval);
+    window.__p2pPollInterval = null;
+  }
   var m = document.getElementById('fifsP2pCommsModal');
   if (m) {
     m.style.display = 'none';
@@ -10158,8 +9911,11 @@ function closeP2pCommsHud() {
     document.body.style.overflow = 'auto';
   }
 }
+
 window.openP2pCommsHud = openP2pCommsHud;
 window.closeP2pCommsHud = closeP2pCommsHud;
+window.renderLiveVisitorStream = renderLiveVisitorStream;
+window.renderLiveVisitorRoster = renderLiveVisitorRoster;
 
 // --- NEXT SCRIPT BLOCK ---
 
@@ -10298,3 +10054,31 @@ if (typeof window !== 'undefined') {
     } catch (e) {}
   });
 }
+
+  // Global background polling for Admin Hub on iPad (every 5s)
+  if (typeof window !== 'undefined') {
+    var lastKnownUnreadCount = 0;
+    setInterval(function() {
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || (window.__fifsAdminAuth && window.__fifsAdminAuth.passcode);
+      if (!pin) return;
+      if (typeof window.callFifsBackend === 'function') {
+        window.callFifsBackend('getLiveChats', { passcode: pin, pin: pin }, function(res) {
+          if (res && res.success && Array.isArray(res.liveChats)) {
+            window.__adminLiveChatThreads = res.liveChats;
+            var unreadTotal = 0;
+            res.liveChats.forEach(function(t) { if (t.unread) unreadTotal++; });
+            if (unreadTotal > lastKnownUnreadCount) {
+              if (typeof window.playAdminNotificationChime === 'function') window.playAdminNotificationChime();
+              if (typeof window.showAdminHubNotificationBanner === 'function') {
+                window.showAdminHubNotificationBanner('New Student Message Received', 'A student sent an inquiry in Live Chat Command.');
+              }
+            }
+            lastKnownUnreadCount = unreadTotal;
+            if (typeof window.renderAdminLiveChatThreadList === 'function') {
+              window.renderAdminLiveChatThreadList();
+            }
+          }
+        });
+      }
+    }, 5000);
+  }
