@@ -78,6 +78,71 @@ function normalizeInvoice(i: any) {
   };
 }
 
+
+// Helper to group flat messages into threads for Admin Hub Two-Way Chat Console
+function groupMessagesIntoThreads(messages: any[] = []) {
+  const threadsMap: { [key: string]: any } = {};
+
+  for (const m of messages) {
+    const rawPhone = (m.phone || '').toString().trim();
+    const cleanPhone = rawPhone.replace(/\D/g, '');
+    const studentId = (m.student_id || m.studentId || '').toString().trim();
+    const name = (m.name || m.fullName || 'Anonymous Visitor').toString().trim();
+    
+    // Determine unique thread key
+    let threadId = cleanPhone ? ('thread_' + cleanPhone) : (studentId ? ('thread_' + studentId) : ('thread_visitor_' + name.toLowerCase().replace(/\s+/g, '_')));
+    if (!threadId || threadId === 'thread_') {
+      threadId = 'thread_' + (m.id || 'general');
+    }
+
+    if (!threadsMap[threadId]) {
+      threadsMap[threadId] = {
+        id: threadId,
+        senderName: name,
+        senderPhone: rawPhone || '(Website Live Visitor)',
+        senderEmail: m.email || '',
+        studentId: studentId || null,
+        lastUpdated: m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' EST' : '',
+        lastTimestamp: m.sent_at ? new Date(m.sent_at).getTime() : 0,
+        unread: false,
+        messages: []
+      };
+    }
+
+    const t = threadsMap[threadId];
+    // Update name/phone if earlier message had placeholder
+    if (name && name !== 'Anonymous Visitor' && (!t.senderName || t.senderName === 'Anonymous Visitor')) {
+      t.senderName = name;
+    }
+    if (rawPhone && (!t.senderPhone || t.senderPhone.includes('Website Live Visitor'))) {
+      t.senderPhone = rawPhone;
+    }
+
+    const isStudent = (m.sender === 'student' || m.sender === 'visitor');
+    const msgTime = m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' EST' : '';
+    const msgObj = {
+      id: m.id,
+      sender: m.sender || 'student',
+      name: isStudent ? t.senderName : 'Instructor Kai Wade',
+      text: m.message || '',
+      time: msgTime,
+      sent_at: m.sent_at
+    };
+
+    t.messages.push(msgObj);
+    const sentTime = m.sent_at ? new Date(m.sent_at).getTime() : 0;
+    if (sentTime >= t.lastTimestamp) {
+      t.lastTimestamp = sentTime;
+      t.lastUpdated = msgTime;
+      // If latest message is from student, mark thread unread
+      t.unread = isStudent;
+    }
+  }
+
+  // Return threads sorted with newest activity first
+  return Object.values(threadsMap).sort((a: any, b: any) => b.lastTimestamp - a.lastTimestamp);
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
@@ -138,6 +203,9 @@ export async function POST(req: NextRequest) {
           outstandingBalance += Number(inv.balance_due || 0);
         }
 
+        const groupedThreads = groupMessagesIntoThreads(rawMessages);
+        const unreadChatCount = groupedThreads.filter((t: any) => t.unread).length;
+
         return NextResponse.json({
           success: true,
           status: 'success',
@@ -149,7 +217,15 @@ export async function POST(req: NextRequest) {
           clients,
           invoices,
           messages: rawMessages,
-          liveChats: rawMessages,
+          liveChats: groupedThreads,
+          threads: groupedThreads,
+          stats: {
+            totalStudents,
+            activeClients,
+            unreadChatCount,
+            totalRevenue: Math.round(totalRevenue * 100) / 100,
+            outstandingBalance: Math.round(outstandingBalance * 100) / 100,
+          }
         });
       }
 
@@ -594,16 +670,22 @@ export async function POST(req: NextRequest) {
       // =========================================================================
       case 'handleLiveChatMessage': {
         const now = new Date().toISOString();
+        const senderName = payload.name || payload.senderName || payload.fullName || 'Anonymous Visitor';
+        const senderPhone = payload.phone || payload.senderPhone || '';
+        const senderEmail = payload.email || payload.senderEmail || '';
+        const messageText = payload.message || payload.text || '';
+        const studentId = payload.studentId || payload.student_id || null;
+
         const { data, error } = await supabase
           .from('messages')
           .insert({
-            name: payload.name || payload.fullName || 'Anonymous Visitor',
-            phone: payload.phone || '',
-            email: payload.email || '',
-            message: payload.message || payload.text || '',
+            name: senderName,
+            phone: senderPhone,
+            email: senderEmail,
+            message: messageText,
             urgency: payload.urgency || 'NORMAL',
             sender: 'student',
-            student_id: payload.studentId || null,
+            student_id: studentId,
             sent_at: now,
           })
           .select()
@@ -778,7 +860,15 @@ export async function POST(req: NextRequest) {
         if (error) {
           return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
         }
-        return NextResponse.json({ success: true, status: 'success', messages: data || [] });
+        const rawList = data || [];
+        const threads = groupMessagesIntoThreads(rawList);
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          messages: rawList,
+          threads: threads,
+          liveChats: threads
+        });
       }
 
       case 'deleteLiveChatThread': {
