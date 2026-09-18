@@ -5035,124 +5035,359 @@ body.in-home .sticky-bottom-dock,
   50% { transform: scale(1.18); box-shadow: 0 0 22px #ef4444, 0 0 10px #ff7b72; }
 }
 
+/* ==========================================================================
+   ADMIN OPERATIONS HUB - MSP-STYLE INTEL CARDS & iPad / MOBILE ADAPTATIONS
+   ========================================================================== */
 
-/* ================= MSP-STYLE ADMIN INTELLIGENCE CARDS ================= */
 .admin-intel-cards-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
-  margin: 18px 0 22px;
+  margin: 20px 0 24px 0;
+  width: 100%;
 }
 
-.admin-msp-card {
-  border-radius: 14px;
+.admin-intel-card {
+  position: relative;
+  background: linear-gradient(135deg, rgba(13, 22, 34, 0.95) 0%, rgba(7, 11, 16, 0.98) 100%);
+  border: 1.5px solid rgba(0, 229, 255, 0.25);
+  border-radius: 12px;
   padding: 20px 18px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  transition: all 0.25s ease;
-  cursor: pointer;
-  position: relative;
+  justifyContent: space-between;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
-.admin-msp-card:hover {
+.admin-intel-card:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.35), inset 0 0 15px rgba(0, 229, 255, 0.1);
   transform: translateY(-2px);
 }
 
-.admin-msp-card.active {
-  box-shadow: 0 0 25px rgba(0, 229, 255, 0.35) !important;
+.admin-intel-card.active {
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.12) 0%, rgba(13, 22, 34, 0.98) 100%);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.45), inset 0 0 20px rgba(0, 229, 255, 0.15);
 }
 
-.admin-msp-card .next-step-badge {
-  display: block;
-  font-family: var(--font-display);
-  font-size: 0.80rem;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+.admin-intel-card .card-icon {
+  font-size: 1.8rem;
+  margin-bottom: 12px;
+}
+
+.admin-intel-card .card-title {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #f8fafc;
   margin-bottom: 6px;
+  text-transform: uppercase;
 }
 
-.admin-msp-card h4 {
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  color: #fff;
-  margin-bottom: 8px;
+.admin-intel-card .card-meta {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.admin-intel-card .card-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+}
+
+.admin-intel-card .card-badge.hidden {
+  display: none;
+}
+
+.admin-secondary-toolbar {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+  padding: 12px 16px;
+  background: rgba(13, 22, 34, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
 }
 
-.admin-msp-card p {
-  font-size: 0.86rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-  margin-bottom: 16px;
+/* Gun reload recoil keyframes */
+@keyframes gunRecoil {
+  0% { transform: scale(1) translateX(0); }
+  25% { transform: scale(0.94) translateX(-4px); }
+  50% { transform: scale(1.04) translateX(2px); }
+  100% { transform: scale(1) translateX(0); }
 }
 
-/* ================= ELECTRIC MATERIALIZATION BOOT ANIMATION ================= */
-@keyframes fifsElectricBoot {
-  0% {
-    opacity: 0;
-    filter: brightness(2.5) contrast(1.5) drop-shadow(0 0 20px #00e5ff);
-    transform: scale(0.985);
-  }
-  20% {
-    opacity: 0.8;
-    filter: brightness(1.8) drop-shadow(0 0 15px #ffb703);
-  }
-  40% {
-    opacity: 0.6;
-    filter: brightness(2) drop-shadow(0 0 25px #00e5ff);
-  }
-  70% {
-    opacity: 0.95;
-    filter: brightness(1.2) drop-shadow(0 0 10px #00e5ff);
-  }
-  100% {
-    opacity: 1;
-    filter: brightness(1) drop-shadow(none);
-    transform: scale(1);
+.gun-recoil-active {
+  animation: gunRecoil 0.35s ease-out;
+}
+
+/* iPad Top Header & Navigation Fixes */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .site-header-nav-btn {
+    min-height: 44px;
+    padding: 8px 16px;
+    font-size: 0.95rem;
+    color: #ffffff !important;
+    background: rgba(13, 22, 34, 0.9) !important;
+    border: 1px solid rgba(0, 229, 255, 0.4) !important;
   }
 }
 
-.electric-boot-active {
-  animation: fifsElectricBoot 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* ================= MOBILE VIEWPORT SCALING & DOCK COMPACTING ================= */
+/* Compact mobile scaling for action table & cards */
 @media (max-width: 640px) {
-  html, body {
-    font-size: 14.5px;
+  .admin-intel-cards-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
-  .hero-command-dock {
-    max-width: 94% !important;
-    padding: 12px 12px 10px !important;
-    border-radius: 14px !important;
+  .admin-intel-card {
+    padding: 16px 14px;
   }
-  .btn-hero-booking-prime {
-    padding: 12px 14px !important;
+  .hero-command-dock, .home-action-table {
+    transform: scale(0.96);
+    transform-origin: top center;
   }
-  .btn-hero-booking-prime .prime-label {
-    font-size: 1.15rem !important;
-  }
-  .btn-hero-booking-prime .prime-sub {
-    font-size: 0.76rem !important;
-  }
-  .hero-twin-grid {
+}
+
+/* ==========================================================================
+   ADMIN OPERATIONS HUB - MSP-STYLE INTEL CARDS (MATCHING STATE LICENSING)
+   ========================================================================== */
+
+.msp-intel-deck-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 18px;
+  margin: 20px 0 28px 0;
+  width: 100%;
+}
+
+.msp-intel-card {
+  position: relative;
+  background: linear-gradient(135deg, rgba(13, 19, 27, 0.95) 0%, rgba(7, 11, 16, 0.98) 100%);
+  border-radius: 14px;
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  justifyContent: space-between;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.msp-intel-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Card Themes */
+.msp-card-cyan {
+  border: 2px solid var(--accent-cyan);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.18);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%);
+}
+.msp-card-cyan.active {
+  box-shadow: 0 0 35px rgba(0, 229, 255, 0.4), inset 0 0 20px rgba(0, 229, 255, 0.15);
+  border-color: #38bdf8;
+}
+
+.msp-card-amber {
+  border: 2px solid var(--accent-amber);
+  box-shadow: 0 0 20px rgba(255, 183, 3, 0.18);
+  background: linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%);
+}
+.msp-card-amber.active {
+  box-shadow: 0 0 35px rgba(255, 183, 3, 0.4), inset 0 0 20px rgba(255, 183, 3, 0.15);
+  border-color: #fde047;
+}
+
+.msp-card-purple {
+  border: 2px solid #a855f7;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.18);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%);
+}
+.msp-card-purple.active {
+  box-shadow: 0 0 35px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(168, 85, 247, 0.15);
+  border-color: #c084fc;
+}
+
+.msp-card-emerald {
+  border: 2px solid #10b981;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.18);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%);
+}
+.msp-card-emerald.active {
+  box-shadow: 0 0 35px rgba(16, 185, 129, 0.4), inset 0 0 20px rgba(16, 185, 129, 0.15);
+  border-color: #34d399;
+}
+
+/* Eyebrow Badges */
+.msp-card-eyebrow {
+  display: inline-block;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.eyebrow-cyan { color: var(--accent-cyan); }
+.eyebrow-amber { color: var(--accent-amber); }
+.eyebrow-purple { color: #c084fc; }
+.eyebrow-emerald { color: #34d399; }
+
+.msp-card-title {
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.msp-card-desc {
+  font-size: 0.88rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+  margin: 0 0 18px 0;
+}
+
+/* Card Launch Buttons */
+.msp-card-action-btn {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-family: var(--font-display, 'Rajdhani', sans-serif);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(13, 19, 27, 0.8);
+}
+
+.action-cyan {
+  border: 1.5px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+.action-cyan:hover, .msp-card-cyan.active .action-cyan {
+  background: var(--accent-cyan);
+  color: #070b10;
+}
+
+.action-amber {
+  border: 1.5px solid var(--accent-amber);
+  color: var(--accent-amber);
+}
+.action-amber:hover, .msp-card-amber.active .action-amber {
+  background: var(--accent-amber);
+  color: #070b10;
+}
+
+.action-purple {
+  border: 1.5px solid #a855f7;
+  color: #c084fc;
+}
+.action-purple:hover, .msp-card-purple.active .action-purple {
+  background: #a855f7;
+  color: #ffffff;
+}
+
+.action-emerald {
+  border: 1.5px solid #10b981;
+  color: #34d399;
+}
+.action-emerald:hover, .msp-card-emerald.active .action-emerald {
+  background: #10b981;
+  color: #070b10;
+}
+
+.msp-card-unread-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.9);
+}
+.msp-card-unread-badge.hidden {
+  display: none;
+}
+
+
+/* ================= IPAD & WEBKIT RESPONSIVE HEADER CONTROLS ================= */
+.app-header button,
+.app-nav-button,
+#btnHeaderBack,
+#btnHeaderRefresh,
+#btnHeaderHome,
+.btn-nav-utility,
+.top-nav-action-btn {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background-color: #0d131b !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(0, 229, 255, 0.4) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6) !important;
+}
+
+#btnHeaderBack {
+  background: rgba(13, 19, 27, 0.95) !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+#btnHeaderRefresh {
+  background: rgba(0, 229, 255, 0.12) !important;
+  color: var(--accent-cyan) !important;
+  border-color: var(--accent-cyan) !important;
+}
+
+#btnHeaderHome {
+  background: linear-gradient(135deg, #00e5ff 0%, #00b4d8 100%) !important;
+  color: #070b10 !important;
+  border-color: var(--accent-cyan) !important;
+  font-weight: 800 !important;
+}
+
+/* Proportional header row across all screen sizes */
+@media (max-width: 1024px) {
+  .app-header-inner,
+  .top-utility-bar {
+    display: flex !important;
+    align-items: center !important;
+    justifyContent: space-between !important;
     gap: 8px !important;
+    padding: 8px 12px !important;
   }
-  .btn-hero-twin {
-    padding: 10px 8px !important;
+  .app-header button,
+  #btnHeaderBack,
+  #btnHeaderRefresh,
+  #btnHeaderHome {
+    padding: 8px 14px !important;
+    font-size: 0.85rem !important;
+    border-radius: 8px !important;
+    white-space: nowrap !important;
   }
-  .btn-hero-twin .twin-title {
-    font-size: 0.88rem !important;
-  }
-  .btn-hero-twin .twin-sub {
-    font-size: 0.72rem !important;
-  }
-  .hero-bottom-strip {
-    font-size: 0.76rem !important;
-    padding: 6px 0 !important;
-  }
+}
+
+/* Ensure tier-sliding-pill never blocks crown button */
+.tier-sliding-pill {
+  pointer-events: none !important;
 }

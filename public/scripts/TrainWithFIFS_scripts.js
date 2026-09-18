@@ -2711,7 +2711,7 @@ function updateAdminChatBadgeCount() {
       var subAnalytics = document.getElementById('admin-subpanel-analytics');
       var subChat = document.getElementById('admin-subpanel-chat');
 
-      // Hide all subpanels first
+      // Hide all subpanels inside modal first
       if (subRoster) subRoster.style.setProperty('display', 'none', 'important');
       if (subClients) subClients.style.setProperty('display', 'none', 'important');
       if (subAnalytics) subAnalytics.style.setProperty('display', 'none', 'important');
@@ -2742,21 +2742,23 @@ function updateAdminChatBadgeCount() {
       if (overlay) {
         overlay.style.setProperty('display', 'flex', 'important');
         overlay.classList.add('active');
+        document.body.classList.add('modal-open');
         document.body.style.overflow = 'hidden';
       }
 
-      // Trigger automatic live sync
-      if (tab === 'roster' && typeof refreshAdminRoster === 'function') {
-        refreshAdminRoster();
-      } else if (tab === 'clients' && typeof refreshAdminClients === 'function') {
-        refreshAdminClients();
-      } else if (tab === 'chat' && typeof refreshAdminLiveChats === 'function') {
-        refreshAdminLiveChats();
-      } else if ((tab === 'telemetry' || tab === 'analytics') && typeof refreshAdminTelemetry === 'function') {
-        refreshAdminTelemetry();
+      // Auto-trigger data refresh
+      if (tab === 'roster' && typeof window.refreshAdminRoster === 'function') {
+        window.refreshAdminRoster();
+      } else if (tab === 'clients' && typeof window.refreshAdminClients === 'function') {
+        window.refreshAdminClients();
+      } else if (tab === 'chat' && typeof window.refreshAdminLiveChats === 'function') {
+        window.refreshAdminLiveChats();
+      } else if ((tab === 'telemetry' || tab === 'analytics') && typeof window.refreshAdminTelemetry === 'function') {
+        window.refreshAdminTelemetry();
       }
     }
     window.openAdminSubpanelModal = openAdminSubpanelModal;
+    window.switchAdminTab = openAdminSubpanelModal;
 
     function closeAdminSubpanelModal() {
       var overlay = document.getElementById('adminSubpanelModalOverlay');
@@ -2764,6 +2766,7 @@ function updateAdminChatBadgeCount() {
         overlay.style.setProperty('display', 'none', 'important');
         overlay.classList.remove('active');
       }
+      document.body.classList.remove('modal-open');
       document.body.style.overflow = '';
     }
     window.closeAdminSubpanelModal = closeAdminSubpanelModal;

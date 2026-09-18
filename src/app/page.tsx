@@ -2179,7 +2179,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           {/* 4 INTERACTIVE INTELLIGENCE CARDS (Primary Navigation Deck - MSP Portal Styling) */}
           <div className="admin-intel-cards-container msp-intel-deck-grid" style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(260px, 1fr))", "gap": "16px", "margin": "20px 0 24px"}}>
             {/* Card 1: Student Roster & Ops */}
-            <div className="portal-feature-launcher-card msp-intel-card msp-card-cyan active" id="btn-admin-tab-roster" data-onclick="switchAdminTab('roster')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.25)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-cyan active" id="btn-admin-tab-roster" data-onclick="openAdminSubpanelModal('roster')" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).openAdminSubpanelModal) (window as any).openAdminSubpanelModal('roster'); }} role="button" tabIndex={0} style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.25)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-cyan" style={{"color": "var(--accent-cyan)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                   STUDENT ENROLLMENT & OPS
@@ -2192,14 +2192,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </p>
               </div>
               <div>
-                <button className="btn-primary msp-card-action-btn action-cyan" type="button" data-onclick="switchAdminTab('roster'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-cyan)", "color": "#070b10", "cursor": "pointer"}}>
-                  LAUNCH ROSTER PORTAL ↗
+                <button className="btn-primary msp-card-action-btn action-cyan" type="button" data-onclick="openAdminSubpanelModal('roster'); event.stopPropagation();" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).openAdminSubpanelModal) (window as any).openAdminSubpanelModal('roster'); }} style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-cyan)", "color": "#070b10", "cursor": "pointer"}}>
+                  LAUNCH ROSTER PORTAL
                 </button>
               </div>
             </div>
 
             {/* Card 2: Future Initiative Clients */}
-            <div className="portal-feature-launcher-card msp-intel-card msp-card-amber" id="btn-admin-tab-clients" data-onclick="switchAdminTab('clients')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-amber" id="btn-admin-tab-clients" data-onclick="openAdminSubpanelModal('clients')" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).openAdminSubpanelModal) (window as any).openAdminSubpanelModal('clients'); }} role="button" tabIndex={0} style={{"border": "2px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-amber" style={{"color": "var(--accent-amber)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                   VIP PERMIT TRACKING & REGISTRY
@@ -2212,14 +2212,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </p>
               </div>
               <div>
-                <button className="btn-primary msp-card-action-btn action-amber" type="button" data-onclick="switchAdminTab('clients'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(255, 183, 3, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-amber)", "color": "#070b10", "cursor": "pointer"}}>
-                  LAUNCH CLIENT REGISTRY ↗
+                <button className="btn-primary msp-card-action-btn action-amber" type="button" data-onclick="openAdminSubpanelModal('clients'); event.stopPropagation();" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).openAdminSubpanelModal) (window as any).openAdminSubpanelModal('clients'); }} style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(255, 183, 3, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-amber)", "color": "#070b10", "cursor": "pointer"}}>
+                  LAUNCH CLIENT REGISTRY
                 </button>
               </div>
             </div>
 
             {/* Card 3: Live Chat Command */}
-            <div className="portal-feature-launcher-card msp-intel-card msp-card-purple" id="btn-admin-tab-chat" data-onclick="switchAdminTab('chat')" role="button" tabIndex={0} style={{"border": "2px solid #a855f7", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(168, 85, 247, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-purple" id="btn-admin-tab-chat" data-onclick="openAdminSubpanelModal('chat')" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).openAdminSubpanelModal) (window as any).openAdminSubpanelModal('chat'); }} role="button" tabIndex={0} style={{"border": "2px solid #a855f7", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(168, 85, 247, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <span className="card-badge msp-card-unread-badge hidden" id="admin-tab-chat-unread" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "#ef4444", "color": "#fff", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px #ef4444"}}>0</span>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-purple" style={{"color": "#c084fc", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
@@ -2233,14 +2233,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </p>
               </div>
               <div>
-                <button className="btn-primary msp-card-action-btn action-purple" type="button" data-onclick="switchAdminTab('chat'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(168, 85, 247, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#a855f7", "color": "#070b10", "cursor": "pointer"}}>
-                  OPEN CHAT COMMAND ↗
+                <button className="btn-primary msp-card-action-btn action-purple" type="button" data-onclick="openAdminSubpanelModal('chat'); event.stopPropagation();" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).openAdminSubpanelModal) (window as any).openAdminSubpanelModal('chat'); }} style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(168, 85, 247, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#a855f7", "color": "#070b10", "cursor": "pointer"}}>
+                  OPEN CHAT COMMAND
                 </button>
               </div>
             </div>
 
             {/* Card 4: Website Telemetry */}
-            <div className="portal-feature-launcher-card msp-intel-card msp-card-emerald" id="btn-admin-tab-telemetry" data-onclick="switchAdminTab('telemetry')" role="button" tabIndex={0} style={{"border": "2px solid #10b981", "background": "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(16, 185, 129, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-emerald" id="btn-admin-tab-telemetry" data-onclick="openAdminSubpanelModal('telemetry')" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).openAdminSubpanelModal) (window as any).openAdminSubpanelModal('telemetry'); }} role="button" tabIndex={0} style={{"border": "2px solid #10b981", "background": "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(16, 185, 129, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-emerald" style={{"color": "#34d399", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                   SYSTEM INTELLIGENCE & TRAFFIC
@@ -2253,8 +2253,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </p>
               </div>
               <div>
-                <button className="btn-primary msp-card-action-btn action-emerald" type="button" data-onclick="switchAdminTab('telemetry'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(16, 185, 129, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#10b981", "color": "#070b10", "cursor": "pointer"}}>
-                  VIEW LIVE RADAR ↗
+                <button className="btn-primary msp-card-action-btn action-emerald" type="button" data-onclick="openAdminSubpanelModal('telemetry'); event.stopPropagation();" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).openAdminSubpanelModal) (window as any).openAdminSubpanelModal('telemetry'); }} style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(16, 185, 129, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#10b981", "color": "#070b10", "cursor": "pointer"}}>
+                  VIEW LIVE RADAR
                 </button>
               </div>
             </div>
@@ -3307,7 +3307,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             {/* Interactive Tier Toggle Switch */}
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-mastery" data-onclick="toggleCardTier('mastery', event)">
+              <div className="tier-sliding-switch" id="switch-mastery" data-onclick="toggleCardTier('mastery', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).toggleCardTier) (window as any).toggleCardTier('mastery', e); }}>
                 <div className="tier-sliding-pill" id="slider-mastery">
                 </div>
                 <button className="tier-option-btn btn-base-side" id="tog-base-mastery" data-onclick="setCardTier('mastery', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('mastery', 'base', e); }} type="button">
@@ -3398,7 +3398,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-combo" data-onclick="toggleCardTier('combo', event)">
+              <div className="tier-sliding-switch" id="switch-combo" data-onclick="toggleCardTier('combo', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).toggleCardTier) (window as any).toggleCardTier('combo', e); }}>
                 <div className="tier-sliding-pill" id="slider-combo">
                 </div>
                 <button className="tier-option-btn btn-base-side" id="tog-base-combo" data-onclick="setCardTier('combo', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('combo', 'base', e); }} type="button">
@@ -3486,7 +3486,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-ccw" data-onclick="toggleCardTier('ccw', event)">
+              <div className="tier-sliding-switch" id="switch-ccw" data-onclick="toggleCardTier('ccw', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).toggleCardTier) (window as any).toggleCardTier('ccw', e); }}>
                 <div className="tier-sliding-pill" id="slider-ccw">
                 </div>
                 <button className="tier-option-btn btn-base-side" id="tog-base-ccw" data-onclick="setCardTier('ccw', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('ccw', 'base', e); }} type="button">
@@ -3568,7 +3568,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-hql" data-onclick="toggleCardTier('hql', event)">
+              <div className="tier-sliding-switch" id="switch-hql" data-onclick="toggleCardTier('hql', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).toggleCardTier) (window as any).toggleCardTier('hql', e); }}>
                 <div className="tier-sliding-pill" id="slider-hql">
                 </div>
                 <button className="tier-option-btn btn-base-side" id="tog-base-hql" data-onclick="setCardTier('hql', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('hql', 'base', e); }} type="button">
@@ -3650,7 +3650,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-coaching" data-onclick="toggleCardTier('coaching', event)">
+              <div className="tier-sliding-switch" id="switch-coaching" data-onclick="toggleCardTier('coaching', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).toggleCardTier) (window as any).toggleCardTier('coaching', e); }}>
                 <div className="tier-sliding-pill" id="slider-coaching">
                 </div>
                 <button className="tier-option-btn btn-base-side" id="tog-base-coaching" data-onclick="setCardTier('coaching', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('coaching', 'base', e); }} type="button">
@@ -3732,7 +3732,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-cleaning" data-onclick="toggleCardTier('cleaning', event)">
+              <div className="tier-sliding-switch" id="switch-cleaning" data-onclick="toggleCardTier('cleaning', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).toggleCardTier) (window as any).toggleCardTier('cleaning', e); }}>
                 <div className="tier-sliding-pill" id="slider-cleaning">
                 </div>
                 <button className="tier-option-btn btn-base-side" id="tog-base-cleaning" data-onclick="setCardTier('cleaning', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('cleaning', 'base', e); }} type="button">
@@ -3811,7 +3811,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-children" data-onclick="toggleCardTier('children', event)">
+              <div className="tier-sliding-switch" id="switch-children" data-onclick="toggleCardTier('children', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).toggleCardTier) (window as any).toggleCardTier('children', e); }}>
                 <div className="tier-sliding-pill" id="slider-children">
                 </div>
                 <button className="tier-option-btn btn-base-side" id="tog-base-children" data-onclick="setCardTier('children', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('children', 'base', e); }} type="button">
@@ -3900,7 +3900,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
             </div>
             <div className="tier-toggle-wrapper">
-              <div className="tier-sliding-switch" id="switch-alumni" data-onclick="toggleCardTier('alumni', event)">
+              <div className="tier-sliding-switch" id="switch-alumni" data-onclick="toggleCardTier('alumni', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).toggleCardTier) (window as any).toggleCardTier('alumni', e); }}>
                 <div className="tier-sliding-pill" id="slider-alumni">
                 </div>
                 <button className="tier-option-btn btn-base-side" id="tog-base-alumni" data-onclick="setCardTier('alumni', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== "undefined" && (window as any).setCardTier) (window as any).setCardTier('alumni', 'base', e); }} type="button">
