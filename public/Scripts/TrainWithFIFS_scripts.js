@@ -1127,26 +1127,83 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     window.__visitorChatPollInterval = null;
     function startVisitorChatPolling(threadId) {
       stopVisitorChatPolling();
+      if (!window.__currentChatSession) {
+        window.__currentChatSession = {
+          name: 'Valued Visitor',
+          phone: '',
+          threadId: threadId || ('thread_' + Date.now()),
+          sessionStartTime: Date.now() - 30000,
+          renderedMessages: {}
+        };
+      } else if (!window.__currentChatSession.threadId) {
+        window.__currentChatSession.threadId = threadId || ('thread_' + Date.now());
+      }
+      if (!window.__currentChatSession.renderedMessages) {
+        window.__currentChatSession.renderedMessages = {};
+      }
+      if (!window.__currentChatSession.sessionStartTime) {
+        window.__currentChatSession.sessionStartTime = Date.now() - 30000;
+      }
+
       window.__visitorChatPollInterval = setInterval(function() {
-        if (!window.__currentChatSession || !window.__currentChatSession.threadId) return;
+        if (!window.__currentChatSession) return;
+        var activeThreadId = window.__currentChatSession.threadId || threadId || 'thread_general';
         if (typeof callFifsBackend !== 'function') return;
-        callFifsBackend('getVisitorChatMessages', { threadId: window.__currentChatSession.threadId }, function(res) {
+
+        callFifsBackend('getVisitorChatMessages', { threadId: activeThreadId }, function(res) {
           if (res && res.status === 'success' && Array.isArray(res.messages)) {
             var stream = document.getElementById('twoWayChatStream');
-            if (!stream) return;
             var rendered = window.__currentChatSession.renderedMessages || {};
+            var sessionStart = window.__currentChatSession.sessionStartTime || (Date.now() - 60000);
+
             res.messages.forEach(function(m) {
-              var key = m.timestamp + '_' + m.text;
-              if (!rendered[key] && m.sender === 'instructor') {
-                rendered[key] = true;
-                var time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
-                appendTwoWayBubble('instructor', m.senderName || 'Coach Kai Wade', m.text, time);
+              var mText = (m.message || m.text || '').trim();
+              if (!mText) return;
+              var key = (m.id || '') + '_' + (m.sent_at || m.timestamp || '') + '_' + mText;
+              var isInstructor = (m.sender === 'instructor' || m.sender === 'admin' || m.sender_type === 'admin' || m.name === 'Coach Kai Wade');
+
+              if (!rendered[key] && isInstructor) {
+                var msgTime = m.sent_at || m.timestamp ? new Date(m.sent_at || m.timestamp).getTime() : Date.now();
+                // Check if message belongs to current session or current student thread
+                if (msgTime >= sessionStart || (m.threadId && m.threadId === activeThreadId)) {
+                  rendered[key] = true;
+                  var timeStr = m.sent_at || m.timestamp ? new Date(m.sent_at || m.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'NOW';
+
+                  // 1. Deliver to 2-Way Standard Modal
+                  if (stream && typeof appendTwoWayBubble === 'function') {
+                    appendTwoWayBubble('instructor', m.senderName || 'Coach Kai Wade', mText, timeStr);
+                  }
+
+                  // 2. Deliver to P2P Comms Tactical HUD
+                  if (typeof operatives !== 'undefined' && Array.isArray(operatives) && operatives.length > 0) {
+                    var op = operatives.find(function(o) { return o.id === activeContactId; }) || operatives[0];
+                    if (op) {
+                      if (!op.messages) op.messages = [];
+                      var alreadyInOp = op.messages.some(function(msg) {
+                        return (msg.text || '').trim() === mText;
+                      });
+                      if (!alreadyInOp) {
+                        op.messages.push({
+                          sender: 'them',
+                          name: 'Coach Kai Wade [LEAD INSTRUCTOR]',
+                          time: timeStr,
+                          text: mText
+                        });
+                        if (typeof renderChatStream === 'function') {
+                          renderChatStream(op.messages);
+                        }
+                        var p2pStream = document.getElementById('chatStream');
+                        if (p2pStream) p2pStream.scrollTop = p2pStream.scrollHeight;
+                      }
+                    }
+                  }
+                }
               }
             });
             window.__currentChatSession.renderedMessages = rendered;
           }
         }, function(err) {});
-      }, 5000);
+      }, 3000);
     }
     function stopVisitorChatPolling() {
       if (window.__visitorChatPollInterval) {
@@ -10062,13 +10119,40 @@ function openP2pCommsHud(name, phone, initialMsg) {
     m.classList.add('active');
     document.body.style.overflow = 'hidden';
   }
+  var cleanP = (phone || '').replace(/\D/g, '');
+  var existingThreadId = window.__currentChatSession && window.__currentChatSession.threadId;
+  var tId = existingThreadId || (cleanP ? ('thread_' + cleanP) : ('thread_' + Date.now()));
+
+  if (!window.__currentChatSession) {
+    window.__currentChatSession = {};
+  }
+  window.__currentChatSession.name = name || window.__currentChatSession.name || 'Valued Visitor';
+  window.__currentChatSession.phone = phone || window.__currentChatSession.phone || '';
+  window.__currentChatSession.threadId = tId;
+  if (!window.__currentChatSession.sessionStartTime) {
+    window.__currentChatSession.sessionStartTime = Date.now() - 30000;
+  }
+  if (!window.__currentChatSession.renderedMessages) {
+    window.__currentChatSession.renderedMessages = {};
+  }
+
+  // Pre-seed already visible operative messages so they are not re-triggered
+  if (typeof operatives !== 'undefined' && Array.isArray(operatives) && operatives.length > 0) {
+    var op0 = operatives[0];
+    if (op0 && Array.isArray(op0.messages)) {
+      op0.messages.forEach(function(msg) {
+        if (msg.text) {
+          window.__currentChatSession.renderedMessages[msg.text] = true;
+        }
+      });
+    }
+  }
+
   // Start active polling for incoming instructor replies
   if (typeof startVisitorChatPolling === 'function') {
-    var cleanP = (phone || '').replace(/\D/g, '');
-    var tId = cleanP ? ('thread_' + cleanP) : ('thread_' + Date.now());
     startVisitorChatPolling(tId);
   }
-  var studentName = name || (window.__currentChatSession ? window.__currentChatSession.name : '');
+  var studentName = name || window.__currentChatSession.name;
   var nameEl = document.getElementById('activeContactName');
   if (nameEl) {
     if (studentName && studentName !== 'Visitor' && studentName !== 'Valued Visitor') {
@@ -10080,12 +10164,6 @@ function openP2pCommsHud(name, phone, initialMsg) {
   var roleEl = document.getElementById('activeContactRole');
   if (roleEl) {
     roleEl.innerHTML = '<span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ffb703; animation: p2pYellowPulse 1.1s infinite ease-in-out;"></span><span>STATUS PENDING</span>';
-  }
-  if (name || phone) {
-    window.__currentChatSession = {
-      name: name || 'Valued Visitor',
-      phone: phone || ''
-    };
   }
   if (initialMsg && typeof window.sendP2pMessageDirect === 'function') {
     window.sendP2pMessageDirect(initialMsg);
@@ -10192,3 +10270,11 @@ window.closeP2pCommsHud = closeP2pCommsHud;
   } else {
     setTimeout(autoRecoverStripeBookingReceipt, 300);
   }
+
+    window.insertQuickReplyToAdminChat = function(text) {
+      var input = document.getElementById('adminLiveChatReplyInput');
+      if (input) {
+        input.value = text;
+        input.focus();
+      }
+    };
