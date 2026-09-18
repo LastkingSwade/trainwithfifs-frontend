@@ -2176,32 +2176,91 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
           </div>
 
-          {/* 4 INTERACTIVE INTELLIGENCE CARDS (Primary Navigation Deck) */}
-          <div className="admin-intel-cards-container">
-            <div className="admin-intel-card active" id="btn-admin-tab-roster" data-onclick="switchAdminTab('roster')">
-              <div className="card-icon">👥</div>
-              <div className="card-title">Student Roster & Ops</div>
-              <div className="card-meta">Live training attendees & certifications</div>
+          {/* 4 INTERACTIVE INTELLIGENCE CARDS (Primary Navigation Deck - MSP Portal Styling) */}
+          <div className="admin-intel-cards-container msp-intel-deck-grid" style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(260px, 1fr))", "gap": "16px", "margin": "20px 0 24px"}}>
+            {/* Card 1: Student Roster & Ops */}
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-cyan active" id="btn-admin-tab-roster" data-onclick="switchAdminTab('roster')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.25)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+              <div>
+                <span className="next-step-badge msp-card-eyebrow eyebrow-cyan" style={{"color": "var(--accent-cyan)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                  STUDENT ENROLLMENT & OPS
+                </span>
+                <h3 className="portal-feature-title msp-card-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "gap": "8px"}}>
+                  👥 Student Roster & Ops
+                </h3>
+                <p className="msp-card-desc" style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
+                  Live training attendees, real-time certification milestones, and active student training dossiers.
+                </p>
+              </div>
+              <div>
+                <button className="btn-primary msp-card-action-btn action-cyan" type="button" data-onclick="switchAdminTab('roster'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-cyan)", "color": "#070b10", "cursor": "pointer"}}>
+                  LAUNCH ROSTER PORTAL ↗
+                </button>
+              </div>
             </div>
-            <div className="admin-intel-card" id="btn-admin-tab-clients" data-onclick="switchAdminTab('clients')">
-              <div className="card-icon">🛡️</div>
-              <div className="card-title">Future Initiative Clients</div>
-              <div className="card-meta">Permit tracking & private consultation clients</div>
+
+            {/* Card 2: Future Initiative Clients */}
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-amber" id="btn-admin-tab-clients" data-onclick="switchAdminTab('clients')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+              <div>
+                <span className="next-step-badge msp-card-eyebrow eyebrow-amber" style={{"color": "var(--accent-amber)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                  VIP PERMIT TRACKING & REGISTRY
+                </span>
+                <h3 className="portal-feature-title msp-card-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "gap": "8px"}}>
+                  🛡️ Future Initiative Clients
+                </h3>
+                <p className="msp-card-desc" style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
+                  Private consultation tracking, state wear & carry permit reviews, and statutory exemption assistance.
+                </p>
+              </div>
+              <div>
+                <button className="btn-primary msp-card-action-btn action-amber" type="button" data-onclick="switchAdminTab('clients'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(255, 183, 3, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-amber)", "color": "#070b10", "cursor": "pointer"}}>
+                  LAUNCH CLIENT REGISTRY ↗
+                </button>
+              </div>
             </div>
-            <div className="admin-intel-card" id="btn-admin-tab-chat" data-onclick="switchAdminTab('chat')">
-              <div className="card-icon">💬</div>
-              <div className="card-title">Live Chat Command</div>
-              <div className="card-meta">Two-way visitor communications</div>
-              <span className="card-badge hidden" id="admin-tab-chat-unread">0</span>
+
+            {/* Card 3: Live Chat Command */}
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-purple" id="btn-admin-tab-chat" data-onclick="switchAdminTab('chat')" role="button" tabIndex={0} style={{"border": "2px solid #a855f7", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(168, 85, 247, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+              <span className="card-badge msp-card-unread-badge hidden" id="admin-tab-chat-unread" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "#ef4444", "color": "#fff", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px #ef4444"}}>0</span>
+              <div>
+                <span className="next-step-badge msp-card-eyebrow eyebrow-purple" style={{"color": "#c084fc", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                  TWO-WAY SECURE COMMS
+                </span>
+                <h3 className="portal-feature-title msp-card-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "gap": "8px"}}>
+                  💬 Live Chat Command
+                </h3>
+                <p className="msp-card-desc" style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
+                  Real-time visitor questions, instant inquiry notifications, and direct two-way instructor response.
+                </p>
+              </div>
+              <div>
+                <button className="btn-primary msp-card-action-btn action-purple" type="button" data-onclick="switchAdminTab('chat'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(168, 85, 247, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#a855f7", "color": "#070b10", "cursor": "pointer"}}>
+                  OPEN CHAT COMMAND ↗
+                </button>
+              </div>
             </div>
-            <div className="admin-intel-card" id="btn-admin-tab-telemetry" data-onclick="switchAdminTab('telemetry')">
-              <div className="card-icon">📡</div>
-              <div className="card-title">Website Telemetry</div>
-              <div className="card-meta">Live visitor radar & system health</div>
+
+            {/* Card 4: Website Telemetry */}
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-emerald" id="btn-admin-tab-telemetry" data-onclick="switchAdminTab('telemetry')" role="button" tabIndex={0} style={{"border": "2px solid #10b981", "background": "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(16, 185, 129, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+              <div>
+                <span className="next-step-badge msp-card-eyebrow eyebrow-emerald" style={{"color": "#34d399", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                  SYSTEM INTELLIGENCE & TRAFFIC
+                </span>
+                <h3 className="portal-feature-title msp-card-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "gap": "8px"}}>
+                  📡 Website Telemetry
+                </h3>
+                <p className="msp-card-desc" style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
+                  Live visitor radar, referral breakdown, device analytics, and verified client engagement tracking.
+                </p>
+              </div>
+              <div>
+                <button className="btn-primary msp-card-action-btn action-emerald" type="button" data-onclick="switchAdminTab('telemetry'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(16, 185, 129, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#10b981", "color": "#070b10", "cursor": "pointer"}}>
+                  VIEW LIVE RADAR ↗
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* SECONDARY TACTICAL UTILITY TOOLBAR */}
+{/* SECONDARY TACTICAL UTILITY TOOLBAR */}
           <div className="admin-secondary-toolbar">
             <button className="btn-tactical-hud hud-cyan" id="btn-admin-refresh-data" data-onclick="refreshAdminRoster()" title="Synchronize student and client records from Supabase" type="button">
               <span>🔄</span> <span>REFRESH ROSTER</span>
@@ -3040,6 +3099,17 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <p>
               Important guidelines to ensure your class day is smooth, safe, and stress-free. Click any section for detailed equipment standards and rental procedures.
             </p>
+          </div>
+          {/* Stickmen Action Movie Reenactment Banner Stage */}
+          <div style={{"maxWidth": "720px", "margin": "0 auto 20px auto", "overflow": "hidden", "borderRadius": "12px", "border": "1.5px solid rgba(0, 229, 255, 0.3)", "background": "linear-gradient(180deg, rgba(3, 7, 12, 0.95) 0%, rgba(0, 229, 255, 0.08) 100%)", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.15)"}}>
+            <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "padding": "8px 14px", "fontFamily": "monospace", "fontSize": "0.74rem", "color": "var(--accent-cyan)", "borderBottom": "1px dashed rgba(0, 229, 255, 0.25)"}}>
+              <span id="sectionStickmanTitle" style={{"display": "flex", "alignItems": "center", "gap": "6px", "cursor": "pointer"}} data-onclick="if(typeof window.playNextStickmanScene==='function'){window.playNextStickmanScene();}" title="Click to cycle action choreography">
+                🎬 <strong>10s ACTION REENACTMENT:</strong> <span id="sectionStickmanName" style={{"color": "#00e5ff", "fontWeight": "800"}}>MATRIX ROOFTOP GUN-FU</span>
+                <span style={{"fontSize": "0.70rem", "color": "var(--text-muted)", "border": "1px solid rgba(255,255,255,0.2)", "borderRadius": "4px", "padding": "1px 5px", "marginLeft": "6px"}}>🎲 TAP TO CYCLE</span>
+              </span>
+              <span id="sectionStickmanTimer" style={{"color": "var(--accent-amber)", "fontWeight": "800"}}>10.0s</span>
+            </div>
+            <canvas id="sectionStickmanCanvas" width="720" height="110" style={{"width": "100%", "height": "110px", "display": "block", "cursor": "pointer"}} data-onclick="if(typeof window.playNextStickmanScene==='function'){window.playNextStickmanScene();}" title="Tap to cycle action sequence"></canvas>
           </div>
           <div className="checklist-grid">
             <div className="checklist-box interactive-expect-card" data-onclick="openExpectationModal('handgun')" role="button" tabIndex="0" title="Click to view detailed handgun &amp; equipment breakdown">
