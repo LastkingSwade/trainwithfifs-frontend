@@ -2761,6 +2761,18 @@ function updateAdminChatBadgeCount() {
         if (typeof renderAdminClientTerminal === 'function') {
           renderAdminClientTerminal({ clients: adminCachedClients });
         }
+        var pin = sessionStorage.getItem('fifs_instructor_pin');
+        if (pin && typeof callFifsBackend === 'function') {
+          callFifsBackend('getAdminDashboardData', { pin: pin }, function(res) {
+            if (res && Array.isArray(res.clients)) {
+              adminCachedClients = res.clients;
+              window.adminCachedClients = adminCachedClients;
+              if (typeof renderAdminClientTerminal === 'function') {
+                renderAdminClientTerminal({ clients: res.clients });
+              }
+            }
+          });
+        }
       } else {
         if (subRoster) subRoster.style.setProperty('display', 'block', 'important');
         if (btnRoster) {
@@ -10171,6 +10183,14 @@ if (typeof window !== 'undefined') {
               }
             }
             lastKnownUnreadCount = unreadTotal;
+            var chatTabBadge = document.getElementById("admin-tab-chat-unread");
+            var chatHeaderBadge = document.getElementById("admin-chat-unread-badge");
+            [chatTabBadge, chatHeaderBadge].forEach(function(el) {
+              if (el) {
+                el.textContent = unreadTotal;
+                el.style.display = unreadTotal > 0 ? "inline-flex" : "none";
+              }
+            });
             if (typeof window.renderAdminLiveChatThreadList === 'function') {
               window.renderAdminLiveChatThreadList();
             }
