@@ -75,26 +75,43 @@ function normalizeInvoice(i: any) {
   };
 }
 
+// Normalizes single message so both client and admin scripts can read properties
+function normalizeMessage(m: any) {
+  if (!m) return m;
+  const isInstructor = m.sender === 'instructor' || m.sender_type === 'admin' || m.name === 'Coach Kai Wade';
+  return {
+    ...m,
+    text: m.message || m.text || '',
+    message: m.message || m.text || '',
+    timestamp: m.sent_at || m.timestamp || new Date().toISOString(),
+    sent_at: m.sent_at || m.timestamp || new Date().toISOString(),
+    senderName: m.name || (isInstructor ? 'Coach Kai Wade' : 'Student'),
+    name: m.name || (isInstructor ? 'Coach Kai Wade' : 'Student'),
+    sender: isInstructor ? 'instructor' : 'student',
+  };
+}
+
 // Group raw messages into inquiry threads matching TrainWithFIFS_scripts.js expectations
 function groupMessagesIntoThreads(rawMessages: any[]) {
   if (!Array.isArray(rawMessages) || rawMessages.length === 0) return [];
 
   const threadMap = new Map<string, any>();
 
-  for (const m of rawMessages) {
-    // Determine thread key: prefer phone or email or student_id, fallback to sender name or visitor ID
+  for (const rawM of rawMessages) {
+    const m = normalizeMessage(rawM);
+    // Thread key: prioritize phone or email, else sanitized sender name or inquiry ID
     const threadKey = (m.phone && m.phone.trim()) || 
                       (m.email && m.email.trim()) || 
                       (m.student_id && m.student_id.trim()) || 
-                      (m.name && m.name !== 'Anonymous Visitor' ? m.name.trim() : 'inquiry-' + (m.id || 'default'));
+                      (m.name && m.name !== 'Anonymous Visitor' && m.name !== 'Coach Kai Wade' ? m.name.trim() : 'inquiry-' + (m.id || 'default'));
 
-    const senderName = m.name || 'Web Visitor';
+    const senderName = (m.name && m.name !== 'Coach Kai Wade') ? m.name : 'Web Visitor';
     const senderPhone = m.phone || '(No Phone Provided)';
 
     const msgObj = {
       id: m.id || String(Date.now()),
-      sender: m.sender || (m.sender_type === 'admin' || m.sender_type === 'instructor' ? 'instructor' : 'student'),
-      text: m.message || m.text || '',
+      sender: m.sender,
+      text: m.text,
       time: m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'NOW'
     };
 
@@ -103,18 +120,24 @@ function groupMessagesIntoThreads(rawMessages: any[]) {
         id: threadKey,
         senderName: senderName,
         senderPhone: senderPhone,
-        unread: true,
+        unread: m.sender === 'student', // Unread only if waiting on instructor response
         messages: [msgObj]
       });
     } else {
       const existing = threadMap.get(threadKey);
-      if (m.name && existing.senderName === 'Web Visitor') {
-        existing.senderName = m.name;
+      if (senderName !== 'Web Visitor' && existing.senderName === 'Web Visitor') {
+        existing.senderName = senderName;
       }
-      if (m.phone && existing.senderPhone === '(No Phone Provided)') {
-        existing.senderPhone = m.phone;
+      if (senderPhone !== '(No Phone Provided)' && existing.senderPhone === '(No Phone Provided)') {
+        existing.senderPhone = senderPhone;
       }
       existing.messages.push(msgObj);
+      // If the last message was sent by the instructor, mark as already synced/read
+      if (m.sender === 'instructor') {
+        existing.unread = false;
+      } else {
+        existing.unread = true;
+      }
     }
   }
 
@@ -153,13 +176,13 @@ export async function POST(req: NextRequest) {
           supabase.from('students').select('*').order('created_at', { ascending: false }),
           supabase.from('clients').select('*').order('created_at', { ascending: false }),
           supabase.from('invoices').select('*').order('created_at', { ascending: false }),
-          supabase.from('messages').select('*').order('sent_at', { ascending: true }).limit(150),
+          supabase.from('messages').select('*').order('sent_at', { ascending: true }).limit(200),
         ]);
 
         const rawStudents = (studentsRes.status === 'fulfilled' && studentsRes.value.data) ? studentsRes.value.data : [];
         const rawClients = (clientsRes.status === 'fulfilled' && clientsRes.value.data) ? clientsRes.value.data : [];
         const rawInvoices = (invoicesRes.status === 'fulfilled' && invoicesRes.value.data) ? invoicesRes.value.data : [];
-        const rawMessages = (messagesRes.status === 'fulfilled' && messagesRes.value.data) ? messagesRes.value.data : [];
+        const rawMessages = (messagesRes.status === 'fulfilled' && messagesRes.value.data) ? messagesRes.value.data.map(normalizeMessage) : [];
 
         const students = rawStudents.map(normalizeStudent);
         const clients = rawClients.map(normalizeClient);
@@ -194,13 +217,13 @@ export async function POST(req: NextRequest) {
           .from('messages')
           .select('*')
           .order('sent_at', { ascending: true })
-          .limit(150);
+          .limit(200);
 
         if (error) {
           return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
         }
 
-        const raw = data || [];
+        const raw = (data || []).map(normalizeMessage);
         const threads = groupMessagesIntoThreads(raw);
 
         return NextResponse.json({
@@ -218,7 +241,6 @@ export async function POST(req: NextRequest) {
 
         const replyData = payload.payload || payload;
         const text = replyData.message || replyData.text;
-        const threadId = replyData.threadId || replyData.thread_id;
         const studentPhone = replyData.studentPhone || replyData.phone || '';
         const studentName = replyData.studentName || replyData.name || 'Student';
 
@@ -239,14 +261,31 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
         }
 
-        return NextResponse.json({ success: true, status: 'success', reply: data });
+        return NextResponse.json({ success: true, status: 'success', reply: normalizeMessage(data) });
       }
 
       case 'handleLiveChatMessage': {
-        const msg = payload.message || payload.text;
+        const msg = (payload.message || payload.text || '').trim();
         const name = payload.name || payload.senderName || 'Anonymous Visitor';
         const phone = payload.phone || payload.senderPhone || '';
         const email = payload.email || '';
+
+        if (!msg) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Empty message text.' }, { status: 400 });
+        }
+
+        // Server-side deduplication: if exact duplicate sent in last 5 seconds, return success without inserting
+        const fiveSecondsAgo = new Date(Date.now() - 5000).toISOString();
+        const { data: recentDupes } = await supabase
+          .from('messages')
+          .select('id')
+          .eq('message', msg)
+          .gte('sent_at', fiveSecondsAgo)
+          .limit(1);
+
+        if (recentDupes && recentDupes.length > 0) {
+          return NextResponse.json({ success: true, status: 'success', duplicate: true });
+        }
 
         const { data, error } = await supabase.from('messages').insert({
           name,
@@ -262,7 +301,34 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
         }
 
-        return NextResponse.json({ success: true, status: 'success', message: data });
+        return NextResponse.json({ success: true, status: 'success', message: normalizeMessage(data) });
+      }
+
+      case 'deleteLiveChatThread': {
+        if (!verifyAdminPasscode(passcode)) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
+        }
+
+        const threadId = payload.threadId || payload.id;
+        if (!threadId) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing threadId.' }, { status: 400 });
+        }
+
+        // Extract identifier: if inquiry-UUID or raw UUID or phone number
+        const cleanId = threadId.replace('inquiry-', '');
+
+        // Delete any matching messages by id, phone, or name
+        const { error } = await supabase
+          .from('messages')
+          .delete()
+          .or(`id.eq.${cleanId},phone.eq.${threadId},name.eq.${threadId}`);
+
+        if (error) {
+          console.error('Delete chat thread error:', error.message);
+          return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+        }
+
+        return NextResponse.json({ success: true, status: 'success', message: 'Chat thread purged permanently from Supabase.' });
       }
 
       // -----------------------------------------------------------------------
