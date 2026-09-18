@@ -2112,9 +2112,20 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     window.acknowledgeNewClientAlert = acknowledgeNewClientAlert;
     function refreshAdminRoster() {
       var btn = document.getElementById('btn-admin-refresh-data');
-      if (btn) {
-        btn.classList.add('btn-animated-loading');
-        btn.innerHTML = '<span class="spin-icon">🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">SYNCING ALL DATA FROM SUPABASE...</span>';
+      if (btn && btn.dataset.animating !== 'true') {
+        btn.dataset.animating = 'true';
+        var shots = ["🔫 CHAMBERING ROUND...", "💥 ROUND 1/5 SYNCED", "💥 ROUND 2/5 SYNCED", "💥 ROUND 3/5 SYNCED", "💥 ROUND 4/5 SYNCED", "💥 FULL MAG LOADED", "🔄 TACTICAL RELOAD COMPLETE"];
+        var step = 0;
+        var animInterval = setInterval(function() {
+          if (step < shots.length) {
+            btn.innerHTML = '<span style="color:#fbbf24; font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">' + shots[step] + '</span>';
+            step++;
+          } else {
+            clearInterval(animInterval);
+            btn.dataset.animating = 'false';
+            btn.innerHTML = '<span class="spin-icon">🔄</span> <span style="font-family: var(--font-display); font-weight: 800; letter-spacing: 1px;">ROSTER SYNCED</span>';
+          }
+        }, 500);
       }
       var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       callFifsBackend('getAdminDashboardData', { pin: pin }, function(res) {
@@ -10193,6 +10204,12 @@ if (typeof window !== 'undefined') {
             });
             if (typeof window.renderAdminLiveChatThreadList === 'function') {
               window.renderAdminLiveChatThreadList();
+            }
+            if (window.__activeAdminChatThreadId && Array.isArray(window.__adminLiveChatThreads)) {
+              var currentActive = window.__adminLiveChatThreads.find(function(t) { return t.id === window.__activeAdminChatThreadId; });
+              if (currentActive && typeof window.renderActiveAdminChatMessages === 'function') {
+                window.renderActiveAdminChatMessages(currentActive);
+              }
             }
           }
         });
