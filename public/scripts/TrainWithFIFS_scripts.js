@@ -5879,6 +5879,7 @@ function getStepNumberFromStatus(statusStr) {
         fullName: fullName,
         email: email,
         phone: phone,
+        password: portalPassword,
         courseSelection: courseSelection,
         preferredDates: scheduleSummary,
         date1: date1Str,

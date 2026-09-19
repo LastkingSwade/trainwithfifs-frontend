@@ -6120,41 +6120,35 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </span>
                 </label>
                 <select
-  defaultValue={"student"} id="invPortalType" data-onchange="syncInviteCourseDropdown()" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}}>
+  defaultValue={"student"} 
+  id="invPortalType" 
+  onChange={(e) => { (window as any).syncInviteCourseDropdown?.(); }}
+  data-onchange="syncInviteCourseDropdown()" 
+  style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}}>
                   <option value="student">
-                    🎓 Student Training Portal (Course Intake)
+                    🎓 Student Training Portal (Course Attendee)
                   </option>
                   <option value="client">
-                    🛡️ Client & Permit Portal (Permit Holder)
+                    🛡️ Future Initiative Client (Permit Holder / Consultation)
                   </option>
                 </select>
               </div>
               <div className="form-group" style={{"marginBottom": "0"}}>
-                <label htmlFor="invCourse" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
-                  Assigned Course / Permit 
+                <label id="invCourseLabel" htmlFor="invCourse" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
+                  Assigned Class Curriculum / Permit
                   <span className="req">
                     *
                   </span>
                 </label>
                 <select id="invCourse" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}}>
-                  <option value="Maryland CCW &amp; HQL Combo — Base Track ($249.99)">
-                    Maryland CCW & HQL Combo
-                  </option>
-                  <option value="Maryland Wear &amp; Carry (CCW) — Base Track ($199.99)">
-                    Maryland Wear & Carry (16-Hr)
-                  </option>
-                  <option value="Maryland Wear &amp; Carry (8-Hour Renewal) — Base Track ($175.00)">
-                    Maryland Wear & Carry (8-Hr Renewal)
-                  </option>
-                  <option value="Maryland HQL (Purchase License) — Base Track ($100.00)">
-                    Maryland HQL (4-Hour)
-                  </option>
-                  <option value="Mid-Atlantic Multi-State Mastery — Base Track ($425.00)">
-                    Mid-Atlantic Multi-State Mastery
-                  </option>
-                  <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">
-                    Personal 1-on-1 Range Coaching
-                  </option>
+                  <option value="Mid-Atlantic Multi-State Mastery">Mid-Atlantic Multi-State Mastery (5-State)</option>
+                  <option value="Maryland CCW & HQL Combo Certification">Maryland CCW & HQL Combo (16-Hr + HQL)</option>
+                  <option value="Maryland Wear & Carry (CCW) Permit">Maryland Wear & Carry (16-Hr Initial)</option>
+                  <option value="Maryland Wear & Carry (8-Hour Renewal)">Maryland Wear & Carry (8-Hr Renewal)</option>
+                  <option value="Maryland HQL (Handgun Qualification License)">Maryland HQL (4-Hour License)</option>
+                  <option value="Personal 1-on-1 Range Coaching">Personal 1-on-1 Range Coaching</option>
+                  <option value="Defensive Holster Draw & Retention">Defensive Holster Draw & Retention</option>
+                  <option value="Firearm Deep Clean & Maintenance">Firearm Deep Clean & Maintenance</option>
                 </select>
               </div>
             </div>

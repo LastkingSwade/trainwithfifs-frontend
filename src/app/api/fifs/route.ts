@@ -445,6 +445,7 @@ export async function POST(req: NextRequest) {
           calendarSynced: false,
         };
 
+        const invitePassword = (payload.password || payload.portalPassword || '').toString().trim();
         const { data: student, error: studentError } = await supabase
           .from('students')
           .insert({
@@ -460,6 +461,7 @@ export async function POST(req: NextRequest) {
             status: 'STEP_1_REGISTERED',
             prep_tasks: defaultTasks,
             waiver_completed: false,
+            portal_password: invitePassword || null,
             created_at: now,
             updated_at: now,
           })
@@ -535,11 +537,9 @@ export async function POST(req: NextRequest) {
       }
 
       
-      // =========================================================================
-      // SECTION B: STUDENT & CLIENT PORTAL ACTIONS
-      // =========================================================================
-      case 'getStudentPortalData': {
+      // =============================================================case 'getStudentPortalData': {
         const queryTerm = (payload.studentId || payload.id || payload.email || '').toString().trim();
+        const providedPassword = (payload.password || '').toString().trim();
         if (!queryTerm) {
           return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier or email.' }, { status: 400 });
         }
@@ -560,6 +560,36 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, status: 'not_found', message: 'Student record not found.' }, { status: 404 });
         }
 
+        // Student Portal Password verification (Option 1 & 2 integration)
+        if (!student.portal_password) {
+          return NextResponse.json({
+            success: true,
+            status: 'needs_password_setup',
+            student: {
+              studentId: student.student_id,
+              email: student.email,
+              fullName: student.full_name,
+            },
+            message: 'First-time setup: please create your permanent portal password.',
+          });
+        }
+
+        if (!providedPassword) {
+          return NextResponse.json({
+            success: false,
+            status: 'password_required',
+            message: 'Please enter your portal password.',
+          }, { status: 401 });
+        }
+
+        if (student.portal_password !== providedPassword) {
+          return NextResponse.json({
+            success: false,
+            status: 'invalid_password',
+            message: 'Incorrect portal password. Please check and try again.',
+          }, { status: 401 });
+        }
+
         // Fetch related invoices
         const { data: invoices } = await supabase
           .from('invoices')
@@ -569,6 +599,52 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
           success: true,
           status: 'success',
+          student: normalizeStudent(student),
+          invoices: (invoices || []).map(normalizeInvoice),
+        });
+      }
+
+      case 'setupStudentPassword': {
+        const studentId = (payload.studentId || '').toString().trim();
+        const email = (payload.email || '').toString().trim().toLowerCase();
+        const newPassword = (payload.password || '').toString().trim();
+
+        if (!newPassword || newPassword.length < 4) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Password must be at least 4 characters.' }, { status: 400 });
+        }
+
+        let updateQuery = supabase.from('students').update({
+          portal_password: newPassword,
+          updated_at: new Date().toISOString(),
+        });
+
+        if (studentId) {
+          updateQuery = updateQuery.eq('student_id', studentId);
+        } else {
+          updateQuery = updateQuery.ilike('email', email);
+        }
+
+        const { data: updatedStudent, error: updateError } = await updateQuery.select().single();
+
+        if (updateError) {
+          return NextResponse.json({ success: false, status: 'error', error: updateError.message }, { status: 400 });
+        }
+
+        const { data: invoices } = await supabase
+          .from('invoices')
+          .select('*')
+          .eq('student_id', updatedStudent.student_id);
+
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          student: normalizeStudent(updatedStudent),
+          invoices: (invoices || []).map(normalizeInvoice),
+          message: 'Portal password created successfully.',
+        });
+      }
+
+        status: 'success',
           student: normalizeStudent(student),
           invoices: (invoices || []).map(normalizeInvoice),
         });
@@ -843,6 +919,7 @@ export async function POST(req: NextRequest) {
         const depositAmount = Number(payload.depositAmount || 93.81);
 
         const courseVal = payload.courseSelection || payload.course || payload.courseName || payload.course_name || 'Maryland Wear & Carry Permit';
+        const bookingPassword = (payload.password || payload.portalPassword || '').toString().trim();
         const { data: student, error: studentError } = await supabase
           .from('students')
           .insert({
@@ -858,6 +935,7 @@ export async function POST(req: NextRequest) {
             status: 'STEP_1_REGISTERED',
             prep_tasks: defaultTasks,
             waiver_completed: false,
+            portal_password: bookingPassword || null,
             created_at: now,
             updated_at: now,
           })
