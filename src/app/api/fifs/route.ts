@@ -446,27 +446,36 @@ export async function POST(req: NextRequest) {
         };
 
         const invitePassword = (payload.password || payload.portalPassword || '').toString().trim();
-        const { data: student, error: studentError } = await supabase
+        const studentPayload: Record<string, any> = {
+          student_id: generatedId,
+          full_name: payload.fullName || payload.name || 'Invited Student',
+          email: payload.email || '',
+          phone: payload.phone || '',
+          course_name: payload.course || payload.courseSelection || 'Maryland Wear & Carry Permit',
+          course_selection: payload.course || payload.courseSelection || 'Maryland Wear & Carry Permit',
+          preferred_dates: payload.dates || 'Upcoming Cohort',
+          group_size: 1,
+          comments: 'Direct invite dispatched by Instructor',
+          status: 'STEP_1_REGISTERED',
+          prep_tasks: defaultTasks,
+          waiver_completed: false,
+          portal_password: invitePassword || null,
+          created_at: now,
+          updated_at: now,
+        };
+
+        let { data: student, error: studentError } = await supabase
           .from('students')
-          .insert({
-            student_id: generatedId,
-            full_name: payload.fullName || payload.name || 'Invited Student',
-            email: payload.email || '',
-            phone: payload.phone || '',
-            course_name: payload.course || payload.courseSelection || 'Maryland Wear & Carry Permit',
-            course_selection: payload.course || payload.courseSelection || 'Maryland Wear & Carry Permit',
-            preferred_dates: payload.dates || 'Upcoming Cohort',
-            group_size: 1,
-            comments: 'Direct invite dispatched by Instructor',
-            status: 'STEP_1_REGISTERED',
-            prep_tasks: defaultTasks,
-            waiver_completed: false,
-            portal_password: invitePassword || null,
-            created_at: now,
-            updated_at: now,
-          })
+          .insert(studentPayload)
           .select()
           .single();
+
+        if (studentError && (studentError.message.includes('portal_password') || studentError.message.includes('schema cache'))) {
+          delete studentPayload.portal_password;
+          const retry = await supabase.from('students').insert(studentPayload).select().single();
+          student = retry.data;
+          studentError = retry.error;
+        }
 
         if (studentError) {
           return NextResponse.json({ success: false, status: 'error', error: studentError.message }, { status: 400 });
@@ -915,27 +924,36 @@ export async function POST(req: NextRequest) {
 
         const courseVal = payload.courseSelection || payload.course || payload.courseName || payload.course_name || 'Maryland Wear & Carry Permit';
         const bookingPassword = (payload.password || payload.portalPassword || '').toString().trim();
-        const { data: student, error: studentError } = await supabase
+        const bookingPayload: Record<string, any> = {
+          student_id: generatedStudentId,
+          full_name: payload.fullName || payload.name || 'New Enrollee',
+          email: payload.email || '',
+          phone: payload.phone || '',
+          course_name: courseVal,
+          course_selection: courseVal,
+          preferred_dates: payload.dates || payload.preferredDates || 'Upcoming Range Cohort',
+          group_size: Number(payload.groupSize || 1),
+          comments: payload.comments || '',
+          status: 'STEP_1_REGISTERED',
+          prep_tasks: defaultTasks,
+          waiver_completed: false,
+          portal_password: bookingPassword || null,
+          created_at: now,
+          updated_at: now,
+        };
+
+        let { data: student, error: studentError } = await supabase
           .from('students')
-          .insert({
-            student_id: generatedStudentId,
-            full_name: payload.fullName || payload.name || 'New Enrollee',
-            email: payload.email || '',
-            phone: payload.phone || '',
-            course_name: courseVal,
-            course_selection: courseVal,
-            preferred_dates: payload.dates || payload.preferredDates || 'Upcoming Range Cohort',
-            group_size: Number(payload.groupSize || 1),
-            comments: payload.comments || '',
-            status: 'STEP_1_REGISTERED',
-            prep_tasks: defaultTasks,
-            waiver_completed: false,
-            portal_password: bookingPassword || null,
-            created_at: now,
-            updated_at: now,
-          })
+          .insert(bookingPayload)
           .select()
           .single();
+
+        if (studentError && (studentError.message.includes('portal_password') || studentError.message.includes('schema cache'))) {
+          delete bookingPayload.portal_password;
+          const retry = await supabase.from('students').insert(bookingPayload).select().single();
+          student = retry.data;
+          studentError = retry.error;
+        }
 
         if (studentError) {
           console.error('Error creating student on booking:', studentError);
