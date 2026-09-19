@@ -9722,7 +9722,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
       ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(0, 8); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(-14, -14); ctx.moveTo(0, -5); ctx.lineTo(14, -14);
       ctx.moveTo(0, 8); ctx.lineTo(-14, 20); ctx.moveTo(0, 8); ctx.lineTo(14, 20); ctx.stroke();
-      ctx.restore(); return;
+      ctx.restore(); ctx.restore(); return;
     }
     if (pose.flyingKick) {
       var khX = x - 15, khY = y - 30;
@@ -9747,7 +9747,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
       ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(0, 10); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0, -3); ctx.lineTo(-16, -10); ctx.moveTo(0, -3); ctx.lineTo(16, -8);
       ctx.moveTo(0, 10); ctx.lineTo(-12, 22); ctx.moveTo(0, 10); ctx.lineTo(12, 18); ctx.stroke();
-      ctx.restore(); return;
+      ctx.restore(); ctx.restore(); return;
     }
     // Default upright / shooting / ready poses
     ctx.beginPath(); ctx.arc(x, headY, headR, 0, Math.PI * 2); ctx.stroke();
@@ -10594,3 +10594,107 @@ if (typeof updateFifsLiveStatus === 'function') {
   updateFifsLiveStatus();
   setInterval(updateFifsLiveStatus, 30000);
 }
+
+
+// ==========================================================================
+// AUTHORITATIVE UNIVERSAL TACTICAL GUN RELOAD SHAKE & BOUNCE ENGINE
+// ==========================================================================
+function executeUniversalGunReloadAnimation(btn, onFinished) {
+  if (!btn) {
+    if (typeof onFinished === 'function') onFinished();
+    return;
+  }
+  if (btn.dataset.reloading === 'true') return;
+  btn.dataset.reloading = 'true';
+  
+  var origHtml = btn.innerHTML;
+  btn.classList.add('tactical-gun-recoil');
+
+  var backBtn = document.getElementById('btnNavBack') || document.querySelector('.btn-nav-back');
+  var homeBtn = document.getElementById('btnNavHome') || document.querySelector('.btn-nav-home');
+  if (btn.id === 'topNavRefreshBtn' || btn.id === 'btnNavRefresh') {
+    if (backBtn) backBtn.classList.add('nav-btn-scared-left');
+    if (homeBtn) homeBtn.classList.add('nav-btn-scared-right');
+  }
+
+  btn.innerHTML = '⚡ RACKING SLIDE...';
+
+  setTimeout(function() {
+    btn.innerHTML = '💥 BANG! ROUND FIRED';
+  }, 380);
+
+  setTimeout(function() {
+    btn.innerHTML = '💨 EJECTING CASING...';
+  }, 760);
+
+  setTimeout(function() {
+    btn.innerHTML = '🔄 CHAMBERING ROUND...';
+  }, 1140);
+
+  setTimeout(function() {
+    btn.innerHTML = '⚡ LOCKED & LOADED';
+  }, 1520);
+
+  setTimeout(function() {
+    btn.classList.remove('tactical-gun-recoil');
+    btn.innerHTML = origHtml;
+    btn.dataset.reloading = 'false';
+    if (backBtn) backBtn.classList.remove('nav-btn-scared-left');
+    if (homeBtn) homeBtn.classList.remove('nav-btn-scared-right');
+    if (typeof onFinished === 'function') {
+      try { onFinished(); } catch(e) { console.error('Reload callback error:', e); }
+    }
+  }, 1900);
+}
+window.executeUniversalGunReloadAnimation = executeUniversalGunReloadAnimation;
+
+function triggerTopNavGunReload(evt) {
+  if (evt) {
+    if (evt.stopPropagation) evt.stopPropagation();
+    if (evt.preventDefault) evt.preventDefault();
+  }
+  var btn = document.getElementById('topNavRefreshBtn') || document.getElementById('btnNavRefresh') || (evt && evt.currentTarget);
+  executeUniversalGunReloadAnimation(btn, function() {
+    if (window.refreshAdminRoster) window.refreshAdminRoster();
+    if (window.refreshAdminClients) window.refreshAdminClients();
+    if (window.syncTelemetryMetrics) window.syncTelemetryMetrics();
+    if (window.syncOperatingHours) window.syncOperatingHours();
+  });
+}
+window.triggerTopNavGunReload = triggerTopNavGunReload;
+window.triggerGunRefreshAnimation = triggerTopNavGunReload;
+
+function triggerCardGunRefresh(btn, type) {
+  executeUniversalGunReloadAnimation(btn, function() {
+    if (type === 'roster' && window.refreshAdminRoster) {
+      window.refreshAdminRoster();
+    } else if (type === 'clients' && window.refreshAdminClients) {
+      window.refreshAdminClients();
+    } else if (type === 'chat' && window.refreshAdminChat) {
+      window.refreshAdminChat();
+    } else if (type === 'telemetry' && window.syncTelemetryMetrics) {
+      window.syncTelemetryMetrics();
+    }
+  });
+}
+window.triggerCardGunRefresh = triggerCardGunRefresh;
+
+function triggerModalAdminRefresh(btn) {
+  executeUniversalGunReloadAnimation(btn, function() {
+    if (window.refreshAdminRoster) window.refreshAdminRoster();
+    if (window.refreshAdminClients) window.refreshAdminClients();
+    if (window.refreshAdminChat) window.refreshAdminChat();
+    if (window.syncTelemetryMetrics) window.syncTelemetryMetrics();
+  });
+}
+window.triggerModalAdminRefresh = triggerModalAdminRefresh;
+
+function triggerAdminRefreshAll(btn) {
+  executeUniversalGunReloadAnimation(btn, function() {
+    if (window.refreshAdminRoster) window.refreshAdminRoster();
+    if (window.refreshAdminClients) window.refreshAdminClients();
+    if (window.refreshAdminChat) window.refreshAdminChat();
+    if (window.syncTelemetryMetrics) window.syncTelemetryMetrics();
+  });
+}
+window.triggerAdminRefreshAll = triggerAdminRefreshAll;

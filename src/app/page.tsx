@@ -687,20 +687,16 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
           </div>
           <div style={{"display": "flex", "alignItems": "center", "gap": "8px"}}>
-            <button aria-label="Go back to previous view" className="btn-return-home" data-onclick="navigateBack()" style={{"background": "rgba(16, 22, 31, 0.9)", "border": "2px solid var(--border-subtle)", "color": "#00f0ff", "minHeight": "44px", "padding": "8px 16px"}} type="button">
-              
-          ← BACK
-        
+            <button aria-label="Go back to previous view" className="site-header-nav-btn btn-nav-back" id="btnNavBack" data-onclick="navigateBack()" onClick={() => { if (typeof window !== "undefined" && (window as any).navigateBack) (window as any).navigateBack(); }} style={{"background": "linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%)", "border": "2px solid #38bdf8", "color": "#38bdf8", "fontWeight": 800, "fontSize": "0.88rem", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(56, 189, 248, 0.35)", "minHeight": "44px", "padding": "8px 16px", "borderRadius": "8px", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} type="button">
+              ← BACK
             </button>
-            <button type="button" aria-label="Refresh and sync application data" className="btn-return-home btn-universal-refresh" id="topNavRefreshBtn" data-onclick="window.triggerTopNavGunReload(event)" style={{"background": "rgba(16, 22, 31, 0.9)", "border": "2px solid var(--accent-cyan)", "color": "#00f0ff", "minHeight": "44px", "padding": "8px 16px"}}>
+            <button type="button" aria-label="Refresh and sync application data" className="site-header-nav-btn btn-nav-refresh btn-universal-refresh" id="topNavRefreshBtn" data-onclick="window.triggerTopNavGunReload(event)" onClick={(e) => { if (typeof window !== "undefined" && (window as any).triggerTopNavGunReload) (window as any).triggerTopNavGunReload(e); }} style={{"background": "linear-gradient(135deg, #00e5ff 0%, #00b4d8 100%)", "border": "2px solid #ffffff", "color": "#030a14", "fontWeight": 900, "fontSize": "0.90rem", "letterSpacing": "1px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.75)", "minHeight": "44px", "padding": "8px 18px", "borderRadius": "8px", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
               <span className="refresh-ui-text">
                 🔄 REFRESH
               </span>
             </button>
-            <button aria-label="Return to landing screen" className="btn-return-home" data-onclick="returnToHome()" style={{"minHeight": "44px", "padding": "8px 18px"}} type="button">
-              
-          🏠 HOME
-        
+            <button aria-label="Return to landing screen" className="site-header-nav-btn btn-nav-home" id="btnNavHome" data-onclick="returnToHome()" onClick={() => { if (typeof window !== "undefined" && (window as any).returnToHome) (window as any).returnToHome(); }} style={{"background": "linear-gradient(135deg, #ffb703 0%, #fb8500 100%)", "border": "2px solid #ffffff", "color": "#030a14", "fontWeight": 900, "fontSize": "0.90rem", "letterSpacing": "1px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.75)", "minHeight": "44px", "padding": "8px 18px", "borderRadius": "8px", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} type="button">
+              🏠 HOME
             </button>
           </div>
         </header>
@@ -3178,7 +3174,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </p>
           </div>
           <div className="checklist-grid">
-            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("handgun"); } }} data-onclick="openExpectationModal('handgun')" role="button" tabIndex="0" title="Click to view detailed handgun &amp; equipment breakdown">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("handgun"); (window as any).playStickmanActionMovieScene?.(false); } }} data-onclick="openExpectationModal('handgun')" role="button" tabIndex="0" title="Click to view detailed handgun &amp; equipment breakdown">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   🔫 Handgun & Equipment
@@ -3265,7 +3261,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Click for ANSI Z87.1 & Electronic Earmuff Specs →
               </div>
             </div>
-            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("attire"); } }} data-onclick="openExpectationModal('attire')" role="button" tabIndex="0" title="Click to view dress code &amp; government identification requirements">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("attire"); (window as any).playStickmanActionMovieScene?.(false); } }} data-onclick="openExpectationModal('attire')" role="button" tabIndex="0" title="Click to view dress code &amp; government identification requirements">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   👕 Attire & Documentation
