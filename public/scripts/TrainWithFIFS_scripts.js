@@ -9722,7 +9722,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
       ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(0, 8); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(-14, -14); ctx.moveTo(0, -5); ctx.lineTo(14, -14);
       ctx.moveTo(0, 8); ctx.lineTo(-14, 20); ctx.moveTo(0, 8); ctx.lineTo(14, 20); ctx.stroke();
-      ctx.restore(); ctx.restore(); return;
+      ctx.restore(); return;
     }
     if (pose.flyingKick) {
       var khX = x - 15, khY = y - 30;
@@ -9747,7 +9747,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
       ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(0, 10); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0, -3); ctx.lineTo(-16, -10); ctx.moveTo(0, -3); ctx.lineTo(16, -8);
       ctx.moveTo(0, 10); ctx.lineTo(-12, 22); ctx.moveTo(0, 10); ctx.lineTo(12, 18); ctx.stroke();
-      ctx.restore(); ctx.restore(); return;
+      ctx.restore(); return;
     }
     // Default upright / shooting / ready poses
     ctx.beginPath(); ctx.arc(x, headY, headR, 0, Math.PI * 2); ctx.stroke();
@@ -9775,19 +9775,20 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
     ctx.restore();
   }
   window.playStickmanActionMovieScene = function(forceNext) {
-    var canvases = [
-      document.getElementById('sectionStickmanCanvas'),
-      document.getElementById('stickmanActionCanvas')
-    ].filter(Boolean);
-    if (!canvases.length) return;
+    var cv = document.getElementById('stickmanActionCanvas') || document.getElementById('sectionStickmanCanvas');
+    if (!cv) return;
+    if (!cv.width || cv.width < 100) cv.width = 520;
+    if (!cv.height || cv.height < 50) cv.height = 96;
+    
     var timerEls = [
-      document.getElementById('sectionStickmanTimer'),
-      document.getElementById('stickmanTimer')
+      document.getElementById('stickmanTimer'),
+      document.getElementById('sectionStickmanTimer')
     ].filter(Boolean);
     var titleEls = [
-      document.getElementById('sectionStickmanName'),
-      document.getElementById('stickmanSceneName')
+      document.getElementById('stickmanSceneName'),
+      document.getElementById('sectionStickmanName')
     ].filter(Boolean);
+    
     if (stickmanAnimFrame) {
       cancelAnimationFrame(stickmanAnimFrame);
       stickmanAnimFrame = null;
@@ -9795,13 +9796,15 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
     if (forceNext) {
       currentSceneIdx = (currentSceneIdx + 1) % SCENES.length;
     } else {
-      // Pick random scene
       currentSceneIdx = Math.floor(Math.random() * SCENES.length);
     }
     var activeScene = SCENES[currentSceneIdx];
     titleEls.forEach(function(el) { el.textContent = activeScene.name; el.style.color = activeScene.heroColor; });
     stickmanStartTime = performance.now();
+    
     function renderFrame(now) {
+      var currentCv = document.getElementById('stickmanActionCanvas') || document.getElementById('sectionStickmanCanvas');
+      if (!currentCv) return;
       var elapsed = now - stickmanStartTime;
       if (elapsed > sceneDuration) elapsed = sceneDuration;
       var t = elapsed / 1000;
@@ -9810,11 +9813,11 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
         el.textContent = remaining + 's';
         if (t >= 9.0) el.textContent = '✓ MISSION READY';
       });
-      canvases.forEach(function(cv) {
-        var ctx = cv.getContext('2d');
-        if (!ctx) return;
-        var w = cv.width;
-        var h = cv.height;
+      
+      var ctx = currentCv.getContext('2d');
+      if (ctx) {
+        var w = currentCv.width || 520;
+        var h = currentCv.height || 96;
         var groundY = h - 3;
         ctx.clearRect(0, 0, w, h);
         ctx.save();
@@ -9826,8 +9829,13 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
         ctx.lineTo(w, groundY);
         ctx.stroke();
         ctx.restore();
-        activeScene.render(ctx, w, h, t, groundY);
-      });
+        try {
+          activeScene.render(ctx, w, h, t, groundY);
+        } catch (sceneErr) {
+          console.warn('Stickman scene render error:', sceneErr);
+        }
+      }
+      
       if (elapsed < sceneDuration) {
         stickmanAnimFrame = requestAnimationFrame(renderFrame);
       } else {
@@ -9849,11 +9857,20 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
     if (typeof originalOpenExpectation === 'function') {
       originalOpenExpectation(type);
     }
+    // Fire immediately and after modal animation layout settles
+    if (typeof window.playStickmanActionMovieScene === 'function') {
+      window.playStickmanActionMovieScene(false);
+    }
     setTimeout(function() {
       if (typeof window.playStickmanActionMovieScene === 'function') {
         window.playStickmanActionMovieScene(false);
       }
-    }, 150);
+    }, 60);
+    setTimeout(function() {
+      if (typeof window.playStickmanActionMovieScene === 'function') {
+        window.playStickmanActionMovieScene(false);
+      }
+    }, 200);
   };
 
   function bootStickmanActionChoreography() {

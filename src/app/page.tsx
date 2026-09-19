@@ -3177,19 +3177,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
               Important guidelines to ensure your class day is smooth, safe, and stress-free. Click any section for detailed equipment standards and rental procedures.
             </p>
           </div>
-          {/* Stickmen Action Movie Reenactment Banner Stage */}
-          <div style={{"maxWidth": "720px", "margin": "0 auto 20px auto", "overflow": "hidden", "borderRadius": "12px", "border": "1.5px solid rgba(0, 229, 255, 0.3)", "background": "linear-gradient(180deg, rgba(3, 7, 12, 0.95) 0%, rgba(0, 229, 255, 0.08) 100%)", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.15)"}}>
-            <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "padding": "8px 14px", "fontFamily": "monospace", "fontSize": "0.74rem", "color": "var(--accent-cyan)", "borderBottom": "1px dashed rgba(0, 229, 255, 0.25)"}}>
-              <span id="sectionStickmanTitle" style={{"display": "flex", "alignItems": "center", "gap": "6px", "cursor": "pointer"}} data-onclick="if(typeof window.playNextStickmanScene==='function'){window.playNextStickmanScene();}" title="Click to cycle action choreography">
-                🎬 <strong>10s ACTION REENACTMENT:</strong> <span id="sectionStickmanName" style={{"color": "#00e5ff", "fontWeight": "800"}}>MATRIX ROOFTOP GUN-FU</span>
-                <span style={{"fontSize": "0.70rem", "color": "var(--text-muted)", "border": "1px solid rgba(255,255,255,0.2)", "borderRadius": "4px", "padding": "1px 5px", "marginLeft": "6px"}}>🎲 TAP TO CYCLE</span>
-              </span>
-              <span id="sectionStickmanTimer" style={{"color": "var(--accent-amber)", "fontWeight": "800"}}>10.0s</span>
-            </div>
-            <canvas id="sectionStickmanCanvas" width="720" height="110" style={{"width": "100%", "height": "110px", "display": "block", "cursor": "pointer"}} data-onclick="if(typeof window.playNextStickmanScene==='function'){window.playNextStickmanScene();}" title="Tap to cycle action sequence"></canvas>
-          </div>
           <div className="checklist-grid">
-            <div className="checklist-box interactive-expect-card" data-onclick="openExpectationModal('handgun')" role="button" tabIndex="0" title="Click to view detailed handgun &amp; equipment breakdown">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("handgun"); } }} data-onclick="openExpectationModal('handgun')" role="button" tabIndex="0" title="Click to view detailed handgun &amp; equipment breakdown">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   🔫 Handgun & Equipment
@@ -3222,7 +3211,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Click for Handgun, Holster & Rental Protocols →
               </div>
             </div>
-            <div className="checklist-box interactive-expect-card" data-onclick="openExpectationModal('ammunition')" role="button" tabIndex="0" title="Click to view ammunition rules &amp; zero-tolerance safety protocol">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("ammunition"); } }} data-onclick="openExpectationModal('ammunition')" role="button" tabIndex="0" title="Click to view ammunition rules &amp; zero-tolerance safety protocol">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   📦 Ammunition Protocol
@@ -3249,7 +3238,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Click for Zero-Live-Ammo Policy & Caliber Guide →
               </div>
             </div>
-            <div className="checklist-box interactive-expect-card" data-onclick="openExpectationModal('protection')" role="button" tabIndex="0" title="Click to view eye and hearing protection standards">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("protection"); } }} data-onclick="openExpectationModal('protection')" role="button" tabIndex="0" title="Click to view eye and hearing protection standards">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   👓 Eye & Ear Protection
@@ -3276,7 +3265,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Click for ANSI Z87.1 & Electronic Earmuff Specs →
               </div>
             </div>
-            <div className="checklist-box interactive-expect-card" data-onclick="openExpectationModal('attire')" role="button" tabIndex="0" title="Click to view dress code &amp; government identification requirements">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("attire"); } }} data-onclick="openExpectationModal('attire')" role="button" tabIndex="0" title="Click to view dress code &amp; government identification requirements">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   👕 Attire & Documentation
@@ -5782,7 +5771,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   10.0s
                 </span>
               </div>
-              <canvas id="stickmanActionCanvas" width="520" height="96" style={{"width": "100%", "height": "96px", "display": "block", "margin": "0 auto", "cursor": "pointer"}} data-onclick="if(typeof window.playNextStickmanScene==='function'){window.playNextStickmanScene();}" title="Tap canvas to randomize next action movie scene">
+              <canvas id="stickmanActionCanvas" width="520" height="96" style={{"width": "100%", "height": "96px", "display": "block", "margin": "0 auto", "cursor": "pointer"}} onClick={() => { if (typeof window !== "undefined" && (window as any).playNextStickmanScene) { (window as any).playNextStickmanScene(); } }} data-onclick="if(typeof window.playNextStickmanScene==='function'){window.playNextStickmanScene();}" title="Tap canvas to randomize next action movie scene">
               </canvas>
             </div>
             <button id="btnExpectationUnderstood" className="btn-primary" data-onclick="closeExpectationModal()" type="button" style={{"width": "100%", "maxWidth": "520px", "borderTopLeftRadius": "0", "borderTopRightRadius": "0", "position": "relative", "zIndex": "3", "boxShadow": "0 4px 20px rgba(0, 229, 255, 0.25)"}}>
