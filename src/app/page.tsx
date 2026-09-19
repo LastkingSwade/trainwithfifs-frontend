@@ -2231,12 +2231,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Live training attendees, real-time certification milestones, and active student training dossiers.
                 </p>
               </div>
-              <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
-                <button className="btn-primary msp-card-action-btn action-cyan" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('roster'); }} data-onclick="switchAdminTab('roster'); event.stopPropagation();" style={{"flex": "1", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-cyan)", "color": "#070b10", "cursor": "pointer"}}>
-                  LAUNCH ROSTER ↗
-                </button>
-                <button className="btn-spark btn-card-reload" type="button" onClick={(e) => { e.stopPropagation(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'roster'); }} data-onclick="triggerCardGunRefresh(this, 'roster'); event.stopPropagation();" style={{"padding": "12px 14px", "fontSize": "0.84rem", "fontWeight": "800", "border": "1.5px solid var(--accent-cyan)", "borderRadius": "8px", "background": "rgba(0, 229, 255, 0.12)", "color": "var(--accent-cyan)", "cursor": "pointer", "whiteSpace": "nowrap"}} title="Rerack & Refresh Student Roster">
-                  🔄 REFRESH
+              <div>
+                <button className="btn-primary msp-card-action-btn action-cyan" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('roster'); }} data-onclick="switchAdminTab('roster'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-cyan)", "color": "#070b10", "cursor": "pointer"}}>
+                  LAUNCH ROSTER PORTAL ↗
                 </button>
               </div>
             </div>
@@ -2255,12 +2252,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Private consultation tracking, state wear & carry permit reviews, and statutory exemption assistance.
                 </p>
               </div>
-              <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
-                <button className="btn-primary msp-card-action-btn action-amber" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('clients'); }} data-onclick="switchAdminTab('clients'); event.stopPropagation();" style={{"flex": "1", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(255, 183, 3, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-amber)", "color": "#070b10", "cursor": "pointer"}}>
-                  LAUNCH CLIENTS ↗
-                </button>
-                <button className="btn-spark btn-card-reload" type="button" onClick={(e) => { e.stopPropagation(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'clients'); }} data-onclick="triggerCardGunRefresh(this, 'clients'); event.stopPropagation();" style={{"padding": "12px 14px", "fontSize": "0.84rem", "fontWeight": "800", "border": "1.5px solid var(--accent-amber)", "borderRadius": "8px", "background": "rgba(255, 183, 3, 0.12)", "color": "var(--accent-amber)", "cursor": "pointer", "whiteSpace": "nowrap"}} title="Rerack & Refresh Clients">
-                  🔄 REFRESH
+              <div>
+                <button className="btn-primary msp-card-action-btn action-amber" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('clients'); }} data-onclick="switchAdminTab('clients'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(255, 183, 3, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-amber)", "color": "#070b10", "cursor": "pointer"}}>
+                  LAUNCH CLIENT PORTAL ↗
                 </button>
               </div>
             </div>
@@ -2279,12 +2273,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Real-time visitor questions, instant inquiry notifications, and direct two-way instructor response.
                 </p>
               </div>
-              <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
-                <button className="btn-primary msp-card-action-btn action-purple" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('chat'); }} data-onclick="switchAdminTab('chat'); event.stopPropagation();" style={{"flex": "1", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(168, 85, 247, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#a855f7", "color": "#070b10", "cursor": "pointer"}}>
-                  OPEN CHAT ↗
-                </button>
-                <button className="btn-spark btn-card-reload" type="button" onClick={(e) => { e.stopPropagation(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'chat'); }} data-onclick="triggerCardGunRefresh(this, 'chat'); event.stopPropagation();" style={{"padding": "12px 14px", "fontSize": "0.84rem", "fontWeight": "800", "border": "1.5px solid #a855f7", "borderRadius": "8px", "background": "rgba(168, 85, 247, 0.12)", "color": "#c084fc", "cursor": "pointer", "whiteSpace": "nowrap"}} title="Rerack & Refresh Inquiries">
-                  🔄 REFRESH
+              <div>
+                <button className="btn-primary msp-card-action-btn action-purple" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('chat'); }} data-onclick="switchAdminTab('chat'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(168, 85, 247, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#a855f7", "color": "#070b10", "cursor": "pointer"}}>
+                  OPEN CHAT COMMAND ↗
                 </button>
               </div>
             </div>
@@ -2303,12 +2294,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Live visitor radar, referral breakdown, device analytics, and verified client engagement tracking.
                 </p>
               </div>
-              <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
-                <button className="btn-primary msp-card-action-btn action-emerald" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('telemetry'); }} data-onclick="switchAdminTab('telemetry'); event.stopPropagation();" style={{"flex": "1", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(16, 185, 129, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#10b981", "color": "#070b10", "cursor": "pointer"}}>
-                  VIEW RADAR ↗
-                </button>
-                <button className="btn-spark btn-card-reload" type="button" onClick={(e) => { e.stopPropagation(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'telemetry'); }} data-onclick="triggerCardGunRefresh(this, 'telemetry'); event.stopPropagation();" style={{"padding": "12px 14px", "fontSize": "0.84rem", "fontWeight": "800", "border": "1.5px solid #10b981", "borderRadius": "8px", "background": "rgba(16, 185, 129, 0.12)", "color": "#34d399", "cursor": "pointer", "whiteSpace": "nowrap"}} title="Rerack & Refresh Telemetry">
-                  🔄 REFRESH
+              <div>
+                <button className="btn-primary msp-card-action-btn action-emerald" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('telemetry'); }} data-onclick="switchAdminTab('telemetry'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(16, 185, 129, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#10b981", "color": "#070b10", "cursor": "pointer"}}>
+                  VIEW TELEMETRY RADAR ↗
                 </button>
               </div>
             </div>
@@ -2316,9 +2304,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
           {/* SECONDARY TACTICAL UTILITY TOOLBAR */}
           <div className="admin-secondary-toolbar">
-            <button className="btn-tactical-hud hud-cyan btn-nav-refresh" id="btn-admin-refresh-all" onClick={(e) => { e.preventDefault(); (window as any).triggerAdminRefreshAll?.(e.currentTarget); }} data-onclick="triggerAdminRefreshAll(this)" title="Synchronize all records and run full gun reload cycle" type="button" style={{"background": "linear-gradient(135deg, #00e5ff 0%, #00b4d8 100%)", "color": "#030a14", "fontWeight": 900, "boxShadow": "0 0 18px rgba(0,229,255,0.7)"}}>
-              <span>🔄</span> <span>REFRESH ALL DATA</span>
-            </button>
             <button className="btn-tactical-hud hud-cyan" id="btn-admin-refresh-data" onClick={(e) => { e.preventDefault(); (window as any).refreshAdminRoster?.(); }} data-onclick="refreshAdminRoster()" title="Synchronize student and client records from Supabase" type="button">
               <span>🔄</span> <span>REFRESH ROSTER</span>
             </button>
@@ -3214,7 +3199,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </p>
           </div>
           <div className="checklist-grid">
-            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("handgun"); (window as any).playStickmanActionMovieScene?.(false); } }} data-onclick="openExpectationModal('handgun')" role="button" tabIndex="0" title="Click to view detailed handgun &amp; equipment breakdown">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("handgun");  } }} data-onclick="openExpectationModal('handgun')" role="button" tabIndex="0" title="Click to view detailed handgun &amp; equipment breakdown">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   🔫 Handgun & Equipment
@@ -3301,7 +3286,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Click for ANSI Z87.1 & Electronic Earmuff Specs →
               </div>
             </div>
-            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("attire"); (window as any).playStickmanActionMovieScene?.(false); } }} data-onclick="openExpectationModal('attire')" role="button" tabIndex="0" title="Click to view dress code &amp; government identification requirements">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("attire");  } }} data-onclick="openExpectationModal('attire')" role="button" tabIndex="0" title="Click to view dress code &amp; government identification requirements">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   👕 Attire & Documentation
@@ -5788,29 +5773,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
             {/* Detailed section cards */}
           </div>
           <div className="goal-modal-actions" style={{"flexDirection": "column", "alignItems": "center", "width": "100%", "position": "relative", "marginTop": "14px"}}>
-            {/* Stickmen 10-Second Action Movie Reenactment Stage */}
-            <div style={{"width": "100%", "maxWidth": "520px", "position": "relative", "overflow": "hidden", "borderRadius": "10px 10px 0 0", "background": "linear-gradient(180deg, rgba(3, 7, 12, 0) 0%, rgba(0, 229, 255, 0.05) 100%)"}}>
-              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "padding": "4px 10px", "fontFamily": "monospace", "fontSize": "0.68rem", "color": "var(--accent-cyan)", "borderBottom": "1px dashed rgba(0, 229, 255, 0.25)"}}>
-                <span id="stickmanSceneTitle" style={{"display": "flex", "alignItems": "center", "gap": "6px", "cursor": "pointer"}} data-onclick="if(typeof window.playNextStickmanScene==='function'){window.playNextStickmanScene();}" title="Click to cycle to another action scene">
-                  🎬 
-                  <strong>
-                    10s ACTION REENACTMENT:
-                  </strong>
-                  <span id="stickmanSceneName" style={{"color": "#00e5ff", "fontWeight": "800"}}>
-                    MATRIX ROOFTOP GUN-FU
-                  </span>
-                  <span style={{"fontSize": "0.72rem", "color": "var(--text-muted)", "border": "1px solid rgba(255,255,255,0.2)", "borderRadius": "4px", "padding": "1px 5px", "marginLeft": "6px"}}>
-                    🎲 TAP TO CYCLE
-                  </span>
-                </span>
-                <span id="stickmanTimer" style={{"color": "var(--accent-amber)", "fontWeight": "800"}}>
-                  10.0s
-                </span>
-              </div>
-              <canvas id="stickmanActionCanvas" width="520" height="96" style={{"width": "100%", "height": "96px", "display": "block", "margin": "0 auto", "cursor": "pointer"}} onClick={() => { if (typeof window !== "undefined" && (window as any).playNextStickmanScene) { (window as any).playNextStickmanScene(); } }} data-onclick="if(typeof window.playNextStickmanScene==='function'){window.playNextStickmanScene();}" title="Tap canvas to randomize next action movie scene">
-              </canvas>
-            </div>
-            <button id="btnExpectationUnderstood" className="btn-primary" data-onclick="closeExpectationModal()" type="button" style={{"width": "100%", "maxWidth": "520px", "borderTopLeftRadius": "0", "borderTopRightRadius": "0", "position": "relative", "zIndex": "3", "boxShadow": "0 4px 20px rgba(0, 229, 255, 0.25)"}}>
+            
+            <button id="btnExpectationUnderstood" className="btn-primary" data-onclick="closeExpectationModal()" type="button" style={{"width": "100%", "maxWidth": "520px", "borderRadius": "8px", "position": "relative", "zIndex": "3", "boxShadow": "0 4px 20px rgba(0, 229, 255, 0.25)"}}>
               
     Understood & Return to Checklist ✔
   

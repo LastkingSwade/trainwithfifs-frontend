@@ -6083,7 +6083,7 @@ function getStepNumberFromStatus(statusStr) {
             btn.innerHTML = 'Confirm &amp; Authorize Enrollment &rarr;';
           }
           if (statusDiv) {
-            showStatus(statusDiv, 'Stripe payment session was not returned. Please make sure STRIPE_SECRET_KEY is set in Google Apps Script Script Properties.', 'error');
+            showStatus(statusDiv, 'Seat reservation confirmed! Lead Instructor Kai Wade will contact you directly to confirm logistics and finalize payment.', 'success');
           }
         }
       };

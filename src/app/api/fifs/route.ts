@@ -885,11 +885,60 @@ export async function POST(req: NextRequest) {
           .select()
           .single();
 
+        let checkoutUrl = (courseVal.toLowerCase().includes('vip') || (payload.tier && payload.tier === 'vip'))
+          ? 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+          : 'https://buy.stripe.com/dR67sWfR72D520ocMN';
+
+        if (process.env.STRIPE_SECRET_KEY) {
+          try {
+            const StripeLib = (await import('stripe')).default;
+            const stripe = new StripeLib(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as any });
+            const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://trainwithfifs.com';
+            const baseUrl = origin.replace(/\/+$/, '');
+            const unitAmount = Math.round(depositAmount > 0 ? depositAmount * 100 : totalAmount * 100);
+            const session = await stripe.checkout.sessions.create({
+              payment_method_types: ['card'],
+              mode: 'payment',
+              customer_email: payload.email && payload.email.includes('@') ? payload.email : undefined,
+              client_reference_id: generatedStudentId,
+              metadata: {
+                invoiceId,
+                studentId: generatedStudentId,
+                fullName: payload.fullName || payload.name || '',
+                phone: payload.phone || '',
+                courseSelection: courseVal,
+                preferredDates: payload.dates || payload.preferredDates || '',
+              },
+              line_items: [
+                {
+                  price_data: {
+                    currency: 'usd',
+                    unit_amount: unitAmount,
+                    product_data: {
+                      name: courseVal,
+                      description: `Invoice ${invoiceId} • Student: ${payload.fullName || 'Student'}`,
+                    },
+                  },
+                  quantity: 1,
+                },
+              ],
+              success_url: `${baseUrl}/?session_id={CHECKOUT_SESSION_ID}&booking_confirmed=true&invoice=${encodeURIComponent(invoiceId)}`,
+              cancel_url: `${baseUrl}/?booking_cancelled=true&invoice=${encodeURIComponent(invoiceId)}`,
+            });
+            if (session.url) {
+              checkoutUrl = session.url;
+            }
+          } catch (stripeErr: any) {
+            console.warn('Stripe checkout session creation fallback to payment link:', stripeErr?.message);
+          }
+        }
+
         return NextResponse.json({
           success: true,
           status: 'success',
           studentId: generatedStudentId,
           invoiceId: invoiceId,
+          checkoutUrl: checkoutUrl,
           student: normalizeStudent(student),
           invoice: normalizeInvoice(invoice),
         });
