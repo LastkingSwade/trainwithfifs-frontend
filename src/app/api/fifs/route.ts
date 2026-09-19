@@ -187,6 +187,49 @@ async function sendDiscordChatAlert({
 }
 
 
+
+async function syncBookingToGoogleCalendar({
+  fullName,
+  studentId,
+  course,
+  phone,
+  email,
+  dates,
+  comments,
+}: {
+  fullName: string;
+  studentId: string;
+  course: string;
+  phone?: string;
+  email?: string;
+  dates: string;
+  comments?: string;
+}) {
+  const webhookUrl = process.env.GOOGLE_CALENDAR_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbzMxq-Zrfh8DTDOr2YBbcI-2vuR1os_d6KNljyYGQ17IEi1JxzqSWchQpBKf2eWrh8F/exec';
+  if (!webhookUrl) return { success: false, reason: 'No webhook URL' };
+
+  try {
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName,
+        studentId,
+        course,
+        phone,
+        email,
+        dates,
+        comments,
+      }),
+    });
+    const data = await res.json().catch(() => null);
+    return { success: res.ok, data };
+  } catch (err) {
+    console.error('[FIFS] Failed to sync Google Calendar event:', err);
+    return { success: false, error: err };
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
@@ -480,6 +523,17 @@ export async function POST(req: NextRequest) {
         if (studentError) {
           return NextResponse.json({ success: false, status: 'error', error: studentError.message }, { status: 400 });
         }
+
+        // Auto-sync invited student session to Google Calendar
+        syncBookingToGoogleCalendar({
+          fullName: payload.fullName || payload.name || 'Invited Student',
+          studentId: generatedId,
+          course: payload.course || payload.courseSelection || 'Maryland Wear & Carry Permit',
+          phone: payload.phone || '',
+          email: payload.email || '',
+          dates: payload.dates || 'Upcoming Cohort',
+          comments: 'Direct invite dispatched by Instructor',
+        });
 
         // Create associated invoice if total specified or default
         const invoiceId = 'INV-' + Math.floor(10000 + Math.random() * 90000);
@@ -959,6 +1013,17 @@ export async function POST(req: NextRequest) {
           console.error('Error creating student on booking:', studentError);
           return NextResponse.json({ success: false, status: 'error', error: studentError.message }, { status: 400 });
         }
+
+        // Auto-sync booking event to Google Calendar
+        syncBookingToGoogleCalendar({
+          fullName: payload.fullName || payload.name || 'New Enrollee',
+          studentId: generatedStudentId,
+          course: courseVal,
+          phone: payload.phone || '',
+          email: payload.email || '',
+          dates: payload.dates || payload.preferredDates || 'Upcoming Range Cohort',
+          comments: payload.comments || '',
+        });
 
         const { data: invoice } = await supabase
           .from('invoices')
