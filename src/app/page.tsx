@@ -109,6 +109,49 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+    
+    const syncOperatingHours = () => {
+      try {
+        const etStr = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hourCycle: 'h23', hour: 'numeric' }).format(new Date());
+        const hour = parseInt(etStr, 10);
+        const isOpen = hour >= 9 && hour < 17;
+        const dot = document.getElementById('live-status-dot');
+        const guide = document.getElementById('neon-start-guide');
+        if (dot) {
+          if (isOpen) {
+            dot.className = 'pulse-dot';
+            dot.style.background = '#10b981';
+            dot.style.boxShadow = '0 0 12px #10b981';
+            dot.title = 'Live Training & Student Operations Active (9 AM - 5 PM ET)';
+          } else {
+            dot.className = 'pulse-dot pulse-red';
+            dot.style.background = '#ef4444';
+            dot.style.boxShadow = '0 0 12px #ef4444';
+            dot.title = 'Standby Mode — Live ops resume at 9 AM ET (online booking open 24/7)';
+          }
+        }
+        if (guide) {
+          if (isOpen) {
+            guide.classList.remove('neon-mode-red');
+            guide.classList.add('neon-mode-cyan');
+            guide.style.borderColor = 'var(--accent-cyan)';
+            guide.style.color = '#00e5ff';
+            guide.title = 'Future Initiative Operations Active • Click to Start Training';
+          } else {
+            guide.classList.remove('neon-mode-cyan');
+            guide.classList.add('neon-mode-red');
+            guide.style.borderColor = '#ef4444';
+            guide.style.color = '#ef4444';
+            guide.title = 'Standby Mode — Live ops resume at 9 AM ET • Online booking open 24/7';
+          }
+        }
+      } catch (err) {
+        console.error('Error syncing operating hours:', err);
+      }
+    };
+    syncOperatingHours();
+    const hoursInterval = setInterval(syncOperatingHours, 30000);
+
     document.addEventListener('click', handleDelegatedClick);
     document.addEventListener('change', handleDelegatedChange);
     
@@ -308,7 +351,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         {/* Official Motto Ticker with Dynamic Blinking Light */}
         <div className="hero-top-hud">
           <div className="range-live-ticker">
-            <span className="pulse-dot" id="live-status-dot" style={{"background": "#10b981", "boxShadow": "0 0 12px #10b981"}} title="Live Training &amp; Student Operations Active (9 AM - 5 PM EST)">
+            <span className="pulse-dot" id="live-status-dot" title="Live Training &amp; Student Operations Status">
             </span>
             <span>
               THE FUTURE IS NOW, TAKE THE INITIATIVE!

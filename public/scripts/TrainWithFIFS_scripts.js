@@ -10566,3 +10566,14 @@ if (typeof document !== 'undefined') {
     }, 500);
   }
 }
+
+
+// Ensure live pulse and neon guide status update immediately on load
+if (typeof updateLivePulseTicker === 'function') {
+  updateLivePulseTicker();
+  setInterval(updateLivePulseTicker, 30000);
+}
+if (typeof updateFifsLiveStatus === 'function') {
+  updateFifsLiveStatus();
+  setInterval(updateFifsLiveStatus, 30000);
+}
