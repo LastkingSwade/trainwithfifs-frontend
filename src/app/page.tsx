@@ -745,7 +745,25 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </label>
                 <input id="studentAuthInput" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupStudentAccount()" placeholder="e.g., student@example.com or FIFS-4081" type="text" />
               </div>
-              <button className="btn-primary" data-onclick="lookupStudentAccount()" type="button">
+              <div className="form-group" style={{"marginTop": "14px"}}>
+                <label htmlFor="studentAuthPassword" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.85rem", "margin": "0 0 4px 0", "display": "block"}}>
+                  Portal Password 
+                  <span className="req">
+                    *
+                  </span>
+                </label>
+                <input id="studentAuthPassword" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupStudentAccount()" placeholder="Enter your portal password" type="password" />
+              </div>
+              <div id="student-setup-password-box" style={{"display": "none", "marginTop": "14px", "padding": "14px", "background": "rgba(0, 229, 255, 0.08)", "borderRadius": "8px", "border": "1px solid var(--accent-cyan)"}}>
+                <p style={{"fontSize": "0.85rem", "color": "#fff", "marginBottom": "8px", "fontWeight": "700"}}>
+                  First-Time Access: Create Your Permanent Portal Password
+                </p>
+                <input id="studentNewPasswordInput" placeholder="Choose a password (min 4 characters)" style={{"marginBottom": "10px"}} type="password" />
+                <button className="btn-primary" data-onclick="submitNewStudentPassword()" style={{"width": "100%", "padding": "10px"}} type="button">
+                  Save Password & Access Portal →
+                </button>
+              </div>
+              <button className="btn-primary" data-onclick="lookupStudentAccount()" style={{"marginTop": "14px"}} type="button">
                 
             Sign In to Portal →
           
@@ -6450,7 +6468,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </p>
           {/* Clean Form Container (Extracted from old bottom section) */}
           <form id="booking-form" data-onsubmit="event.preventDefault(); return false;">
-            <div className="form-group">
+            {/* Hidden: redundant dropdown eliminated; selection is driven directly by course cards */}
+            <div className="form-group" style={{"display": "none"}}>
               <label htmlFor="courseSelection">
                 Selected Course Curriculum & Tuition 
                 <span className="req">

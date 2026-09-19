@@ -3541,8 +3541,12 @@ window.openAdminSubpanelModal = openAdminSubpanelModal;
     window.switchClientAuthTab = switchClientAuthTab;
     function lookupStudentAccount() {
       var input = document.getElementById('studentAuthInput');
+      var passInput = document.getElementById('studentAuthPassword');
+      var setupBox = document.getElementById('student-setup-password-box');
       var statusDiv = document.getElementById('student-login-status');
       var query = input ? input.value.trim() : '';
+      var password = passInput ? passInput.value.trim() : '';
+
       if (!query) {
         showStatus(statusDiv, 'Please enter your Email Address or Student ID.', 'error');
         return;
@@ -3559,9 +3563,37 @@ window.openAdminSubpanelModal = openAdminSubpanelModal;
         }, 250);
         return;
       }
-      showStatus(statusDiv, 'Cross-referencing Student Roster & Operations credentials...', 'success');
-      callFifsBackend('getStudentPortalData', { email: query.includes('@') ? query : '', studentId: query.includes('@') ? '' : query }, function(res) {
-        if (res && res.status === 'success') {
+
+      showStatus(statusDiv, 'Authenticating Student Operations credentials...', 'success');
+      callFifsBackend('getStudentPortalData', {
+        email: query.includes('@') ? query : '',
+        studentId: query.includes('@') ? '' : query,
+        password: password
+      }, function(res) {
+        if (!res) {
+          showStatus(statusDiv, 'Unable to verify credentials. Please try again.', 'error');
+          return;
+        }
+
+        if (res.status === 'needs_password_setup') {
+          if (setupBox) setupBox.style.display = 'block';
+          showStatus(statusDiv, res.message || 'First-time login: create your portal password below.', 'info');
+          return;
+        }
+
+        if (res.status === 'password_required') {
+          showStatus(statusDiv, 'Please enter your portal password.', 'error');
+          if (passInput) passInput.focus();
+          return;
+        }
+
+        if (res.status === 'invalid_password') {
+          showStatus(statusDiv, 'Incorrect password. Please verify and try again.', 'error');
+          if (passInput) passInput.focus();
+          return;
+        }
+
+        if (res.status === 'success' && res.student) {
           if (statusDiv) statusDiv.style.display = 'none';
           sessionStorage.setItem('fifs_student_session', JSON.stringify(res.student));
           renderStudentDashboard(res.student);
@@ -3572,6 +3604,45 @@ window.openAdminSubpanelModal = openAdminSubpanelModal;
         showStatus(statusDiv, 'Security verification error.', 'error');
       });
     }
+
+    function submitNewStudentPassword() {
+      var input = document.getElementById('studentAuthInput');
+      var newPassInput = document.getElementById('studentNewPasswordInput');
+      var statusDiv = document.getElementById('student-login-status');
+      var setupBox = document.getElementById('student-setup-password-box');
+      var query = input ? input.value.trim() : '';
+      var newPassword = newPassInput ? newPassInput.value.trim() : '';
+
+      if (!query) {
+        showStatus(statusDiv, 'Please enter your email or Student ID first.', 'error');
+        return;
+      }
+      if (!newPassword || newPassword.length < 4) {
+        showStatus(statusDiv, 'Password must be at least 4 characters long.', 'error');
+        return;
+      }
+
+      showStatus(statusDiv, 'Registering permanent portal password...', 'success');
+      callFifsBackend('setupStudentPassword', {
+        email: query.includes('@') ? query : '',
+        studentId: query.includes('@') ? '' : query,
+        password: newPassword
+      }, function(res) {
+        if (res && res.status === 'success' && res.student) {
+          showStatus(statusDiv, 'Password confirmed. Accessing Student Portal...', 'success');
+          sessionStorage.setItem('fifs_student_session', JSON.stringify(res.student));
+          if (setupBox) setupBox.style.display = 'none';
+          setTimeout(function() {
+            renderStudentDashboard(res.student);
+          }, 300);
+        } else {
+          showStatus(statusDiv, res.message || res.error || 'Failed to set password.', 'error');
+        }
+      }, function(err) {
+        showStatus(statusDiv, 'Password setup request failed.', 'error');
+      });
+    }
+    window.submitNewStudentPassword = submitNewStudentPassword;
     window.lookupStudentAccount = lookupStudentAccount;
     function lookupClientAccount() {
       var input = document.getElementById('clientAuthInput');
