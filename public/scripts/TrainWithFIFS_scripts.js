@@ -5874,6 +5874,8 @@ function getStepNumberFromStatus(statusStr) {
       var courseSelection = form.courseSelection ? form.courseSelection.value : 'Maryland Firearms Training';
       var groupSize = form.groupSize ? form.groupSize.value : '1 (Private One-on-One)';
       var comments = form.comments ? form.comments.value.trim() : '';
+      var portalPasswordInput = document.getElementById('bookingPortalPassword') || document.getElementById('studentPassword') || document.getElementById('portalPassword');
+      var portalPassword = portalPasswordInput ? portalPasswordInput.value.trim() : '';
       [fullNameInput, emailInput, phoneInput].forEach(function(inp) {
         if (inp) {
           inp.style.borderColor = 'var(--border-subtle)';
@@ -6176,6 +6178,8 @@ function getStepNumberFromStatus(statusStr) {
         fullName: p.fullName,
         email: p.email,
         phone: p.phone,
+        password: p.password || '',
+        portalPassword: p.password || '',
         courseSelection: p.courseSelection,
         preferredDates: p.preferredDates,
         groupSize: p.groupSize,
