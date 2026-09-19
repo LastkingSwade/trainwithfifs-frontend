@@ -2,7 +2,7 @@
     // === AUTHORITATIVE ALL-8 COURSE TIER CONFIGURATION ===
     var COURSE_TIER_CONFIG = {
       mastery: {
-        basePrice: '$250.00',
+        basePrice: '$425.00',
         vipPrice: '$550.00',
         baseTitle: 'Mid-Atlantic Multi-State Mastery',
         vipTitle: '👑 VIP Mid-Atlantic Multi-State Mastery',
@@ -10450,7 +10450,7 @@ if (typeof window !== 'undefined') {
     // Robust Course Tier Switcher (Standard vs VIP)
     var COURSE_TIER_CONFIG = {
       mastery: {
-        basePrice: "25.00",
+        basePrice: "$425.00",
         vipPrice: "50.00",
         baseValue: "Mid-Atlantic Multi-State Mastery — Base Track (25.00)",
         vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey (50.00)"

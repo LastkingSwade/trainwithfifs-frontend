@@ -1942,7 +1942,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       </span>
                     </div>
                   </div>
-                  <button className="btn-primary" data-onclick="selectCourse('Maryland Wear &amp; Carry (8-Hour Renewal) - $175')" type="button">
+                  <button className="btn-primary" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (8-Hour Renewal) - $175"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (8-Hour Renewal) - $175')" type="button">
                     Book Renewal Class →
                   </button>
                 </div>
@@ -1971,7 +1971,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       </span>
                     </div>
                   </div>
-                  <button className="btn-spark" data-onclick="selectCourse('Multi-State Concealed Carry Mastery - $175')" type="button">
+                  <button className="btn-spark" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Multi-State Concealed Carry Mastery - $175"); }} data-onclick="selectCourse('Multi-State Concealed Carry Mastery - $175')" type="button">
                     Book Multi-State Class →
                   </button>
                 </div>
@@ -2000,7 +2000,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       </span>
                     </div>
                   </div>
-                  <button className="btn-secondary" data-onclick="selectCourse('Private 1-on-1 Range Coaching (Hourly) - $165')" type="button">
+                  <button className="btn-secondary" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Private 1-on-1 Range Coaching (Hourly) - $165"); }} data-onclick="selectCourse('Private 1-on-1 Range Coaching (Hourly) - $165')" type="button">
                     Book Private Session →
                   </button>
                 </div>
@@ -3419,7 +3419,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-mastery" data-onclick="selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-mastery" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Mid-Atlantic Multi-State Mastery — Base Track ($425.00)"); }} data-onclick="selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($425.00) & Reserve Seat →
             
@@ -3506,7 +3506,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-combo" data-onclick="selectCourse('Maryland CCW &amp; HQL Combo — Base Track ($249.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-combo" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland CCW & HQL Combo — Base Track ($249.99)"); }} data-onclick="selectCourse('Maryland CCW &amp; HQL Combo — Base Track ($249.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($249.99) & Reserve Seat →
             
@@ -3584,7 +3584,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-ccw" data-onclick="selectCourse('Maryland Wear &amp; Carry (CCW) — Base Track ($199.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-ccw" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (CCW) — Base Track ($199.99)"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (CCW) — Base Track ($199.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($199.99) & Reserve Seat →
             
@@ -3662,7 +3662,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-hql" data-onclick="selectCourse('Maryland HQL (Purchase License) — Base Track ($100.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-hql" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland HQL (Purchase License) — Base Track ($100.00)"); }} data-onclick="selectCourse('Maryland HQL (Purchase License) — Base Track ($100.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($100.00) & Reserve Seat →
             
@@ -3740,7 +3740,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-coaching" data-onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($125.00/hr)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-coaching" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Personal 1-on-1 Coaching — Base Track ($125.00/hr)"); }} data-onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($125.00/hr)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($125/hr) & Reserve Seat →
             
@@ -3815,7 +3815,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-cleaning" data-onclick="selectCourse('Gun Cleaning &amp; Maintenance — Base Track ($75.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-cleaning" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Gun Cleaning & Maintenance — Base Track ($75.00)"); }} data-onclick="selectCourse('Gun Cleaning &amp; Maintenance — Base Track ($75.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($75.00) & Reserve Seat →
             
@@ -3895,7 +3895,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-children" data-onclick="selectCourse('Children's Safety Class — Base Track ($199.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-children" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Children's Safety Class — Base Track ($199.99)"); }} data-onclick="selectCourse('Children\'s Safety Class — Base Track ($199.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($199.99) & Reserve Seat →
             
@@ -3981,7 +3981,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-alumni" data-onclick="selectCourse('FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-alumni" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)"); }} data-onclick="selectCourse('FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($65.00) & Reserve Seat →
             
