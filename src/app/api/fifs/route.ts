@@ -537,7 +537,8 @@ export async function POST(req: NextRequest) {
       }
 
       
-      // =============================================================case 'getStudentPortalData': {
+            // =============================================================
+      case 'getStudentPortalData': {
         const queryTerm = (payload.studentId || payload.id || payload.email || '').toString().trim();
         const providedPassword = (payload.password || '').toString().trim();
         if (!queryTerm) {
@@ -641,12 +642,6 @@ export async function POST(req: NextRequest) {
           student: normalizeStudent(updatedStudent),
           invoices: (invoices || []).map(normalizeInvoice),
           message: 'Portal password created successfully.',
-        });
-      }
-
-        status: 'success',
-          student: normalizeStudent(student),
-          invoices: (invoices || []).map(normalizeInvoice),
         });
       }
 
