@@ -452,7 +452,8 @@ export async function POST(req: NextRequest) {
             full_name: payload.fullName || payload.name || 'Invited Student',
             email: payload.email || '',
             phone: payload.phone || '',
-            course_selection: payload.course || 'Maryland Wear & Carry Permit',
+            course_name: payload.course || payload.courseSelection || 'Maryland Wear & Carry Permit',
+            course_selection: payload.course || payload.courseSelection || 'Maryland Wear & Carry Permit',
             preferred_dates: payload.dates || 'Upcoming Cohort',
             group_size: 1,
             comments: 'Direct invite dispatched by Instructor',
@@ -841,6 +842,7 @@ export async function POST(req: NextRequest) {
         const totalAmount = Number(payload.totalAmount || 312.69);
         const depositAmount = Number(payload.depositAmount || 93.81);
 
+        const courseVal = payload.courseSelection || payload.course || payload.courseName || payload.course_name || 'Maryland Wear & Carry Permit';
         const { data: student, error: studentError } = await supabase
           .from('students')
           .insert({
@@ -848,7 +850,8 @@ export async function POST(req: NextRequest) {
             full_name: payload.fullName || payload.name || 'New Enrollee',
             email: payload.email || '',
             phone: payload.phone || '',
-            course_selection: payload.course || payload.courseSelection || 'Maryland Wear & Carry Permit',
+            course_name: courseVal,
+            course_selection: courseVal,
             preferred_dates: payload.dates || payload.preferredDates || 'Upcoming Range Cohort',
             group_size: Number(payload.groupSize || 1),
             comments: payload.comments || '',

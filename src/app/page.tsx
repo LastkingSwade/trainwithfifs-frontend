@@ -396,7 +396,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </button>
             <button className="btn-hero-twin" id="btn-hero-about" data-onclick="openAndSwitch('about')" type="button">
               <span className="twin-title">
-                👤 About & Instructor
+                👤 Lead Instructor
               </span>
               <span className="twin-sub">
                 Meet Kai Wade • Mission
@@ -2219,6 +2219,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           <div className="admin-intel-cards-container msp-intel-deck-grid" style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(260px, 1fr))", "gap": "16px", "margin": "20px 0 24px"}}>
             {/* Card 1: Student Roster & Ops */}
             <div className="portal-feature-launcher-card msp-intel-card msp-card-cyan active" id="btn-admin-tab-roster" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('roster'); }} data-onclick="switchAdminTab('roster')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.25)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+              <span className="card-badge msp-card-unread-badge" id="admin-tab-roster-badge" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "var(--accent-cyan)", "color": "#070b10", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px var(--accent-cyan)", "display": "none"}}>🔔 <span id="admin-tab-roster-badge-count">0</span> NEW</span>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-cyan" style={{"color": "var(--accent-cyan)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                   STUDENT ENROLLMENT & OPS
@@ -2230,15 +2231,19 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Live training attendees, real-time certification milestones, and active student training dossiers.
                 </p>
               </div>
-              <div>
-                <button className="btn-primary msp-card-action-btn action-cyan" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('roster'); }} data-onclick="switchAdminTab('roster'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-cyan)", "color": "#070b10", "cursor": "pointer"}}>
-                  LAUNCH ROSTER PORTAL ↗
+              <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
+                <button className="btn-primary msp-card-action-btn action-cyan" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('roster'); }} data-onclick="switchAdminTab('roster'); event.stopPropagation();" style={{"flex": "1", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-cyan)", "color": "#070b10", "cursor": "pointer"}}>
+                  LAUNCH ROSTER ↗
+                </button>
+                <button className="btn-spark btn-card-reload" type="button" onClick={(e) => { e.stopPropagation(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'roster'); }} data-onclick="triggerCardGunRefresh(this, 'roster'); event.stopPropagation();" style={{"padding": "12px 14px", "fontSize": "0.84rem", "fontWeight": "800", "border": "1.5px solid var(--accent-cyan)", "borderRadius": "8px", "background": "rgba(0, 229, 255, 0.12)", "color": "var(--accent-cyan)", "cursor": "pointer", "whiteSpace": "nowrap"}} title="Rerack & Refresh Student Roster">
+                  🔄 REFRESH
                 </button>
               </div>
             </div>
 
             {/* Card 2: Future Initiative Clients */}
             <div className="portal-feature-launcher-card msp-intel-card msp-card-amber" id="btn-admin-tab-clients" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('clients'); }} data-onclick="switchAdminTab('clients')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+              <span className="card-badge msp-card-unread-badge" id="admin-tab-clients-badge" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "var(--accent-amber)", "color": "#070b10", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px var(--accent-amber)", "display": "none"}}>🔔 <span id="admin-tab-clients-badge-count">0</span> NEW</span>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-amber" style={{"color": "var(--accent-amber)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                   VIP PERMIT TRACKING & REGISTRY
@@ -2250,16 +2255,19 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Private consultation tracking, state wear & carry permit reviews, and statutory exemption assistance.
                 </p>
               </div>
-              <div>
-                <button className="btn-primary msp-card-action-btn action-amber" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('clients'); }} data-onclick="switchAdminTab('clients'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(255, 183, 3, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-amber)", "color": "#070b10", "cursor": "pointer"}}>
-                  LAUNCH CLIENT REGISTRY ↗
+              <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
+                <button className="btn-primary msp-card-action-btn action-amber" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('clients'); }} data-onclick="switchAdminTab('clients'); event.stopPropagation();" style={{"flex": "1", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(255, 183, 3, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-amber)", "color": "#070b10", "cursor": "pointer"}}>
+                  LAUNCH CLIENTS ↗
+                </button>
+                <button className="btn-spark btn-card-reload" type="button" onClick={(e) => { e.stopPropagation(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'clients'); }} data-onclick="triggerCardGunRefresh(this, 'clients'); event.stopPropagation();" style={{"padding": "12px 14px", "fontSize": "0.84rem", "fontWeight": "800", "border": "1.5px solid var(--accent-amber)", "borderRadius": "8px", "background": "rgba(255, 183, 3, 0.12)", "color": "var(--accent-amber)", "cursor": "pointer", "whiteSpace": "nowrap"}} title="Rerack & Refresh Clients">
+                  🔄 REFRESH
                 </button>
               </div>
             </div>
 
             {/* Card 3: Live Chat Command */}
             <div className="portal-feature-launcher-card msp-intel-card msp-card-purple" id="btn-admin-tab-chat" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('chat'); }} data-onclick="switchAdminTab('chat')" role="button" tabIndex={0} style={{"border": "2px solid #a855f7", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(168, 85, 247, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
-              <span className="card-badge msp-card-unread-badge hidden" id="admin-tab-chat-unread" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "#ef4444", "color": "#fff", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px #ef4444"}}>0</span>
+              <span className="card-badge msp-card-unread-badge hidden" id="admin-tab-chat-unread" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "#ef4444", "color": "#fff", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px #ef4444"}}>🔔 <span id="admin-tab-chat-badge-count">0</span> NEW</span>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-purple" style={{"color": "#c084fc", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                   TWO-WAY SECURE COMMS
@@ -2271,15 +2279,19 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Real-time visitor questions, instant inquiry notifications, and direct two-way instructor response.
                 </p>
               </div>
-              <div>
-                <button className="btn-primary msp-card-action-btn action-purple" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('chat'); }} data-onclick="switchAdminTab('chat'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(168, 85, 247, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#a855f7", "color": "#070b10", "cursor": "pointer"}}>
-                  OPEN CHAT COMMAND ↗
+              <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
+                <button className="btn-primary msp-card-action-btn action-purple" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('chat'); }} data-onclick="switchAdminTab('chat'); event.stopPropagation();" style={{"flex": "1", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(168, 85, 247, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#a855f7", "color": "#070b10", "cursor": "pointer"}}>
+                  OPEN CHAT ↗
+                </button>
+                <button className="btn-spark btn-card-reload" type="button" onClick={(e) => { e.stopPropagation(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'chat'); }} data-onclick="triggerCardGunRefresh(this, 'chat'); event.stopPropagation();" style={{"padding": "12px 14px", "fontSize": "0.84rem", "fontWeight": "800", "border": "1.5px solid #a855f7", "borderRadius": "8px", "background": "rgba(168, 85, 247, 0.12)", "color": "#c084fc", "cursor": "pointer", "whiteSpace": "nowrap"}} title="Rerack & Refresh Inquiries">
+                  🔄 REFRESH
                 </button>
               </div>
             </div>
 
             {/* Card 4: Website Telemetry */}
-            <div className="portal-feature-launcher-card msp-intel-card msp-card-emerald" id="btn-admin-tab-telemetry" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('telemetry'); }} data-onclick="switchAdminTab('telemetry')" role="button" tabIndex={0} style={{"border": "2px solid #10b981", "background": "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(16, 185, 129, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-emerald" id="btn-admin-tab-telemetry" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('telemetry'); }} data-onclick="switchAdminTab('telemetry')" role="button" tabIndex={0} style={{"border": "2px solid #10b981", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(16, 185, 129, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+              <span className="card-badge msp-card-unread-badge" id="admin-tab-telemetry-badge" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "#10b981", "color": "#070b10", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px #10b981", "display": "inline-block"}}>📡 LIVE</span>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-emerald" style={{"color": "#34d399", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                   SYSTEM INTELLIGENCE & TRAFFIC
@@ -2291,16 +2303,22 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Live visitor radar, referral breakdown, device analytics, and verified client engagement tracking.
                 </p>
               </div>
-              <div>
-                <button className="btn-primary msp-card-action-btn action-emerald" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('telemetry'); }} data-onclick="switchAdminTab('telemetry'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.90rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(16, 185, 129, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#10b981", "color": "#070b10", "cursor": "pointer"}}>
-                  VIEW LIVE RADAR ↗
+              <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
+                <button className="btn-primary msp-card-action-btn action-emerald" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('telemetry'); }} data-onclick="switchAdminTab('telemetry'); event.stopPropagation();" style={{"flex": "1", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(16, 185, 129, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#10b981", "color": "#070b10", "cursor": "pointer"}}>
+                  VIEW RADAR ↗
+                </button>
+                <button className="btn-spark btn-card-reload" type="button" onClick={(e) => { e.stopPropagation(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'telemetry'); }} data-onclick="triggerCardGunRefresh(this, 'telemetry'); event.stopPropagation();" style={{"padding": "12px 14px", "fontSize": "0.84rem", "fontWeight": "800", "border": "1.5px solid #10b981", "borderRadius": "8px", "background": "rgba(16, 185, 129, 0.12)", "color": "#34d399", "cursor": "pointer", "whiteSpace": "nowrap"}} title="Rerack & Refresh Telemetry">
+                  🔄 REFRESH
                 </button>
               </div>
             </div>
           </div>
 
-{/* SECONDARY TACTICAL UTILITY TOOLBAR */}
+          {/* SECONDARY TACTICAL UTILITY TOOLBAR */}
           <div className="admin-secondary-toolbar">
+            <button className="btn-tactical-hud hud-cyan btn-nav-refresh" id="btn-admin-refresh-all" onClick={(e) => { e.preventDefault(); (window as any).triggerAdminRefreshAll?.(e.currentTarget); }} data-onclick="triggerAdminRefreshAll(this)" title="Synchronize all records and run full gun reload cycle" type="button" style={{"background": "linear-gradient(135deg, #00e5ff 0%, #00b4d8 100%)", "color": "#030a14", "fontWeight": 900, "boxShadow": "0 0 18px rgba(0,229,255,0.7)"}}>
+              <span>🔄</span> <span>REFRESH ALL DATA</span>
+            </button>
             <button className="btn-tactical-hud hud-cyan" id="btn-admin-refresh-data" onClick={(e) => { e.preventDefault(); (window as any).refreshAdminRoster?.(); }} data-onclick="refreshAdminRoster()" title="Synchronize student and client records from Supabase" type="button">
               <span>🔄</span> <span>REFRESH ROSTER</span>
             </button>
@@ -2351,6 +2369,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
           {/* SUBPANEL 1: STUDENT ROSTER */}
           <div id="admin-subpanel-roster">
+            <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "14px", "flexWrap": "wrap", "gap": "10px"}}>
+              <span style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "fontWeight": "600"}}>
+                Live Student Ops & Certification Status
+              </span>
+              <button type="button" className="btn-spark btn-modal-subpanel-reload" onClick={(e) => { e.preventDefault(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'roster'); }} data-onclick="triggerCardGunRefresh(this, 'roster')" style={{"padding": "8px 16px", "fontSize": "0.84rem", "fontWeight": "800", "border": "1.5px solid var(--accent-cyan)", "borderRadius": "8px", "background": "rgba(0, 229, 255, 0.12)", "color": "var(--accent-cyan)", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} title="Rerack & Refresh Student Roster">
+                🔄 REFRESH ROSTER
+              </button>
+            </div>
             {/* New Student Registration Notification Alert Beacon */}
             <div id="admin-new-student-alert-box" style={{"display": "none", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(13, 19, 27, 0.98) 100%)", "border": "2px solid var(--accent-cyan)", "boxShadow": "0 0 25px var(--accent-cyan-glow)", "borderRadius": "12px", "padding": "14px 18px", "marginBottom": "20px", "alignItems": "center", "justifyContent": "space-between", "gap": "14px", "flexWrap": "wrap"}}>
               <div style={{"display": "flex", "alignItems": "center", "gap": "12px"}}>
@@ -2447,6 +2473,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
           {/* ================= SUB-PANEL 2: FUTURE INITIATIVE CLIENT ROSTER ================= */}
           <div id="admin-subpanel-clients" style={{"display": "none"}}>
+            <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "14px", "flexWrap": "wrap", "gap": "10px"}}>
+              <span style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "fontWeight": "600"}}>
+                Future Initiative VIP Client Registry & Renewal Telemetry
+              </span>
+              <button type="button" className="btn-spark btn-modal-subpanel-reload" onClick={(e) => { e.preventDefault(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'clients'); }} data-onclick="triggerCardGunRefresh(this, 'clients')" style={{"padding": "8px 16px", "fontSize": "0.84rem", "fontWeight": "800", "border": "1.5px solid var(--accent-amber)", "borderRadius": "8px", "background": "rgba(255, 183, 3, 0.12)", "color": "var(--accent-amber)", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} title="Rerack & Refresh Clients">
+                🔄 REFRESH CLIENTS
+              </button>
+            </div>
             {/* New Client Registration Notification Alert Beacon */}
             <div id="admin-new-client-alert-box" style={{"display": "none", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.15) 0%, rgba(13, 19, 27, 0.98) 100%)", "border": "2px solid var(--accent-amber)", "boxShadow": "0 0 25px var(--accent-amber-glow)", "borderRadius": "12px", "padding": "14px 18px", "marginBottom": "20px", "alignItems": "center", "justifyContent": "space-between", "gap": "14px", "flexWrap": "wrap"}}>
               <div style={{"display": "flex", "alignItems": "center", "gap": "12px"}}>
@@ -2549,6 +2583,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
           <div id="admin-subpanel-analytics" style={{"display": "none"}}>
             <div id="admin-analytics-dashboard-container">
               <div style={{"marginTop": "10px", "paddingTop": "10px"}}>
+                <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "14px", "flexWrap": "wrap", "gap": "10px"}}>
+                  <span style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "fontWeight": "600"}}>
+                    Live Visitor Radar & Verified Hardware Diagnostics
+                  </span>
+                  <button type="button" className="btn-spark btn-modal-subpanel-reload" onClick={(e) => { e.preventDefault(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'telemetry'); }} data-onclick="triggerCardGunRefresh(this, 'telemetry')" style={{"padding": "8px 16px", "fontSize": "0.84rem", "fontWeight": "800", "border": "1.5px solid #10b981", "borderRadius": "8px", "background": "rgba(16, 185, 129, 0.12)", "color": "#34d399", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} title="Rerack & Refresh Telemetry Radar">
+                    🔄 REFRESH TELEMETRY
+                  </button>
+                </div>
                 {/* Top KPI Grid */}
                 <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(160px, 1fr))", "gap": "12px", "marginBottom": "22px"}}>
                   <div className="metric-card" style={{"borderColor": "var(--accent-cyan)", "background": "rgba(0, 229, 255, 0.05)"}}>
@@ -2800,10 +2842,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
           ● DISPATCH ACTIVE
         
                   </span>
-                  <button type="button" className="btn-spark" data-onclick="triggerAdminChatHandgunRefresh()" style={{"padding": "6px 14px", "fontSize": "0.80rem", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)"}} title="Refresh chat inquiries">
-                    
-          🔄 Refresh Inquiries
-        
+                  <button type="button" className="btn-spark btn-modal-subpanel-reload" onClick={(e) => { e.preventDefault(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'chat'); }} data-onclick="triggerCardGunRefresh(this, 'chat')" style={{"padding": "7px 16px", "fontSize": "0.82rem", "fontWeight": "800", "border": "1.5px solid #a855f7", "borderRadius": "8px", "background": "rgba(168, 85, 247, 0.12)", "color": "#c084fc", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} title="Rerack & Refresh Chat Inquiries">
+                    🔄 REFRESH CHAT
                   </button>
                 </div>
               </div>
