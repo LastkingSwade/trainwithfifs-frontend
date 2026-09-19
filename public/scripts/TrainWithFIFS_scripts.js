@@ -2771,7 +2771,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     }
 
     function refreshAdminLiveChats() {
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = (typeof resolveCurrentInstructorPasscode === 'function' ? resolveCurrentInstructorPasscode() : '') || sessionStorage.getItem('fifs_instructor_pin') || (window.__fifsAdminAuth && window.__fifsAdminAuth.passcode) || 'Ultima';
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('getLiveChats', { passcode: pin }, function(res) {
           if (res && res.status === 'success') {
@@ -2800,6 +2800,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
     }
     window.refreshAdminLiveChats = refreshAdminLiveChats;
+    window.refreshAdminChat = refreshAdminLiveChats;
+    window.renderAdminLiveChatThreadList = renderAdminChatConsole;
     // Start background sync for admin live chats every 10 seconds
     if (!window.__adminChatIntervalStarted) {
       window.__adminChatIntervalStarted = true;
@@ -10742,8 +10744,8 @@ function triggerCardGunRefresh(btn, type) {
       window.refreshAdminRoster();
     } else if (type === 'clients' && window.refreshAdminClients) {
       window.refreshAdminClients();
-    } else if (type === 'chat' && window.refreshAdminChat) {
-      window.refreshAdminChat();
+    } else if (type === 'chat' && (window.refreshAdminChat || window.refreshAdminLiveChats)) {
+      (window.refreshAdminChat || window.refreshAdminLiveChats)();
     } else if (type === 'telemetry' && window.syncTelemetryMetrics) {
       window.syncTelemetryMetrics();
     }
@@ -10755,7 +10757,7 @@ function triggerModalAdminRefresh(btn) {
   executeUniversalGunReloadAnimation(btn, function() {
     if (window.refreshAdminRoster) window.refreshAdminRoster();
     if (window.refreshAdminClients) window.refreshAdminClients();
-    if (window.refreshAdminChat) window.refreshAdminChat();
+    if (window.refreshAdminChat || window.refreshAdminLiveChats) (window.refreshAdminChat || window.refreshAdminLiveChats)();
     if (window.syncTelemetryMetrics) window.syncTelemetryMetrics();
   });
 }
@@ -10765,7 +10767,7 @@ function triggerAdminRefreshAll(btn) {
   executeUniversalGunReloadAnimation(btn, function() {
     if (window.refreshAdminRoster) window.refreshAdminRoster();
     if (window.refreshAdminClients) window.refreshAdminClients();
-    if (window.refreshAdminChat) window.refreshAdminChat();
+    if (window.refreshAdminChat || window.refreshAdminLiveChats) (window.refreshAdminChat || window.refreshAdminLiveChats)();
     if (window.syncTelemetryMetrics) window.syncTelemetryMetrics();
   });
 }
