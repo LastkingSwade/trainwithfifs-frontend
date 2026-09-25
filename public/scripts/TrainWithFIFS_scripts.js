@@ -8670,3 +8670,98 @@ if (typeof window !== 'undefined') {
       } catch(e) {}
     }
     window.logTelemetryEvent = logTelemetryEvent;
+
+
+    // ==========================================================================
+    // STUDENT PORTAL DASHBOARD RENDERER & DEMO STUDENT HANDLER
+    // ==========================================================================
+    function renderStudentDashboard(student) {
+      if (!student) return;
+      var loginBox = document.getElementById('student-login-box');
+      var activeDash = document.getElementById('student-active-dashboard');
+      if (loginBox) {
+        loginBox.style.setProperty('display', 'none', 'important');
+        loginBox.classList.add('hidden');
+      }
+      if (activeDash) {
+        activeDash.style.setProperty('display', 'block', 'important');
+        activeDash.classList.remove('hidden');
+      }
+
+      var nameEl = document.getElementById('dash-student-name');
+      if (nameEl) nameEl.textContent = student.fullName || student.name || 'Student';
+
+      var idEl = document.getElementById('dash-student-id');
+      if (idEl) idEl.textContent = student.studentId || student.id || 'FIFS-DEMO';
+
+      var statusEl = document.getElementById('dash-student-status');
+      if (statusEl) statusEl.textContent = student.status || 'Active Student';
+
+      var courseEl = document.getElementById('dash-student-course');
+      if (courseEl) courseEl.textContent = student.course || student.course_selection || 'Maryland Wear & Carry CCW';
+
+      var dateEl = document.getElementById('dash-student-date');
+      if (dateEl) dateEl.textContent = student.assignedDate || student.class_date || student.preferredDates || 'Saturday, Oct 12 • 9:00 AM';
+
+      var docLink = document.getElementById('dash-doc-link');
+      if (docLink) {
+        if (student.dossier_url || (student.profileDocUrl && student.profileDocUrl !== '#')) {
+          docLink.href = student.dossier_url || student.profileDocUrl;
+          docLink.textContent = '📄 View Live Student Dossier ↗';
+          docLink.style.background = 'var(--accent-cyan)';
+          docLink.style.color = '#000';
+        } else {
+          docLink.href = 'javascript:void(0)';
+          docLink.textContent = '📄 Dossier Under Instructor Review';
+          docLink.style.background = '#1e293b';
+          docLink.style.color = '#94a3b8';
+          docLink.onclick = function() {
+            alert('Your official training dossier is currently being prepared by Instructor Kai Wade.');
+          };
+        }
+      }
+
+      if (typeof updateStudentProgressNodes === 'function') {
+        var stepNum = (typeof getStepNumberFromStatus === 'function') ? getStepNumberFromStatus(student.status) : 3;
+        updateStudentProgressNodes(stepNum || 3);
+      }
+    }
+    window.renderStudentDashboard = renderStudentDashboard;
+
+
+    // ==========================================================================
+    // DEDICATED STUDENT SCORESHEET MANAGEMENT (MSP FORM 29-14)
+    // ==========================================================================
+    function openStudentScoresheetModal(studentId) {
+      var s = (adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
+      var studentName = s ? s.fullName : studentId;
+      var currentScore = (s && s.qualificationScore) ? s.qualificationScore : '25/25 (100%)';
+      var currentUrl = (s && (s.scoresheet_url || s.scoresheetUrl)) ? (s.scoresheet_url || s.scoresheetUrl) : '';
+      
+      var newUrl = prompt('Enter Supabase Storage URL for ' + studentName + '\'s Maryland State Police Form 29-14 Qualification Scoresheet:', currentUrl);
+      if (newUrl === null) return;
+      
+      var scoreVal = prompt('Enter qualification score (e.g., 25/25, 100%):', currentScore);
+      if (scoreVal === null) scoreVal = currentScore;
+      
+      if (typeof callFifsBackend === 'function') {
+        callFifsBackend('saveStudentScoresheet', {
+          studentId: studentId,
+          imageUrl: newUrl,
+          score: scoreVal,
+          notes: 'Verified by Instructor Kai Wade'
+        }, function(res) {
+          if (res && res.success) {
+            alert('Official Maryland qualification scoresheet saved to Supabase successfully!');
+            if (s) {
+              s.scoresheet_url = newUrl;
+              s.qualificationScore = scoreVal;
+            }
+            if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
+          } else {
+            alert('Failed to save scoresheet: ' + (res ? res.error : 'Unknown error'));
+          }
+        });
+      }
+    }
+    window.openStudentScoresheetModal = openStudentScoresheetModal;

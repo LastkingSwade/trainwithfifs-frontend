@@ -6958,7 +6958,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </div>
       </div>
       {/* ================= MODAL 3: ADMIN EDIT STUDENT RECORD MODAL ================= */}
-      <div className="goal-modal-overlay" id="adminEditStudentModrget===this) closeAdminEditStudentModal()" style={{"display": "none"}}>
+      <div className="goal-modal-overlay" id="adminEditStudentModal" data-onclick="if(event.target===this) closeAdminEditStudentModal()" style={{"display": "none"}}>
         <div aria-labelledby="editStudentModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "600px", "borderColor": "var(--accent-cyan)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 30px var(--accent-cyan-glow)"}}>
           <button aria-label="Close edit modal" className="goal-modal-close-btn" data-onclick="closeAdminEditStudentModal()" type="button">
             ✕

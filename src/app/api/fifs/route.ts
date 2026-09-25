@@ -337,6 +337,11 @@ export async function POST(req: NextRequest) {
         if (updates.courseSelection !== undefined) dbUpdates.course_selection = updates.courseSelection;
         if (updates.course_selection !== undefined) dbUpdates.course_selection = updates.course_selection;
         if (updates.preferredDates !== undefined) dbUpdates.preferred_dates = updates.preferredDates;
+        if (updates.assignedDate !== undefined) dbUpdates.preferred_dates = updates.assignedDate;
+        if (updates.classDate !== undefined) dbUpdates.preferred_dates = updates.classDate;
+        if (updates.dossier_url !== undefined) dbUpdates.dossier_url = updates.dossier_url;
+        if (updates.profileDocUrl !== undefined) dbUpdates.dossier_url = updates.profileDocUrl;
+        if (updates.qualificationScore !== undefined) dbUpdates.qualification_score = updates.qualificationScore;
         if (updates.preferred_dates !== undefined) dbUpdates.preferred_dates = updates.preferred_dates;
         if (updates.status !== undefined) dbUpdates.status = updates.status;
         if (updates.prepTasks !== undefined) dbUpdates.prep_tasks = updates.prepTasks;
