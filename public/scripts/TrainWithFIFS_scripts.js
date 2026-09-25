@@ -1,4 +1,16 @@
 
+    function fiScrollTo(id) {
+      try {
+        var el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      } catch (e) {
+        console.warn("fiScrollTo error:", e);
+      }
+    }
+    window.fiScrollTo = fiScrollTo;
+
     // === AUTHORITATIVE ALL-8 COURSE TIER CONFIGURATION ===
     var COURSE_TIER_CONFIG = {
       mastery: {
@@ -5894,8 +5906,9 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     }
     // Render interactive SVG Map
     function renderSvgMap() {
-      var svg = document.getElementById('interactiveUsSvg');
-      svg.innerHTML = '';
+      var svgs = Array.from(document.querySelectorAll("#interactiveUsSvg, .interactive-us-svg"));
+      if (svgs.length === 0) return;
+      svgs.forEach(function(s) { s.innerHTML = ""; });
       Object.keys(STATES_DATA).forEach(code => {
         var state = STATES_DATA[code];
         var coord = SVG_COORDS[code] || { x: 50, y: 50, w: 55, h: 45 };
@@ -5953,7 +5966,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         group.appendChild(rect);
         group.appendChild(text);
         group.appendChild(sub);
-        svg.appendChild(group);
+        svgs.forEach(function(s) { s.appendChild(group.cloneNode(true)); });
       });
     }
     // Select State and Update Spotlights

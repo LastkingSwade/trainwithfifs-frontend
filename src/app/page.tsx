@@ -1453,7 +1453,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <a className="fi-subnav-btn active" href="#fi-sec-dashboard">
                   📊 Dashboard
                 </a>
-                <button className="fi-subnav-btn" data-onclick="toggleReciprocityHubModal(true)" type="button">
+                <button className="fi-subnav-btn" data-onclick="fiScrollTo('fi-sec-reciprocity')" type="button">
                   🗺️ 50-State Reciprocity Hub
                 </button>
                 <button className="fi-subnav-btn" data-onclick="openVehicleTravelModal()" type="button">
@@ -1626,8 +1626,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
               
                     </p>
                   </div>
-                  <button className="btn-spark" data-onclick="toggleReciprocityHubModal(true)" type="button">
-                    Launch 50-State Reciprocity Hub ↗
+                  <button className="btn-spark" data-onclick="fiScrollTo('fi-sec-reciprocity')" type="button">
+                    Explore 50-State Reciprocity Hub ↓
                   </button>
                 </div>
                 {/* CARD 2 */}
@@ -1728,7 +1728,715 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
               {/* Closes fi-hub-cards-grid */}
               {/* ================= SECTION: 50-STATE RECIPROCITY HUB ================= */}
-              {/* (In-page 50-state hub eliminated; full interactive 50-state reciprocity hub accessible via Card 1, Subnav, and CCW Wallet) */}
+              <div className="fi-section-header" id="fi-sec-reciprocity">
+                <h3>
+                  50-State CCW Reciprocity Hub & Travel Navigator
+                </h3>
+                <p>
+                  Interactive nationwide recognition engine. Evaluate where your Maryland Wear & Carry and multi-state non-resident permits (Utah, Florida, Virginia) are honored in real time.
+                </p>
+              </div>
+              <div className="fi-reciprocity-inportal-container" style={{"background": "rgba(7, 11, 16, 0.95)", "border": "1px solid rgba(0, 229, 255, 0.35)", "borderRadius": "16px", "padding": "24px 20px", "marginBottom": "28px", "boxShadow": "0 12px 35px rgba(0,0,0,0.85)"}}>
+                <div className="reciprocity-app-wrapper">
+            {/* Brand HUD Header */}
+            <header className="brand-hud-header" style={{"display": "flex", "alignItems": "center", "justifyContent": "space-between", "flexWrap": "wrap", "gap": "16px"}}>
+              <div style={{"display": "flex", "alignItems": "center", "gap": "16px"}}>
+                <img alt="Future Initiative Firearm Services Logo" src="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&amp;sz=w500" style={{"width": "52px", "height": "52px", "objectFit": "contain", "filter": "drop-shadow(0 0 10px rgba(0, 229, 255, 0.5))", "flexShrink": "0"}} />
+                  <div className="brand-info-block">
+                    <div style={{"display": "flex", "alignItems": "center", "gap": "10px", "marginBottom": "4px"}}>
+                      <span className="badge-instructor">
+                        Future Initiative Firearm Services
+                      </span>
+                      <span style={{"fontSize": "0.78rem", "color": "var(--accent-cyan)", "textTransform": "uppercase", "fontWeight": "700"}}>
+                        Tactical Compliance Hub
+                      </span>
+                    </div>
+                    <h1>
+                      CONCEALED CARRY RECIPROCITY ENGINE
+                    </h1>
+                    <p>
+                      Interactive 50-State Recognition Architecture powered by Lead Instructor Kai Wade (Baltimore, MD)
+                    </p>
+                  </div>
+                  <div className="live-status-pill">
+                    <span className="live-dot">
+                    </span>
+                    <span>
+                      2026 STATUTES ACTIVE
+                    </span>
+                  </div>
+              </div>
+            </header>
+            {/* Dual-Tier Permit Selector & Multiplier Deck */}
+            <section aria-label="Permit Settings" className="permit-control-deck">
+              <div className="section-title">
+                <span>
+                  Dual-Tier Permit System
+                </span>
+                <span className="accent">
+                  Instant Dynamic Calculation
+                </span>
+              </div>
+              <div className="permit-inputs-grid">
+                <div className="permit-field-group">
+                  <label htmlFor="primaryResidentSelect">
+                    Primary Resident Permit:
+                  </label>
+                  <select
+  defaultValue={"MD"} className="permit-select-main" id="primaryResidentSelect" data-onchange="handleResidentStateChange(this.value)">
+                    <option value="MD">
+                      Maryland (Resident Permit)
+                    </option>
+                    <option value="VA">
+                      Virginia (Resident Permit)
+                    </option>
+                    <option value="PA">
+                      Pennsylvania (Resident Permit)
+                    </option>
+                    <option value="FL">
+                      Florida (Resident Permit)
+                    </option>
+                    <option value="UT">
+                      Utah (Resident Permit)
+                    </option>
+                    <option value="TX">
+                      Texas (Resident Permit)
+                    </option>
+                    <option value="NC">
+                      North Carolina (Resident Permit)
+                    </option>
+                    <option value="OH">
+                      Ohio (Resident Permit)
+                    </option>
+                    <option value="WV">
+                      West Virginia (Resident Permit)
+                    </option>
+                    <option value="AZ">
+                      Arizona (Resident Permit)
+                    </option>
+                  </select>
+                </div>
+                <div className="permit-field-group">
+                  <label>
+                    Add Non-Resident Multipliers (Expand Nationwide Recognition):
+                  </label>
+                  <div className="multiplier-chips-wrap">
+                    <div className="multiplier-chip" id="chip-UT" data-onclick="toggleMultiplier('UT')">
+                      <span className="chip-check">
+                        ✓
+                      </span>
+                      <span>
+                        Utah Non-Resident (+DE, +NV, +MN, +WA)
+                      </span>
+                    </div>
+                    <div className="multiplier-chip" id="chip-FL" data-onclick="toggleMultiplier('FL')">
+                      <span className="chip-check">
+                        ✓
+                      </span>
+                      <span>
+                        Florida Non-Resident (+DE, +NM)
+                      </span>
+                    </div>
+                    <div className="multiplier-chip" id="chip-AZ" data-onclick="toggleMultiplier('AZ')">
+                      <span className="chip-check">
+                        ✓
+                      </span>
+                      <span>
+                        Arizona Non-Resident (+NV, +DE)
+                      </span>
+                    </div>
+                    <div className="multiplier-chip" id="chip-PA" data-onclick="toggleMultiplier('PA')">
+                      <span className="chip-check">
+                        ✓
+                      </span>
+                      <span>
+                        Pennsylvania Non-Resident ($20 County Issue)
+                      </span>
+                    </div>
+                    <div className="multiplier-chip" id="chip-VA" data-onclick="toggleMultiplier('VA')">
+                      <span className="chip-check">
+                        ✓
+                      </span>
+                      <span>
+                        Virginia Non-Resident
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            {/* Scorecard HUD Grid */}
+            <section aria-label="Coverage Statistics" className="scorecard-hud-grid">
+              <div className="scorecard-card highlight">
+                <div className="metric-val green" id="metricTotalLegal">
+                  34 / 51
+                </div>
+                <div className="metric-lbl">
+                  Total Legal Carry Jurisdictions
+                </div>
+              </div>
+              <div className="scorecard-card">
+                <div className="metric-val blue" id="metricConstitutional">
+                  29
+                </div>
+                <div className="metric-lbl">
+                  Constitutional Carry (Permitless)
+                </div>
+              </div>
+              <div className="scorecard-card">
+                <div className="metric-val green" id="metricHonored">
+                  5
+                </div>
+                <div className="metric-lbl">
+                  Permit Honored / Reciprocal
+                </div>
+              </div>
+              <div className="scorecard-card">
+                <div className="metric-val amber" id="metricSpecial">
+                  2
+                </div>
+                <div className="metric-lbl">
+                  Special Conditions / Multiplier
+                </div>
+              </div>
+              <div className="scorecard-card">
+                <div className="metric-val red" id="metricRestricted">
+                  15
+                </div>
+                <div className="metric-lbl">
+                  Restricted / Not Honored
+                </div>
+              </div>
+            </section>
+            {/* Category Color Legend */}
+            <div className="map-legend-bar">
+              <div className="legend-item" data-onclick="setCategoryFilter('all')">
+                <span className="legend-color-box" style={{"background": "#1e293b", "border": "1px solid var(--accent-cyan)"}}>
+                </span>
+                <span>
+                  Show All (51)
+                </span>
+              </div>
+              <div className="legend-item" data-onclick="setCategoryFilter('constitutional')">
+                <span className="legend-color-box box-constitutional">
+                </span>
+                <span>
+                  Constitutional Carry (29 States)
+                </span>
+              </div>
+              <div className="legend-item" data-onclick="setCategoryFilter('honored')">
+                <span className="legend-color-box box-honored">
+                </span>
+                <span>
+                  Permit Honored (Reciprocity)
+                </span>
+              </div>
+              <div className="legend-item" data-onclick="setCategoryFilter('special')">
+                <span className="legend-color-box box-special">
+                </span>
+                <span>
+                  Special Conditions / Resident Only
+                </span>
+              </div>
+              <div className="legend-item" data-onclick="setCategoryFilter('not_honored')">
+                <span className="legend-color-box box-not-honored">
+                </span>
+                <span>
+                  Permit Not Honored / Prohibited
+                </span>
+              </div>
+            </div>
+            {/* Search & Quick Filter Controls */}
+            <div className="filter-search-toolbar" style={{"gap": "12px", "alignItems": "center"}}>
+              <div style={{"display": "flex", "gap": "8px", "flex": "1", "minWidth": "280px", "flexWrap": "wrap"}}>
+                <input className="search-input-box" id="stateSearchInput" data-oninput="handleSearch(this.value)" placeholder="🔍 Type state (e.g. VA, Florida)..." style={{"flex": "1", "minWidth": "180px"}} type="text" />
+                <select className="search-input-box" id="quickStateJumpSelect" data-onchange="if(this.value){ selectState(this.value); openStateModal(this.value); }" style={{"width": "auto", "minWidth": "170px", "background": "#070b10", "border": "1px solid var(--accent-cyan)", "color": "#fff", "cursor": "pointer", "fontWeight": "700"}}>
+                  <option value="">
+                    -- Jump to Any State --
+                  </option>
+                  <option value="AL">
+                    Alabama (AL)
+                  </option>
+                  <option value="AK">
+                    Alaska (AK)
+                  </option>
+                  <option value="AZ">
+                    Arizona (AZ)
+                  </option>
+                  <option value="AR">
+                    Arkansas (AR)
+                  </option>
+                  <option value="CA">
+                    California (CA)
+                  </option>
+                  <option value="CO">
+                    Colorado (CO)
+                  </option>
+                  <option value="CT">
+                    Connecticut (CT)
+                  </option>
+                  <option value="DE">
+                    Delaware (DE)
+                  </option>
+                  <option value="DC">
+                    District of Columbia (DC)
+                  </option>
+                  <option value="FL">
+                    Florida (FL)
+                  </option>
+                  <option value="GA">
+                    Georgia (GA)
+                  </option>
+                  <option value="HI">
+                    Hawaii (HI)
+                  </option>
+                  <option value="ID">
+                    Idaho (ID)
+                  </option>
+                  <option value="IL">
+                    Illinois (IL)
+                  </option>
+                  <option value="IN">
+                    Indiana (IN)
+                  </option>
+                  <option value="IA">
+                    Iowa (IA)
+                  </option>
+                  <option value="KS">
+                    Kansas (KS)
+                  </option>
+                  <option value="KY">
+                    Kentucky (KY)
+                  </option>
+                  <option value="LA">
+                    Louisiana (LA)
+                  </option>
+                  <option value="ME">
+                    Maine (ME)
+                  </option>
+                  <option value="MD">
+                    Maryland (MD - Home State)
+                  </option>
+                  <option value="MA">
+                    Massachusetts (MA)
+                  </option>
+                  <option value="MI">
+                    Michigan (MI)
+                  </option>
+                  <option value="MN">
+                    Minnesota (MN)
+                  </option>
+                  <option value="MS">
+                    Mississippi (MS)
+                  </option>
+                  <option value="MO">
+                    Missouri (MO)
+                  </option>
+                  <option value="MT">
+                    Montana (MT)
+                  </option>
+                  <option value="NE">
+                    Nebraska (NE)
+                  </option>
+                  <option value="NV">
+                    Nevada (NV)
+                  </option>
+                  <option value="NH">
+                    New Hampshire (NH)
+                  </option>
+                  <option value="NJ">
+                    New Jersey (NJ)
+                  </option>
+                  <option value="NM">
+                    New Mexico (NM)
+                  </option>
+                  <option value="NY">
+                    New York (NY)
+                  </option>
+                  <option value="NC">
+                    North Carolina (NC)
+                  </option>
+                  <option value="ND">
+                    North Dakota (ND)
+                  </option>
+                  <option value="OH">
+                    Ohio (OH)
+                  </option>
+                  <option value="OK">
+                    Oklahoma (OK)
+                  </option>
+                  <option value="OR">
+                    Oregon (OR)
+                  </option>
+                  <option value="PA">
+                    Pennsylvania (PA - $20 LTCF)
+                  </option>
+                  <option value="RI">
+                    Rhode Island (RI)
+                  </option>
+                  <option value="SC">
+                    South Carolina (SC)
+                  </option>
+                  <option value="SD">
+                    South Dakota (SD)
+                  </option>
+                  <option value="TN">
+                    Tennessee (TN)
+                  </option>
+                  <option value="TX">
+                    Texas (TX)
+                  </option>
+                  <option value="UT">
+                    Utah (UT)
+                  </option>
+                  <option value="VT">
+                    Vermont (VT)
+                  </option>
+                  <option value="VA">
+                    Virginia (VA - Honored)
+                  </option>
+                  <option value="WA">
+                    Washington (WA)
+                  </option>
+                  <option value="WV">
+                    West Virginia (WV)
+                  </option>
+                  <option value="WI">
+                    Wisconsin (WI - Honored)
+                  </option>
+                  <option value="WY">
+                    Wyoming (WY)
+                  </option>
+                </select>
+              </div>
+              <div className="filter-pills-wrap">
+                <button className="filter-btn-pill active" data-filter="all" data-onclick="setCategoryFilter('all')">
+                  All States
+                </button>
+                <button className="filter-btn-pill" data-filter="can_carry" data-onclick="setCategoryFilter('can_carry')">
+                  Where You Can Carry
+                </button>
+                <button className="filter-btn-pill" data-filter="not_honored" data-onclick="setCategoryFilter('not_honored')">
+                  Restricted
+                </button>
+              </div>
+            </div>
+            {/* Interactive SVG Map Display */}
+            <section aria-label="Interactive Map" className="map-display-container">
+              <div className="map-header-indicator">
+                <span>
+                  Interactive Vector U.S. Reciprocity Map (Click Any State Node to Inspect)
+                </span>
+                <span style={{"color": "var(--text-muted)", "fontSize": "0.74rem"}}>
+                  Full 50 States + DC Real-Time Color Coding
+                </span>
+              </div>
+              <div className="svg-canvas-wrapper">
+                <svg className="interactive-us-svg" id="interactiveUsSvg" viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg">
+                  {/* Populated dynamically by JS engine */}
+                </svg>
+              </div>
+            </section>
+            {/* Selected State Spotlight Deck (from Reference 00:00 - 00:04) */}
+            <section className="selected-state-banner" id="selectedStateBanner">
+              <div className="state-banner-header">
+                <div className="banner-meta-col">
+                  <div className="sub-reciprocity">
+                    RECIPROCITY STATUS
+                  </div>
+                  <div className="main-state-name" id="spotlightStateName">
+                    MARYLAND
+                  </div>
+                  <div className="carry-verdict-text can-carry" id="spotlightVerdict">
+                    You CAN CARRY in this state (Home State Wear & Carry)
+                  </div>
+                </div>
+                <button className="btn-inspect-gun-laws" id="btnInspectLaws" data-onclick="openStateModal(currentStateFocus)">
+                  SEE MARYLAND GUN LAWS
+                </button>
+              </div>
+              {/* Neighbor States Quick Status (Reference 00:01 - 00:04) */}
+              <div>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.85rem", "color": "var(--text-muted)", "textTransform": "uppercase", "letterSpacing": "1px", "marginBottom": "8px"}}>
+                  
+          Bordering Jurisdictions & Immediate Carry Status:
+        
+                </div>
+                <div className="neighbor-cards-row" id="neighborCardsRow">
+                  {/* Populated dynamically */}
+                </div>
+              </div>
+            </section>
+            {/* My Permits List Section (from Reference 00:03 - 00:04) */}
+            <section className="my-permits-card">
+              <div className="my-permits-header">
+                <div className="section-title" style={{"marginBottom": "0"}}>
+                  <span>
+                    MY ACTIVE PERMITS
+                  </span>
+                </div>
+                <span style={{"fontSize": "0.8rem", "color": "var(--accent-cyan)", "fontWeight": "700", "textTransform": "uppercase"}}>
+                  Active Profile
+                </span>
+              </div>
+              <div className="my-permits-list" id="myPermitsList">
+                {/* Rendered dynamically */}
+              </div>
+              <button className="btn-add-permit" data-onclick="promptAddPermit()">
+                + ADD PERMIT TO WALLET
+              </button>
+            </section>
+            {/* Vertical State Scroller / Wheel (Reference 00:14 - 00:23) */}
+            <section className="vertical-reciprocity-scroller-box">
+              <div className="scroller-head-title">
+                STATE RECIPROCITY DIRECTORY
+              </div>
+              <p className="scroller-subtitle">
+                Scroll through the vertical index or click any state to review legal recognition and handgun statutes.
+              </p>
+              <div className="roller-viewport-container">
+                <div className="vertical-state-roller" id="stateRollerList">
+                  {/* Populated dynamically */}
+                </div>
+                <div className="roller-selected-display" id="rollerSelectedDisplay">
+                  <div className="rd-title">
+                    <span id="rollerStateIcon">
+                      ✓
+                    </span>
+                    <span id="rollerStateName">
+                      WEST VIRGINIA
+                    </span>
+                  </div>
+                  <p className="rd-desc" id="rollerStateDesc">
+                    
+            You can carry in West Virginia. Constitutional carry state for 21+. Select this state to inspect full legal reciprocity and transportation rules.
+          
+                  </p>
+                  <button className="btn-roller-next" id="btnRollerInspect" data-onclick="openStateModal(currentRollerState)">
+                    INSPECT STATUTES →
+                  </button>
+                </div>
+              </div>
+            </section>
+            {/* Car Travel & Interstate Highway Corridors Guide */}
+            <section className="highway-corridors-box">
+              <div className="corridor-header">
+                <span>
+                  🚗
+                </span>
+                <span>
+                  Mid-Atlantic Highway Carry Corridors & FOPA 18 U.S.C. § 926A Safe Harbor
+                </span>
+              </div>
+              <div className="corridor-cards-grid">
+                <div className="corridor-route-card">
+                  <h4>
+                    I-95 South (MD → VA → NC → SC → GA → FL)
+                  </h4>
+                  <p>
+                    <strong style={{"color": "#fff"}}>
+                      100% Legal Carry Highway Corridor!
+                    </strong>
+                     Maryland Wear & Carry is honored in Virginia and North Carolina; South Carolina, Georgia, and Florida are Constitutional Carry. Remember: North Carolina requires immediate duty to inform upon officer approach.
+          
+                  </p>
+                </div>
+                <div className="corridor-route-card">
+                  <h4>
+                    I-70 / I-68 Westbound (MD → PA → WV → OH → IN → IL → MO)
+                  </h4>
+                  <p>
+                    
+            Get a $20 PA Non-Resident LTCF to carry legally across the PA Turnpike. WV, OH, and IN are Constitutional Carry. When entering Illinois, out-of-state CCW permit holders are protected under Illinois in-vehicle safe harbor (must remain in car).
+          
+                  </p>
+                </div>
+                <div className="corridor-route-card">
+                  <h4>
+                    I-95 North Warning (DE → PA → NJ → NY)
+                  </h4>
+                  <p>
+                    <strong style={{"color": "var(--accent-red)"}}>
+                      Extreme Caution:
+                    </strong>
+                     Delaware does NOT honor MD resident permit (requires Utah/Florida non-res). New Jersey and New York have zero reciprocity with mandatory felony penalties. You must strictly store unloaded in locked trunk under FOPA § 926A.
+          
+                  </p>
+                </div>
+              </div>
+            </section>
+            {/* Commercial Airline Flying with a Firearm Guide */}
+            <section className="highway-corridors-box" style={{"borderColor": "rgba(255, 183, 3, 0.4)", "background": "linear-gradient(135deg, rgba(16, 22, 31, 0.98) 0%, rgba(13, 18, 25, 0.98) 100%)"}}>
+              <div className="corridor-header" style={{"color": "var(--accent-amber)"}}>
+                <span>
+                  ✈️
+                </span>
+                <span>
+                  Commercial Airline Flying with Firearms (49 CFR § 1540.111 & TSA Rules)
+                </span>
+              </div>
+              <p style={{"fontSize": "0.88rem", "color": "#cbd5e1", "lineHeight": "1.55", "marginBottom": "16px"}}>
+                
+        Federal law permits airline passengers to transport unloaded firearms in checked baggage. Follow this mandatory 6-step checklist to ensure zero delays or legal penalties at airport counters:
+      
+              </p>
+              <div className="corridor-cards-grid">
+                <div className="corridor-route-card">
+                  <h4>
+                    1. 100% Completely Unloaded
+                  </h4>
+                  <p>
+                    Visually and physically inspect chamber and cylinder. Magazines must be completely empty unless securely enclosed in custom-molded case slots. Double check before leaving home.
+                  </p>
+                </div>
+                <div className="corridor-route-card">
+                  <h4>
+                    2. Rigid Hard-Sided Lockbox (Pry Test)
+                  </h4>
+                  <p>
+                    Must be in a crush-resistant hard case (Pelican, Vaultek, Apache). Must not be pliable or priable by hand. 
+                    <strong>
+                      Crucial Federal Rule:
+                    </strong>
+                     Use non-TSA padlocks only; federal regulations strictly require that ONLY the passenger retains the key or combination.
+                  </p>
+                </div>
+                <div className="corridor-route-card">
+                  <h4>
+                    3. Factory-Boxed Target Ammo
+                  </h4>
+                  <p>
+                    Ammunition must be in original manufacturer cardboard or plastic grid packaging (under 11 lbs on all major domestic carriers). Loose ammo in bags is strictly forbidden.
+                  </p>
+                </div>
+                <div className="corridor-route-card">
+                  <h4>
+                    4. Declare at Main Ticket Counter
+                  </h4>
+                  <p>
+                    Walk directly to the airline agent counter: 
+                    <em>
+                      "I have an unloaded firearm to declare in checked baggage."
+                    </em>
+                     Sign the orange declaration card and place it inside your checked bag.
+                  </p>
+                </div>
+                <div className="corridor-route-card">
+                  <h4>
+                    5. Destination Laws Govern
+                  </h4>
+                  <p>
+                    The moment you retrieve luggage at your arrival airport, the laws of that destination state apply to you immediately. Never fly with firearms to states where possession is prohibited.
+                  </p>
+                </div>
+                <div className="corridor-route-card" style={{"borderColor": "rgba(239, 68, 68, 0.4)"}}>
+                  <h4 style={{"color": "#ef4444"}}>
+                    6. Emergency Flight Diversions (NY/NJ/MA)
+                  </h4>
+                  <p>
+                    <strong style={{"color": "#fff"}}>
+                      Critical Legal Protection:
+                    </strong>
+                     If diverted to NYC, Newark, or Boston, REFUSE physical custody of your checked bag at baggage claim. Demand the airline check it through to your final destination to maintain FOPA safe harbor.
+                  </p>
+                </div>
+              </div>
+            </section>
+            {/* Action Training Dock */}
+            {/* Action Training Dock */}
+            {/* ================= LEAD MAGNET: FREE 2026 MID-ATLANTIC CARRY GUIDE ================= */}
+            <div className="lead-magnet-card" style={{"background": "linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(13, 19, 27, 0.98) 100%)", "border": "2px solid var(--accent-cyan)", "boxShadow": "0 0 25px rgba(0, 229, 255, 0.2)", "borderRadius": "16px", "padding": "22px 24px", "margin": "24px 0"}}>
+              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "flexWrap": "wrap", "gap": "14px", "marginBottom": "14px"}}>
+                <div style={{"maxWidth": "680px"}}>
+                  <span className="badge-instructor" style={{"marginBottom": "6px"}}>
+                    Complimentary Travel Resource
+                  </span>
+                  <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.55rem", "color": "#fff", "textTransform": "uppercase", "margin": "4px 0 6px"}}>
+                    
+            📘 Planning an Interstate Road Trip? Free 2026 Mid-Atlantic Carry Guide (PDF)
+          
+                  </h3>
+                  <p style={{"fontSize": "0.88rem", "color": "#cbd5e1", "lineHeight": "1.55"}}>
+                    
+            Download Coach Kai Wade's complimentary multi-state transport reference guide covering Maryland, Virginia, Pennsylvania, Delaware, and Florida reciprocity corridors.
+          
+                  </p>
+                </div>
+                <span className="meta-chip chip-status" style={{"fontSize": "0.82rem", "padding": "4px 12px"}}>
+                  INSTANT DOWNLOAD
+                </span>
+              </div>
+              <form id="reciprocityLeadForm" data-onsubmit="handleLeadMagnetSubmit(event)" style={{"display": "flex", "gap": "10px", "flexWrap": "wrap", "alignItems": "center"}}>
+                <input id="leadFullName" placeholder="Your Full Name" required="" style={{"flex": "1", "minWidth": "200px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "11px 14px", "borderRadius": "8px", "fontSize": "0.90rem"}} type="text" />
+                <input id="leadEmail" placeholder="Your Email Address" required="" style={{"flex": "1", "minWidth": "220px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "11px 14px", "borderRadius": "8px", "fontSize": "0.90rem"}} type="email" />
+                <button className="btn-primary" style={{"width": "auto", "padding": "11px 22px", "fontSize": "0.92rem", "fontWeight": "800", "textTransform": "uppercase", "whiteSpace": "nowrap", "boxShadow": "0 0 16px var(--accent-cyan-glow)"}} type="submit">
+                  
+          📥 Get Free Guide (PDF) →
+        
+                </button>
+              </form>
+              <div className="status-msg" id="lead-status" style={{"display": "none", "marginTop": "12px"}}>
+              </div>
+            </div>
+            {/* Standard Statutory Disclaimer for Interstate Carry & Travel Tools */}
+            <div className="statutory-disclaimer-card" style={{"background": "rgba(7, 11, 16, 0.92)", "border": "1px solid var(--border-subtle)", "borderLeft": "3px solid var(--accent-amber)", "borderRadius": "10px", "padding": "14px 18px", "margin": "24px 0", "fontSize": "0.82rem", "color": "#cbd5e1", "lineHeight": "1.55"}}>
+              <strong style={{"color": "var(--accent-amber)", "textTransform": "uppercase", "fontFamily": "var(--font-display)", "letterSpacing": "0.8px", "display": "block", "marginBottom": "4px"}}>
+                
+        ⚖️ Official Statutory Notice & Travel Disclaimer:
+      
+              </strong>
+              
+      This reciprocity navigator and interstate highway transportation guide is compiled for educational planning purposes only and does not constitute individualized legal counsel. Handgun reciprocity agreements, sensitive places mandates (including Maryland SB 1), and magazine capacity statutes are subject to frequent legislative and judicial updates. Always verify current statutory requirements directly with official state police licensing agencies prior to interstate travel.
+      
+              <span style={{"display": "block", "marginTop": "4px", "color": "var(--text-muted)", "fontSize": "0.78rem"}}>
+                Future Initiative Firearm Services • Lead Instructor Kai Wade (Certified MSP Qualified Handgun Instructor § 5-101, NRA Certified Pistol Instructor & RSO)
+              </span>
+            </div>
+            <div className="fifs-action-dock" style={{"background": "linear-gradient(135deg, rgba(0, 229, 255, 0.12) 0%, rgba(13, 19, 27, 0.98) 100%)", "border": "2px solid var(--accent-cyan)", "boxShadow": "0 0 25px var(--accent-cyan-glow)", "borderRadius": "16px", "padding": "26px 20px", "marginTop": "32px", "textAlign": "center"}}>
+              <span className="badge-instructor" style={{"marginBottom": "8px"}}>
+                Future Initiative Firearm Services
+              </span>
+              <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.85rem", "color": "#fff", "textTransform": "uppercase", "letterSpacing": "1.2px", "marginTop": "4px"}}>
+                Ready to Expand Your Multi-State Carry Footprint?
+              </h3>
+              <p style={{"color": "#cbd5e1", "fontSize": "0.92rem", "maxWidth": "780px", "margin": "6px auto 18px", "lineHeight": "1.55"}}>
+                
+        Train with Lead Instructor Kai Wade (Certified MSP Qualified Handgun Instructor § 5-101 and NRA Certified) at Cindy's Hot Shots. Build real confidence, master Maryland self-defense law, and obtain multi-state carry authorization across 34+ states.
+      
+              </p>
+              <div style={{"display": "flex", "gap": "12px", "justifyContent": "center", "flexWrap": "wrap"}}>
+                <a className="btn-cta-dock" href="https://trainwithfifs.com" rel="noopener noreferrer" style={{"background": "var(--accent-cyan)", "color": "#070b10", "fontFamily": "var(--font-display)", "fontSize": "1.05rem", "fontWeight": "800", "letterSpacing": "1px", "textTransform": "uppercase", "padding": "12px 24px", "borderRadius": "8px", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "8px", "boxShadow": "0 0 18px var(--accent-cyan-glow)"}} target="_blank">
+                  
+          🎯 Book Maryland CCW & HQL Combo →
+        
+                </a>
+                <a className="btn-cta-dock" href="https://trainwithfifs.com?tab=booking" rel="noopener noreferrer" style={{"background": "rgba(255, 183, 3, 0.15)", "border": "1px solid var(--accent-amber)", "color": "var(--accent-amber)", "fontFamily": "var(--font-display)", "fontSize": "1.05rem", "fontWeight": "800", "letterSpacing": "1px", "textTransform": "uppercase", "padding": "12px 24px", "borderRadius": "8px", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "8px"}} target="_blank">
+                  
+          ⏱️ Book 8-Hour CCW Renewal (10% Off) →
+        
+                </a>
+                <a className="btn-cta-dock" href="https://trainwithfifs.com?tab=portal" rel="noopener noreferrer" style={{"background": "rgba(255, 255, 255, 0.08)", "border": "1px solid var(--border-subtle)", "color": "#fff", "fontFamily": "var(--font-display)", "fontSize": "1.05rem", "fontWeight": "800", "letterSpacing": "1px", "textTransform": "uppercase", "padding": "12px 24px", "borderRadius": "8px", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "8px"}} target="_blank">
+                  
+          ⚡ Access Student Portal →
+        
+                </a>
+              </div>
+            </div>
+            {/* Persistent Bottom Modal Dismissal Action Bar */}
+            <div style={{"marginTop": "32px", "padding": "22px 16px", "textAlign": "center", "borderTop": "1px solid var(--border-subtle)", "background": "#070b10", "borderRadius": "14px", "display": "flex", "justifyContent": "center", "alignItems": "center", "gap": "16px", "flexWrap": "wrap"}}>
+              <button className="btn-return-home" data-onclick="toggleReciprocityHubModal(false)" style={{"minHeight": "48px", "padding": "12px 28px", "fontSize": "1.05rem", "cursor": "pointer"}} type="button">
+                
+        ← RETURN TO MAIN PLATFORM
+      
+              </button>
+              <button className="btn-secondary-modal" data-onclick="toggleReciprocityHubModal(false); openAndSwitch('booking');" style={{"padding": "12px 20px", "fontSize": "0.95rem", "fontWeight": "700"}} type="button">
+                
+        🎯 View All Training Courses
+      
+              </button>
+            </div>
+          
+              </div>
               {/* (Vehicle Travel moved into #vehicleTravelModal deep-dive popup) */}
               {/* (Flying With Firearm moved into #flyingWithFirearmModal deep-dive popup) */}
               <div className="fi-section-header" id="fi-sec-renewal">
