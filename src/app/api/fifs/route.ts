@@ -551,10 +551,61 @@ export async function POST(req: NextRequest) {
             payment_method: 'Stripe / Pending',
           });
 
+        const magicLink = `https://trainwithfifs.com/?id=${generatedId}`;
+
+        // Send transactional email if RESEND_API_KEY is configured
+        if (process.env.RESEND_API_KEY && (payload.email || student.email)) {
+          try {
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                from: 'Lead Instructor Kai Wade <info@trainwithfifs.com>',
+                to: [payload.email || student.email],
+                subject: `Student Operations Portal Access (${generatedId})`,
+                html: `<div style="font-family: Arial, sans-serif; background: #070b10; color: #e2e8f0; padding: 24px; border-radius: 8px;">
+                  <h2 style="color: #00e5ff;">Welcome to FIFS, ${payload.fullName || 'Student'}!</h2>
+                  <p>Instructor Kai Wade has issued your direct student operations portal access.</p>
+                  <p><strong>Your Access ID:</strong> <code style="color: #ffb703; font-size: 16px;">${generatedId}</code></p>
+                  <p><strong>Enrolled Course:</strong> ${payload.course || 'Maryland Wear & Carry'}</p>
+                  <p style="margin: 24px 0;">
+                    <a href="${magicLink}" style="background: #00e5ff; color: #070b10; padding: 12px 24px; font-weight: bold; text-decoration: none; border-radius: 6px; display: inline-block;">Log In To Student Portal &rarr;</a>
+                  </p>
+                  <p style="font-size: 12px; color: #94a3b8;">Or open: <a href="${magicLink}" style="color: #00e5ff;">${magicLink}</a></p>
+                </div>`
+              })
+            }).catch(e => console.warn('Email dispatch failed:', e));
+          } catch (e) {
+            console.warn('Email call error:', e);
+          }
+        }
+
+        // Forward invite alert with clickable magic link to Discord command channel
+        if (process.env.DISCORD_WEBHOOK_URL) {
+          try {
+            await fetch(process.env.DISCORD_WEBHOOK_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                username: 'FIFS Portal Bot',
+                content: `📬 **New Student Portal Invite Issued**
+**Student:** ${payload.fullName || 'Student'} (${generatedId})
+**Email:** ${payload.email}
+**Course:** ${payload.course}
+**Direct Magic Link:** ${magicLink}`
+              })
+            }).catch(() => {});
+          } catch (e) {}
+        }
+
         return NextResponse.json({
           success: true,
           status: 'success',
           studentId: generatedId,
+          magicLink,
           student: normalizeStudent(student),
         });
       }

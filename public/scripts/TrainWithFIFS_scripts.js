@@ -2204,7 +2204,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         tr.innerHTML = `
           <td><strong style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.95rem;">${s.studentId}</strong></td>
           <td>
-            <div style="font-weight: 700; color: #fff;">${s.fullName}</div>
+            <div style="font-weight: 700; color: #fff; cursor: pointer; text-decoration: underline; text-decoration-color: var(--accent-cyan);" onclick="openStudentPortalAsAdmin('${s.studentId}')" title="Click to access student portal">${s.fullName} <span style="font-size: 0.75rem; color: var(--accent-cyan);">&#8599;</span></div>
             <div style="font-size: 0.80rem; color: var(--text-muted);">${s.email} • ${s.phone || 'No phone'}</div>
           </td>
           <td><span style="font-size: 0.85rem; color: #cbd5e1;">${s.course}</span></td>
@@ -2224,6 +2224,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           </td>
           <td><span class="meta-chip chip-status" id="chip-status-${s.studentId}">${formatStepLabel(stepNum)}</span></td>
           <td style="text-align: right; white-space: nowrap;">
+            <button type="button" class="btn-spark" onclick="openStudentPortalAsAdmin('${s.studentId}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px; border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Access Student Portal">?? Portal</button>
             <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${s.studentId}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px;" title="Edit Student Record">✏️ Edit</button>
             <button type="button" class="btn-spark" onclick="deleteStudentFromAdmin('${s.studentId}')" style="padding: 5px 10px; font-size: 0.78rem; border-color: #ef4444; color: #ef4444;" title="Delete Student Record">🗑️</button>
           </td>
@@ -10818,3 +10819,18 @@ if (typeof window !== 'undefined') {
     } else {
       checkUrlForPortalInvite();
     }
+
+    function openStudentPortalAsAdmin(studentId) {
+      if (!studentId) return;
+      if (typeof openAndSwitch === 'function') {
+        openAndSwitch('portal');
+      }
+      var input = document.getElementById('studentAuthInput');
+      if (input) {
+        input.value = studentId;
+        if (typeof lookupStudentAccount === 'function') {
+          lookupStudentAccount();
+        }
+      }
+    }
+    window.openStudentPortalAsAdmin = openStudentPortalAsAdmin;
