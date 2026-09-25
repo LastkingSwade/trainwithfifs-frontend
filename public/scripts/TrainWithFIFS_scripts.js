@@ -8174,7 +8174,9 @@ function getStepNumberFromStatus(statusStr) {
         group.setAttribute('id', 'stateNode-' + code);
         group.setAttribute('data-code', code);
         group.setAttribute('opacity', isVisible ? '1' : '0.25');
-        group.onclick = () => selectState(code);
+        group.setAttribute('data-onclick', "selectState('" + code + "')");
+      group.style.cursor = 'pointer';
+      group.onclick = function() { selectState(code); };
         // Rectangle
         var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         rect.setAttribute('class', 'state-bg-rect');
@@ -10776,3 +10778,15 @@ function triggerAdminRefreshAll(btn) {
   });
 }
 window.triggerAdminRefreshAll = triggerAdminRefreshAll;
+
+
+// Auto-initialize reciprocity engine if document is already interactive/complete
+if (typeof window !== 'undefined') {
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    if (typeof initReciprocityEngine === 'function') initReciprocityEngine();
+  } else {
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof initReciprocityEngine === 'function') initReciprocityEngine();
+    });
+  }
+}

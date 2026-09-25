@@ -654,16 +654,20 @@ export async function POST(req: NextRequest) {
           }, { status: 401 });
         }
 
-        // Fetch related invoices
-        const { data: invoices } = await supabase
-          .from('invoices')
-          .select('*')
-          .eq('student_id', student.student_id);
+        // Fetch related invoices & scoresheet
+        const [{ data: invoices }, { data: scoresheet }] = await Promise.all([
+          supabase.from('invoices').select('*').eq('student_id', student.student_id),
+          supabase.from('student_scoresheets').select('*').eq('student_id', student.student_id).maybeSingle(),
+        ]);
+
+        const studentProfile = normalizeStudent(student);
+        (studentProfile as any).scoresheet = scoresheet || null;
 
         return NextResponse.json({
           success: true,
           status: 'success',
-          student: normalizeStudent(student),
+          student: studentProfile,
+          scoresheet: scoresheet || null,
           invoices: (invoices || []).map(normalizeInvoice),
         });
       }
@@ -1177,6 +1181,86 @@ export async function POST(req: NextRequest) {
       case 'logAnalytics':
       case 'resetTelemetry': {
         return NextResponse.json({ success: true, status: 'success' });
+      }
+
+      // --- DISCORD TELEMETRY VISIT NOTIFICATION ---
+      case 'trackSiteVisit': {
+        const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+        if (!webhookUrl) return NextResponse.json({ success: true, logged: false });
+        const userAgent = req.headers.get('user-agent') || 'Unknown Device';
+        const referer = req.headers.get('referer') || 'Direct Visit';
+        const pagePath = payload.path || '/';
+
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            embeds: [{
+              title: '🌐 New Website Visitor Detected',
+              description: `A visitor landed on **Train With FIFS**`,
+              color: 0xd4af37,
+              fields: [
+                { name: 'Target Page', value: pagePath, inline: true },
+                { name: 'Referrer', value: referer, inline: true },
+                { name: 'Browser / Device', value: userAgent.slice(0, 100), inline: false },
+              ],
+              timestamp: new Date().toISOString(),
+            }]
+          })
+        }).catch(() => {});
+
+        return NextResponse.json({ success: true, status: 'success' });
+      }
+
+      // --- DUAL-MODE SCORESHEET MANAGEMENT (MSP FORM 29-14) ---
+      case 'saveStudentScoresheet': {
+        if (!verifyAdminPasscode(passcode)) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
+        }
+        const studentId = payload.studentId || payload.student_id;
+        const imageUrl = payload.imageUrl || payload.image_url;
+        if (!studentId || !imageUrl) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier or scoresheet image URL.' }, { status: 400 });
+        }
+
+        const scoresheetRow = {
+          student_id: studentId,
+          image_url: imageUrl,
+          notes: payload.notes || null,
+          is_unread_by_student: true,
+          updated_at: new Date().toISOString(),
+        };
+
+        const { data, error } = await supabase
+          .from('student_scoresheets')
+          .upsert(scoresheetRow, { onConflict: 'student_id' })
+          .select()
+          .single();
+
+        if (error) {
+          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
+        }
+        return NextResponse.json({ success: true, status: 'success', scoresheet: data });
+      }
+
+      case 'deleteStudentScoresheet': {
+        if (!verifyAdminPasscode(passcode)) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
+        }
+        const studentId = payload.studentId || payload.student_id;
+        if (!studentId) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier.' }, { status: 400 });
+        }
+
+        const { error } = await supabase
+          .from('student_scoresheets')
+          .delete()
+          .eq('student_id', studentId);
+
+        if (error) {
+          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
+        }
+        return NextResponse.json({ success: true, status: 'success', message: 'Scoresheet deleted.' });
       }
 
       default:
