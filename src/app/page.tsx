@@ -2167,6 +2167,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
               </div>
             </section>
+            {/* MARYLAND STATUTORY COMPARISON INSPECTOR */}
+            <div className="md-comparison-inspector" id="mdComparisonInspector"></div>
             {/* My Permits List Section (from Reference 00:03 - 00:04) */}
             <section className="my-permits-card">
               <div className="my-permits-header">
@@ -6063,6 +6065,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
               </div>
             </section>
+            {/* MARYLAND STATUTORY COMPARISON INSPECTOR */}
+            <div className="md-comparison-inspector" id="mdComparisonInspector"></div>
             {/* My Permits List Section (from Reference 00:03 - 00:04) */}
             <section className="my-permits-card">
               <div className="my-permits-header">

@@ -5905,11 +5905,194 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       selectState(currentStateFocus);
     }
     // Render interactive SVG Map
+    
+    // ==========================================================================
+    // MARYLAND LAW COMPARISON & RECIPROCITY ENGINE
+    // ==========================================================================
+    function compareStateWithMaryland(code) {
+      var state = STATES_DATA[code];
+      if (!state) return null;
+      var evalRes = evaluateState(code);
+      var comparisons = [];
+
+      // 1. Reciprocity / Recognition
+      var recipTag = 'CONFIRMS WITH MD';
+      var recipColor = '#10b981';
+      var recipNote = '';
+      if (code === 'MD') {
+        recipTag = 'HOME STATE BASELINE';
+        recipColor = '#00e5ff';
+        recipNote = 'Maryland Wear & Carry Permit issued by MSP (16-hr initial / 8-hr renewal). Operational baseline.';
+      } else if (evalRes.status === 'constitutional') {
+        recipTag = 'DIFFERS (PERMITLESS)';
+        recipColor = '#00e5ff';
+        recipNote = state.name + ' allows permitless constitutional carry (21+) without requiring a permit.';
+      } else if (evalRes.status === 'honored') {
+        recipTag = 'CONFIRMS (RECIPROCAL)';
+        recipColor = '#10b981';
+        recipNote = state.name + ' directly honors your Maryland Wear & Carry permit.';
+      } else if (evalRes.status === 'special') {
+        recipTag = 'DIFFERS (CONDITIONAL)';
+        recipColor = '#f59e0b';
+        recipNote = state.name + ' requires non-resident permit (e.g. PA $20 LTCF) or specific statutory conditions.';
+      } else {
+        recipTag = 'RESTRICTED (NO RECIPROCITY)';
+        recipColor = '#ef4444';
+        recipNote = state.name + ' does NOT recognize Maryland permits. Criminal penalties for unlicensed carry.';
+      }
+      comparisons.push({
+        topic: 'Reciprocity & Recognition',
+        mdRule: 'Wear & Carry Permit Required (MSP issued, 16-hr course)',
+        stateRule: evalRes.label + ' - ' + evalRes.verdictText,
+        statusTag: recipTag,
+        statusColor: recipColor,
+        note: recipNote
+      });
+
+      // 2. Constitutional Carry Status
+      var isConst = state.status_type === 'constitutional' || (state.statutes && state.statutes.constitutional && state.statutes.constitutional.ans === 'YES');
+      comparisons.push({
+        topic: 'Permitless / Constitutional Carry',
+        mdRule: 'NO - Permitless carry is prohibited in MD. Wear & Carry license required.',
+        stateRule: isConst ? 'YES - Lawful permitless concealed carry for eligible adults (21+).' : 'NO - Permit strictly required for concealed carry.',
+        statusTag: isConst ? 'DIFFERS (MORE PERMISSIVE)' : 'CONFIRMS WITH MD (PERMIT REQUIRED)',
+        statusColor: isConst ? '#00e5ff' : '#10b981',
+        note: isConst ? 'Carry without permit is legal under state law.' : 'Both Maryland and ' + state.name + ' mandate a license.'
+      });
+
+      // 3. Magazine Capacity Limits
+      var mdMag = '10-round retail purchase/transfer limit inside MD (possession is legal)';
+      var stateMag = state.mag_limit || 'None (No state limit)';
+      var magStrict = stateMag.toLowerCase().includes('10-round') || stateMag.toLowerCase().includes('strict') || stateMag.toLowerCase().includes('10 round');
+      var magNone = stateMag.toLowerCase().includes('none') || stateMag.toLowerCase().includes('no state limit');
+      comparisons.push({
+        topic: 'Magazine Capacity Restrictions',
+        mdRule: mdMag,
+        stateRule: stateMag,
+        statusTag: magNone ? 'DIFFERS (NO CAPACITY LIMIT)' : (magStrict ? 'RESTRICTED (STRICT 10-RD BAN)' : 'CONFIRMS WITH MD'),
+        statusColor: magNone ? '#00e5ff' : (magStrict ? '#ef4444' : '#10b981'),
+        note: magStrict ? 'Warning: Strict capacity cap. Possessing >10 round magazines may carry criminal penalties.' : (magNone ? 'More permissive than Maryland: No 10-round limit.' : 'Statutes generally align with Maryland rules.')
+      });
+
+      // 4. Duty to Inform Law Enforcement
+      var mdDuty = 'Duty to inform when requested by officer.';
+      var stateDuty = state.duty || 'When requested by officer';
+      var dutyImmediate = stateDuty.toLowerCase().includes('immediate');
+      comparisons.push({
+        topic: 'Duty to Inform Law Enforcement',
+        mdRule: mdDuty,
+        stateRule: stateDuty,
+        statusTag: dutyImmediate ? 'DIFFERS (IMMEDIATE DUTY)' : 'CONFIRMS WITH MD (UPON REQUEST)',
+        statusColor: dutyImmediate ? '#f59e0b' : '#10b981',
+        note: dutyImmediate ? 'CRITICAL TRAVEL RULE: You must immediately disclose firearm possession and permit upon official contact.' : 'Statutory requirement to inform only when specifically asked by law enforcement.'
+      });
+
+      // 5. Vehicle Transportation
+      var mdVeh = 'Loaded carry requires Wear & Carry permit; otherwise unloaded in locked case separate from ammo.';
+      var stateVeh = state.vehicle || 'Permitted with valid license or under federal FOPA.';
+      var vehPermissive = stateVeh.toLowerCase().includes('without permit') || stateVeh.toLowerCase().includes('permitless');
+      comparisons.push({
+        topic: 'Vehicle Transportation & Storage',
+        mdRule: mdVeh,
+        stateRule: stateVeh,
+        statusTag: vehPermissive ? 'DIFFERS (PERMITLESS VEHICLE CARRY)' : 'CONFIRMS (PERMIT REQUIRED)',
+        statusColor: vehPermissive ? '#00e5ff' : '#10b981',
+        note: stateVeh
+      });
+
+      // 6. Open Carry Regulations
+      var mdOpen = 'Concealed carry standard; open carry heavily restricted under SB1.';
+      var stateOpen = state.open_carry || 'Permit required';
+      var openPerm = stateOpen.toLowerCase().includes('yes') || stateOpen.toLowerCase().includes('without permit');
+      var openBanned = stateOpen.toLowerCase().includes('prohibited') || stateOpen.toLowerCase().includes('no');
+      comparisons.push({
+        topic: 'Open Carry Regulations',
+        mdRule: mdOpen,
+        stateRule: stateOpen,
+        statusTag: openPerm ? 'DIFFERS (OPEN CARRY LEGAL)' : (openBanned ? 'RESTRICTED (OPEN CARRY PROHIBITED)' : 'CONFIRMS WITH MD'),
+        statusColor: openPerm ? '#00e5ff' : (openBanned ? '#ef4444' : '#10b981'),
+        note: openPerm ? 'State allows lawful open carry without requiring concealment.' : (openBanned ? 'Open carry is prohibited.' : 'Concealed carry is the standard lawful method.')
+      });
+
+      // 7. Non-Lethal Defense (Pepper Spray & Byrna)
+      var stateByrna = state.byrna || 'Yes';
+      var byrnaRestricted = stateByrna.toLowerCase().includes('restricted') || stateByrna.toLowerCase().includes('no');
+      comparisons.push({
+        topic: 'Non-Lethal Defense (Pepper Spray & Byrna)',
+        mdRule: 'Legal: Pepper spray, stun guns, and Byrna launchers are unregulated as firearms.',
+        stateRule: 'Pepper Spray: ' + (state.non_lethal || 'Legal') + ' | Byrna: ' + stateByrna,
+        statusTag: byrnaRestricted ? 'DIFFERS (RESTRICTED NON-LETHAL)' : 'CONFIRMS WITH MD (LEGAL)',
+        statusColor: byrnaRestricted ? '#ef4444' : '#10b981',
+        note: byrnaRestricted ? 'Caution: This jurisdiction restricts kinetic launchers or defense sprays.' : 'Non-lethal defensive tools are lawful for personal security.'
+      });
+
+      return {
+        state: state,
+        code: code,
+        evalRes: evalRes,
+        comparisons: comparisons
+      };
+    }
+
+    function renderMdComparison(code) {
+      var comp = compareStateWithMaryland(code);
+      if (!comp) return;
+      var containers = Array.from(document.querySelectorAll('#mdComparisonInspector, .md-comparison-inspector'));
+      if (containers.length === 0) return;
+
+      var verdictBg = comp.evalRes.canCarry ? 'rgba(16, 185, 129, 0.15)' : (comp.evalRes.status === 'special' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)');
+      var verdictColor = comp.evalRes.canCarry ? 'var(--accent-green)' : (comp.evalRes.status === 'special' ? 'var(--accent-amber)' : 'var(--accent-red)');
+
+      var html = '<div style="background: linear-gradient(135deg, rgba(13, 20, 31, 0.95) 0%, rgba(7, 11, 16, 0.98) 100%); border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 12px; padding: 20px; margin-top: 18px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);">';
+      html += '<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 14px; margin-bottom: 16px;">';
+      html += '<div>';
+      html += '<div style="font-size: 0.72rem; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;">MARYLAND STATUTORY COMPARISON & AUDIT</div>';
+      html += '<h4 style="font-family: var(--font-display); font-size: 1.35rem; color: #fff; margin: 2px 0 0; text-transform: uppercase;">' + comp.state.name + ' (' + comp.code + ') vs. Maryland (MD Baseline)</h4>';
+      html += '</div>';
+      html += '<div style="display: flex; align-items: center; gap: 10px;">';
+      html += '<span style="font-size: 0.78rem; padding: 6px 12px; border-radius: 6px; font-weight: 700; text-transform: uppercase; background: ' + verdictBg + '; border: 1px solid ' + verdictColor + '; color: ' + verdictColor + ';">' + comp.evalRes.label + '</span>';
+      html += "<button onclick=\"openStateModal('" + comp.code + "')\" class=\"btn-inspect-gun-laws\" style=\"padding: 6px 14px; font-size: 0.78rem;\">FULL STATUTE DOSSIER</button>";
+      html += '</div>';
+      html += '</div>';
+      html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">';
+
+      comp.comparisons.forEach(function(item) {
+        html += '<div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between;">';
+        html += '<div>';
+        html += '<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">';
+        html += '<span style="font-size: 0.82rem; font-weight: 700; color: #f1f5f9; text-transform: uppercase; letter-spacing: 0.5px;">' + item.topic + '</span>';
+        html += '<span style="font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: rgba(0,0,0,0.5); color: ' + item.statusColor + '; border: 1px solid ' + item.statusColor + '; white-space: nowrap;">' + item.statusTag + '</span>';
+        html += '</div>';
+        html += '<div style="font-size: 0.76rem; color: #94a3b8; margin-bottom: 4px; line-height: 1.4;"><strong style="color: var(--accent-cyan);">MD Baseline:</strong> ' + item.mdRule + '</div>';
+        html += '<div style="font-size: 0.76rem; color: #e2e8f0; line-height: 1.4;"><strong style="color: #f59e0b;">' + comp.code + ' Law:</strong> ' + item.stateRule + '</div>';
+        html += '</div>';
+        html += '<div style="font-size: 0.72rem; color: #64748b; font-style: italic; margin-top: 8px; border-top: 1px dashed rgba(255,255,255,0.06); padding-top: 6px;">' + item.note + '</div>';
+        html += '</div>';
+      });
+
+      html += '</div></div>';
+      containers.forEach(function(c) { c.innerHTML = html; });
+    }
+
     function renderSvgMap() {
       var svgs = Array.from(document.querySelectorAll("#interactiveUsSvg, .interactive-us-svg"));
       if (svgs.length === 0) return;
-      svgs.forEach(function(s) { s.innerHTML = ""; });
-      Object.keys(STATES_DATA).forEach(code => {
+      svgs.forEach(function(s) { 
+        s.innerHTML = ""; 
+        // Attach click delegation on SVG root so all dynamic state clicks work
+        if (!s._clickBound) {
+          s.addEventListener('click', function(e) {
+            var target = e.target.closest('.svg-state-group');
+            if (target && target.dataset && target.dataset.code) {
+              e.preventDefault();
+              selectState(target.dataset.code);
+            }
+          });
+          s._clickBound = true;
+        }
+      });
+
+      Object.keys(STATES_DATA).forEach(function(code) {
         var state = STATES_DATA[code];
         var coord = SVG_COORDS[code] || { x: 50, y: 50, w: 55, h: 45 };
         var evalRes = evaluateState(code);
@@ -5925,201 +6108,95 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           var matchName = state.name.toLowerCase().includes(activeSearchQuery);
           if (!matchCode && !matchName) isVisible = false;
         }
-        var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        group.setAttribute('class', 'svg-state-group status-' + evalRes.status.replace('_', '-') + (code === currentStateFocus ? ' selected' : ''));
-        group.setAttribute('id', 'stateNode-' + code);
-        group.setAttribute('data-code', code);
-        group.style.cursor = 'pointer';
-        group.onclick = function(e) { if(e) e.preventDefault(); selectState(code); };
-        group.setAttribute('opacity', isVisible ? '1' : '0.25');
-        group.setAttribute('data-onclick', "selectState('" + code + "')");
-      group.style.cursor = 'pointer';
-      group.onclick = function() { selectState(code); };
-        // Rectangle
-        var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('class', 'state-bg-rect');
-        rect.setAttribute('x', coord.x);
-        rect.setAttribute('y', coord.y);
-        rect.setAttribute('width', coord.w);
-        rect.setAttribute('height', coord.h);
-        // State Code Text
-        var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.setAttribute('class', 'state-code-text');
-        text.setAttribute('x', coord.x + coord.w / 2);
-        text.setAttribute('y', coord.y + coord.h / 2 - 4);
-        text.textContent = code;
-        // Status Symbol / Checkmark (like reference video)
-        var sub = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        sub.setAttribute('class', 'state-status-indicator');
-        sub.setAttribute('x', coord.x + coord.w / 2);
-        sub.setAttribute('y', coord.y + coord.h / 2 + 12);
-        if (evalRes.canCarry) {
-          sub.textContent = '✓ Carry';
-          sub.setAttribute('fill', '#10b981');
-        } else if (evalRes.status === 'special') {
-          sub.textContent = '⚠ Cond.';
-          sub.setAttribute('fill', '#ffb703');
-        } else {
-          sub.textContent = '✕ Restricted';
-          sub.setAttribute('fill', '#ef4444');
-        }
-        group.appendChild(rect);
-        group.appendChild(text);
-        group.appendChild(sub);
-        svgs.forEach(function(s) { s.appendChild(group.cloneNode(true)); });
+
+        svgs.forEach(function(s) {
+          var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          group.setAttribute('class', 'svg-state-group status-' + evalRes.status.replace('_', '-') + (code === currentStateFocus ? ' selected' : ''));
+          group.setAttribute('id', 'stateNode-' + code + '-' + (s.id || 'svg'));
+          group.setAttribute('data-code', code);
+          group.style.cursor = 'pointer';
+          group.setAttribute('opacity', isVisible ? '1' : '0.25');
+
+          // Rectangle
+          var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('class', 'state-bg-rect');
+          rect.setAttribute('x', coord.x);
+          rect.setAttribute('y', coord.y);
+          rect.setAttribute('width', coord.w);
+          rect.setAttribute('height', coord.h);
+          rect.setAttribute('rx', '6');
+          rect.setAttribute('ry', '6');
+
+          // State Code Text
+          var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('class', 'state-code-text');
+          text.setAttribute('x', coord.x + coord.w / 2);
+          text.setAttribute('y', coord.y + coord.h / 2 - 4);
+          text.textContent = code;
+
+          // Status Indicator
+          var sub = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          sub.setAttribute('class', 'state-status-indicator');
+          sub.setAttribute('x', coord.x + coord.w / 2);
+          sub.setAttribute('y', coord.y + coord.h / 2 + 12);
+          if (evalRes.canCarry) {
+            sub.textContent = '✓ Carry';
+            sub.setAttribute('fill', '#10b981');
+          } else if (evalRes.status === 'special') {
+            sub.textContent = '⚠ Cond.';
+            sub.setAttribute('fill', '#ffb703');
+          } else {
+            sub.textContent = '✕ Restricted';
+            sub.setAttribute('fill', '#ef4444');
+          }
+
+          group.appendChild(rect);
+          group.appendChild(text);
+          group.appendChild(sub);
+          s.appendChild(group);
+        });
       });
     }
-    // Select State and Update Spotlights
     function selectState(code) {
       currentStateFocus = code;
       var state = STATES_DATA[code];
       if (!state) return;
       var evalRes = evaluateState(code);
       // Update Highlight on Map
-      document.querySelectorAll('.svg-state-group').forEach(el => el.classList.remove('selected'));
-      var activeEl = document.getElementById('stateNode-' + code);
-      if (activeEl) activeEl.classList.add('selected');
+      document.querySelectorAll('.svg-state-group').forEach(function(el) {
+        if (el.getAttribute('data-code') === code) {
+          el.classList.add('selected');
+        } else {
+          el.classList.remove('selected');
+        }
+      });
       // Update Spotlight Banner
-      document.getElementById('spotlightStateName').textContent = state.name;
-      var verdictEl = document.getElementById('spotlightVerdict');
-      verdictEl.textContent = evalRes.verdictText;
-      if (evalRes.canCarry) {
-        verdictEl.className = 'carry-verdict-text can-carry';
-      } else if (evalRes.status === 'special') {
-        verdictEl.className = 'carry-verdict-text special-carry';
-      } else {
-        verdictEl.className = 'carry-verdict-text cannot-carry';
-      }
-      document.getElementById('btnInspectLaws').textContent = 'SEE ' + state.name.toUpperCase() + ' GUN LAWS';
+      var spotlightNames = document.querySelectorAll('#spotlightStateName, .spotlight-state-name');
+      spotlightNames.forEach(function(el) { el.textContent = state.name; });
+
+      var verdictEls = document.querySelectorAll('#spotlightVerdict, .spotlight-verdict');
+      verdictEls.forEach(function(verdictEl) {
+        verdictEl.textContent = evalRes.verdictText;
+        if (evalRes.canCarry) {
+          verdictEl.className = 'carry-verdict-text can-carry';
+        } else if (evalRes.status === 'special') {
+          verdictEl.className = 'carry-verdict-text special-carry';
+        } else {
+          verdictEl.className = 'carry-verdict-text cannot-carry';
+        }
+      });
+
+      var inspectBtns = document.querySelectorAll('#btnInspectLaws, .btn-inspect-laws');
+      inspectBtns.forEach(function(btn) {
+        btn.textContent = 'SEE ' + state.name.toUpperCase() + ' GUN LAWS';
+        btn.onclick = function() { openStateModal(code); };
+      });
+
       // Render Neighbor State Quick Cards
       renderNeighborCards(state.neighbors || []);
-    }
-    // Render Neighbor Quick Cards
-    function renderNeighborCards(neighbors) {
-      var container = document.getElementById('neighborCardsRow');
-      container.innerHTML = '';
-      if (neighbors.length === 0) {
-        container.innerHTML = '<div style="font-size: 0.85rem; color: var(--text-dim);">No direct land borders.</div>';
-        return;
-      }
-      neighbors.forEach(nCode => {
-        var nState = STATES_DATA[nCode];
-        if (!nState) return;
-        var evalRes = evaluateState(nCode);
-        var card = document.createElement('div');
-        card.className = 'neighbor-state-card';
-        card.onclick = () => selectState(nCode);
-        var verdictClass = 'cannot';
-        var verdictLabel = 'Cannot Carry';
-        if (evalRes.canCarry) {
-          verdictClass = 'can';
-          verdictLabel = 'Can Carry';
-        } else if (evalRes.status === 'special') {
-          verdictClass = 'special';
-          verdictLabel = 'Conditional';
-        }
-        card.innerHTML = `
-          <div class="n-code">${nCode}</div>
-          <div class="n-verdict ${verdictClass}">${verdictLabel}</div>
-        `;
-        container.appendChild(card);
-      });
-    }
-    // Render My Permits List
-    function renderMyPermitsList() {
-      var list = document.getElementById('myPermitsList');
-      list.innerHTML = '';
-      // Resident Permit
-      var resState = STATES_DATA[activeResidentState];
-      var resRow = document.createElement('div');
-      resRow.className = 'permit-row-item';
-      resRow.innerHTML = `
-        <div class="permit-name-tag">${resState ? resState.name : activeResidentState} (RESIDENT PRIMARY)</div>
-        <div class="permit-status-badge-circle badge-primary-resident">&#10003;</div>
-      `;
-      list.appendChild(resRow);
-      // Multipliers
-      activeMultipliers.forEach(mCode => {
-        var mState = STATES_DATA[mCode];
-        var mRow = document.createElement('div');
-        mRow.className = 'permit-row-item';
-        mRow.innerHTML = `
-          <div class="permit-name-tag">${mState ? mState.name : mCode} (NON-RESIDENT MULTIPLIER)</div>
-          <div class="permit-status-badge-circle badge-multiplier">&#10003;</div>
-        `;
-        list.appendChild(mRow);
-      });
-    }
-    // Multiplier Toggle Handler
-    function toggleMultiplier(code) {
-      var chip = document.getElementById('chip-' + code);
-      if (activeMultipliers.has(code)) {
-        activeMultipliers.delete(code);
-        if (chip) chip.classList.remove('active');
-      } else {
-        activeMultipliers.add(code);
-        if (chip) chip.classList.add('active');
-      }
-      recalculateReciprocity();
-    }
-    // Resident State Change Handler
-    function handleResidentStateChange(code) {
-      activeResidentState = code;
-      recalculateReciprocity();
-    }
-    // Build Vertical State Roller
-    function buildRollerList() {
-      var roller = document.getElementById('stateRollerList');
-      roller.innerHTML = '';
-      Object.keys(STATES_DATA).sort().forEach(code => {
-        var item = document.createElement('div');
-        item.className = 'roller-item' + (code === currentRollerState ? ' active' : '');
-        item.id = 'rollerItem-' + code;
-        item.textContent = code;
-        item.onclick = () => selectRollerState(code);
-        roller.appendChild(item);
-      });
-    }
-    function selectRollerState(code) {
-      currentRollerState = code;
-      var state = STATES_DATA[code];
-      if (!state) return;
-      document.querySelectorAll('.roller-item').forEach(el => el.classList.remove('active'));
-      var activeEl = document.getElementById('rollerItem-' + code);
-      if (activeEl) {
-        activeEl.classList.add('active');
-        if (activeEl.offsetParent !== null) {
-          activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
-      var evalRes = evaluateState(code);
-      document.getElementById('rollerStateName').textContent = state.name.toUpperCase();
-      document.getElementById('rollerStateDesc').textContent = evalRes.verdictText + ' Select to inspect complete statutes.';
-      document.getElementById('rollerStateIcon').textContent = evalRes.canCarry ? '✓' : '✕';
-      document.getElementById('rollerStateIcon').style.color = evalRes.canCarry ? 'var(--accent-green)' : 'var(--accent-red)';
-    }
-    // Filter toolbar
-    function setCategoryFilter(filter) {
-      currentCategoryFilter = filter;
-      document.querySelectorAll('.filter-btn-pill').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-filter') === filter);
-      });
-      renderSvgMap();
-    }
-    function handleSearch(val) {
-      activeSearchQuery = val.trim().toLowerCase();
-      renderSvgMap();
-    }
-    function promptAddPermit() {
-      var choice = prompt('Select Non-Resident Permit Multiplier to Add:\n1. UT (Utah)\n2. FL (Florida)\n3. AZ (Arizona)\n4. PA (Pennsylvania)\n5. VA (Virginia)\n\nEnter 2-letter state abbreviation:');
-      if (choice) {
-        var clean = choice.trim().toUpperCase();
-        if (['UT', 'FL', 'AZ', 'PA', 'VA'].includes(clean)) {
-          toggleMultiplier(clean);
-        } else {
-          alert('State multiplier ' + clean + ' not recognized. Available multipliers: UT, FL, AZ, PA, VA.');
-        }
-      }
+
+      // Render Maryland Comparison Matrix
+      renderMdComparison(code);
     }
     // Modal Law Viewer Logic
     function openStateModal(code) {
@@ -6213,6 +6290,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     }
     window.initReciprocityEngine = initReciprocityEngine;
     window.selectState = selectState;
+    window.compareStateWithMaryland = compareStateWithMaryland;
+    window.renderMdComparison = renderMdComparison;
     window.openStateModal = openStateModal;
     window.closeStateModal = closeStateModal;
     window.toggleMultiplier = toggleMultiplier;
