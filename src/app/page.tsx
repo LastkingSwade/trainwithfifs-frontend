@@ -2133,8 +2133,262 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
               <div className="svg-canvas-wrapper">
                 <svg className="interactive-us-svg" id="interactiveUsSvg" viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg">
-                  {/* Populated dynamically by JS engine */}
-                </svg>
+  <g className="svg-state-group status-constitutional" data-code="AK" id="stateNode-AK" style={{ cursor: 'pointer' }} data-onclick="selectState('AK'); if(typeof openStateModal==='function') openStateModal('AK');">
+    <rect className="state-bg-rect" x="30" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="60.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">AK</text>
+    <text className="state-status-indicator" x="60.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="WA" id="stateNode-WA" style={{ cursor: 'pointer' }} data-onclick="selectState('WA'); if(typeof openStateModal==='function') openStateModal('WA');">
+    <rect className="state-bg-rect" x="110" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="140.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">WA</text>
+    <text className="state-status-indicator" x="140.0" y="72.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="ID" id="stateNode-ID" style={{ cursor: 'pointer' }} data-onclick="selectState('ID'); if(typeof openStateModal==='function') openStateModal('ID');">
+    <rect className="state-bg-rect" x="185" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="215.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">ID</text>
+    <text className="state-status-indicator" x="215.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="MT" id="stateNode-MT" style={{ cursor: 'pointer' }} data-onclick="selectState('MT'); if(typeof openStateModal==='function') openStateModal('MT');">
+    <rect className="state-bg-rect" x="260" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="290.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MT</text>
+    <text className="state-status-indicator" x="290.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="ND" id="stateNode-ND" style={{ cursor: 'pointer' }} data-onclick="selectState('ND'); if(typeof openStateModal==='function') openStateModal('ND');">
+    <rect className="state-bg-rect" x="335" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">ND</text>
+    <text className="state-status-indicator" x="365.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="MN" id="stateNode-MN" style={{ cursor: 'pointer' }} data-onclick="selectState('MN'); if(typeof openStateModal==='function') openStateModal('MN');">
+    <rect className="state-bg-rect" x="410" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MN</text>
+    <text className="state-status-indicator" x="440.0" y="72.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="WI" id="stateNode-WI" style={{ cursor: 'pointer' }} data-onclick="selectState('WI'); if(typeof openStateModal==='function') openStateModal('WI');">
+    <rect className="state-bg-rect" x="485" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">WI</text>
+    <text className="state-status-indicator" x="515.0" y="72.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="MI" id="stateNode-MI" style={{ cursor: 'pointer' }} data-onclick="selectState('MI'); if(typeof openStateModal==='function') openStateModal('MI');">
+    <rect className="state-bg-rect" x="560" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MI</text>
+    <text className="state-status-indicator" x="590.0" y="72.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="NY" id="stateNode-NY" style={{ cursor: 'pointer' }} data-onclick="selectState('NY'); if(typeof openStateModal==='function') openStateModal('NY');">
+    <rect className="state-bg-rect" x="710" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="740.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NY</text>
+    <text className="state-status-indicator" x="740.0" y="72.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="VT" id="stateNode-VT" style={{ cursor: 'pointer' }} data-onclick="selectState('VT'); if(typeof openStateModal==='function') openStateModal('VT');">
+    <rect className="state-bg-rect" x="785" y="35" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="810.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">VT</text>
+    <text className="state-status-indicator" x="810.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="NH" id="stateNode-NH" style={{ cursor: 'pointer' }} data-onclick="selectState('NH'); if(typeof openStateModal==='function') openStateModal('NH');">
+    <rect className="state-bg-rect" x="845" y="35" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="870.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NH</text>
+    <text className="state-status-indicator" x="870.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="ME" id="stateNode-ME" style={{ cursor: 'pointer' }} data-onclick="selectState('ME'); if(typeof openStateModal==='function') openStateModal('ME');">
+    <rect className="state-bg-rect" x="900" y="35" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="925.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">ME</text>
+    <text className="state-status-indicator" x="925.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="OR" id="stateNode-OR" style={{ cursor: 'pointer' }} data-onclick="selectState('OR'); if(typeof openStateModal==='function') openStateModal('OR');">
+    <rect className="state-bg-rect" x="110" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="140.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">OR</text>
+    <text className="state-status-indicator" x="140.0" y="132.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="NV" id="stateNode-NV" style={{ cursor: 'pointer' }} data-onclick="selectState('NV'); if(typeof openStateModal==='function') openStateModal('NV');">
+    <rect className="state-bg-rect" x="185" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="215.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NV</text>
+    <text className="state-status-indicator" x="215.0" y="132.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="WY" id="stateNode-WY" style={{ cursor: 'pointer' }} data-onclick="selectState('WY'); if(typeof openStateModal==='function') openStateModal('WY');">
+    <rect className="state-bg-rect" x="260" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="290.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">WY</text>
+    <text className="state-status-indicator" x="290.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="SD" id="stateNode-SD" style={{ cursor: 'pointer' }} data-onclick="selectState('SD'); if(typeof openStateModal==='function') openStateModal('SD');">
+    <rect className="state-bg-rect" x="335" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">SD</text>
+    <text className="state-status-indicator" x="365.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="IA" id="stateNode-IA" style={{ cursor: 'pointer' }} data-onclick="selectState('IA'); if(typeof openStateModal==='function') openStateModal('IA');">
+    <rect className="state-bg-rect" x="410" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">IA</text>
+    <text className="state-status-indicator" x="440.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="IL" id="stateNode-IL" style={{ cursor: 'pointer' }} data-onclick="selectState('IL'); if(typeof openStateModal==='function') openStateModal('IL');">
+    <rect className="state-bg-rect" x="485" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">IL</text>
+    <text className="state-status-indicator" x="515.0" y="132.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="IN" id="stateNode-IN" style={{ cursor: 'pointer' }} data-onclick="selectState('IN'); if(typeof openStateModal==='function') openStateModal('IN');">
+    <rect className="state-bg-rect" x="560" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">IN</text>
+    <text className="state-status-indicator" x="590.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="OH" id="stateNode-OH" style={{ cursor: 'pointer' }} data-onclick="selectState('OH'); if(typeof openStateModal==='function') openStateModal('OH');">
+    <rect className="state-bg-rect" x="635" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="665.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">OH</text>
+    <text className="state-status-indicator" x="665.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="PA" id="stateNode-PA" style={{ cursor: 'pointer' }} data-onclick="selectState('PA'); if(typeof openStateModal==='function') openStateModal('PA');">
+    <rect className="state-bg-rect" x="710" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="740.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">PA</text>
+    <text className="state-status-indicator" x="740.0" y="132.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="NJ" id="stateNode-NJ" style={{ cursor: 'pointer' }} data-onclick="selectState('NJ'); if(typeof openStateModal==='function') openStateModal('NJ');">
+    <rect className="state-bg-rect" x="785" y="95" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="810.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NJ</text>
+    <text className="state-status-indicator" x="810.0" y="132.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="MA" id="stateNode-MA" style={{ cursor: 'pointer' }} data-onclick="selectState('MA'); if(typeof openStateModal==='function') openStateModal('MA');">
+    <rect className="state-bg-rect" x="845" y="95" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="870.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MA</text>
+    <text className="state-status-indicator" x="870.0" y="132.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="RI" id="stateNode-RI" style={{ cursor: 'pointer' }} data-onclick="selectState('RI'); if(typeof openStateModal==='function') openStateModal('RI');">
+    <rect className="state-bg-rect" x="900" y="95" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="925.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">RI</text>
+    <text className="state-status-indicator" x="925.0" y="132.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="CA" id="stateNode-CA" style={{ cursor: 'pointer' }} data-onclick="selectState('CA'); if(typeof openStateModal==='function') openStateModal('CA');">
+    <rect className="state-bg-rect" x="110" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="140.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">CA</text>
+    <text className="state-status-indicator" x="140.0" y="192.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="UT" id="stateNode-UT" style={{ cursor: 'pointer' }} data-onclick="selectState('UT'); if(typeof openStateModal==='function') openStateModal('UT');">
+    <rect className="state-bg-rect" x="185" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="215.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">UT</text>
+    <text className="state-status-indicator" x="215.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="CO" id="stateNode-CO" style={{ cursor: 'pointer' }} data-onclick="selectState('CO'); if(typeof openStateModal==='function') openStateModal('CO');">
+    <rect className="state-bg-rect" x="260" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="290.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">CO</text>
+    <text className="state-status-indicator" x="290.0" y="192.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="NE" id="stateNode-NE" style={{ cursor: 'pointer' }} data-onclick="selectState('NE'); if(typeof openStateModal==='function') openStateModal('NE');">
+    <rect className="state-bg-rect" x="335" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NE</text>
+    <text className="state-status-indicator" x="365.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="MO" id="stateNode-MO" style={{ cursor: 'pointer' }} data-onclick="selectState('MO'); if(typeof openStateModal==='function') openStateModal('MO');">
+    <rect className="state-bg-rect" x="410" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MO</text>
+    <text className="state-status-indicator" x="440.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="KY" id="stateNode-KY" style={{ cursor: 'pointer' }} data-onclick="selectState('KY'); if(typeof openStateModal==='function') openStateModal('KY');">
+    <rect className="state-bg-rect" x="485" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">KY</text>
+    <text className="state-status-indicator" x="515.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="WV" id="stateNode-WV" style={{ cursor: 'pointer' }} data-onclick="selectState('WV'); if(typeof openStateModal==='function') openStateModal('WV');">
+    <rect className="state-bg-rect" x="560" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">WV</text>
+    <text className="state-status-indicator" x="590.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="VA" id="stateNode-VA" style={{ cursor: 'pointer' }} data-onclick="selectState('VA'); if(typeof openStateModal==='function') openStateModal('VA');">
+    <rect className="state-bg-rect" x="635" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="665.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">VA</text>
+    <text className="state-status-indicator" x="665.0" y="192.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="MD" id="stateNode-MD" style={{ cursor: 'pointer' }} data-onclick="selectState('MD'); if(typeof openStateModal==='function') openStateModal('MD');">
+    <rect className="state-bg-rect" x="710" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="740.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MD</text>
+    <text className="state-status-indicator" x="740.0" y="192.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="DE" id="stateNode-DE" style={{ cursor: 'pointer' }} data-onclick="selectState('DE'); if(typeof openStateModal==='function') openStateModal('DE');">
+    <rect className="state-bg-rect" x="785" y="155" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="810.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">DE</text>
+    <text className="state-status-indicator" x="810.0" y="192.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="CT" id="stateNode-CT" style={{ cursor: 'pointer' }} data-onclick="selectState('CT'); if(typeof openStateModal==='function') openStateModal('CT');">
+    <rect className="state-bg-rect" x="845" y="155" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="870.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">CT</text>
+    <text className="state-status-indicator" x="870.0" y="192.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="AZ" id="stateNode-AZ" style={{ cursor: 'pointer' }} data-onclick="selectState('AZ'); if(typeof openStateModal==='function') openStateModal('AZ');">
+    <rect className="state-bg-rect" x="185" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="215.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">AZ</text>
+    <text className="state-status-indicator" x="215.0" y="252.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="NM" id="stateNode-NM" style={{ cursor: 'pointer' }} data-onclick="selectState('NM'); if(typeof openStateModal==='function') openStateModal('NM');">
+    <rect className="state-bg-rect" x="260" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="290.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NM</text>
+    <text className="state-status-indicator" x="290.0" y="252.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="KS" id="stateNode-KS" style={{ cursor: 'pointer' }} data-onclick="selectState('KS'); if(typeof openStateModal==='function') openStateModal('KS');">
+    <rect className="state-bg-rect" x="335" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">KS</text>
+    <text className="state-status-indicator" x="365.0" y="252.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="AR" id="stateNode-AR" style={{ cursor: 'pointer' }} data-onclick="selectState('AR'); if(typeof openStateModal==='function') openStateModal('AR');">
+    <rect className="state-bg-rect" x="410" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">AR</text>
+    <text className="state-status-indicator" x="440.0" y="252.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="TN" id="stateNode-TN" style={{ cursor: 'pointer' }} data-onclick="selectState('TN'); if(typeof openStateModal==='function') openStateModal('TN');">
+    <rect className="state-bg-rect" x="485" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">TN</text>
+    <text className="state-status-indicator" x="515.0" y="252.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="NC" id="stateNode-NC" style={{ cursor: 'pointer' }} data-onclick="selectState('NC'); if(typeof openStateModal==='function') openStateModal('NC');">
+    <rect className="state-bg-rect" x="635" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="665.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NC</text>
+    <text className="state-status-indicator" x="665.0" y="252.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="DC" id="stateNode-DC" style={{ cursor: 'pointer' }} data-onclick="selectState('DC'); if(typeof openStateModal==='function') openStateModal('DC');">
+    <rect className="state-bg-rect" x="710" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="740.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">DC</text>
+    <text className="state-status-indicator" x="740.0" y="252.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="OK" id="stateNode-OK" style={{ cursor: 'pointer' }} data-onclick="selectState('OK'); if(typeof openStateModal==='function') openStateModal('OK');">
+    <rect className="state-bg-rect" x="335" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">OK</text>
+    <text className="state-status-indicator" x="365.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="LA" id="stateNode-LA" style={{ cursor: 'pointer' }} data-onclick="selectState('LA'); if(typeof openStateModal==='function') openStateModal('LA');">
+    <rect className="state-bg-rect" x="410" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">LA</text>
+    <text className="state-status-indicator" x="440.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="MS" id="stateNode-MS" style={{ cursor: 'pointer' }} data-onclick="selectState('MS'); if(typeof openStateModal==='function') openStateModal('MS');">
+    <rect className="state-bg-rect" x="485" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MS</text>
+    <text className="state-status-indicator" x="515.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="AL" id="stateNode-AL" style={{ cursor: 'pointer' }} data-onclick="selectState('AL'); if(typeof openStateModal==='function') openStateModal('AL');">
+    <rect className="state-bg-rect" x="560" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">AL</text>
+    <text className="state-status-indicator" x="590.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="SC" id="stateNode-SC" style={{ cursor: 'pointer' }} data-onclick="selectState('SC'); if(typeof openStateModal==='function') openStateModal('SC');">
+    <rect className="state-bg-rect" x="635" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="665.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">SC</text>
+    <text className="state-status-indicator" x="665.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="TX" id="stateNode-TX" style={{ cursor: 'pointer' }} data-onclick="selectState('TX'); if(typeof openStateModal==='function') openStateModal('TX');">
+    <rect className="state-bg-rect" x="335" y="335" width="100" height="60" rx="6" ry="6" />
+    <text className="state-code-text" x="385.0" y="361.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">TX</text>
+    <text className="state-status-indicator" x="385.0" y="377.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="GA" id="stateNode-GA" style={{ cursor: 'pointer' }} data-onclick="selectState('GA'); if(typeof openStateModal==='function') openStateModal('GA');">
+    <rect className="state-bg-rect" x="560" y="335" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="356.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">GA</text>
+    <text className="state-status-indicator" x="590.0" y="372.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="FL" id="stateNode-FL" style={{ cursor: 'pointer' }} data-onclick="selectState('FL'); if(typeof openStateModal==='function') openStateModal('FL');">
+    <rect className="state-bg-rect" x="635" y="335" width="70" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="670.0" y="356.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">FL</text>
+    <text className="state-status-indicator" x="670.0" y="372.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="HI" id="stateNode-HI" style={{ cursor: 'pointer' }} data-onclick="selectState('HI'); if(typeof openStateModal==='function') openStateModal('HI');">
+    <rect className="state-bg-rect" x="110" y="240" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="140.0" y="261.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">HI</text>
+    <text className="state-status-indicator" x="140.0" y="277.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+</svg>
               </div>
             </section>
             {/* Selected State Spotlight Deck (from Reference 00:00 - 00:04) */}
@@ -6031,8 +6285,262 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
               <div className="svg-canvas-wrapper">
                 <svg className="interactive-us-svg" id="interactiveUsSvg" viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg">
-                  {/* Populated dynamically by JS engine */}
-                </svg>
+  <g className="svg-state-group status-constitutional" data-code="AK" id="stateNode-AK" style={{ cursor: 'pointer' }} data-onclick="selectState('AK'); if(typeof openStateModal==='function') openStateModal('AK');">
+    <rect className="state-bg-rect" x="30" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="60.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">AK</text>
+    <text className="state-status-indicator" x="60.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="WA" id="stateNode-WA" style={{ cursor: 'pointer' }} data-onclick="selectState('WA'); if(typeof openStateModal==='function') openStateModal('WA');">
+    <rect className="state-bg-rect" x="110" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="140.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">WA</text>
+    <text className="state-status-indicator" x="140.0" y="72.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="ID" id="stateNode-ID" style={{ cursor: 'pointer' }} data-onclick="selectState('ID'); if(typeof openStateModal==='function') openStateModal('ID');">
+    <rect className="state-bg-rect" x="185" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="215.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">ID</text>
+    <text className="state-status-indicator" x="215.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="MT" id="stateNode-MT" style={{ cursor: 'pointer' }} data-onclick="selectState('MT'); if(typeof openStateModal==='function') openStateModal('MT');">
+    <rect className="state-bg-rect" x="260" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="290.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MT</text>
+    <text className="state-status-indicator" x="290.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="ND" id="stateNode-ND" style={{ cursor: 'pointer' }} data-onclick="selectState('ND'); if(typeof openStateModal==='function') openStateModal('ND');">
+    <rect className="state-bg-rect" x="335" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">ND</text>
+    <text className="state-status-indicator" x="365.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="MN" id="stateNode-MN" style={{ cursor: 'pointer' }} data-onclick="selectState('MN'); if(typeof openStateModal==='function') openStateModal('MN');">
+    <rect className="state-bg-rect" x="410" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MN</text>
+    <text className="state-status-indicator" x="440.0" y="72.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="WI" id="stateNode-WI" style={{ cursor: 'pointer' }} data-onclick="selectState('WI'); if(typeof openStateModal==='function') openStateModal('WI');">
+    <rect className="state-bg-rect" x="485" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">WI</text>
+    <text className="state-status-indicator" x="515.0" y="72.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="MI" id="stateNode-MI" style={{ cursor: 'pointer' }} data-onclick="selectState('MI'); if(typeof openStateModal==='function') openStateModal('MI');">
+    <rect className="state-bg-rect" x="560" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MI</text>
+    <text className="state-status-indicator" x="590.0" y="72.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="NY" id="stateNode-NY" style={{ cursor: 'pointer' }} data-onclick="selectState('NY'); if(typeof openStateModal==='function') openStateModal('NY');">
+    <rect className="state-bg-rect" x="710" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="740.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NY</text>
+    <text className="state-status-indicator" x="740.0" y="72.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="VT" id="stateNode-VT" style={{ cursor: 'pointer' }} data-onclick="selectState('VT'); if(typeof openStateModal==='function') openStateModal('VT');">
+    <rect className="state-bg-rect" x="785" y="35" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="810.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">VT</text>
+    <text className="state-status-indicator" x="810.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="NH" id="stateNode-NH" style={{ cursor: 'pointer' }} data-onclick="selectState('NH'); if(typeof openStateModal==='function') openStateModal('NH');">
+    <rect className="state-bg-rect" x="845" y="35" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="870.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NH</text>
+    <text className="state-status-indicator" x="870.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="ME" id="stateNode-ME" style={{ cursor: 'pointer' }} data-onclick="selectState('ME'); if(typeof openStateModal==='function') openStateModal('ME');">
+    <rect className="state-bg-rect" x="900" y="35" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="925.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">ME</text>
+    <text className="state-status-indicator" x="925.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="OR" id="stateNode-OR" style={{ cursor: 'pointer' }} data-onclick="selectState('OR'); if(typeof openStateModal==='function') openStateModal('OR');">
+    <rect className="state-bg-rect" x="110" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="140.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">OR</text>
+    <text className="state-status-indicator" x="140.0" y="132.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="NV" id="stateNode-NV" style={{ cursor: 'pointer' }} data-onclick="selectState('NV'); if(typeof openStateModal==='function') openStateModal('NV');">
+    <rect className="state-bg-rect" x="185" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="215.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NV</text>
+    <text className="state-status-indicator" x="215.0" y="132.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="WY" id="stateNode-WY" style={{ cursor: 'pointer' }} data-onclick="selectState('WY'); if(typeof openStateModal==='function') openStateModal('WY');">
+    <rect className="state-bg-rect" x="260" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="290.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">WY</text>
+    <text className="state-status-indicator" x="290.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="SD" id="stateNode-SD" style={{ cursor: 'pointer' }} data-onclick="selectState('SD'); if(typeof openStateModal==='function') openStateModal('SD');">
+    <rect className="state-bg-rect" x="335" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">SD</text>
+    <text className="state-status-indicator" x="365.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="IA" id="stateNode-IA" style={{ cursor: 'pointer' }} data-onclick="selectState('IA'); if(typeof openStateModal==='function') openStateModal('IA');">
+    <rect className="state-bg-rect" x="410" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">IA</text>
+    <text className="state-status-indicator" x="440.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="IL" id="stateNode-IL" style={{ cursor: 'pointer' }} data-onclick="selectState('IL'); if(typeof openStateModal==='function') openStateModal('IL');">
+    <rect className="state-bg-rect" x="485" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">IL</text>
+    <text className="state-status-indicator" x="515.0" y="132.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="IN" id="stateNode-IN" style={{ cursor: 'pointer' }} data-onclick="selectState('IN'); if(typeof openStateModal==='function') openStateModal('IN');">
+    <rect className="state-bg-rect" x="560" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">IN</text>
+    <text className="state-status-indicator" x="590.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="OH" id="stateNode-OH" style={{ cursor: 'pointer' }} data-onclick="selectState('OH'); if(typeof openStateModal==='function') openStateModal('OH');">
+    <rect className="state-bg-rect" x="635" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="665.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">OH</text>
+    <text className="state-status-indicator" x="665.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="PA" id="stateNode-PA" style={{ cursor: 'pointer' }} data-onclick="selectState('PA'); if(typeof openStateModal==='function') openStateModal('PA');">
+    <rect className="state-bg-rect" x="710" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="740.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">PA</text>
+    <text className="state-status-indicator" x="740.0" y="132.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="NJ" id="stateNode-NJ" style={{ cursor: 'pointer' }} data-onclick="selectState('NJ'); if(typeof openStateModal==='function') openStateModal('NJ');">
+    <rect className="state-bg-rect" x="785" y="95" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="810.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NJ</text>
+    <text className="state-status-indicator" x="810.0" y="132.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="MA" id="stateNode-MA" style={{ cursor: 'pointer' }} data-onclick="selectState('MA'); if(typeof openStateModal==='function') openStateModal('MA');">
+    <rect className="state-bg-rect" x="845" y="95" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="870.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MA</text>
+    <text className="state-status-indicator" x="870.0" y="132.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="RI" id="stateNode-RI" style={{ cursor: 'pointer' }} data-onclick="selectState('RI'); if(typeof openStateModal==='function') openStateModal('RI');">
+    <rect className="state-bg-rect" x="900" y="95" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="925.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">RI</text>
+    <text className="state-status-indicator" x="925.0" y="132.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="CA" id="stateNode-CA" style={{ cursor: 'pointer' }} data-onclick="selectState('CA'); if(typeof openStateModal==='function') openStateModal('CA');">
+    <rect className="state-bg-rect" x="110" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="140.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">CA</text>
+    <text className="state-status-indicator" x="140.0" y="192.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="UT" id="stateNode-UT" style={{ cursor: 'pointer' }} data-onclick="selectState('UT'); if(typeof openStateModal==='function') openStateModal('UT');">
+    <rect className="state-bg-rect" x="185" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="215.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">UT</text>
+    <text className="state-status-indicator" x="215.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="CO" id="stateNode-CO" style={{ cursor: 'pointer' }} data-onclick="selectState('CO'); if(typeof openStateModal==='function') openStateModal('CO');">
+    <rect className="state-bg-rect" x="260" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="290.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">CO</text>
+    <text className="state-status-indicator" x="290.0" y="192.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="NE" id="stateNode-NE" style={{ cursor: 'pointer' }} data-onclick="selectState('NE'); if(typeof openStateModal==='function') openStateModal('NE');">
+    <rect className="state-bg-rect" x="335" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NE</text>
+    <text className="state-status-indicator" x="365.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="MO" id="stateNode-MO" style={{ cursor: 'pointer' }} data-onclick="selectState('MO'); if(typeof openStateModal==='function') openStateModal('MO');">
+    <rect className="state-bg-rect" x="410" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MO</text>
+    <text className="state-status-indicator" x="440.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="KY" id="stateNode-KY" style={{ cursor: 'pointer' }} data-onclick="selectState('KY'); if(typeof openStateModal==='function') openStateModal('KY');">
+    <rect className="state-bg-rect" x="485" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">KY</text>
+    <text className="state-status-indicator" x="515.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="WV" id="stateNode-WV" style={{ cursor: 'pointer' }} data-onclick="selectState('WV'); if(typeof openStateModal==='function') openStateModal('WV');">
+    <rect className="state-bg-rect" x="560" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">WV</text>
+    <text className="state-status-indicator" x="590.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="VA" id="stateNode-VA" style={{ cursor: 'pointer' }} data-onclick="selectState('VA'); if(typeof openStateModal==='function') openStateModal('VA');">
+    <rect className="state-bg-rect" x="635" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="665.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">VA</text>
+    <text className="state-status-indicator" x="665.0" y="192.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="MD" id="stateNode-MD" style={{ cursor: 'pointer' }} data-onclick="selectState('MD'); if(typeof openStateModal==='function') openStateModal('MD');">
+    <rect className="state-bg-rect" x="710" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="740.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MD</text>
+    <text className="state-status-indicator" x="740.0" y="192.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="DE" id="stateNode-DE" style={{ cursor: 'pointer' }} data-onclick="selectState('DE'); if(typeof openStateModal==='function') openStateModal('DE');">
+    <rect className="state-bg-rect" x="785" y="155" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="810.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">DE</text>
+    <text className="state-status-indicator" x="810.0" y="192.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="CT" id="stateNode-CT" style={{ cursor: 'pointer' }} data-onclick="selectState('CT'); if(typeof openStateModal==='function') openStateModal('CT');">
+    <rect className="state-bg-rect" x="845" y="155" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="870.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">CT</text>
+    <text className="state-status-indicator" x="870.0" y="192.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="AZ" id="stateNode-AZ" style={{ cursor: 'pointer' }} data-onclick="selectState('AZ'); if(typeof openStateModal==='function') openStateModal('AZ');">
+    <rect className="state-bg-rect" x="185" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="215.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">AZ</text>
+    <text className="state-status-indicator" x="215.0" y="252.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="NM" id="stateNode-NM" style={{ cursor: 'pointer' }} data-onclick="selectState('NM'); if(typeof openStateModal==='function') openStateModal('NM');">
+    <rect className="state-bg-rect" x="260" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="290.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NM</text>
+    <text className="state-status-indicator" x="290.0" y="252.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="KS" id="stateNode-KS" style={{ cursor: 'pointer' }} data-onclick="selectState('KS'); if(typeof openStateModal==='function') openStateModal('KS');">
+    <rect className="state-bg-rect" x="335" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">KS</text>
+    <text className="state-status-indicator" x="365.0" y="252.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="AR" id="stateNode-AR" style={{ cursor: 'pointer' }} data-onclick="selectState('AR'); if(typeof openStateModal==='function') openStateModal('AR');">
+    <rect className="state-bg-rect" x="410" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">AR</text>
+    <text className="state-status-indicator" x="440.0" y="252.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="TN" id="stateNode-TN" style={{ cursor: 'pointer' }} data-onclick="selectState('TN'); if(typeof openStateModal==='function') openStateModal('TN');">
+    <rect className="state-bg-rect" x="485" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">TN</text>
+    <text className="state-status-indicator" x="515.0" y="252.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="NC" id="stateNode-NC" style={{ cursor: 'pointer' }} data-onclick="selectState('NC'); if(typeof openStateModal==='function') openStateModal('NC');">
+    <rect className="state-bg-rect" x="635" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="665.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NC</text>
+    <text className="state-status-indicator" x="665.0" y="252.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="DC" id="stateNode-DC" style={{ cursor: 'pointer' }} data-onclick="selectState('DC'); if(typeof openStateModal==='function') openStateModal('DC');">
+    <rect className="state-bg-rect" x="710" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="740.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">DC</text>
+    <text className="state-status-indicator" x="740.0" y="252.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="OK" id="stateNode-OK" style={{ cursor: 'pointer' }} data-onclick="selectState('OK'); if(typeof openStateModal==='function') openStateModal('OK');">
+    <rect className="state-bg-rect" x="335" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">OK</text>
+    <text className="state-status-indicator" x="365.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="LA" id="stateNode-LA" style={{ cursor: 'pointer' }} data-onclick="selectState('LA'); if(typeof openStateModal==='function') openStateModal('LA');">
+    <rect className="state-bg-rect" x="410" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">LA</text>
+    <text className="state-status-indicator" x="440.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="MS" id="stateNode-MS" style={{ cursor: 'pointer' }} data-onclick="selectState('MS'); if(typeof openStateModal==='function') openStateModal('MS');">
+    <rect className="state-bg-rect" x="485" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MS</text>
+    <text className="state-status-indicator" x="515.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="AL" id="stateNode-AL" style={{ cursor: 'pointer' }} data-onclick="selectState('AL'); if(typeof openStateModal==='function') openStateModal('AL');">
+    <rect className="state-bg-rect" x="560" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">AL</text>
+    <text className="state-status-indicator" x="590.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="SC" id="stateNode-SC" style={{ cursor: 'pointer' }} data-onclick="selectState('SC'); if(typeof openStateModal==='function') openStateModal('SC');">
+    <rect className="state-bg-rect" x="635" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="665.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">SC</text>
+    <text className="state-status-indicator" x="665.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="TX" id="stateNode-TX" style={{ cursor: 'pointer' }} data-onclick="selectState('TX'); if(typeof openStateModal==='function') openStateModal('TX');">
+    <rect className="state-bg-rect" x="335" y="335" width="100" height="60" rx="6" ry="6" />
+    <text className="state-code-text" x="385.0" y="361.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">TX</text>
+    <text className="state-status-indicator" x="385.0" y="377.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="GA" id="stateNode-GA" style={{ cursor: 'pointer' }} data-onclick="selectState('GA'); if(typeof openStateModal==='function') openStateModal('GA');">
+    <rect className="state-bg-rect" x="560" y="335" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="356.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">GA</text>
+    <text className="state-status-indicator" x="590.0" y="372.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="FL" id="stateNode-FL" style={{ cursor: 'pointer' }} data-onclick="selectState('FL'); if(typeof openStateModal==='function') openStateModal('FL');">
+    <rect className="state-bg-rect" x="635" y="335" width="70" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="670.0" y="356.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">FL</text>
+    <text className="state-status-indicator" x="670.0" y="372.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="HI" id="stateNode-HI" style={{ cursor: 'pointer' }} data-onclick="selectState('HI'); if(typeof openStateModal==='function') openStateModal('HI');">
+    <rect className="state-bg-rect" x="110" y="240" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="140.0" y="261.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">HI</text>
+    <text className="state-status-indicator" x="140.0" y="277.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+</svg>
               </div>
             </section>
             {/* Selected State Spotlight Deck (from Reference 00:00 - 00:04) */}
