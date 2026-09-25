@@ -12,61 +12,37 @@ import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
  */
 export default function TrainWithFIFS(props: any) {
   useEffect(() => {
+
+    // Initialize interactive reciprocity map once script engine is ready
+    let mapRetryCount = 0;
+    const mapInitTimer = setInterval(() => {
+      mapRetryCount++;
+      if (typeof window !== 'undefined' && typeof (window as any).initReciprocityEngine === 'function') {
+        const svg = document.getElementById('interactiveUsSvg');
+        if (svg) {
+          (window as any).initReciprocityEngine();
+          clearInterval(mapInitTimer);
+        }
+      }
+      if (mapRetryCount > 25) clearInterval(mapInitTimer);
+    }, 200);
+
     // 1. Intercept student magic link or portal invite from URL
     try {
       const params = new URLSearchParams(window.location.search);
+      const portal = params.get('portal');
       const studentId = params.get('id') || params.get('student');
-      const portal = params.get('portal') || params.get('tab') || params.get('view');
-      const clientId = params.get('client');
-
-      if (studentId || portal === 'portal' || portal === 'student') {
-        const activateStudentPortal = () => {
-          if (typeof (window as any).openAndSwitch === 'function') {
-            (window as any).openAndSwitch('portal');
-          }
-          const authInput = document.getElementById('studentAuthInput') as HTMLInputElement | null;
-          if (authInput && studentId) {
-            authInput.value = studentId;
-            if (typeof (window as any).lookupStudentAccount === 'function') {
-              (window as any).lookupStudentAccount();
-            }
-          }
-        };
-
-        activateStudentPortal();
-        const retryTimer = setInterval(() => {
-          const authInput = document.getElementById('studentAuthInput') as HTMLInputElement | null;
-          if (authInput && typeof (window as any).openAndSwitch === 'function') {
-            activateStudentPortal();
-            clearInterval(retryTimer);
-          }
-        }, 150);
-        setTimeout(() => clearInterval(retryTimer), 3500);
-      } else if (clientId || portal === 'fi-portal') {
-        const activateClientPortal = () => {
-          if (typeof (window as any).openAndSwitch === 'function') {
-            (window as any).openAndSwitch('fi-portal');
-          }
-          const clientInput = document.getElementById('clientAuthInput') as HTMLInputElement | null;
-          if (clientInput && clientId) {
-            clientInput.value = clientId;
-            if (typeof (window as any).lookupClientAccount === 'function') {
-              (window as any).lookupClientAccount();
-            }
-          }
-        };
-        activateClientPortal();
-        const retryTimer = setInterval(() => {
-          const clientInput = document.getElementById('clientAuthInput') as HTMLInputElement | null;
-          if (clientInput && typeof (window as any).openAndSwitch === 'function') {
-            activateClientPortal();
-            clearInterval(retryTimer);
-          }
-        }, 150);
-        setTimeout(() => clearInterval(retryTimer), 3500);
+      if (portal === 'student' || studentId) {
+        const input = document.getElementById('studentLookupInput') as HTMLInputElement | null;
+        if (input && studentId) input.value = studentId;
+        const modal = document.getElementById('studentPortalModal');
+        if (modal) {
+          modal.classList.add('active');
+          modal.style.setProperty('display', 'block', 'important');
+        }
       }
     } catch (e) {
-      console.warn('Portal invite hydration error:', e);
+      console.warn('Portal invite error:', e);
     }
 
     // 2. Track site visit to Discord once per browser session
