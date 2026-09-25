@@ -8173,6 +8173,8 @@ function getStepNumberFromStatus(statusStr) {
         group.setAttribute('class', 'svg-state-group status-' + evalRes.status.replace('_', '-') + (code === currentStateFocus ? ' selected' : ''));
         group.setAttribute('id', 'stateNode-' + code);
         group.setAttribute('data-code', code);
+        group.style.cursor = 'pointer';
+        group.onclick = function(e) { if(e) e.preventDefault(); selectState(code); };
         group.setAttribute('opacity', isVisible ? '1' : '0.25');
         group.setAttribute('data-onclick', "selectState('" + code + "')");
       group.style.cursor = 'pointer';
@@ -8448,6 +8450,7 @@ function getStepNumberFromStatus(statusStr) {
         if (typeof selectState === 'function') selectState(currentStateFocus || 'MD');
         if (typeof selectRollerState === 'function') selectRollerState(currentRollerState || 'WV');
         if (typeof renderMyPermitsList === 'function') renderMyPermitsList();
+        if (typeof renderSvgMap === 'function') renderSvgMap();
       } catch(err) {
         console.error('Error initializing Reciprocity Engine:', err);
       }
@@ -10790,3 +10793,28 @@ if (typeof window !== 'undefined') {
     });
   }
 }
+
+    // Auto-detect magic link / portal invite parameters
+    function checkUrlForPortalInvite() {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var portal = params.get('portal');
+        var studentId = params.get('id') || params.get('student');
+        if (portal === 'student' || studentId) {
+          var input = document.getElementById('studentLookupInput');
+          if (input && studentId) input.value = studentId;
+          var modal = document.getElementById('studentPortalModal');
+          if (modal) {
+            modal.classList.add('active');
+            modal.style.setProperty('display', 'block', 'important');
+          }
+        }
+      } catch (e) {
+        console.warn('URL portal param check failed:', e);
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', checkUrlForPortalInvite);
+    } else {
+      checkUrlForPortalInvite();
+    }
