@@ -5527,3 +5527,43 @@ body.in-home .sticky-bottom-dock,
   color: #030a14 !important;
   box-shadow: var(--shadow-md);
 }
+
+
+/* Brand Accent Button Click & Active Interactions */
+button:active, 
+.btn-primary:active, 
+.btn-spark:active, 
+.btn-hero-booking-prime:active,
+.btn-hero-twin:active,
+.fi-subnav-btn:active,
+.action-btn:active {
+  transform: scale(0.97) translateY(1px) !important;
+  border-color: #00e5ff !important;
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.65), inset 0 0 8px rgba(0, 229, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+
+button:focus-visible,
+.btn-primary:focus-visible,
+.btn-spark:focus-visible {
+  outline: 2px solid #00e5ff !important;
+  outline-offset: 2px !important;
+}
+
+/* Category Legend & SVG State Node Interactive Fills */
+.status-constitutional .state-bg-rect {
+  fill: #0c4a6e !important;
+  stroke: #38bdf8 !important;
+}
+.status-honored .state-bg-rect {
+  fill: #064e3b !important;
+  stroke: #10b981 !important;
+}
+.status-special .state-bg-rect {
+  fill: #78350f !important;
+  stroke: #f59e0b !important;
+}
+.status-not-honored .state-bg-rect {
+  fill: rgba(239, 68, 68, 0.22) !important;
+  stroke: #ef4444 !important;
+}

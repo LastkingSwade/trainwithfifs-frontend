@@ -6086,6 +6086,9 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
             if (target && target.dataset && target.dataset.code) {
               e.preventDefault();
               selectState(target.dataset.code);
+              if (typeof openStateModal === 'function') {
+                openStateModal(target.dataset.code);
+              }
             }
           });
           s._clickBound = true;

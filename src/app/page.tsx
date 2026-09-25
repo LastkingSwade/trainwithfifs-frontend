@@ -1453,7 +1453,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <a className="fi-subnav-btn active" href="#fi-sec-dashboard">
                   📊 Dashboard
                 </a>
-                <button className="fi-subnav-btn" data-onclick="fiScrollTo('fi-sec-reciprocity')" type="button">
+                <button className="fi-subnav-btn" data-onclick="toggleReciprocityHubModal(true)" type="button">
                   🗺️ 50-State Reciprocity Hub
                 </button>
                 <button className="fi-subnav-btn" data-onclick="openVehicleTravelModal()" type="button">
@@ -1626,7 +1626,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               
                     </p>
                   </div>
-                  <button className="btn-spark" data-onclick="fiScrollTo('fi-sec-reciprocity')" type="button">
+                  <button className="btn-spark" data-onclick="toggleReciprocityHubModal(true)" type="button">
                     Explore 50-State Reciprocity Hub ↓
                   </button>
                 </div>
