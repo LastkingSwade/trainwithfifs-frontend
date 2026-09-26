@@ -1746,8 +1746,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Launch Reciprocity Hub 🗺️
                 </button>
               </div>
-                </form>
-              </div>
               {/* ================= SECTION: CLIENT PROFILE & REGISTRY ================= */}
               {/* (Client Profile moved into #clientProfileModal deep-dive popup) */}
               <div className="fi-section-header" id="fi-sec-services">
