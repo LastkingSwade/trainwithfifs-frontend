@@ -189,6 +189,117 @@ async function sendDiscordChatAlert({
 
 
 
+
+async function sendDiscordTelemetryAlert(alertType: string, data: Record<string, any>) {
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  if (!webhookUrl) return;
+
+  try {
+    let content: string | undefined = undefined;
+    let title = '';
+    let color = 0x00e5ff;
+    const fields: Array<{ name: string; value: string; inline?: boolean }> = [];
+
+    switch (alertType) {
+      case 'BOOKING_CREATED': {
+        content = '@everyone 🎯 **NEW STUDENT REGISTRATION & BOOKING**';
+        title = 'Classroom Seat Reserved // Train With FIFS';
+        color = 0x00e676; // Emerald Green
+        fields.push(
+          { name: '👤 Student Name', value: String(data.fullName || 'Student'), inline: true },
+          { name: '🆔 Student ID', value: String(data.studentId || 'N/A'), inline: true },
+          { name: '📚 Course', value: String(data.course || 'Maryland Wear & Carry'), inline: false },
+          { name: '💵 Amount', value: `Total: $${data.totalAmount} · Deposit: $${data.depositAmount}`, inline: true },
+          { name: '🧾 Invoice ID', value: String(data.invoiceId || 'N/A'), inline: true },
+          { name: '📱 Phone', value: String(data.phone || 'N/A'), inline: true },
+          { name: '✉️ Email', value: String(data.email || 'N/A'), inline: true },
+          { name: '📅 Cohort / Date', value: String(data.dates || 'Upcoming Cohort'), inline: false }
+        );
+        break;
+      }
+      case 'LEAD_MAGNET': {
+        content = '📥 **NEW PROSPECTIVE STUDENT LEAD**';
+        title = 'Guide / Resource Download Captured';
+        color = 0x2979ff; // Blue
+        fields.push(
+          { name: '👤 Lead Name', value: String(data.name || 'Lead'), inline: true },
+          { name: '✉️ Email', value: String(data.email || 'N/A'), inline: true },
+          { name: '📖 Resource Downloaded', value: String(data.source || 'Reciprocity Guide'), inline: false }
+        );
+        break;
+      }
+      case 'SMS_ALERT': {
+        content = '📱 **NEW SMS VIP ROSTER OPT-IN**';
+        title = 'VIP Priority SMS Alert Subscriber';
+        color = 0xffb000; // Amber
+        fields.push(
+          { name: '📱 Phone Number', value: String(data.phone || 'N/A'), inline: true },
+          { name: '🏷️ Status', value: 'Active Opt-in', inline: true }
+        );
+        break;
+      }
+      case 'SCORESHEET_SAVED': {
+        content = '📋 **MARYLAND MSP 29-14 SCORESHEET LOGGED**';
+        title = 'Official Live-Fire Qualification Updated';
+        color = 0x00e5ff; // Cyan
+        fields.push(
+          { name: '👤 Student', value: `${data.studentName || 'Student'} (${data.studentId || ''})`, inline: true },
+          { name: '🎯 Score', value: String(data.score || '25/25 (100%)'), inline: true },
+          { name: '📄 Document Link', value: data.url ? `[View Scoresheet Document](${data.url})` : 'Pending Upload', inline: false }
+        );
+        break;
+      }
+      case 'SECURITY_TERMINAL_FAILED': {
+        content = '@here 🚨 **SECURITY ALERT: UNAUTHORIZED TERMINAL ATTEMPT**';
+        title = 'Covert Terminal Intrusion Detection';
+        color = 0xff1744; // Crimson Red
+        fields.push(
+          { name: '⚠️ Security Incident', value: 'Failed Operator Authentication', inline: true },
+          { name: '🔢 Failed Attempt', value: `${data.attempts || 1} of 3`, inline: true },
+          { name: '🔒 Gate Status', value: data.locked ? '🚨 5-MINUTE LOCKOUT ACTIVE' : 'Attempt Logged / Monitoring', inline: false },
+          { name: '🌐 User Agent', value: String(data.userAgent || 'Unknown Device').slice(0, 150), inline: false }
+        );
+        break;
+      }
+      case 'SECURITY_TERMINAL_SUCCESS': {
+        content = '🛡️ **SECURITY LOG: OPERATOR TERMINAL ACCESS GRANTED**';
+        title = 'Covert Gateway Decrypted';
+        color = 0x00ff66; // Phosphor Green
+        fields.push(
+          { name: '👤 Operator Node', value: 'NODE_01 // Master Session', inline: true },
+          { name: '🔑 Key Status', value: 'Verified', inline: true },
+          { name: '🌐 User Agent', value: String(data.userAgent || 'Unknown Device').slice(0, 150), inline: false }
+        );
+        break;
+      }
+      default: {
+        title = `System Telemetry: ${alertType}`;
+        color = 0x94a3b8;
+        fields.push({ name: 'Details', value: JSON.stringify(data).slice(0, 500) });
+      }
+    }
+
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content,
+        embeds: [
+          {
+            title,
+            color,
+            fields,
+            timestamp: new Date().toISOString(),
+            footer: { text: 'FIFS Operations Command • trainwithfifs.com' }
+          }
+        ]
+      })
+    });
+  } catch (err) {
+    console.error('[FIFS] Discord telemetry alert error:', err);
+  }
+}
+
 async function syncBookingToGoogleCalendar({
   fullName,
   studentId,
@@ -326,7 +437,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, status: 'error', error: 'Missing studentId.' }, { status: 400 });
         }
 
-        const updates = payload.updates || payload;
+        const updates = payload.updates || payload.student || payload;
         const dbUpdates: Record<string, any> = {
           updated_at: new Date().toISOString(),
         };
@@ -1152,6 +1263,20 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        
+        // Dispatch instant Discord alert for new booking
+        sendDiscordTelemetryAlert('BOOKING_CREATED', {
+          fullName: payload.fullName || payload.name || 'New Enrollee',
+          studentId: generatedStudentId,
+          course: courseVal,
+          totalAmount,
+          depositAmount,
+          invoiceId,
+          phone: payload.phone || '',
+          email: payload.email || '',
+          dates: payload.dates || payload.preferredDates || 'Upcoming Range Cohort',
+        }).catch(console.error);
+
         return NextResponse.json({
           success: true,
           status: 'success',
@@ -1271,6 +1396,19 @@ export async function POST(req: NextRequest) {
       }
 
       // --- DISCORD TELEMETRY VISIT NOTIFICATION ---
+      
+      case 'logTerminalSecurityEvent': {
+        const eventType = payload.eventType || 'SECURITY_TERMINAL_FAILED';
+        const userAgent = req.headers.get('user-agent') || 'Unknown Device';
+        await sendDiscordTelemetryAlert(eventType, {
+          attempts: payload.attempts || 1,
+          locked: !!payload.locked,
+          userAgent,
+          tokenUsed: payload.tokenUsed || undefined,
+        });
+        return NextResponse.json({ success: true, status: 'success' });
+      }
+
       case 'trackSiteVisit': {
         const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
         if (!webhookUrl) return NextResponse.json({ success: true, logged: false });

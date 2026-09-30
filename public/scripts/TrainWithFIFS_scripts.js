@@ -11792,6 +11792,12 @@ if (typeof window !== 'undefined') {
             if (isPinValid) {
               failedAttempts = 0;
               printLine('[SUCCESS] IDENTITY CONFIRMED. ACCESS GRANTED.', 'terminal-success');
+              if (typeof callFifsBackend === 'function') {
+                callFifsBackend('logTerminalSecurityEvent', {
+                  eventType: 'SECURITY_TERMINAL_SUCCESS',
+                  tokenUsed: 'CONFIRMED'
+                }).catch(function() {});
+              }
               try { sessionStorage.setItem('fifs_instructor_pin', token); } catch(err) {}
 
               setTimeout(function() {
@@ -11813,6 +11819,13 @@ if (typeof window !== 'undefined') {
             } else {
               failedAttempts++;
               printLine('[ERR] INVALID CREDENTIALS. ATTEMPT LOGGED (' + failedAttempts + '/3).', 'terminal-error');
+              if (typeof callFifsBackend === 'function') {
+                callFifsBackend('logTerminalSecurityEvent', {
+                  eventType: 'SECURITY_TERMINAL_FAILED',
+                  attempts: failedAttempts,
+                  locked: failedAttempts >= 3
+                }).catch(function() {});
+              }
               if (failedAttempts >= 3) {
                 lockUntil = Date.now() + (5 * 60 * 1000);
                 printLine('[SECURITY ALERT] 3 consecutive failures. Terminal locked for 5 minutes.', 'terminal-error');
