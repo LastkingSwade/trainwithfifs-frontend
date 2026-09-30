@@ -107,13 +107,13 @@ function generateIcsCalendar(params: {
     'CALSCALE:GREGORIAN',
     'METHOD:REQUEST',
     'BEGIN:VEVENT',
-    ,
-    ,
-    ,
-    ,
-    ,
-    ,
-    ,
+    'UID:' + uid,
+    'DTSTAMP:' + now,
+    'DTSTART:' + start,
+    'DTEND:' + end,
+    'SUMMARY:' + cleanSummary,
+    'DESCRIPTION:' + cleanDesc,
+    'LOCATION:' + loc,
     'STATUS:CONFIRMED',
     'SEQUENCE:0',
     'BEGIN:VALARM',
@@ -176,7 +176,7 @@ async function sendResendEmail(params: {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        'Authorization': ,
+        'Authorization': 'Bearer ' + resendKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(bodyPayload),
@@ -184,8 +184,8 @@ async function sendResendEmail(params: {
 
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
-      console.warn();
-      return { success: false, error:  };
+      console.warn('[Resend] API Error:', errText);
+      return { success: false, error: errText || 'Resend dispatch failed' };
     }
     const data = await res.json().catch(() => ({}));
     return { success: true };
@@ -358,7 +358,7 @@ export async function POST(req: NextRequest) {
         const signedDocUrl = await getSignedDocumentUrl(supabase, materialsPath);
 
         // Generate ICS Calendar Event
-        const icsDescription = ;
+        const icsDescription = 'FIFS Qualification Course - Gear: ' + gearNotes;
         const icsContent = generateIcsCalendar({
           title: classTitle,
           description: icsDescription,
@@ -379,19 +379,19 @@ export async function POST(req: NextRequest) {
 
         if (isNewUser) {
           // Welcome & Temporary Credentials
-          const html = <p style="margin:10px 0 0 0;"><a href="" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>;
+          const html = `<p>Welcome to <strong>${classTitle}</strong>! Your session is confirmed for <strong>${dateFormatted}</strong>.</p>` + (signedDocUrl ? `<p style="margin:10px 0 0 0;"><a href="${signedDocUrl}" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>` : "") + (isNewUser && tempPassword ? `<p>Your temporary password is: <code>${tempPassword}</code></p>` : "");color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>;
           emailResult = await sendResendEmail({
             to: email,
-            subject: ,
+            subject: 'Course Confirmation & Portal Access - ' + classTitle,
             html: html,
             attachments: attachments
           });
         } else {
           // Existing User Enrollment Confirmation
-          const html = <p style="margin:10px 0 0 0;"><a href="" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>;
+          const html = `<p>Welcome to <strong>${classTitle}</strong>! Your session is confirmed for <strong>${dateFormatted}</strong>.</p>` + (signedDocUrl ? `<p style="margin:10px 0 0 0;"><a href="${signedDocUrl}" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>` : "") + (isNewUser && tempPassword ? `<p>Your temporary password is: <code>${tempPassword}</code></p>` : "");color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>;
           emailResult = await sendResendEmail({
             to: email,
-            subject: ,
+            subject: 'Course Confirmation & Portal Access - ' + classTitle,
             html: html,
             attachments: attachments
           });
@@ -459,8 +459,8 @@ export async function POST(req: NextRequest) {
         // Generate updated ICS
         const classTitle = enrollment.classes?.title || 'FIFS Firearms Course';
         const icsContent = generateIcsCalendar({
-          title: ,
-          description: ,
+          title: classTitle,
+          description: 'Rescheduled session for ' + classTitle,
           startDate: nextDate,
           durationHours: newDuration
         });
@@ -473,11 +473,11 @@ export async function POST(req: NextRequest) {
           weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
 
-        const html = <p style="margin:8px 0 0 0;color:#713f12;"><strong>Instructor Note:</strong> </p>;
+        const html = `<p>Your course session for <strong>${classTitle}</strong> has been rescheduled to <strong>${dateStr}</strong>.</p><p style="margin:8px 0 0 0;color:#713f12;"><strong>Instructor Note:</strong> ${reason || "Schedule adjusted by instructor."}</p>`;
 
         await sendResendEmail({
           to: enrollment.student_email,
-          subject: ,
+          subject: 'Course Confirmation & Portal Access - ' + classTitle,
           html: html,
           attachments: [{ filename: 'Updated_Class_Schedule.ics', content: icsBase64 }]
         });
@@ -521,11 +521,11 @@ export async function POST(req: NextRequest) {
         const classTitle = enrollment.classes?.title || 'FIFS Firearms Course';
         const dateStr = new Date(enrollment.scheduled_date).toLocaleString();
 
-        const html = <div style="background:#fef2f2;border:1px solid #fecaca;padding:12px;border-radius:6px;margin:16px 0;"><strong>Reason:</strong> </div>;
+        const html = `<p>Your session for <strong>${classTitle}</strong> scheduled for ${dateStr} has been cancelled.</p><div style="background:#fef2f2;border:1px solid #fecaca;padding:12px;border-radius:6px;margin:16px 0;"><strong>Reason:</strong> ${reason || "Cancelled by instructor."}</div>`;
 
         await sendResendEmail({
           to: enrollment.student_email,
-          subject: ,
+          subject: 'Course Confirmation & Portal Access - ' + classTitle,
           html: html
         });
 
@@ -574,8 +574,8 @@ export async function POST(req: NextRequest) {
         const nowStr = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
         await sendResendEmail({
           to: ADMIN_EMAIL,
-          subject: ,
-          html: 
+          subject: 'Security Alert: Student Portal Activated - ' + studentName,
+          html: `<p>Student <strong>${studentName}</strong> (${email}) updated their temporary password and activated portal access on ${nowStr}.</p>`
         });
 
         return NextResponse.json({ success: true, message: 'Password updated successfully. Welcome to your portal!' });
@@ -675,11 +675,11 @@ export async function POST(req: NextRequest) {
           const dateStr = new Date(enr.scheduled_date).toLocaleString();
           const docUrl = await getSignedDocumentUrl(supabase, enr.classes?.materials_path);
 
-          const html = <p><a href="" style="background:#0284c7;color:#ffffff;padding:8px 16px;border-radius:4px;text-decoration:none;font-weight:bold;">Review Course Study Guide</a></p>;
+          const html = `<p>Reminder: Your upcoming class <strong>${classTitle}</strong> is scheduled for <strong>${dateStr}</strong>.</p>` + (docUrl ? `<p><a href="${docUrl}" style="background:#0284c7;color:#ffffff;padding:8px 16px;border-radius:4px;text-decoration:none;font-weight:bold;">Review Course Study Guide</a></p>` : "");
 
           await sendResendEmail({
             to: enr.student_email,
-            subject: ,
+            subject: 'Course Confirmation & Portal Access - ' + classTitle,
             html: html
           });
 
@@ -710,7 +710,7 @@ export async function POST(req: NextRequest) {
       }
 
       default:
-        return NextResponse.json({ success: false, error:  }, { status: 400 });
+        return NextResponse.json({ success: false, error: 'Unhandled action: ' + action }, { status: 400 });
     }
   } catch (err: any) {
     console.error('[API FIFS Error]:', err);
