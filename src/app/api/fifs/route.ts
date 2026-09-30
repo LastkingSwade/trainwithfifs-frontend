@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'node:crypto';
 
 // Server-side Supabase client using Service Role key (bypasses RLS for secure server operations)
 function getSupabase() {
@@ -50,9 +51,33 @@ function dispatchTempPasswordEmail(toEmail: string, fullName: string, tempPasswo
 function generateSecureTempPassword(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
   let result = '';
-  const randomBytes = crypto.randomBytes(12);
+  try {
+    if (typeof crypto !== 'undefined' && crypto && typeof crypto.randomBytes === 'function') {
+      const buf = crypto.randomBytes(12);
+      for (let i = 0; i < 12; i++) {
+        result += chars[buf[i] % chars.length];
+      }
+      return result;
+    }
+  } catch (_e) {
+    // continue to Web Crypto
+  }
+
+  try {
+    if (typeof globalThis !== 'undefined' && globalThis.crypto && typeof globalThis.crypto.getRandomValues === 'function') {
+      const arr = new Uint8Array(12);
+      globalThis.crypto.getRandomValues(arr);
+      for (let i = 0; i < 12; i++) {
+        result += chars[arr[i] % chars.length];
+      }
+      return result;
+    }
+  } catch (_e) {
+    // continue to fallback
+  }
+
   for (let i = 0; i < 12; i++) {
-    result += chars[randomBytes[i] % chars.length];
+    result += chars[Math.floor(Math.random() * chars.length)];
   }
   return result;
 }
