@@ -1267,7 +1267,7 @@ export async function POST(req: NextRequest) {
             const fileExt = (payload.fileName && payload.fileName.includes('.'))
               ? payload.fileName.split('.').pop()
               : (payload.fileType && payload.fileType.includes('pdf')) ? 'pdf' : 'png';
-            const storagePath = ;
+            const storagePath = `student_${studentId}_scoresheet_${Date.now()}.${fileExt}`;
             const contentType = payload.fileType || (fileExt === 'pdf' ? 'application/pdf' : 'image/png');
 
             const { error: uploadError } = await supabase.storage

@@ -4403,24 +4403,41 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
     // ==========================================================================
     // 4. ADMIN EDIT & DELETE STUDENTS (100% REAL ROSTER DATA)
     // ==========================================================================
-    function handleDossierClick(url) {
-      if (!url || url === '#' || url === 'javascript:void(0)') {
-        alert('Student Dossier URL is not linked yet. Click Edit to add the Google Doc link.');
+    function handleDossierClick(url, studentId) {
+      if (!url || url === '#' || url === 'javascript:void(0)' || url === 'undefined') {
+        var proceed = confirm("No Supabase dossier document is linked for this student yet.\n\nWould you like to open the record editor now to add the document link or class details?");
+        if (proceed && studentId && typeof openAdminEditStudentModal === "function") {
+          openAdminEditStudentModal(studentId);
+        }
       } else {
         window.open(url, '_blank');
       }
     }
     window.handleDossierClick = handleDossierClick;
 function openAdminEditStudentModal(studentId) {
-      var s = adminCachedStudents.find(item => item.studentId === studentId);
-      if (!s) return;
-      document.getElementById('editStudentId').value = s.studentId;
-      document.getElementById('editFullName').value = s.fullName || '';
-      document.getElementById('editEmail').value = s.email || '';
-      document.getElementById('editPhone').value = s.phone || '';
-      document.getElementById('editCourse').value = s.course || '';
-      document.getElementById('editAssignedDate').value = s.assignedDate || s.preferredDates || '';
-      var stepNum = getStepNumberFromStatus(s.status);
+      var s = (adminCachedStudents || []).find(function(item) { 
+        return (item.studentId === studentId) || (item.student_id === studentId); 
+      });
+      var modal = document.getElementById('adminEditStudentModal');
+      if (!modal) {
+        alert("Editor modal element not found in DOM.");
+        return;
+      }
+      if (!s) {
+        // Fallback for safety
+        s = { studentId: studentId, fullName: "", email: "", phone: "", course: "", assignedDate: "" };
+      }
+      var setVal = function(id, val) {
+        var el = document.getElementById(id);
+        if (el) el.value = val || '';
+      };
+      setVal('editStudentId', s.studentId || studentId);
+      setVal('editFullName', s.fullName || s.full_name || '');
+      setVal('editEmail', s.email || '');
+      setVal('editPhone', s.phone || '');
+      setVal('editCourse', s.course || s.courseSelection || s.course_selection || '');
+      setVal('editAssignedDate', s.assignedDate || s.assigned_date || s.preferredDates || s.preferred_dates || '');
+      var stepNum = (typeof getStepNumberFromStatus === "function") ? getStepNumberFromStatus(s.status) : 1;
       var stepValues = {
         1: 'STEP_1_REGISTERED', 2: 'STEP_2_CONFIRMED', 3: 'STEP_3_PREPARATION',
         4: 'STEP_4_CLASSROOM', 5: 'STEP_5_LIVE_FIRE', 6: 'STEP_6_CERTIFIED',
@@ -4428,17 +4445,21 @@ function openAdminEditStudentModal(studentId) {
       };
       var sel = document.getElementById('editJourneyStatus');
       if (sel) sel.value = stepValues[stepNum] || 'STEP_1_REGISTERED';
-      document.getElementById('editScore').value = s.qualificationScore || '';
-      document.getElementById('editProfileDocUrl').value = (s.profileDocUrl && s.profileDocUrl !== '#') ? s.profileDocUrl : '';
-      document.getElementById('editNotes').value = s.notes || '';
+      setVal('editScore', s.qualificationScore || s.qualification_score || '25/25 (100%)');
+      var docUrl = (s.profileDocUrl || s.profile_doc_url || s.dossier_url || '');
+      if (docUrl === '#') docUrl = '';
+      setVal('editProfileDocUrl', docUrl);
+      setVal('editNotes', s.notes || '');
       var st = document.getElementById('edit-student-status');
       if (st) st.style.display = 'none';
-      var modal = document.getElementById('adminEditStudentModal');
-      if (modal) {
-        modal.style.display = 'flex';
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      }
+
+      modal.classList.add('active');
+      modal.style.setProperty('display', 'flex', 'important');
+      modal.style.setProperty('opacity', '1', 'important');
+      modal.style.setProperty('visibility', 'visible', 'important');
+      modal.style.setProperty('pointer-events', 'auto', 'important');
+      document.body.classList.add('modal-open');
+      document.body.style.overflow = 'hidden';
     }
     window.openAdminEditStudentModal = openAdminEditStudentModal;
     function closeAdminEditStudentModal() {
@@ -4543,7 +4564,7 @@ function openAdminEditStudentModal(studentId) {
           <td>
             <span class="meta-chip chip-status" id="chip-status-${s.studentId}">${formatStepLabel(stepNum)}</span>
           </td>
-          <td><a href="javascript:void(0)" onclick="handleDossierClick('${s.profileDocUrl || "#"}')" style="color: var(--accent-cyan); font-weight: 700;">Dossier ↗</a></td>
+          <td><a href="javascript:void(0)" onclick="handleDossierClick('${s.profileDocUrl || "#"}', '${s.studentId}')" style="color: var(--accent-cyan); font-weight: 700;">Dossier ↗</a></td>
           <td>
             <select onchange="updateStudentJourneyStep('${s.studentId}', this.value)" style="padding: 6px 8px; font-size: 0.78rem; min-height: 34px; background: #070b10; color: var(--accent-cyan); border-radius: 6px; border: 1px solid var(--accent-cyan); font-weight: 700; cursor: pointer;">
               <option value="STEP_1_REGISTERED" ${stepNum === 1 ? 'selected' : ''}>1. Registration</option>
@@ -4557,11 +4578,10 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
               <option value="STEP_8_LICENSED" ${stepNum === 8 ? 'selected' : ''}>8. L            </select>
           </td>
           <td>
-            <div style="display: flex; gap: 6px; align-items: center;">
-              <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-cyan);" title="Edit student record">✏️ Edit</button>
-              <button type="button" class="btn-spark" onclick="dispatchRangeBriefing('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: #60a5fa; color: #60a5fa;" title="Send Range Day Arrival Briefing">🎯 Briefing</button>
-              <button type="button" class="btn-spark" onclick="dispatchReviewRequest('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-amber); color: var(--accent-amber);" title="Send 5-Star Google Review Request">⭐ Review</button>
-              <button type="button" class="btn-spark" onclick="deleteStudentFromRoster('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-red); color: var(--accent-red);" title="Delete student">🗑️</button>
+                        <div style="display: flex; gap: 5px; align-items: center; flex-wrap: nowrap;">
+              <button type="button" class="btn-spark" onclick="openStudentScoresheetModal('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-cyan); color: var(--accent-cyan); font-weight: 700;" title="Maryland MSP Form 29-14 Scoresheet">🎯 Scoresheet</button>
+              <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--border-subtle); color: #fff;" title="Edit Student & Class Date">✏️ Edit</button>
+              <button type="button" class="btn-spark" onclick="deleteStudentFromAdmin('${s.studentId}')" style="width: auto; padding: 5px 7px; font-size: 0.76rem; border-color: #f87171; color: #f87171;" title="Delete student">🗑️</button>
             </div>
           </td>
         `;

@@ -1075,7 +1075,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <div>
                   <a className="btn-primary" href="#" id="dash-doc-link" rel="noopener noreferrer" style={{"textDecoration": "none", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)"}} target="_blank">
                     
-                Open Student Dossier (Google Docs) ↗
+                Open Student Dossier (Supabase Document) ↗
               
                   </a>
                 </div>
@@ -6377,7 +6377,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
               <div className="form-group" style={{"marginBottom": "0"}}>
                 <label htmlFor="editAssignedDate" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
-                  Assigned Schedule Date
+                  Class Date / Scheduled Range Date
                 </label>
                 <input id="editAssignedDate" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
               </div>
@@ -6422,9 +6422,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
               <div className="form-group" style={{"marginBottom": "0"}}>
                 <label htmlFor="editProfileDocUrl" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
-                  Student Dossier (Google Doc URL)
+                  Student Dossier (Supabase Document URL)
                 </label>
-                <input id="editProfileDocUrl" placeholder="https://docs.google.com/..." style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
+                <input id="editProfileDocUrl" placeholder="https://.../storage/v1/object/public/documents/..." style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
               </div>
             </div>
             <div className="form-group" style={{"marginBottom": "16px"}}>
