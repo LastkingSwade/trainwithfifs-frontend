@@ -11189,6 +11189,7 @@ if (typeof window !== 'undefined') {
     /* ==========================================================================
        COVERT ADMIN GATEWAY & TACTICAL CLI TERMINAL MODAL
        ========================================================================== */
+
     (function initAdminTerminalGateway() {
       var lockUntil = 0;
       var failedAttempts = 0;
@@ -11197,6 +11198,7 @@ if (typeof window !== 'undefined') {
       var keyBuffer = [];
       var keyTimer = null;
       var tapTimestamps = [];
+      var homeDebounceTimer = null;
 
       // 1. Inject Styles
       var styleId = 'terminal-gateway-styles';
@@ -11417,7 +11419,6 @@ if (typeof window !== 'undefined') {
           return;
         }
 
-        // If user is currently typing in an input/textarea outside the terminal, ignore key sequence
         var activeEl = document.activeElement;
         if (activeEl && activeEl !== input && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
           return;
@@ -11448,11 +11449,18 @@ if (typeof window !== 'undefined') {
         }
       });
 
-      // 4. Mobile 4-Tap Trigger within 1.5s on navbar logo (#brand-logo, .app-nav-logo, .brand-identity-group)
+      // 4. Mobile Tap Interceptor with 400ms debounce
+      // Prevents premature navigation so 4 fast taps trigger the terminal without page jump
       function handleLogoTap(e) {
+        // Prevent default and stop propagation immediately during tap sequence
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+
         var now = Date.now();
         tapTimestamps = tapTimestamps.filter(function(t) { return now - t < 1500; });
         tapTimestamps.push(now);
+
+        clearTimeout(homeDebounceTimer);
 
         if (tapTimestamps.length >= 4) {
           tapTimestamps = [];
@@ -11460,14 +11468,24 @@ if (typeof window !== 'undefined') {
             try { navigator.vibrate([40, 60, 40]); } catch(err) {}
           }
           openTerminalGateway();
+        } else {
+          // If only 1-3 taps occur and user stops tapping, execute normal returnToHome after 380ms
+          homeDebounceTimer = setTimeout(function() {
+            tapTimestamps = [];
+            if (typeof returnToHome === 'function') {
+              returnToHome();
+            }
+          }, 380);
         }
       }
 
       function attachLogoTapListeners() {
         var targets = document.querySelectorAll('#brand-logo, .app-nav-logo, .brand-identity-group');
         targets.forEach(function(el) {
-          el.removeEventListener('click', handleLogoTap);
-          el.addEventListener('click', handleLogoTap);
+          el.removeEventListener('click', handleLogoTap, true);
+          el.addEventListener('click', handleLogoTap, true);
+          el.removeEventListener('touchend', handleLogoTap, true);
+          el.addEventListener('touchend', handleLogoTap, { passive: false, capture: true });
         });
       }
 
