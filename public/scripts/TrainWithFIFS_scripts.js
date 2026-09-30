@@ -4364,9 +4364,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
       
       var newId = (portalType === 'student' ? 'FIFS-' : 'FI-CLIENT-') + Math.floor(1000 + Math.random() * 9000);
       var origin = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : 'https://trainwithfifs.com';
-      var magicLink = portalType === 'student'
-        ? (origin + '/?portal=student&id=' + newId)
-        : (origin + '/?tab=fi-portal&client=' + newId);
+      var loginPortalUrl = origin + (portalType === 'student' ? '/?portal=student' : '/?tab=fi-portal');
 
       var payload = {
         portalType: portalType,
@@ -4401,9 +4399,10 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
                 refreshAdminRosterTable();
               }
             }
-            if (urlInput) urlInput.value = magicLink;
+            var credsSummary = 'Portal URL: ' + loginPortalUrl + ' | ID: ' + newId + (res.tempPassword ? (' | Temp Password: ' + res.tempPassword) : '');
+            if (urlInput) urlInput.value = credsSummary;
             if (resBox) resBox.style.display = 'block';
-            showStatus(st, 'Invitation confirmed and stored in Supabase. Share the access link below:', 'success');
+            showStatus(st, 'Credentials generated and invitation dispatched! Student can sign in at ' + loginPortalUrl + ' using their email/ID.', 'success');
           } else {
             showStatus(st, (res && res.error) || 'Failed to dispatch invite to Supabase.', 'error');
           }
@@ -4421,7 +4420,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
       if (urlInput) {
         urlInput.select();
         document.execCommand('copy');
-        alert('Magic Link copied to clipboard!\n\n' + urlInput.value);
+        alert('Portal sign-in instructions copied to clipboard!\n\n' + urlInput.value);
       }
     }
     window.copyInviteUrl = copyInviteUrl;
