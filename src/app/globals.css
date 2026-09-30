@@ -5567,3 +5567,43 @@ button:focus-visible,
   fill: rgba(239, 68, 68, 0.22) !important;
   stroke: #ef4444 !important;
 }
+/* Restored High-Contrast Start Your Journey CTA */
+.btn-hero-booking-prime {
+  width: 100% !important;
+  background: linear-gradient(135deg, #00e5ff 0%, #00b4d8 100%) !important;
+  color: #051622 !important;
+  border: 1px solid rgba(0, 229, 255, 0.7) !important;
+  border-radius: 12px !important;
+  padding: 16px 18px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  box-shadow: 0 4px 20px rgba(0, 229, 255, 0.35) !important;
+  transition: all 0.25s ease !important;
+  pointer-events: auto !important;
+}
+.btn-hero-booking-prime:hover {
+  transform: translateY(-2px) scale(1.01) !important;
+  box-shadow: 0 6px 26px rgba(0, 229, 255, 0.55) !important;
+  background: linear-gradient(135deg, #4deeea 0%, #00e5ff 100%) !important;
+}
+.prime-label {
+  font-family: var(--font-display, sans-serif) !important;
+  font-size: 1.35rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 1.8px !important;
+  text-transform: uppercase !important;
+  line-height: 1.1 !important;
+  color: #051622 !important;
+}
+.prime-sub {
+  font-family: var(--font-body, sans-serif) !important;
+  font-size: 0.8rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.8px !important;
+  color: #051622 !important;
+  text-transform: uppercase !important;
+}
