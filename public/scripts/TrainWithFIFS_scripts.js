@@ -3105,17 +3105,44 @@ function loadDemoStudent() {
       var s = (adminCachedStudents || []).find(stu => stu.studentId === studentId);
       if (!s || !modal) return;
       var idInput = document.getElementById('editStudentId');
-      var nameInput = document.getElementById('editStudentName');
-      var emailInput = document.getElementById('editStudentEmail');
-      var phoneInput = document.getElementById('editStudentPhone');
-      var courseInput = document.getElementById('editStudentCourse');
-      var dateInput = document.getElementById('editStudentDate');
-      if (idInput) idInput.value = s.studentId;
+      var nameInput = document.getElementById('editFullName');
+      var emailInput = document.getElementById('editEmail');
+      var phoneInput = document.getElementById('editPhone');
+      var courseInput = document.getElementById('editCourse');
+      var dateInput = document.getElementById('editAssignedDate');
+      var statusInput = document.getElementById('editJourneyStatus');
+      var scoreInput = document.getElementById('editScore');
+      var docUrlInput = document.getElementById('editProfileDocUrl');
+      var notesInput = document.getElementById('editNotes');
+      
+      if (idInput) idInput.value = s.studentId || '';
       if (nameInput) nameInput.value = s.fullName || '';
       if (emailInput) emailInput.value = s.email || '';
       if (phoneInput) phoneInput.value = s.phone || '';
-      if (courseInput) courseInput.value = s.course || '';
-      if (dateInput) dateInput.value = s.assignedDate || '';
+      if (courseInput) courseInput.value = s.course || s.courseSelection || '';
+      if (dateInput) dateInput.value = s.assignedDate || s.preferredDates || '';
+      if (statusInput) statusInput.value = s.status || 'STEP_1_REGISTERED';
+      if (scoreInput) scoreInput.value = s.qualificationScore || s.qualification_score || '25/25 (100%)';
+      if (docUrlInput) docUrlInput.value = s.profileDocUrl || s.dossier_url || '';
+      if (notesInput) notesInput.value = s.notes || s.comments || '';
+
+      // Scoresheet preview in student record
+      var scScore = document.getElementById('editScoresheetScore');
+      if (scScore) scScore.value = s.qualificationScore || s.qualification_score || '25/25 (100%)';
+      var badge = document.getElementById('editScoresheetStatusBadge');
+      var viewLink = document.getElementById('editScoresheetViewLink');
+      var delBtn = document.getElementById('btnDeleteScoresheetFromEdit');
+      var scUrl = s.scoresheet_url || s.scoresheetUrl || (s.scoresheet && (s.scoresheet.image_url || s.scoresheet.imageUrl));
+      if (scUrl) {
+        if (badge) { badge.textContent = 'Certified & Uploaded'; badge.style.background = 'rgba(16, 185, 129, 0.2)'; badge.style.color = '#10b981'; }
+        if (viewLink) { viewLink.href = scUrl; viewLink.style.display = 'inline-block'; }
+        if (delBtn) delBtn.style.display = 'inline-block';
+      } else {
+        if (badge) { badge.textContent = 'Pending Upload'; badge.style.background = 'rgba(245, 158, 11, 0.2)'; badge.style.color = 'var(--accent-amber)'; }
+        if (viewLink) viewLink.style.display = 'none';
+        if (delBtn) delBtn.style.display = 'none';
+      }
+
       modal.classList.add('active');
       modal.style.setProperty('display', 'flex', 'important');
       modal.style.setProperty('opacity', '1', 'important');
@@ -4690,7 +4717,7 @@ function openAdminEditStudentModal(studentId) {
         var stepNum = getStepNumberFromStatus(s.status);
         tr.innerHTML = `
           <td><strong style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.95rem;">${s.studentId}</strong></td>
-          <td><strong style="color: #fff;">${escapeHtml(s.fullName)}</strong><br><span style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(s.email || '')}</span></td>
+          <td><a href="javascript:void(0)" onclick="openAdminEditStudentModal('${s.studentId}')" style="cursor: pointer; color: #fff; text-decoration: none;" title="Click to view & edit full student record"><strong style="color: #fff; border-bottom: 1px dashed var(--accent-cyan); display: inline-block;">${escapeHtml(s.fullName)}</strong></a><br><span style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(s.email || '')}</span></td>
           <td>${escapeHtml((s.course || '').split('(')[0].trim())}</td>
           <td>${escapeHtml(s.assignedDate || s.preferredDates || 'To Be Scheduled')}</td>
           <td>

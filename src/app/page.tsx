@@ -6738,8 +6738,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
               <div id="editScoresheetFeedback" style={{"fontSize": "0.76rem", "marginTop": "6px", "display": "none"}}></div>
             </div>
-</form>
+          </form>
         </div>
+      </div>
+
       {/* ================= DEDICATED ADMIN SCORESHEET MODAL ================= */}
       <div className="goal-modal-overlay" id="adminScoresheetModal" data-onclick="if(event.target===this) closeStudentScoresheetModal()" style={{"display": "none"}}>
         <div aria-labelledby="adminScoresheetModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "640px", "borderColor": "var(--accent-cyan)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 35px var(--accent-cyan-glow)"}}>
@@ -6751,8 +6753,51 @@ document.addEventListener('submit', handleDelegatedSubmit);
               MARYLAND STATE POLICE FORM 29-14
             </span>
           </div>
+          <h3 className="goal-modal-title" id="adminScoresheetModalTitle" style={{"color": "#fff", "margin": "6px 0 4px"}}>
+            Certified Live-Fire Qualification Scoresheet
+          </h3>
+          <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "marginBottom": "16px"}}>
+            Student: <strong id="scoresheetModalStudentName" style={{"color": "#fff"}}></strong> (<span id="scoresheetModalStudentId" style={{"color": "var(--accent-cyan)", "fontFamily": "var(--font-mono)"}}></span>)
+          </p>
+
+          <div style={{"background": "rgba(255,255,255,0.02)", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "14px", "marginBottom": "14px"}}>
+            <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
+              <div>
+                <label style={{"fontSize": "0.80rem", "color": "#cbd5e1", "display": "block", "marginBottom": "4px", "fontWeight": "600"}}>
+                  Qualification Score
+                </label>
+                <input id="scoresheetModalScoreInput" placeholder="e.g. 25/25 (100%)" style={{"background": "#0a0f16", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px 10px", "borderRadius": "6px", "width": "100%", "fontSize": "0.85rem"}} type="text" defaultValue="25/25 (100%)" />
+              </div>
+              <div>
+                <label style={{"fontSize": "0.80rem", "color": "#cbd5e1", "display": "block", "marginBottom": "4px", "fontWeight": "600"}}>
+                  Select PDF or Scan Image
+                </label>
+                <input accept=".pdf,image/*" id="scoresheetModalFileInput" style={{"background": "#0a0f16", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "6px 10px", "borderRadius": "6px", "width": "100%", "fontSize": "0.80rem"}} type="file" />
+              </div>
+            </div>
+
+            <div id="scoresheetModalPreviewBox" style={{"display": "none", "textAlign": "center", "padding": "12px", "background": "#05080c", "borderRadius": "6px", "marginBottom": "12px", "border": "1px dashed var(--border-subtle)"}}>
+              <span style={{"fontSize": "0.80rem", "color": "#94a3b8", "display": "block", "marginBottom": "6px"}}>Live File Preview / Current File:</span>
+              <a id="scoresheetModalCurrentLink" href="#" target="_blank" rel="noopener noreferrer" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.88rem", "textDecoration": "underline"}}>
+                📄 View Scoresheet Document ↗
+              </a>
+            </div>
+
+            <div style={{"display": "flex", "gap": "10px", "marginTop": "8px"}}>
+              <button id="btnSaveScoresheetModal" type="button" data-onclick="saveStudentScoresheetFromModal()" className="btn-primary" style={{"flex": "2", "padding": "10px 14px", "fontSize": "0.85rem", "fontWeight": "700"}}>
+                💾 Save & Upload to Supabase
+              </button>
+              <button id="btnDeleteScoresheetModal" type="button" data-onclick="deleteStudentScoresheetFromModal()" style={{"flex": "1", "display": "none", "background": "transparent", "color": "#ef4444", "border": "1px solid #ef4444", "borderRadius": "8px", "padding": "10px 14px", "fontSize": "0.82rem", "fontWeight": "600", "cursor": "pointer"}}>
+                🗑️ Delete
+              </button>
+            </div>
+            <div id="scoresheetModalFeedback" style={{"marginTop": "10px", "fontSize": "0.82rem", "display": "none"}}></div>
+          </div>
+        </div>
+      </div>
+
       {/* ================= SUPABASE STUDENT DOSSIER & INSTRUCTOR NOTES MODAL ================= */}
-      <div className="goal-modal-overlay" id="studentDossierModal" data-onclick="if(event.target===this) closeStudentDossierModal()" style={{"display": "none"}}>
+      <div className="goal-modal-overlay"  data-onclick="if(event.target===this) closeStudentDossierModal()" style={{"display": "none"}}>
         <div aria-labelledby="dossierModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "620px", "borderColor": "var(--accent-amber)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 30px rgba(245, 158, 11, 0.35)"}}>
           <button aria-label="Close dossier modal" className="goal-modal-close-btn" data-onclick="closeStudentDossierModal()" type="button">
             ✕
