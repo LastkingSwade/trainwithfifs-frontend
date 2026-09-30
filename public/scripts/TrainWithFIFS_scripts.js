@@ -7131,12 +7131,12 @@ function getStepNumberFromStatus(statusStr) {
       renewal: {
         title: "📘 Maryland Wear & Carry (8-Hour Renewal) — Follow-Along Guide",
         desc: "Official 8-hour recertification study manual. Covers State v. Faulkner, SB 1 sensitive places, Jaelynn's Law, de-escalation scripts, and the 25-round BPHC qualification course.",
-        url: "https://docs.google.com/document/d/1BA5_XAKvSZ-jxq8vwwjbmHggV1JDankPewhNtJImxMg/edit?usp=drivesdk&ouid=101490363026866386126"
+        url: "https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/maryland-wear-carry-8hr-renewal-study-guide.pdf"
       },
       initial: {
         title: "📘 Maryland Wear & Carry (16-Hour Initial) — Follow-Along Guide",
         desc: "Comprehensive 16-hour curriculum companion. Covers safe gun handling, handgun anatomy, ammunition fundamentals, EDC setup, Maryland statutory pillars, and live-fire range drills.",
-        url: "https://docs.google.com/document/d/1jBzJxCL82MLTRuAotY4TqhEApLDV1PFdcqAMtFkBbVc/edit?usp=drivesdk&ouid=101490363026866386126"
+        url: "https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/maryland-wear-carry-16hr-study-guide.pdf"
       }
     };
     function updateStudentCoursePacketDisplay(courseName) {

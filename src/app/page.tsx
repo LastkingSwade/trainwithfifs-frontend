@@ -1226,7 +1226,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
                 <a className="btn-primary" href="#" id="packetCardLink" rel="noopener noreferrer" style={{"width": "auto", "padding": "10px 22px", "fontSize": "0.92rem", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} target="_blank">
                   
-              Open Course Guide (Google Doc) ↗
+              Open Course Guide (PDF) ↗
             
                 </a>
               </div>
@@ -2113,7 +2113,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       </span>
                     </div>
                   </div>
-                  <button className="btn-spark" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Multi-State Concealed Carry Mastery - $150"); }} data-onclick="selectCourse('Multi-State Concealed Carry Mastery - $150')" type="button">
+                  <button className="btn-spark" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Multi-State Concealed Carry Mastery - $425"); }} data-onclick="selectCourse('Multi-State Concealed Carry Mastery - $550)" type="button">
                     Book Multi-State Class →
                   </button>
                 </div>
