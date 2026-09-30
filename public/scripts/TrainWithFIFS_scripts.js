@@ -2282,7 +2282,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         returnToHome();
       }
     }
-    window.adminSignOut = adm    // ==========================================================================
+    window.adminSignOut = adminSignOut;
+    // ==========================================================================
     // CLIENT ALERT & ANIMATED ADMIN ACTION CONTROLLERS
     // ==========================================================================
     function checkNewClientAlert() {
@@ -8201,11 +8202,10 @@ function getStepNumberFromStatus(statusStr) {
         group.setAttribute('id', 'stateNode-' + code);
         group.setAttribute('data-code', code);
         group.style.cursor = 'pointer';
-        group.onclick = function(e) { if(e) e.preventDefault(); selectState(code); if (typeof openStateModal === 'function') openStateModal(code); };
         group.setAttribute('opacity', isVisible ? '1' : '0.25');
-        group.setAttribute('data-onclick', "selectState('" + code + "')");
-      group.style.cursor = 'pointer';
-      group.onclick = function() { selectState(code); };
+        group.setAttribute('data-onclick', "selectState('" + code + "'); if(typeof openStateModal==='function') openStateModal('" + code + "');");
+        group.style.cursor = 'pointer';
+        group.onclick = function(e) { if(e) { e.preventDefault(); e.stopPropagation(); } selectState(code); if (typeof openStateModal === 'function') openStateModal(code); };
         // Rectangle
         var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         rect.setAttribute('class', 'state-bg-rect');
