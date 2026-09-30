@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 
 // Server-side Supabase client using Service Role key (bypasses RLS for secure server operations)
 function getSupabase() {
@@ -14,12 +15,45 @@ function getSupabase() {
 }
 
 
+
+function dispatchTempPasswordEmail(toEmail: string, fullName: string, tempPassword: string): Promise<void> {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey || !toEmail || !toEmail.includes('@')) {
+    console.warn('[Email] RESEND_API_KEY not configured or invalid recipient; credential email skipped for', toEmail);
+    return Promise.resolve();
+  }
+  return fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${resendKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: 'Train With FIFS <onboarding@trainwithfifs.com>',
+      to: toEmail,
+      subject: 'Your Train With FIFS Portal Credentials (Action Required)',
+      html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;">
+        <h2 style="color:#0ea5e9;">Welcome to Future Initiative Firearm Services, ${fullName}!</h2>
+        <p>Your student portal account has been created. Use the credentials below to sign in for the first time:</p>
+        <div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;padding:16px;margin:16px 0;">
+          <p style="margin:4px 0;"><strong>Username / Email:</strong> ${toEmail}</p>
+          <p style="margin:4px 0;"><strong>Temporary Password:</strong> <code style="font-size:1.1em;">${tempPassword}</code></p>
+        </div>
+        <p style="color:#b91c1c;"><strong>Important:</strong> This is a one-time-use temporary password. You will be required to set a personal, secure password immediately upon your first login.</p>
+        <p style="color:#64748b;font-size:0.85em;">This temporary password expires in 24 hours. Log in at trainwithfifs.com to begin.</p>
+      </div>`,
+    }),
+  }).then(res => {
+    if (!res.ok) console.warn('[Email] Resend dispatch failed:', res.status);
+  }).catch(err => console.warn('[Email] Resend dispatch error:', err));
+}
+
 function generateSecureTempPassword(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
   let result = '';
-  const randomBytes = crypto.randomBytes(12);
+  const buf = crypto.randomBytes(12);
   for (let i = 0; i < 12; i++) {
-    result += chars[randomBytes[i] % chars.length];
+    result += chars[buf[i] % chars.length];
   }
   return result;
 }
@@ -729,6 +763,7 @@ export async function POST(req: NextRequest) {
           portal_password: tempPassword,
           temp_password_reset: true,
           password_expires_at: expiresAt,
+          last_password_change: null,
         };
 
         let { data: student, error: studentError } = await supabase
@@ -915,6 +950,30 @@ export async function POST(req: NextRequest) {
             status: 'invalid_password',
             message: 'Incorrect portal password. Please check and try again.',
           }, { status: 401 });
+        }
+
+        // SECURITY GATEKEEPER: Force password reset for temporary credentials
+        const isTempPassword = student.temp_password_reset === true;
+        const isExpired = student.password_expires_at && new Date(student.password_expires_at).getTime() < Date.now();
+        if (isTempPassword || isExpired) {
+          if (isExpired) {
+            return NextResponse.json({
+              success: false,
+              status: 'temp_password_expired',
+              studentId: student.student_id,
+              message: 'Your temporary password has expired. Contact your instructor to receive new credentials.',
+            }, { status: 403 });
+          }
+          return NextResponse.json({
+            success: true,
+            status: 'force_password_reset',
+            student: {
+              studentId: student.student_id,
+              email: student.email,
+              fullName: student.full_name,
+            },
+            message: 'You are using a temporary password. Please set your permanent password to continue.',
+          });
         }
 
         // Fetch related invoices & scoresheet
@@ -1116,6 +1175,8 @@ export async function POST(req: NextRequest) {
         if (error) {
           return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
         }
+
+        await dispatchTempPasswordEmail(payload.email || '', payload.fullName || payload.name || 'New Student', tempPassword);
 
         return NextResponse.json({
           success: true,
