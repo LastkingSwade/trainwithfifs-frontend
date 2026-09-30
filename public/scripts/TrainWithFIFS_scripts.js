@@ -11873,3 +11873,87 @@ if (typeof window !== 'undefined') {
         });
       }
     })();
+
+
+  // ==============================================================================
+  // SUPABASE REALTIME MULTI-CLIENT REPLICATION & FORCED PASSWORD RESET MODULE
+  // ==============================================================================
+  function initSupabaseRealtimeSync() {
+    try {
+      if (typeof window === 'undefined' || !window.supabaseClient) return;
+      var client = window.supabaseClient;
+
+      // Subscribe to students and student_scoresheets
+      var rosterChannel = client.channel('fifs-live-roster-sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'students' },
+          function(payload) {
+            console.log('[Realtime] Student table update:', payload.eventType);
+            if (typeof window.refreshAdminRosterSilent === 'function') {
+              window.refreshAdminRosterSilent();
+            } else if (typeof window.loadAdminRoster === 'function') {
+              window.loadAdminRoster();
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'student_scoresheets' },
+          function(payload) {
+            console.log('[Realtime] Scoresheet update:', payload.eventType);
+            if (typeof window.loadStudentScoresheetData === 'function') {
+              window.loadStudentScoresheetData();
+            }
+            if (typeof window.refreshAdminRosterSilent === 'function') {
+              window.refreshAdminRosterSilent();
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'clients' },
+          function(payload) {
+            console.log('[Realtime] Clients table update:', payload.eventType);
+            if (typeof window.loadAdminClients === 'function') {
+              window.loadAdminClients();
+            }
+          }
+        )
+        .subscribe(function(status) {
+          if (status === 'SUBSCRIBED') {
+            console.log('[Realtime] Connected to live postgres_changes.');
+          } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED') {
+            console.warn('[Realtime] Disconnected. Reconnecting and re-fetching baseline...');
+            setTimeout(function() {
+              if (typeof window.loadAdminRoster === 'function') window.loadAdminRoster();
+            }, 2500);
+          }
+        });
+      
+      window.fifsRosterChannel = rosterChannel;
+    } catch(err) {
+      console.error('[Realtime] Setup error:', err);
+    }
+  }
+
+  // Forced password reset modal enforcement
+  function checkMandatoryPasswordReset(studentRecord) {
+    if (!studentRecord) return;
+    if (studentRecord.tempPasswordReset || studentRecord.temp_password_reset) {
+      var modal = document.getElementById('forcedPasswordResetModal');
+      if (modal) {
+        modal.style.setProperty('display', 'flex', 'important');
+        var inputId = document.getElementById('resetStudentIdHidden');
+        if (inputId) inputId.value = studentRecord.student_id || studentRecord.studentId || '';
+      }
+    }
+  }
+  window.checkMandatoryPasswordReset = checkMandatoryPasswordReset;
+  window.initSupabaseRealtimeSync = initSupabaseRealtimeSync;
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSupabaseRealtimeSync);
+  } else {
+    initSupabaseRealtimeSync();
+  }

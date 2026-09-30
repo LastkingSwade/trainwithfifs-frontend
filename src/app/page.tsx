@@ -9185,6 +9185,67 @@ document.addEventListener('submit', handleDelegatedSubmit);
       {/* ================= END P2P ENCRYPTED COMMS HUD ================= */}
 
       </div>
+    
+      {/* ================= MANDATORY FORCED PASSWORD RESET MODAL ================= */}
+      <div id="forcedPasswordResetModal" style={{"display": "none", "position": "fixed", "top": "0", "left": "0", "width": "100vw", "height": "100vh", "backgroundColor": "rgba(7, 11, 16, 0.94)", "backdropFilter": "blur(8px)", "zIndex": 999999, "alignItems": "center", "justifyContent": "center", "padding": "20px"}}>
+        <div style={{"background": "#0d131b", "border": "2px solid var(--accent-amber)", "borderRadius": "16px", "padding": "32px", "maxWidth": "480px", "width": "100%", "boxShadow": "0 0 35px rgba(255, 183, 3, 0.25)", "textAlign": "left", "color": "#fff"}}>
+          <div style={{"display": "flex", "alignItems": "center", "gap": "12px", "marginBottom": "16px"}}>
+            <span style={{"fontSize": "1.8rem"}}>🔐</span>
+            <div>
+              <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.3rem", "margin": "0", "color": "#fff"}}>Action Required: Set New Password</h3>
+              <p style={{"fontSize": "0.82rem", "color": "var(--accent-amber)", "margin": "4px 0 0", "fontWeight": "600"}}>You signed in with a temporary password</p>
+            </div>
+          </div>
+          <p style={{"fontSize": "0.88rem", "color": "#94a3b8", "lineHeight": "1.5", "marginBottom": "20px"}}>
+            For security, temporary credentials expire and must be replaced immediately. Please create a permanent password to access your student portal.
+          </p>
+          <form id="forcedPasswordResetForm" onSubmit={(e) => {
+            e.preventDefault();
+            const sid = (document.getElementById('resetStudentIdHidden') as HTMLInputElement)?.value;
+            const np = (document.getElementById('forcedNewPassword') as HTMLInputElement)?.value;
+            const cp = (document.getElementById('forcedConfirmPassword') as HTMLInputElement)?.value;
+            const err = document.getElementById('forcedPasswordError');
+            if (np !== cp) {
+              if (err) { err.textContent = 'Passwords do not match.'; err.style.display = 'block'; }
+              return;
+            }
+            if (typeof window !== 'undefined' && (window as any).callFifsBackend) {
+              (window as any).callFifsBackend('setupStudentPassword', { studentId: sid, password: np })
+                .then((res: any) => {
+                  if (res && res.success) {
+                    const m = document.getElementById('forcedPasswordResetModal');
+                    if (m) m.style.display = 'none';
+                    if (typeof window !== 'undefined' && (window as any).showNotification) {
+                      (window as any).showNotification('Password updated successfully! Welcome to your portal.', 'success');
+                    }
+                  } else if (err) {
+                    err.textContent = res?.error || 'Password update failed.';
+                    err.style.display = 'block';
+                  }
+                });
+            }
+          }}>
+            <input type="hidden" id="resetStudentIdHidden" />
+            <div style={{"marginBottom": "14px"}}>
+              <label style={{"display": "block", "fontSize": "0.82rem", "fontWeight": "700", "color": "#cbd5e1", "marginBottom": "6px"}}>
+                New Password (Min. 12 characters, mix of cases, numbers, symbols)
+              </label>
+              <input type="password" id="forcedNewPassword" required style={{"width": "100%", "padding": "12px", "background": "#070b10", "border": "1px solid var(--accent-cyan)", "borderRadius": "8px", "color": "#fff", "fontSize": "0.95rem"}} />
+            </div>
+            <div style={{"marginBottom": "18px"}}>
+              <label style={{"display": "block", "fontSize": "0.82rem", "fontWeight": "700", "color": "#cbd5e1", "marginBottom": "6px"}}>
+                Confirm New Password
+              </label>
+              <input type="password" id="forcedConfirmPassword" required style={{"width": "100%", "padding": "12px", "background": "#070b10", "border": "1px solid var(--accent-cyan)", "borderRadius": "8px", "color": "#fff", "fontSize": "0.95rem"}} />
+            </div>
+            <div id="forcedPasswordError" style={{"display": "none", "color": "#ef4444", "fontSize": "0.82rem", "marginBottom": "14px", "fontWeight": "600"}}></div>
+            <button type="submit" style={{"width": "100%", "padding": "13px", "background": "linear-gradient(135deg, #ffb703 0%, #d49000 100%)", "color": "#070b10", "border": "none", "borderRadius": "8px", "fontWeight": "800", "fontFamily": "var(--font-display)", "fontSize": "1rem", "cursor": "pointer", "textTransform": "uppercase"}}>
+              Save Permanent Password &amp; Enter Portal →
+            </button>
+          </form>
+        </div>
+      </div>
+
     </div>
   );
 }

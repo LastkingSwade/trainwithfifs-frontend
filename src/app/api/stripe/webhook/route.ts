@@ -13,6 +13,36 @@ function getSupabase() {
   });
 }
 
+
+function generateSecureTempPassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
+  let result = '';
+  const randomBytes = crypto.randomBytes(12);
+  for (let i = 0; i < 12; i++) {
+    result += chars[randomBytes[i] % chars.length];
+  }
+  return result;
+}
+
+function validateStrictPassword(password: string): { valid: boolean; error?: string } {
+  if (!password || password.length < 12) {
+    return { valid: false, error: 'Password must be at least 12 characters long.' };
+  }
+  if (!/[A-Z]/.test(password)) {
+    return { valid: false, error: 'Password must include at least one uppercase letter.' };
+  }
+  if (!/[a-z]/.test(password)) {
+    return { valid: false, error: 'Password must include at least one lowercase letter.' };
+  }
+  if (!/[0-9]/.test(password)) {
+    return { valid: false, error: 'Password must include at least one number.' };
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    return { valid: false, error: 'Password must include at least one special character (!@#$%^&*...).' };
+  }
+  return { valid: true };
+}
+
 function verifyAdminPasscode(passcode?: string): boolean {
   const expected = process.env.ADMIN_PASSCODE || 'Ultima';
   return Boolean(passcode && passcode.trim().toLowerCase() === expected.trim().toLowerCase());
@@ -644,6 +674,8 @@ export async function POST(req: NextRequest) {
         }
 
         const portalType = payload.portalType || 'student';
+        const tempPassword = generateSecureTempPassword();
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
         const generatedId = payload.generatedId || ('FIFS-' + Math.floor(1000 + Math.random() * 9000));
         const now = new Date().toISOString();
 
@@ -692,9 +724,11 @@ export async function POST(req: NextRequest) {
           status: 'STEP_1_REGISTERED',
           prep_tasks: defaultTasks,
           waiver_completed: false,
-          portal_password: invitePassword || null,
-          created_at: now,
+                    created_at: now,
           updated_at: now,
+          portal_password: tempPassword,
+          temp_password_reset: true,
+          password_expires_at: expiresAt,
         };
 
         let { data: student, error: studentError } = await supabase
@@ -906,12 +940,16 @@ export async function POST(req: NextRequest) {
         const email = (payload.email || '').toString().trim().toLowerCase();
         const newPassword = (payload.password || '').toString().trim();
 
-        if (!newPassword || newPassword.length < 4) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Password must be at least 4 characters.' }, { status: 400 });
+        const validation = validateStrictPassword(newPassword);
+        if (!validation.valid) {
+          return NextResponse.json({ success: false, status: 'error', error: validation.error }, { status: 400 });
         }
 
         let updateQuery = supabase.from('students').update({
           portal_password: newPassword,
+          temp_password_reset: false,
+          password_expires_at: null,
+          last_password_change: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
 
