@@ -697,7 +697,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           "✔ 100% strict zero-live-ammunition classroom policy enforced."
         ],
         ctaText: "View Follow-Along Course Packet →",
-        ctaAction: "window.open('https://docs.google.com/document/d/1K0dM40LAbSy8i7k9vM0iZNJk-YdYMZ9BC_tbI1l6oe0/edit?usp=sharing', '_blank')"
+        ctaAction: "window.open('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/fifs-classroom-course-packet.pdf', '_blank')"
       },
       5: {
         title: "Live-Fire Practical Range Qualification",
@@ -4888,7 +4888,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (typeof callFifsBackend === 'function') { callFifsBackend('handleLeadMagnetSubmission', { fullName: name, email: email, source: '50-State Reciprocity Guide' }); }
       setTimeout(function() {
         showStatus(st, 'Success! Download starting. Thank you for training with Future Initiative.', 'success');
-        window.open('https://drive.google.com/file/d/1WIoQO00ALNalIuTjSNacZbBNLYIrVHGN/view?usp=sharing', '_blank');
+        window.open('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/top-50-questions-new-gun-owners.pdf', '_blank');
       }, 400);
     }
     window.handleLeadMagnetSubmit = handleLeadMagnetSubmit;
@@ -8573,7 +8573,7 @@ function getStepNumberFromStatus(statusStr) {
           "✔ 100% strict zero-live-ammunition classroom policy enforced."
         ],
         ctaText: "View Follow-Along Course Packet →",
-        ctaAction: "window.open('https://docs.google.com/document/d/1K0dM40LAbSy8i7k9vM0iZNJk-YdYMZ9BC_tbI1l6oe0/edit?usp=sharing', '_blank')"
+        ctaAction: "window.open('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/fifs-classroom-course-packet.pdf', '_blank')"
       },
       5: {
         title: "Live-Fire Practical Range Qualification",
@@ -10356,7 +10356,7 @@ window.renderLiveVisitorRoster = renderLiveVisitorRoster;
         document.body.removeChild(a);
       }
     } catch (e) {
-      window.open('https://drive.google.com/file/d/16mcNwtv7ldRMtX4u-TKUbbMj99-08Hk3/view?usp=sharing', '_blank');
+      window.open('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/msp-form-29-14-handgun-score-sheet.pdf', '_blank');
     }
   }
   window.openOfficialMspScoreSheet = openOfficialMspScoreSheet;

@@ -2103,17 +2103,17 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     </p>
                     <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.3rem", "color": "#fff", "marginBottom": "12px"}}>
                       
-                $424.99 
+                $150 
                       <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "fontFamily": "var(--font-body)"}}>
                         Base
                       </span>
-                       • $550 
+                       • $350 
                       <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)", "fontFamily": "var(--font-body)"}}>
                         VIP Turnkey
                       </span>
                     </div>
                   </div>
-                  <button className="btn-spark" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Multi-State Concealed Carry Mastery - $424.99"); }} data-onclick="selectCourse('Multi-State Concealed Carry Mastery - $424.99')" type="button">
+                  <button className="btn-spark" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Multi-State Concealed Carry Mastery - $150"); }} data-onclick="selectCourse('Multi-State Concealed Carry Mastery - $150')" type="button">
                     Book Multi-State Class →
                   </button>
                 </div>
@@ -6333,7 +6333,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Comprehensive 6-page Maryland-compliant guide prepared by Instructor Kai Wade.
               </span>
             </div>
-            <a className="btn-download-guide" href="https://drive.google.com/file/d/1WIoQO00ALNalIuTjSNacZbBNLYIrVHGN/view?usp=sharing" rel="noopener noreferrer" target="_blank">
+            <a className="btn-download-guide" href="https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/top-50-questions-new-gun-owners.pdf" rel="noopener noreferrer" target="_blank">
               <span>
                 📥 View & Download PDF
               </span>
