@@ -6080,7 +6080,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
           </div>
           <div className="goal-modal-actions">
-            <button className="btn-primary" id="goalModalAcceptBtn" data-onclick="closeGoalSynopsis(); selectCourse('Maryland CCW &amp; HQL Combo — Base Track ($249.99)');" type="button">
+            <button className="btn-primary" id="goalModalAcceptBtn" data-onclick="if(typeof window!=='undefined'&&window.confirmSelectedGoalCourse){window.confirmSelectedGoalCourse();}else{closeGoalSynopsis();}" type="button">
               
           Choose This Course & Continue →
         

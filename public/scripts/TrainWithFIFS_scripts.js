@@ -983,12 +983,16 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
       if (guideBanner) guideBanner.style.display = data.showGuide ? 'flex' : 'none';
       if (mspPortalBanner) mspPortalBanner.style.display = (goalKey === 'want_to_carry') ? 'flex' : 'none';
+      window.__activeGoalCourse = data.courseValue;
       if (acceptBtn) {
         if (goalKey === 'new_to_firearms') {
           acceptBtn.style.display = 'none';
         } else {
           acceptBtn.style.display = 'inline-flex';
-          acceptBtn.onclick = function() {
+          var safeCourse = (data.courseValue || '').replace(/'/g, "\'");
+          acceptBtn.setAttribute('data-onclick', "closeGoalSynopsis(); selectCourse('" + safeCourse + "');");
+          acceptBtn.onclick = function(e) {
+            if (e && e.stopPropagation) e.stopPropagation();
             closeGoalSynopsis();
             selectCourse(data.courseValue);
           };
@@ -1019,6 +1023,12 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
     }
     window.closeGoalSynopsis = closeGoalSynopsis;
+    function confirmSelectedGoalCourse() {
+      var course = window.__activeGoalCourse || 'Maryland HQL (Purchase License) — Base Track (00.00)';
+      if (typeof closeGoalSynopsis === 'function') closeGoalSynopsis();
+      if (typeof selectCourse === 'function') selectCourse(course);
+    }
+    window.confirmSelectedGoalCourse = confirmSelectedGoalCourse;
     function openStepDetailModal(stepNum) {
       var data = FIFS_STEPS_DATA[stepNum];
       if (!data) return;
