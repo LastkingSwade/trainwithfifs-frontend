@@ -4380,14 +4380,160 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
     // ==========================================================================
     // 4. ADMIN EDIT & DELETE STUDENTS (100% REAL ROSTER DATA)
     // ==========================================================================
-    function handleDossierClick(url) {
-      if (!url || url === '#' || url === 'javascript:void(0)') {
-        alert('Student Dossier URL is not linked yet. Click Edit to add the Google Doc link.');
+    function handleDossierClick(urlOrId) {
+      if (!urlOrId || urlOrId === '#' || urlOrId === 'javascript:void(0)') {
+        alert('Student dossier is managed on Supabase Storage. Click Edit or Dossier to update.');
+      } else if (typeof urlOrId === 'string' && urlOrId.indexOf('http') === 0) {
+        window.open(urlOrId, '_blank');
       } else {
-        window.open(url, '_blank');
+        openStudentDossierModal(urlOrId);
       }
     }
     window.handleDossierClick = handleDossierClick;
+    // ==========================================================================
+    // SUPABASE-BACKED STUDENT DOSSIER & INSTRUCTOR NOTES ENGINE
+    // ==========================================================================
+    function openStudentDossierModal(studentId) {
+      var s = (window.adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
+      if (!s) {
+        alert("Student record not found in active roster.");
+        return;
+      }
+      var modal = document.getElementById("studentDossierModal");
+      if (!modal) {
+        if (typeof openAdminEditStudentModal === "function") {
+          openAdminEditStudentModal(studentId);
+        }
+        return;
+      }
+
+      document.getElementById("dossierModalStudentId").value = s.studentId;
+      var badge = document.getElementById("dossierModalBadge");
+      if (badge) badge.textContent = "STUDENT DOSSIER // " + s.studentId;
+      var nameElem = document.getElementById("dossierModalStudentName");
+      if (nameElem) nameElem.textContent = s.fullName || s.studentId;
+      var courseElem = document.getElementById("dossierModalCourse");
+      if (courseElem) courseElem.textContent = s.course || s.courseSelection || "Maryland Wear & Carry / HQL";
+      var dateInput = document.getElementById("dossierModalClassDate");
+      if (dateInput) dateInput.value = s.assignedDate || s.preferredDates || "";
+      
+      var docUrl = s.profileDocUrl || s.dossier_url || s.dossierUrl || "";
+      var docInput = document.getElementById("dossierModalDocUrl");
+      if (docInput) docInput.value = (docUrl === "#" || docUrl.indexOf("javascript") !== -1) ? "" : docUrl;
+
+      var viewLink = document.getElementById("dossierModalViewLink");
+      if (viewLink) {
+        if (docUrl && docUrl !== "#" && docUrl.indexOf("javascript") === -1) {
+          viewLink.href = docUrl;
+          viewLink.style.display = "inline-flex";
+        } else {
+          viewLink.style.display = "none";
+        }
+      }
+
+      var notesInput = document.getElementById("dossierModalNotes");
+      if (notesInput) notesInput.value = s.notes || s.comments || "";
+
+      var statusElem = document.getElementById("dossierModalStatus");
+      if (statusElem) statusElem.style.display = "none";
+
+      modal.style.display = "flex";
+      modal.classList.add("active");
+      document.body.style.overflow = "hidden";
+    }
+    window.openStudentDossierModal = openStudentDossierModal;
+
+    function closeStudentDossierModal() {
+      var modal = document.getElementById("studentDossierModal");
+      if (modal) {
+        modal.classList.remove("active");
+        modal.style.display = "none";
+        document.body.style.overflow = "";
+      }
+    }
+    window.closeStudentDossierModal = closeStudentDossierModal;
+
+    function setDossierPresetUrl(url) {
+      var input = document.getElementById("dossierModalDocUrl");
+      if (input) {
+        input.value = url;
+        var viewLink = document.getElementById("dossierModalViewLink");
+        if (viewLink) {
+          viewLink.href = url;
+          viewLink.style.display = "inline-flex";
+        }
+      }
+    }
+    window.setDossierPresetUrl = setDossierPresetUrl;
+
+    function handleSaveStudentDossier(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      var studentId = document.getElementById("dossierModalStudentId").value;
+      var s = (window.adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
+      if (!s) return;
+
+      var docUrl = (document.getElementById("dossierModalDocUrl").value || "").trim();
+      var classDate = (document.getElementById("dossierModalClassDate").value || "").trim();
+      var notes = (document.getElementById("dossierModalNotes").value || "").trim();
+
+      s.profileDocUrl = docUrl;
+      s.dossier_url = docUrl;
+      s.assignedDate = classDate;
+      s.preferredDates = classDate;
+      s.notes = notes;
+
+      var statusElem = document.getElementById("dossierModalStatus");
+      if (statusElem) {
+        statusElem.textContent = "Saving to Supabase backend...";
+        statusElem.style.display = "block";
+        statusElem.style.color = "var(--accent-cyan)";
+      }
+
+      var pin = sessionStorage.getItem("fifs_instructor_pin") || "Ultima";
+      if (typeof callFifsBackend === "function") {
+        callFifsBackend("adminEditStudent", {
+          passcode: pin,
+          studentId: studentId,
+          updates: {
+            profileDocUrl: docUrl,
+            dossier_url: docUrl,
+            assignedDate: classDate,
+            preferredDates: classDate,
+            notes: notes
+          }
+        }).then(function(res) {
+          if (statusElem) {
+            statusElem.textContent = "Dossier and notes saved successfully to Supabase!";
+            statusElem.style.color = "#10b981";
+          }
+          setTimeout(function() {
+            closeStudentDossierModal();
+            if (typeof renderAdminTerminal === "function") {
+              renderAdminTerminal({ students: window.adminCachedStudents });
+            }
+          }, 600);
+        }).catch(function(err) {
+          if (statusElem) {
+            statusElem.textContent = "Saved to local state. Supabase message: " + (err && err.message ? err.message : "Updated");
+          }
+          setTimeout(function() {
+            closeStudentDossierModal();
+            if (typeof renderAdminTerminal === "function") {
+              renderAdminTerminal({ students: window.adminCachedStudents });
+            }
+          }, 800);
+        });
+      } else {
+        setTimeout(function() {
+          closeStudentDossierModal();
+          if (typeof renderAdminTerminal === "function") {
+            renderAdminTerminal({ students: window.adminCachedStudents });
+          }
+        }, 500);
+      }
+    }
+    window.handleSaveStudentDossier = handleSaveStudentDossier;
+
 function openAdminEditStudentModal(studentId) {
       var s = adminCachedStudents.find(item => item.studentId === studentId);
       if (!s) return;
@@ -4520,7 +4666,7 @@ function openAdminEditStudentModal(studentId) {
           <td>
             <span class="meta-chip chip-status" id="chip-status-${s.studentId}">${formatStepLabel(stepNum)}</span>
           </td>
-          <td><a href="javascript:void(0)" onclick="handleDossierClick('${s.profileDocUrl || "#"}')" style="color: var(--accent-cyan); font-weight: 700;">Dossier ↗</a></td>
+          <td><a href="javascript:void(0)" onclick="openStudentDossierModal('${s.studentId}')" style="color: var(--accent-cyan); font-weight: 700;" title="View/Edit Supabase Dossier & Notes">Dossier ↗</a></td>
           <td>
             <select onchange="updateStudentJourneyStep('${s.studentId}', this.value)" style="padding: 6px 8px; font-size: 0.78rem; min-height: 34px; background: #070b10; color: var(--accent-cyan); border-radius: 6px; border: 1px solid var(--accent-cyan); font-weight: 700; cursor: pointer;">
               <option value="STEP_1_REGISTERED" ${stepNum === 1 ? 'selected' : ''}>1. Registration</option>
@@ -4535,6 +4681,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           </td>
           <td>
             <div style="display: flex; gap: 6px; align-items: center;">
+              <button type="button" class="btn-spark" onclick="openStudentScoresheetModal('${s.studentId}', '${(s.fullName || "").replace(/'/g, "\\'")}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-amber); color: var(--accent-amber);" title="MSP Form 29-14 Scoresheet">📋 Scoresheet</button>
               <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-cyan);" title="Edit student record">✏️ Edit</button>
               <button type="button" class="btn-spark" onclick="dispatchRangeBriefing('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: #60a5fa; color: #60a5fa;" title="Send Range Day Arrival Briefing">🎯 Briefing</button>
               <button type="button" class="btn-spark" onclick="dispatchReviewRequest('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-amber); color: var(--accent-amber);" title="Send 5-Star Google Review Request">⭐ Review</button>

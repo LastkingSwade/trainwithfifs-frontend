@@ -6751,6 +6751,67 @@ document.addEventListener('submit', handleDelegatedSubmit);
               MARYLAND STATE POLICE FORM 29-14
             </span>
           </div>
+      {/* ================= SUPABASE STUDENT DOSSIER & INSTRUCTOR NOTES MODAL ================= */}
+      <div className="goal-modal-overlay" id="studentDossierModal" data-onclick="if(event.target===this) closeStudentDossierModal()" style={{"display": "none"}}>
+        <div aria-labelledby="dossierModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "620px", "borderColor": "var(--accent-amber)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 30px rgba(245, 158, 11, 0.35)"}}>
+          <button aria-label="Close dossier modal" className="goal-modal-close-btn" data-onclick="closeStudentDossierModal()" type="button">
+            ✕
+          </button>
+          <div>
+            <span className="goal-header-badge" id="dossierModalBadge" style={{"background": "rgba(245, 158, 11, 0.15)", "color": "var(--accent-amber)"}}>
+              STUDENT DOSSIER
+            </span>
+          </div>
+          <h3 className="goal-modal-title" id="dossierModalTitle" style={{"color": "#fff", "margin": "6px 0 4px"}}>
+            Dossier & Instructor Notes
+          </h3>
+          <p style={{"color": "var(--text-muted)", "fontSize": "0.85rem", "marginBottom": "14px"}}>
+            <strong id="dossierModalStudentName" style={{"color": "var(--accent-cyan)"}}>Student</strong>
+            {' '}· <span id="dossierModalCourse">Course</span>
+          </p>
+          <form id="studentDossierForm" data-onsubmit="handleSaveStudentDossier(event)">
+            <input id="dossierModalStudentId" type="hidden" />
+            <div className="form-group" style={{"marginBottom": "12px"}}>
+              <label htmlFor="dossierModalClassDate" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
+                Class / Range Date
+              </label>
+              <input id="dossierModalClassDate" placeholder="e.g., Sat, Oct 12 2026 · 9:00 AM" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
+            </div>
+            <div className="form-group" style={{"marginBottom": "12px"}}>
+              <label htmlFor="dossierModalDocUrl" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
+                Official Dossier Document (Supabase Storage URL)
+              </label>
+              <input id="dossierModalDocUrl" placeholder="https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/..." style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
+              <div style={{"display": "flex", "gap": "8px", "flexWrap": "wrap", "marginTop": "8px"}}>
+                <a className="btn-spark" data-target="_blank" id="dossierModalViewLink" rel="noopener noreferrer" style={{"display": "none", "padding": "7px 12px", "fontSize": "0.78rem", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)", "textDecoration": "none", "alignItems": "center", "gap": "6px"}} target="_blank">
+                  👁 Preview Current Dossier
+                </a>
+                <button className="btn-spark" data-onclick="setDossierPresetUrl('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/msp-form-29-14-handgun-score-sheet.pdf')" style={{"padding": "7px 12px", "fontSize": "0.78rem", "borderColor": "var(--accent-amber)", "color": "var(--accent-amber)", "width": "auto"}} type="button">
+                  📋 Use MSP Form 29-14
+                </button>
+                <button className="btn-spark" data-onclick="setDossierPresetUrl('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/fifs-classroom-course-packet.pdf')" style={{"padding": "7px 12px", "fontSize": "0.78rem", "borderColor": "var(--accent-amber)", "color": "var(--accent-amber)", "width": "auto"}} type="button">
+                  📦 Use Course Packet
+                </button>
+              </div>
+            </div>
+            <div className="form-group" style={{"marginBottom": "16px"}}>
+              <label htmlFor="dossierModalNotes" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
+                Instructor Diagnostic & Administrative Notes
+              </label>
+              <textarea id="dossierModalNotes" rows="5" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%", "fontFamily": "inherit", "fontSize": "0.88rem", "resize": "vertical"}}></textarea>
+            </div>
+            <div id="dossierModalStatus" style={{"display": "none", "marginBottom": "10px", "fontSize": "0.82rem", "fontWeight": "700"}}></div>
+            <div style={{"display": "flex", "gap": "10px"}}>
+              <button className="btn-primary" style={{"flex": "2", "padding": "12px"}} type="submit">
+                💾 Save Dossier & Notes to Supabase
+              </button>
+              <button className="btn-secondary-modal" data-onclick="closeStudentDossierModal()" style={{"flex": "1", "padding": "12px"}} type="button">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
           <h3 className="goal-modal-title" id="adminScoresheetModalTitle" style={{"color": "#fff", "margin": "6px 0 14px"}}>
             Official Qualification Scoresheet
           </h3>
