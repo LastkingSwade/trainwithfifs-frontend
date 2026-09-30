@@ -264,7 +264,7 @@ export async function POST(req: NextRequest) {
             permit_state: 'Maryland Wear & Carry',
             updated_at: new Date().toISOString()
           });
-          return NextResponse.json({ success: true, isNewUser: true, message:  });
+          return NextResponse.json({ success: true, isNewUser: true, message: 'Client profile created. Welcome email with portal credentials sent.' });
         }
 
         if (!classId || !scheduledDateStr) {
@@ -379,7 +379,9 @@ export async function POST(req: NextRequest) {
 
         if (isNewUser) {
           // Welcome & Temporary Credentials
-          const html = `<p>Welcome to <strong>${classTitle}</strong>! Your session is confirmed for <strong>${dateFormatted}</strong>.</p>` + (signedDocUrl ? `<p style="margin:10px 0 0 0;"><a href="${signedDocUrl}" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>` : "") + (isNewUser && tempPassword ? `<p>Your temporary password is: <code>${tempPassword}</code></p>` : "");color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>;
+          const html = `<p>Welcome to <strong>${classTitle}</strong>! Your session is confirmed for <strong>${dateFormatted}</strong>.</p>` +
+            (signedDocUrl ? `<p style="margin:10px 0 0 0;"><a href="${signedDocUrl}" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>` : '') +
+            (isNewUser && tempPassword ? `<p>Your temporary password is: <code>${tempPassword}</code></p><p>You will be required to change this password at first login.</p>` : '');
           emailResult = await sendResendEmail({
             to: email,
             subject: 'Course Confirmation & Portal Access - ' + classTitle,
@@ -388,7 +390,9 @@ export async function POST(req: NextRequest) {
           });
         } else {
           // Existing User Enrollment Confirmation
-          const html = `<p>Welcome to <strong>${classTitle}</strong>! Your session is confirmed for <strong>${dateFormatted}</strong>.</p>` + (signedDocUrl ? `<p style="margin:10px 0 0 0;"><a href="${signedDocUrl}" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>` : "") + (isNewUser && tempPassword ? `<p>Your temporary password is: <code>${tempPassword}</code></p>` : "");color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>;
+          const html = `<p>Welcome to <strong>${classTitle}</strong>! Your session is confirmed for <strong>${dateFormatted}</strong>.</p>` +
+            (signedDocUrl ? `<p style="margin:10px 0 0 0;"><a href="${signedDocUrl}" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>` : '') +
+            (isNewUser && tempPassword ? `<p>Your temporary password is: <code>${tempPassword}</code></p><p>You will be required to change this password at first login.</p>` : '');
           emailResult = await sendResendEmail({
             to: email,
             subject: 'Course Confirmation & Portal Access - ' + classTitle,
@@ -448,7 +452,7 @@ export async function POST(req: NextRequest) {
             reminder_sent: false,
             status: 'rescheduled',
             previous_dates: previousDates,
-            internal_notes: reason ?  : enrollment.internal_notes
+            internal_notes: reason || enrollment.internal_notes
           })
           .eq('id', enrollmentId);
 
