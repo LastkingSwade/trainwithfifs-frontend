@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 // Server-side Supabase client using Service Role key (bypasses RLS for secure server operations)
 function getSupabase() {
@@ -16,44 +16,83 @@ function getSupabase() {
 
 
 
-function dispatchTempPasswordEmail(toEmail: string, fullName: string, tempPassword: string): Promise<void> {
+async function dispatchTempPasswordEmail(toEmail: string, fullName: string, tempPassword: string): Promise<{ success: boolean; error?: string }> {
   const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey || !toEmail || !toEmail.includes('@')) {
-    console.warn('[Email] RESEND_API_KEY not configured or invalid recipient; credential email skipped for', toEmail);
-    return Promise.resolve();
+  if (!resendKey) {
+    console.warn("[Email] RESEND_API_KEY environment variable is missing; cannot send email via Resend.");
+    return { success: false, error: "RESEND_API_KEY not configured" };
   }
-  return fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${resendKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: 'Train With FIFS <onboarding@trainwithfifs.com>',
-      to: toEmail,
-      subject: 'Your Train With FIFS Portal Credentials (Action Required)',
-      html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;">
-        <h2 style="color:#0ea5e9;">Welcome to Future Initiative Firearm Services, ${fullName}!</h2>
-        <p>Your student portal account has been created. Use the credentials below to sign in for the first time:</p>
-        <div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;padding:16px;margin:16px 0;">
-          <p style="margin:4px 0;"><strong>Username / Email:</strong> ${toEmail}</p>
-          <p style="margin:4px 0;"><strong>Temporary Password:</strong> <code style="font-size:1.1em;">${tempPassword}</code></p>
-        </div>
-        <p style="color:#b91c1c;"><strong>Important:</strong> This is a one-time-use temporary password. You will be required to set a personal, secure password immediately upon your first login.</p>
-        <p style="color:#64748b;font-size:0.85em;">This temporary password expires in 24 hours. Log in at trainwithfifs.com to begin.</p>
-      </div>`,
-    }),
-  }).then(res => {
-    if (!res.ok) console.warn('[Email] Resend dispatch failed:', res.status);
-  }).catch(err => console.warn('[Email] Resend dispatch error:', err));
+  if (!toEmail || !toEmail.includes("@")) {
+    console.warn("[Email] Invalid recipient email address:", toEmail);
+    return { success: false, error: "Invalid recipient email" };
+  }
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${resendKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "Train With FIFS <onboarding@trainwithfifs.com>",
+        to: [toEmail],
+        subject: "Your Train With FIFS Portal Credentials (Action Required)",
+        html: `<div style="font-family:Arial,sans-serif;max-width:540px;margin:0 auto;padding:24px;border:1px solid #e2e8f0;border-radius:10px;background:#ffffff;">
+          <h2 style="color:#0ea5e9;margin-top:0;">Welcome to Future Initiative Firearm Services, ${fullName}!</h2>
+          <p style="color:#334155;font-size:15px;line-height:1.5;">Your student training portal account has been prepared. Use your temporary credentials below to sign in:</p>
+          <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:16px;margin:20px 0;">
+            <p style="margin:4px 0;color:#1e293b;"><strong>Username / Email:</strong> ${toEmail}</p>
+            <p style="margin:4px 0;color:#1e293b;"><strong>Temporary One-Time Password:</strong> <code style="font-size:1.15em;font-weight:bold;color:#0f172a;background:#e2e8f0;padding:2px 8px;border-radius:4px;">${tempPassword}</code></p>
+          </div>
+          <p style="color:#dc2626;font-size:14px;font-weight:600;">⚠️ Important: This is a single-use temporary password. You must set a permanent password upon logging in.</p>
+          <p style="color:#64748b;font-size:13px;">This credential expires in 24 hours. Sign in at <a href="https://trainwithfifs.com/?portal=student" style="color:#0284c7;font-weight:bold;">trainwithfifs.com/?portal=student</a> to access your curriculum and pre-class readiness tasks.</p>
+        </div>`,
+      }),
+    });
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
+      console.warn("[Email] Resend API error status:", res.status, errBody);
+      return { success: false, error: `Resend error (${res.status}): ${errBody}` };
+    }
+    const resData = await res.json().catch(() => ({}));
+    console.log("[Email] Resend dispatch successful for", toEmail, resData);
+    return { success: true };
+  } catch (err: any) {
+    console.warn("[Email] Resend network/dispatch error:", err);
+    return { success: false, error: err?.message || "Failed to dispatch email" };
+  }
 }
 
 function generateSecureTempPassword(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
   let result = '';
-  const buf = crypto.randomBytes(12);
+  try {
+    if (typeof crypto !== 'undefined' && crypto && typeof crypto.randomBytes === 'function') {
+      const buf = crypto.randomBytes(12);
+      for (let i = 0; i < 12; i++) {
+        result += chars[buf[i] % chars.length];
+      }
+      return result;
+    }
+  } catch (_e) {
+    // continue to Web Crypto
+  }
+
+  try {
+    if (typeof globalThis !== 'undefined' && globalThis.crypto && typeof globalThis.crypto.getRandomValues === 'function') {
+      const arr = new Uint8Array(12);
+      globalThis.crypto.getRandomValues(arr);
+      for (let i = 0; i < 12; i++) {
+        result += chars[arr[i] % chars.length];
+      }
+      return result;
+    }
+  } catch (_e) {
+    // continue to fallback
+  }
+
   for (let i = 0; i < 12; i++) {
-    result += chars[buf[i] % chars.length];
+    result += chars[Math.floor(Math.random() * chars.length)];
   }
   return result;
 }
@@ -704,7 +743,15 @@ export async function POST(req: NextRequest) {
 
       case 'adminDirectInvite': {
         if (!verifyAdminPasscode(passcode)) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
+          return NextResponse.json({
+          success: true,
+          status: "success",
+          studentId: generatedId,
+          tempPassword: tempPassword,
+          emailDispatched: emailResult.success,
+          emailError: emailResult.error || null,
+          student: normalizeStudent(student),
+        });
         }
 
         const portalType = payload.portalType || 'student';
@@ -810,7 +857,17 @@ export async function POST(req: NextRequest) {
             payment_method: 'Stripe / Pending',
           });
 
-        return NextResponse.json({
+                // Dispatch onboarding email with temporary password via Resend
+        let emailResult = { success: false, error: "No email provided" };
+        if (payload.email) {
+          emailResult = await dispatchTempPasswordEmail(
+            payload.email,
+            payload.fullName || payload.name || "Invited Student",
+            tempPassword
+          );
+        }
+
+return NextResponse.json({
           success: true,
           status: 'success',
           studentId: generatedId,
