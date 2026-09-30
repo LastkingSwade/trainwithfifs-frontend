@@ -1794,6 +1794,249 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
               {/* ================= SECTION: CLIENT PROFILE & REGISTRY ================= */}
               {/* (Client Profile moved into #clientProfileModal deep-dive popup) */}
+              <div className="fi-section-header" id="fi-sec-renewal">
+                <h3>
+                  Permit & Renewal Center
+                </h3>
+                <p>
+                  Track your permit expiration, calculate your remaining window, and prepare your 8-hour Maryland renewal qualification.
+                </p>
+              </div>
+              <div className="fi-checklist-card">
+                {/* INTERACTIVE EXPIRATION CALCULATOR */}
+                <div className="fi-calc-box">
+                  <div>
+                    <span className="fi-badge fi-badge-cyan">
+                      Interactive Countdown Tool
+                    </span>
+                    <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "color": "#fff", "textTransform": "uppercase", "margin": "6px 0 8px"}}>
+                      
+                Permit Expiration Calculator
+              
+                    </h4>
+                    <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "14px"}}>
+                      
+                Enter the expiration date printed on your Maryland Wear & Carry permit card to calculate your active renewal timeline.
+              
+                    </p>
+                    <div className="form-group" style={{"marginBottom": "14px"}}>
+                      <label htmlFor="fiPermitExpInput" style={{"fontSize": "0.85rem", "color": "#cbd5e1"}}>
+                        Permit Expiration Date 
+                        <span className="req">
+                          *
+                        </span>
+                      </label>
+                      <input id="fiPermitExpInput" data-onchange="fiCalculateExpiration()" style={{"background": "#10161f", "border": "1px solid rgba(0,229,255,0.35)", "color": "#fff", "padding": "10px 14px", "borderRadius": "8px", "fontFamily": "var(--font-display)", "fontSize": "1.05rem"}} type="date" />
+                    </div>
+                    <button className="btn-spark" data-onclick="fiCalculateExpiration()" style={{"width": "auto", "padding": "9px 18px", "fontSize": "0.88rem"}} type="button">
+                      Calculate Renewal Window ⏱️
+                    </button>
+                  </div>
+                  <div className="fi-countdown-display" id="fiCountdownDisplay">
+                    <div style={{"fontSize": "0.78rem", "textTransform": "uppercase", "color": "var(--text-muted)", "letterSpacing": "1px"}}>
+                      Days Remaining Until Expiration
+                    </div>
+                    <div className="fi-countdown-number" id="fiDaysNumber" style={{"color": "var(--accent-cyan)"}}>
+                      --
+                    </div>
+                    <div className="fi-countdown-status" id="fiStatusLabel" style={{"color": "#94a3b8"}}>
+                      Enter Expiration Date
+                    </div>
+                    <div id="fiTimelineAdvice" style={{"fontSize": "0.82rem", "color": "#cbd5e1", "marginTop": "10px", "lineHeight": "1.4"}}>
+                      
+                Maryland State Police recommend completing training 90 to 120 days prior to permit expiration.
+              
+                    </div>
+                  </div>
+                </div>
+                {/* 10% FIFS RENEWAL DISCOUNT BANNER */}
+                <div style={{"background": "linear-gradient(135deg, rgba(255,183,3,0.15) 0%, rgba(251,133,0,0.15) 100%)", "border": "1px solid rgba(255,183,3,0.5)", "borderRadius": "14px", "padding": "22px 24px", "marginBottom": "28px", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "16px"}}>
+                  <div style={{"maxWidth": "650px"}}>
+                    <span className="fi-badge fi-badge-amber">
+                      Future Initiative Client Exclusive
+                    </span>
+                    <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.6rem", "color": "#fff", "textTransform": "uppercase", "margin": "4px 0 6px"}}>
+                      
+                10% Off Your Maryland Wear & Carry (8-Hour Renewal)
+              
+                    </h4>
+                    <p style={{"fontSize": "0.9rem", "color": "#e2e8f0", "lineHeight": "1.5"}}>
+                      
+                Renewing your permit with Future Initiative ensures complete compliance with Maryland Senate Bill 1 and Faulkner standards, including live-fire qualification shots conducted at Cindy's Hot Shots.
+              
+                    </p>
+                    <div style={{"marginTop": "8px", "fontFamily": "var(--font-display)", "fontSize": "1.05rem", "color": "var(--accent-amber)", "fontWeight": "700"}}>
+                      
+                Promo Code: 
+                      <code style={{"background": "rgba(0,0,0,0.5)", "padding": "3px 10px", "borderRadius": "6px", "border": "1px solid var(--accent-amber)", "color": "#fff"}}>
+                        RENEWAL10
+                      </code>
+                    </div>
+                  </div>
+                  <button className="btn-primary" data-onclick="fiClaimRenewalOffer()" style={{"width": "auto", "padding": "12px 24px", "fontSize": "0.95rem"}} type="button">
+                    
+              Claim 10% Off & Book Renewal →
+            
+                  </button>
+                </div>
+                {/* 90-DAY RENEWAL TIMELINE */}
+                <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.15rem", "color": "#fff", "textTransform": "uppercase", "marginBottom": "14px"}}>
+                  
+            Visual 90-Day Maryland Renewal Timeline
+          
+                </h4>
+                <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(220px, 1fr))", "gap": "14px", "marginBottom": "20px"}}>
+                  <div style={{"background": "rgba(0,0,0,0.3)", "borderTop": "3px solid var(--accent-cyan)", "padding": "14px", "borderRadius": "8px"}}>
+                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1rem", "color": "var(--accent-cyan)", "fontWeight": "700"}}>
+                      Day 90–75
+                    </div>
+                    <div style={{"fontSize": "0.88rem", "fontWeight": "600", "color": "#fff", "margin": "2px 0 4px"}}>
+                      Book 8-Hour Renewal
+                    </div>
+                    <div style={{"fontSize": "0.82rem", "color": "#94a3b8", "lineHeight": "1.4"}}>
+                      Schedule your class with Kai Wade. Secure range date and prep 50–100 target rounds.
+                    </div>
+                  </div>
+                  <div style={{"background": "rgba(0,0,0,0.3)", "borderTop": "3px solid var(--accent-amber)", "padding": "14px", "borderRadius": "8px"}}>
+                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1rem", "color": "var(--accent-amber)", "fontWeight": "700"}}>
+                      Day 60–45
+                    </div>
+                    <div style={{"fontSize": "0.88rem", "fontWeight": "600", "color": "#fff", "margin": "2px 0 4px"}}>
+                      Live-Fire Qualification
+                    </div>
+                    <div style={{"fontSize": "0.82rem", "color": "#94a3b8", "lineHeight": "1.4"}}>
+                      Pass 25-round practical qualification at Cindy's Hot Shots. Receive signed MSP Form 29-14.
+                    </div>
+                  </div>
+                  <div style={{"background": "rgba(0,0,0,0.3)", "borderTop": "3px solid var(--accent-green)", "padding": "14px", "borderRadius": "8px"}}>
+                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1rem", "color": "var(--accent-green)", "fontWeight": "700"}}>
+                      Day 45–30
+                    </div>
+                    <div style={{"fontSize": "0.88rem", "fontWeight": "600", "color": "#fff", "margin": "2px 0 4px"}}>
+                      Submit MSP Portal App
+                    </div>
+                    <div style={{"fontSize": "0.82rem", "color": "#94a3b8", "lineHeight": "1.4"}}>
+                      Log into Maryland State Police Licensing Portal. Upload score sheet and pay state renewal fee.
+                    </div>
+                  </div>
+                  <div style={{"background": "rgba(0,0,0,0.3)", "borderTop": "3px solid #cbd5e1", "padding": "14px", "borderRadius": "8px"}}>
+                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1rem", "color": "#fff", "fontWeight": "700"}}>
+                      Day 14–0
+                    </div>
+                    <div style={{"fontSize": "0.88rem", "fontWeight": "600", "color": "#fff", "margin": "2px 0 4px"}}>
+                      Receive Card in Mail
+                    </div>
+                    <div style={{"fontSize": "0.82rem", "color": "#94a3b8", "lineHeight": "1.4"}}>
+                      MSP issues renewed 3-year Wear & Carry permit card with zero coverage gap.
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* ================= EXCLUSIVE CLIENT FEATURE: SMS RENEWAL WATCH ALERTS ================= */}
+              <div className="fi-checklist-card" style={{"border": "1.5px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.06) 0%, rgba(13, 19, 27, 0.98) 100%)", "marginTop": "24px"}}>
+                <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "flexWrap": "wrap", "gap": "12px", "marginBottom": "14px"}}>
+                  <div>
+                    <span className="fi-badge fi-badge-amber">
+                      Automated Reminder Service
+                    </span>
+                    <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.45rem", "color": "#fff", "textTransform": "uppercase", "margin": "4px 0 2px"}}>
+                      
+                  📱 Push & SMS 90-Day Renewal Watch
+                
+                    </h4>
+                    <p style={{"fontSize": "0.86rem", "color": "var(--text-muted)", "lineHeight": "1.5"}}>
+                      
+                  Activate automated text alerts directly to your phone. Never risk an accidental permit expiration or legal lapse in your Maryland carry coverage.
+                
+                    </p>
+                  </div>
+                </div>
+                <form id="fiSmsRenewalForm" data-onsubmit="handleSmsAlertSubmit(event)">
+                  <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "14px", "marginBottom": "14px"}}>
+                    <div className="form-group" style={{"marginBottom": "0"}}>
+                      <label htmlFor="smsPhoneInput" style={{"fontSize": "0.82rem", "color": "var(--accent-amber)", "fontWeight": "700", "textTransform": "uppercase"}}>
+                        Mobile Phone Number (SMS Enabled) 
+                        <span className="req">
+                          *
+                        </span>
+                      </label>
+                      <input id="smsPhoneInput" placeholder="(410) 555-0192" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="tel" />
+                    </div>
+                    <div className="form-group" style={{"marginBottom": "0"}}>
+                      <label htmlFor="smsCarrierSelect" style={{"fontSize": "0.82rem", "color": "var(--accent-amber)", "fontWeight": "700", "textTransform": "uppercase"}}>
+                        Primary Mobile Carrier
+                      </label>
+                      <select id="smsCarrierSelect" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}}>
+                        <option value="Verizon">
+                          Verizon Wireless
+                        </option>
+                        <option value="AT&amp;T">
+                          AT&T
+                        </option>
+                        <option value="T-Mobile">
+                          T-Mobile / Sprint
+                        </option>
+                        <option value="Other">
+                          Other Carrier
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "10px", "padding": "14px", "marginBottom": "16px"}}>
+                    <strong style={{"color": "#fff", "fontSize": "0.88rem", "display": "block", "marginBottom": "8px"}}>
+                      Select Notification Milestones:
+                    </strong>
+                    <div style={{"display": "flex", "flexDirection": "column", "gap": "8px"}}>
+                      <label style={{"display": "flex", "alignItems": "center", "gap": "10px", "fontSize": "0.84rem", "color": "#cbd5e1", "cursor": "pointer"}}>
+                        <input defaultChecked={true} id="chkSms120" style={{"accentColor": "var(--accent-amber)", "width": "16px", "height": "16px"}} type="checkbox" />
+                        <span>
+                          <strong>
+                            120 Days Prior:
+                          </strong>
+                           Advance planning schedule & range availability alert
+                        </span>
+                      </label>
+                      <label style={{"display": "flex", "alignItems": "center", "gap": "10px", "fontSize": "0.84rem", "color": "#cbd5e1", "cursor": "pointer"}}>
+                        <input defaultChecked={true} id="chkSms90" style={{"accentColor": "var(--accent-amber)", "width": "16px", "height": "16px"}} type="checkbox" />
+                        <span>
+                          <strong>
+                            90 Days Prior:
+                          </strong>
+                           Official renewal window opens + 10% FIFS course discount code (RENEWAL10)
+                        </span>
+                      </label>
+                      <label style={{"display": "flex", "alignItems": "center", "gap": "10px", "fontSize": "0.84rem", "color": "#cbd5e1", "cursor": "pointer"}}>
+                        <input defaultChecked={true} id="chkSms60" style={{"accentColor": "var(--accent-amber)", "width": "16px", "height": "16px"}} type="checkbox" />
+                        <span>
+                          <strong>
+                            60 Days Prior:
+                          </strong>
+                           Cindy's Hot Shots live-fire qualification deadline reminder
+                        </span>
+                      </label>
+                      <label style={{"display": "flex", "alignItems": "center", "gap": "10px", "fontSize": "0.84rem", "color": "#cbd5e1", "cursor": "pointer"}}>
+                        <input defaultChecked={true} id="chkSms30" style={{"accentColor": "var(--accent-amber)", "width": "16px", "height": "16px"}} type="checkbox" />
+                        <span>
+                          <strong>
+                            30 Days Prior:
+                          </strong>
+                           Urgent MSP Licensing Portal cutoff warning
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                  <button className="btn-primary" id="btn-save-sms-alert" style={{"width": "100%", "padding": "12px", "background": "linear-gradient(135deg, #ffb703 0%, #fb8500 100%)", "color": "#070b10", "fontWeight": "800", "textTransform": "uppercase"}} type="submit">
+                    
+                💾 Activate Mobile SMS Renewal Watch 🛡️
+              
+                  </button>
+                  <div className="status-msg" id="sms-alert-status" style={{"display": "none", "marginTop": "12px"}}>
+                  </div>
+                </form>
+              </div>
+              {/* ================= SECTION: CLIENT PROFILE & REGISTRY ================= */}
+              {/* (Client Profile moved into #clientProfileModal deep-dive popup) */}
+              
               <div className="fi-section-header" id="fi-sec-services">
                 <h3>
                   Future Initiative Professional Services
