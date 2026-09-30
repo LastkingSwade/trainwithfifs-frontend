@@ -1805,25 +1805,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
               </div>
               {/* Closes fi-hub-cards-grid */}
-              {/* ================= SECTION: 50-STATE RECIPROCITY HUB ================= */}
-              {/* ================= SECTION: 50-STATE RECIPROCITY HUB ================= */}
-              <div className="fi-section-header" id="fi-sec-reciprocity">
-                <h3>50-State CCW Reciprocity Hub & Travel Navigator</h3>
-                <p>Interactive nationwide recognition engine. Evaluate where your Maryland Wear & Carry and multi-state non-resident permits are honored in real time.</p>
-              </div>
-              <div style={{"background": "linear-gradient(135deg, rgba(7, 11, 16, 0.95), rgba(0, 229, 255, 0.08))", "border": "1px solid rgba(0, 229, 255, 0.35)", "borderRadius": "16px", "padding": "28px 24px", "marginBottom": "28px", "display": "flex", "alignItems": "center", "justifyContent": "space-between", "flexWrap": "wrap", "gap": "20px"}}>
-                <div>
-                  <div style={{"display": "flex", "alignItems": "center", "gap": "10px", "marginBottom": "8px"}}>
-                    <span className="live-dot"></span>
-                    <span style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.85rem", "textTransform": "uppercase", "letterSpacing": "0.08em"}}>2026 Nationwide Statutes Active</span>
-                  </div>
-                  <h4 style={{"color": "#fff", "fontSize": "1.35rem", "margin": "0 0 6px 0"}}>50-State Interactive Reciprocity Hub</h4>
-                  <p style={{"color": "#94a3b8", "margin": 0, "maxWidth": "640px", "fontSize": "0.95rem"}}>Open the full-screen tactical travel navigator to inspect interactive state nodes, compare reciprocal carry laws directly against Maryland, and review non-resident multipliers.</p>
-                </div>
-                <button className="btn-spark" data-onclick="toggleReciprocityHubModal(true)" type="button" style={{"padding": "14px 28px", "fontSize": "1rem", "fontWeight": "700", "display": "flex", "alignItems": "center", "gap": "10px"}}>
-                  Launch Reciprocity Hub 🗺️
-                </button>
-              </div>
               {/* ================= SECTION: CLIENT PROFILE & REGISTRY ================= */}
               {/* (Client Profile moved into #clientProfileModal deep-dive popup) */}
               <div className="fi-section-header" id="fi-sec-renewal">
