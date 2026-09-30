@@ -2113,7 +2113,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       </span>
                     </div>
                   </div>
-                  <button className="btn-spark" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Multi-State Concealed Carry Mastery - $425"); }} data-onclick="selectCourse('Multi-State Concealed Carry Mastery - $550)" type="button">
+                  <button className="btn-spark" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Multi-State Concealed Carry Mastery - $150"); }} data-onclick="selectCourse('Multi-State Concealed Carry Mastery - $150')" type="button">
                     Book Multi-State Class →
                   </button>
                 </div>
@@ -3679,6 +3679,79 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
           </div>
           {/* 4. Maryland HQL (4-Hour) */}
+          {/* 4. Maryland Wear & Carry (8-Hour Renewal) Dedicated Card */}
+          <div className="tuition-card" id="card-course-renewal" style={{"position": "relative"}}>
+            <div className="card-tier-badge" id="badge-course-renewal" style={{"display": "none", "background": "var(--accent-amber)", "color": "#070b10", "fontFamily": "var(--font-display)", "fontSize": "0.72rem", "fontWeight": "800", "padding": "2px 10px", "borderRadius": "20px", "textTransform": "uppercase", "position": "absolute", "top": "-10px", "right": "16px"}}>
+              👑 VIP MODE
+            </div>
+            <span className="badge-pop" style={{"background": "rgba(0, 229, 255, 0.15)", "color": "var(--accent-cyan)", "border": "1px solid var(--accent-cyan)"}}>
+              ⏱️ 8-HOUR BIENNIAL RECERTIFICATION
+            </span>
+            <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "margin": "10px 0 6px", "color": "#fff"}}>
+              Maryland Wear &amp; Carry (8-Hour Renewal)
+            </h3>
+            <div className="tier-toggle-wrapper">
+              <div className="tier-sliding-switch" id="switch-renewal" data-onclick="toggleCardTier('renewal', event)">
+                <div className="tier-sliding-pill" id="slider-renewal">
+                </div>
+                <button className="tier-option-btn btn-base-side" id="tog-base-renewal" data-onclick="setCardTier('renewal', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('renewal', 'base', e); }} type="button" aria-label="Standard Mode">Standard</button>
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-renewal" data-onclick="setCardTier('renewal', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('renewal', 'vip', e); }} type="button" aria-label="VIP Mode">👑</button>
+              </div>
+            </div>
+            <div className="tuition-price" id="price-course-renewal">
+              <span className="price-val" style={{"fontFamily": "var(--font-display)", "fontSize": "2.2rem", "fontWeight": "800", "color": "#fff"}}>
+                $175.00
+              </span>
+              <span className="price-tier-tag" style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "fontWeight": "600", "marginLeft": "6px"}}>
+                (Standard Base)
+              </span>
+            </div>
+            <div className="tuition-desc">
+              State-mandated 8-hour classroom recertification + 25-round Maryland practical shooting qualification. Complete before permit expiration to prevent licensing lapse.
+            </div>
+            <div className="tuition-bullets" id="bullets-course-renewal">
+              <div>
+                ✔ 8-Hour State-Approved Recertification Curriculum
+              </div>
+              <div>
+                ✔ State v. Faulkner &amp; SB 1 Legal Updates
+              </div>
+              <div>
+                ✔ 25-Round Live-Fire Qualification at Cindy&#39;s Hot Shots
+              </div>
+              <div>
+                ✔ Official Signed MSP Form 29-14 Scoresheet Provided
+              </div>
+            </div>
+            <div className="vip-perks-box" id="vip-box-course-renewal" style={{"display": "none", "background": "rgba(0, 229, 255, 0.12)", "border": "1px solid var(--accent-cyan)", "borderRadius": "10px", "padding": "14px", "margin": "12px 0", "fontSize": "0.85rem", "color": "#e2e8f0", "lineHeight": "1.6", "textAlign": "left"}}>
+              <strong style={{"color": "var(--accent-cyan)", "display": "block", "marginBottom": "6px", "fontFamily": "var(--font-display)", "fontSize": "1.05rem"}}>
+                👑 What&#39;s Added in VIP Turnkey Mode:
+              </strong>
+              <div className="vip-perk-item" style={{"color": "var(--accent-amber)", "fontWeight": "700"}}>
+                👑 Flexible Any-Day Scheduling (Weekday &amp; Weekend Priority)
+              </div>
+              <div>
+                👑 Cindy&#39;s Hot Shots range lane fee included (Save $25–$35)
+              </div>
+              <div>
+                👑 Loaner 9mm semi-automatic handgun provided
+              </div>
+              <div>
+                👑 50 rounds factory target ammunition included
+              </div>
+              <div>
+                👑 B-27 practical qualification targets provided
+              </div>
+              <div>
+                👑 1-on-1 MSP Licensing Portal renewal filing review
+              </div>
+            </div>
+            <div style={{"marginTop": "14px"}}>
+              <button className="btn-select-course" id="btn-select-course-renewal" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (8-Hour Renewal) — Base Track ($175.00)"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (8-Hour Renewal) — Base Track ($175.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+                Select Base ($175.00) &amp; Reserve Seat →
+              </button>
+            </div>
+          </div>
           <div className="tuition-card" id="card-course-hql">
             <div className="card-tier-badge" id="badge-course-hql" style={{"display": "none", "background": "var(--accent-cyan)", "color": "#070b10", "fontFamily": "var(--font-display)", "fontSize": "0.72rem", "fontWeight": "800", "padding": "2px 10px", "borderRadius": "20px", "textTransform": "uppercase", "position": "absolute", "top": "-10px", "right": "16px"}}>
               
@@ -7025,6 +7098,12 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <option value="Maryland Wear &amp; Carry (CCW) — Base Track ($199.99)">
                   Maryland Wear & Carry (CCW) — Base Track ($199.99)
                 </option>
+                <option value="Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($275.00)">
+                  Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($275.00)
+                </option>
+                <option value="Maryland Wear & Carry (8-Hour Renewal) — Base Track ($175.00)">
+                  Maryland Wear & Carry (8-Hour Renewal) — Base Track ($175.00)
+                </option>
                 <option value="Maryland HQL (Purchase License) — VIP Turnkey ($165.00)">
                   Maryland HQL (Purchase License) — VIP Turnkey ($165.00)
                 </option>
@@ -7037,8 +7116,11 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">
                   Personal 1-on-1 Coaching — Base Track ($125.00/hr)
                 </option>
-                <option value="FIFS Graduate Alumni Marksmanship Clinic ($65.00)">
-                  FIFS Graduate Alumni Marksmanship Clinic ($65.00)
+                <option value="FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)">
+                  FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)
+                </option>
+                <option value="FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)">
+                  FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)
                 </option>
                 <option value="Gun Cleaning &amp; Maintenance — VIP Turnkey ($115.00)">
                   Gun Cleaning & Maintenance — VIP Turnkey ($115.00)
