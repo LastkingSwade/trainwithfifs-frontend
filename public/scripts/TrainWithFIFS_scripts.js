@@ -3024,21 +3024,16 @@ window.openAdminSubpanelModal = openAdminSubpanelModal;
     }
     window.closeAdminInviteModal = closeAdminInviteModal;
     function loadDemoStudent() {
-      var demo = {
-        studentId: 'FIFS-4081',
-        fullName: 'Jordan Vance',
-        email: 'jordan.vance@example.com',
-        phone: '(410) 555-0192',
-        course: 'Maryland CCW & HQL Combo ($249.99)',
-        assignedDate: 'Saturday, Oct 12 • 9:00 AM',
-        groupSize: '1 (Private One-on-One)',
-        trainingStatus: 'PREP_PENDING',
-        profileDocUrl: '#',
-        prepTasks: { transport_law: true, ammo_acquired: true, eye_ear_pro: false, id_ready: true }
-      };
-      sessionStorage.setItem('fifs_student_session', JSON.stringify(demo));
-      openAndSwitch('portal');
-      if (typeof renderStudentDashboard === 'function') renderStudentDashboard(demo);
+      if (typeof openAndSwitch === 'function') {
+        openAndSwitch('portal');
+      }
+      var authInput = document.getElementById('studentAuthInput');
+      if (authInput) {
+        authInput.value = 'FIFS-4081';
+      }
+      if (typeof lookupStudentAccount === 'function') {
+        lookupStudentAccount();
+      }
     }
     window.loadDemoStudent = loadDemoStudent;
     function loadDemoClient() {
@@ -4274,7 +4269,6 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
     window.syncInviteCourseDropdown = syncInviteCourseDropdown;
     function handleAdminInviteSubmit(e) {
       e.preventDefault();
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       var name = document.getElementById('invFullName').value.trim();
       var email = document.getElementById('invEmail').value.trim();
       var phone = document.getElementById('invPhone').value.trim();
@@ -4288,58 +4282,62 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
         showStatus(st, 'Name and email are required.', 'error');
         return;
       }
-      showStatus(st, 'Generating credentials & dispatching access invitation...', 'success');
-      var newId, magicLink;
-      if (portalType === 'student') {
-        newId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000);
-        magicLink = `https://trainwithfifs.com/?id=${newId}`;
-        var newStudent = {
-          studentId: newId,
-          fullName: name,
-          email: email,
-          phone: phone,
-          course: course,
-          assignedDate: dates || 'To Be Scheduled',
-          status: 'STEP_1_REGISTERED',
-          profileDocUrl: '#',
-          prepTasks: { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false }
-        };
-        // Add to roster array and _fifsMemStorage
-        adminCachedStudents.unshift(newStudent);
-        window.adminCachedStudents = adminCachedStudents;
-        /* cloud only: zero browser storage */
+      showStatus(st, 'Generating credentials & dispatching access invitation to Supabase...', 'success');
+      
+      var newId = (portalType === 'student' ? 'FIFS-' : 'FI-CLIENT-') + Math.floor(1000 + Math.random() * 9000);
+      var origin = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : 'https://trainwithfifs.com';
+      var magicLink = portalType === 'student'
+        ? (origin + '/?portal=student&id=' + newId)
+        : (origin + '/?tab=fi-portal&client=' + newId);
+
+      var payload = {
+        portalType: portalType,
+        generatedId: newId,
+        fullName: name,
+        email: email,
+        phone: phone,
+        course: course,
+        dates: dates || 'Upcoming Cohort',
+        passcode: 'Ultima'
+      };
+
+      if (typeof callFifsBackend === 'function') {
+        callFifsBackend('adminDirectInvite', payload, function(res) {
+          if (res && (res.status === 'success' || res.success)) {
+            if (portalType === 'student') {
+              var newStudent = {
+                studentId: newId,
+                fullName: name,
+                email: email,
+                phone: phone,
+                course: course,
+                assignedDate: dates || 'To Be Scheduled',
+                status: 'STEP_1_REGISTERED',
+                profileDocUrl: '#',
+                prepTasks: { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false }
+              };
+              if (window.adminCachedStudents) {
+                window.adminCachedStudents.unshift(newStudent);
+              }
+              if (typeof refreshAdminRosterTable === 'function') {
+                refreshAdminRosterTable();
+              }
+            }
+            if (urlInput) urlInput.value = magicLink;
+            if (resBox) resBox.style.display = 'block';
+            showStatus(st, 'Invitation confirmed and stored in Supabase. Share the access link below:', 'success');
+          } else {
+            showStatus(st, (res && res.error) || 'Failed to dispatch invite to Supabase.', 'error');
+          }
+        }, function(err) {
+          showStatus(st, 'Error communicating with Supabase backend: ' + (err && err.message ? err.message : err), 'error');
+        });
       } else {
-        newId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
-        magicLink = `https://trainwithfifs.com/?tab=fi-portal&client=${newId}`;
-        var newClient = {
-          clientId: newId,
-          fullName: name,
-          email: email,
-          phone: phone,
-          permitState: course,
-          expirationDate: dates || '2026-10-31',
-          optInReminder: true
-        };
-        try { sessionStorage.setItem('fifs_client_session', JSON.stringify(newClient)); } catch (err) {}
+        if (urlInput) urlInput.value = magicLink;
+        if (resBox) resBox.style.display = 'block';
+        showStatus(st, 'Invite link generated: ' + magicLink, 'success');
       }
-      // If online Google Apps Script backend available, notify
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleAdminDirectInvite) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            showStatus(st, 'Invitation email dispatched successfully! Access link generated below.', 'success');
-          })
-          .handleAdminDirectInvite(pin, { fullName: name, email: email, phone: phone, portalType: portalType, course: course, dates: dates, generatedId: newId, magicLink: magicLink });
-      } else {
-        setTimeout(function() {
-          showStatus(st, 'Access invitation created! Direct Magic Link ready below.', 'success');
-        }, 400);
-      }
-      if (urlInput) urlInput.value = magicLink;
-      if (resBox) resBox.style.display = 'block';
-      // Re-render admin roster and recalculate 100% real metrics
-      renderAdminTerminal({ students: adminCachedStudents });
     }
-    window.handleAdminInviteSubmit = handleAdminInviteSubmit;
     function copyInviteUrl() {
       var urlInput = document.getElementById('invGeneratedUrl');
       if (urlInput) {
@@ -5650,9 +5648,16 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     }
     window.lookupStudentAccount = lookupStudentAccount;
     function loadDemoStudent() {
-      var demo = getMockStudent('FIFS-DEMO');
-      sessionStorage.setItem('fifs_student_session', JSON.stringify(demo));
-      renderStudentDashboard(demo);
+      if (typeof openAndSwitch === 'function') {
+        openAndSwitch('portal');
+      }
+      var authInput = document.getElementById('studentAuthInput');
+      if (authInput) {
+        authInput.value = 'FIFS-4081';
+      }
+      if (typeof lookupStudentAccount === 'function') {
+        lookupStudentAccount();
+      }
     }
     function getMockStudent(query) {
       return {
@@ -10803,12 +10808,15 @@ if (typeof window !== 'undefined') {
         var portal = params.get('portal');
         var studentId = params.get('id') || params.get('student');
         if (portal === 'student' || studentId) {
-          var input = document.getElementById('studentLookupInput');
-          if (input && studentId) input.value = studentId;
-          var modal = document.getElementById('studentPortalModal');
-          if (modal) {
-            modal.classList.add('active');
-            modal.style.setProperty('display', 'block', 'important');
+          if (typeof openAndSwitch === 'function') {
+            openAndSwitch('portal');
+          }
+          var authInput = document.getElementById('studentAuthInput');
+          if (authInput && studentId) {
+            authInput.value = studentId;
+            if (typeof lookupStudentAccount === 'function') {
+              setTimeout(lookupStudentAccount, 300);
+            }
           }
         }
       } catch (e) {

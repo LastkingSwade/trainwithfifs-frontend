@@ -613,6 +613,49 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier or email.' }, { status: 400 });
         }
 
+        // Dedicated Demo Student handler (instant access for Instructor testing)
+        if (queryTerm === 'FIFS-4081' || queryTerm.toLowerCase() === 'jordan.vance@example.com' || queryTerm.toLowerCase() === 'demo') {
+          return NextResponse.json({
+            success: true,
+            status: 'success',
+            student: {
+              studentId: 'FIFS-4081',
+              fullName: 'Jordan Vance (Demo Student)',
+              email: 'jordan.vance@example.com',
+              phone: '(410) 555-0192',
+              course: 'Maryland CCW & HQL Combo — Base Track (49.99)',
+              assignedDate: 'Saturday, Oct 12 • 9:00 AM',
+              groupSize: 1,
+              status: 'STEP_1_REGISTERED',
+              trainingStatus: 'PREP_PENDING',
+              profileDocUrl: '#',
+              qualificationScore: '25/25 (100%)',
+              scoresheetUrl: '/msp-form-29-14.pdf',
+              scoresheet: {
+                student_id: 'FIFS-4081',
+                image_url: '/msp-form-29-14.pdf',
+                score: '25/25 (100%)',
+                notes: 'Verified by Instructor Kai Wade (MSP Form 29-14 Demo Qualification)',
+                updated_at: new Date().toISOString()
+              },
+              prepTasks: { transport_law: true, ammo_acquired: true, eye_ear_pro: true, id_ready: true }
+            },
+            scoresheet: {
+              student_id: 'FIFS-4081',
+              image_url: '/msp-form-29-14.pdf',
+              score: '25/25 (100%)',
+              notes: 'Verified by Instructor Kai Wade (MSP Form 29-14 Demo Qualification)',
+              updated_at: new Date().toISOString()
+            },
+            invoices: []
+          });
+        }
+        const queryTerm = (payload.studentId || payload.id || payload.email || '').toString().trim();
+        const providedPassword = (payload.password || '').toString().trim();
+        if (!queryTerm) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier or email.' }, { status: 400 });
+        }
+
         let studentQuery = supabase.from('students').select('*');
         if (queryTerm.includes('@')) {
           studentQuery = studentQuery.ilike('email', queryTerm);

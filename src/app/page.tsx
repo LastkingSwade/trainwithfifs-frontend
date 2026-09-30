@@ -13,6 +13,21 @@ import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
 export default function TrainWithFIFS(props: any) {
   useEffect(() => {
 
+    // Global delegated click handler for data-onclick attributes
+    const handleGlobalDataOnClick = (e: MouseEvent) => {
+      const el = (e.target as HTMLElement)?.closest('[data-onclick]') as HTMLElement | null;
+      if (!el) return;
+      const cmd = el.getAttribute('data-onclick');
+      if (!cmd) return;
+      try {
+        const fn = new Function('event', cmd);
+        fn.call(el, e);
+      } catch (err) {
+        console.warn('data-onclick execution error:', cmd, err);
+      }
+    };
+    document.addEventListener('click', handleGlobalDataOnClick);
+
     // Initialize interactive reciprocity map once script engine is ready
     let mapRetryCount = 0;
     const mapInitTimer = setInterval(() => {
@@ -89,8 +104,24 @@ export default function TrainWithFIFS(props: any) {
           if (onError) onError(err);
           else alert('Payment Error: ' + (err.message || 'Unable to connect to Stripe checkout.'));
         }
-      } else if (onComplete) {
-        onComplete({ status: 'success' });
+      } else {
+        try {
+          const bodyData = Object.assign({ action: action }, payload || {});
+          if (!bodyData.passcode && bodyData.pin) bodyData.passcode = bodyData.pin;
+          const res = await fetch('/api/fifs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyData)
+          });
+          const data = await res.json();
+          if (!res.ok && !data.status) {
+            throw new Error(data.error || ('HTTP ' + res.status));
+          }
+          if (onComplete) onComplete(data);
+        } catch (err: any) {
+          console.error('FIFS Backend call error:', err);
+          if (onError) onError(err);
+        }
       }
     };
 
@@ -2439,10 +2470,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <button className="btn-tactical-hud hud-purple" id="btn-admin-invite-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminInviteModal?.(); }} data-onclick="openAdminInviteModal()" title="Dispatch student/client portal onboarding invitation" type="button">
               <span>✉️</span> <span>SEND INVITE</span>
             </button>
-            <button className="btn-tactical-hud hud-cyan" data-onclick="loadDemoStudent()" title="Test Student Portal Dashboard with Mock Student Data" type="button">
+            <button className="btn-tactical-hud hud-cyan" data-onclick="loadDemoStudent()" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).loadDemoStudent) (window as any).loadDemoStudent(); }} title="Test Student Portal Dashboard with Mock Student Data" type="button">
               <span>👁️</span> <span>DEMO STUDENT</span>
             </button>
-            <button className="btn-tactical-hud hud-amber" data-onclick="loadDemoClient()" title="Test Client Portal Dashboard with Mock Client Data" type="button">
+            <button className="btn-tactical-hud hud-amber" data-onclick="loadDemoClient()" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).loadDemoClient) (window as any).loadDemoClient(); }} title="Test Client Portal Dashboard with Mock Client Data" type="button">
               <span>👁️</span> <span>DEMO CLIENT</span>
             </button>
             <button className="btn-tactical-hud hud-red" id="btn-admin-sign-out" onClick={(e) => { e.preventDefault(); (window as any).adminSignOut?.(); }} data-onclick="adminSignOut()" title="Sign out and lock Admin Command Center" type="button">
