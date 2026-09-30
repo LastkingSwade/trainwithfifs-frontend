@@ -6857,6 +6857,17 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </form>
         </div>
       </div>
+      {/* ================= MODAL: ADMIN SCORESHEET MODAL ================= */}
+      <div className="goal-modal-overlay" id="adminScoresheetModal" data-onclick="if(event.target===this) closeStudentScoresheetModal()" style={{"display": "none"}}>
+        <div aria-labelledby="adminScoresheetModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "600px", "borderColor": "var(--accent-cyan)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 30px rgba(0,240,255,0.2)"}}>
+          <button aria-label="Close scoresheet modal" className="goal-modal-close-btn" data-onclick="closeStudentScoresheetModal()" type="button">
+            ✕
+          </button>
+          <div>
+            <span className="goal-header-badge" style={{"background": "rgba(0, 240, 255, 0.15)", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)"}}>
+              MARYLAND MSP 29-14
+            </span>
+          </div>
           <h3 className="goal-modal-title" id="adminScoresheetModalTitle" style={{"color": "#fff", "margin": "6px 0 14px"}}>
             Official Qualification Scoresheet
           </h3>
@@ -6900,7 +6911,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </div>
       </div>
 
-      </div>
       {/* ================= MODAL 4: ADMIN EDIT CLIENT RECORD MODAL ================= */}
       <div className="goal-modal-overlay" id="adminEditClientModal" data-onclick="if(event.target===this) closeAdminEditClientModal()" style={{"display": "none"}}>
         <div aria-labelledby="editClientModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "600px", "borderColor": "var(--accent-amber)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 30px var(--accent-amber-glow)"}}>
