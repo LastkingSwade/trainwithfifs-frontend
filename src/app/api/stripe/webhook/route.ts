@@ -95,11 +95,9 @@ function generateIcsCalendar(params: {
   const end = formatIcsDate(endDate);
   const now = formatIcsDate(new Date());
   const uid = 'fifs-class-' + params.startDate.getTime() + '-' + Math.floor(Math.random() * 100000) + '@trainwithfifs.com';
-  const loc = (params.location || 'Future Initiative Firearm Services Training Center, Maryland').split(',').join('\,');
-  const cleanSummary = (params.title || 'FIFS Firearms Course').split('
-').join(' ');
-  const cleanDesc = (params.description || '').split('
-').join('\n');
+  const loc = (params.location || 'Future Initiative Firearm Services Training Center, Maryland').replace(/,/g, '\,');
+  const cleanSummary = (params.title || 'FIFS Firearms Course').replace(/[\r\n]+/g, ' ');
+  const cleanDesc = (params.description || '').replace(/[\r\n]+/g, '\n');
 
   return [
     'BEGIN:VCALENDAR',
