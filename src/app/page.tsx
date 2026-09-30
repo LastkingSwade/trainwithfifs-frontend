@@ -755,7 +755,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <div className="container" id="app-container">
         <header className="app-header">
           <div className="brand-identity-group" data-onclick="returnToHome()" style={{"cursor": "pointer"}} title="Return to Main Home">
-            <img alt="Future Initiative Logo" className="app-nav-logo" src="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&amp;sz=w500" />
+            <img alt="Future Initiative Logo" id="brand-logo" className="app-nav-logo" src="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&amp;sz=w500" />
             <div className="app-brand-text">
               <h2>
                 Train With FIFS
