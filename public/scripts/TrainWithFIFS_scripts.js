@@ -2042,11 +2042,11 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       try {
         var events = JSON.parse(_fifsMemStorage.getItem('fifs_analytics_events') || '[]');
         var counts = JSON.parse(_fifsMemStorage.getItem('fifs_analytics_counts') || '{}');
-        var devCounts = JSON.parse(_fifsMemStorage.getItem('fifs_device_counts') || '{"Mobile Phone":18,"Tablet / iPad":8,"Desktop / Laptop":4,"Handheld PC":1}');
-        var baseVisitors = Math.max(1284, parseInt(_fifsMemStorage.getItem('fifs_unique_visitors_count') || '1284', 10));
-        var totalPageViews = Math.max(3842, parseInt(_fifsMemStorage.getItem('fifs_pageviews_count') || '3842', 10));
-        var vipClicks = Math.max(28, counts['Toggle VIP Crown'] || 28);
-        var bookingsConfirmed = Math.max(46, (counts['Registration Confirmed'] || 0) + 46);
+        var devCounts = JSON.parse(_fifsMemStorage.getItem('fifs_device_counts') || '{"Mobile Phone":0,"Tablet / iPad":0,"Desktop / Laptop":0,"Handheld PC":0}');
+        var baseVisitors = parseInt(_fifsMemStorage.getItem('fifs_unique_visitors_count') || '0', 10);
+        var totalPageViews = parseInt(_fifsMemStorage.getItem('fifs_pageviews_count') || '0', 10);
+        var vipClicks = counts['Toggle VIP Crown'] || 0;
+        var bookingsConfirmed = counts['Registration Confirmed'] || 0;
         var conversionRate = ((bookingsConfirmed / baseVisitors) * 100).toFixed(1) + '%';
         var totalDevicesLogged = Math.max(1, (devCounts['Mobile Phone'] || 0) + (devCounts['Tablet / iPad'] || 0) + (devCounts['Desktop / Laptop'] || 0) + (devCounts['Handheld PC'] || 0));
         var mobPct = Math.round(((devCounts['Mobile Phone'] || 0) / totalDevicesLogged) * 100);
@@ -2199,16 +2199,23 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         return;
       }
       adminCachedStudents.forEach(s => {
+        if (!s) return;
+        var sId = escapeHtml(s.studentId || (s.id ? 'FIFS-' + s.id : 'N/A'));
+        var sName = escapeHtml(s.fullName || s.name || 'Unknown Student');
+        var sEmail = escapeHtml(s.email || 'No email');
+        var sPhone = escapeHtml(s.phone || 'No phone');
+        var sCourse = escapeHtml(s.course || s.courseSelection || s.course_selection || 'Maryland CCW & HQL Combo');
+        var sDate = escapeHtml(s.assignedDate || s.preferredDates || 'TBD');
         var tr = document.createElement('tr');
         var stepNum = getStepNumberFromStatus(s.status);
         tr.innerHTML = `
-          <td><strong style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.95rem;">${s.studentId}</strong></td>
+          <td><strong style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.95rem;">${sId}</strong></td>
           <td>
-            <div style="font-weight: 700; color: #fff; cursor: pointer; text-decoration: underline; text-decoration-color: var(--accent-cyan);" onclick="openStudentPortalAsAdmin('${s.studentId}')" title="Click to access student portal">${s.fullName} <span style="font-size: 0.75rem; color: var(--accent-cyan);">&#8599;</span></div>
-            <div style="font-size: 0.80rem; color: var(--text-muted);">${s.email} • ${s.phone || 'No phone'}</div>
+            <div style="font-weight: 700; color: #fff; cursor: pointer; text-decoration: underline; text-decoration-color: var(--accent-cyan);" onclick="openStudentPortalAsAdmin('${sId}')" title="Click to access student portal">${sName} <span style="font-size: 0.75rem; color: var(--accent-cyan);">&#8599;</span></div>
+            <div style="font-size: 0.80rem; color: var(--text-muted);">${sEmail} • ${sPhone}</div>
           </td>
-          <td><span style="font-size: 0.85rem; color: #cbd5e1;">${s.course}</span></td>
-          <td><span style="font-size: 0.85rem; color: var(--accent-amber); font-weight: 600;">${s.assignedDate || 'TBD'}</span></td>
+          <td><span style="font-size: 0.85rem; color: #cbd5e1;">${sCourse}</span></td>
+          <td><span style="font-size: 0.85rem; color: var(--accent-amber); font-weight: 600;">${sDate}</span></td>
           <td>
             <select class="form-select" onchange="updateStudentJourneyStep('${s.studentId}', this.value)" style="background: #070b10; border: 1px solid var(--accent-cyan); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 700;">
               <option value="STEP_1_REGISTRATION" ${stepNum === 1 ? 'selected' : ''}>1. Registration ✔</option>
@@ -2416,14 +2423,22 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       var renewalCount = 0;
       var expiredCount = 0;
       adminCachedClients.forEach(c => {
+        if (!c) return;
         var diffDays = 365;
         if (c.expirationDate) {
-          var exp = new Date(c.expirationDate + 'T00:00:00');
-          diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+          try {
+            var dateStr = String(c.expirationDate).includes('T') ? c.expirationDate : c.expirationDate + 'T00:00:00';
+            var exp = new Date(dateStr);
+            if (!isNaN(exp.getTime())) {
+              diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+            }
+          } catch(e) {
+            diffDays = 365;
+          }
         }
-        c.daysLeft = diffDays;
-        if (diffDays <= 0) expiredCount++;
-        else if (diffDays <= 90) renewalCount++;
+        c.daysLeft = isNaN(diffDays) ? 365 : diffDays;
+        if (c.daysLeft <= 0) expiredCount++;
+        else if (c.daysLeft <= 90) renewalCount++;
         else activeCount++;
       });
       var elTotal = document.getElementById('metric-client-total');

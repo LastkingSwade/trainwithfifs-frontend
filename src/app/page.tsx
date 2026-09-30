@@ -2722,7 +2722,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(160px, 1fr))", "gap": "12px", "marginBottom": "22px"}}>
                   <div className="metric-card" style={{"borderColor": "var(--accent-cyan)", "background": "rgba(0, 229, 255, 0.05)"}}>
                     <div className="metric-val" id="telemetry-visitors-val" style={{"color": "var(--accent-cyan)"}}>
-                      1,284
+                      0
                     </div>
                     <div className="metric-name">
                       Verified Unique Visitors
@@ -2730,7 +2730,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </div>
                   <div className="metric-card" style={{"borderColor": "#60a5fa", "background": "rgba(96, 165, 250, 0.05)"}}>
                     <div className="metric-val" id="telemetry-pageviews-val" style={{"color": "#60a5fa"}}>
-                      3,842
+                      0
                     </div>
                     <div className="metric-name">
                       Verified Pageviews
@@ -2738,7 +2738,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </div>
                   <div className="metric-card" style={{"borderColor": "var(--accent-green)", "background": "rgba(16, 185, 129, 0.05)"}}>
                     <div className="metric-val" id="telemetry-conversion-val" style={{"color": "var(--accent-green)"}}>
-                      14.2%
+                      0.0%
                     </div>
                     <div className="metric-name">
                       Booking Conversion Rate
@@ -2746,7 +2746,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </div>
                   <div className="metric-card" style={{"borderColor": "var(--accent-amber)", "background": "rgba(255, 183, 3, 0.05)"}}>
                     <div className="metric-val" id="telemetry-vip-val" style={{"color": "var(--accent-amber)"}}>
-                      28
+                      0
                     </div>
                     <div className="metric-name">
                       VIP Mode Inquiries
@@ -2754,7 +2754,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </div>
                   <div className="metric-card" style={{"borderColor": "#c084fc", "background": "rgba(192, 132, 252, 0.05)"}}>
                     <div className="metric-val" id="telemetry-milestones-val" style={{"color": "#c084fc"}}>
-                      46
+                      0
                     </div>
                     <div className="metric-name">
                       Confirmed Registrations
@@ -2788,15 +2788,15 @@ document.addEventListener('submit', handleDelegatedSubmit);
                           📱 Mobile Phones
                         </strong>
                         <span id="telemetry-mob-pct" style={{"color": "var(--accent-cyan)", "fontWeight": "800", "fontFamily": "var(--font-display)", "fontSize": "1.1rem"}}>
-                          64%
+                          0%
                         </span>
                       </div>
                       <div style={{"background": "#1e293b", "height": "7px", "borderRadius": "4px", "overflow": "hidden", "margin": "6px 0 8px"}}>
-                        <div id="telemetry-mob-bar" style={{"background": "var(--accent-cyan)", "width": "64%", "height": "100%"}}>
+                        <div id="telemetry-mob-bar" style={{"background": "var(--accent-cyan)", "width": "0%", "height": "100%"}}>
                         </div>
                       </div>
                       <span id="telemetry-mob-count" style={{"fontSize": "0.75rem", "color": "var(--text-muted)"}}>
-                        821 sessions • iPhones, Android & Razr+
+                        0 sessions • iPhones, Android & Razr+
                       </span>
                     </div>
                     <div style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "10px", "padding": "14px"}}>
@@ -2805,15 +2805,15 @@ document.addEventListener('submit', handleDelegatedSubmit);
                           📟 Tablets / iPads
                         </strong>
                         <span id="telemetry-tab-pct" style={{"color": "var(--accent-amber)", "fontWeight": "800", "fontFamily": "var(--font-display)", "fontSize": "1.1rem"}}>
-                          22%
+                          0%
                         </span>
                       </div>
                       <div style={{"background": "#1e293b", "height": "7px", "borderRadius": "4px", "overflow": "hidden", "margin": "6px 0 8px"}}>
-                        <div id="telemetry-tab-bar" style={{"background": "var(--accent-amber)", "width": "22%", "height": "100%"}}>
+                        <div id="telemetry-tab-bar" style={{"background": "var(--accent-amber)", "width": "0%", "height": "100%"}}>
                         </div>
                       </div>
                       <span id="telemetry-tab-count" style={{"fontSize": "0.75rem", "color": "var(--text-muted)"}}>
-                        282 sessions • iPad Pro, Mini & Tablets
+                        0 sessions • iPad Pro, Mini & Tablets
                       </span>
                     </div>
                     <div style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "10px", "padding": "14px"}}>
@@ -2822,15 +2822,15 @@ document.addEventListener('submit', handleDelegatedSubmit);
                           💻 Computers & Laptops
                         </strong>
                         <span id="telemetry-desk-pct" style={{"color": "#10b981", "fontWeight": "800", "fontFamily": "var(--font-display)", "fontSize": "1.1rem"}}>
-                          12%
+                          0%
                         </span>
                       </div>
                       <div style={{"background": "#1e293b", "height": "7px", "borderRadius": "4px", "overflow": "hidden", "margin": "6px 0 8px"}}>
-                        <div id="telemetry-desk-bar" style={{"background": "#10b981", "width": "12%", "height": "100%"}}>
+                        <div id="telemetry-desk-bar" style={{"background": "#10b981", "width": "0%", "height": "100%"}}>
                         </div>
                       </div>
                       <span id="telemetry-desk-count" style={{"fontSize": "0.75rem", "color": "var(--text-muted)"}}>
-                        154 sessions • MacBooks, Windows PCs
+                        0 sessions • MacBooks, Windows PCs
                       </span>
                     </div>
                     <div style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "10px", "padding": "14px"}}>
@@ -2839,15 +2839,15 @@ document.addEventListener('submit', handleDelegatedSubmit);
                           🎮 Handheld PCs
                         </strong>
                         <span id="telemetry-hand-pct" style={{"color": "#c084fc", "fontWeight": "800", "fontFamily": "var(--font-display)", "fontSize": "1.1rem"}}>
-                          2%
+                          0%
                         </span>
                       </div>
                       <div style={{"background": "#1e293b", "height": "7px", "borderRadius": "4px", "overflow": "hidden", "margin": "6px 0 8px"}}>
-                        <div id="telemetry-hand-bar" style={{"background": "#c084fc", "width": "2%", "height": "100%"}}>
+                        <div id="telemetry-hand-bar" style={{"background": "#c084fc", "width": "0%", "height": "100%"}}>
                         </div>
                       </div>
                       <span id="telemetry-hand-count" style={{"fontSize": "0.75rem", "color": "var(--text-muted)"}}>
-                        27 sessions • ROG Ally, Steam Deck
+                        0 sessions • ROG Ally, Steam Deck
                       </span>
                     </div>
                   </div>
@@ -2863,70 +2863,15 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     </span>
                   </div>
                   <div id="telemetry-stream-box" style={{"maxHeight": "250px", "overflowY": "auto", "fontFamily": "monospace", "fontSize": "0.82rem", "background": "#070b10", "borderRadius": "8px", "padding": "12px", "border": "1px solid rgba(255,255,255,0.06)"}}>
-                    {/* Stream entries injected dynamically */}
-                    <div style={{"padding": "5px 0", "borderBottom": "1px solid rgba(255,255,255,0.04)", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "gap": "10px", "flexWrap": "wrap"}}>
-                      <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
-                        <span style={{"color": "var(--text-muted)", "fontSize": "0.75rem"}}>
-                          1:12 PM
-                        </span>
-                        <span style={{"color": "var(--accent-cyan)", "fontWeight": "700"}}>
-                          [Client Registration]
-                        </span>
-                        <span style={{"color": "#fff"}}>
-                          New Client Portal Registration
-                        </span>
-                        <span style={{"color": "var(--accent-amber)"}}>
-                          (Maryland Wear & Carry)
-                        </span>
-                      </div>
-                      <span style={{"color": "#cbd5e1", "background": "rgba(255,255,255,0.06)", "padding": "2px 6px", "borderRadius": "4px", "fontSize": "0.72rem"}}>
-                        📱 Mobile Phone • iPadOS
-                      </span>
-                    </div>
-                    <div style={{"padding": "5px 0", "borderBottom": "1px solid rgba(255,255,255,0.04)", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "gap": "10px", "flexWrap": "wrap"}}>
-                      <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
-                        <span style={{"color": "var(--text-muted)", "fontSize": "0.75rem"}}>
-                          1:08 PM
-                        </span>
-                        <span style={{"color": "var(--accent-cyan)", "fontWeight": "700"}}>
-                          [Live Chat]
-                        </span>
-                        <span style={{"color": "#fff"}}>
-                          Live Chat Session Initiated
-                        </span>
-                        <span style={{"color": "var(--accent-amber)"}}>
-                          (Chief Wade)
-                        </span>
-                      </div>
-                      <span style={{"color": "#cbd5e1", "background": "rgba(255,255,255,0.06)", "padding": "2px 6px", "borderRadius": "4px", "fontSize": "0.72rem"}}>
-                        📱 Mobile Phone
-                      </span>
-                    </div>
-                    <div style={{"padding": "5px 0", "borderBottom": "1px solid rgba(255,255,255,0.04)", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "gap": "10px", "flexWrap": "wrap"}}>
-                      <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
-                        <span style={{"color": "var(--text-muted)", "fontSize": "0.75rem"}}>
-                          12:54 PM
-                        </span>
-                        <span style={{"color": "var(--accent-cyan)", "fontWeight": "700"}}>
-                          [Booking Confirmed]
-                        </span>
-                        <span style={{"color": "#fff"}}>
-                          Mid-Atlantic Multi-State Mastery
-                        </span>
-                        <span style={{"color": "var(--accent-amber)"}}>
-                          (👑 VIP Turnkey)
-                        </span>
-                      </div>
-                      <span style={{"color": "#cbd5e1", "background": "rgba(255,255,255,0.06)", "padding": "2px 6px", "borderRadius": "4px", "fontSize": "0.72rem"}}>
-                        💻 Desktop / Laptop
-                      </span>
+                    <div style={{"padding": "12px 8px", "color": "var(--text-muted)", "textAlign": "center", "fontSize": "0.82rem"}}>
+                      Real-time telemetry stream synchronized with Supabase cloud audit log.
                     </div>
                   </div>
                   <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginTop": "14px", "flexWrap": "wrap", "gap": "10px"}}>
                     <span style={{"fontSize": "0.78rem", "color": "var(--text-muted)"}}>
-                      Synced with Google Sheets: 
+                      Synced with Supabase Cloud: 
                       <code>
-                        Student_Booking_Ledger / Analytics_Ledger
+                        Telemetry & Audit Stream
                       </code>
                     </span>
                     <div style={{"display": "flex", "gap": "8px"}}>
