@@ -889,7 +889,53 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </button>
             </div>
             {/* 8-Step Progress Tracker Roadmap */}
-            <div className="progress-track-wrapper">
+            
+            {/* Official Maryland Qualification Scoresheet Card (MSP Form 29-14) */}
+            <div className="fi-card" id="dash-scoresheet-card" style={{"marginBottom": "24px", "border": "1px solid rgba(0, 229, 255, 0.28)", "background": "linear-gradient(135deg, rgba(7,11,16,0.95), rgba(15,23,42,0.85))", "borderRadius": "12px", "padding": "20px"}}>
+              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "12px", "flexWrap": "wrap", "gap": "8px"}}>
+                <div>
+                  <span className="meta-chip" style={{"background": "rgba(0, 229, 255, 0.15)", "color": "var(--accent-cyan)", "border": "1px solid var(--accent-cyan)", "fontSize": "0.74rem", "fontWeight": "800", "letterSpacing": "0.8px"}}>
+                    OFFICIAL STATE RECORD • MSP FORM 29-14
+                  </span>
+                  <h3 style={{"fontFamily": "var(--font-display)", "color": "#fff", "fontSize": "1.25rem", "margin": "6px 0 2px"}}>
+                    Maryland Certified Qualification Scoresheet
+                  </h3>
+                </div>
+                <div id="dash-scoresheet-badge-box">
+                  <span id="dash-scoresheet-score-badge" style={{"display": "none", "fontSize": "0.85rem", "fontWeight": "800", "padding": "4px 12px", "borderRadius": "20px", "background": "rgba(16, 185, 129, 0.2)", "color": "#10b981", "border": "1px solid #10b981"}}>
+                    Score: 25/25 (100%) - PASS
+                  </span>
+                </div>
+              </div>
+
+              <div id="dash-scoresheet-body">
+                {/* Pending notice placeholder */}
+                <div id="dash-scoresheet-pending" style={{"padding": "16px", "background": "rgba(245, 158, 11, 0.08)", "border": "1px dashed rgba(245, 158, 11, 0.4)", "borderRadius": "8px", "textAlign": "center"}}>
+                  <p style={{"color": "var(--accent-amber)", "fontSize": "0.92rem", "fontWeight": "600", "margin": 0}}>
+                    Scoresheet pending instructor upload.
+                  </p>
+                  <p style={{"color": "#94a3b8", "fontSize": "0.80rem", "marginTop": "6px", "marginBottom": 0}}>
+                    Instructor Kai Wade will upload your certified Maryland State Police Live-Fire Qualification Score Sheet upon course completion.
+                  </p>
+                </div>
+
+                {/* Live Scoresheet Card Content when available */}
+                <div id="dash-scoresheet-active" style={{"display": "none", "padding": "14px", "background": "rgba(0, 229, 255, 0.04)", "border": "1px solid var(--border-subtle)", "borderRadius": "8px"}}>
+                  <p style={{"color": "#cbd5e1", "fontSize": "0.86rem", "marginBottom": "14px"}}>
+                    Your Maryland State Police Form 29-14 Certified Qualification Score Sheet has been verified and registered by Instructor Kai Wade.
+                  </p>
+                  <div style={{"display": "flex", "gap": "12px", "flexWrap": "wrap", "alignItems": "center"}}>
+                    <a id="dash-scoresheet-fullscreen-btn" href="#" target="_blank" rel="noopener noreferrer" style={{"background": "var(--accent-cyan)", "color": "#070b10", "padding": "8px 16px", "borderRadius": "6px", "fontWeight": "700", "fontSize": "0.85rem", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                      <span>👁️</span> <span>View Fullscreen</span>
+                    </a>
+                    <a id="dash-scoresheet-download-btn" href="#" download="MSP-Form-29-14-Qualification-Scoresheet.pdf" target="_blank" rel="noopener noreferrer" style={{"background": "transparent", "border": "1px solid var(--accent-cyan)", "color": "var(--accent-cyan)", "padding": "8px 16px", "borderRadius": "6px", "fontWeight": "700", "fontSize": "0.85rem", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                      <span>📥</span> <span>Download Official PDF / Copy</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+<div className="progress-track-wrapper">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center"}}>
                 <div>
                   <h4 style={{"fontFamily": "var(--font-display)", "color": "#fff", "fontSize": "1.1rem", "marginBottom": "2px"}}>
@@ -6402,8 +6448,96 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="status-msg" id="edit-student-status" style={{"marginTop": "10px", "display": "none"}}>
             </div>
-          </form>
+          
+            {/* Dedicated Maryland Qualification Scoresheet (MSP Form 29-14) Control */}
+            <div style={{"background": "rgba(0, 229, 255, 0.05)", "border": "1px solid var(--accent-cyan)", "borderRadius": "8px", "padding": "14px", "marginTop": "14px", "marginBottom": "14px"}}>
+              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "8px"}}>
+                <span style={{"fontWeight": "700", "fontSize": "0.86rem", "color": "var(--accent-cyan)", "letterSpacing": "0.5px"}}>
+                  🎯 MARYLAND QUALIFICATION SCORESHEET (MSP FORM 29-14)
+                </span>
+                <span id="editScoresheetStatusBadge" style={{"fontSize": "0.74rem", "fontWeight": "700", "padding": "2px 8px", "borderRadius": "12px", "background": "rgba(245, 158, 11, 0.2)", "color": "var(--accent-amber)"}}>
+                  Pending Upload
+                </span>
+              </div>
+              <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "10px", "marginBottom": "8px"}}>
+                <div>
+                  <label htmlFor="editScoresheetScore" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Score / Qualification Status</label>
+                  <input id="editScoresheetScore" placeholder="e.g. 25/25 (100%)" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%", "fontSize": "0.82rem"}} type="text" />
+                </div>
+                <div>
+                  <label htmlFor="editScoresheetFileInput" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Upload MSP 29-14 (PDF or Image)</label>
+                  <input accept=".pdf,image/*" id="editScoresheetFileInput" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "6px", "borderRadius": "6px", "width": "100%", "fontSize": "0.78rem"}} type="file" />
+                </div>
+              </div>
+              <div id="editScoresheetActionRow" style={{"display": "flex", "gap": "8px", "alignItems": "center", "marginTop": "8px"}}>
+                <button type="button" id="btnUploadScoresheetFromEdit" data-onclick="handleUploadScoresheetFromEdit()" style={{"background": "var(--accent-cyan)", "color": "#070b10", "border": "none", "borderRadius": "6px", "padding": "6px 12px", "fontSize": "0.80rem", "fontWeight": "700", "cursor": "pointer"}}>
+                  ⚡ Upload / Update Scoresheet
+                </button>
+                <a id="editScoresheetViewLink" href="#" target="_blank" rel="noopener noreferrer" style={{"display": "none", "color": "var(--accent-cyan)", "fontSize": "0.80rem", "textDecoration": "underline", "fontWeight": "600"}}>
+                  👁️ View Current File ↗
+                </a>
+                <button type="button" id="btnDeleteScoresheetFromEdit" data-onclick="handleDeleteScoresheetFromEdit()" style={{"display": "none", "background": "transparent", "color": "#ef4444", "border": "1px solid #ef4444", "borderRadius": "6px", "padding": "4px 8px", "fontSize": "0.76rem", "cursor": "pointer"}}>
+                  🗑️ Remove
+                </button>
+              </div>
+              <div id="editScoresheetFeedback" style={{"fontSize": "0.76rem", "marginTop": "6px", "display": "none"}}></div>
+            </div>
+</form>
         </div>
+      {/* ================= DEDICATED ADMIN SCORESHEET MODAL ================= */}
+      <div className="goal-modal-overlay" id="adminScoresheetModal" data-onclick="if(event.target===this) closeStudentScoresheetModal()" style={{"display": "none"}}>
+        <div aria-labelledby="adminScoresheetModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "640px", "borderColor": "var(--accent-cyan)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 35px var(--accent-cyan-glow)"}}>
+          <button aria-label="Close modal" className="goal-modal-close-btn" data-onclick="closeStudentScoresheetModal()" type="button">
+            ✕
+          </button>
+          <div>
+            <span className="goal-header-badge">
+              MARYLAND STATE POLICE FORM 29-14
+            </span>
+          </div>
+          <h3 className="goal-modal-title" id="adminScoresheetModalTitle" style={{"color": "#fff", "margin": "6px 0 14px"}}>
+            Official Qualification Scoresheet
+          </h3>
+          <p style={{"fontSize": "0.84rem", "color": "#94a3b8", "marginBottom": "16px"}}>
+            Manage Certified Live-Fire Qualification Score Sheet for <strong id="scoresheetModalStudentName" style={{"color": "#fff"}}>Student</strong> (<span id="scoresheetModalStudentId" style={{"color": "var(--accent-cyan)"}}>ID</span>).
+          </p>
+
+          <div style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "14px", "marginBottom": "14px"}}>
+            <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
+              <div>
+                <label style={{"fontSize": "0.80rem", "color": "#cbd5e1", "display": "block", "marginBottom": "4px", "fontWeight": "600"}}>
+                  Qualification Score
+                </label>
+                <input id="scoresheetModalScoreInput" placeholder="e.g. 25/25 (100%)" style={{"background": "#0a0f16", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px 10px", "borderRadius": "6px", "width": "100%", "fontSize": "0.85rem"}} type="text" defaultValue="25/25 (100%)" />
+              </div>
+              <div>
+                <label style={{"fontSize": "0.80rem", "color": "#cbd5e1", "display": "block", "marginBottom": "4px", "fontWeight": "600"}}>
+                  Select PDF or Scan Image
+                </label>
+                <input accept=".pdf,image/*" id="scoresheetModalFileInput" style={{"background": "#0a0f16", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "6px 10px", "borderRadius": "6px", "width": "100%", "fontSize": "0.80rem"}} type="file" />
+              </div>
+            </div>
+
+            <div id="scoresheetModalPreviewBox" style={{"display": "none", "textAlign": "center", "padding": "12px", "background": "#05080c", "borderRadius": "6px", "marginBottom": "12px", "border": "1px dashed var(--border-subtle)"}}>
+              <span style={{"fontSize": "0.80rem", "color": "#94a3b8", "display": "block", "marginBottom": "6px"}}>Live File Preview / Current File:</span>
+              <a id="scoresheetModalCurrentLink" href="#" target="_blank" rel="noopener noreferrer" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.88rem", "textDecoration": "underline"}}>
+                📄 View Scoresheet Document ↗
+              </a>
+            </div>
+
+            <div style={{"display": "flex", "gap": "10px", "alignItems": "center", "justifyContent": "flex-end"}}>
+              <button id="btnDeleteScoresheetModal" data-onclick="deleteCurrentStudentScoresheet()" style={{"display": "none", "background": "transparent", "border": "1px solid #ef4444", "color": "#ef4444", "borderRadius": "6px", "padding": "8px 14px", "fontSize": "0.82rem", "fontWeight": "600", "cursor": "pointer"}} type="button">
+                🗑️ Remove File
+              </button>
+              <button id="btnSaveScoresheetModal" data-onclick="saveStudentScoresheetFromModal()" style={{"background": "var(--accent-cyan)", "border": "none", "color": "#070b10", "borderRadius": "6px", "padding": "8px 18px", "fontSize": "0.85rem", "fontWeight": "800", "cursor": "pointer"}} type="button">
+                💾 Upload & Save to Supabase
+              </button>
+            </div>
+            <div id="scoresheetModalFeedback" style={{"fontSize": "0.80rem", "marginTop": "8px", "textAlign": "right", "display": "none"}}></div>
+          </div>
+        </div>
+      </div>
+
       </div>
       {/* ================= MODAL 4: ADMIN EDIT CLIENT RECORD MODAL ================= */}
       <div className="goal-modal-overlay" id="adminEditClientModal" data-onclick="if(event.target===this) closeAdminEditClientModal()" style={{"display": "none"}}>

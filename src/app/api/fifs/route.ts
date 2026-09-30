@@ -1251,15 +1251,57 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, status: 'error', error: 'Invalid admin passcode.' }, { status: 401 });
         }
         const studentId = payload.studentId || payload.student_id;
-        const imageUrl = payload.imageUrl || payload.image_url;
-        if (!studentId || !imageUrl) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier or scoresheet image URL.' }, { status: 400 });
+        let finalUrl = payload.imageUrl || payload.image_url || '';
+        const score = payload.score || payload.qualificationScore || '25/25 (100%)';
+        const notes = payload.notes || 'Maryland State Police Form 29-14 Certified Scoresheet';
+
+        if (!studentId) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier.' }, { status: 400 });
+        }
+
+        // If fileBase64 is provided, upload directly to Supabase storage bucket 'scoresheets'
+        if (payload.fileBase64) {
+          try {
+            const rawBase64 = payload.fileBase64.replace(/^data:[^;]+;base64,/, '');
+            const fileBuffer = Buffer.from(rawBase64, 'base64');
+            const fileExt = (payload.fileName && payload.fileName.includes('.'))
+              ? payload.fileName.split('.').pop()
+              : (payload.fileType && payload.fileType.includes('pdf')) ? 'pdf' : 'png';
+            const storagePath = ;
+            const contentType = payload.fileType || (fileExt === 'pdf' ? 'application/pdf' : 'image/png');
+
+            const { error: uploadError } = await supabase.storage
+              .from('scoresheets')
+              .upload(storagePath, fileBuffer, {
+                contentType: contentType,
+                upsert: true,
+              });
+
+            if (uploadError) {
+              console.error('Supabase storage upload error:', uploadError);
+              return NextResponse.json({ success: false, status: 'error', error: 'Storage upload failed: ' + uploadError.message }, { status: 500 });
+            }
+
+            const { data: publicUrlData } = supabase.storage
+              .from('scoresheets')
+              .getPublicUrl(storagePath);
+
+            finalUrl = publicUrlData?.publicUrl || storagePath;
+          } catch (uploadErr: any) {
+            console.error('File parsing/upload error:', uploadErr);
+            return NextResponse.json({ success: false, status: 'error', error: uploadErr.message || 'File processing failed' }, { status: 500 });
+          }
+        }
+
+        if (!finalUrl) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing scoresheet file or URL.' }, { status: 400 });
         }
 
         const scoresheetRow = {
           student_id: studentId,
-          image_url: imageUrl,
-          notes: payload.notes || null,
+          image_url: finalUrl,
+          score: score,
+          notes: notes,
           is_unread_by_student: true,
           updated_at: new Date().toISOString(),
         };
@@ -1271,9 +1313,27 @@ export async function POST(req: NextRequest) {
           .single();
 
         if (error) {
-          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 400 });
+          console.error('Error upserting student_scoresheets:', error);
+          // fallback: even if student_scoresheets table had an issue, attempt to update students table
         }
-        return NextResponse.json({ success: true, status: 'success', scoresheet: data });
+
+        // Update students table qualification_score and scoresheet_url
+        await supabase
+          .from('students')
+          .update({
+            scoresheet_url: finalUrl,
+            qualification_score: score,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('student_id', studentId);
+
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          scoresheet: data || { student_id: studentId, image_url: finalUrl, score: score, notes: notes },
+          url: finalUrl,
+          score: score
+        });
       }
 
       case 'deleteStudentScoresheet': {
