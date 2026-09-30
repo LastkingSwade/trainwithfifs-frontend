@@ -15,7 +15,8 @@ export default function TrainWithFIFS(props: any) {
 
     // Global delegated click handler for data-onclick attributes
     const handleGlobalDataOnClick = (e: MouseEvent) => {
-      const el = (e.target as HTMLElement)?.closest('[data-onclick]') as HTMLElement | null;
+      const target = e.target as Element | null;
+      const el = target && typeof target.closest === 'function' ? (target.closest('[data-onclick]') as HTMLElement | null) : null;
       if (!el) return;
       const cmd = el.getAttribute('data-onclick');
       if (!cmd) return;

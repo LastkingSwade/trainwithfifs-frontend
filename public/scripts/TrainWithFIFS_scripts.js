@@ -8025,7 +8025,9 @@ function getStepNumberFromStatus(statusStr) {
     var activeMultipliers = new Set();
     var currentCategoryFilter = 'all';
     var currentStateFocus = 'MD';
+    window.currentStateFocus = 'MD';
     var currentRollerState = 'WV';
+    window.currentRollerState = 'WV';
     var activeSearchQuery = '';
     // Initialize Application
     // Redundant DOMContentLoaded removed to prevent startup thread-lock
@@ -8199,7 +8201,7 @@ function getStepNumberFromStatus(statusStr) {
         group.setAttribute('id', 'stateNode-' + code);
         group.setAttribute('data-code', code);
         group.style.cursor = 'pointer';
-        group.onclick = function(e) { if(e) e.preventDefault(); selectState(code); };
+        group.onclick = function(e) { if(e) e.preventDefault(); selectState(code); if (typeof openStateModal === 'function') openStateModal(code); };
         group.setAttribute('opacity', isVisible ? '1' : '0.25');
         group.setAttribute('data-onclick', "selectState('" + code + "')");
       group.style.cursor = 'pointer';
@@ -8239,8 +8241,10 @@ function getStepNumberFromStatus(statusStr) {
       });
     }
     // Select State and Update Spotlights
-    function selectState(code) {
+    function selectState(code, skipRollerSync) {
+      if (!code) code = window.currentStateFocus || 'MD';
       currentStateFocus = code;
+      window.currentStateFocus = code;
       var state = STATES_DATA[code];
       if (!state) return;
       var evalRes = evaluateState(code);
@@ -8262,6 +8266,9 @@ function getStepNumberFromStatus(statusStr) {
       document.getElementById('btnInspectLaws').textContent = 'SEE ' + state.name.toUpperCase() + ' GUN LAWS';
       // Render Neighbor State Quick Cards
       renderNeighborCards(state.neighbors || []);
+      if (!skipRollerSync && typeof selectRollerState === 'function') {
+        selectRollerState(code, true);
+      }
     }
     // Render Neighbor Quick Cards
     function renderNeighborCards(neighbors) {
@@ -8349,8 +8356,10 @@ function getStepNumberFromStatus(statusStr) {
         roller.appendChild(item);
       });
     }
-    function selectRollerState(code) {
+    function selectRollerState(code, skipStateSync) {
+      if (!code) code = window.currentRollerState || 'WV';
       currentRollerState = code;
+      window.currentRollerState = code;
       var state = STATES_DATA[code];
       if (!state) return;
       document.querySelectorAll('.roller-item').forEach(el => el.classList.remove('active'));
@@ -8366,6 +8375,9 @@ function getStepNumberFromStatus(statusStr) {
       document.getElementById('rollerStateDesc').textContent = evalRes.verdictText + ' Select to inspect complete statutes.';
       document.getElementById('rollerStateIcon').textContent = evalRes.canCarry ? '✓' : '✕';
       document.getElementById('rollerStateIcon').style.color = evalRes.canCarry ? 'var(--accent-green)' : 'var(--accent-red)';
+      if (!skipStateSync && typeof selectState === 'function') {
+        selectState(code, true);
+      }
     }
     // Filter toolbar
     function setCategoryFilter(filter) {
@@ -8392,6 +8404,11 @@ function getStepNumberFromStatus(statusStr) {
     }
     // Modal Law Viewer Logic
     function openStateModal(code) {
+      if (!code || typeof code !== 'string') {
+        code = window.currentStateFocus || currentStateFocus || 'MD';
+      }
+      currentStateFocus = code;
+      window.currentStateFocus = code;
       var state = STATES_DATA[code];
       if (!state) return;
       var evalRes = evaluateState(code);
