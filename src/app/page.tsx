@@ -2103,17 +2103,17 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     </p>
                     <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.3rem", "color": "#fff", "marginBottom": "12px"}}>
                       
-                $175 
+                $150 
                       <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "fontFamily": "var(--font-body)"}}>
                         Base
                       </span>
-                       • $325 
+                       • $350 
                       <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)", "fontFamily": "var(--font-body)"}}>
                         VIP Turnkey
                       </span>
                     </div>
                   </div>
-                  <button className="btn-spark" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Multi-State Concealed Carry Mastery - $175"); }} data-onclick="selectCourse('Multi-State Concealed Carry Mastery - $175')" type="button">
+                  <button className="btn-spark" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Multi-State Concealed Carry Mastery - $150"); }} data-onclick="selectCourse('Multi-State Concealed Carry Mastery - $150')" type="button">
                     Book Multi-State Class →
                   </button>
                 </div>
