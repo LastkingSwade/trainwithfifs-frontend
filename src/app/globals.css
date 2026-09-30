@@ -5693,3 +5693,51 @@ button:focus-visible,
 .hero-command-dock::after {
   display: none !important;
 }
+
+
+/* ==========================================================================
+   TRANSPARENT SEAMLESS HERO BUTTONS OVERRIDE
+   ========================================================================== */
+.start-journey-btn, 
+.fifs-portal-btn, 
+.lead-instructor-btn,
+#btn-hero-booking,
+#btn-hero-portal,
+#btn-hero-about {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: opacity 0.25s ease, transform 0.25s ease !important;
+}
+
+.start-journey-btn:hover, 
+.fifs-portal-btn:hover, 
+.lead-instructor-btn:hover,
+#btn-hero-booking:hover,
+#btn-hero-portal:hover,
+#btn-hero-about:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  opacity: 0.82 !important;
+  transform: translateY(-1px) !important;
+}
+
+.start-journey-btn .prime-label,
+.fifs-portal-btn .twin-title,
+.lead-instructor-btn .twin-title {
+  color: #ffffff !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.85) !important;
+}
+
+.start-journey-btn .prime-sub,
+.fifs-portal-btn .twin-sub,
+.lead-instructor-btn .twin-sub {
+  color: #f1f5f9 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9) !important;
+}

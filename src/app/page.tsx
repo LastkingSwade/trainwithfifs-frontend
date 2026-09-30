@@ -465,7 +465,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </span>
             </div>
           </div>
-          <button className="btn-hero-booking-prime" id="btn-hero-booking" data-onclick="openAndSwitch('booking')" type="button">
+          <button className="btn-hero-booking-prime start-journey-btn" id="btn-hero-booking" data-onclick="openAndSwitch('booking')" type="button">
             <span className="prime-label">
               🎯 START YOUR JOURNEY
             </span>
@@ -474,7 +474,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </span>
           </button>
           <div className="hero-twin-grid">
-            <button aria-haspopup="dialog" aria-label="Open Future Initiative Portal selector" className="btn-hero-twin" id="btn-hero-portal" data-onclick="openPortalSelectionModal()" type="button">
+            <button aria-haspopup="dialog" aria-label="Open Future Initiative Portal selector" className="btn-hero-twin fifs-portal-btn" id="btn-hero-portal" data-onclick="openPortalSelectionModal()" type="button">
               <span className="twin-title">
                 ⚡ Future Initiative Portal
               </span>
@@ -482,7 +482,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Student & Client Access
               </span>
             </button>
-            <button className="btn-hero-twin" id="btn-hero-about" data-onclick="openAndSwitch('about')" type="button">
+            <button className="btn-hero-twin lead-instructor-btn" id="btn-hero-about" data-onclick="openAndSwitch('about')" type="button">
               <span className="twin-title">
                 👤 Lead Instructor
               </span>
