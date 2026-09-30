@@ -125,8 +125,7 @@ function generateIcsCalendar(params: {
     'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR'
-  ].join('
-');
+  ].join(String.fromCharCode(13, 10));
 }
 
 // --- Dynamic Storage Signed URL (7 Days / 604,800s) ---
