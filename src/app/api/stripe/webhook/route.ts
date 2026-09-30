@@ -42,7 +42,6 @@ function generateSecureTempPassword(): string {
     return res;
   }
 
-  // Pure deterministic random buffer fallback if node:crypto is inaccessible
   const fallbackBuf = new Uint8Array(len);
   for (let i = 0; i < len; i++) {
     fallbackBuf[i] = Math.floor(Math.random() * 256);
@@ -96,11 +95,11 @@ function generateIcsCalendar(params: {
   const end = formatIcsDate(endDate);
   const now = formatIcsDate(new Date());
   const uid = 'fifs-class-' + params.startDate.getTime() + '-' + Math.floor(Math.random() * 100000) + '@trainwithfifs.com';
-  const loc = (params.location || 'Future Initiative Firearm Services Training Center, Maryland').replace(/,/g, '\,');
-  const cleanSummary = (params.title || 'FIFS Firearms Course').replace(/
-/g, ' ');
-  const cleanDesc = (params.description || '').replace(/
-/g, '\n');
+  const loc = (params.location || 'Future Initiative Firearm Services Training Center, Maryland').split(',').join('\,');
+  const cleanSummary = (params.title || 'FIFS Firearms Course').split('
+').join(' ');
+  const cleanDesc = (params.description || '').split('
+').join('\n');
 
   return [
     'BEGIN:VCALENDAR',
@@ -109,13 +108,13 @@ function generateIcsCalendar(params: {
     'CALSCALE:GREGORIAN',
     'METHOD:REQUEST',
     'BEGIN:VEVENT',
-    ,
-    ,
-    ,
-    ,
-    ,
-    ,
-    ,
+    'UID:' + uid,
+    'DTSTAMP:' + now,
+    'DTSTART:' + start,
+    'DTEND:' + end,
+    'SUMMARY:' + cleanSummary,
+    'DESCRIPTION:' + cleanDesc,
+    'LOCATION:' + loc,
     'STATUS:CONFIRMED',
     'SEQUENCE:0',
     'BEGIN:VALARM',
@@ -190,7 +189,7 @@ async function sendResendEmail(params: {
       console.warn();
       return { success: false, error:  };
     }
-    const data = await res.json().catch(() => ({}));
+    await res.json().catch(() => ({}));
     return { success: true };
   } catch (err: any) {
     console.warn('[Resend] Exception calling API:', err);
@@ -238,7 +237,8 @@ export async function POST(req: NextRequest) {
       }
 
       // 2. Clean Intake & Single-Course Enrollment (Deprecates broken legacy invite handlers)
-      case 'adminEnrollStudent': {
+      case 'adminEnrollStudent':
+      case 'adminDirectInvite': {
         if (!verifyAdminPasscode(passcode)) {
           return NextResponse.json({ success: false, error: 'Unauthorized: Invalid admin passcode.' }, { status: 401 });
         }
@@ -246,10 +246,10 @@ export async function POST(req: NextRequest) {
         const fullName = (payload.fullName || payload.name || '').trim();
         const email = (payload.email || '').trim().toLowerCase();
         const phone = (payload.phone || '').trim();
-        const role = payload.role || 'student';
+        const role = payload.role || payload.portalType || 'student';
         const internalNotes = payload.internalNotes || payload.notes || '';
         const classId = payload.classId;
-        const scheduledDateStr = payload.scheduledDate;
+        const scheduledDateStr = payload.scheduledDate || payload.dates;
         let durationHours = Number(payload.durationHours) || 8;
 
         if (!fullName || !email) {
@@ -270,28 +270,30 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: true, isNewUser: true, message:  });
         }
 
-        if (!classId || !scheduledDateStr) {
-          return NextResponse.json({ success: false, error: 'Class and scheduled date/time are required for student enrollment.' }, { status: 400 });
+        // Query class details if provided
+        let classTitle = payload.course || 'Firearms Qualification Course';
+        let gearNotes = 'Eye and ear protection, government-issued photo ID, range fee (0 cash), functional firearm with 50 rounds of factory ammunition.';
+        let materialsPath: string | null = null;
+
+        if (classId) {
+          const { data: classRecord } = await supabase
+            .from('classes')
+            .select('*')
+            .eq('id', classId)
+            .maybeSingle();
+
+          if (classRecord) {
+            classTitle = classRecord.title || classTitle;
+            gearNotes = classRecord.required_gear_notes || gearNotes;
+            materialsPath = classRecord.materials_path || null;
+            if (!payload.durationHours && classRecord.duration_hours) {
+              durationHours = Number(classRecord.duration_hours);
+            }
+          }
         }
 
-        const scheduledDate = new Date(scheduledDateStr);
-        if (isNaN(scheduledDate.getTime())) {
-          return NextResponse.json({ success: false, error: 'Invalid scheduled date/time provided.' }, { status: 400 });
-        }
-
-        // Query class details
-        const { data: classRecord } = await supabase
-          .from('classes')
-          .select('*')
-          .eq('id', classId)
-          .single();
-
-        const classTitle = classRecord?.title || 'Firearms Qualification Course';
-        const gearNotes = classRecord?.required_gear_notes || 'Eye and ear protection, government-issued photo ID, range fee (0 cash), functional firearm with 50 rounds of factory ammunition.';
-        const materialsPath = classRecord?.materials_path || null;
-        if (!payload.durationHours && classRecord?.duration_hours) {
-          durationHours = Number(classRecord.duration_hours);
-        }
+        const scheduledDate = scheduledDateStr ? new Date(scheduledDateStr) : new Date(Date.now() + 7 * 86400000);
+        const validDate = !isNaN(scheduledDate.getTime()) ? scheduledDate : new Date(Date.now() + 7 * 86400000);
 
         // Check if student exists
         const { data: existingStudent } = await supabase
@@ -315,13 +317,13 @@ export async function POST(req: NextRequest) {
             email: email,
             phone: phone,
             course: classTitle,
-            assigned_date: scheduledDate.toLocaleDateString(),
+            assigned_date: validDate.toLocaleDateString(),
             status: 'STEP_1_REGISTERED',
             must_change_password: true,
             temp_password_reset: true,
             password_expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
             internal_notes: internalNotes,
-            portal_password: tempPassword // Stored for one-time verification during first login
+            portal_password: tempPassword
           });
           if (insertErr) {
             return NextResponse.json({ success: false, error: insertErr.message }, { status: 500 });
@@ -332,40 +334,46 @@ export async function POST(req: NextRequest) {
             phone: phone || existingStudent.phone,
             internal_notes: internalNotes || existingStudent.internal_notes,
             course: classTitle,
-            assigned_date: scheduledDate.toLocaleDateString()
+            assigned_date: validDate.toLocaleDateString()
           }).eq('email', email);
         }
 
-        // Insert new enrollment record
-        const { data: enrollment, error: enrollErr } = await supabase
-          .from('enrollments')
-          .insert({
-            student_email: email,
-            student_name: fullName,
-            class_id: classId,
-            scheduled_date: scheduledDate.toISOString(),
-            duration_hours: durationHours,
-            reminder_sent: false,
-            status: 'confirmed',
-            previous_dates: [],
-            internal_notes: internalNotes
-          })
-          .select()
-          .single();
-
-        if (enrollErr) {
-          return NextResponse.json({ success: false, error: 'Failed to record enrollment: ' + enrollErr.message }, { status: 500 });
+        // Insert new enrollment record if classes table is populated
+        let enrollment = null;
+        if (classId) {
+          const { data: enrData } = await supabase
+            .from('enrollments')
+            .insert({
+              student_email: email,
+              student_name: fullName,
+              class_id: classId,
+              scheduled_date: validDate.toISOString(),
+              duration_hours: durationHours,
+              reminder_sent: false,
+              status: 'confirmed',
+              previous_dates: [],
+              internal_notes: internalNotes
+            })
+            .select()
+            .single();
+          enrollment = enrData;
         }
 
         // Dynamic 7-day signed materials link
         const signedDocUrl = await getSignedDocumentUrl(supabase, materialsPath);
 
         // Generate ICS Calendar Event
-        const icsDescription = ;
+        const icsDescription = 'Course: ' + classTitle + '
+Duration: ' + durationHours + ' hours
+Student: ' + fullName + '
+Portal: https://trainwithfifs.com/?portal=student
+
+Required Gear Checklist:
+' + gearNotes;
         const icsContent = generateIcsCalendar({
           title: classTitle,
           description: icsDescription,
-          startDate: scheduledDate,
+          startDate: validDate,
           durationHours: durationHours
         });
         const icsBase64 = Buffer.from(icsContent).toString('base64');
@@ -376,25 +384,62 @@ export async function POST(req: NextRequest) {
 
         // Email Dispatch
         let emailResult = { success: false, error: '' };
-        const dateFormatted = scheduledDate.toLocaleString('en-US', {
-          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+        const dateFormatted = validDate.toLocaleString('en-US', {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
 
         if (isNewUser) {
           // Welcome & Temporary Credentials
-          const html = <p style="margin:10px 0 0 0;"><a href="" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>;
+          const html = '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;">' +
+            '<h2 style="color:#0284c7;margin-top:0;">Welcome to Train With FIFS, ' + fullName + '!</h2>' +
+            '<p style="color:#334155;font-size:15px;line-height:1.5;">You have been enrolled in <strong>' + classTitle + '</strong>. Your training portal account has been provisioned.</p>' +
+            '<div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;padding:16px;margin:20px 0;">' +
+            '<h4 style="margin:0 0 10px 0;color:#0f172a;">Your Portal Login Credentials:</h4>' +
+            '<p style="margin:4px 0;color:#1e293b;"><strong>Login Email:</strong> ' + email + '</p>' +
+            '<p style="margin:4px 0;color:#1e293b;"><strong>Temporary One-Time Password:</strong> <code style="font-size:1.15em;background:#e2e8f0;padding:2px 8px;border-radius:4px;font-weight:bold;">' + tempPassword + '</code></p>' +
+            '<p style="margin:10px 0 0 0;font-size:13px;color:#dc2626;font-weight:600;">⚠️ You must change this temporary password upon your first sign in.</p>' +
+            '</div>' +
+            '<div style="margin:20px 0;padding:16px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;">' +
+            '<h4 style="margin:0 0 8px 0;color:#0369a1;">Scheduled Class Session:</h4>' +
+            '<p style="margin:4px 0;color:#0c4a6e;"><strong>Date & Time:</strong> ' + dateFormatted + '</p>' +
+            '<p style="margin:4px 0;color:#0c4a6e;"><strong>Duration:</strong> ' + durationHours + ' Hours</p>' +
+            (signedDocUrl ? '<p style="margin:10px 0 0 0;"><a href="' + signedDocUrl + '" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>' : '') +
+            '</div>' +
+            '<div style="margin:20px 0;padding:16px;background:#fffbeb;border:1px solid #fef3c7;border-radius:6px;">' +
+            '<h4 style="margin:0 0 8px 0;color:#92400e;">Required Gear & Prerequisites:</h4>' +
+            '<p style="margin:0;font-size:14px;color:#78350f;white-space:pre-line;">' + gearNotes + '</p>' +
+            '</div>' +
+            '<p style="font-size:14px;color:#64748b;">A calendar invite (.ics) is attached to this email. Add it directly to your calendar.</p>' +
+            '<p style="margin-top:24px;"><a href="https://trainwithfifs.com/?portal=student" style="display:inline-block;padding:10px 20px;background:#0f172a;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;">Sign In to Student Portal</a></p>' +
+            '</div>';
+
           emailResult = await sendResendEmail({
             to: email,
-            subject: ,
+            subject: 'Confirmed: ' + classTitle + ' Enrollment & Portal Access',
             html: html,
             attachments: attachments
           });
         } else {
           // Existing User Enrollment Confirmation
-          const html = <p style="margin:10px 0 0 0;"><a href="" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>;
+          const html = '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;">' +
+            '<h2 style="color:#0284c7;margin-top:0;">Class Enrollment Confirmed, ' + fullName + '!</h2>' +
+            '<p style="color:#334155;font-size:15px;line-height:1.5;">You have been enrolled in an upcoming session of <strong>' + classTitle + '</strong>.</p>' +
+            '<div style="margin:20px 0;padding:16px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;">' +
+            '<h4 style="margin:0 0 8px 0;color:#0369a1;">Session Details:</h4>' +
+            '<p style="margin:4px 0;color:#0c4a6e;"><strong>Date & Time:</strong> ' + dateFormatted + '</p>' +
+            '<p style="margin:4px 0;color:#0c4a6e;"><strong>Duration:</strong> ' + durationHours + ' Hours</p>' +
+            (signedDocUrl ? '<p style="margin:10px 0 0 0;"><a href="' + signedDocUrl + '" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>' : '') +
+            '</div>' +
+            '<div style="margin:20px 0;padding:16px;background:#fffbeb;border:1px solid #fef3c7;border-radius:6px;">' +
+            '<h4 style="margin:0 0 8px 0;color:#92400e;">Required Gear & Prerequisites:</h4>' +
+            '<p style="margin:0;font-size:14px;color:#78350f;white-space:pre-line;">' + gearNotes + '</p>' +
+            '</div>' +
+            '<p style="font-size:14px;color:#64748b;">An updated calendar invite (.ics) is attached. Sign in with your existing password at <a href="https://trainwithfifs.com/?portal=student" style="color:#0284c7;">trainwithfifs.com/?portal=student</a>.</p>' +
+            '</div>';
+
           emailResult = await sendResendEmail({
             to: email,
-            subject: ,
+            subject: 'Enrollment Confirmed: ' + classTitle,
             html: html,
             attachments: attachments
           });
@@ -402,6 +447,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
           success: true,
+          status: 'success',
           isNewUser: isNewUser,
           studentId: studentId,
           tempPassword: isNewUser ? tempPassword : null,
@@ -451,7 +497,8 @@ export async function POST(req: NextRequest) {
             reminder_sent: false,
             status: 'rescheduled',
             previous_dates: previousDates,
-            internal_notes: reason ?  : enrollment.internal_notes
+            internal_notes: reason ? (enrollment.internal_notes || '') + '
+[Rescheduled: ' + reason + ']' : enrollment.internal_notes
           })
           .eq('id', enrollmentId);
 
@@ -462,8 +509,10 @@ export async function POST(req: NextRequest) {
         // Generate updated ICS
         const classTitle = enrollment.classes?.title || 'FIFS Firearms Course';
         const icsContent = generateIcsCalendar({
-          title: ,
-          description: ,
+          title: '[RESCHEDULED] ' + classTitle,
+          description: 'Your session was rescheduled.
+Reason: ' + (reason || 'Schedule update') + '
+Portal: https://trainwithfifs.com/?portal=student',
           startDate: nextDate,
           durationHours: newDuration
         });
@@ -476,11 +525,22 @@ export async function POST(req: NextRequest) {
           weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
 
-        const html = <p style="margin:8px 0 0 0;color:#713f12;"><strong>Instructor Note:</strong> </p>;
+        const html = '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;border:1px solid #e2e8f0;border-radius:8px;">' +
+          '<h2 style="color:#eab308;margin-top:0;">Class Reschedule Notice</h2>' +
+          '<p>Hello ' + enrollment.student_name + ',</p>' +
+          '<p>Your scheduled session for <strong>' + classTitle + '</strong> has been rescheduled:</p>' +
+          '<div style="background:#fefce8;border:1px solid #fef08a;padding:16px;border-radius:6px;margin:16px 0;">' +
+          '<p style="margin:4px 0;"><strong>Original Date:</strong> ' + oldDateStr + '</p>' +
+          '<p style="margin:4px 0;color:#854d0e;"><strong>New Scheduled Date:</strong> <strong>' + dateStr + '</strong></p>' +
+          '<p style="margin:4px 0;"><strong>Duration:</strong> ' + newDuration + ' Hours</p>' +
+          (reason ? '<p style="margin:8px 0 0 0;color:#713f12;"><strong>Instructor Note:</strong> ' + reason + '</p>' : '') +
+          '</div>' +
+          '<p style="font-size:14px;color:#64748b;">An updated calendar event (.ics) is attached. Add it to update your personal calendar.</p>' +
+          '</div>';
 
         await sendResendEmail({
           to: enrollment.student_email,
-          subject: ,
+          subject: 'Updated Schedule: ' + classTitle + ' on ' + dateStr,
           html: html,
           attachments: [{ filename: 'Updated_Class_Schedule.ics', content: icsBase64 }]
         });
@@ -524,11 +584,17 @@ export async function POST(req: NextRequest) {
         const classTitle = enrollment.classes?.title || 'FIFS Firearms Course';
         const dateStr = new Date(enrollment.scheduled_date).toLocaleString();
 
-        const html = <div style="background:#fef2f2;border:1px solid #fecaca;padding:12px;border-radius:6px;margin:16px 0;"><strong>Reason:</strong> </div>;
+        const html = '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;border:1px solid #fee2e2;border-radius:8px;">' +
+          '<h2 style="color:#dc2626;margin-top:0;">Class Cancellation Notice</h2>' +
+          '<p>Hello ' + enrollment.student_name + ',</p>' +
+          '<p>Your training session for <strong>' + classTitle + '</strong> previously scheduled for <strong>' + dateStr + '</strong> has been cancelled.</p>' +
+          (reason ? '<div style="background:#fef2f2;border:1px solid #fecaca;padding:12px;border-radius:6px;margin:16px 0;"><strong>Reason:</strong> ' + reason + '</div>' : '') +
+          '<p>Please contact lead instructor at <a href="mailto:carpetcare85@gmail.com">carpetcare85@gmail.com</a> to re-book or discuss alternate session times.</p>' +
+          '</div>';
 
         await sendResendEmail({
           to: enrollment.student_email,
-          subject: ,
+          subject: 'Cancellation Notice: ' + classTitle,
           html: html
         });
 
@@ -536,8 +602,9 @@ export async function POST(req: NextRequest) {
       }
 
       // 5. First-Login Password Change & Gate Clear + Admin Alert
-      case 'firstLoginPasswordChange': {
-        const { email, currentPassword, newPassword } = payload;
+      case 'firstLoginPasswordChange':
+      case 'setupStudentPassword': {
+        const { email, newPassword } = payload;
         if (!email || !newPassword) {
           return NextResponse.json({ success: false, error: 'Email and new password are required.' }, { status: 400 });
         }
@@ -557,11 +624,10 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, error: 'Student record not found.' }, { status: 404 });
         }
 
-        // Update permanent password and clear flag
         const { error: updateErr } = await supabase
           .from('students')
           .update({
-            portal_password: newPassword, // Store password
+            portal_password: newPassword,
             must_change_password: false,
             temp_password_reset: false,
             password_expires_at: null
@@ -572,13 +638,16 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, error: updateErr.message }, { status: 500 });
         }
 
-        // Trigger Admin Alert via Resend
         const studentName = student.full_name || 'Student';
         const nowStr = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
         await sendResendEmail({
           to: ADMIN_EMAIL,
-          subject: ,
-          html: 
+          subject: 'Account Activated: ' + studentName + ' Set Permanent Password',
+          html: '<div style="font-family:Arial,sans-serif;padding:20px;border:1px solid #e2e8f0;border-radius:6px;">' +
+            '<h3 style="color:#0284c7;">Student Onboarding Complete</h3>' +
+            '<p><strong>' + studentName + '</strong> (' + email + ') has successfully set their permanent password and cleared the first-login gate.</p>' +
+            '<p>Timestamp: ' + nowStr + '</p>' +
+            '</div>'
         });
 
         return NextResponse.json({ success: true, message: 'Password updated successfully. Welcome to your portal!' });
@@ -586,7 +655,7 @@ export async function POST(req: NextRequest) {
 
       // 6. Self-Service Password Update
       case 'selfServicePasswordUpdate': {
-        const { email, currentPassword, newPassword } = payload;
+        const { email, newPassword } = payload;
         if (!email || !newPassword) {
           return NextResponse.json({ success: false, error: 'Email and new password are required.' }, { status: 400 });
         }
@@ -617,21 +686,19 @@ export async function POST(req: NextRequest) {
         const { data: student } = await supabase
           .from('students')
           .select('*')
-          .or()
+          .or('email.eq.' + identifier + ',student_id.eq.' + identifier)
           .maybeSingle();
 
         if (!student) {
           return NextResponse.json({ success: false, error: 'Student record not found.' }, { status: 404 });
         }
 
-        // Fetch all course enrollments with classes joined (Never expose internal_notes)
         const { data: enrollments } = await supabase
           .from('enrollments')
           .select('id, class_id, scheduled_date, duration_hours, status, cancellation_reason, previous_dates, created_at, classes(title, description, materials_path, required_gear_notes)')
           .eq('student_email', student.email)
           .order('scheduled_date', { ascending: false });
 
-        // Generate fresh 7-day signed URLs for any active materials
         const enrollmentsWithUrls = await Promise.all((enrollments || []).map(async (e: any) => {
           let signedUrl = null;
           if (e.classes?.materials_path) {
@@ -678,11 +745,21 @@ export async function POST(req: NextRequest) {
           const dateStr = new Date(enr.scheduled_date).toLocaleString();
           const docUrl = await getSignedDocumentUrl(supabase, enr.classes?.materials_path);
 
-          const html = <p><a href="" style="background:#0284c7;color:#ffffff;padding:8px 16px;border-radius:4px;text-decoration:none;font-weight:bold;">Review Course Study Guide</a></p>;
+          const html = '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;border:1px solid #e2e8f0;border-radius:8px;">' +
+            '<h2 style="color:#0284c7;margin-top:0;">Class Reminder: 24 Hours Until Your Session</h2>' +
+            '<p>Hello ' + enr.student_name + ',</p>' +
+            '<p>This is a reminder that your session for <strong>' + classTitle + '</strong> begins tomorrow at <strong>' + dateStr + '</strong>.</p>' +
+            '<div style="background:#fffbeb;border:1px solid #fef3c7;padding:16px;border-radius:6px;margin:16px 0;">' +
+            '<h4 style="margin:0 0 8px 0;color:#92400e;">Mandatory Gear Checklist:</h4>' +
+            '<p style="margin:0;font-size:14px;color:#78350f;white-space:pre-line;">' + gearNotes + '</p>' +
+            '</div>' +
+            (docUrl ? '<p><a href="' + docUrl + '" style="background:#0284c7;color:#ffffff;padding:8px 16px;border-radius:4px;text-decoration:none;font-weight:bold;">Review Course Study Guide</a></p>' : '') +
+            '<p style="font-size:13px;color:#64748b;">Access your full portal anytime at <a href="https://trainwithfifs.com/?portal=student">trainwithfifs.com/?portal=student</a>.</p>' +
+            '</div>';
 
           await sendResendEmail({
             to: enr.student_email,
-            subject: ,
+            subject: 'Reminder: ' + classTitle + ' Starts Tomorrow',
             html: html
           });
 
@@ -713,7 +790,7 @@ export async function POST(req: NextRequest) {
       }
 
       default:
-        return NextResponse.json({ success: false, error:  }, { status: 400 });
+        return NextResponse.json({ success: false, error: 'Unhandled action: ' + action }, { status: 400 });
     }
   } catch (err: any) {
     console.error('[API FIFS Error]:', err);
