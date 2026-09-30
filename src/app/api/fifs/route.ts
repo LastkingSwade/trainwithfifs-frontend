@@ -97,10 +97,8 @@ function generateIcsCalendar(params: {
   const now = formatIcsDate(new Date());
   const uid = 'fifs-class-' + params.startDate.getTime() + '-' + Math.floor(Math.random() * 100000) + '@trainwithfifs.com';
   const loc = (params.location || 'Future Initiative Firearm Services Training Center, Maryland').replace(/,/g, '\,');
-  const cleanSummary = (params.title || 'FIFS Firearms Course').replace(/
-/g, ' ');
-  const cleanDesc = (params.description || '').replace(/
-/g, '\n');
+  const cleanSummary = (params.title || 'FIFS Firearms Course').split(String.fromCharCode(10)).join(' ').split(String.fromCharCode(13)).join('');
+  const cleanDesc = (params.description || '').split(String.fromCharCode(10)).join('\n').split(String.fromCharCode(13)).join('');
 
   return [
     'BEGIN:VCALENDAR',
@@ -125,8 +123,7 @@ function generateIcsCalendar(params: {
     'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR'
-  ].join('
-');
+  ].join(String.fromCharCode(13, 10));
 }
 
 // --- Dynamic Storage Signed URL (7 Days / 604,800s) ---
