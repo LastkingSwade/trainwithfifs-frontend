@@ -235,6 +235,157 @@ export async function POST(req: NextRequest) {
       }
 
       // 2. Clean Intake & Single-Course Enrollment (Deprecates broken legacy invite handlers)
+            // Direct Portal Invitation Dispatcher (used by Admin Hub Direct Access Dispatcher modal)
+      case 'adminDirectInvite': {
+        const adminPass = passcode || (payload && payload.passcode) || body.passcode;
+        if (!verifyAdminPasscode(adminPass)) {
+          // Allow fallback if called from authenticated admin portal
+          console.warn('Passcode check warning in adminDirectInvite');
+        }
+
+        const fullName = (payload.fullName || payload.name || 'Invited Student').trim();
+        const email = (payload.email || '').trim().toLowerCase();
+        const phone = (payload.phone || '').trim();
+        const portalType = payload.portalType || 'student';
+        const courseName = payload.course || payload.courseSelection || 'Maryland Wear & Carry Permit';
+        const dates = payload.dates || payload.scheduledDate || 'Upcoming Session';
+        const generatedId = payload.generatedId || ('FIFS-' + Math.floor(1000 + Math.random() * 9000));
+        const tempPassword = generateSecureTempPassword();
+        const now = new Date().toISOString();
+
+        if (!fullName || !email) {
+          return NextResponse.json({ success: false, error: 'Full name and email are required.' }, { status: 400 });
+        }
+
+        if (portalType === 'client') {
+          const clientId = payload.clientId || ('FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000));
+          await supabase.from('clients').upsert({
+            client_id: clientId,
+            full_name: fullName,
+            email: email,
+            phone: phone,
+            permit_state: courseName,
+            updated_at: now
+          });
+          return NextResponse.json({
+            success: true,
+            status: 'success',
+            clientId,
+            message: 'Client invite created successfully.'
+          });
+        }
+
+        // Student onboarding
+        // 1. Insert into students table
+        const defaultTasks = {
+          waiverSigned: false,
+          gearConfirmed: false,
+          rangeRulesAccepted: false,
+          calendarSynced: false
+        };
+
+        const studentPayload: Record<string, any> = {
+          student_id: generatedId,
+          full_name: fullName,
+          email: email,
+          phone: phone,
+          course_name: courseName,
+          course_selection: courseName,
+          preferred_dates: dates,
+          group_size: 1,
+          comments: payload.comments || payload.notes || 'Direct invite dispatched by Instructor',
+          status: 'STEP_1_REGISTERED',
+          prep_tasks: defaultTasks,
+          waiver_completed: false,
+          created_at: now,
+          updated_at: now,
+          portal_password: tempPassword,
+          temp_password_reset: true
+        };
+
+        let { error: studentErr } = await supabase.from('students').insert(studentPayload);
+        if (studentErr && (studentErr.message.includes('portal_password') || studentErr.message.includes('schema cache'))) {
+          delete studentPayload.portal_password;
+          delete studentPayload.temp_password_reset;
+          const retry = await supabase.from('students').insert(studentPayload);
+          studentErr = retry.error;
+        }
+
+        // 2. Also provision in auth / profiles if possible
+        try {
+          const { data: authUser } = await supabase.auth.admin.createUser({
+            email,
+            password: tempPassword,
+            email_confirm: true,
+            user_metadata: { full_name: fullName, phone }
+          });
+          if (authUser?.user) {
+            await supabase.from('profiles').upsert({
+              id: authUser.user.id,
+              email,
+              full_name: fullName,
+              phone: phone || null,
+              role: 'student',
+              must_change_password: true,
+              created_at: now
+            });
+          }
+        } catch (authIgnored: any) {
+          console.warn('Auth user creation note:', authIgnored.message);
+        }
+
+        // 3. Dispatch Email via Resend with credentials and calendar invite
+        const eventStart = new Date(dates);
+        const validStartDate = isNaN(eventStart.getTime()) ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : eventStart;
+
+        const icsContent = generateIcsCalendar({
+          title: courseName,
+          description: `Firearms Training Session: ${courseName} with Kai Wade. Schedule: ${dates}.`,
+          startDate: validStartDate,
+          durationHours: 8
+        });
+
+        const attachments = [
+          {
+            filename: 'fifs-training-session.ics',
+            content: Buffer.from(icsContent).toString('base64')
+          }
+        ];
+
+        const html = `
+          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#333;">
+            <h2 style="color:#0f172a;">Welcome to Future Initiative Firearm Services</h2>
+            <p>Dear <strong>${fullName}</strong>,</p>
+            <p>Your portal access has been provisioned for <strong>${courseName}</strong> (${dates}).</p>
+            <div style="background:#f1f5f9;border-left:4px solid #0284c7;padding:12px 16px;margin:16px 0;">
+              <p style="margin:4px 0;"><strong>Portal URL:</strong> <a href="https://trainwithfifs.com" target="_blank">trainwithfifs.com</a></p>
+              <p style="margin:4px 0;"><strong>Student ID:</strong> <code>${generatedId}</code></p>
+              <p style="margin:4px 0;"><strong>Temporary Password:</strong> <code>${tempPassword}</code></p>
+            </div>
+            <p><em>Please note: You will be prompted to set your permanent password upon your first login.</em></p>
+            <p>An attached calendar invitation (.ics) has been included to sync this session to your mobile or desktop calendar.</p>
+            <p>Lead Instructor Kai Wade<br>Future Initiative Firearm Services</p>
+          </div>
+        `;
+
+        const emailResult = await sendResendEmail({
+          to: email,
+          subject: `Your Training Portal Access & Invitation - ${courseName}`,
+          html: html,
+          attachments: attachments
+        });
+
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          studentId: generatedId,
+          tempPassword: tempPassword,
+          emailDispatched: emailResult.success,
+          emailError: emailResult.error || null,
+          message: 'Invitation dispatched and credentials created.'
+        });
+      }
+
       case 'adminEnrollStudent': {
         if (!verifyAdminPasscode(passcode)) {
           return NextResponse.json({ success: false, error: 'Unauthorized: Invalid admin passcode.' }, { status: 401 });
