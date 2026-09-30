@@ -42,7 +42,6 @@ body {
 
 /* Contemporary Pill & Primary Buttons */
 .btn-primary, 
-.btn-hero-booking-prime, 
 .btn-spark {
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
   color: #ffffff !important;
@@ -58,7 +57,6 @@ body {
 }
 
 .btn-primary:hover, 
-.btn-hero-booking-prime:hover, 
 .btn-spark:hover {
   background: linear-gradient(135deg, #334155 0%, #1e293b 100%) !important;
   border-color: rgba(255, 255, 255, 0.3) !important;
@@ -5567,6 +5565,8 @@ button:focus-visible,
   fill: rgba(239, 68, 68, 0.22) !important;
   stroke: #ef4444 !important;
 }
+
+
 /* Restored High-Contrast Start Your Journey CTA */
 .btn-hero-booking-prime {
   width: 100% !important;
@@ -5606,4 +5606,41 @@ button:focus-visible,
   letter-spacing: 0.8px !important;
   color: #051622 !important;
   text-transform: uppercase !important;
+}
+
+
+/* Admin & Dossier/Scoresheet Modal Mobile Responsiveness */
+@media (max-width: 768px) {
+  .goal-modal-overlay {
+    padding: 12px !important;
+    align-items: center !important;
+  }
+  .goal-modal-box {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 92vh !important;
+    padding: 18px 14px !important;
+    margin: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .goal-modal-box input,
+  .goal-modal-box select,
+  .goal-modal-box textarea {
+    font-size: 16px !important; /* Prevents auto-zoom on iOS */
+    min-height: 44px !important;
+  }
+  .goal-modal-box .grid,
+  .goal-modal-box [style*="grid-template-columns"],
+  .goal-modal-box [style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .goal-modal-close-btn {
+    top: 10px !important;
+    right: 12px !important;
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 18px !important;
+  }
 }

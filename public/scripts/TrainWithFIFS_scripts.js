@@ -218,7 +218,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       var bodyData = Object.assign({ action: action }, payload || {});
       // Ensure pin/passcode compatibility
       if (!bodyData.passcode && bodyData.pin) bodyData.passcode = bodyData.pin;
-      fetch("/api/fifs", {
+      return fetch("/api/fifs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bodyData)
@@ -2354,7 +2354,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         btn.classList.add('btn-animated-loading');
         btn.innerHTML = '<span class="spin-icon">🔄</span> <span>RESETTING LEDGER...</span>';
       }
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
       if (typeof callFifsBackend === 'function') { callFifsBackend('resetTelemetry', { passcode: pin }); }
       _fifsMemStorage.removeItem('fifs_analytics_events');
       _fifsMemStorage.removeItem('fifs_analytics_counts');
@@ -2691,7 +2691,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         } catch(e) {}
       }
       // Sync Admin Reply to Supabase messages table via /api/fifs
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
       var replyPayload = {
         threadId: thread.id,
         thread_id: thread.id,
@@ -3083,7 +3083,7 @@ function loadDemoStudent() {
     }
     window.loadDemoClient = loadDemoClient;
     function updateStudentJourneyStep(studentId, newStepValue) {
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
       var ind = document.getElementById('save-ind-' + studentId);
       var chip = document.getElementById('chip-status-' + studentId);
       var stepNum = getStepNumberFromStatus(newStepValue);
@@ -3141,7 +3141,7 @@ function loadDemoStudent() {
     window.closeAdminEditStudentModal = closeAdminEditStudentModal;
     function deleteStudentFromAdmin(studentId) {
       if (!confirm('Are you sure you want to remove student ' + studentId + ' from the administrative roster?')) return;
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
       if (typeof adminCachedStudents !== 'undefined' && Array.isArray(adminCachedStudents)) {
         adminCachedStudents = adminCachedStudents.filter(s => s.studentId !== studentId);
         window.adminCachedStudents = adminCachedStudents;
@@ -3196,7 +3196,7 @@ function loadDemoStudent() {
     window.closeAdminEditClientModal = closeAdminEditClientModal;
     function deleteClientFromAdmin(clientId) {
       if (!confirm('Are you sure you want to remove client ' + clientId + ' from the client portal registry?')) return;
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
       if (typeof adminCachedClients !== 'undefined' && Array.isArray(adminCachedClients)) {
         adminCachedClients = adminCachedClients.filter(c => c.clientId !== clientId);
         window.adminCachedClients = adminCachedClients;
@@ -4489,7 +4489,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
         statusElem.style.color = "var(--accent-cyan)";
       }
 
-      var pin = sessionStorage.getItem("fifs_instructor_pin") || "Ultima";
+      var pin = sessionStorage.getItem("fifs_instructor_pin");
       if (typeof callFifsBackend === "function") {
         callFifsBackend("adminEditStudent", {
           passcode: pin,
@@ -4575,7 +4575,7 @@ function openAdminEditStudentModal(studentId) {
     window.closeAdminEditStudentModal = closeAdminEditStudentModal;
     function handleAdminEditStudentSubmit(e) {
       e.preventDefault();
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
       var studentId = document.getElementById('editStudentId').value;
       var s = adminCachedStudents.find(item => item.studentId === studentId);
       if (!s) return;
@@ -4591,7 +4591,37 @@ function openAdminEditStudentModal(studentId) {
       /* cloud only: zero browser storage */
       var st = document.getElementById('edit-student-status');
       showStatus(st, 'Changes saved successfully!', 'success');
-      if (typeof callFifsBackend === 'function') { callFifsBackend('adminEditStudent', { passcode: pin, studentId: studentId, student: s }); }
+      if (typeof callFifsBackend === 'function') {
+        try {
+          callFifsBackend('adminEditStudent', {
+            passcode: pin,
+            studentId: studentId,
+            updates: {
+              fullName: s.fullName,
+              email: s.email,
+              phone: s.phone,
+              courseSelection: s.course,
+              assignedDate: s.assignedDate,
+              classDate: s.assignedDate,
+              status: s.status,
+              qualificationScore: s.qualificationScore,
+              profileDocUrl: s.profileDocUrl,
+              dossierUrl: s.profileDocUrl,
+              notes: s.notes
+            }
+          }, function(res) {
+            console.log('[FIFS] adminEditStudent persisted to Supabase:', res);
+            if (res && (res.success === false || res.status === 'error')) {
+              showStatus(st, 'Supabase error: ' + (res.error || 'update failed'), 'error');
+            }
+          }, function(err) {
+            console.error('[FIFS] adminEditStudent Supabase failure:', err);
+            showStatus(st, 'Supabase save failed: ' + (err && err.message ? err.message : 'unknown error'), 'error');
+          });
+        } catch (e) {
+          console.error('[FIFS] adminEditStudent dispatch error:', e);
+        }
+      }
       setTimeout(function() {
         closeAdminEditStudentModal();
         renderAdminTerminal({ students: adminCachedStudents });
@@ -4606,7 +4636,7 @@ function openAdminEditStudentModal(studentId) {
       }
       adminCachedStudents = adminCachedStudents.filter(item => item.studentId !== studentId);
       /* cloud only: zero browser storage */
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
       if (typeof callFifsBackend === 'function') { callFifsBackend('adminDeleteStudent', { passcode: pin, studentId: studentId }); }
       renderAdminTerminal({ students: adminCachedStudents });
     }
@@ -4803,7 +4833,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     window.closeAdminEditClientModal = closeAdminEditClientModal;
     function handleAdminEditClientSubmit(e) {
       e.preventDefault();
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
       var clientId = document.getElementById('editClientId').value;
       var c = adminCachedClients.find(item => item.clientId === clientId);
       if (!c) return;
@@ -4831,7 +4861,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }
       adminCachedClients = adminCachedClients.filter(item => item.clientId !== clientId);
       /* cloud only: zero browser storage */
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
       if (typeof callFifsBackend === 'function') { callFifsBackend('adminDeleteClient', { passcode: pin, pin: pin, clientId: clientId }); }
       renderAdminClientTerminal();
     }
@@ -5043,7 +5073,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       var s = adminCachedStudents.find(item => item.studentId === studentId);
       var name = s ? s.fullName : studentId;
       if (!confirm(`Dispatch official Range Day Arrival Briefing & Driving Directions to ${name} (${s ? s.email : ''})?`)) return;
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleDispatchRangeBriefing) {
         google.script.run
           .withSuccessHandler(function(res) { alert(res.message || 'Briefing email dispatched!'); })
@@ -5057,7 +5087,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       var s = adminCachedStudents.find(item => item.studentId === studentId);
       var name = s ? s.fullName : studentId;
       if (!confirm(`Send 5-Star Google Review congratulations email to certified graduate ${name} (${s ? s.email : ''})?`)) return;
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleDispatchReviewRequest) {
         google.script.run
           .withSuccessHandler(function(res) { alert(res.message || 'Review request dispatched!'); })
@@ -5999,7 +6029,7 @@ function getStepNumberFromStatus(statusStr) {
     }
     // Removed obsolete duplicate renderAdminTerminal
     function updateStudentJourneyStep(studentId, newStepValue) {
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
       var ind = document.getElementById('save-ind-' + studentId);
       var chip = document.getElementById('chip-status-' + studentId);
       var stepNum = getStepNumberFromStatus(newStepValue);
@@ -9108,7 +9138,7 @@ function deleteAdminChatThread(threadId, event) {
   if (!confirm("Are you sure you want to permanently delete this live chat thread from Google Sheets and the admin hub?")) {
     return;
   }
-  var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+  var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
   if (typeof callFifsBackend === 'function') {
     callFifsBackend('deleteLiveChatThread', { threadId: threadId, passcode: pin }, function(res) {
       alert("Chat thread deleted successfully from registry.");
@@ -9125,7 +9155,7 @@ function deleteAdminChatThread(threadId, event) {
 // ==========================================================================
 function clearChatNotificationOnOpen(threadId) {
   if (!threadId) return;
-  var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+  var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
   if (typeof callFifsBackend === 'function') {
     callFifsBackend('markLiveChatRead', { threadId: threadId, passcode: pin }, function(res) {
       console.log('Thread notification cleared across devices:', res);
@@ -9185,7 +9215,7 @@ function sendSplashQuickReply(threadId, idx) {
   var input = document.getElementById('splash-reply-input-' + idx);
   if (!input || !input.value.trim()) return;
   var text = input.value.trim();
-  var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+  var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
   if (typeof callFifsBackend === 'function') {
     callFifsBackend('sendAdminLiveChatReply', { passcode: pin, threadId: threadId, text: text }, function(res) {
       alert("Reply sent and logged to Live_Chats sheet!");
@@ -9645,7 +9675,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
       updateAdminChatBadgeCount();
     }
     // 4. Send delete request to Google Apps Script backend
-    var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+    var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
     if (typeof callFifsBackend === 'function') {
       callFifsBackend('deleteLiveChatThread', { passcode: pin, threadId: threadId }, function(res) {
         console.log('Chat thread deleted on backend:', res);
@@ -11137,7 +11167,7 @@ if (typeof window !== 'undefined') {
       var feedback = document.getElementById('scoresheetModalFeedback');
       var saveBtn = document.getElementById('btnSaveScoresheetModal');
       var scoreVal = scoreInput ? scoreInput.value.trim() : '25/25 (100%)';
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
 
       if (feedback) {
         feedback.style.display = 'block';
@@ -11213,7 +11243,7 @@ if (typeof window !== 'undefined') {
     function deleteCurrentStudentScoresheet() {
       var studentId = activeScoresheetStudentId;
       if (!studentId || !confirm('Are you sure you want to delete this student\'s Maryland qualification scoresheet?')) return;
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
       var feedback = document.getElementById('scoresheetModalFeedback');
 
       callFifsBackend('deleteStudentScoresheet', { passcode: pin, studentId: studentId }, function(res) {
@@ -11241,7 +11271,7 @@ if (typeof window !== 'undefined') {
       var scoreInput = document.getElementById('editScoresheetScore');
       var feedback = document.getElementById('editScoresheetFeedback');
       var scoreVal = scoreInput ? scoreInput.value.trim() : '25/25 (100%)';
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
 
       if (!fileInput || !fileInput.files || !fileInput.files[0]) {
         alert('Please choose a PDF or image file to upload.');
@@ -11305,7 +11335,7 @@ if (typeof window !== 'undefined') {
     function handleDeleteScoresheetFromEdit() {
       var studentId = document.getElementById('editStudentId') ? document.getElementById('editStudentId').value : null;
       if (!studentId || !confirm('Are you sure you want to remove this scoresheet?')) return;
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      var pin = sessionStorage.getItem('fifs_instructor_pin');
       callFifsBackend('deleteStudentScoresheet', { passcode: pin, studentId: studentId }, function(res) {
         if (res && res.success) {
           alert('Scoresheet removed.');

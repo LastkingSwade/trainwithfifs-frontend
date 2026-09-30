@@ -326,7 +326,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, status: 'error', error: 'Missing studentId.' }, { status: 400 });
         }
 
-        const updates = payload.updates || payload;
+        const updates = payload.updates || payload.student || payload;
         const dbUpdates: Record<string, any> = {
           updated_at: new Date().toISOString(),
         };
