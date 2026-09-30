@@ -11957,3 +11957,19 @@ if (typeof window !== 'undefined') {
   } else {
     initSupabaseRealtimeSync();
   }
+
+
+  // Intercept authentication response for temporary credentials
+  window.__fifsHandlePortalAuthResponse = function(response) {
+    if (!response) return false;
+    if (response.status === 'force_password_reset' || response.status === 'needs_password_setup' || response.requirePasswordReset) {
+      var modal = document.getElementById('forcedPasswordResetModal');
+      if (modal) {
+        modal.style.setProperty('display', 'flex', 'important');
+        var inputId = document.getElementById('resetStudentIdHidden');
+        if (inputId) inputId.value = (response.student && response.student.studentId) || response.studentId || '';
+      }
+      return true;
+    }
+    return false;
+  };
