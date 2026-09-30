@@ -650,11 +650,7 @@ export async function POST(req: NextRequest) {
             invoices: []
           });
         }
-        const queryTerm = (payload.studentId || payload.id || payload.email || '').toString().trim();
-        const providedPassword = (payload.password || '').toString().trim();
-        if (!queryTerm) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier or email.' }, { status: 400 });
-        }
+
 
         let studentQuery = supabase.from('students').select('*');
         if (queryTerm.includes('@')) {
