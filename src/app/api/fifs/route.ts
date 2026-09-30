@@ -216,7 +216,9 @@ function normalizeStudent(s: any) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { action, payload, passcode } = body;
+    const action = body.action;
+    const payload = (body.payload && typeof body.payload === 'object') ? { ...body, ...body.payload } : (body || {});
+    const passcode = body.passcode || payload.passcode || payload.pin;
     const supabase = getSupabase();
 
     switch (action) {
@@ -243,12 +245,12 @@ export async function POST(req: NextRequest) {
           console.warn('Passcode check warning in adminDirectInvite');
         }
 
-        const fullName = (payload.fullName || payload.name || 'Invited Student').trim();
-        const email = (payload.email || '').trim().toLowerCase();
-        const phone = (payload.phone || '').trim();
-        const portalType = payload.portalType || 'student';
-        const courseName = payload.course || payload.courseSelection || 'Maryland Wear & Carry Permit';
-        const dates = payload.dates || payload.scheduledDate || 'Upcoming Session';
+        const fullName = (payload?.fullName || payload?.name || payload?.invFullName || 'Invited Student').trim();
+        const email = (payload?.email || payload?.invEmail || '').trim().toLowerCase();
+        const phone = (payload?.phone || payload?.invPhone || '').trim();
+        const portalType = payload?.portalType || payload?.invPortalType || 'student';
+        const courseName = payload?.course || payload?.courseSelection || payload?.invCourse || 'Maryland Wear & Carry Permit';
+        const dates = payload?.dates || payload?.scheduledDate || payload?.invDates || 'Upcoming Session';
         const generatedId = payload.generatedId || ('FIFS-' + Math.floor(1000 + Math.random() * 9000));
         const tempPassword = generateSecureTempPassword();
         const now = new Date().toISOString();
