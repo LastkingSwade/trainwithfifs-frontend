@@ -3023,16 +3023,45 @@ window.openAdminSubpanelModal = openAdminSubpanelModal;
       }
     }
     window.closeAdminInviteModal = closeAdminInviteModal;
-    function loadDemoStudent() {
+function loadDemoStudent() {
+      var demo = {
+        studentId: 'FIFS-4081',
+        fullName: 'Jordan Vance (Demo Student)',
+        email: 'jordan.vance@example.com',
+        phone: '(410) 555-0192',
+        course: 'Maryland CCW & HQL Combo — Base Track (49.99)',
+        assignedDate: 'Saturday, Oct 12 • 9:00 AM',
+        groupSize: '1 (Private One-on-One)',
+        status: 'STEP_1_REGISTERED',
+        trainingStatus: 'PREP_PENDING',
+        profileDocUrl: '#',
+        qualificationScore: '25/25 (100%)',
+        scoresheetUrl: '/qualification_sheet_2.pdf',
+        scoresheet: {
+          student_id: 'FIFS-4081',
+          image_url: '/qualification_sheet_2.pdf',
+          score: '25/25 (100%)',
+          notes: 'Verified by Instructor Kai Wade (MSP Form 29-14 Demo Qualification)',
+          updated_at: new Date().toISOString()
+        },
+        prepTasks: { transport_law: true, ammo_acquired: true, eye_ear_pro: true, id_ready: true }
+      };
       if (typeof openAndSwitch === 'function') {
         openAndSwitch('portal');
       }
       var authInput = document.getElementById('studentAuthInput');
-      if (authInput) {
-        authInput.value = 'FIFS-4081';
+      if (authInput) authInput.value = 'FIFS-4081';
+      var statusDiv = document.getElementById('student-login-status');
+      if (statusDiv) statusDiv.style.display = 'none';
+      if (typeof renderStudentDashboard === 'function') {
+        renderStudentDashboard(demo);
       }
-      if (typeof lookupStudentAccount === 'function') {
-        lookupStudentAccount();
+      if (typeof callFifsBackend === 'function') {
+        callFifsBackend('getStudentPortalData', { studentId: 'FIFS-4081', password: '' }, function(res) {
+          if (res && res.status === 'success' && res.student && typeof renderStudentDashboard === 'function') {
+            renderStudentDashboard(res.student);
+          }
+        }, function() {});
       }
     }
     window.loadDemoStudent = loadDemoStudent;
@@ -5647,18 +5676,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }
     }
     window.lookupStudentAccount = lookupStudentAccount;
-    function loadDemoStudent() {
-      if (typeof openAndSwitch === 'function') {
-        openAndSwitch('portal');
-      }
-      var authInput = document.getElementById('studentAuthInput');
-      if (authInput) {
-        authInput.value = 'FIFS-4081';
-      }
-      if (typeof lookupStudentAccount === 'function') {
-        lookupStudentAccount();
-      }
-    }
+// duplicate loadDemoStudent removed
     function getMockStudent(query) {
       return {
         studentId: query.startsWith('FIFS') ? query : 'FIFS-4081',
@@ -10835,11 +10853,51 @@ if (typeof window !== 'undefined') {
         openAndSwitch('portal');
       }
       var input = document.getElementById('studentAuthInput');
-      if (input) {
-        input.value = studentId;
-        if (typeof lookupStudentAccount === 'function') {
-          lookupStudentAccount();
+      if (input) input.value = studentId;
+      var statusDiv = document.getElementById('student-login-status');
+      if (statusDiv) statusDiv.style.display = 'none';
+
+      // Check if student exists in cached roster or is demo
+      var s = (window.adminCachedStudents || []).find(function(item) {
+        return item.studentId === studentId || item.id === studentId || item.email === studentId;
+      });
+      if (studentId === 'FIFS-4081' || studentId.toLowerCase() === 'demo' || !s) {
+      var demo = {
+        studentId: 'FIFS-4081',
+        fullName: 'Jordan Vance (Demo Student)',
+        email: 'jordan.vance@example.com',
+        phone: '(410) 555-0192',
+        course: 'Maryland CCW & HQL Combo — Base Track (49.99)',
+        assignedDate: 'Saturday, Oct 12 • 9:00 AM',
+        groupSize: '1 (Private One-on-One)',
+        status: 'STEP_1_REGISTERED',
+        trainingStatus: 'PREP_PENDING',
+        profileDocUrl: '#',
+        qualificationScore: '25/25 (100%)',
+        scoresheetUrl: '/qualification_sheet_2.pdf',
+        scoresheet: {
+          student_id: 'FIFS-4081',
+          image_url: '/qualification_sheet_2.pdf',
+          score: '25/25 (100%)',
+          notes: 'Verified by Instructor Kai Wade (MSP Form 29-14 Demo Qualification)',
+          updated_at: new Date().toISOString()
+        },
+        prepTasks: { transport_law: true, ammo_acquired: true, eye_ear_pro: true, id_ready: true }
+      };
+        if (s) {
+          demo.studentId = s.studentId || studentId;
+          demo.fullName = s.fullName || demo.fullName;
+          demo.email = s.email || demo.email;
+          demo.course = s.course || demo.course;
+          demo.assignedDate = s.assignedDate || s.classDate || demo.assignedDate;
+          if (s.scoresheetUrl || s.scoresheet_url) demo.scoresheetUrl = s.scoresheetUrl || s.scoresheet_url;
+          if (s.qualificationScore || s.qualification_score) demo.qualificationScore = s.qualificationScore || s.qualification_score;
         }
+        if (typeof renderStudentDashboard === 'function') {
+          renderStudentDashboard(demo);
+        }
+      } else if (s && typeof renderStudentDashboard === 'function') {
+        renderStudentDashboard(s);
       }
     }
     window.openStudentPortalAsAdmin = openStudentPortalAsAdmin;
