@@ -445,6 +445,15 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </div>
         {/* Command Dock Launcher */}
         <div className="hero-command-dock">
+          {/* SPECIALIZED 1-ON-1 INSTRUCTION CALLOUT BANNER */}
+          <div style={{"background": "rgba(255, 183, 3, 0.08)", "border": "1px solid var(--accent-amber)", "borderRadius": "12px", "padding": "12px 18px", "marginBottom": "14px", "maxWidth": "540px", "margin": "0 auto 14px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.18)", "textAlign": "center"}}>
+            <span style={{"color": "var(--accent-amber)", "fontWeight": "800", "fontSize": "0.95rem", "display": "block", "fontFamily": "var(--font-display)", "letterSpacing": "0.5px"}}>
+              🛡️ DEDICATED PRIVATE 1-ON-1 SPECIALIZATION
+            </span>
+            <span style={{"color": "#e2e8f0", "fontSize": "0.82rem", "lineHeight": "1.4", "display": "block", "marginTop": "4px"}}>
+              Never sit around a room of strangers. Learn at your own pace with Lead Instructor Kai Wade in an exclusive, judgment-free, private range environment.
+            </span>
+          </div>
           {/* Semi-Transparent Neon Arrow Guide (Colors of the business logo: #00e5ff) */}
           <div className="neon-arrow-guide-wrap" id="wrap-neon-guide" data-onclick="openAndSwitch('booking')" role="button" tabIndex="0" title="New to firearms? Click here to start">
             <div className="neon-arrow-badge neon-mode-cyan" id="neon-start-guide" title="Future Initiative Operations Active • Click to Start Training">
@@ -461,7 +470,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               🎯 START YOUR JOURNEY
             </span>
             <span className="prime-sub">
-              Maryland CCW • HQL • Private 1-on-1 Coaching
+              ⭐ Specialists in Private 1-on-1 Firearms Training • No Crowded Classrooms
             </span>
           </button>
           <div className="hero-twin-grid">
@@ -2084,7 +2093,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       </span>
                     </div>
                   </div>
-                  <button className="btn-primary" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (8-Hour Renewal) - $175"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (8-Hour Renewal) - $175')" type="button">
+                  <button className="btn-primary" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (8-Hour Renewal) - $175')" type="button">
                     Book Renewal Class →
                   </button>
                 </div>
@@ -3700,7 +3709,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="tuition-price" id="price-course-renewal">
               <span className="price-val" style={{"fontFamily": "var(--font-display)", "fontSize": "2.2rem", "fontWeight": "800", "color": "#fff"}}>
-                $175.00
+                $149.99
               </span>
               <span className="price-tier-tag" style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "fontWeight": "600", "marginLeft": "6px"}}>
                 (Standard Base)
@@ -3747,8 +3756,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-renewal" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (8-Hour Renewal) — Base Track ($175.00)"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (8-Hour Renewal) — Base Track ($175.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
-                Select Base ($175.00) &amp; Reserve Seat →
+              <button className="btn-select-course" id="btn-select-course-renewal" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (8-Hour Renewal) — Base Track ($149.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+                Select Base ($149.99) &amp; Reserve Seat →
               </button>
             </div>
           </div>
@@ -7098,11 +7107,11 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <option value="Maryland Wear &amp; Carry (CCW) — Base Track ($199.99)">
                   Maryland Wear & Carry (CCW) — Base Track ($199.99)
                 </option>
-                <option value="Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($275.00)">
-                  Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($275.00)
+                <option value="Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($249.99)">
+                  Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($249.99)
                 </option>
-                <option value="Maryland Wear & Carry (8-Hour Renewal) — Base Track ($175.00)">
-                  Maryland Wear & Carry (8-Hour Renewal) — Base Track ($175.00)
+                <option value="Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)">
+                  Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)
                 </option>
                 <option value="Maryland HQL (Purchase License) — VIP Turnkey ($165.00)">
                   Maryland HQL (Purchase License) — VIP Turnkey ($165.00)

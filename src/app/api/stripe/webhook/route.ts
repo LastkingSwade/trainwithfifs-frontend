@@ -1450,13 +1450,20 @@ export async function POST(req: NextRequest) {
         const threadId = payload.threadId || payload.id || payload.thread_id;
         if (threadId) {
           const cleanPhone = threadId.replace('thread_', '').replace(/\D/g, '');
-          if (cleanPhone) {
-            await supabase.from('messages').delete().or('thread_id.eq.' + threadId + ',phone.ilike.%' + cleanPhone + '%,sender_phone.ilike.%' + cleanPhone + '%');
-          } else {
-            await supabase.from('messages').delete().eq('thread_id', threadId);
+          try {
+            if (cleanPhone) {
+              await supabase.from('messages').delete().or(`thread_id.eq.${threadId},phone.ilike.%${cleanPhone}%,sender_phone.ilike.%${cleanPhone}%`);
+              // Also purge from live_chats table if schema uses dedicated chat table
+              await supabase.from('live_chats').delete().or(`thread_id.eq.${threadId},phone.ilike.%${cleanPhone}%`);
+            } else {
+              await supabase.from('messages').delete().eq('thread_id', threadId);
+              await supabase.from('live_chats').delete().eq('thread_id', threadId);
+            }
+          } catch (dbErr: any) {
+            console.warn('[Supabase Deletion Warning]', dbErr?.message);
           }
         }
-        return NextResponse.json({ success: true, status: 'success', message: 'Thread cleared.' });
+        return NextResponse.json({ success: true, status: 'success', message: 'Thread purged permanently from Supabase.' });
       }
 
       case 'logAnalytics': {

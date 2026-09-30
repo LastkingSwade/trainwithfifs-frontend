@@ -4329,7 +4329,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
         select.innerHTML = `
           <option value="Maryland CCW & HQL Combo — Base Track ($249.99)">Maryland CCW &amp; HQL Combo</option>
           <option value="Maryland Wear & Carry (CCW) — Base Track ($199.99)">Maryland Wear &amp; Carry (16-Hr)</option>
-          <option value="Maryland Wear & Carry (8-Hour Renewal) — Base Track ($175.00)">Maryland Wear &amp; Carry (8-Hr Renewal)</option>
+          <option value="Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)">Maryland Wear &amp; Carry (8-Hr Renewal)</option>
           <option value="Maryland HQL (Purchase License) — Base Track ($100.00)">Maryland HQL (4-Hour)</option>
           <option value="Mid-Atlantic Multi-State Mastery — Base Track ($425.00)">Mid-Atlantic Multi-State Mastery</option>
           <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">Personal 1-on-1 Range Coaching</option>
@@ -7806,7 +7806,7 @@ function getStepNumberFromStatus(statusStr) {
     }
     window.fiCalculateExpiration = fiCalculateExpiration;
     function fiClaimRenewalOffer() {
-      selectCourse('Maryland Wear & Carry (8-Hour Renewal) - $175');
+      selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)');
       var comments = document.getElementById('comments');
       if (comments) {
         comments.value = 'Applied 10% Renewal Offer (Promo: RENEWAL10). ' + (comments.value || '');
@@ -9189,7 +9189,7 @@ function attachSwipeToDeleteToThread(card, threadId) {
 }
 function deleteAdminChatThread(threadId, event) {
   if (event) event.stopPropagation();
-  if (!confirm("Are you sure you want to permanently delete this live chat thread from Google Sheets and the admin hub?")) {
+  if (!confirm("Are you sure you want to permanently delete this live chat thread from Supabase and the admin hub?")) {
     return;
   }
   var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
@@ -9609,7 +9609,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
     document.body.appendChild(overlay);
   };
   window.confirmDeleteChatFromSheet = function(threadId) {
-    if (confirm("Are you sure you want to permanently delete this chat thread from Google Sheets and all devices?")) {
+    if (confirm("Are you sure you want to permanently delete this chat thread from Supabase and all devices?")) {
       var sheet = document.getElementById('fifsChatActionSheet');
       if (sheet) sheet.remove();
       if (typeof deleteLiveChatThreadOnServer === 'function') {
@@ -9702,7 +9702,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
       alert("Please select a chat thread to delete.");
       return;
     }
-    if (!confirm("⚠️ PERMANENT DELETE: Remove this chat thread permanently from Google Sheets and all devices?")) {
+    if (!confirm("⚠️ PERMANENT DELETE: Remove this chat thread permanently from Supabase and all devices?")) {
       return;
     }
     // 1. Instantly remove locally from cached threads so UI updates immediately
@@ -9728,7 +9728,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
     if (typeof updateAdminChatBadgeCount === 'function') {
       updateAdminChatBadgeCount();
     }
-    // 4. Send delete request to Google Apps Script backend
+    // 4. Send delete request to Supabase backend API route
     var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
     if (typeof callFifsBackend === 'function') {
       callFifsBackend('deleteLiveChatThread', { passcode: pin, threadId: threadId }, function(res) {
@@ -10824,10 +10824,10 @@ if (typeof window !== 'undefined') {
         vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)"
       },
       renewal: {
-        basePrice: "$175.00",
-        vipPrice: "$275.00",
-        baseValue: "Maryland Wear & Carry (8-Hour Renewal) — Base Track ($175.00)",
-        vipValue: "Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($275.00)"
+        basePrice: "$149.99",
+        vipPrice: "$249.99",
+        baseValue: "Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)",
+        vipValue: "Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($249.99)"
       },
       hql: {
         basePrice: "$100.00",
