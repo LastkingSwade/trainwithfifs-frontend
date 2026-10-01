@@ -1001,6 +1001,142 @@ export async function POST(req: NextRequest) {
      }
 
 
+     // 10. Course Registration & Stripe Checkout Session Creator
+     case 'submitBooking': {
+       const {
+         invoiceId = 'INV-FI-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000),
+         studentId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000),
+         fullName = 'FIFS Training Student',
+         email,
+         phone = '',
+         courseSelection = 'Maryland Firearms Training Course',
+         preferredDates = 'Coordinated with Lead Instructor Kai Wade',
+         amount,
+         groupSize = '1',
+         comments = '',
+         classId = ''
+       } = payload;
+
+       if (!email || !email.includes('@')) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Valid student email address is required.' }, { status: 400 });
+       }
+
+       const stripeKey = process.env.STRIPE_SECRET_KEY;
+       const isVip = /VIP/i.test(courseSelection || '');
+       const fallbackPaymentUrl = isVip
+         ? 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+         : 'https://buy.stripe.com/dR67sWfR72D520ocMN';
+
+       // Calculate tuition in cents
+       let unitAmount = 24999;
+       if (typeof amount === 'number' && amount > 0) {
+         unitAmount = amount > 1000 ? Math.round(amount) : Math.round(amount * 100);
+       } else {
+         const clean = (courseSelection || '').toLowerCase();
+         if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) {
+           unitAmount = isVip ? 55000 : 42500;
+         } else if (clean.includes('renewal')) {
+           unitAmount = isVip ? 24999 : 14999;
+         } else if (clean.includes('combo')) {
+           unitAmount = isVip ? 37500 : 24999;
+         } else if (clean.includes('hql')) {
+           unitAmount = isVip ? 16500 : 10000;
+         } else if (clean.includes('ccw') || clean.includes('wear & carry')) {
+           unitAmount = isVip ? 32500 : 19999;
+         } else if (clean.includes('coaching')) {
+           unitAmount = isVip ? 16500 : 12500;
+         } else if (clean.includes('cleaning')) {
+           unitAmount = isVip ? 11500 : 8500;
+         } else if (clean.includes('children')) {
+           unitAmount = isVip ? 9500 : 7500;
+         } else if (clean.includes('alumni')) {
+           unitAmount = isVip ? 9500 : 6500;
+         }
+       }
+
+       const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://trainwithfifs.com';
+       const baseUrl = origin.replace(/\/+$/, '');
+
+       let checkoutUrl = fallbackPaymentUrl;
+       let sessionId = 'fallback-' + Date.now();
+
+       if (stripeKey) {
+         try {
+           const Stripe = (await import('stripe')).default;
+           const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' as any });
+
+           const session = await stripe.checkout.sessions.create({
+             payment_method_types: ['card'],
+             mode: 'payment',
+             customer_email: email,
+             client_reference_id: studentId,
+             metadata: {
+               invoiceId,
+               studentId,
+               fullName,
+               phone,
+               courseSelection,
+               preferredDates,
+               groupSize: String(groupSize),
+               comments: String(comments).slice(0, 400),
+               classId: classId || ''
+             },
+             line_items: [
+               {
+                 price_data: {
+                   currency: 'usd',
+                   unit_amount: unitAmount,
+                   product_data: {
+                     name: courseSelection,
+                     description: `Invoice: ${invoiceId} • Student: ${fullName} • Schedule: ${preferredDates}`,
+                   },
+                 },
+                 quantity: 1,
+               },
+             ],
+             success_url: `${baseUrl}/?session_id={CHECKOUT_SESSION_ID}&booking_confirmed=true&invoice=${encodeURIComponent(invoiceId)}`,
+             cancel_url: `${baseUrl}/?booking_cancelled=true&session_id={CHECKOUT_SESSION_ID}&invoice=${encodeURIComponent(invoiceId)}`,
+           });
+
+           if (session && session.url) {
+             checkoutUrl = session.url;
+             sessionId = session.id;
+           }
+         } catch (stripeErr: any) {
+           console.error('[Stripe Session Creation Warning]:', stripeErr?.message);
+           checkoutUrl = fallbackPaymentUrl;
+         }
+       }
+
+       try {
+         await supabase.from('invoices').upsert({
+           invoice_number: invoiceId,
+           student_id: studentId,
+           course: courseSelection,
+           total_amount: (unitAmount / 100).toFixed(2),
+           amount_paid: '0.00',
+           balance_due: (unitAmount / 100).toFixed(2),
+           status: 'PENDING',
+           due_date: preferredDates || 'Upon Class Date',
+           stripe_session_id: sessionId,
+           email: email,
+           facility: "Cindy's Hot Shots (115 Holsum Way, Glen Burnie, MD 21060)",
+           payment_method: 'Stripe Checkout',
+           updated_at: new Date().toISOString()
+         }, { onConflict: 'invoice_number' });
+       } catch (_dbErr) {}
+
+       return NextResponse.json({
+         success: true,
+         status: 'success',
+         url: checkoutUrl,
+         checkoutUrl: checkoutUrl,
+         sessionId: sessionId,
+         invoiceId,
+         studentId
+       });
+     }
+
      default:
        return NextResponse.json({ success: false, error: 'Unhandled action: ' + action }, { status: 400 });
    }
