@@ -48,13 +48,19 @@ export default function TrainWithFIFS(props: any) {
       const params = new URLSearchParams(window.location.search);
       const portal = params.get('portal');
       const studentId = params.get('id') || params.get('student');
+      const tempPass = params.get('temp') || params.get('pwd') || params.get('password');
       if (portal === 'student' || studentId) {
-        const input = document.getElementById('studentLookupInput') as HTMLInputElement | null;
+        const input = document.getElementById('studentAuthInput') as HTMLInputElement | null;
         if (input && studentId) input.value = studentId;
+        const passInput = document.getElementById('studentAuthPassword') as HTMLInputElement | null;
+        if (passInput && tempPass) passInput.value = tempPass;
         const modal = document.getElementById('studentPortalModal');
         if (modal) {
           modal.classList.add('active');
           modal.style.setProperty('display', 'block', 'important');
+        }
+        if (typeof (window as any).lookupStudentAccount === 'function' && studentId) {
+          setTimeout(() => (window as any).lookupStudentAccount(), 300);
         }
       }
     } catch (e) {
@@ -446,7 +452,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         {/* Command Dock Launcher */}
         <div className="hero-command-dock">
           {/* SPECIALIZED 1-ON-1 INSTRUCTION CALLOUT BANNER */}
-          <div style={{"background": "rgba(255, 183, 3, 0.08)", "border": "1px solid var(--accent-amber)", "borderRadius": "12px", "padding": "12px 18px", "marginBottom": "14px", "maxWidth": "540px", "margin": "0 auto 14px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.18)", "textAlign": "center"}}>
+          <div id="hero-1on1-callout-banner" style={{"background": "rgba(255, 183, 3, 0.08)", "border": "1px solid var(--accent-amber)", "borderRadius": "12px", "padding": "12px 18px", "marginBottom": "14px", "maxWidth": "540px", "margin": "0 auto 14px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.18)", "textAlign": "center", "transform": "translateY(-20%)", "transition": "transform 0.3s ease"}}>
             <span style={{"color": "var(--accent-amber)", "fontWeight": "800", "fontSize": "0.95rem", "display": "block", "fontFamily": "var(--font-display)", "letterSpacing": "0.5px"}}>
               🛡️ DEDICATED PRIVATE 1-ON-1 SPECIALIZATION
             </span>
@@ -2399,33 +2405,38 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     Book Renewal Class →
                   </button>
                 </div>
-                <div className="fi-feature-card">
+                <div className="fi-feature-card" style={{"border": "1.5px solid var(--accent-amber)", "boxShadow": "0 0 25px rgba(255, 183, 3, 0.2)", "position": "relative"}}>
+                  <div style={{"position": "absolute", "top": "-10px", "right": "16px", "background": "var(--accent-amber)", "color": "#000", "fontSize": "0.7rem", "fontWeight": "900", "padding": "2px 10px", "borderRadius": "9999px", "letterSpacing": "0.5px", "textTransform": "uppercase"}}>
+                    Most Popular Mastery Track
+                  </div>
                   <div>
                     <span className="fi-badge fi-badge-cyan">
-                      Multi-State Reciprocity
+                      34+ State Reciprocity
                     </span>
                     <h3 className="fi-feature-title">
                       Multi-State Concealed Carry Mastery
                     </h3>
                     <p className="fi-feature-desc">
-                      
-                Comprehensive Utah, Florida, and Virginia non-resident permit training. Expands your legal carry recognition to over 34 states with zero classroom fluff.
-              
+                      Comprehensive 16-Hour Legal &amp; Tactical Curriculum. Multi-jurisdiction certification across Maryland Wear &amp; Carry, Virginia CHP, Utah CFP, Florida CWL, and PA LTCF with exclusive private 1-on-1 range coaching.
                     </p>
-                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.3rem", "color": "#fff", "marginBottom": "12px"}}>
-                      
-                $150 
+                    <div style={{"display": "flex", "gap": "8px", "flexWrap": "wrap", "margin": "8px 0 12px"}}>
+                      <span style={{"fontSize": "0.75rem", "color": "#38bdf8", "background": "rgba(56, 189, 248, 0.1)", "padding": "2px 8px", "borderRadius": "4px"}}>✔ 16-Hour Comprehensive Track</span>
+                      <span style={{"fontSize": "0.75rem", "color": "#38bdf8", "background": "rgba(56, 189, 248, 0.1)", "padding": "2px 8px", "borderRadius": "4px"}}>✔ 34+ State Carry Rights</span>
+                      <span style={{"fontSize": "0.75rem", "color": "#38bdf8", "background": "rgba(56, 189, 248, 0.1)", "padding": "2px 8px", "borderRadius": "4px"}}>✔ Field Guide SOP Included</span>
+                    </div>
+                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.3rem", "color": "#fff", "marginBottom": "14px"}}>
+                      25 
                       <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "fontFamily": "var(--font-body)"}}>
                         Base
                       </span>
-                       • $350 
-                      <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)", "fontFamily": "var(--font-body)"}}>
+                       • 50 
+                      <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)", "fontFamily": "var(--font-body)", "fontWeight": "700"}}>
                         VIP Turnkey
                       </span>
                     </div>
                   </div>
-                  <button className="btn-spark" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Multi-State Concealed Carry Mastery - $150"); }} data-onclick="selectCourse('Multi-State Concealed Carry Mastery - $150')" type="button">
-                    Book Multi-State Class →
+                  <button className="btn-primary" style={{"background": "linear-gradient(135deg, #ffb703 0%, #fb8500 100%)", "color": "#000", "fontWeight": "900", "boxShadow": "0 0 18px rgba(255, 183, 3, 0.45)", "border": "none"}} onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Multi-State Concealed Carry Mastery — Base Track (25.00)"); }} data-onclick="selectCourse('Multi-State Concealed Carry Mastery — Base Track (25.00)')" type="button">
+                    ⚡ Enroll in Multi-State Mastery Track →
                   </button>
                 </div>
                 <div className="fi-feature-card">

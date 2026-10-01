@@ -5827,87 +5827,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }
     }
     window.updateLivePulseTicker = updateLivePulseTicker;
-    function lookupStudentAccount() {
-      var input = document.getElementById('studentAuthInput');
-      var statusDiv = document.getElementById('student-login-status');
-      var query = input ? input.value.trim() : '';
-      if (!query) {
-        showStatus(statusDiv, 'Please enter your Email Address or Student ID.', 'error');
-        return;
-      }
-      // Instructor Authentication Gateway
-      if (isValidInstructorPin(query)) {
-        showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
-        setTimeout(function() {
-          switchTab('admin');
-          var adminPassField = document.getElementById('adminPasscode');
-          if (adminPassField) adminPassField.value = 'Ultima';
-          verifyAdminAccess();
-          if (statusDiv) statusDiv.style.display = 'none';
-        }, 250);
-        return;
-      }
-      showStatus(statusDiv, 'Cross-referencing Student Roster & Operations credentials...', 'success');
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleGetStudentPortalData) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            if (res && res.status === 'success') {
-              statusDiv.style.display = 'none';
-              sessionStorage.setItem('fifs_student_session', JSON.stringify(res.student));
-              renderStudentDashboard(res.student);
-            } else {
-              showStatus(statusDiv, res.message || 'Unauthorized access: Email or Student ID is not present in Student Roster, Operations, or Client database.', 'error');
-            }
-          })
-          .withFailureHandler(function(err) {
-            showStatus(statusDiv, 'Security verification error. Access rejected.', 'error');
-          })
-          .handleGetStudentPortalData(query.includes('@') ? query : '', query.includes('@') ? '' : query);
-      } else {
-        setTimeout(function() {
-          var found = null;
-          // Search Student Roster cache
-          var cached = _fifsMemStorage.getItem('fifs_roster_students');
-          if (cached) {
-            try {
-              var list = JSON.parse(cached);
-              found = list.find(s => (s.email && s.email.toLowerCase() === query.toLowerCase()) || (s.studentId && s.studentId.toUpperCase() === query.toUpperCase()));
-            } catch(e) {}
-          }
-          // Search Client Roster cache
-          if (!found) {
-            var clientRoster = _fifsMemStorage.getItem('fifs_client_roster');
-            if (clientRoster) {
-              try {
-                var cList = JSON.parse(clientRoster);
-                var cFound = cList.find(c => (c.email && c.email.toLowerCase() === query.toLowerCase()) || (c.clientId && c.clientId.toUpperCase() === query.toUpperCase()));
-                if (cFound) {
-                  found = {
-                    studentId: cFound.clientId,
-                    fullName: cFound.fullName,
-                    email: cFound.email,
-                    phone: cFound.phone,
-                    course: cFound.permitState || 'Maryland Wear & Carry',
-                    status: 'ACTIVE_REGISTERED',
-                    score: 'Qualified',
-                    classDate: 'Active Client',
-                    renewalDueDate: cFound.expirationDate
-                  };
-                }
-              } catch(e) {}
-            }
-          }
-          if (found) {
-            statusDiv.style.display = 'none';
-            sessionStorage.setItem('fifs_student_session', JSON.stringify(found));
-            renderStudentDashboard(found);
-          } else {
-            showStatus(statusDiv, 'Unauthorized access: Provided email or identifier was not found in the Student Roster, Operations, or Future Initiative Clients database.', 'error');
-          }
-        }, 300);
-      }
-    }
-    window.lookupStudentAccount = lookupStudentAccount;
+    // Duplicate legacy lookupStudentAccount removed to preserve backend-connected handler
+
 // duplicate loadDemoStudent removed
     function getMockStudent(query) {
       return {

@@ -17,27 +17,30 @@ const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'carpetcare85@gmail.
 const SENDER_EMAIL = process.env.RESEND_FROM_EMAIL || 'Train With FIFS <onboarding@trainwithfifs.com>';
 
 function generateSecureTempPassword(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
-  const len = 12;
+  const adjectives = [
+    'Blue', 'Silver', 'Golden', 'Iron', 'Swift', 'Bold', 'Rapid', 'Brave',
+    'Bright', 'Apex', 'Prime', 'Delta', 'Noble', 'Storm', 'Cedar', 'Summit',
+    'Timber', 'Sierra', 'Granite', 'Amber', 'Coral', 'Jade', 'Onyx', 'Shadow',
+    'Shield', 'Horizon', 'Harbor', 'Ranger', 'True', 'Alpha', 'Steel', 'Vanguard'
+  ];
+  const nouns = [
+    'Mountain', 'River', 'Valley', 'Timber', 'Falcon', 'Eagle', 'Shield', 'Beacon',
+    'Pioneer', 'Canyon', 'Summit', 'Forest', 'Ridge', 'Harbor', 'Anchor', 'Vanguard',
+    'Patrol', 'Ranger', 'Prairie', 'Glacier', 'Sentinel', 'Fortress', 'Bastion', 'Haven'
+  ];
   try {
     if (typeof crypto !== 'undefined' && crypto && typeof crypto.randomBytes === 'function') {
-      const buf = crypto.randomBytes(len);
-      let res = '';
-      for (let i = 0; i < len; i++) {
-        res += chars[buf[i] % chars.length];
-      }
-      return res;
+      const buf = crypto.randomBytes(4);
+      const adj = adjectives[buf[0] % adjectives.length];
+      const noun = nouns[buf[1] % nouns.length];
+      const num = 10 + (buf[2] % 90);
+      return adj + noun + num;
     }
   } catch (_e) {}
-  const fallbackBuf = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    fallbackBuf[i] = Math.floor(Math.random() * 256);
-  }
-  let res = '';
-  for (let i = 0; i < len; i++) {
-    res += chars[fallbackBuf[i] % chars.length];
-  }
-  return res;
+  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const num = 10 + Math.floor(Math.random() * 90);
+  return adj + noun + num;
 }
 
 function validateStrictPassword(password: string): { valid: boolean; error?: string } {
