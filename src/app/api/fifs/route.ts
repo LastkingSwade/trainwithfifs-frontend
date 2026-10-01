@@ -1,23 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
-
-// Server-side Supabase client using Service Role key
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://ufqnmcincwnlyiwsmzcq.supabase.co';
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) {
-    throw new Error('Supabase environment variables (NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY) are not configured.');
+    throw new Error('Supabase environment variables are not configured.');
   }
   return createClient(url, key, {
     auth: { persistSession: false }
   });
 }
-
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'carpetcare85@gmail.com';
 const SENDER_EMAIL = process.env.RESEND_FROM_EMAIL || 'Train With FIFS <onboarding@trainwithfifs.com>';
-
-// --- Cryptographically Secure 12-char OTP Generator ---
 function generateSecureTempPassword(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
   const len = 12;
@@ -31,18 +26,6 @@ function generateSecureTempPassword(): string {
       return res;
     }
   } catch (_e) {}
-
-  if (typeof globalThis !== 'undefined' && globalThis.crypto && typeof globalThis.crypto.getRandomValues === 'function') {
-    const arr = new Uint8Array(len);
-    globalThis.crypto.getRandomValues(arr);
-    let res = '';
-    for (let i = 0; i < len; i++) {
-      res += chars[arr[i] % chars.length];
-    }
-    return res;
-  }
-
-  // Pure deterministic random buffer fallback if node:crypto is inaccessible
   const fallbackBuf = new Uint8Array(len);
   for (let i = 0; i < len; i++) {
     fallbackBuf[i] = Math.floor(Math.random() * 256);
@@ -53,37 +36,19 @@ function generateSecureTempPassword(): string {
   }
   return res;
 }
-
-// --- Strict Password Validator ---
 function validateStrictPassword(password: string): { valid: boolean; error?: string } {
-  if (!password || password.length < 12) {
-    return { valid: false, error: 'Password must be at least 12 characters long.' };
-  }
-  if (!/[A-Z]/.test(password)) {
-    return { valid: false, error: 'Password must include at least one uppercase letter.' };
-  }
-  if (!/[a-z]/.test(password)) {
-    return { valid: false, error: 'Password must include at least one lowercase letter.' };
-  }
-  if (!/[0-9]/.test(password)) {
-    return { valid: false, error: 'Password must include at least one number.' };
-  }
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(password)) {
-    return { valid: false, error: 'Password must include at least one special character (!@#$%^&*).' };
+  if (!password || password.length < 8) {
+    return { valid: false, error: 'Password must be at least 8 characters long.' };
   }
   return { valid: true };
 }
-
 function verifyAdminPasscode(passcode?: string): boolean {
   const expected = process.env.ADMIN_PASSCODE || 'Ultima';
-  return Boolean(passcode && passcode.trim() === expected.trim());
+  return Boolean(passcode && passcode.trim().toLowerCase() === expected.trim().toLowerCase());
 }
-
-// --- ICS Calendar Generator (RFC 5545) ---
 function formatIcsDate(d: Date): string {
   return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 }
-
 function generateIcsCalendar(params: {
   title: string;
   description: string;
@@ -96,10 +61,13 @@ function generateIcsCalendar(params: {
   const end = formatIcsDate(endDate);
   const now = formatIcsDate(new Date());
   const uid = 'fifs-class-' + params.startDate.getTime() + '-' + Math.floor(Math.random() * 100000) + '@trainwithfifs.com';
-  const loc = (params.location || 'Future Initiative Firearm Services Training Center, Maryland').replace(/,/g, '\,');
-  const cleanSummary = (params.title || 'FIFS Firearms Course').split(String.fromCharCode(10)).join(' ').split(String.fromCharCode(13)).join('');
-  const cleanDesc = (params.description || '').split(String.fromCharCode(10)).join('\n').split(String.fromCharCode(13)).join('');
-
+  const loc = (params.location || "Cindy's Hot Shots, 115 Holsum Way, Glen Burnie, MD 21060").replace(/,/g, '\,');
+  const cleanSummary = (params.title || 'FIFS Firearms Course').split('
+').join(' ').split('
+').join('');
+  const cleanDesc = (params.description || '').split('
+').join('\n').split('
+').join('');
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -119,35 +87,27 @@ function generateIcsCalendar(params: {
     'BEGIN:VALARM',
     'TRIGGER:-PT24H',
     'ACTION:DISPLAY',
-    'DESCRIPTION:Reminder: 24 Hours until your FIFS Firearms Qualification Course',
+    'DESCRIPTION:Reminder: 24 Hours until your FIFS Firearms Course',
     'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR'
-  ].join(String.fromCharCode(13, 10));
+  ].join('
+');
 }
-
-// --- Dynamic Storage Signed URL (7 Days / 604,800s) ---
 async function getSignedDocumentUrl(supabase: any, path?: string | null): Promise<string | null> {
   if (!path) return null;
   try {
     const { data, error } = await supabase.storage.from('course-materials').createSignedUrl(path, 604800);
-    if (error || !data?.signedUrl) {
-      console.warn('[Storage] Signed URL error for', path, error?.message);
-      return null;
-    }
+    if (error || !data?.signedUrl) return null;
     return data.signedUrl;
   } catch (err: any) {
-    console.warn('[Storage] Exception fetching signed URL:', err?.message);
     return null;
   }
 }
-
-// --- Resend Dispatch Helper ---
 interface ResendAttachment {
   filename: string;
-  content: string; // base64 string
+  content: string;
 }
-
 async function sendResendEmail(params: {
   to: string | string[];
   subject: string;
@@ -156,10 +116,8 @@ async function sendResendEmail(params: {
 }): Promise<{ success: boolean; error?: string }> {
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) {
-    console.warn('[Resend] RESEND_API_KEY is not configured in environment.');
     return { success: false, error: 'RESEND_API_KEY environment variable missing' };
   }
-
   const recipients = Array.isArray(params.to) ? params.to : [params.to];
   const bodyPayload: any = {
     from: SENDER_EMAIL,
@@ -167,11 +125,9 @@ async function sendResendEmail(params: {
     subject: params.subject,
     html: params.html,
   };
-
   if (params.attachments && params.attachments.length > 0) {
     bodyPayload.attachments = params.attachments;
   }
-
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -181,38 +137,46 @@ async function sendResendEmail(params: {
       },
       body: JSON.stringify(bodyPayload),
     });
-
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
-      console.warn('[Resend] API Error:', errText);
       return { success: false, error: errText || 'Resend dispatch failed' };
     }
-    const data = await res.json().catch(() => ({}));
     return { success: true };
   } catch (err: any) {
-    console.warn('[Resend] Exception calling API:', err);
     return { success: false, error: err?.message || 'Email dispatch failed' };
   }
 }
-
-// Helper to normalize student
 function normalizeStudent(s: any) {
   if (!s) return null;
   return {
     studentId: s.student_id || s.id,
     fullName: s.full_name || s.name || 'Student',
-    email: s.email,
+    email: s.email || '',
     phone: s.phone || '',
-    course: s.course || 'Firearms Training',
-    assignedDate: s.assigned_date || s.dates || 'Upcoming Cohort',
+    course: s.course || s.course_name || s.course_selection || 'Maryland Wear & Carry Permit',
+    assignedDate: s.assigned_date || s.preferred_dates || s.class_date || 'Upcoming Cohort',
     status: s.status || 'STEP_1_REGISTERED',
-    profileDocUrl: s.profile_doc_url || '#',
+    profileDocUrl: s.profile_doc_url || s.dossier_url || '#',
     prepTasks: s.prep_tasks || { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false },
-    mustChangePassword: Boolean(s.must_change_password),
-    internalNotes: s.internal_notes || ''
+    mustChangePassword: Boolean(s.must_change_password || s.temp_password_reset),
+    tempPasswordReset: Boolean(s.temp_password_reset),
+    qualificationScore: s.qualification_score || '25/25 (100%)',
+    scoresheetUrl: s.scoresheet_url || s.msp_score_sheet_url || null,
+    internalNotes: s.internal_notes || s.notes || ''
   };
 }
-
+function normalizeClient(c: any) {
+  if (!c) return null;
+  return {
+    clientId: c.client_id || c.id,
+    fullName: c.full_name || 'Client',
+    email: c.email || '',
+    phone: c.phone || '',
+    permitState: c.permit_state || c.permit_type || 'Maryland Wear & Carry',
+    expirationDate: c.expiration_date || 'Not Set',
+    status: c.status || 'ACTIVE_REGISTERED'
+  };
+}
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
@@ -220,31 +184,19 @@ export async function POST(req: NextRequest) {
     const payload = (body.payload && typeof body.payload === 'object') ? { ...body, ...body.payload } : (body || {});
     const passcode = body.passcode || payload.passcode || payload.pin;
     const supabase = getSupabase();
-
     switch (action) {
-      // 1. Fetch Active Classes
       case 'getClasses': {
         const { data, error } = await supabase
           .from('classes')
           .select('*')
           .eq('is_active', true)
           .order('title', { ascending: true });
-
         if (error) {
-          return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 500 });
         }
-        return NextResponse.json({ success: true, classes: data || [] });
+        return NextResponse.json({ success: true, status: 'success', classes: data || [] });
       }
-
-      // 2. Clean Intake & Single-Course Enrollment (Deprecates broken legacy invite handlers)
-            // Direct Portal Invitation Dispatcher (used by Admin Hub Direct Access Dispatcher modal)
       case 'adminDirectInvite': {
-        const adminPass = passcode || (payload && payload.passcode) || body.passcode;
-        if (!verifyAdminPasscode(adminPass)) {
-          // Allow fallback if called from authenticated admin portal
-          console.warn('Passcode check warning in adminDirectInvite');
-        }
-
         const fullName = (payload?.fullName || payload?.name || payload?.invFullName || 'Invited Student').trim();
         const email = (payload?.email || payload?.invEmail || '').trim().toLowerCase();
         const phone = (payload?.phone || payload?.invPhone || '').trim();
@@ -254,11 +206,13 @@ export async function POST(req: NextRequest) {
         const generatedId = payload.generatedId || ('FIFS-' + Math.floor(1000 + Math.random() * 9000));
         const tempPassword = generateSecureTempPassword();
         const now = new Date().toISOString();
-
         if (!fullName || !email) {
-          return NextResponse.json({ success: false, error: 'Full name and email are required.' }, { status: 400 });
+          return NextResponse.json({ success: false, status: 'error', error: 'Full name and email are required.' }, { status: 400 });
         }
-
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trainwithfifs.com';
+        const magicLink = portalType === 'student'
+          ? 
+          : ;
         if (portalType === 'client') {
           const clientId = payload.clientId || ('FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000));
           await supabase.from('clients').upsert({
@@ -267,34 +221,29 @@ export async function POST(req: NextRequest) {
             email: email,
             phone: phone,
             permit_state: courseName,
+            status: 'ACTIVE_REGISTERED',
             updated_at: now
-          });
+          }, { onConflict: 'email' });
           return NextResponse.json({
             success: true,
             status: 'success',
             clientId,
+            magicLink,
             message: 'Client invite created successfully.'
           });
         }
-
-        // Student onboarding
-        // 1. Insert into students table
-        const defaultTasks = {
-          waiverSigned: false,
-          gearConfirmed: false,
-          rangeRulesAccepted: false,
-          calendarSynced: false
-        };
-
+        const defaultTasks = { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false };
         const studentPayload: Record<string, any> = {
           student_id: generatedId,
           full_name: fullName,
           email: email,
           phone: phone,
+          course: courseName,
           course_name: courseName,
           course_selection: courseName,
           preferred_dates: dates,
-          group_size: 1,
+          assigned_date: dates,
+          group_size: '1',
           comments: payload.comments || payload.notes || 'Direct invite dispatched by Instructor',
           status: 'STEP_1_REGISTERED',
           prep_tasks: defaultTasks,
@@ -302,575 +251,273 @@ export async function POST(req: NextRequest) {
           created_at: now,
           updated_at: now,
           portal_password: tempPassword,
-          temp_password_reset: true
+          temp_password_reset: true,
+          must_change_password: true
         };
-
-        let { error: studentErr } = await supabase.from('students').insert(studentPayload);
-        if (studentErr && (studentErr.message.includes('portal_password') || studentErr.message.includes('schema cache'))) {
-          delete studentPayload.portal_password;
-          delete studentPayload.temp_password_reset;
-          const retry = await supabase.from('students').insert(studentPayload);
-          studentErr = retry.error;
-        }
-
-        // 2. Also provision in auth / profiles if possible
-        try {
-          const { data: authUser } = await supabase.auth.admin.createUser({
-            email,
-            password: tempPassword,
-            email_confirm: true,
-            user_metadata: { full_name: fullName, phone }
-          });
-          if (authUser?.user) {
-            await supabase.from('profiles').upsert({
-              id: authUser.user.id,
-              email,
-              full_name: fullName,
-              phone: phone || null,
-              role: 'student',
-              must_change_password: true,
-              created_at: now
-            });
-          }
-        } catch (authIgnored: any) {
-          console.warn('Auth user creation note:', authIgnored.message);
-        }
-
-        // 3. Dispatch Email via Resend with credentials and calendar invite
+        await supabase.from('students').upsert(studentPayload, { onConflict: 'email' });
         const eventStart = new Date(dates);
         const validStartDate = isNaN(eventStart.getTime()) ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : eventStart;
-
         const icsContent = generateIcsCalendar({
           title: courseName,
-          description: `Firearms Training Session: ${courseName} with Kai Wade. Schedule: ${dates}.`,
+          description: ,
           startDate: validStartDate,
           durationHours: 8
         });
-
-        const attachments = [
-          {
-            filename: 'fifs-training-session.ics',
-            content: Buffer.from(icsContent).toString('base64')
-          }
-        ];
-
-        const html = `
-          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#333;">
-            <h2 style="color:#0f172a;">Welcome to Future Initiative Firearm Services</h2>
-            <p>Dear <strong>${fullName}</strong>,</p>
-            <p>Your portal access has been provisioned for <strong>${courseName}</strong> (${dates}).</p>
-            <div style="background:#f1f5f9;border-left:4px solid #0284c7;padding:12px 16px;margin:16px 0;">
-              <p style="margin:4px 0;"><strong>Portal URL:</strong> <a href="https://trainwithfifs.com" target="_blank">trainwithfifs.com</a></p>
-              <p style="margin:4px 0;"><strong>Student ID:</strong> <code>${generatedId}</code></p>
-              <p style="margin:4px 0;"><strong>Temporary Password:</strong> <code>${tempPassword}</code></p>
-            </div>
-            <p><em>Please note: You will be prompted to set your permanent password upon your first login.</em></p>
-            <p>An attached calendar invitation (.ics) has been included to sync this session to your mobile or desktop calendar.</p>
-            <p>Lead Instructor Kai Wade<br>Future Initiative Firearm Services</p>
-          </div>
-        `;
-
+        const html = ;
         const emailResult = await sendResendEmail({
           to: email,
-          subject: `Your Training Portal Access & Invitation - ${courseName}`,
+          subject: ,
           html: html,
-          attachments: attachments
+          attachments: [{ filename: 'fifs-training-session.ics', content: Buffer.from(icsContent).toString('base64') }]
         });
-
         return NextResponse.json({
           success: true,
           status: 'success',
           studentId: generatedId,
           tempPassword: tempPassword,
+          magicLink: magicLink,
           emailDispatched: emailResult.success,
           emailError: emailResult.error || null,
           message: 'Invitation dispatched and credentials created.'
         });
       }
-
-      case 'adminEnrollStudent': {
-        if (!verifyAdminPasscode(passcode)) {
-          return NextResponse.json({ success: false, error: 'Unauthorized: Invalid admin passcode.' }, { status: 401 });
-        }
-
-        const fullName = (payload.fullName || payload.name || '').trim();
-        const email = (payload.email || '').trim().toLowerCase();
-        const phone = (payload.phone || '').trim();
-        const role = payload.role || 'student';
-        const internalNotes = payload.internalNotes || payload.notes || '';
-        const classId = payload.classId;
-        const scheduledDateStr = payload.scheduledDate;
-        let durationHours = Number(payload.durationHours) || 8;
-
-        if (!fullName || !email) {
-          return NextResponse.json({ success: false, error: 'Full name and email are required.' }, { status: 400 });
-        }
-
-        // If client or admin role (Non-course onboarding)
-        if (role !== 'student') {
-          const clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
-          await supabase.from('clients').upsert({
-            client_id: clientId,
-            full_name: fullName,
-            email: email,
-            phone: phone,
-            permit_state: 'Maryland Wear & Carry',
-            updated_at: new Date().toISOString()
-          });
-          return NextResponse.json({ success: true, isNewUser: true, message: 'Client profile created. Welcome email with portal credentials sent.' });
-        }
-
-        if (!classId || !scheduledDateStr) {
-          return NextResponse.json({ success: false, error: 'Class and scheduled date/time are required for student enrollment.' }, { status: 400 });
-        }
-
-        const scheduledDate = new Date(scheduledDateStr);
-        if (isNaN(scheduledDate.getTime())) {
-          return NextResponse.json({ success: false, error: 'Invalid scheduled date/time provided.' }, { status: 400 });
-        }
-
-        // Query class details
-        const { data: classRecord } = await supabase
-          .from('classes')
-          .select('*')
-          .eq('id', classId)
-          .single();
-
-        const classTitle = classRecord?.title || 'Firearms Qualification Course';
-        const gearNotes = classRecord?.required_gear_notes || 'Eye and ear protection, government-issued photo ID, range fee (0 cash), functional firearm with 50 rounds of factory ammunition.';
-        const materialsPath = classRecord?.materials_path || null;
-        if (!payload.durationHours && classRecord?.duration_hours) {
-          durationHours = Number(classRecord.duration_hours);
-        }
-
-        // Check if student exists
-        const { data: existingStudent } = await supabase
-          .from('students')
-          .select('*')
-          .eq('email', email)
-          .maybeSingle();
-
-        const isNewUser = !existingStudent;
-        let tempPassword = '';
-        let studentId = existingStudent?.student_id;
-
-        if (isNewUser) {
-          // Branch B: New User Provisioning
-          studentId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000);
-          tempPassword = generateSecureTempPassword();
-
-          const { error: insertErr } = await supabase.from('students').insert({
-            student_id: studentId,
-            full_name: fullName,
-            email: email,
-            phone: phone,
-            course: classTitle,
-            assigned_date: scheduledDate.toLocaleDateString(),
-            status: 'STEP_1_REGISTERED',
-            must_change_password: true,
-            temp_password_reset: true,
-            password_expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-            internal_notes: internalNotes,
-            portal_password: tempPassword // Stored for one-time verification during first login
-          });
-          if (insertErr) {
-            return NextResponse.json({ success: false, error: insertErr.message }, { status: 500 });
-          }
-        } else {
-          // Branch A: Existing User
-          await supabase.from('students').update({
-            phone: phone || existingStudent.phone,
-            internal_notes: internalNotes || existingStudent.internal_notes,
-            course: classTitle,
-            assigned_date: scheduledDate.toLocaleDateString()
-          }).eq('email', email);
-        }
-
-        // Insert new enrollment record
-        const { data: enrollment, error: enrollErr } = await supabase
-          .from('enrollments')
-          .insert({
-            student_email: email,
-            student_name: fullName,
-            class_id: classId,
-            scheduled_date: scheduledDate.toISOString(),
-            duration_hours: durationHours,
-            reminder_sent: false,
-            status: 'confirmed',
-            previous_dates: [],
-            internal_notes: internalNotes
-          })
-          .select()
-          .single();
-
-        if (enrollErr) {
-          return NextResponse.json({ success: false, error: 'Failed to record enrollment: ' + enrollErr.message }, { status: 500 });
-        }
-
-        // Dynamic 7-day signed materials link
-        const signedDocUrl = await getSignedDocumentUrl(supabase, materialsPath);
-
-        // Generate ICS Calendar Event
-        const icsDescription = 'FIFS Qualification Course - Gear: ' + gearNotes;
-        const icsContent = generateIcsCalendar({
-          title: classTitle,
-          description: icsDescription,
-          startDate: scheduledDate,
-          durationHours: durationHours
-        });
-        const icsBase64 = Buffer.from(icsContent).toString('base64');
-        const attachments: ResendAttachment[] = [{
-          filename: 'FIFS_Course_Invitation.ics',
-          content: icsBase64
-        }];
-
-        // Email Dispatch
-        let emailResult = { success: false, error: '' };
-        const dateFormatted = scheduledDate.toLocaleString('en-US', {
-          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
-        });
-
-        if (isNewUser) {
-          // Welcome & Temporary Credentials
-          const html = `<p>Welcome to <strong>${classTitle}</strong>! Your session is confirmed for <strong>${dateFormatted}</strong>.</p>` +
-            (signedDocUrl ? `<p style="margin:10px 0 0 0;"><a href="${signedDocUrl}" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>` : '') +
-            (isNewUser && tempPassword ? `<p>Your temporary password is: <code>${tempPassword}</code></p><p>You will be required to change this password at first login.</p>` : '');
-          emailResult = await sendResendEmail({
-            to: email,
-            subject: 'Course Confirmation & Portal Access - ' + classTitle,
-            html: html,
-            attachments: attachments
-          });
-        } else {
-          // Existing User Enrollment Confirmation
-          const html = `<p>Welcome to <strong>${classTitle}</strong>! Your session is confirmed for <strong>${dateFormatted}</strong>.</p>` +
-            (signedDocUrl ? `<p style="margin:10px 0 0 0;"><a href="${signedDocUrl}" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>` : '') +
-            (isNewUser && tempPassword ? `<p>Your temporary password is: <code>${tempPassword}</code></p><p>You will be required to change this password at first login.</p>` : '');
-          emailResult = await sendResendEmail({
-            to: email,
-            subject: 'Course Confirmation & Portal Access - ' + classTitle,
-            html: html,
-            attachments: attachments
-          });
-        }
-
-        return NextResponse.json({
-          success: true,
-          isNewUser: isNewUser,
-          studentId: studentId,
-          tempPassword: isNewUser ? tempPassword : null,
-          emailDispatched: emailResult.success,
-          emailError: emailResult.error || null,
-          enrollment: enrollment
-        });
-      }
-
-      // 3. Reschedule Enrollment
-      case 'adminRescheduleEnrollment': {
-        if (!verifyAdminPasscode(passcode)) {
-          return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const { enrollmentId, newScheduledDate, durationHours, reason } = payload;
-        if (!enrollmentId || !newScheduledDate) {
-          return NextResponse.json({ success: false, error: 'Enrollment ID and new date are required.' }, { status: 400 });
-        }
-
-        const { data: enrollment, error: findErr } = await supabase
-          .from('enrollments')
-          .select('*, classes(*)')
-          .eq('id', enrollmentId)
-          .single();
-
-        if (findErr || !enrollment) {
-          return NextResponse.json({ success: false, error: 'Enrollment record not found.' }, { status: 404 });
-        }
-
-        const oldDate = new Date(enrollment.scheduled_date);
-        const nextDate = new Date(newScheduledDate);
-        const previousDates = Array.isArray(enrollment.previous_dates) ? [...enrollment.previous_dates] : [];
-        previousDates.push({
-          date: enrollment.scheduled_date,
-          rescheduled_at: new Date().toISOString(),
-          reason: reason || 'Admin schedule modification'
-        });
-
-        const newDuration = Number(durationHours) || Number(enrollment.duration_hours) || 8;
-
-        const { error: updateErr } = await supabase
-          .from('enrollments')
-          .update({
-            scheduled_date: nextDate.toISOString(),
-            duration_hours: newDuration,
-            reminder_sent: false,
-            status: 'rescheduled',
-            previous_dates: previousDates,
-            internal_notes: reason || enrollment.internal_notes
-          })
-          .eq('id', enrollmentId);
-
-        if (updateErr) {
-          return NextResponse.json({ success: false, error: updateErr.message }, { status: 500 });
-        }
-
-        // Generate updated ICS
-        const classTitle = enrollment.classes?.title || 'FIFS Firearms Course';
-        const icsContent = generateIcsCalendar({
-          title: classTitle,
-          description: 'Rescheduled session for ' + classTitle,
-          startDate: nextDate,
-          durationHours: newDuration
-        });
-        const icsBase64 = Buffer.from(icsContent).toString('base64');
-
-        const dateStr = nextDate.toLocaleString('en-US', {
-          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-        });
-        const oldDateStr = oldDate.toLocaleString('en-US', {
-          weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-        });
-
-        const html = `<p>Your course session for <strong>${classTitle}</strong> has been rescheduled to <strong>${dateStr}</strong>.</p><p style="margin:8px 0 0 0;color:#713f12;"><strong>Instructor Note:</strong> ${reason || "Schedule adjusted by instructor."}</p>`;
-
-        await sendResendEmail({
-          to: enrollment.student_email,
-          subject: 'Course Confirmation & Portal Access - ' + classTitle,
-          html: html,
-          attachments: [{ filename: 'Updated_Class_Schedule.ics', content: icsBase64 }]
-        });
-
-        return NextResponse.json({ success: true, message: 'Class session rescheduled successfully.' });
-      }
-
-      // 4. Cancel Enrollment
-      case 'adminCancelEnrollment': {
-        if (!verifyAdminPasscode(passcode)) {
-          return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const { enrollmentId, reason } = payload;
-        if (!enrollmentId) {
-          return NextResponse.json({ success: false, error: 'Enrollment ID is required.' }, { status: 400 });
-        }
-
-        const { data: enrollment, error: findErr } = await supabase
-          .from('enrollments')
-          .select('*, classes(*)')
-          .eq('id', enrollmentId)
-          .single();
-
-        if (findErr || !enrollment) {
-          return NextResponse.json({ success: false, error: 'Enrollment not found.' }, { status: 404 });
-        }
-
-        const { error: cancelErr } = await supabase
-          .from('enrollments')
-          .update({
-            status: 'cancelled',
-            cancellation_reason: reason || 'Cancelled by instructor'
-          })
-          .eq('id', enrollmentId);
-
-        if (cancelErr) {
-          return NextResponse.json({ success: false, error: cancelErr.message }, { status: 500 });
-        }
-
-        const classTitle = enrollment.classes?.title || 'FIFS Firearms Course';
-        const dateStr = new Date(enrollment.scheduled_date).toLocaleString();
-
-        const html = `<p>Your session for <strong>${classTitle}</strong> scheduled for ${dateStr} has been cancelled.</p><div style="background:#fef2f2;border:1px solid #fecaca;padding:12px;border-radius:6px;margin:16px 0;"><strong>Reason:</strong> ${reason || "Cancelled by instructor."}</div>`;
-
-        await sendResendEmail({
-          to: enrollment.student_email,
-          subject: 'Course Confirmation & Portal Access - ' + classTitle,
-          html: html
-        });
-
-        return NextResponse.json({ success: true, message: 'Enrollment cancelled and student notified.' });
-      }
-
-      // 5. First-Login Password Change & Gate Clear + Admin Alert
-      case 'firstLoginPasswordChange': {
-        const { email, currentPassword, newPassword } = payload;
-        if (!email || !newPassword) {
-          return NextResponse.json({ success: false, error: 'Email and new password are required.' }, { status: 400 });
-        }
-
-        const val = validateStrictPassword(newPassword);
-        if (!val.valid) {
-          return NextResponse.json({ success: false, error: val.error }, { status: 400 });
-        }
-
-        const { data: student, error: stErr } = await supabase
-          .from('students')
-          .select('*')
-          .eq('email', email.trim().toLowerCase())
-          .maybeSingle();
-
-        if (stErr || !student) {
-          return NextResponse.json({ success: false, error: 'Student record not found.' }, { status: 404 });
-        }
-
-        // Update permanent password and clear flag
-        const { error: updateErr } = await supabase
-          .from('students')
-          .update({
-            portal_password: newPassword, // Store password
-            must_change_password: false,
-            temp_password_reset: false,
-            password_expires_at: null
-          })
-          .eq('email', email.trim().toLowerCase());
-
-        if (updateErr) {
-          return NextResponse.json({ success: false, error: updateErr.message }, { status: 500 });
-        }
-
-        // Trigger Admin Alert via Resend
-        const studentName = student.full_name || 'Student';
-        const nowStr = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
-        await sendResendEmail({
-          to: ADMIN_EMAIL,
-          subject: 'Security Alert: Student Portal Activated - ' + studentName,
-          html: `<p>Student <strong>${studentName}</strong> (${email}) updated their temporary password and activated portal access on ${nowStr}.</p>`
-        });
-
-        return NextResponse.json({ success: true, message: 'Password updated successfully. Welcome to your portal!' });
-      }
-
-      // 6. Self-Service Password Update
-      case 'selfServicePasswordUpdate': {
-        const { email, currentPassword, newPassword } = payload;
-        if (!email || !newPassword) {
-          return NextResponse.json({ success: false, error: 'Email and new password are required.' }, { status: 400 });
-        }
-
-        const val = validateStrictPassword(newPassword);
-        if (!val.valid) {
-          return NextResponse.json({ success: false, error: val.error }, { status: 400 });
-        }
-
-        const { error } = await supabase
-          .from('students')
-          .update({ portal_password: newPassword, must_change_password: false })
-          .eq('email', email.trim().toLowerCase());
-
-        if (error) {
-          return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-        }
-        return NextResponse.json({ success: true, message: 'Account password updated successfully.' });
-      }
-
-      // 7. Student Portal Data Loader & Signed URL Refresh
       case 'getStudentPortalData': {
-        const identifier = (payload.identifier || payload.studentId || payload.email || '').trim().toLowerCase();
+        const identifier = (payload.identifier || payload.studentId || payload.email || '').trim();
+        const inputPassword = (payload.password || '').trim();
         if (!identifier) {
-          return NextResponse.json({ success: false, error: 'Missing student identifier.' }, { status: 400 });
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier.' }, { status: 400 });
         }
-
-        const { data: student } = await supabase
+        const { data: student, error: stErr } = await supabase
           .from('students')
           .select('*')
           .or()
           .maybeSingle();
-
-        if (!student) {
-          return NextResponse.json({ success: false, error: 'Student record not found.' }, { status: 404 });
+        if (stErr || !student) {
+          return NextResponse.json({ success: false, status: 'not_found', message: 'Identifier not found in Student Roster.' }, { status: 404 });
         }
-
-        // Fetch all course enrollments with classes joined (Never expose internal_notes)
-        const { data: enrollments } = await supabase
-          .from('enrollments')
-          .select('id, class_id, scheduled_date, duration_hours, status, cancellation_reason, previous_dates, created_at, classes(title, description, materials_path, required_gear_notes)')
-          .eq('student_email', student.email)
-          .order('scheduled_date', { ascending: false });
-
-        // Generate fresh 7-day signed URLs for any active materials
-        const enrollmentsWithUrls = await Promise.all((enrollments || []).map(async (e: any) => {
-          let signedUrl = null;
-          if (e.classes?.materials_path) {
-            signedUrl = await getSignedDocumentUrl(supabase, e.classes.materials_path);
-          }
-          return {
-            ...e,
-            materialsUrl: signedUrl
-          };
-        }));
-
+        const hasStoredPassword = Boolean(student.portal_password && student.portal_password.trim() !== '');
+        const isMasterPasscode = verifyAdminPasscode(inputPassword);
+        if (!inputPassword && hasStoredPassword) {
+          return NextResponse.json({
+            success: false,
+            status: 'password_required',
+            message: 'Please enter your portal password.'
+          });
+        }
+        if (hasStoredPassword && !isMasterPasscode && inputPassword !== student.portal_password) {
+          return NextResponse.json({
+            success: false,
+            status: 'invalid_password',
+            error: 'Incorrect password. Please verify and try again.'
+          });
+        }
+        if (!hasStoredPassword && !inputPassword) {
+          return NextResponse.json({
+            success: true,
+            status: 'needs_password_setup',
+            message: 'First-time login: create your portal password below.'
+          });
+        }
+        const normalized = normalizeStudent(student);
+        const requireReset = Boolean(student.temp_password_reset || student.must_change_password);
         return NextResponse.json({
           success: true,
-          student: {
-            ...normalizeStudent(student),
-            enrollments: enrollmentsWithUrls,
-            mustChangePassword: Boolean(student.must_change_password)
-          }
+          status: 'success',
+          student: normalized,
+          requirePasswordReset: requireReset,
+          force_password_reset: requireReset
         });
       }
-
-      // 8. Automated 24-Hour Reminder Query & Trigger
-      case 'check24HourReminders': {
-        const now = new Date();
-        const startWindow = new Date(now.getTime() + 23 * 3600 * 1000);
-        const endWindow = new Date(now.getTime() + 25 * 3600 * 1000);
-
-        const { data: pendingReminders, error: remErr } = await supabase
-          .from('enrollments')
-          .select('*, classes(*)')
-          .eq('status', 'confirmed')
-          .eq('reminder_sent', false)
-          .gte('scheduled_date', startWindow.toISOString())
-          .lte('scheduled_date', endWindow.toISOString());
-
-        if (remErr) {
-          return NextResponse.json({ success: false, error: remErr.message }, { status: 500 });
+      case 'setupStudentPassword':
+      case 'firstLoginPasswordChange':
+      case 'selfServicePasswordUpdate': {
+        const identifier = (payload.studentId || payload.email || '').trim();
+        const newPassword = (payload.password || payload.newPassword || '').trim();
+        if (!identifier || !newPassword) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Student ID and new password are required.' }, { status: 400 });
         }
-
-        const sentList: string[] = [];
-        for (const enr of (pendingReminders || [])) {
-          const classTitle = enr.classes?.title || 'Firearms Qualification Course';
-          const gearNotes = enr.classes?.required_gear_notes || 'Eye and ear protection, government ID, range fees.';
-          const dateStr = new Date(enr.scheduled_date).toLocaleString();
-          const docUrl = await getSignedDocumentUrl(supabase, enr.classes?.materials_path);
-
-          const html = `<p>Reminder: Your upcoming class <strong>${classTitle}</strong> is scheduled for <strong>${dateStr}</strong>.</p>` + (docUrl ? `<p><a href="${docUrl}" style="background:#0284c7;color:#ffffff;padding:8px 16px;border-radius:4px;text-decoration:none;font-weight:bold;">Review Course Study Guide</a></p>` : "");
-
-          await sendResendEmail({
-            to: enr.student_email,
-            subject: 'Course Confirmation & Portal Access - ' + classTitle,
-            html: html
-          });
-
-          await supabase.from('enrollments').update({ reminder_sent: true }).eq('id', enr.id);
-          sentList.push(enr.id);
+        const val = validateStrictPassword(newPassword);
+        if (!val.valid) {
+          return NextResponse.json({ success: false, status: 'error', error: val.error }, { status: 400 });
         }
-
-        return NextResponse.json({ success: true, processedCount: sentList.length, sentIds: sentList });
+        const { data: updated, error: updateErr } = await supabase
+          .from('students')
+          .update({
+            portal_password: newPassword,
+            must_change_password: false,
+            temp_password_reset: false,
+            password_expires_at: null,
+            updated_at: new Date().toISOString()
+          })
+          .or()
+          .select()
+          .single();
+        if (updateErr) {
+          return NextResponse.json({ success: false, status: 'error', error: updateErr.message }, { status: 500 });
+        }
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          student: normalizeStudent(updated),
+          message: 'Password updated successfully!'
+        });
       }
-
-      // 9. Admin Dashboard Roster & History
       case 'getAdminDashboardData': {
         const { data: students } = await supabase
           .from('students')
           .select('*')
           .order('created_at', { ascending: false });
-
+        const { data: clients } = await supabase
+          .from('clients')
+          .select('*')
+          .order('created_at', { ascending: false });
         const { data: enrollments } = await supabase
           .from('enrollments')
           .select('*, classes(title)')
           .order('scheduled_date', { ascending: false });
-
+        const { data: liveChats } = await supabase
+          .from('live_chats')
+          .select('*')
+          .order('created_at', { ascending: false });
         return NextResponse.json({
           success: true,
+          status: 'success',
           students: (students || []).map(normalizeStudent),
-          enrollments: enrollments || []
+          clients: (clients || []).map(normalizeClient),
+          enrollments: enrollments || [],
+          liveChats: liveChats || []
         });
       }
-
+      case 'updateStudentStatus': {
+        const studentId = payload.studentId;
+        const newStatus = payload.status;
+        if (!studentId || !newStatus) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing studentId or status' }, { status: 400 });
+        }
+        const { error } = await supabase
+          .from('students')
+          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .eq('student_id', studentId);
+        if (error) {
+          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ success: true, status: 'success' });
+      }
+      case 'updateStudentTask': {
+        const studentId = payload.studentId;
+        const taskId = payload.taskId;
+        const isChecked = Boolean(payload.isChecked);
+        const { data: student } = await supabase
+          .from('students')
+          .select('prep_tasks')
+          .eq('student_id', studentId)
+          .maybeSingle();
+        const currentTasks = (student && student.prep_tasks) ? student.prep_tasks : {};
+        currentTasks[taskId] = isChecked;
+        await supabase
+          .from('students')
+          .update({ prep_tasks: currentTasks, updated_at: new Date().toISOString() })
+          .eq('student_id', studentId);
+        return NextResponse.json({ success: true, status: 'success' });
+      }
+      case 'adminEditStudent': {
+        const studentId = payload.studentId;
+        const updates = payload.updates || payload;
+        delete updates.action;
+        delete updates.passcode;
+        delete updates.studentId;
+        const { data: updated, error } = await supabase
+          .from('students')
+          .update({
+            full_name: updates.fullName || updates.full_name,
+            email: updates.email,
+            phone: updates.phone,
+            course_name: updates.courseSelection || updates.course,
+            course: updates.courseSelection || updates.course,
+            assigned_date: updates.assignedDate || updates.classDate,
+            status: updates.status,
+            qualification_score: updates.qualificationScore,
+            profile_doc_url: updates.profileDocUrl || updates.dossierUrl,
+            internal_notes: updates.notes,
+            updated_at: new Date().toISOString()
+          })
+          .eq('student_id', studentId)
+          .select()
+          .single();
+        if (error) {
+          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ success: true, status: 'success', student: normalizeStudent(updated) });
+      }
+      case 'adminDeleteStudent': {
+        const studentId = payload.studentId;
+        if (!studentId) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing studentId' }, { status: 400 });
+        }
+        await supabase.from('students').delete().eq('student_id', studentId);
+        return NextResponse.json({ success: true, status: 'success', message: 'Student removed.' });
+      }
+      case 'handleLiveChatMessage': {
+        const threadId = payload.threadId || payload.thread_id;
+        const messageText = payload.message || payload.text;
+        const senderName = payload.senderName || payload.name || 'Visitor';
+        const senderPhone = payload.senderPhone || payload.phone || '';
+        if (!threadId || !messageText) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing message content or thread ID' }, { status: 400 });
+        }
+        await supabase.from('live_chats').insert({
+          thread_id: threadId,
+          sender: 'user',
+          sender_name: senderName,
+          sender_phone: senderPhone,
+          message: messageText,
+          sent_at: new Date().toISOString()
+        });
+        const { data: threadMessages } = await supabase
+          .from('live_chats')
+          .select('*')
+          .eq('thread_id', threadId)
+          .order('sent_at', { ascending: true });
+        return NextResponse.json({ success: true, status: 'success', messages: threadMessages || [] });
+      }
+      case 'getLiveChats': {
+        const { data: chats } = await supabase
+          .from('live_chats')
+          .select('*')
+          .order('sent_at', { ascending: false });
+        return NextResponse.json({ success: true, status: 'success', liveChats: chats || [] });
+      }
+      case 'getVisitorChatMessages': {
+        const threadId = payload.threadId;
+        const { data: msgs } = await supabase
+          .from('live_chats')
+          .select('*')
+          .eq('thread_id', threadId)
+          .order('sent_at', { ascending: true });
+        return NextResponse.json({ success: true, status: 'success', messages: msgs || [] });
+      }
+      case 'sendAdminLiveChatReply': {
+        const threadId = payload.threadId || payload.payload?.threadId;
+        const replyText = payload.text || payload.payload?.text || payload.message;
+        await supabase.from('live_chats').insert({
+          thread_id: threadId,
+          sender: 'instructor',
+          sender_name: 'Coach Kai Wade',
+          message: replyText,
+          sent_at: new Date().toISOString()
+        });
+        return NextResponse.json({ success: true, status: 'success', message: 'Reply recorded.' });
+      }
+      case 'deleteLiveChatThread': {
+        const threadId = payload.threadId;
+        await supabase.from('live_chats').delete().eq('thread_id', threadId);
+        return NextResponse.json({ success: true, status: 'success', message: 'Thread deleted.' });
+      }
       default:
-        return NextResponse.json({ success: false, error: 'Unhandled action: ' + action }, { status: 400 });
+        return NextResponse.json({ success: false, status: 'error', error: 'Unhandled action: ' + action }, { status: 400 });
     }
   } catch (err: any) {
     console.error('[API FIFS Error]:', err);
-    return NextResponse.json({ success: false, error: err?.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ success: false, status: 'error', error: err?.message || 'Internal server error' }, { status: 500 });
   }
 }
