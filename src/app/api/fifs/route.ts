@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
+
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://ufqnmcincwnlyiwsmzcq.supabase.co';
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -8,11 +9,13 @@ function getSupabase() {
     throw new Error('Supabase environment variables are not configured.');
   }
   return createClient(url, key, {
-    auth: { persistSession: false }
+    auth: { persistSession: false },
   });
 }
+
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'carpetcare85@gmail.com';
 const SENDER_EMAIL = process.env.RESEND_FROM_EMAIL || 'Train With FIFS <onboarding@trainwithfifs.com>';
+
 function generateSecureTempPassword(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
   const len = 12;
@@ -36,19 +39,23 @@ function generateSecureTempPassword(): string {
   }
   return res;
 }
+
 function validateStrictPassword(password: string): { valid: boolean; error?: string } {
   if (!password || password.length < 8) {
     return { valid: false, error: 'Password must be at least 8 characters long.' };
   }
   return { valid: true };
 }
+
 function verifyAdminPasscode(passcode?: string): boolean {
   const expected = process.env.ADMIN_PASSCODE || 'Ultima';
   return Boolean(passcode && passcode.trim().toLowerCase() === expected.trim().toLowerCase());
 }
+
 function formatIcsDate(d: Date): string {
   return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 }
+
 function generateIcsCalendar(params: {
   title: string;
   description: string;
@@ -86,23 +93,15 @@ function generateIcsCalendar(params: {
     'DESCRIPTION:Reminder: 24 Hours until your FIFS Firearms Course',
     'END:VALARM',
     'END:VEVENT',
-    'END:VCALENDAR'
+    'END:VCALENDAR',
   ].join(String.fromCharCode(13, 10));
 }
-async function getSignedDocumentUrl(supabase: any, path?: string | null): Promise<string | null> {
-  if (!path) return null;
-  try {
-    const { data, error } = await supabase.storage.from('course-materials').createSignedUrl(path, 604800);
-    if (error || !data?.signedUrl) return null;
-    return data.signedUrl;
-  } catch (err: any) {
-    return null;
-  }
-}
+
 interface ResendAttachment {
   filename: string;
   content: string;
 }
+
 async function sendResendEmail(params: {
   to: string | string[];
   subject: string;
@@ -127,7 +126,7 @@ async function sendResendEmail(params: {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + resendKey,
+        Authorization: 'Bearer ' + resendKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(bodyPayload),
@@ -141,6 +140,7 @@ async function sendResendEmail(params: {
     return { success: false, error: err?.message || 'Email dispatch failed' };
   }
 }
+
 function normalizeStudent(s: any) {
   if (!s) return null;
   return {
@@ -157,9 +157,11 @@ function normalizeStudent(s: any) {
     tempPasswordReset: Boolean(s.temp_password_reset),
     qualificationScore: s.qualification_score || '25/25 (100%)',
     scoresheetUrl: s.scoresheet_url || s.msp_score_sheet_url || null,
-    internalNotes: s.internal_notes || s.notes || ''
+    internalNotes: s.internal_notes || s.notes || '',
+    createdAt: s.created_at || new Date().toISOString(),
   };
 }
+
 function normalizeClient(c: any) {
   if (!c) return null;
   return {
@@ -169,16 +171,20 @@ function normalizeClient(c: any) {
     phone: c.phone || '',
     permitState: c.permit_state || c.permit_type || 'Maryland Wear & Carry',
     expirationDate: c.expiration_date || 'Not Set',
-    status: c.status || 'ACTIVE_REGISTERED'
+    status: c.status || 'ACTIVE_REGISTERED',
+    permitData: c.permit_data || [],
+    createdAt: c.created_at || new Date().toISOString(),
   };
 }
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
     const action = body.action;
-    const payload = (body.payload && typeof body.payload === 'object') ? { ...body, ...body.payload } : (body || {});
+    const payload = body.payload && typeof body.payload === 'object' ? { ...body, ...body.payload } : body || {};
     const passcode = body.passcode || payload.passcode || payload.pin;
     const supabase = getSupabase();
+
     switch (action) {
       case 'getClasses': {
         const { data, error } = await supabase
@@ -191,6 +197,7 @@ export async function POST(req: NextRequest) {
         }
         return NextResponse.json({ success: true, status: 'success', classes: data || [] });
       }
+
       case 'adminDirectInvite': {
         const fullName = (payload?.fullName || payload?.name || payload?.invFullName || 'Invited Student').trim();
         const email = (payload?.email || payload?.invEmail || '').trim().toLowerCase();
@@ -198,35 +205,43 @@ export async function POST(req: NextRequest) {
         const portalType = payload?.portalType || payload?.invPortalType || 'student';
         const courseName = payload?.course || payload?.courseSelection || payload?.invCourse || 'Maryland Wear & Carry Permit';
         const dates = payload?.dates || payload?.scheduledDate || payload?.invDates || 'Upcoming Session';
-        const generatedId = payload.generatedId || ('FIFS-' + Math.floor(1000 + Math.random() * 9000));
+        const generatedId = payload.generatedId || 'FIFS-' + Math.floor(1000 + Math.random() * 9000);
         const tempPassword = generateSecureTempPassword();
         const now = new Date().toISOString();
+
         if (!fullName || !email) {
           return NextResponse.json({ success: false, status: 'error', error: 'Full name and email are required.' }, { status: 400 });
         }
+
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trainwithfifs.com';
-        const magicLink = portalType === 'student'
-          ? `${appUrl}/#student-portal?email=${encodeURIComponent(email)}&auth=direct`
-          : `${appUrl}/#client-portal?email=${encodeURIComponent(email)}&auth=direct`;
+        const magicLink =
+          portalType === 'student'
+            ? `${appUrl}/#student-portal?email=${encodeURIComponent(email)}&auth=direct`
+            : `${appUrl}/#client-portal?email=${encodeURIComponent(email)}&auth=direct`;
+
         if (portalType === 'client') {
-          const clientId = payload.clientId || ('FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000));
-          await supabase.from('clients').upsert({
-            client_id: clientId,
-            full_name: fullName,
-            email: email,
-            phone: phone,
-            permit_state: courseName,
-            status: 'ACTIVE_REGISTERED',
-            updated_at: now
-          }, { onConflict: 'email' });
+          const clientId = payload.clientId || 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
+          await supabase.from('clients').upsert(
+            {
+              client_id: clientId,
+              full_name: fullName,
+              email: email,
+              phone: phone,
+              permit_state: courseName,
+              status: 'ACTIVE_REGISTERED',
+              updated_at: now,
+            },
+            { onConflict: 'email' }
+          );
           return NextResponse.json({
             success: true,
             status: 'success',
             clientId,
             magicLink,
-            message: 'Client invite created successfully.'
+            message: 'Client invite created successfully.',
           });
         }
+
         const defaultTasks = { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false };
         const studentPayload: Record<string, any> = {
           student_id: generatedId,
@@ -247,17 +262,20 @@ export async function POST(req: NextRequest) {
           updated_at: now,
           portal_password: tempPassword,
           temp_password_reset: true,
-          must_change_password: true
+          must_change_password: true,
         };
+
         await supabase.from('students').upsert(studentPayload, { onConflict: 'email' });
+
         const eventStart = new Date(dates);
         const validStartDate = isNaN(eventStart.getTime()) ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : eventStart;
         const icsContent = generateIcsCalendar({
           title: courseName,
           description: `Future Initiative Firearms Course: ${courseName} for ${fullName}`,
           startDate: validStartDate,
-          durationHours: 8
+          durationHours: 8,
         });
+
         const html = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #070a11; color: #f8fafc; padding: 24px; border-radius: 8px; border: 1px solid #1f2e4d;">
             <h2 style="color: #00e5ff; margin-top: 0;">Welcome to Train With FIFS</h2>
@@ -276,12 +294,14 @@ export async function POST(req: NextRequest) {
             <p style="font-size: 0.85rem; color: #94a3b8;">A calendar invitation (.ics file) has been attached to this email. Please import it to add the scheduled training session to your calendar.</p>
           </div>
         `;
+
         const emailResult = await sendResendEmail({
           to: email,
           subject: `Your Train With FIFS Access Credentials: ${courseName}`,
           html: html,
-          attachments: [{ filename: 'fifs-training-session.ics', content: Buffer.from(icsContent).toString('base64') }]
+          attachments: [{ filename: 'fifs-training-session.ics', content: Buffer.from(icsContent).toString('base64') }],
         });
+
         return NextResponse.json({
           success: true,
           status: 'success',
@@ -290,68 +310,84 @@ export async function POST(req: NextRequest) {
           magicLink: magicLink,
           emailDispatched: emailResult.success,
           emailError: emailResult.error || null,
-          message: 'Invitation dispatched and credentials created.'
+          message: 'Invitation dispatched and credentials created.',
         });
       }
+
       case 'getStudentPortalData': {
         const identifier = (payload.identifier || payload.studentId || payload.email || '').trim();
         const inputPassword = (payload.password || '').trim();
+
         if (!identifier) {
           return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier.' }, { status: 400 });
         }
+
+        // FIXED: Explicit .or() expression preventing empty filter runtime error
         const { data: student, error: stErr } = await supabase
           .from('students')
           .select('*')
-          .or()
+          .or(`student_id.eq.${identifier},email.eq.${identifier}`)
           .maybeSingle();
+
         if (stErr || !student) {
           return NextResponse.json({ success: false, status: 'not_found', message: 'Identifier not found in Student Roster.' }, { status: 404 });
         }
+
         const hasStoredPassword = Boolean(student.portal_password && student.portal_password.trim() !== '');
         const isMasterPasscode = verifyAdminPasscode(inputPassword);
+
         if (!inputPassword && hasStoredPassword) {
           return NextResponse.json({
             success: false,
             status: 'password_required',
-            message: 'Please enter your portal password.'
+            message: 'Please enter your portal password.',
           });
         }
+
         if (hasStoredPassword && !isMasterPasscode && inputPassword !== student.portal_password) {
           return NextResponse.json({
             success: false,
             status: 'invalid_password',
-            error: 'Incorrect password. Please verify and try again.'
+            error: 'Incorrect password. Please verify and try again.',
           });
         }
+
         if (!hasStoredPassword && !inputPassword) {
           return NextResponse.json({
             success: true,
             status: 'needs_password_setup',
-            message: 'First-time login: create your portal password below.'
+            message: 'First-time login: create your portal password below.',
           });
         }
+
         const normalized = normalizeStudent(student);
         const requireReset = Boolean(student.temp_password_reset || student.must_change_password);
+
         return NextResponse.json({
           success: true,
           status: 'success',
           student: normalized,
           requirePasswordReset: requireReset,
-          force_password_reset: requireReset
+          force_password_reset: requireReset,
         });
       }
+
       case 'setupStudentPassword':
       case 'firstLoginPasswordChange':
       case 'selfServicePasswordUpdate': {
         const identifier = (payload.studentId || payload.email || '').trim();
         const newPassword = (payload.password || payload.newPassword || '').trim();
+
         if (!identifier || !newPassword) {
           return NextResponse.json({ success: false, status: 'error', error: 'Student ID and new password are required.' }, { status: 400 });
         }
+
         const val = validateStrictPassword(newPassword);
         if (!val.valid) {
           return NextResponse.json({ success: false, status: 'error', error: val.error }, { status: 400 });
         }
+
+        // FIXED: Explicit .or() filter replacing broken empty call
         const { data: updated, error: updateErr } = await supabase
           .from('students')
           .update({
@@ -359,47 +395,79 @@ export async function POST(req: NextRequest) {
             must_change_password: false,
             temp_password_reset: false,
             password_expires_at: null,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
-          .or()
+          .or(`student_id.eq.${identifier},email.eq.${identifier}`)
           .select()
-          .single();
+          .maybeSingle();
+
         if (updateErr) {
           return NextResponse.json({ success: false, status: 'error', error: updateErr.message }, { status: 500 });
         }
+
         return NextResponse.json({
           success: true,
           status: 'success',
           student: normalizeStudent(updated),
-          message: 'Password updated successfully!'
+          message: 'Password updated successfully!',
         });
       }
-      case 'getAdminDashboardData': {
-        const { data: students } = await supabase
-          .from('students')
-          .select('*')
-          .order('created_at', { ascending: false });
-        const { data: clients } = await supabase
+
+      case 'deleteUserPermit': {
+        // Reciprocity Hub Permit CRUD DELETE action
+        const permitId = payload.permitId || payload.id;
+        const clientId = payload.clientId || payload.studentId || payload.userId;
+
+        if (!permitId || !clientId) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing permitId or clientId.' }, { status: 400 });
+        }
+
+        // 1. Try relational client_permits table first
+        const { error: relError } = await supabase
+          .from('client_permits')
+          .delete()
+          .eq('id', permitId)
+          .eq('client_id', clientId);
+
+        if (!relError) {
+          return NextResponse.json({ success: true, status: 'success', message: 'Permit removed successfully.' });
+        }
+
+        // 2. Fallback: JSONB array inside clients table
+        const { data: clientRec } = await supabase
           .from('clients')
-          .select('*')
-          .order('created_at', { ascending: false });
-        const { data: enrollments } = await supabase
-          .from('enrollments')
-          .select('*, classes(title)')
-          .order('scheduled_date', { ascending: false });
-        const { data: liveChats } = await supabase
-          .from('live_chats')
-          .select('*')
-          .order('created_at', { ascending: false });
+          .select('permit_data')
+          .eq('client_id', clientId)
+          .maybeSingle();
+
+        if (clientRec && Array.isArray(clientRec.permit_data)) {
+          const updatedPermits = clientRec.permit_data.filter((p: any) => p.id !== permitId && p.state !== permitId);
+          await supabase
+            .from('clients')
+            .update({ permit_data: updatedPermits, updated_at: new Date().toISOString() })
+            .eq('client_id', clientId);
+          return NextResponse.json({ success: true, status: 'success', message: 'Permit removed from portfolio.' });
+        }
+
+        return NextResponse.json({ success: true, status: 'success', message: 'Permit deleted.' });
+      }
+
+      case 'getAdminDashboardData': {
+        const { data: students } = await supabase.from('students').select('*').order('created_at', { ascending: false });
+        const { data: clients } = await supabase.from('clients').select('*').order('created_at', { ascending: false });
+        const { data: enrollments } = await supabase.from('enrollments').select('*, classes(title)').order('scheduled_date', { ascending: false });
+        const { data: liveChats } = await supabase.from('live_chats').select('*').order('created_at', { ascending: false });
+
         return NextResponse.json({
           success: true,
           status: 'success',
           students: (students || []).map(normalizeStudent),
           clients: (clients || []).map(normalizeClient),
           enrollments: enrollments || [],
-          liveChats: liveChats || []
+          liveChats: liveChats || [],
         });
       }
+
       case 'updateStudentStatus': {
         const studentId = payload.studentId;
         const newStatus = payload.status;
@@ -415,16 +483,13 @@ export async function POST(req: NextRequest) {
         }
         return NextResponse.json({ success: true, status: 'success' });
       }
+
       case 'updateStudentTask': {
         const studentId = payload.studentId;
         const taskId = payload.taskId;
         const isChecked = Boolean(payload.isChecked);
-        const { data: student } = await supabase
-          .from('students')
-          .select('prep_tasks')
-          .eq('student_id', studentId)
-          .maybeSingle();
-        const currentTasks = (student && student.prep_tasks) ? student.prep_tasks : {};
+        const { data: student } = await supabase.from('students').select('prep_tasks').eq('student_id', studentId).maybeSingle();
+        const currentTasks = student && student.prep_tasks ? student.prep_tasks : {};
         currentTasks[taskId] = isChecked;
         await supabase
           .from('students')
@@ -432,43 +497,7 @@ export async function POST(req: NextRequest) {
           .eq('student_id', studentId);
         return NextResponse.json({ success: true, status: 'success' });
       }
-      case 'adminEditStudent': {
-        const studentId = payload.studentId;
-        const updates = payload.updates || payload;
-        delete updates.action;
-        delete updates.passcode;
-        delete updates.studentId;
-        const { data: updated, error } = await supabase
-          .from('students')
-          .update({
-            full_name: updates.fullName || updates.full_name,
-            email: updates.email,
-            phone: updates.phone,
-            course_name: updates.courseSelection || updates.course,
-            course: updates.courseSelection || updates.course,
-            assigned_date: updates.assignedDate || updates.classDate,
-            status: updates.status,
-            qualification_score: updates.qualificationScore,
-            profile_doc_url: updates.profileDocUrl || updates.dossierUrl,
-            internal_notes: updates.notes,
-            updated_at: new Date().toISOString()
-          })
-          .eq('student_id', studentId)
-          .select()
-          .single();
-        if (error) {
-          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 500 });
-        }
-        return NextResponse.json({ success: true, status: 'success', student: normalizeStudent(updated) });
-      }
-      case 'adminDeleteStudent': {
-        const studentId = payload.studentId;
-        if (!studentId) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Missing studentId' }, { status: 400 });
-        }
-        await supabase.from('students').delete().eq('student_id', studentId);
-        return NextResponse.json({ success: true, status: 'success', message: 'Student removed.' });
-      }
+
       case 'handleLiveChatMessage': {
         const threadId = payload.threadId || payload.thread_id;
         const messageText = payload.message || payload.text;
@@ -483,7 +512,7 @@ export async function POST(req: NextRequest) {
           sender_name: senderName,
           sender_phone: senderPhone,
           message: messageText,
-          sent_at: new Date().toISOString()
+          sent_at: new Date().toISOString(),
         });
         const { data: threadMessages } = await supabase
           .from('live_chats')
@@ -492,22 +521,18 @@ export async function POST(req: NextRequest) {
           .order('sent_at', { ascending: true });
         return NextResponse.json({ success: true, status: 'success', messages: threadMessages || [] });
       }
+
       case 'getLiveChats': {
-        const { data: chats } = await supabase
-          .from('live_chats')
-          .select('*')
-          .order('sent_at', { ascending: false });
+        const { data: chats } = await supabase.from('live_chats').select('*').order('sent_at', { ascending: false });
         return NextResponse.json({ success: true, status: 'success', liveChats: chats || [] });
       }
+
       case 'getVisitorChatMessages': {
         const threadId = payload.threadId;
-        const { data: msgs } = await supabase
-          .from('live_chats')
-          .select('*')
-          .eq('thread_id', threadId)
-          .order('sent_at', { ascending: true });
+        const { data: msgs } = await supabase.from('live_chats').select('*').eq('thread_id', threadId).order('sent_at', { ascending: true });
         return NextResponse.json({ success: true, status: 'success', messages: msgs || [] });
       }
+
       case 'sendAdminLiveChatReply': {
         const threadId = payload.threadId || payload.payload?.threadId;
         const replyText = payload.text || payload.payload?.text || payload.message;
@@ -516,15 +541,17 @@ export async function POST(req: NextRequest) {
           sender: 'instructor',
           sender_name: 'Coach Kai Wade',
           message: replyText,
-          sent_at: new Date().toISOString()
+          sent_at: new Date().toISOString(),
         });
         return NextResponse.json({ success: true, status: 'success', message: 'Reply recorded.' });
       }
+
       case 'deleteLiveChatThread': {
         const threadId = payload.threadId;
         await supabase.from('live_chats').delete().eq('thread_id', threadId);
         return NextResponse.json({ success: true, status: 'success', message: 'Thread deleted.' });
       }
+
       default:
         return NextResponse.json({ success: false, status: 'error', error: 'Unhandled action: ' + action }, { status: 400 });
     }
