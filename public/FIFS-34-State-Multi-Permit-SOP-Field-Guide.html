@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>34+ State Multi-Permit Expansion System | FIFS SOP &amp; Field Guide</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              gold: '#F59E0B',
+              'gold-light': '#FCD34D',
+              'gold-dark': '#B45309',
+              amber: '#D97706',
+              dark: '#070A11',
+              card: '#0D1424',
+              surface: '#131D33',
+              border: '#1F2E4D',
+              blue: '#2563EB',
+              cyan: '#06B6D4',
+              crimson: '#EF4444',
+              emerald: '#10B981'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          backgroundImage: {
+            'tactical-grid': 'radial-gradient(circle, rgba(245, 158, 11, 0.08) 1px, transparent 1px)',
+            'hazard-stripe': 'repeating-linear-gradient(45deg, #1e293b, #1e293b 10px, #0f172a 10px, #0f172a 20px)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar and tactical accents */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #070A11;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1F2E4D;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #F59E0B;
+    }
+    .tactical-glow {
+      box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.25);
+    }
+    .tactical-glow-blue {
+      box-shadow: 0 0 25px -5px rgba(37, 99, 235, 0.3);
+    }
+    .glass-card {
+      background: rgba(13, 20, 36, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(31, 46, 77, 0.9);
+    }
+    @media print {
+      body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      <div class="glass-card {
+        background: #ffffff !important;
+        border: 1px solid #cccccc !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+      }
+    }
+  </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:Inter, sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:JetBrains Mono, monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.-bottom-12{bottom:-3rem}.-left-\[31px\]{left:-31px}.-right-12{right:-3rem}.-right-16{right:-4rem}.-top-16{top:-4rem}.bottom-4{bottom:1rem}.left-0{left:0px}.left-1\/2{left:50%}.right-0{right:0px}.right-6{right:1.5rem}.top-0{top:0px}.top-1\/2{top:50%}.top-20{top:5rem}.top-6{top:1.5rem}.z-0{z-index:0}.z-10{z-index:10}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-2{margin-bottom:0.5rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.ml-\[33\%\]{margin-left:33%}.ml-\[50\%\]{margin-left:50%}.ml-\[66\%\]{margin-left:66%}.mt-0\.5{margin-top:0.125rem}.mt-1{margin-top:0.25rem}.mt-16{margin-top:4rem}.mt-2{margin-top:0.5rem}.mt-3{margin-top:0.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mt-6{margin-top:1.5rem}.mt-8{margin-top:2rem}.block{display:block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-0\.5{height:0.125rem}.h-10{height:2.5rem}.h-12{height:3rem}.h-14{height:3.5rem}.h-2{height:0.5rem}.h-3{height:0.75rem}.h-3\.5{height:0.875rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-6{height:1.5rem}.h-64{height:16rem}.h-72{height:18rem}.h-8{height:2rem}.h-96{height:24rem}.h-full{height:100%}.min-h-screen{min-height:100vh}.w-10{width:2.5rem}.w-12{width:3rem}.w-14{width:3.5rem}.w-2{width:0.5rem}.w-3\.5{width:0.875rem}.w-4{width:1rem}.w-5{width:1.25rem}.w-6{width:1.5rem}.w-64{width:16rem}.w-72{width:18rem}.w-8{width:2rem}.w-96{width:24rem}.w-\[16\%\]{width:16%}.w-\[17\%\]{width:17%}.w-\[33\%\]{width:33%}.w-\[34\%\]{width:34%}.w-\[6\%\]{width:6%}.w-\[85\%\]{width:85%}.w-\[94\%\]{width:94%}.w-full{width:100%}.max-w-3xl{max-width:48rem}.max-w-4xl{max-width:56rem}.max-w-7xl{max-width:80rem}.max-w-xl{max-width:36rem}.flex-shrink-0{flex-shrink:0}.-translate-x-1\/2{--tw-translate-x:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-translate-y-6{--tw-translate-y:-1.5rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes ping{75%, 100%{transform:scale(2);opacity:0}}.animate-ping{animation:ping 1s cubic-bezier(0, 0, 0.2, 1) infinite}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite}.cursor-pointer{cursor:pointer}.select-none{-webkit-user-select:none;user-select:none}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}.space-x-1\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.375rem * var(--tw-space-x-reverse));margin-left:calc(0.375rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-2 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.5rem * var(--tw-space-x-reverse));margin-left:calc(0.5rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-2\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.625rem * var(--tw-space-x-reverse));margin-left:calc(0.625rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-3 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.75rem * var(--tw-space-x-reverse));margin-left:calc(0.75rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-3\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.875rem * var(--tw-space-x-reverse));margin-left:calc(0.875rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-4 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(1rem * var(--tw-space-x-reverse));margin-left:calc(1rem * calc(1 - var(--tw-space-x-reverse)))}.space-y-0\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.125rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.125rem * var(--tw-space-y-reverse))}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.space-y-1\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.375rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.375rem * var(--tw-space-y-reverse))}.space-y-12 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(3rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(3rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-2\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.625rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.625rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-3\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.875rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.875rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.divide-y > :not([hidden]) ~ :not([hidden]){--tw-divide-y-reverse:0;border-top-width:calc(1px * calc(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px * var(--tw-divide-y-reverse))}.divide-brand-border > :not([hidden]) ~ :not([hidden]){--tw-divide-opacity:1;border-color:rgb(31 46 77 / var(--tw-divide-opacity, 1))}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.scroll-smooth{scroll-behavior:smooth}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-l-2{border-left-width:2px}.border-l-4{border-left-width:4px}.border-t{border-top-width:1px}.border-\[\#070A11\]{--tw-border-opacity:1;border-color:rgb(7 10 17 / var(--tw-border-opacity, 1))}.border-amber-500\/30{border-color:rgb(245 158 11 / 0.3)}.border-amber-500\/40{border-color:rgb(245 158 11 / 0.4)}.border-amber-500\/50{border-color:rgb(245 158 11 / 0.5)}.border-blue-400\/50{border-color:rgb(96 165 250 / 0.5)}.border-blue-500\/30{border-color:rgb(59 130 246 / 0.3)}.border-blue-500\/40{border-color:rgb(59 130 246 / 0.4)}.border-blue-500\/50{border-color:rgb(59 130 246 / 0.5)}.border-blue-600\/40{border-color:rgb(37 99 235 / 0.4)}.border-brand-blue{--tw-border-opacity:1;border-color:rgb(37 99 235 / var(--tw-border-opacity, 1))}.border-brand-border{--tw-border-opacity:1;border-color:rgb(31 46 77 / var(--tw-border-opacity, 1))}.border-brand-border\/60{border-color:rgb(31 46 77 / 0.6)}.border-brand-border\/80{border-color:rgb(31 46 77 / 0.8)}.border-brand-gold{--tw-border-opacity:1;border-color:rgb(245 158 11 / var(--tw-border-opacity, 1))}.border-brand-gold\/30{border-color:rgb(245 158 11 / 0.3)}.border-brand-gold\/50{border-color:rgb(245 158 11 / 0.5)}.border-brand-gold\/60{border-color:rgb(245 158 11 / 0.6)}.border-cyan-500\/40{border-color:rgb(6 182 212 / 0.4)}.border-emerald-500\/30{border-color:rgb(16 185 129 / 0.3)}.border-emerald-500\/40{border-color:rgb(16 185 129 / 0.4)}.border-emerald-500\/50{border-color:rgb(16 185 129 / 0.5)}.border-red-500{--tw-border-opacity:1;border-color:rgb(239 68 68 / var(--tw-border-opacity, 1))}.border-red-500\/30{border-color:rgb(239 68 68 / 0.3)}.border-red-500\/40{border-color:rgb(239 68 68 / 0.4)}.border-red-500\/50{border-color:rgb(239 68 68 / 0.5)}.border-red-500\/60{border-color:rgb(239 68 68 / 0.6)}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-l-brand-blue{--tw-border-opacity:1;border-left-color:rgb(37 99 235 / var(--tw-border-opacity, 1))}.border-l-brand-cyan{--tw-border-opacity:1;border-left-color:rgb(6 182 212 / var(--tw-border-opacity, 1))}.border-l-brand-gold{--tw-border-opacity:1;border-left-color:rgb(245 158 11 / var(--tw-border-opacity, 1))}.border-l-emerald-500{--tw-border-opacity:1;border-left-color:rgb(16 185 129 / var(--tw-border-opacity, 1))}.bg-\[\#05080E\]{--tw-bg-opacity:1;background-color:rgb(5 8 14 / var(--tw-bg-opacity, 1))}.bg-\[\#070A11\]{--tw-bg-opacity:1;background-color:rgb(7 10 17 / var(--tw-bg-opacity, 1))}.bg-\[\#070A11\]\/95{background-color:rgb(7 10 17 / 0.95)}.bg-\[\#0D1424\]\/95{background-color:rgb(13 20 36 / 0.95)}.bg-amber-500{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.bg-amber-500\/10{background-color:rgb(245 158 11 / 0.1)}.bg-amber-500\/20{background-color:rgb(245 158 11 / 0.2)}.bg-black\/40{background-color:rgb(0 0 0 / 0.4)}.bg-black\/50{background-color:rgb(0 0 0 / 0.5)}.bg-black\/60{background-color:rgb(0 0 0 / 0.6)}.bg-blue-400{--tw-bg-opacity:1;background-color:rgb(96 165 250 / var(--tw-bg-opacity, 1))}.bg-blue-500{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.bg-blue-500\/10{background-color:rgb(59 130 246 / 0.1)}.bg-blue-500\/20{background-color:rgb(59 130 246 / 0.2)}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.bg-blue-600\/20{background-color:rgb(37 99 235 / 0.2)}.bg-blue-800\/30{background-color:rgb(30 64 175 / 0.3)}.bg-brand-blue{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.bg-brand-card{--tw-bg-opacity:1;background-color:rgb(13 20 36 / var(--tw-bg-opacity, 1))}.bg-brand-cyan{--tw-bg-opacity:1;background-color:rgb(6 182 212 / var(--tw-bg-opacity, 1))}.bg-brand-gold{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.bg-brand-gold\/10{background-color:rgb(245 158 11 / 0.1)}.bg-brand-gold\/20{background-color:rgb(245 158 11 / 0.2)}.bg-brand-gold\/5{background-color:rgb(245 158 11 / 0.05)}.bg-brand-surface{--tw-bg-opacity:1;background-color:rgb(19 29 51 / var(--tw-bg-opacity, 1))}.bg-cyan-500\/10{background-color:rgb(6 182 212 / 0.1)}.bg-emerald-400{--tw-bg-opacity:1;background-color:rgb(52 211 153 / var(--tw-bg-opacity, 1))}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.bg-emerald-500\/10{background-color:rgb(16 185 129 / 0.1)}.bg-emerald-500\/20{background-color:rgb(16 185 129 / 0.2)}.bg-emerald-950\/20{background-color:rgb(2 44 34 / 0.2)}.bg-emerald-950\/30{background-color:rgb(2 44 34 / 0.3)}.bg-red-500{--tw-bg-opacity:1;background-color:rgb(239 68 68 / var(--tw-bg-opacity, 1))}.bg-red-500\/20{background-color:rgb(239 68 68 / 0.2)}.bg-red-500\/30{background-color:rgb(239 68 68 / 0.3)}.bg-red-600\/20{background-color:rgb(220 38 38 / 0.2)}.bg-red-950\/20{background-color:rgb(69 10 10 / 0.2)}.bg-red-950\/40{background-color:rgb(69 10 10 / 0.4)}.bg-red-950\/50{background-color:rgb(69 10 10 / 0.5)}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.bg-gradient-to-tr{background-image:linear-gradient(to top right, var(--tw-gradient-stops))}.from-blue-500{--tw-gradient-from:#3b82f6 var(--tw-gradient-from-position);--tw-gradient-to:rgb(59 130 246 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-brand-card{--tw-gradient-from:#0D1424 var(--tw-gradient-from-position);--tw-gradient-to:rgb(13 20 36 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-brand-gold{--tw-gradient-from:#F59E0B var(--tw-gradient-from-position);--tw-gradient-to:rgb(245 158 11 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-emerald-950\/30{--tw-gradient-from:rgb(2 44 34 / 0.3) var(--tw-gradient-from-position);--tw-gradient-to:rgb(2 44 34 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-emerald-950\/40{--tw-gradient-from:rgb(2 44 34 / 0.4) var(--tw-gradient-from-position);--tw-gradient-to:rgb(2 44 34 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-red-950\/40{--tw-gradient-from:rgb(69 10 10 / 0.4) var(--tw-gradient-from-position);--tw-gradient-to:rgb(69 10 10 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-\[\#0F172A\]{--tw-gradient-to:rgb(15 23 42 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #0F172A var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-amber-500{--tw-gradient-to:rgb(245 158 11 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #f59e0b var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-brand-card{--tw-gradient-to:rgb(13 20 36 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #0D1424 var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-brand-gold-light{--tw-gradient-to:rgb(252 211 77 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #FCD34D var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-\[\#070A11\]{--tw-gradient-to:#070A11 var(--tw-gradient-to-position)}.to-amber-200{--tw-gradient-to:#fde68a var(--tw-gradient-to-position)}.to-amber-950\/30{--tw-gradient-to:rgb(69 26 3 / 0.3) var(--tw-gradient-to-position)}.to-brand-amber{--tw-gradient-to:#D97706 var(--tw-gradient-to-position)}.to-brand-card{--tw-gradient-to:#0D1424 var(--tw-gradient-to-position)}.to-cyan-950\/40{--tw-gradient-to:rgb(8 51 68 / 0.4) var(--tw-gradient-to-position)}.to-red-500{--tw-gradient-to:#ef4444 var(--tw-gradient-to-position)}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.p-1\.5{padding:0.375rem}.p-2{padding:0.5rem}.p-2\.5{padding:0.625rem}.p-3{padding:0.75rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-1{padding-left:0.25rem;padding-right:0.25rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.px-4{padding-left:1rem;padding-right:1rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-28{padding-bottom:7rem}.pb-4{padding-bottom:1rem}.pb-6{padding-bottom:1.5rem}.pl-6{padding-left:1.5rem}.pt-1{padding-top:0.25rem}.pt-2{padding-top:0.5rem}.pt-3{padding-top:0.75rem}.text-left{text-align:left}.text-center{text-align:center}.font-mono{font-family:JetBrains Mono, monospace}.font-sans{font-family:Inter, sans-serif}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-relaxed{line-height:1.625}.leading-snug{line-height:1.375}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-0.025em}.tracking-wide{letter-spacing:0.025em}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.text-black{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.text-blue-200{--tw-text-opacity:1;color:rgb(191 219 254 / var(--tw-text-opacity, 1))}.text-blue-300{--tw-text-opacity:1;color:rgb(147 197 253 / var(--tw-text-opacity, 1))}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235 / var(--tw-text-opacity, 1))}.text-brand-blue{--tw-text-opacity:1;color:rgb(37 99 235 / var(--tw-text-opacity, 1))}.text-brand-cyan{--tw-text-opacity:1;color:rgb(6 182 212 / var(--tw-text-opacity, 1))}.text-brand-gold{--tw-text-opacity:1;color:rgb(245 158 11 / var(--tw-text-opacity, 1))}.text-cyan-400{--tw-text-opacity:1;color:rgb(34 211 238 / var(--tw-text-opacity, 1))}.text-emerald-300{--tw-text-opacity:1;color:rgb(110 231 183 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-emerald-500{--tw-text-opacity:1;color:rgb(16 185 129 / var(--tw-text-opacity, 1))}.text-red-200{--tw-text-opacity:1;color:rgb(254 202 202 / var(--tw-text-opacity, 1))}.text-red-300{--tw-text-opacity:1;color:rgb(252 165 165 / var(--tw-text-opacity, 1))}.text-red-400{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.text-slate-100{--tw-text-opacity:1;color:rgb(241 245 249 / var(--tw-text-opacity, 1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.underline{-webkit-text-decoration-line:underline;text-decoration-line:underline}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.opacity-10{opacity:0.1}.opacity-40{opacity:0.4}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-black\/80{--tw-shadow-color:rgb(0 0 0 / 0.8);--tw-shadow:var(--tw-shadow-colored)}.shadow-brand-gold\/20{--tw-shadow-color:rgb(245 158 11 / 0.2);--tw-shadow:var(--tw-shadow-colored)}.shadow-brand-gold\/30{--tw-shadow-color:rgb(245 158 11 / 0.3);--tw-shadow:var(--tw-shadow-colored)}.blur-2xl{--tw-blur:blur(40px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-3xl{--tw-blur:blur(64px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.selection\:bg-brand-gold *::selection{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.selection\:text-black *::selection{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.selection\:bg-brand-gold::selection{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.selection\:text-black::selection{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.hover\:border-amber-400:hover{--tw-border-opacity:1;border-color:rgb(251 191 36 / var(--tw-border-opacity, 1))}.hover\:border-blue-500\/40:hover{border-color:rgb(59 130 246 / 0.4)}.hover\:border-blue-500\/50:hover{border-color:rgb(59 130 246 / 0.5)}.hover\:border-brand-blue:hover{--tw-border-opacity:1;border-color:rgb(37 99 235 / var(--tw-border-opacity, 1))}.hover\:border-brand-cyan:hover{--tw-border-opacity:1;border-color:rgb(6 182 212 / var(--tw-border-opacity, 1))}.hover\:border-brand-gold:hover{--tw-border-opacity:1;border-color:rgb(245 158 11 / var(--tw-border-opacity, 1))}.hover\:border-brand-gold\/60:hover{border-color:rgb(245 158 11 / 0.6)}.hover\:border-emerald-500:hover{--tw-border-opacity:1;border-color:rgb(16 185 129 / var(--tw-border-opacity, 1))}.hover\:bg-brand-gold-light:hover{--tw-bg-opacity:1;background-color:rgb(252 211 77 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-800\/30:hover{background-color:rgb(30 41 59 / 0.3)}.hover\:bg-slate-800\/40:hover{background-color:rgb(30 41 59 / 0.4)}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.hover\:shadow-lg:hover{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.hover\:shadow-amber-500\/10:hover{--tw-shadow-color:rgb(245 158 11 / 0.1);--tw-shadow:var(--tw-shadow-colored)}.hover\:shadow-blue-500\/10:hover{--tw-shadow-color:rgb(59 130 246 / 0.1);--tw-shadow:var(--tw-shadow-colored)}.hover\:shadow-red-500\/10:hover{--tw-shadow-color:rgb(239 68 68 / 0.1);--tw-shadow:var(--tw-shadow-colored)}.focus\:ring-blue-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(59 130 246 / var(--tw-ring-opacity, 1))}.group:hover .group-hover\:scale-110{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@media (min-width: 640px){.sm\:col-span-2{grid-column:span 2 / span 2}.sm\:block{display:block}.sm\:inline{display:inline}.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.sm\:p-10{padding:2.5rem}.sm\:p-5{padding:1.25rem}.sm\:p-7{padding:1.75rem}.sm\:p-8{padding:2rem}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:text-5xl{font-size:3rem;line-height:1}.sm\:text-base{font-size:1rem;line-height:1.5rem}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}}@media (min-width: 768px){.md\:block{display:block}.md\:w-auto{width:auto}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.md\:flex-row{flex-direction:row}.md\:items-center{align-items:center}}@media (min-width: 1024px){.lg\:col-span-4{grid-column:span 4 / span 4}.lg\:col-span-5{grid-column:span 5 / span 5}.lg\:col-span-6{grid-column:span 6 / span 6}.lg\:col-span-7{grid-column:span 7 / span 7}.lg\:col-span-8{grid-column:span 8 / span 8}.lg\:block{display:block}.lg\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.lg\:grid-cols-5{grid-template-columns:repeat(5, minmax(0, 1fr))}.lg\:flex-row{flex-direction:row}.lg\:items-center{align-items:center}.lg\:px-8{padding-left:2rem;padding-right:2rem}}</style></head>
+<body class="bg-[#070A11] text-slate-100 font-sans antialiased min-h-screen selection:bg-brand-gold selection:text-black pb-28">
+
+  <!-- Top Operational Banner -->
+  <header class="sticky top-0 z-50 bg-[#070A11]/95 backdrop-blur-md border-b border-brand-border/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand & Badges -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-gold to-brand-amber flex items-center justify-center font-black text-black text-xl shadow-lg shadow-brand-gold/20">
+          <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs uppercase font-mono tracking-widest text-brand-gold font-bold">FUTURE INITIATIVE FIREARM SERVICES</span>
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">COMPLIANCE HUB</span>
+          </div>
+          <p class="text-sm font-bold text-white tracking-wide">34+ STATE MULTI-PERMIT EXPANSION SYSTEM</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Controls -->
+      <div class="flex items-center space-x-2 no-print">
+        <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-brand-surface border border-brand-border text-xs font-medium text-slate-300 hover:text-white hover:border-brand-gold/60 transition flex items-center space-x-1.5">
+          <svg class="w-3.5 h-3.5 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+          </svg>
+          <span>Print / PDF Field Guide</span>
+        </button>
+        <a href="#directory" class="px-3.5 py-1.5 rounded-lg bg-brand-gold hover:bg-brand-gold-light text-black font-semibold text-xs transition shadow-md shadow-brand-gold/20 flex items-center space-x-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+          </svg>
+          <span>Contact Coach Kai</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+    <!-- Hero / Title Billboard -->
+    <section class="relative overflow-hidden rounded-2xl p-6 sm:p-10 border border-brand-gold/30 bg-gradient-to-br from-brand-card via-[#0F172A] to-[#070A11] tactical-glow">
+      <!-- Background tactical watermarks -->
+      <div class="absolute -right-12 -bottom-12 w-96 h-96 bg-brand-gold/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute right-6 top-6 opacity-10 hidden lg:block">
+        <svg class="w-72 h-72 text-brand-gold" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v4.7c0 4.67-3.13 9.04-7 10.15-3.87-1.11-7-5.48-7-10.15V6.3l7-3.12z"></path>
+        </svg>
+      </div>
+
+      <div class="relative z-10 space-y-4 max-w-4xl">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-gold/10 border border-brand-gold/30 text-brand-gold font-mono text-xs uppercase tracking-wider">
+          <span class="w-2 h-2 rounded-full bg-brand-gold animate-ping"></span>
+          <span>Standard Operating Procedure &amp; Field Guide</span>
+        </div>
+
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+          34+ STATE MULTI-PERMIT <br class="hidden sm:inline">
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold via-brand-gold-light to-amber-200">EXPANSION SYSTEM</span>
+        </h1>
+
+        <p class="text-slate-300 text-sm sm:text-base leading-relaxed max-w-3xl">
+          Authorized Field Guide by <strong class="text-white">Future Initiative Firearm Services</strong>. Master the sequence to turn your Maryland certification into a seamless, coast-to-coast multi-state defensive shield while bypassing clerical disqualifications and saving on state licensing.
+        </p>
+
+        <!-- Instructor Credential Tagline -->
+        <div class="pt-2 flex flex-wrap items-center gap-3 text-xs font-mono text-slate-400">
+          <div class="flex items-center space-x-1.5 bg-black/40 px-3 py-1.5 rounded-md border border-brand-border">
+            <span class="text-brand-gold font-bold">LEAD COACH:</span>
+            <span class="text-slate-200">Kai Wade</span>
+          </div>
+          <div class="flex items-center space-x-1.5 bg-black/40 px-3 py-1.5 rounded-md border border-brand-border">
+            <span class="text-brand-gold font-bold">CREDENTIALS:</span>
+            <span class="text-slate-200">NRA #262929961 • MSP QHIC § 5-101</span>
+          </div>
+          <div class="flex items-center space-x-1.5 bg-black/40 px-3 py-1.5 rounded-md border border-brand-border">
+            <span class="text-brand-gold font-bold">RANGE HUB:</span>
+            <span class="text-slate-200">Cindy's Hot Shots</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Critical Directive Alert Box -->
+      <div class="mt-8 rounded-xl p-4 sm:p-5 bg-crimson-950/40 border border-red-500/40 flex items-start space-x-3.5">
+        <div class="p-2 rounded-lg bg-red-500/20 text-red-400 flex-shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-mono font-black uppercase text-red-400 tracking-wider">CRITICAL DIRECTIVE: ZERO-DEFECT SUBMISSION</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded bg-red-500/30 text-red-200 uppercase font-bold font-mono">Mandatory Compliance</span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-300 mt-1 leading-snug">
+            State Police agencies automatically reject applications for minute clerical errors (e.g., incorrect check payee, non-compliant photo lighting, missing notarized affidavits). Follow every instruction in this field guide in exact chronological sequence.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 1: Executive Metrics Cards -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-xs font-mono uppercase tracking-widest text-brand-gold font-bold">SECTION 1 // EXECUTIVE METRICS</h2>
+          <p class="text-xl font-bold text-white">System At A Glance</p>
+        </div>
+        <span class="text-xs font-mono text-slate-400">STATUS: ACTIVE COMPLIANCE</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Metric 1 -->
+        <div class="glass-card rounded-xl p-5 border-l-4 border-l-brand-gold hover:border-brand-gold transition duration-300 group">
+          <div class="flex justify-between items-start">
+            <span class="text-xs font-mono uppercase text-slate-400 font-semibold">Reciprocity Reach</span>
+            <span class="p-1.5 rounded-md bg-brand-gold/10 text-brand-gold group-hover:scale-110 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </span>
+          </div>
+          <div class="mt-2 text-3xl font-black text-white font-mono">34+ <span class="text-sm font-sans font-bold text-brand-gold">STATES</span></div>
+          <div class="mt-2 w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div class="bg-gradient-to-r from-brand-gold to-brand-amber h-full w-[85%] rounded-full"></div>
+          </div>
+          <p class="mt-2 text-xs text-slate-400">Interstate legal reciprocity footprint</p>
+        </div>
+
+        <!-- Metric 2 -->
+        <div class="glass-card rounded-xl p-5 border-l-4 border-l-brand-blue hover:border-brand-blue transition duration-300 group">
+          <div class="flex justify-between items-start">
+            <span class="text-xs font-mono uppercase text-slate-400 font-semibold">Course Architecture</span>
+            <span class="p-1.5 rounded-md bg-blue-500/10 text-blue-400 group-hover:scale-110 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            </span>
+          </div>
+          <div class="mt-2 text-3xl font-black text-white font-mono">5-IN-1 <span class="text-sm font-sans font-bold text-brand-blue">STACK</span></div>
+          <div class="mt-2 w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div class="bg-brand-blue h-full w-full rounded-full"></div>
+          </div>
+          <p class="mt-2 text-xs text-slate-400">One comprehensive training framework</p>
+        </div>
+
+        <!-- Metric 3 -->
+        <div class="glass-card rounded-xl p-5 border-l-4 border-l-emerald-500 hover:border-emerald-500 transition duration-300 group">
+          <div class="flex justify-between items-start">
+            <span class="text-xs font-mono uppercase text-slate-400 font-semibold">Statutory Proof</span>
+            <span class="p-1.5 rounded-md bg-emerald-500/10 text-emerald-400 group-hover:scale-110 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </span>
+          </div>
+          <div class="mt-2 text-3xl font-black text-white font-mono">100% <span class="text-sm font-sans font-bold text-emerald-400">IN-PERSON</span></div>
+          <div class="mt-2 w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div class="bg-emerald-500 h-full w-full rounded-full"></div>
+          </div>
+          <p class="mt-2 text-xs text-slate-400">Strict Va. Code § 18.2-308 compliance</p>
+        </div>
+
+        <!-- Metric 4 -->
+        <div class="glass-card rounded-xl p-5 border-l-4 border-l-brand-cyan hover:border-brand-cyan transition duration-300 group">
+          <div class="flex justify-between items-start">
+            <span class="text-xs font-mono uppercase text-slate-400 font-semibold">Direct Student Savings</span>
+            <span class="p-1.5 rounded-md bg-cyan-500/10 text-brand-cyan group-hover:scale-110 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </span>
+          </div>
+          <div class="mt-2 text-3xl font-black text-white font-mono">$150 <span class="text-sm font-sans font-bold text-brand-cyan">SAVED</span></div>
+          <div class="mt-2 w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div class="bg-brand-cyan h-full w-full rounded-full"></div>
+          </div>
+          <p class="mt-2 text-xs text-slate-400">Free Maryland HQL Exemption unlocked</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- The Strategic "Why": Interstate Legal Shield Comparison Card -->
+    <section class="glass-card rounded-2xl p-6 sm:p-8 border border-brand-border">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-brand-border/60">
+        <div>
+          <span class="text-xs font-mono uppercase text-brand-gold font-bold tracking-wider">STRATEGIC RATIONALE</span>
+          <h3 class="text-2xl font-bold text-white mt-1">The Strategic "Why": Interstate Legal Shield</h3>
+        </div>
+        <div class="flex items-center space-x-2 text-xs font-mono bg-black/40 px-3 py-1.5 rounded-lg border border-brand-border">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="text-slate-300">EAST COAST CORRIDOR DEFENSE</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- WITHOUT EXPANSION -->
+        <div class="rounded-xl p-5 bg-red-950/20 border border-red-500/30 space-y-3 relative overflow-hidden">
+          <div class="flex items-center space-x-3 text-red-400">
+            <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center font-bold">✕</div>
+            <h4 class="font-bold text-lg text-white">WITHOUT EXPANSION (MD Only)</h4>
+          </div>
+          <ul class="space-y-3 text-sm text-slate-300 pt-2">
+            <li class="flex items-start space-x-2">
+              <span class="text-red-400 mt-0.5 font-bold">▪</span>
+              <span><strong class="text-white">Confined Jurisdiction:</strong> Legal strictly inside Maryland state lines. Immediate loss of legal carry rights at all perimeter borders.</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <span class="text-red-400 mt-0.5 font-bold">▪</span>
+              <span><strong class="text-white">I-95 Corridor Transit Hazard:</strong> Severe felony weapon charges when crossing Delaware, Virginia, or Pennsylvania borders.</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <span class="text-red-400 mt-0.5 font-bold">▪</span>
+              <span><strong class="text-white">Redundant Educational Costs:</strong> Requires booking a separate 4-hour course ($150+) to obtain a Maryland Handgun Qualification License (HQL).</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- WITH FIFS 5-IN-1 EXPANSION -->
+        <div class="rounded-xl p-5 bg-gradient-to-br from-emerald-950/30 to-brand-card border border-emerald-500/40 space-y-3 relative overflow-hidden">
+          <div class="flex items-center space-x-3 text-emerald-400">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center font-bold">✓</div>
+            <h4 class="font-bold text-lg text-white">WITH FIFS 5-IN-1 EXPANSION STACK</h4>
+          </div>
+          <ul class="space-y-3 text-sm text-slate-300 pt-2">
+            <li class="flex items-start space-x-2">
+              <span class="text-emerald-400 mt-0.5 font-bold">▪</span>
+              <span><strong class="text-white">34+ States Recognized:</strong> Lawful nationwide concealed carry spanning the Mid-Atlantic, Southeast, Midwest, and West.</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <span class="text-emerald-400 mt-0.5 font-bold">▪</span>
+              <span><strong class="text-white">Continuous East Coast Corridor:</strong> Seamless travel along I-95, I-81, and I-70 without the risk of accidental felony border crossings.</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <span class="text-emerald-400 mt-0.5 font-bold">▪</span>
+              <span><strong class="text-white">Unlocked $0 HQL Exemption:</strong> Uses Form MSP 29-14 score sheet to unlock 100% free MD HQL—saving $150 instantly.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Phased Order of Operations Pipeline -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-xs font-mono uppercase tracking-widest text-brand-gold font-bold">SECTION 2 // PHISED DISPATCH TIMELINE</h2>
+          <p class="text-xl font-bold text-white">Phased Order of Operations</p>
+        </div>
+        <span class="text-xs font-mono text-slate-400">CHRONOLOGICAL DISPATCH FLOW</span>
+      </div>
+
+      <!-- Visual Pipeline Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+        <!-- Connecting line behind on desktop -->
+        <div class="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-amber-500 to-red-500 -translate-y-6 z-0 opacity-40"></div>
+
+        <!-- PHASE 1 -->
+        <div class="relative z-10 glass-card rounded-2xl p-6 border-2 border-brand-blue hover:shadow-lg hover:shadow-blue-500/10 transition">
+          <div class="flex items-center justify-between mb-4">
+            <span class="px-2.5 py-1 rounded bg-blue-500/20 text-blue-400 font-mono text-xs font-bold uppercase border border-blue-500/40">Phase 1: Foundation</span>
+            <span class="text-xs font-mono text-slate-400 font-bold">DAY 1 IMMEDIATE</span>
+          </div>
+          <h4 class="text-xl font-extrabold text-white">Maryland Wear &amp; Carry</h4>
+          <p class="text-xs text-blue-300 font-mono mt-1 font-semibold">Home Base Resident Anchor</p>
+          <div class="mt-4 p-3 rounded-lg bg-black/40 border border-brand-border text-xs text-slate-300 space-y-2">
+            <p><strong>Action:</strong> Submit 100% online via MSP Licensing Portal immediately following LiveScan.</p>
+            <p class="text-emerald-400 font-semibold">Trigger: Completion of 16-hr course &amp; LiveScan TCN.</p>
+          </div>
+        </div>
+
+        <!-- PHASE 2 -->
+        <div class="relative z-10 glass-card rounded-2xl p-6 border-2 border-brand-gold hover:shadow-lg hover:shadow-amber-500/10 transition">
+          <div class="flex items-center justify-between mb-4">
+            <span class="px-2.5 py-1 rounded bg-amber-500/20 text-brand-gold font-mono text-xs font-bold uppercase border border-amber-500/40">Phase 2: Parallel Mail</span>
+            <span class="text-xs font-mono text-slate-400 font-bold">DAYS 1 – 3</span>
+          </div>
+          <h4 class="text-xl font-extrabold text-white">Virginia • Florida • Arizona</h4>
+          <p class="text-xs text-amber-300 font-mono mt-1 font-semibold">Non-Resident Expansion Packets</p>
+          <div class="mt-4 p-3 rounded-lg bg-black/40 border border-brand-border text-xs text-slate-300 space-y-2">
+            <p><strong>Action:</strong> Assemble packets with Kai's notarized credentials and dispatch via USPS.</p>
+            <p class="text-brand-gold font-semibold">Crucial Rule: Do NOT wait for Maryland approval notice!</p>
+          </div>
+        </div>
+
+        <!-- PHASE 3 -->
+        <div class="relative z-10 glass-card rounded-2xl p-6 border-2 border-red-500 hover:shadow-lg hover:shadow-red-500/10 transition">
+          <div class="flex items-center justify-between mb-4">
+            <span class="px-2.5 py-1 rounded bg-red-500/20 text-red-400 font-mono text-xs font-bold uppercase border border-red-500/40">Phase 3: Border Pickup</span>
+            <span class="text-xs font-mono text-red-400 font-bold animate-pulse">🛑 HOLDING PATTERN</span>
+          </div>
+          <h4 class="text-xl font-extrabold text-white">Pennsylvania LTCF</h4>
+          <p class="text-xs text-red-300 font-mono mt-1 font-semibold">Rapid 5-Minute In-Person Issuance</p>
+          <div class="mt-4 p-3 rounded-lg bg-black/40 border border-brand-border text-xs text-slate-300 space-y-2">
+            <p><strong>Action:</strong> York County online submission, then 35-min drive for 5-minute photo issue.</p>
+            <p class="text-red-400 font-semibold">Prerequisite: Physical plastic MD permit in your hand!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary Dispatch Table -->
+      <div class="mt-6 overflow-x-auto rounded-xl border border-brand-border bg-brand-card">
+        <table class="w-full text-left text-xs sm:text-sm">
+          <thead class="bg-black/50 text-slate-400 uppercase font-mono text-[11px] border-b border-brand-border">
+            <tr>
+              <th class="p-3">Phase</th>
+              <th class="p-3">Target Jurisdiction</th>
+              <th class="p-3">Action Timing</th>
+              <th class="p-3">Prerequisite Trigger</th>
+              <th class="p-3">Dispatch Vector</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-brand-border text-slate-300">
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="p-3 font-mono font-bold text-blue-400">Phase 1</td>
+              <td class="p-3 font-bold text-white">Maryland (Lead Resident)</td>
+              <td class="p-3">Day 1 (Immediate)</td>
+              <td class="p-3">16-hr course &amp; LiveScan completion</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs">MSP Online Portal</span></td>
+            </tr>
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="p-3 font-mono font-bold text-amber-400">Phase 2</td>
+              <td class="p-3 font-bold text-white">Virginia, Florida, Arizona</td>
+              <td class="p-3">Days 1–3 (Parallel)</td>
+              <td class="p-3">Course completion &amp; notarized affidavits</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs">USPS Tracked Mail &amp; FDACS Portal</span></td>
+            </tr>
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="p-3 font-mono font-bold text-red-400">Phase 3</td>
+              <td class="p-3 font-bold text-white">Pennsylvania (York County)</td>
+              <td class="p-3">Post-MD Delivery (TBD)</td>
+              <td class="p-3 font-bold text-amber-300">Physical plastic MD permit delivered</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30 text-xs">Permitium + Rapid In-Person</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 3: State 1 — Maryland Wear & Carry (Resident Anchor) -->
+    <section class="glass-card rounded-2xl p-6 sm:p-8 border border-blue-500/40 relative overflow-hidden" id="state-md">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-brand-border">
+        <div class="flex items-center space-x-3.5">
+          <div class="w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/50 flex items-center justify-center text-blue-400 font-black text-xl">
+            MD
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-mono uppercase text-blue-400 font-bold">SECTION 3 // STATE 1</span>
+              <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-mono border border-blue-500/30">LEAD RESIDENT LICENSE</span>
+            </div>
+            <h3 class="text-2xl font-black text-white">Maryland Wear &amp; Carry Handgun Permit</h3>
+          </div>
+        </div>
+
+        <!-- Spec Badges -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs font-mono">
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">AGENCY</span>
+            <span class="text-white font-bold">MD State Police</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">STATE FEE</span>
+            <span class="text-brand-gold font-bold">$125.00</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">AUTHORITY</span>
+            <span class="text-white font-bold">Md. PS § 5-306</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">TURNAROUND</span>
+            <span class="text-blue-300 font-bold">30–60 Days</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checklist & Sequence Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6">
+        <!-- Pre-Flight Document Checklist (Interactive) -->
+        <div class="lg:col-span-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center space-x-2">
+              <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+              <span>Pre-Flight Document Checklist</span>
+            </h4>
+            <span class="text-[11px] font-mono text-slate-400">Interactive Audit</span>
+          </div>
+
+          <div class="space-y-2.5">
+            <label class="flex items-start space-x-3 p-3 rounded-lg bg-black/40 border border-brand-border hover:border-blue-500/50 cursor-pointer transition select-none">
+              <input type="checkbox" class="mt-1 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 bg-slate-800 border-slate-700">
+              <div class="text-xs">
+                <span class="font-bold text-white block">Form MSP 29-14 Score Sheet</span>
+                <span class="text-slate-400">Signed by Coach Kai Wade (QHIC § 5-101, 70%+ passing score).</span>
+              </div>
+            </label>
+
+            <label class="flex items-start space-x-3 p-3 rounded-lg bg-black/40 border border-brand-border hover:border-blue-500/50 cursor-pointer transition select-none">
+              <input type="checkbox" class="mt-1 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 bg-slate-800 border-slate-700">
+              <div class="text-xs">
+                <span class="font-bold text-white block">Electronic LiveScan Receipt</span>
+                <span class="text-slate-400">Retain physical hard copy; must show 12-digit TCN tracking number.</span>
+              </div>
+            </label>
+
+            <label class="flex items-start space-x-3 p-3 rounded-lg bg-black/40 border border-brand-border hover:border-blue-500/50 cursor-pointer transition select-none">
+              <input type="checkbox" class="mt-1 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 bg-slate-800 border-slate-700">
+              <div class="text-xs">
+                <span class="font-bold text-white block">2x2 Passport Photo (Digital JPG)</span>
+                <span class="text-slate-400">Plain white wall, neutral expression, no eyewear/headwear.</span>
+              </div>
+            </label>
+
+            <label class="flex items-start space-x-3 p-3 rounded-lg bg-black/40 border border-brand-border hover:border-blue-500/50 cursor-pointer transition select-none">
+              <input type="checkbox" class="mt-1 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 bg-slate-800 border-slate-700">
+              <div class="text-xs">
+                <span class="font-bold text-white block">3 Non-Family Character References</span>
+                <span class="text-slate-400">Full legal names, physical home addresses, direct phone numbers &amp; active emails.</span>
+              </div>
+            </label>
+
+            <label class="flex items-start space-x-3 p-3 rounded-lg bg-black/40 border border-brand-border hover:border-blue-500/50 cursor-pointer transition select-none">
+              <input type="checkbox" class="mt-1 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 bg-slate-800 border-slate-700">
+              <div class="text-xs">
+                <span class="font-bold text-white block">$125.00 Payment Method</span>
+                <span class="text-slate-400">Valid Credit or Debit card ready for instant online portal remittance.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- MSP Portal Sequence (7 Steps Connected Pipeline) -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center space-x-2">
+              <svg class="w-4 h-4 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              <span>MSP Portal Click-by-Click Sequence</span>
+            </h4>
+            <span class="text-[11px] font-mono text-blue-400">licensingportal.mdsp.maryland.gov</span>
+          </div>
+
+          <div class="relative pl-6 border-l-2 border-blue-500/40 space-y-3.5">
+            <!-- Step 1 -->
+            <div class="relative">
+              <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#070A11]"></div>
+              <p class="text-xs font-mono text-blue-400 font-bold uppercase">Step 1 // Portal Access</p>
+              <p class="text-xs text-slate-200">Navigate to <span class="text-white font-mono bg-slate-800 px-1 py-0.5 rounded">licensingportal.mdsp.maryland.gov</span> and log into your account.</p>
+            </div>
+            <!-- Step 2 -->
+            <div class="relative">
+              <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#070A11]"></div>
+              <p class="text-xs font-mono text-blue-400 font-bold uppercase">Step 2 // Program Select</p>
+              <p class="text-xs text-slate-200">Select <strong class="text-white">"Initial Application"</strong> ➔ <strong class="text-white">"Wear and Carry Handgun Permit"</strong>.</p>
+            </div>
+            <!-- Step 3 -->
+            <div class="relative">
+              <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#070A11]"></div>
+              <p class="text-xs font-mono text-blue-400 font-bold uppercase">Step 3 // LiveScan Link</p>
+              <p class="text-xs text-slate-200">Input your exact 12-digit LiveScan TCN Control Number &amp; fingerprint scan date.</p>
+            </div>
+            <!-- Step 4 -->
+            <div class="relative">
+              <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#070A11]"></div>
+              <p class="text-xs font-mono text-blue-400 font-bold uppercase">Step 4 // Background Audit</p>
+              <p class="text-xs text-slate-200">Input your complete 5-year uninterrupted residential &amp; employment history.</p>
+            </div>
+            <!-- Step 5 -->
+            <div class="relative">
+              <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#070A11]"></div>
+              <p class="text-xs font-mono text-blue-400 font-bold uppercase">Step 5 // Vetting References</p>
+              <p class="text-xs text-slate-200">Enter full contact information for 3 verified non-family character references.</p>
+            </div>
+            <!-- Step 6 -->
+            <div class="relative">
+              <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#070A11]"></div>
+              <p class="text-xs font-mono text-blue-400 font-bold uppercase">Step 6 // Evidence Upload</p>
+              <p class="text-xs text-slate-200">Upload 2x2 passport JPEG photo + signed Form MSP 29-14 PDF score sheet.</p>
+            </div>
+            <!-- Step 7 -->
+            <div class="relative">
+              <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-emerald-400 border-2 border-[#070A11]"></div>
+              <p class="text-xs font-mono text-emerald-400 font-bold uppercase">Step 7 // Remit &amp; Track</p>
+              <p class="text-xs text-slate-200">Pay $125 online fee ➔ Record State Tracking Number ➔ 30–60 day queue initiated.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bonus: $0 Free Maryland HQL Exemption Flow -->
+      <div class="mt-8 rounded-xl p-5 bg-gradient-to-r from-emerald-950/40 via-brand-card to-cyan-950/40 border border-emerald-500/50 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-start space-x-3.5">
+          <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-xl flex-shrink-0">
+            $0
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-mono uppercase font-black text-emerald-400">BONUS PROTOCOL // $150 CASH SAVINGS</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold">100% LEGAL WAIVER</span>
+            </div>
+            <p class="text-sm font-bold text-white mt-0.5">Do NOT Pay For A Separate 4-Hour Handgun Qualification License (HQL) Course!</p>
+            <p class="text-xs text-slate-300 mt-1">
+              Your 16-Hour Wear &amp; Carry training automatically satisfies all Maryland HQL purchase requirements.
+            </p>
+          </div>
+        </div>
+
+        <div class="bg-black/60 px-4 py-3 rounded-lg border border-emerald-500/40 text-xs font-mono text-slate-200 flex-shrink-0 w-full md:w-auto">
+          <div class="text-[11px] text-emerald-400 font-bold uppercase mb-1">MSP Portal HQL Exemption Pathway:</div>
+          <div class="flex items-center space-x-1.5 text-slate-300 flex-wrap">
+            <span class="text-white">"HQL"</span> ➔ 
+            <span class="text-white">"Original"</span> ➔ 
+            <span class="text-emerald-400 font-bold">"Training Exempt"</span> ➔ 
+            <span>Attach MSP 29-14</span> ➔ 
+            <span class="text-emerald-400 font-bold">Fee: $0.00</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: State 2 — Commonwealth of Virginia Non-Resident CHP -->
+    <section class="glass-card rounded-2xl p-6 sm:p-8 border border-blue-600/40" id="state-va">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-brand-border">
+        <div class="flex items-center space-x-3.5">
+          <div class="w-12 h-12 rounded-xl bg-blue-800/30 border border-blue-400/50 flex items-center justify-center text-blue-300 font-black text-xl">
+            VA
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-mono uppercase text-blue-300 font-bold">SECTION 4 // STATE 2</span>
+              <span class="px-2 py-0.5 rounded bg-blue-800/30 text-blue-200 text-[10px] font-mono border border-blue-500/40">USPS CERTIFIED DISPATCH</span>
+            </div>
+            <h3 class="text-2xl font-black text-white">Commonwealth of Virginia Non-Resident CHP</h3>
+          </div>
+        </div>
+
+        <!-- Spec Badges -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs font-mono">
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">AGENCY</span>
+            <span class="text-white font-bold">Virginia State Police</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">STATE FEE</span>
+            <span class="text-amber-400 font-bold">$100.00 (MO / Cashier)</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">AUTHORITY</span>
+            <span class="text-white font-bold">Va. Code § 18.2-308</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">TURNAROUND</span>
+            <span class="text-blue-300 font-bold">60–90 Days</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statutory Mandate Callout -->
+      <div class="mt-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start space-x-3 text-xs sm:text-sm">
+        <svg class="w-5 h-5 text-brand-gold flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        <div>
+          <strong class="text-brand-gold font-mono uppercase">Statutory Restriction:</strong> Under Virginia Code § 18.2-308.02(B)(7), online firearm safety courses are strictly prohibited for permit issuance. Coach Kai Wade's in-person course and notarized jurat affidavit provide unimpeachable statutory proof of compliance.
+        </div>
+      </div>
+
+      <!-- 7-Point Envelope Packet Inspection Matrix -->
+      <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-8 space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-bold uppercase tracking-wider text-slate-200">7-Point Envelope Packet Assembly Audit</h4>
+            <span class="text-xs font-mono text-slate-400">Zero-Defect Verification</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+            <label class="p-3 rounded-lg bg-black/40 border border-brand-border flex items-start space-x-2.5 hover:border-blue-500/40 cursor-pointer">
+              <input type="checkbox" class="mt-0.5 w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700">
+              <div>
+                <span class="font-bold text-white block">[1] Form SP-248 Application</span>
+                <span class="text-slate-400 text-[11px]">Completed in black ink or typed, signed &amp; dated.</span>
+              </div>
+            </label>
+
+            <label class="p-3 rounded-lg bg-black/40 border border-brand-border flex items-start space-x-2.5 hover:border-blue-500/40 cursor-pointer">
+              <input type="checkbox" class="mt-0.5 w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700">
+              <div>
+                <span class="font-bold text-white block">[2] FIFS Training Affidavit</span>
+                <span class="text-slate-400 text-[11px]">Executed by Kai Wade with official notarial jurat.</span>
+              </div>
+            </label>
+
+            <label class="p-3 rounded-lg bg-black/40 border border-brand-border flex items-start space-x-2.5 hover:border-blue-500/40 cursor-pointer">
+              <input type="checkbox" class="mt-0.5 w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700">
+              <div>
+                <span class="font-bold text-white block">[3] Instructor Credentials</span>
+                <span class="text-slate-400 text-[11px]">Photocopies of NRA #262929961 and MSP QHIC card.</span>
+              </div>
+            </label>
+
+            <label class="p-3 rounded-lg bg-black/40 border border-brand-border flex items-start space-x-2.5 hover:border-blue-500/40 cursor-pointer">
+              <input type="checkbox" class="mt-0.5 w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700">
+              <div>
+                <span class="font-bold text-white block">[4] FBI FD-258 Cards (2x)</span>
+                <span class="text-slate-400 text-[11px]">Two blue-bordered ink cards completed in full.</span>
+              </div>
+            </label>
+
+            <label class="p-3 rounded-lg bg-black/40 border border-brand-border flex items-start space-x-2.5 hover:border-blue-500/40 cursor-pointer">
+              <input type="checkbox" class="mt-0.5 w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700">
+              <div>
+                <span class="font-bold text-white block">[5] 2x2 Photos (2x) Paperclipped</span>
+                <span class="text-red-400 font-bold text-[11px]">Paperclip ONLY. DO NOT staple across face!</span>
+              </div>
+            </label>
+
+            <label class="p-3 rounded-lg bg-black/40 border border-brand-border flex items-start space-x-2.5 hover:border-blue-500/40 cursor-pointer">
+              <input type="checkbox" class="mt-0.5 w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700">
+              <div>
+                <span class="font-bold text-white block">[6] Government ID Copy</span>
+                <span class="text-slate-400 text-[11px]">Clear front-and-back photocopy of Maryland DL.</span>
+              </div>
+            </label>
+
+            <label class="sm:col-span-2 p-3 rounded-lg bg-black/40 border border-amber-500/40 flex items-start space-x-2.5 hover:border-amber-400 cursor-pointer">
+              <input type="checkbox" class="mt-0.5 w-4 h-4 rounded text-brand-gold bg-slate-800 border-slate-700">
+              <div>
+                <span class="font-bold text-brand-gold block">[7] $100.00 Certified Remittance (NO PERSONAL CHECKS)</span>
+                <span class="text-slate-300 text-[11px]">Cashier's Check or USPS Money Order made strictly payable to: <strong class="text-white underline">"Virginia State Police"</strong></span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Mailing Logistics Address Card -->
+        <div class="lg:col-span-4 flex flex-col justify-between rounded-xl bg-black/60 border border-brand-border p-5 space-y-4">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono uppercase text-blue-400 font-bold">DISPATCH TARGET</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">USPS PRIORITY</span>
+            </div>
+            <div class="mt-3 p-3.5 rounded-lg bg-slate-900 border border-brand-border font-mono text-xs text-slate-300 space-y-1">
+              <p class="font-bold text-white">Virginia State Police</p>
+              <p>Firearms Transaction Center - Non-Resident CHP</p>
+              <p>P.O. Box 85141</p>
+              <p class="text-brand-gold font-bold">Richmond, VA 23285-5141</p>
+            </div>
+          </div>
+          <div class="text-[11px] text-slate-400 border-t border-brand-border pt-3">
+            <span class="text-brand-gold font-bold">Pro Tip:</span> Ship using USPS Certified Mail with Tracking Number so you receive proof of delivery at VSP headquarters.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: State 3 — State of Florida Non-Resident CWL -->
+    <section class="glass-card rounded-2xl p-6 sm:p-8 border border-amber-500/40" id="state-fl">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-brand-border">
+        <div class="flex items-center space-x-3.5">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-amber-400 font-black text-xl">
+            FL
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-mono uppercase text-brand-gold font-bold">SECTION 5 // STATE 3</span>
+              <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-mono border border-amber-500/30">HYBRID PORTAL + MAIL</span>
+            </div>
+            <h3 class="text-2xl font-black text-white">State of Florida Non-Resident CWL</h3>
+          </div>
+        </div>
+
+        <!-- Spec Badges -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs font-mono">
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">AGENCY</span>
+            <span class="text-white font-bold">Florida FDACS</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">STATE FEE</span>
+            <span class="text-brand-gold font-bold">$97.00 (Online)</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">AUTHORITY</span>
+            <span class="text-white font-bold">F.S. § 790.06</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">TURNAROUND</span>
+            <span class="text-amber-300 font-bold">45–60 Days</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- The Infamous Delaware I-95 Trap Defense Visual -->
+      <div class="mt-6 rounded-xl p-5 bg-gradient-to-r from-red-950/40 via-brand-card to-amber-950/30 border border-amber-500/40 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="text-amber-400 font-bold font-mono text-xs uppercase tracking-wider">CRUCIAL HIGHWAY INTERCEPT:</span>
+            <h4 class="text-base sm:text-lg font-extrabold text-white">The "Delaware I-95 Trap" Defense</h4>
+          </div>
+          <span class="px-2 py-0.5 rounded bg-red-500/20 text-red-300 text-xs font-mono border border-red-500/30">FELONY RISK NEUTRALIZED</span>
+        </div>
+
+        <!-- Visual I-95 Highway Strip -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+          <!-- Step 1 MD -->
+          <div class="p-3 rounded-lg bg-black/50 border border-blue-500/40">
+            <span class="text-[10px] font-mono text-blue-400 font-bold block">1. SOUTH TRANSIT</span>
+            <span class="font-bold text-white text-sm">Maryland I-95 North</span>
+            <p class="text-xs text-slate-300 mt-1">MD Resident Permit valid and legally recognized.</p>
+          </div>
+          <!-- Step 2 DE (The Trap) -->
+          <div class="p-3 rounded-lg bg-red-950/50 border-2 border-red-500 relative">
+            <span class="text-[10px] font-mono text-red-400 font-bold block">2. DELAWARE BORDER TRAP</span>
+            <span class="font-bold text-red-200 text-sm">🛑 MD Permit NOT Honored!</span>
+            <p class="text-xs text-red-300 mt-1 font-semibold">Under MD-only, carrying here is a felony. <span class="text-amber-300 font-bold underline">FLORIDA PERMIT COVERS DELAWARE!</span></p>
+          </div>
+          <!-- Step 3 PA -->
+          <div class="p-3 rounded-lg bg-black/50 border border-red-500/40">
+            <span class="text-[10px] font-mono text-slate-400 font-bold block">3. PENNSYLVANIA LINE</span>
+            <span class="font-bold text-white text-sm">Pennsylvania Entry</span>
+            <p class="text-xs text-slate-300 mt-1">Covered via York County PA LTCF (Phase 3 border pickup).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hybrid Submission Flow -->
+      <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Digital Side -->
+        <div class="rounded-xl p-5 bg-black/40 border border-brand-border space-y-3">
+          <div class="flex items-center space-x-2 text-brand-gold">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            <h5 class="font-bold text-white text-sm uppercase font-mono">Digital Submission (FDACS Portal)</h5>
+          </div>
+          <div class="space-y-2 text-xs text-slate-300">
+            <p><strong class="text-white">Step 1:</strong> Access FDACS Licensing Portal at <span class="text-brand-gold font-mono">fdacs.gov</span>.</p>
+            <p><strong class="text-white">Step 2:</strong> Upload FIFS Live-Fire Affidavit &amp; Coach Kai's Instructor Credentials.</p>
+            <p><strong class="text-white">Step 3:</strong> Remit $97.00 fee online via Credit Card and <strong class="text-white underline">print the Barcode Confirmation Sheet</strong>.</p>
+          </div>
+        </div>
+
+        <!-- Physical Mail Side -->
+        <div class="rounded-xl p-5 bg-black/40 border border-brand-border space-y-3">
+          <div class="flex items-center space-x-2 text-amber-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            <h5 class="font-bold text-white text-sm uppercase font-mono">Physical Dispatch (FDACS Tallahassee)</h5>
+          </div>
+          <div class="space-y-2 text-xs text-slate-300">
+            <p><strong class="text-white">Item:</strong> Mail 1 completed FBI FD-258 Hard Card + Printed Barcode Confirmation Sheet.</p>
+            <div class="p-2.5 rounded bg-slate-900 border border-brand-border font-mono text-[11px]">
+              <p class="font-bold text-white">FDACS - Division of Licensing</p>
+              <p>P.O. Box 6687</p>
+              <p class="text-brand-gold">Tallahassee, FL 32314-6687</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 6: State 4 — State of Arizona Non-Resident CWP -->
+    <section class="glass-card rounded-2xl p-6 sm:p-8 border border-emerald-500/40" id="state-az">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-brand-border">
+        <div class="flex items-center space-x-3.5">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-emerald-400 font-black text-xl">
+            AZ
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-mono uppercase text-emerald-400 font-bold">SECTION 6 // STATE 4</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono border border-emerald-500/30">NATIONWIDE MULTIPLIER</span>
+            </div>
+            <h3 class="text-2xl font-black text-white">State of Arizona Non-Resident CWP</h3>
+          </div>
+        </div>
+
+        <!-- Spec Badges -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs font-mono">
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">AGENCY</span>
+            <span class="text-white font-bold">Arizona DPS</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">STATE FEE</span>
+            <span class="text-brand-gold font-bold">$60.00 (MO to "AZ DPS")</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">AUTHORITY</span>
+            <span class="text-white font-bold">A.R.S. § 13-3112(N)</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">TURNAROUND</span>
+            <span class="text-emerald-300 font-bold">30–45 Days</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Regional Geographic Impact Matrix -->
+      <div class="mt-6 space-y-3">
+        <h4 class="text-sm font-bold uppercase tracking-wider text-slate-200">Regional Reciprocity Domain (30+ Jurisdictions)</h4>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+          <!-- West Coast -->
+          <div class="p-3.5 rounded-xl bg-black/40 border border-brand-border space-y-2">
+            <span class="text-emerald-400 font-mono font-bold block uppercase text-[11px]">WEST COAST / INTERMOUNTAIN</span>
+            <div class="flex flex-wrap gap-1.5 font-mono font-bold text-white">
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">NV</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">UT</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">ID</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">WY</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">MT</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">NM</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">CO</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">AZ</span>
+            </div>
+          </div>
+
+          <!-- Midwest Corridor -->
+          <div class="p-3.5 rounded-xl bg-black/40 border border-brand-border space-y-2">
+            <span class="text-emerald-400 font-mono font-bold block uppercase text-[11px]">MIDWEST CORRIDOR</span>
+            <div class="flex flex-wrap gap-1.5 font-mono font-bold text-white">
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">ND</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">SD</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">NE</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">KS</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">MO</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">IA</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">IN</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">OH</span>
+            </div>
+          </div>
+
+          <!-- Southern Basin -->
+          <div class="p-3.5 rounded-xl bg-black/40 border border-brand-border space-y-2">
+            <span class="text-emerald-400 font-mono font-bold block uppercase text-[11px]">SOUTHERN BASIN</span>
+            <div class="flex flex-wrap gap-1.5 font-mono font-bold text-white">
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">TX</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">OK</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">AR</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">LA</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">MS</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">AL</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">GA</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">TN</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">KY</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">NC</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checklist & Dispatch -->
+      <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-8 space-y-2 text-xs">
+          <h4 class="text-xs font-bold font-mono uppercase text-slate-300">Packet Submission Checklist</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label class="p-2.5 rounded bg-black/40 border border-brand-border flex items-center space-x-2">
+              <input type="checkbox" class="w-4 h-4 rounded text-emerald-500 bg-slate-800 border-slate-700">
+              <span class="text-slate-300">Arizona CWPU Application Form (Signed)</span>
+            </label>
+            <label class="p-2.5 rounded bg-black/40 border border-brand-border flex items-center space-x-2">
+              <input type="checkbox" class="w-4 h-4 rounded text-emerald-500 bg-slate-800 border-slate-700">
+              <span class="text-slate-300">FIFS Arizona Compliance Affidavit</span>
+            </label>
+            <label class="p-2.5 rounded bg-black/40 border border-brand-border flex items-center space-x-2">
+              <input type="checkbox" class="w-4 h-4 rounded text-emerald-500 bg-slate-800 border-slate-700">
+              <span class="text-slate-300">Copy of Kai Wade's NRA Credential</span>
+            </label>
+            <label class="p-2.5 rounded bg-black/40 border border-brand-border flex items-center space-x-2">
+              <input type="checkbox" class="w-4 h-4 rounded text-emerald-500 bg-slate-800 border-slate-700">
+              <span class="text-slate-300">Two (2) FBI FD-258 Hard Cards</span>
+            </label>
+            <label class="p-2.5 rounded bg-black/40 border border-brand-border flex items-center space-x-2">
+              <input type="checkbox" class="w-4 h-4 rounded text-emerald-500 bg-slate-800 border-slate-700">
+              <span class="text-slate-300">Proof of U.S. Citizenship (Birth Cert/Passport)</span>
+            </label>
+            <label class="p-2.5 rounded bg-black/40 border border-brand-border flex items-center space-x-2">
+              <input type="checkbox" class="w-4 h-4 rounded text-emerald-500 bg-slate-800 border-slate-700">
+              <span class="text-brand-gold font-semibold">$60 Money Order payable to "AZ DPS"</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="lg:col-span-4 rounded-xl bg-black/60 border border-brand-border p-4 font-mono text-xs flex flex-col justify-between">
+          <div>
+            <span class="text-emerald-400 font-bold uppercase text-[10px] block mb-2">DISPATCH MAILING ADDRESS</span>
+            <div class="p-3 bg-slate-900 rounded border border-brand-border text-slate-300 space-y-0.5">
+              <p class="font-bold text-white">AZ Dept of Public Safety</p>
+              <p>Concealed Weapons Permit Unit</p>
+              <p>P.O. Box 6488, Mail Drop 3170</p>
+              <p class="text-emerald-400 font-bold">Phoenix, AZ 85005</p>
+            </div>
+          </div>
+          <span class="text-[10px] text-slate-400 mt-2 block">USPS First-Class Tracked Envelope</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 7: State 5 — Pennsylvania Non-Resident LTCF (York County) -->
+    <section class="glass-card rounded-2xl p-6 sm:p-8 border border-red-500/50" id="state-pa">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-brand-border">
+        <div class="flex items-center space-x-3.5">
+          <div class="w-12 h-12 rounded-xl bg-red-600/20 border border-red-500/50 flex items-center justify-center text-red-400 font-black text-xl">
+            PA
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-mono uppercase text-red-400 font-bold">SECTION 7 // STATE 5</span>
+              <span class="px-2 py-0.5 rounded bg-red-600/20 text-red-300 text-[10px] font-mono border border-red-500/30">5-MINUTE BORDER PICKUP</span>
+            </div>
+            <h3 class="text-2xl font-black text-white">Pennsylvania Non-Resident LTCF (York County)</h3>
+          </div>
+        </div>
+
+        <!-- Spec Badges -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs font-mono">
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">AGENCY</span>
+            <span class="text-white font-bold">York Co. Sheriff</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">STATE FEE</span>
+            <span class="text-emerald-400 font-bold">$20.00 (Online)</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">AUTHORITY</span>
+            <span class="text-white font-bold">18 Pa.C.S. § 6109</span>
+          </div>
+          <div class="bg-black/50 p-2.5 rounded-lg border border-brand-border">
+            <span class="text-slate-400 block text-[10px]">TURNAROUND</span>
+            <span class="text-emerald-400 font-bold">2–4 Days</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Critical Warning Banner -->
+      <div class="mt-6 rounded-xl p-4 bg-red-950/40 border-2 border-red-500/60 flex items-start space-x-3.5">
+        <span class="text-2xl">🛑</span>
+        <div>
+          <h4 class="text-red-400 font-bold font-mono text-xs uppercase tracking-wider">CRITICAL STATUTORY MANDATE: DO NOT APPLY PREMATURELY!</h4>
+          <p class="text-xs sm:text-sm text-slate-200 mt-1">
+            Pennsylvania law mandates that all non-resident applicants possess a <strong class="text-white">valid resident carry permit from their home state</strong>. If you submit via the York County portal prior to the physical delivery of your plastic Maryland card, the Sheriff will <strong class="text-red-400 underline">automatically deny your application and forfeit your $20 fee</strong>.
+          </p>
+        </div>
+      </div>
+
+      <!-- 5-Minute In-Person Border Pickup Protocol Stepper -->
+      <div class="mt-6">
+        <h4 class="text-sm font-bold uppercase tracking-wider text-slate-200 mb-4">5-Minute In-Person Border Pickup Protocol</h4>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs font-mono">
+          <!-- Step 1 -->
+          <div class="p-4 rounded-xl bg-black/40 border border-brand-border space-y-2">
+            <span class="text-red-400 font-bold block text-[10px]">STEP 1 // PLASTIC ARRIVES</span>
+            <p class="text-white font-bold text-xs font-sans">Wait For MD Card</p>
+            <p class="text-slate-400 text-[11px] font-sans">Physical card in your mailbox before touching the portal.</p>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="p-4 rounded-xl bg-black/40 border border-brand-border space-y-2">
+            <span class="text-red-400 font-bold block text-[10px]">STEP 2 // PERMITIUM</span>
+            <p class="text-white font-bold text-xs font-sans">Upload Documents</p>
+            <p class="text-slate-400 text-[11px] font-sans">Upload front/back scans of MD DL + MD Wear &amp; Carry card.</p>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="p-4 rounded-xl bg-black/40 border border-brand-border space-y-2">
+            <span class="text-red-400 font-bold block text-[10px]">STEP 3 // REMIT $20</span>
+            <p class="text-white font-bold text-xs font-sans">48–96 Hr Approval</p>
+            <p class="text-slate-400 text-[11px] font-sans">Pay $20 online; receive rapid SMS text approval.</p>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="p-4 rounded-xl bg-black/40 border border-brand-border space-y-2">
+            <span class="text-red-400 font-bold block text-[10px]">STEP 4 // TRANSIT NORTH</span>
+            <p class="text-white font-bold text-xs font-sans">35-Min Drive on I-83</p>
+            <p class="text-slate-400 text-[11px] font-sans">Drive to York County Judicial Center, 45 N George St.</p>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/50 space-y-2">
+            <span class="text-emerald-400 font-bold block text-[10px]">STEP 5 // 5-MIN PICKUP</span>
+            <p class="text-emerald-300 font-bold text-xs font-sans">Photo &amp; Instant Card</p>
+            <p class="text-slate-300 text-[11px] font-sans">Live photo taken, plastic card printed in &lt; 5 mins. Valid 5 years.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 8: Master Audit Matrix & Fee Distribution -->
+    <section class="glass-card rounded-2xl p-6 sm:p-8 border border-brand-border" id="audit-matrix">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-xs font-mono uppercase tracking-widest text-brand-gold font-bold">SECTION 8 // MASTER AUDIT MATRIX</h2>
+          <p class="text-xl font-bold text-white">Comparative Permit Specifications</p>
+        </div>
+        <span class="text-xs font-mono text-emerald-400 font-bold">ALL 5 LICENSES AUDITED</span>
+      </div>
+
+      <!-- Comparative Table -->
+      <div class="overflow-x-auto rounded-xl border border-brand-border bg-brand-card">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-black/60 text-slate-400 uppercase font-mono border-b border-brand-border">
+            <tr>
+              <th class="p-3">Jurisdiction</th>
+              <th class="p-3">Permit Type</th>
+              <th class="p-3">Authority</th>
+              <th class="p-3">State Fee</th>
+              <th class="p-3">Remittance Method</th>
+              <th class="p-3">Fingerprints</th>
+              <th class="p-3">Submission Channel</th>
+              <th class="p-3">Window</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-brand-border text-slate-300">
+            <tr class="hover:bg-slate-800/30">
+              <td class="p-3 font-bold text-white flex items-center space-x-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span>Maryland</span></td>
+              <td class="p-3">Wear &amp; Carry (Resident)</td>
+              <td class="p-3 font-mono">Md. PS § 5-306</td>
+              <td class="p-3 font-bold text-white">$125.00</td>
+              <td class="p-3">Credit/Debit Online</td>
+              <td class="p-3 text-cyan-400 font-semibold">LiveScan (TCN)</td>
+              <td class="p-3">MSP Online Portal</td>
+              <td class="p-3 font-mono text-blue-300">30–60 Days</td>
+            </tr>
+            <tr class="hover:bg-slate-800/30">
+              <td class="p-3 font-bold text-white flex items-center space-x-1.5"><span class="w-2 h-2 rounded-full bg-blue-400"></span><span>Virginia</span></td>
+              <td class="p-3">Non-Resident CHP</td>
+              <td class="p-3 font-mono">Va. Code § 18.2-308</td>
+              <td class="p-3 font-bold text-white">$100.00</td>
+              <td class="p-3 text-brand-gold font-semibold">Cashier's Check / MO</td>
+              <td class="p-3 text-amber-300">2x FD-258 Cards</td>
+              <td class="p-3">USPS Tracked Mail</td>
+              <td class="p-3 font-mono text-blue-300">60–90 Days</td>
+            </tr>
+            <tr class="hover:bg-slate-800/30">
+              <td class="p-3 font-bold text-white flex items-center space-x-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span><span>Florida</span></td>
+              <td class="p-3">Non-Resident CWL</td>
+              <td class="p-3 font-mono">F.S. § 790.06</td>
+              <td class="p-3 font-bold text-white">$97.00</td>
+              <td class="p-3">Credit/Debit Online</td>
+              <td class="p-3 text-amber-300">1x FD-258 Card</td>
+              <td class="p-3">Portal + Mail Card</td>
+              <td class="p-3 font-mono text-amber-300">45–60 Days</td>
+            </tr>
+            <tr class="hover:bg-slate-800/30">
+              <td class="p-3 font-bold text-white flex items-center space-x-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Arizona</span></td>
+              <td class="p-3">Non-Resident CWP</td>
+              <td class="p-3 font-mono">A.R.S. § 13-3112(N)</td>
+              <td class="p-3 font-bold text-white">$60.00</td>
+              <td class="p-3 text-brand-gold font-semibold">Cashier's Check / MO</td>
+              <td class="p-3 text-amber-300">2x FD-258 Cards</td>
+              <td class="p-3">USPS Tracked Mail</td>
+              <td class="p-3 font-mono text-emerald-300">30–45 Days</td>
+            </tr>
+            <tr class="hover:bg-slate-800/30">
+              <td class="p-3 font-bold text-white flex items-center space-x-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span><span>Pennsylvania</span></td>
+              <td class="p-3">Non-Resident LTCF</td>
+              <td class="p-3 font-mono">18 Pa.C.S. § 6109</td>
+              <td class="p-3 font-bold text-emerald-400">$20.00</td>
+              <td class="p-3">Credit/Debit Online</td>
+              <td class="p-3 text-emerald-400 font-semibold">Zero Cards (On-Site)</td>
+              <td class="p-3">Permitium + Rapid Pickup</td>
+              <td class="p-3 font-mono text-emerald-400">2–5 Days*</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Financial Allocation & Estimated Timeline Visual Charts -->
+      <div class="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Financial Allocation Bars -->
+        <div class="lg:col-span-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-mono uppercase text-brand-gold font-bold">FINANCIAL ALLOCATION BREAKDOWN</h4>
+            <span class="text-xs font-mono font-bold text-white">TOTAL: <span class="text-brand-gold">$402.00</span></span>
+          </div>
+
+          <div class="space-y-3 text-xs font-mono">
+            <div>
+              <div class="flex justify-between text-slate-300 mb-1">
+                <span>Maryland Wear &amp; Carry ($125)</span>
+                <span class="text-slate-400">31.1%</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-3">
+                <div class="bg-blue-600 h-3 rounded-full" style="width: 31.1%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-slate-300 mb-1">
+                <span>Virginia Non-Resident CHP ($100)</span>
+                <span class="text-slate-400">24.9%</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-3">
+                <div class="bg-blue-400 h-3 rounded-full" style="width: 24.9%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-slate-300 mb-1">
+                <span>Florida Non-Resident CWL ($97)</span>
+                <span class="text-slate-400">24.1%</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-3">
+                <div class="bg-amber-500 h-3 rounded-full" style="width: 24.1%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-slate-300 mb-1">
+                <span>Arizona Non-Resident CWP ($60)</span>
+                <span class="text-slate-400">14.9%</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-3">
+                <div class="bg-emerald-500 h-3 rounded-full" style="width: 14.9%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-slate-300 mb-1">
+                <span>Pennsylvania LTCF ($20)</span>
+                <span class="text-slate-400">5.0%</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-3">
+                <div class="bg-red-500 h-3 rounded-full" style="width: 5.0%"></div>
+              </div>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400 font-sans italic">*State fees may be staged sequentially across multiple pay periods.</p>
+        </div>
+
+        <!-- Timeline Gantt-Style Visualization -->
+        <div class="lg:col-span-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-mono uppercase text-brand-gold font-bold">ESTIMATED APPROVAL TIMELINES</h4>
+            <span class="text-xs font-mono text-slate-400">0 TO 90 DAYS SPECTRUM</span>
+          </div>
+
+          <div class="space-y-3 text-xs font-mono">
+            <div>
+              <div class="flex justify-between text-slate-300 mb-1">
+                <span>Maryland</span>
+                <span class="text-blue-400">30 – 60 Days</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-3 relative">
+                <div class="bg-blue-500 h-3 rounded-full ml-[33%] w-[33%]"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-slate-300 mb-1">
+                <span>Virginia</span>
+                <span class="text-blue-300">60 – 90 Days</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-3 relative">
+                <div class="bg-blue-400 h-3 rounded-full ml-[66%] w-[34%]"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-slate-300 mb-1">
+                <span>Florida</span>
+                <span class="text-amber-400">45 – 60 Days</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-3 relative">
+                <div class="bg-amber-500 h-3 rounded-full ml-[50%] w-[16%]"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-slate-300 mb-1">
+                <span>Arizona</span>
+                <span class="text-emerald-400">30 – 45 Days</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-3 relative">
+                <div class="bg-emerald-500 h-3 rounded-full ml-[33%] w-[17%]"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-slate-300 mb-1">
+                <span>Pennsylvania (Post-MD Card)</span>
+                <span class="text-emerald-400 font-bold">2 – 5 Days</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-3 relative">
+                <div class="bg-emerald-400 h-3 rounded-full w-[6%]"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-between text-[10px] font-mono text-slate-500 pt-2 border-t border-brand-border">
+            <span>Day 0</span>
+            <span>Day 30</span>
+            <span>Day 60</span>
+            <span>Day 90</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grid: Section 9 & Section 10 -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <!-- Section 9: Fingerprint Verification Cheat Sheet -->
+      <section class="lg:col-span-6 glass-card rounded-2xl p-6 sm:p-7 border border-brand-border flex flex-col justify-between" id="fingerprints">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-mono uppercase text-brand-gold font-bold">SECTION 9 // BIOMETRICS</span>
+            <span class="text-xs font-mono px-2 py-0.5 rounded bg-amber-500/20 text-brand-gold border border-amber-500/30">5 HARD CARDS TOTAL</span>
+          </div>
+          <h3 class="text-xl font-bold text-white">Fingerprint Allocation Cheat Sheet</h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+            <!-- Digital LiveScan Terminal -->
+            <div class="p-4 rounded-xl bg-black/40 border border-cyan-500/40 space-y-2">
+              <div class="flex items-center space-x-2 text-cyan-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.012.99-4.158.99-6.382A16 16 0 003 11a16 16 0 00.126 1.986"></path></svg>
+                <h4 class="font-bold text-sm uppercase font-mono">Digital LiveScan</h4>
+              </div>
+              <ul class="text-xs text-slate-300 space-y-1.5 pt-1">
+                <li>• <strong class="text-white">Maryland ONLY</strong></li>
+                <li>• Electronic biometric transmission</li>
+                <li>• Generates paper 12-digit TCN receipt</li>
+                <li>• Keep receipt for MSP portal entry</li>
+              </ul>
+            </div>
+
+            <!-- FBI FD-258 Hard Cards -->
+            <div class="p-4 rounded-xl bg-black/40 border border-blue-500/40 space-y-2">
+              <div class="flex items-center space-x-2 text-blue-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <h4 class="font-bold text-sm uppercase font-mono">FBI FD-258 Ink Cards</h4>
+              </div>
+              <ul class="text-xs text-slate-300 space-y-1.5 pt-1">
+                <li>• <strong class="text-white">Virginia:</strong> 2 Blue Hard Cards</li>
+                <li>• <strong class="text-white">Florida:</strong> 1 Blue Hard Card</li>
+                <li>• <strong class="text-white">Arizona:</strong> 2 Blue Hard Cards</li>
+                <li>• <strong class="text-emerald-400">Total: 5 Ink Cards</strong></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-xs text-emerald-300 flex items-center space-x-2">
+          <span class="font-bold font-mono">PA LTCF EXEMPTION:</span>
+          <span>Zero ink cards needed for Pennsylvania! Digital capture is handled free on-site during York pickup.</span>
+        </div>
+      </section>
+
+      <!-- Section 10: Interstate Safe Passage (FOPA 18 U.S.C. § 926A) -->
+      <section class="lg:col-span-6 glass-card rounded-2xl p-6 sm:p-7 border border-brand-border flex flex-col justify-between" id="fopa">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-mono uppercase text-brand-gold font-bold">SECTION 10 // FEDERAL TRANSPORT</span>
+            <span class="text-xs font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">18 U.S.C. § 926A</span>
+          </div>
+          <h3 class="text-xl font-bold text-white">Interstate Safe Passage (FOPA Protocol)</h3>
+          <p class="text-xs text-slate-300 mt-1">
+            Mandatory 4-pillar statutory compliance when driving through non-permissive jurisdictions (e.g., Washington D.C., New Jersey, New York).
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 text-xs font-mono">
+            <div class="p-3 rounded-lg bg-black/40 border border-brand-border">
+              <span class="text-brand-gold font-bold block text-[10px]">[1] FIREARM CONDITION</span>
+              <p class="text-white font-sans font-bold text-xs mt-0.5">100% Unloaded</p>
+              <p class="text-slate-400 font-sans text-[11px] mt-0.5">Chamber cleared, magazine dropped, slide locked back.</p>
+            </div>
+
+            <div class="p-3 rounded-lg bg-black/40 border border-brand-border">
+              <span class="text-brand-gold font-bold block text-[10px]">[2] ENCLOSURE SPEC</span>
+              <p class="text-white font-sans font-bold text-xs mt-0.5">Locked Trunk Lockbox</p>
+              <p class="text-slate-400 font-sans text-[11px] mt-0.5">Hard-sided case in vehicle trunk. (Consoles &amp; gloveboxes are illegal).</p>
+            </div>
+
+            <div class="p-3 rounded-lg bg-black/40 border border-brand-border">
+              <span class="text-brand-gold font-bold block text-[10px]">[3] AMMO STORAGE</span>
+              <p class="text-white font-sans font-bold text-xs mt-0.5">Separate Compartment</p>
+              <p class="text-slate-400 font-sans text-[11px] mt-0.5">Locked in distinct container physically segregated from firearm.</p>
+            </div>
+
+            <div class="p-3 rounded-lg bg-black/40 border border-brand-border">
+              <span class="text-brand-gold font-bold block text-[10px]">[4] TRANSIT CONTINUITY</span>
+              <p class="text-white font-sans font-bold text-xs mt-0.5">Non-Stop Transit</p>
+              <p class="text-slate-400 font-sans text-[11px] mt-0.5">Continuous driving; zero overnight stays, sightseeing, or deviations.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 p-2.5 rounded bg-black/50 border border-brand-border text-[11px] text-slate-400">
+          <strong class="text-slate-200">Legal Shield:</strong> Federal preemption under 18 U.S.C. § 926A protects interstate travelers provided start and destination points are lawful.
+        </div>
+      </section>
+    </div>
+
+    <!-- Section 11: Instructor Directory & Student Support -->
+    <section class="glass-card rounded-2xl p-6 sm:p-8 border-2 border-brand-gold/50 relative overflow-hidden" id="directory">
+      <div class="absolute -right-16 -top-16 w-64 h-64 bg-brand-gold/10 rounded-full blur-2xl pointer-events-none"></div>
+      
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+        <div class="space-y-2">
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-mono uppercase text-brand-gold font-bold">SECTION 11 // STUDENT COMMAND</span>
+            <span class="px-2 py-0.5 rounded bg-brand-gold/20 text-brand-gold text-[10px] font-mono border border-brand-gold/30">OFFICIAL SUPPORT DIRECTORY</span>
+          </div>
+          <h3 class="text-2xl font-black text-white">Future Initiative Firearm Services</h3>
+          <p class="text-slate-300 text-sm max-w-xl">
+            "THE FUTURE IS NOW, TAKE THE INITIATIVE!" — Reach Lead Instructor Kai Wade directly for training affidavits, notary jurats, score sheets, and multi-state travel compliance.
+          </p>
+        </div>
+
+        <!-- Instructor Lead Badge -->
+        <div class="flex items-center space-x-4 bg-black/50 p-4 rounded-xl border border-brand-border flex-shrink-0">
+          <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-brand-gold to-amber-200 flex items-center justify-center text-black font-black text-2xl shadow-md shadow-brand-gold/30">
+            KW
+          </div>
+          <div>
+            <h4 class="text-base font-bold text-white">Coach Kai Wade</h4>
+            <p class="text-xs font-mono text-brand-gold">NRA #262929961</p>
+            <p class="text-xs font-mono text-slate-400">MSP QHIC § 5-101 Certified</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Directory Matrix -->
+      <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10 text-xs">
+        <!-- Phone / Text -->
+        <a href="tel:4439901304" class="p-4 rounded-xl bg-black/40 border border-brand-border hover:border-brand-gold transition group block">
+          <span class="text-slate-400 font-mono block text-[10px] uppercase font-bold">DIRECT PHONE / TEXT</span>
+          <div class="flex items-center space-x-2 mt-1">
+            <svg class="w-4 h-4 text-brand-gold group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+            <span class="text-sm font-bold text-white font-mono">(443) 990-1304</span>
+          </div>
+          <span class="text-[11px] text-slate-400 mt-1 block">Priority Student Dispatch 24/7</span>
+        </a>
+
+        <!-- Official Email -->
+        <a href="mailto:info@trainwithfifs.com" class="p-4 rounded-xl bg-black/40 border border-brand-border hover:border-brand-gold transition group block">
+          <span class="text-slate-400 font-mono block text-[10px] uppercase font-bold">OFFICIAL INQUIRIES</span>
+          <div class="flex items-center space-x-2 mt-1">
+            <svg class="w-4 h-4 text-brand-gold group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            <span class="text-sm font-bold text-white font-mono">info@trainwithfifs.com</span>
+          </div>
+          <span class="text-[11px] text-slate-400 mt-1 block">Affidavit &amp; Dossier Requests</span>
+        </a>
+
+        <!-- Web Portal -->
+        <a href="https://trainwithfifs.com" target="_blank" rel="noopener noreferrer" class="p-4 rounded-xl bg-black/40 border border-brand-border hover:border-brand-gold transition group block">
+          <span class="text-slate-400 font-mono block text-[10px] uppercase font-bold">PORTAL &amp; BOOKINGS</span>
+          <div class="flex items-center space-x-2 mt-1">
+            <svg class="w-4 h-4 text-brand-gold group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+            <span class="text-sm font-bold text-white font-mono">trainwithfifs.com</span>
+          </div>
+          <span class="text-[11px] text-slate-400 mt-1 block">Student Portal &amp; Renewals</span>
+        </a>
+
+        <!-- Range Facility -->
+        <div class="p-4 rounded-xl bg-black/40 border border-brand-border group block">
+          <span class="text-slate-400 font-mono block text-[10px] uppercase font-bold">QUALIFICATION FACILITY</span>
+          <div class="flex items-center space-x-2 mt-1">
+            <svg class="w-4 h-4 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <span class="text-sm font-bold text-white">Cindy's Hot Shots</span>
+          </div>
+          <span class="text-[11px] text-slate-400 mt-1 block">Live-Fire Qualification Shoot Range</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="mt-16 border-t border-brand-border bg-[#05080E] py-8 text-xs text-slate-500 font-mono">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-2">
+        <span class="w-2 h-2 rounded-full bg-brand-gold"></span>
+        <span class="text-slate-300 font-bold">FUTURE INITIATIVE FIREARM SERVICES</span>
+        <span>• Tactical Compliance &amp; Multi-Permit Expansion Protocol</span>
+      </div>
+      <div>
+        <span>THE FUTURE IS NOW, TAKE THE INITIATIVE!</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Fixed Floating Client Dispatch & Export Dock (Hidden when printing) -->
+  <aside aria-label="Dispatch actions" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-4xl no-print">
+    <div class="glass-card rounded-2xl p-3.5 border-2 border-brand-gold/60 shadow-2xl shadow-black/80 flex flex-wrap items-center justify-between gap-3 bg-[#0D1424]/95">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-lg bg-brand-gold/20 flex items-center justify-center text-brand-gold font-bold">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+        </div>
+        <div>
+          <p class="text-xs font-mono font-bold text-brand-gold uppercase tracking-wider">CLIENT DISPATCH TOOLS</p>
+          <p class="text-[11px] text-slate-300 hidden sm:block">Save as student PDF or copy quick briefing for text/email</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2 flex-wrap">
+        <!-- Button 1: Save as PDF -->
+        <button onclick="window.print()" class="px-3.5 py-2 rounded-xl bg-brand-gold hover:bg-brand-gold-light text-black font-extrabold text-xs transition flex items-center space-x-1.5 shadow-md shadow-brand-gold/20">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          <span>Save as PDF</span>
+        </button>
+
+        <!-- Button 2: Copy Quick Dispatch Text -->
+        <button onclick="copyClientBriefing()" id="copy-btn" class="px-3 py-2 rounded-xl bg-brand-surface border border-brand-border hover:border-brand-gold text-slate-200 hover:text-white font-semibold text-xs transition flex items-center space-x-1.5">
+          <svg class="w-4 h-4 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+          <span id="copy-btn-text">Copy Text Briefing</span>
+        </button>
+
+        <!-- Button 3: Download Raw HTML File -->
+        <button onclick="downloadSelfHtml()" class="px-3 py-2 rounded-xl bg-brand-surface border border-brand-border hover:border-brand-blue text-slate-200 hover:text-white font-semibold text-xs transition flex items-center space-x-1.5">
+          <svg class="w-4 h-4 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          <span>Download .html</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Notification Toast Container -->
+  <div id="toast" class="fixed top-20 right-6 z-50 hidden px-4 py-3 rounded-xl bg-emerald-500 text-black font-bold text-xs shadow-2xl flex items-center space-x-2 transition-all duration-300">
+    <svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+    <span id="toast-msg">Briefing copied to clipboard! Ready to paste to client.</span>
+  </div>
+
+  <script>
+    // Copy Client Quick Dispatch Text
+    function copyClientBriefing() {
+      const briefing = `🛡️ FUTURE INITIATIVE FIREARM SERVICES (FIFS)
+34+ STATE MULTI-PERMIT EXPANSION SYSTEM // CLIENT FIELD GUIDE
+Lead Instructor: Kai Wade (NRA #262929961 • MSP QHIC § 5-101)
+Range Hub: Cindy's Hot Shots | Direct: (443) 990-1304 | info@trainwithfifs.com
+
+Dear Client / Student,
+Here is your official phased dispatch roadmap to expand your Maryland Wear & Carry permit into 34+ states:
+
+PHASE 1 (Day 1 - Submit Immediately):
+• Submit Maryland Wear & Carry on MSP Portal (licensingportal.mdsp.maryland.gov) using your 12-digit LiveScan TCN and Form MSP 29-14 score sheet ($125).
+• BONUS: File for your 100% FREE Maryland HQL Exemption on the MSP portal using the same score sheet (Saves $150!).
+
+PHASE 2 (Days 1–3 - Mail in Parallel, Do NOT wait for MD approval):
+• Virginia Non-Resident CHP: Mail 7-point packet + 2x FD-258 ink cards + $100 Money Order payable to "Virginia State Police" via USPS Priority Mail.
+• Florida Non-Resident CWL: Submit online at fdacs.gov ($97), mail 1x FD-258 card + barcode sheet to Tallahassee.
+• Arizona Non-Resident CWP: Mail application + 2x FD-258 cards + $60 Money Order payable to "AZ DPS".
+
+PHASE 3 (Hold until physical MD card arrives):
+• Pennsylvania Non-Resident LTCF (York County): Once your physical plastic Maryland card is in your hand, submit on yorkpa.permitium.com ($20), receive SMS approval in 48-72 hrs, drive 35 mins up I-83 to York County Judicial Center for 5-minute photo issue!
+
+NEED ASSISTANCE OR AFFIDAVIT COPIES?
+Coach Kai Wade: (443) 990-1304 | trainwithfifs.com
+"The Future is Now, Take the Initiative!"`;
+
+      const el = document.createElement('textarea');
+      el.value = briefing;
+      el.setAttribute('readonly', '');
+      el.style.position = 'absolute';
+      el.style.left = '-9999px';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+
+      showToast("Briefing copied to clipboard! Ready to text/email to client.");
+    }
+
+    // Download standalone HTML
+    function downloadSelfHtml() {
+      const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'FIFS-34-State-Multi-Permit-SOP-Field-Guide.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast("Field Guide HTML downloaded!");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      toastMsg.innerText = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3500);
+    }
+  </script>
+
+
+</body></html>
