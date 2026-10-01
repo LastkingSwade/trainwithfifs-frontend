@@ -869,7 +869,9 @@ export async function POST(req: NextRequest) {
 
 
      // 6. Self-Service Password Update
-     case 'selfServicePasswordUpdate': {
+     case 'changePortalPassword':
+      case 'updateStudentPassword':
+      case 'selfServicePasswordUpdate': {
         const { email, studentId, identifier, currentPassword, newPassword } = payload;
         const target = (email || studentId || identifier || '').trim().toLowerCase();
         if (!target || !newPassword) {
@@ -1007,7 +1009,86 @@ export async function POST(req: NextRequest) {
 
 
      // 7. Student Portal Data Loader & Signed URL Refresh
-     case 'getStudentPortalData': {
+           case 'getClientPortalData': {
+        const identifier = (payload.identifier || payload.clientId || payload.email || '').trim().toLowerCase();
+        if (!identifier) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing client identifier.' }, { status: 400 });
+        }
+
+        // 1. Check clients table
+        const { data: client } = await supabase
+          .from('clients')
+          .select('*')
+          .or(`client_id.eq.${identifier.toUpperCase()},email.eq.${identifier}`).maybeSingle();
+
+        if (client) {
+          return NextResponse.json({
+            success: true,
+            status: 'success',
+            client: {
+              clientId: client.client_id,
+              fullName: client.full_name,
+              email: client.email,
+              phone: client.phone,
+              permitType: client.permit_type || 'Maryland Wear & Carry (CCW)',
+              permitState: client.permit_state || 'Maryland',
+              expirationDate: client.expiration_date || '2027-10-01',
+              status: client.status || 'ACTIVE_PERMIT_HOLDER',
+              optInReminder: Boolean(client.opt_in_reminder),
+              smsAlertPhone: client.sms_alert_phone || client.phone
+            }
+          });
+        }
+
+        // 2. Check students table as fallback
+        const { data: student } = await supabase
+          .from('students')
+          .select('*')
+          .or(`student_id.eq.${identifier.toUpperCase()},email.eq.${identifier}`).maybeSingle();
+
+        if (student) {
+          return NextResponse.json({
+            success: true,
+            status: 'success',
+            client: {
+              clientId: 'CLI-' + (student.student_id ? student.student_id.replace('FIFS-', '') : '4081'),
+              fullName: student.full_name,
+              email: student.email,
+              phone: student.phone,
+              permitType: 'Maryland Wear & Carry Permit (CCW)',
+              permitState: 'Maryland',
+              expirationDate: '2027-10-15',
+              status: 'ACTIVE_PERMIT_HOLDER',
+              optInReminder: true,
+              smsAlertPhone: student.phone
+            }
+          });
+        }
+
+        // 3. Demo Client Fallback
+        if (identifier.includes('demo') || identifier === 'cli-4081' || identifier === 'marcus.vance@example.com') {
+          return NextResponse.json({
+            success: true,
+            status: 'success',
+            client: {
+              clientId: 'CLI-4081',
+              fullName: 'Marcus Vance (Demo Client)',
+              email: 'marcus.vance@example.com',
+              phone: '(410) 555-0192',
+              permitType: 'Maryland Wear & Carry + Multi-State Non-Resident',
+              permitState: 'Maryland • Virginia • Florida • Arizona • Pennsylvania',
+              expirationDate: '2027-10-15',
+              status: 'ACTIVE_PERMIT_HOLDER',
+              optInReminder: true,
+              smsAlertPhone: '(410) 555-0192'
+            }
+          });
+        }
+
+        return NextResponse.json({ success: false, status: 'error', error: 'Client record not found in system.' }, { status: 404 });
+      }
+
+case 'getStudentPortalData': {
         const identifier = (payload.identifier || payload.studentId || payload.email || '').trim().toLowerCase();
         if (!identifier) {
           return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier.' }, { status: 400 });
