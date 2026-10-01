@@ -1150,7 +1150,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center"}}>
                 <div>
                   <h4 style={{"fontFamily": "var(--font-display)", "color": "#fff", "fontSize": "1.1rem", "marginBottom": "2px"}}>
-                    Your 8-Step Fit Journey <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-cyan-500/10 text-[#00e5ff] border border-[#00e5ff]/40 shadow-[0_0_12px_rgba(0,229,255,0.35)] animate-pulse align-middle ml-2"><span className="w-1.5 h-1.5 rounded-full bg-[#00e5ff] animate-ping" />Interactive</span>
+                    Your 8-Step FIFS Journey <span className="neon-arrow-badge neon-mode-cyan" style={{"display": "inline-flex", "alignItems": "center", "gap": "6px", "padding": "3px 12px", "fontSize": "0.74rem", "fontWeight": "800", "letterSpacing": "1px", "textTransform": "uppercase", "verticalAlign": "middle", "marginLeft": "8px", "borderRadius": "50px", "background": "rgba(0, 229, 255, 0.14)", "border": "1px solid var(--accent-cyan)", "color": "#00e5ff", "boxShadow": "0 0 16px rgba(0, 229, 255, 0.4), inset 0 0 8px rgba(0, 229, 255, 0.2)", "cursor": "pointer"}} data-onclick="openStepDetailModal(1)" title="Click to explore the interactive 8-step journey"><span style={{"width": "6px", "height": "6px", "borderRadius": "50%", "background": "#00e5ff", "boxShadow": "0 0 8px #00e5ff"}}></span>Interactive</span>
                   </h4>
                   <span style={{"fontSize": "0.72rem", "color": "var(--accent-amber)", "fontWeight": "700", "letterSpacing": "0.5px", "textTransform": "uppercase"}}>
                     🔒 Status Locked • Managed by Instructor Kai Wade
@@ -3377,7 +3377,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         <div style={{"marginBottom": "32px"}}>
           <div className="panel-header">
             <h3>
-              Your 8-Step Fit Journey <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-cyan-500/10 text-[#00e5ff] border border-[#00e5ff]/40 shadow-[0_0_12px_rgba(0,229,255,0.35)] animate-pulse align-middle ml-2"><span className="w-1.5 h-1.5 rounded-full bg-[#00e5ff] animate-ping" />Interactive</span>
+              Your 8-Step FIFS Journey <span className="neon-arrow-badge neon-mode-cyan" style={{"display": "inline-flex", "alignItems": "center", "gap": "6px", "padding": "4px 14px", "fontSize": "0.78rem", "fontWeight": "800", "letterSpacing": "1px", "textTransform": "uppercase", "verticalAlign": "middle", "marginLeft": "10px", "borderRadius": "50px", "background": "rgba(0, 229, 255, 0.14)", "border": "1px solid var(--accent-cyan)", "color": "#00e5ff", "boxShadow": "0 0 18px rgba(0, 229, 255, 0.45), inset 0 0 10px rgba(0, 229, 255, 0.2)", "cursor": "pointer"}} data-onclick="openStepDetailModal(1)" title="Click to explore the interactive 8-step journey"><span style={{"width": "7px", "height": "7px", "borderRadius": "50%", "background": "#00e5ff", "boxShadow": "0 0 8px #00e5ff"}}></span>Interactive</span>
             </h3>
             <p>
               From registration through state licensing, know exactly where you are in the process:
