@@ -300,6 +300,66 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+    // 34+ State Multi-Permit Expansion System Modal Controller
+    (window as any).toggleMultiPermitModal = function(show: boolean) {
+      const modal = document.getElementById('multiPermitModal');
+      if (modal) {
+        if (show) {
+          modal.classList.add('active');
+          modal.style.setProperty('display', 'block', 'important');
+          modal.style.setProperty('opacity', '1', 'important');
+          modal.style.setProperty('visibility', 'visible', 'important');
+          modal.style.setProperty('pointer-events', 'auto', 'important');
+          modal.style.setProperty('z-index', '999999', 'important');
+          document.body.classList.add('modal-open');
+          document.body.style.overflow = 'hidden';
+          modal.scrollTop = 0;
+        } else {
+          modal.classList.remove('active');
+          modal.style.setProperty('display', 'none', 'important');
+          modal.style.setProperty('opacity', '0', 'important');
+          modal.style.setProperty('visibility', 'hidden', 'important');
+          modal.style.setProperty('pointer-events', 'none', 'important');
+          modal.style.setProperty('z-index', '-10', 'important');
+          document.body.classList.remove('modal-open');
+          document.body.style.overflow = '';
+        }
+      }
+    };
+    (window as any).openMultiPermitModal = function() {
+      (window as any).toggleMultiPermitModal(true);
+    };
+    (window as any).closeMultiPermitModal = function() {
+      (window as any).toggleMultiPermitModal(false);
+    };
+
+    // Reciprocity Hub Modal Controller
+    (window as any).toggleReciprocityHubModal = function(show: boolean) {
+      const modal = document.getElementById('reciprocityHubModal');
+      if (modal) {
+        if (show) {
+          modal.classList.add('active');
+          modal.style.setProperty('display', 'block', 'important');
+          modal.style.setProperty('opacity', '1', 'important');
+          modal.style.setProperty('visibility', 'visible', 'important');
+          modal.style.setProperty('pointer-events', 'auto', 'important');
+          modal.style.setProperty('z-index', '999999', 'important');
+          document.body.classList.add('modal-open');
+          document.body.style.overflow = 'hidden';
+          modal.scrollTop = 0;
+        } else {
+          modal.classList.remove('active');
+          modal.style.setProperty('display', 'none', 'important');
+          modal.style.setProperty('opacity', '0', 'important');
+          modal.style.setProperty('visibility', 'hidden', 'important');
+          modal.style.setProperty('pointer-events', 'none', 'important');
+          modal.style.setProperty('z-index', '-10', 'important');
+          document.body.classList.remove('modal-open');
+          document.body.style.overflow = '';
+        }
+      }
+    };
+
     // Reservia Training Card Mapping & Enhanced Course Selector
     (window as any).selectCourse = function(courseValue: string) {
       if (typeof (window as any).openAndSwitch === 'function') {
@@ -467,16 +527,24 @@ export default function TrainWithFIFS(props: any) {
 document.addEventListener('submit', handleDelegatedSubmit);
 
 
-    (window as any).toggleMultiPermitModal = function(show: boolean) {
-      const modal = document.getElementById('multiPermitModal');
-      if (modal) {
-        modal.style.setProperty('display', show ? 'block' : 'none', 'important');
-        document.body.style.overflow = show ? 'hidden' : '';
-        if (show) modal.scrollTop = 0;
+
+
+    const handleModalEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        const multiModal = document.getElementById('multiPermitModal');
+        if (multiModal && multiModal.classList.contains('active')) {
+          (window as any).toggleMultiPermitModal?.(false);
+        }
+        const recipModal = document.getElementById('reciprocityHubModal');
+        if (recipModal && recipModal.classList.contains('active')) {
+          (window as any).toggleReciprocityHubModal?.(false);
+        }
       }
     };
+    window.addEventListener('keydown', handleModalEscapeKey);
 
     return () => {
+      window.removeEventListener('keydown', handleModalEscapeKey);
       document.removeEventListener('click', handleDelegatedClick);
       document.removeEventListener('change', handleDelegatedChange);
       document.removeEventListener('submit', handleDelegatedSubmit);
@@ -1391,7 +1459,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
 
               {/* Card 6: 34+ State Multi-Permit Expansion System Field Guide */}
-              <div className="portal-feature-launcher-card" style={{"border": "2px solid #F59E0B", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
+              <div className="portal-feature-launcher-card" onClick={(e) => { if ((e.target as HTMLElement).tagName !== 'BUTTON' && typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} style={{"border": "2px solid #F59E0B", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer"}}>
                 <div>
                   <span className="next-step-badge" style={{"color": "#F59E0B", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                     TACTICAL COMPLIANCE FIELD GUIDE
@@ -6508,7 +6576,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </div>
       </div>
             {/* ================= 34+ STATE MULTI-PERMIT EXPANSION SYSTEM FULL-SCREEN MODAL ================= */}
-      <div className="reciprocity-hub-modal-overlay" id="multiPermitModal" data-onclick="if(event.target===this) toggleMultiPermitModal(false)" style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "overflowY": "auto", "padding": "24px 16px"}}>
+      <div className="reciprocity-hub-modal-overlay" id="multiPermitModal" data-onclick="if(event.target===this) toggleMultiPermitModal(false)" onClick={(e) => { if (e.target === e.currentTarget && typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(false); }} style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "overflowY": "auto", "padding": "24px 16px"}}>
         <div style={{"maxWidth": "1240px", "margin": "0 auto", "position": "relative"}}>
           <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "18px", "paddingBottom": "12px", "borderBottom": "1px solid var(--border-subtle)", "flexWrap": "wrap", "gap": "10px"}}>
             <h2 style={{"fontFamily": "var(--font-display)", "fontSize": "1.65rem", "color": "#fff", "letterSpacing": "1px", "display": "flex", "alignItems": "center", "gap": "10px"}}>
@@ -6531,10 +6599,18 @@ document.addEventListener('submit', handleDelegatedSubmit);
               style={{"width": "100%", "height": "85vh", "border": "none", "display": "block", "background": "#070A11"}}
             />
           </div>
+          {/* Persistent Bottom Modal Dismissal Action Bar */}
+          <div style={{"marginTop": "32px", "padding": "22px 16px", "textAlign": "center", "borderTop": "1px solid var(--border-subtle)", "background": "#070b10", "borderRadius": "14px", "display": "flex", "justifyContent": "center", "alignItems": "center", "gap": "16px", "flexWrap": "wrap"}}>
+            <button className="btn-return-home" data-onclick="toggleMultiPermitModal(false)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(false); }} style={{"minHeight": "48px", "padding": "12px 28px", "fontSize": "1.05rem", "cursor": "pointer"}} type="button">
+              ← RETURN TO STUDENT PORTAL
+            </button>
+            <a href="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html" target="_blank" rel="noopener noreferrer" className="btn-spark" style={{"textDecoration": "none", "padding": "12px 24px", "fontSize": "0.95rem", "minHeight": "48px", "display": "inline-flex", "alignItems": "center", "gap": "8px", "borderColor": "#F59E0B", "color": "#F59E0B"}}>
+              <span>↗ Open in Standalone Tab</span>
+            </a>
+          </div>
         </div>
       </div>
-
-{/* ================= DESIGNATED COLLECTOR INFO MODAL ================= */}
+      {/* ================= DESIGNATED COLLECTOR INFO MODAL ================= */}
       <div className="state-dossier-modal-overlay" id="collectorInfoModal" data-onclick="if(event.target===this) closeCollectorModal()" style={{"display": "none"}}>
         <div aria-modal="true" className="state-dossier-card" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "620px"}}>
           <button aria-label="Close modal" className="dossier-close-btn" data-onclick="closeCollectorModal()" type="button">
