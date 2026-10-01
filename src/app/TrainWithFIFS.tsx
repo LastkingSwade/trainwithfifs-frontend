@@ -1,10 +1,14 @@
 "use client";
 
 
+
+
 import React, { useEffect } from "react";
 import Script from "next/script";
 import Head from "next/head";
 import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
+
+
 
 
 /**
@@ -17,9 +21,13 @@ export default function TrainWithFIFS(props: any) {
 
 
 
+
+
+
     // =========================================================================
     // AUTHORITATIVE FIFS INTERACTIVE SUITE (CORE CONTROLLERS & DATA DICTIONARIES)
     // =========================================================================
+
 
     const ALL_MODAL_IDS = [
       'twoWayChatModal', 'contactInstructorModal', 'courseBookingModal',
@@ -33,6 +41,7 @@ export default function TrainWithFIFS(props: any) {
       'multiPermitModal', 'clientFaqModal', 'adminScoresheetModal',
       'adminSubpanelModalOverlay'
     ];
+
 
     const closeAllOverlays = () => {
       ALL_MODAL_IDS.forEach((id) => {
@@ -53,6 +62,7 @@ export default function TrainWithFIFS(props: any) {
     };
     (window as any).closeAllOverlays = closeAllOverlays;
 
+
     const openModal = (modalId: string) => {
       const modal = document.getElementById(modalId);
       if (!modal) return;
@@ -69,6 +79,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     const closeModal = (modalId: string) => {
       const modal = document.getElementById(modalId);
       if (!modal) return;
@@ -82,6 +93,7 @@ export default function TrainWithFIFS(props: any) {
         document.body.style.overflow = '';
       }
     };
+
 
     // 1. DATA: Goals
     const GOAL_SYNOPSIS_DATA: Record<string, any> = {
@@ -191,6 +203,7 @@ export default function TrainWithFIFS(props: any) {
     };
     (window as any).GOAL_SYNOPSIS_DATA = GOAL_SYNOPSIS_DATA;
 
+
     (window as any).openGoalSynopsis = (goalKey: string, btnEl?: HTMLElement) => {
       const data = GOAL_SYNOPSIS_DATA[goalKey];
       if (!data) return;
@@ -205,6 +218,7 @@ export default function TrainWithFIFS(props: any) {
         btnEl.style.boxShadow = '0 0 16px var(--accent-cyan-glow), inset 0 0 10px rgba(0, 229, 255, 0.15)';
       }
 
+
       const badge = document.getElementById('goalModalBadge');
       const title = document.getElementById('goalModalTitle');
       const rec = document.getElementById('goalModalRec');
@@ -215,10 +229,12 @@ export default function TrainWithFIFS(props: any) {
       const guideBanner = document.getElementById('goalModalGuideBanner');
       const mspPortalBanner = document.getElementById('goalModalMspPortalBanner');
 
+
       if (badge) badge.textContent = data.badge;
       if (title) title.textContent = data.title;
       if (rec) rec.textContent = data.rec;
       if (synopsis) synopsis.textContent = data.synopsis;
+
 
       if (whyList && Array.isArray(data.why)) {
         whyList.innerHTML = data.why.map((item: string) => `<li style="margin-bottom:8px; display:flex; gap:8px;"><span style="color:var(--accent-cyan); font-weight:bold;">✔</span><span>${item}</span></li>`).join('');
@@ -227,8 +243,10 @@ export default function TrainWithFIFS(props: any) {
         whyNotList.innerHTML = data.whyNot.map((item: string) => `<li style="margin-bottom:8px; display:flex; gap:8px;"><span style="color:var(--accent-amber); font-weight:bold;">⚡</span><span>${item}</span></li>`).join('');
       }
 
+
       if (guideBanner) guideBanner.style.display = data.showGuide ? 'flex' : 'none';
       if (mspPortalBanner) mspPortalBanner.style.display = (goalKey === 'want_to_carry') ? 'flex' : 'none';
+
 
       if (acceptBtn) {
         if (goalKey === 'new_to_firearms') {
@@ -242,9 +260,11 @@ export default function TrainWithFIFS(props: any) {
         }
       }
 
+
       openModal('goalSynopsisModal');
     };
     (window as any).closeGoalSynopsis = () => { closeModal('goalSynopsisModal'); };
+
 
     // 2. DATA: 8-Step Journey
     const FIFS_STEPS_DATA: Record<number, any> = {
@@ -358,6 +378,7 @@ export default function TrainWithFIFS(props: any) {
     };
     (window as any).FIFS_STEPS_DATA = FIFS_STEPS_DATA;
 
+
     (window as any).openStepDetailModal = (stepNum: number) => {
       const data = FIFS_STEPS_DATA[stepNum];
       if (!data) return;
@@ -369,11 +390,13 @@ export default function TrainWithFIFS(props: any) {
       const keyPoints = document.getElementById('stepModalKeyPoints');
       const actions = document.getElementById('stepModalActions');
 
+
       if (badge) badge.textContent = `STEP ${stepNum} OF 8 • TRAINING ROADMAP`;
       if (heading) heading.textContent = data.title;
       if (icon) icon.textContent = data.icon;
       if (status) status.textContent = `Status: ${data.status}`;
       if (synopsis) synopsis.textContent = data.synopsis;
+
 
       if (keyPoints && Array.isArray(data.points)) {
         keyPoints.innerHTML = data.points.map((p: string) => `
@@ -382,6 +405,7 @@ export default function TrainWithFIFS(props: any) {
           </div>
         `).join('');
       }
+
 
       if (actions) {
         actions.innerHTML = `
@@ -403,9 +427,11 @@ export default function TrainWithFIFS(props: any) {
         if (closeEl) closeEl.onclick = () => (window as any).closeStepDetailModal();
       }
 
+
       openModal('stepDetailModal');
     };
     (window as any).closeStepDetailModal = () => { closeModal('stepDetailModal'); };
+
 
     // 3. DATA: What to Expect
     const EXPECTATION_DATA: Record<string, any> = {
@@ -496,6 +522,7 @@ export default function TrainWithFIFS(props: any) {
     };
     (window as any).EXPECTATION_DATA = EXPECTATION_DATA;
 
+
     (window as any).openExpectationModal = (type: string) => {
       const data = EXPECTATION_DATA[type] || EXPECTATION_DATA['handgun'];
       if (!data) return;
@@ -505,10 +532,12 @@ export default function TrainWithFIFS(props: any) {
       const subtitle = document.getElementById('expectModalSubtitle');
       const grid = document.getElementById('expectModalSectionsGrid');
 
+
       if (badge) badge.textContent = data.badge;
       if (heading) heading.textContent = data.title;
       if (icon) icon.textContent = data.icon;
       if (subtitle) subtitle.textContent = data.subtitle;
+
 
       if (grid && Array.isArray(data.sections)) {
         grid.innerHTML = data.sections.map((s: any) => `
@@ -519,9 +548,11 @@ export default function TrainWithFIFS(props: any) {
         `).join('');
       }
 
+
       openModal('expectationModal');
     };
     (window as any).closeExpectationModal = () => { closeModal('expectationModal'); };
+
 
     // 4. DATA: Course Tier Switching (Standard vs VIP)
     const COURSE_TIER_CONFIG: Record<string, any> = {
@@ -582,6 +613,7 @@ export default function TrainWithFIFS(props: any) {
     };
     (window as any).COURSE_TIER_CONFIG = COURSE_TIER_CONFIG;
 
+
     (window as any).setCardTier = (courseKey: string, targetTier: string, evt?: Event) => {
       if (evt) {
         if (evt.stopPropagation) evt.stopPropagation();
@@ -597,7 +629,9 @@ export default function TrainWithFIFS(props: any) {
       const vipBox = document.getElementById('vip-box-course-' + courseKey) || document.getElementById('vip-box-' + courseKey);
       const btnSelect = document.getElementById('btn-select-course-' + courseKey) as HTMLButtonElement | null;
 
+
       const isVip = targetTier === 'vip';
+
 
       if (card) {
         if (isVip) {
@@ -613,6 +647,7 @@ export default function TrainWithFIFS(props: any) {
         }
       }
 
+
       if (switchBox) {
         if (isVip) {
           switchBox.classList.add('active-vip');
@@ -623,17 +658,21 @@ export default function TrainWithFIFS(props: any) {
         }
       }
 
+
       if (slider) {
         slider.style.transform = isVip ? 'translateX(100%)' : 'translateX(0)';
       }
+
 
       if (badge) {
         badge.style.setProperty('display', isVip ? 'block' : 'none', 'important');
       }
 
+
       if (vipBox) {
         vipBox.style.setProperty('display', isVip ? 'block' : 'none', 'important');
       }
+
 
       if (priceElem) {
         if (isVip) {
@@ -642,6 +681,7 @@ export default function TrainWithFIFS(props: any) {
           priceElem.innerHTML = `<span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">${config.basePrice}</span><span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>`;
         }
       }
+
 
       if (btnSelect) {
         if (isVip) {
@@ -662,11 +702,13 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).toggleCardTier = (courseKey: string, evt?: Event) => {
       const card = document.getElementById('card-course-' + courseKey);
       const isVip = card && card.classList.contains('vip-mode-active');
       (window as any).setCardTier(courseKey, isVip ? 'base' : 'vip', evt);
     };
+
 
     // 5. Course Selection with Smooth Scroll to Form
     (window as any).selectCourse = (courseValue: string) => {
@@ -724,11 +766,13 @@ export default function TrainWithFIFS(props: any) {
         }
       }
 
+
       setTimeout(() => {
         const target = document.getElementById('courseSelection') || document.getElementById('view-booking');
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 150);
     };
+
 
     // 6. Navigation Controllers
     (window as any).returnToHome = () => {
@@ -750,10 +794,12 @@ export default function TrainWithFIFS(props: any) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+
     (window as any).navigateBack = () => {
       closeAllOverlays();
       (window as any).returnToHome();
     };
+
 
     (window as any).triggerTopNavGunReload = (e?: Event) => {
       if (e && e.preventDefault) e.preventDefault();
@@ -763,6 +809,7 @@ export default function TrainWithFIFS(props: any) {
         setTimeout(() => { btn.style.transform = ''; }, 400);
       }
     };
+
 
     // 7. 4-Tap Logo Gesture
     let tapTimestamps: number[] = [];
@@ -785,11 +832,13 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).openTerminalGateway = () => {
       (window as any).switchTab('admin');
       const passField = document.getElementById('adminPasscode');
       if (passField) passField.focus();
     };
+
 
     // Attach logo tap listeners
     const attachLogoListeners = () => {
@@ -801,6 +850,7 @@ export default function TrainWithFIFS(props: any) {
     };
     attachLogoListeners();
 
+
     // 8. Calendar Engine
     let calCurrentYear = 2026;
     let calCurrentMonth = 9; // October (0-indexed)
@@ -810,6 +860,7 @@ export default function TrainWithFIFS(props: any) {
     let calSelectedDate2Obj: Date | null = null;
     const calBookedDates: string[] = [];
 
+
     const is16HourCourseSelected = () => {
       const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
       const curVal = (selectElem ? selectElem.value : '').toLowerCase();
@@ -817,11 +868,13 @@ export default function TrainWithFIFS(props: any) {
     };
     (window as any).is16HourCourseSelected = is16HourCourseSelected;
 
+
     const selectBookingDate = (dateKey: string, cellDate: Date, isVip?: boolean) => {
       const is16Hr = is16HourCourseSelected();
       const dateInput = document.getElementById('preferredDates') as HTMLInputElement | null;
       const dateText = document.getElementById('bookingCalSelectedDateText');
       const options: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+
 
       if (is16Hr) {
         if (!calSelectedDate1 || (calSelectedDate1 && calSelectedDate2)) {
@@ -854,12 +907,15 @@ export default function TrainWithFIFS(props: any) {
         calSelectedDate2Obj = null;
       }
 
+
       (window as any).calSelectedDate = calSelectedDate1;
       (window as any).calSelectedDate1 = calSelectedDate1;
       (window as any).calSelectedDate2 = calSelectedDate2;
 
+
       const f1 = calSelectedDate1Obj ? calSelectedDate1Obj.toLocaleDateString('en-US', options) : calSelectedDate1;
       const f2 = calSelectedDate2Obj ? calSelectedDate2Obj.toLocaleDateString('en-US', options) : calSelectedDate2;
+
 
       if (is16Hr) {
         if (calSelectedDate1 && calSelectedDate2) {
@@ -890,9 +946,11 @@ export default function TrainWithFIFS(props: any) {
         }
       }
 
+
       renderBookingCalendar();
     };
     (window as any).selectBookingDate = selectBookingDate;
+
 
     const renderBookingCalendar = () => {
       const grid = document.getElementById('bookingCalDaysGrid');
@@ -900,13 +958,16 @@ export default function TrainWithFIFS(props: any) {
       const policyBanner = document.getElementById('calendarPolicyText');
       if (!grid || !label) return;
 
+
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
       label.textContent = monthNames[calCurrentMonth] + ' ' + calCurrentYear;
+
 
       const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
       const curVal = (selectElem ? selectElem.value : '').toLowerCase();
       const isVip = curVal.includes('vip') || curVal.includes('turnkey');
       const is16Hr = is16HourCourseSelected();
+
 
       if (policyBanner) {
         if (is16Hr) {
@@ -920,9 +981,11 @@ export default function TrainWithFIFS(props: any) {
         }
       }
 
+
       grid.innerHTML = '';
       const firstDay = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
       const totalDays = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
+
 
       for (let i = 0; i < firstDay; i++) {
         const emptyCell = document.createElement('div');
@@ -931,8 +994,10 @@ export default function TrainWithFIFS(props: any) {
         grid.appendChild(emptyCell);
       }
 
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+
 
       for (let d = 1; d <= totalDays; d++) {
         const cellDate = new Date(calCurrentYear, calCurrentMonth, d);
@@ -942,6 +1007,7 @@ export default function TrainWithFIFS(props: any) {
         const dateKey = `${calCurrentYear}-${String(calCurrentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const isBooked = calBookedDates.includes(dateKey);
         const isPast = cellDate < today;
+
 
         const cell = document.createElement('div');
         cell.style.background = '#0d1219';
@@ -955,6 +1021,7 @@ export default function TrainWithFIFS(props: any) {
         cell.style.cursor = 'pointer';
         cell.style.transition = 'all 0.15s ease';
         cell.setAttribute('data-date', dateKey);
+
 
         if (isPast) {
           cell.style.color = '#334155';
@@ -971,6 +1038,7 @@ export default function TrainWithFIFS(props: any) {
         } else {
           const isDate1 = (calSelectedDate1 === dateKey);
           const isDate2 = (calSelectedDate2 === dateKey);
+
 
           if (isDate1) {
             cell.style.background = isVip
@@ -991,6 +1059,7 @@ export default function TrainWithFIFS(props: any) {
             cell.textContent = String(d);
           }
 
+
           cell.onclick = (e) => {
             if (e && e.stopPropagation) e.stopPropagation();
             if (e && e.preventDefault) e.preventDefault();
@@ -1001,6 +1070,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
     (window as any).renderBookingCalendar = renderBookingCalendar;
+
 
     (window as any).changeBookingCalendarMonth = (delta: number) => {
       calCurrentMonth += delta;
@@ -1014,8 +1084,10 @@ export default function TrainWithFIFS(props: any) {
       renderBookingCalendar();
     };
 
+
     // Auto-render calendar on load
     setTimeout(renderBookingCalendar, 100);
+
 
     // 9. Student Portal Operations
     (window as any).renderStudentDashboard = (student: any) => {
@@ -1023,6 +1095,7 @@ export default function TrainWithFIFS(props: any) {
       const activeDash = document.getElementById('student-active-dashboard');
       if (loginBox) loginBox.classList.add('hidden');
       if (activeDash) activeDash.classList.remove('hidden');
+
 
       const nameElem = document.getElementById('dash-student-name');
       if (nameElem) nameElem.textContent = (student.fullName || student.full_name || 'Student').split(' ')[0];
@@ -1037,6 +1110,7 @@ export default function TrainWithFIFS(props: any) {
       const userTag = document.getElementById('portal-user-tag');
       if (userTag) userTag.textContent = "Student: " + (student.fullName || student.full_name) + " (" + (student.studentId || student.student_id) + ")";
     };
+
 
     (window as any).loadDemoStudent = () => {
       const demo = {
@@ -1063,6 +1137,7 @@ export default function TrainWithFIFS(props: any) {
       (window as any).renderStudentDashboard(demo);
     };
 
+
     (window as any).lookupStudentAccount = () => {
       const input = document.getElementById('studentAuthInput') as HTMLInputElement | null;
       const passInput = document.getElementById('studentAuthPassword') as HTMLInputElement | null;
@@ -1071,6 +1146,7 @@ export default function TrainWithFIFS(props: any) {
       const query = input ? input.value.trim() : '';
       const password = passInput ? passInput.value.trim() : '';
 
+
       if (!query) {
         if (statusDiv) {
           statusDiv.textContent = 'Please enter your Email Address or Student ID.';
@@ -1078,6 +1154,7 @@ export default function TrainWithFIFS(props: any) {
         }
         return;
       }
+
 
       if (query === 'Ultima' || password === 'Ultima') {
         if (statusDiv) {
@@ -1089,15 +1166,18 @@ export default function TrainWithFIFS(props: any) {
         return;
       }
 
+
       if (query.toUpperCase() === 'FIFS-4081' || query.toLowerCase() === 'jordan.vance@example.com') {
         (window as any).loadDemoStudent();
         return;
       }
 
+
       if (statusDiv) {
         statusDiv.textContent = 'Authenticating Student Operations credentials...';
         statusDiv.style.display = 'block';
       }
+
 
       fetch('/api/fifs', {
         method: 'POST',
@@ -1139,6 +1219,7 @@ export default function TrainWithFIFS(props: any) {
       });
     };
 
+
     // 10. Chat & Contact Modals
     (window as any).openContactWidgetModal = () => { openModal('contactInstructorModal'); };
     (window as any).closeContactWidgetModal = () => { closeModal('contactInstructorModal'); };
@@ -1150,6 +1231,7 @@ export default function TrainWithFIFS(props: any) {
       if (w) w.style.setProperty('display', 'none', 'important');
     };
 
+
     (window as any).handleLiveChatSubmit = (e: Event) => {
       if (e && e.preventDefault) e.preventDefault();
       const nameEl = document.getElementById('chatSenderName') as HTMLInputElement | null;
@@ -1160,6 +1242,7 @@ export default function TrainWithFIFS(props: any) {
       const phone = phoneEl ? phoneEl.value.trim() : '';
       const message = msgEl ? msgEl.value.trim() : '';
 
+
       if (!name || !message) {
         if (statusDiv) {
           statusDiv.textContent = 'Please enter your Name and Message to connect with Instructor Kai Wade.';
@@ -1168,10 +1251,12 @@ export default function TrainWithFIFS(props: any) {
         return;
       }
 
+
       if (statusDiv) {
         statusDiv.textContent = 'Connecting to Lead Instructor Kai Wade...';
         statusDiv.style.display = 'block';
       }
+
 
       fetch('/api/fifs', {
         method: 'POST',
@@ -1200,6 +1285,7 @@ export default function TrainWithFIFS(props: any) {
       });
     };
 
+
     // Persistent chat bubble check
     try {
       if (typeof window !== 'undefined' && localStorage.getItem('fifs_chat_bubble_dismissed') === '1') {
@@ -1207,6 +1293,9 @@ export default function TrainWithFIFS(props: any) {
         if (w) w.style.setProperty('display', 'none', 'important');
       }
     } catch(e) {}
+
+
+
 
 
 
@@ -1223,6 +1312,8 @@ export default function TrainWithFIFS(props: any) {
       }
       if (mapRetryCount > 25) clearInterval(mapInitTimer);
     }, 200);
+
+
 
 
     // 1. Intercept student magic link or portal invite from URL
@@ -1244,6 +1335,8 @@ export default function TrainWithFIFS(props: any) {
     }
 
 
+
+
     // 2. Track site visit to Discord once per browser session
     try {
       if (!sessionStorage.getItem('fifs_visit_tracked')) {
@@ -1258,6 +1351,8 @@ export default function TrainWithFIFS(props: any) {
   }, []);
 
 
+
+
   if (typeof window !== "undefined") {
     (window as any).dismissPwaLandingBanner = (window as any).dismissPwaLandingBanner || function() {
       var b = document.getElementById("pwa-landing-banner");
@@ -1265,6 +1360,8 @@ export default function TrainWithFIFS(props: any) {
     };
   }
   useEffect(() => {
+
+
 
 
     // Direct Next.js /api/checkout bridge for Stripe Checkout
@@ -1314,12 +1411,18 @@ export default function TrainWithFIFS(props: any) {
 
 
 
+
+
+
+
     // Configure default Stripe live publishable key if not already defined
     if (typeof window !== "undefined") {
       (window as any).STRIPE_PUBLISHABLE_KEY =
         (window as any).STRIPE_PUBLISHABLE_KEY ||
         "pk_live_51LqGwfH3ll5w8Qh1DmpXqIgXrN1OO2eQ4cQMOL3bDHVf6baTP4YgHp7CRCsOgC4UepBfe7w6wH1p8plUXuJnuOm500U20Ny7fS";
     }
+
+
 
 
     // Helper to decode HTML entities in data attributes
@@ -1331,6 +1434,8 @@ export default function TrainWithFIFS(props: any) {
         .replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>');
     };
+
+
 
 
     // Global event delegator for data-onclick, data-onchange, and data-onsubmit
@@ -1349,6 +1454,8 @@ export default function TrainWithFIFS(props: any) {
     };
 
 
+
+
     const handleDelegatedChange = (e: Event) => {
       const target = (e.target as HTMLElement).closest('[data-onchange]') as HTMLElement | null;
       if (!target) return;
@@ -1364,12 +1471,14 @@ export default function TrainWithFIFS(props: any) {
     };
 
 
+
+
     const handleDelegatedKeyDown = (e: KeyboardEvent) => {
       const target = (e.target as HTMLElement).closest('[data-onkeydown]') as HTMLElement | null;
       if (!target) return;
       let handlerStr = target.getAttribute('data-onkeydown');
       if (!handlerStr) return;
-      handlerStr = decodeEntities(handlerStr).replace(/\(['"])/g, "");
+      handlerStr = decodeEntities(handlerStr).replace(/\\(['"])/g, "$1");
       try {
         const fn = new Function('event', handlerStr);
         fn.call(target, e);
@@ -1377,6 +1486,7 @@ export default function TrainWithFIFS(props: any) {
         console.error('Error executing data-onkeydown handler: "' + handlerStr + '"', err);
       }
     };
+
 
     const handleDelegatedSubmit = (e: Event) => {
       const target = (e.target as HTMLElement).closest('[data-onsubmit]') as HTMLElement | null;
@@ -1392,6 +1502,8 @@ export default function TrainWithFIFS(props: any) {
         console.error('Error executing data-onsubmit handler: "' + handlerStr + '"', err);
       }
     };
+
+
 
 
     
@@ -1438,6 +1550,8 @@ export default function TrainWithFIFS(props: any) {
     const hoursInterval = setInterval(syncOperatingHours, 30000);
 
 
+
+
     
     // Modal Controller Functions for Standardized Pop-ups
     (window as any).openMultistateMasteryModal = function() {
@@ -1457,6 +1571,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).openPermitRenewalModal = function() {
       const modal = document.getElementById('permitRenewalModal');
       if (modal) {
@@ -1474,6 +1589,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).openFutureServicesModal = function() {
       const modal = document.getElementById('futureServicesModal');
       if (modal) {
@@ -1490,6 +1606,7 @@ export default function TrainWithFIFS(props: any) {
         document.body.classList.remove('modal-open');
       }
     };
+
 
         // Vehicle Travel Modal Controller
     (window as any).openVehicleTravelModal = function() {
@@ -1512,6 +1629,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     // Flying With Firearms Modal Controller
     (window as any).openFlyingWithFirearmModal = function() {
       const modal = document.getElementById('flyingWithFirearmModal');
@@ -1532,6 +1650,7 @@ export default function TrainWithFIFS(props: any) {
         document.body.style.overflow = '';
       }
     };
+
 
     // Client Profile Modal Controller
     (window as any).openClientProfileModal = function() {
@@ -1554,6 +1673,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     // Client FAQ Modal Controller
     (window as any).openClientFaqModal = function() {
       const modal = document.getElementById('clientFaqModal');
@@ -1574,6 +1694,7 @@ export default function TrainWithFIFS(props: any) {
         document.body.style.overflow = '';
       }
     };
+
 
     // Helper to sync CCW permit card values whenever client data is loaded/updated
     (window as any).syncClientPermitCard = function(clientData?: any) {
@@ -1596,6 +1717,7 @@ export default function TrainWithFIFS(props: any) {
         if (sinceEl) sinceEl.textContent = formatted.toUpperCase();
       }
     };
+
 
     // 34+ State Multi-Permit Expansion System Modal Controller
     (window as any).toggleMultiPermitModal = function(show: boolean) {
@@ -1630,6 +1752,7 @@ export default function TrainWithFIFS(props: any) {
       (window as any).toggleMultiPermitModal(false);
     };
 
+
     // Reciprocity Hub Modal Controller
     (window as any).toggleReciprocityHubModal = function(show: boolean) {
       const modal = document.getElementById('reciprocityHubModal');
@@ -1657,6 +1780,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     // Reservia Training Card Mapping & Enhanced Course Selector
     (window as any).selectCourse = function(courseValue: string) {
       if (typeof (window as any).openAndSwitch === 'function') {
@@ -1665,10 +1789,13 @@ export default function TrainWithFIFS(props: any) {
         (window as any).switchTab('booking');
       }
 
+
       const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
       if (!selectElem) return;
 
+
       const valClean = (courseValue || '').toLowerCase().trim();
+
 
       // Explicit Mapping for Maryland Wear & Carry (8-Hour Renewal) - Unique ID: 48daf0ba-41a3-4d89-a148-07f26f1e89f5
       if (valClean.includes('renewal') || valClean.includes('8-hour') || valClean.includes('8 hour') || valClean.includes('recertification')) {
@@ -1695,6 +1822,7 @@ export default function TrainWithFIFS(props: any) {
         return;
       }
 
+
       // Explicit Mapping for Mid-Atlantic Multi-State Mastery - Standard Rate $425 Base / $550 VIP
       if (valClean.includes('mastery') || valClean.includes('multi-state') || valClean.includes('multistate')) {
         const isVip = valClean.includes('vip') || valClean.includes('550');
@@ -1714,6 +1842,7 @@ export default function TrainWithFIFS(props: any) {
         return;
       }
 
+
       // Default course selection matcher
       for (let i = 0; i < selectElem.options.length; i++) {
         const optVal = selectElem.options[i].value.toLowerCase().trim();
@@ -1730,6 +1859,7 @@ export default function TrainWithFIFS(props: any) {
         (window as any).openCourseBookingModal();
       }
     };
+
 
     // Client Portal Permit CRUD (Delete Permit respecting RLS auth.uid() = user_id)
     
@@ -1755,6 +1885,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).promptRemovePermit = function() {
       const activeMults: string[] = [];
       if ((window as any).activeMultipliers && (window as any).activeMultipliers.forEach) {
@@ -1777,6 +1908,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).promptAddPermit = function() {
       const choice = prompt('Select Non-Resident Permit Multiplier to Add:\n1. UT (Utah)\n2. FL (Florida)\n3. AZ (Arizona)\n4. PA (Pennsylvania)\n5. VA (Virginia)\n\nEnter 2-letter state abbreviation:');
       if (choice) {
@@ -1796,6 +1928,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).renderMyPermitsList = function() {
       const list = document.getElementById('myPermitsList');
       if (!list) return;
@@ -1812,6 +1945,7 @@ export default function TrainWithFIFS(props: any) {
         <div class="permit-status-badge-circle badge-primary-resident" style="background:#10b981; color:#000; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.75rem;">&#10003;</div>
       `;
       list.appendChild(resRow);
+
 
       const multipliers = (window as any).activeMultipliers;
       if (multipliers && multipliers.forEach) {
@@ -1832,6 +1966,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     // =========================================================================
     // CHANGE PASSWORD MODAL CONTROLLER (STUDENT & CLIENT)
     // =========================================================================
@@ -1840,6 +1975,7 @@ export default function TrainWithFIFS(props: any) {
       if (!modal) return;
       const emailInput = document.getElementById('cpUserEmail') as HTMLInputElement | null;
       let userIdent = '';
+
 
       if (role === 'student' || !role) {
         try {
@@ -1875,9 +2011,11 @@ export default function TrainWithFIFS(props: any) {
         }
       }
 
+
       if (!userIdent) {
         userIdent = (window as any).__currentUserEmail || (window as any).__currentStudentSession?.email || '';
       }
+
 
       if (emailInput && userIdent) emailInput.value = userIdent;
       const statusDiv = document.getElementById('changePasswordStatus');
@@ -1885,6 +2023,7 @@ export default function TrainWithFIFS(props: any) {
         statusDiv.style.display = 'none';
         statusDiv.innerHTML = '';
       }
+
 
       modal.classList.add('active');
       modal.style.setProperty('display', 'flex', 'important');
@@ -1895,6 +2034,7 @@ export default function TrainWithFIFS(props: any) {
       document.body.classList.add('modal-open');
     };
 
+
     (window as any).closeChangePasswordModal = function() {
       const modal = document.getElementById('changePasswordModal');
       if (!modal) return;
@@ -1902,6 +2042,7 @@ export default function TrainWithFIFS(props: any) {
       modal.style.setProperty('display', 'none', 'important');
       document.body.classList.remove('modal-open');
     };
+
 
     (window as any).submitChangePassword = async function(e: any) {
       if (e && e.preventDefault) e.preventDefault();
@@ -1912,10 +2053,12 @@ export default function TrainWithFIFS(props: any) {
       const statusDiv = document.getElementById('changePasswordStatus');
       const submitBtn = document.getElementById('btnSubmitChangePassword') as HTMLButtonElement | null;
 
+
       const userIdentifier = emailInput ? emailInput.value.trim() : '';
       const currentPassword = currInput ? currInput.value.trim() : '';
       const newPassword = newInput ? newInput.value.trim() : '';
       const confirmPassword = confirmInput ? confirmInput.value.trim() : '';
+
 
       if (!userIdentifier) {
         if (statusDiv) {
@@ -1985,10 +2128,12 @@ export default function TrainWithFIFS(props: any) {
         return;
       }
 
+
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Updating Password...';
       }
+
 
       try {
         const res = await fetch('/api/fifs', {
@@ -2045,6 +2190,7 @@ export default function TrainWithFIFS(props: any) {
         }
       }
     };
+
 
     // =========================================================================
     // FIFS PROMISE INTERACTIVE CARDS & DETAIL MODAL CONTROLLER
@@ -2152,6 +2298,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).openPromiseDetailModal = function(type: string) {
       const data = PROMISE_DATA[type];
       if (!data) return;
@@ -2163,11 +2310,13 @@ export default function TrainWithFIFS(props: any) {
       const synopsis = document.getElementById('promiseModalSynopsis');
       const grid = document.getElementById('promiseModalSectionsGrid');
 
+
       if (badge) badge.textContent = data.badge;
       if (heading) heading.textContent = data.title;
       if (icon) icon.textContent = data.icon;
       if (subtitle) subtitle.textContent = data.subtitle;
       if (synopsis) synopsis.textContent = data.synopsis;
+
 
       if (grid && Array.isArray(data.sections)) {
         grid.innerHTML = data.sections.map((s: any) => `
@@ -2177,6 +2326,7 @@ export default function TrainWithFIFS(props: any) {
           </div>
         `).join('');
       }
+
 
       if (modal) {
         modal.classList.add('active');
@@ -2189,6 +2339,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).closePromiseDetailModal = function() {
       const modal = document.getElementById('promiseDetailModal');
       if (!modal) return;
@@ -2196,6 +2347,7 @@ export default function TrainWithFIFS(props: any) {
       modal.style.setProperty('display', 'none', 'important');
       document.body.classList.remove('modal-open');
     };
+
 
     // =========================================================================
     // PERSISTENT CHAT BUBBLE DISMISS HANDLER
@@ -2216,10 +2368,12 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).verifyAdminAccess = function(overridePin?: string) {
       const pinInput = document.getElementById('adminPasscode') as HTMLInputElement | null;
       const pin = (overridePin || (pinInput ? pinInput.value : '') || sessionStorage.getItem('fifs_instructor_pin') || '').trim();
       const statusDiv = document.getElementById('admin-auth-status');
+
 
       if (!pin) {
         if (statusDiv) {
@@ -2230,11 +2384,13 @@ export default function TrainWithFIFS(props: any) {
         return;
       }
 
+
       if (statusDiv) {
         statusDiv.style.display = 'block';
         statusDiv.className = 'status-msg success';
         statusDiv.textContent = 'Authenticating Instructor Passcode...';
       }
+
 
       fetch('/api/fifs', {
         method: 'POST',
@@ -2276,6 +2432,7 @@ export default function TrainWithFIFS(props: any) {
       });
     };
 
+
     (window as any).renderAdminTerminal = function(data: any) {
       const authBox = document.getElementById('admin-auth-box');
       const dashBox = document.getElementById('admin-command-dashboard');
@@ -2288,8 +2445,10 @@ export default function TrainWithFIFS(props: any) {
         dashBox.style.setProperty('display', 'block', 'important');
       }
 
+
       const students = (data && Array.isArray(data.students)) ? data.students : [];
       (window as any).adminCachedStudents = students;
+
 
       let totalCount = students.length;
       let pendingCount = 0;
@@ -2302,6 +2461,7 @@ export default function TrainWithFIFS(props: any) {
         else completedCount++;
       });
 
+
       const elTot = document.getElementById('metric-total');
       const elPen = document.getElementById('metric-pending');
       const elUpc = document.getElementById('metric-upcoming');
@@ -2310,6 +2470,7 @@ export default function TrainWithFIFS(props: any) {
       if (elPen) elPen.textContent = String(pendingCount);
       if (elUpc) elUpc.textContent = String(upcomingCount);
       if (elCom) elCom.textContent = String(completedCount);
+
 
       const tbody = document.getElementById('admin-roster-tbody');
       if (tbody) {
@@ -2366,15 +2527,18 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).renderAdminClientTerminal = function(data: any) {
       const clients = (data && Array.isArray(data.clients)) ? data.clients : [];
       (window as any).adminCachedClients = clients;
+
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       let activeCount = 0;
       let renewalCount = 0;
       let expiredCount = 0;
+
 
       clients.forEach((c: any) => {
         let diffDays = 365;
@@ -2392,6 +2556,7 @@ export default function TrainWithFIFS(props: any) {
         else activeCount++;
       });
 
+
       const elTot = document.getElementById('metric-client-total');
       const elAct = document.getElementById('metric-client-active');
       const elRen = document.getElementById('metric-client-renewal');
@@ -2400,6 +2565,7 @@ export default function TrainWithFIFS(props: any) {
       if (elAct) elAct.textContent = String(activeCount);
       if (elRen) elRen.textContent = String(renewalCount);
       if (elExp) elExp.textContent = String(expiredCount);
+
 
       const tbody = document.getElementById('admin-client-tbody');
       if (tbody) {
@@ -2438,6 +2604,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).refreshAdminRoster = function() {
       const pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
       fetch('/api/fifs', {
@@ -2455,6 +2622,7 @@ export default function TrainWithFIFS(props: any) {
       .catch(err => console.warn('Refresh admin error:', err));
     };
 
+
     (window as any).adminSignOut = function() {
       sessionStorage.removeItem('fifs_instructor_pin');
       const authBox = document.getElementById('admin-auth-box');
@@ -2468,6 +2636,7 @@ export default function TrainWithFIFS(props: any) {
         authBox.style.setProperty('display', 'block', 'important');
       }
     };
+
 
     // =========================================================================
     // 30% DEPOSIT CALCULATION ($45 CINDY'S RANGE FEE + 6% MD TAX)
@@ -2487,6 +2656,7 @@ export default function TrainWithFIFS(props: any) {
         discountPercent = 0.15;
       }
 
+
       const rawTuition = baseTuition * count;
       const discountAmount = rawTuition * discountPercent;
       const discountedTuition = rawTuition - discountAmount;
@@ -2499,6 +2669,7 @@ export default function TrainWithFIFS(props: any) {
       // Required 30% deposit
       const depositDueNow = grandTotal * 0.30;
       const balanceDueClass = grandTotal - depositDueNow;
+
 
       return {
         attendees: count,
@@ -2518,11 +2689,13 @@ export default function TrainWithFIFS(props: any) {
       };
     };
 
+
     (window as any).updateFormPriceDisplay = function() {
       const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
       if (!selectElem) return;
       const selectedVal = selectElem.value;
       const isVip = selectedVal.includes('VIP') || selectedVal.includes('Turnkey');
+
 
       let unitBase = 249.99;
       let unitVip = 375.00;
@@ -2547,11 +2720,14 @@ export default function TrainWithFIFS(props: any) {
         unitBase = 65.00; unitVip = 115.00;
       }
 
+
       const activeUnit = isVip ? unitVip : unitBase;
       const groupElem = document.getElementById('groupSize') as HTMLSelectElement | null;
       const groupVal = groupElem ? groupElem.value : '1';
 
+
       const pricing = (window as any).calculateComprehensiveInvoice(activeUnit, isVip, groupVal);
+
 
       const titleElem = document.getElementById('formCardCourseTitle');
       const tierTag = document.getElementById('formCardTierTag');
@@ -2561,6 +2737,7 @@ export default function TrainWithFIFS(props: any) {
       const tierDesc = document.getElementById('formCardTierDesc');
       const boxBase = document.getElementById('formBoxBase');
       const boxVip = document.getElementById('formBoxVip');
+
 
       const bookingTitle = document.getElementById('bookingModalTitle');
       const bookingBadge = document.getElementById('bookingModalBadge');
@@ -2583,6 +2760,7 @@ export default function TrainWithFIFS(props: any) {
       }
       if (baseVal) baseVal.textContent = '$' + unitBase.toFixed(2);
       if (vipVal) vipVal.textContent = '$' + unitVip.toFixed(2);
+
 
       if (boxBase) {
         boxBase.style.borderColor = !isVip ? 'var(--accent-cyan)' : 'var(--border-subtle)';
@@ -2608,6 +2786,7 @@ export default function TrainWithFIFS(props: any) {
         (window as any).renderBookingCalendar();
       }
 
+
       // Update Breakdown Box elements
       const bTuition = document.getElementById('formBreakdownTuition');
       const bRange = document.getElementById('formBreakdownRangeFee');
@@ -2615,6 +2794,7 @@ export default function TrainWithFIFS(props: any) {
       const bTotal = document.getElementById('formBreakdownTotal');
       const bDeposit = document.getElementById('formBreakdownDeposit');
       const bBalance = document.getElementById('formBreakdownBalance');
+
 
       if (bTuition) bTuition.textContent = '$' + pricing.discountedTuition.toFixed(2);
       if (bRange) {
@@ -2630,6 +2810,7 @@ export default function TrainWithFIFS(props: any) {
       if (bBalance) bBalance.textContent = '$' + pricing.balanceDueClass.toFixed(2);
     };
 
+
     (window as any).toggleFormTier = function(targetTier: string) {
       const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
       if (!selectElem) return;
@@ -2637,6 +2818,7 @@ export default function TrainWithFIFS(props: any) {
       const isCurrentlyVip = currentVal.includes('VIP') || currentVal.includes('Turnkey');
       const isTargetVip = targetTier === 'vip';
       if (isCurrentlyVip === isTargetVip) return;
+
 
       const cleanCur = currentVal.toLowerCase();
       let courseKeyword = '';
@@ -2649,6 +2831,7 @@ export default function TrainWithFIFS(props: any) {
       else if (cleanCur.includes('cleaning')) courseKeyword = 'cleaning';
       else if (cleanCur.includes('children')) courseKeyword = 'children';
       else if (cleanCur.includes('alumni')) courseKeyword = 'alumni';
+
 
       for (let i = 0; i < selectElem.options.length; i++) {
         const opt = selectElem.options[i].value;
@@ -2667,6 +2850,7 @@ export default function TrainWithFIFS(props: any) {
       }
       (window as any).updateFormPriceDisplay();
     };
+
 
     (window as any).openCourseBookingModal = function() {
       const modal = document.getElementById('courseBookingModal');
@@ -2689,6 +2873,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).closeCourseBookingModal = function() {
       const modal = document.getElementById('courseBookingModal');
       if (modal) {
@@ -2701,6 +2886,7 @@ export default function TrainWithFIFS(props: any) {
       document.body.style.overflow = '';
     };
 
+
     (window as any).is16HourCourseSelected = function() {
       const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
       const val = (selectElem ? selectElem.value : '').toLowerCase();
@@ -2711,19 +2897,23 @@ export default function TrainWithFIFS(props: any) {
       return false;
     };
 
+
         // =========================================================================
     // BOOKING INVOICE MODAL & 30% DEPOSIT CHECKOUT CONTROLLER
     // =========================================================================
     let __fifsCurrentBookingPayload: any = null;
     let __fifsOriginalBookingFormHtml: string = '';
 
+
     (window as any).showBookingInvoiceModal = function(e?: any) {
       if (e && e.preventDefault) e.preventDefault();
       if (e && e.stopPropagation) e.stopPropagation();
 
+
       const form = document.getElementById('booking-form') as HTMLFormElement | null;
       const statusDiv = document.getElementById('booking-status');
       if (!form) return false;
+
 
       const fullNameInput = document.getElementById('fullName') as HTMLInputElement | null;
       const emailInput = document.getElementById('email') as HTMLInputElement | null;
@@ -2733,6 +2923,7 @@ export default function TrainWithFIFS(props: any) {
       const groupSelect = document.getElementById('groupSize') as HTMLSelectElement | null;
       const commentsInput = document.getElementById('comments') as HTMLTextAreaElement | null;
 
+
       const fullName = fullNameInput ? fullNameInput.value.trim() : '';
       const email = emailInput ? emailInput.value.trim() : '';
       const phone = phoneInput ? phoneInput.value.trim() : '';
@@ -2740,12 +2931,14 @@ export default function TrainWithFIFS(props: any) {
       const groupSize = groupSelect ? groupSelect.value : '1 (Private One-on-One)';
       const comments = commentsInput ? commentsInput.value.trim() : '';
 
+
       [fullNameInput, emailInput, phoneInput].forEach(inp => {
         if (inp) {
           inp.style.borderColor = 'var(--border-subtle)';
           inp.style.boxShadow = 'none';
         }
       });
+
 
       const reportBookingError = (element: HTMLElement | null, message: string) => {
         if (element) {
@@ -2770,6 +2963,7 @@ export default function TrainWithFIFS(props: any) {
         alert(message);
       };
 
+
       if (!fullName) {
         reportBookingError(fullNameInput, '⚠️ Please enter your Full Legal Name before continuing.');
         return false;
@@ -2787,14 +2981,17 @@ export default function TrainWithFIFS(props: any) {
         return false;
       }
 
+
       if (statusDiv) {
         statusDiv.style.display = 'none';
         statusDiv.innerHTML = '';
       }
 
+
       const invoiceId = 'INV-FI-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
       const studentId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000);
       const isVipCourse = /VIP/i.test(courseSelection || '');
+
 
       let unitBase = 249.99;
       let unitVip = 375.00;
@@ -2819,8 +3016,10 @@ export default function TrainWithFIFS(props: any) {
         unitBase = 65.00; unitVip = 115.00;
       }
 
+
       const activeUnit = isVipCourse ? unitVip : unitBase;
       const pricing = (window as any).calculateComprehensiveInvoice(activeUnit, isVipCourse, groupSize);
+
 
       __fifsCurrentBookingPayload = {
         invoiceId,
@@ -2837,12 +3036,15 @@ export default function TrainWithFIFS(props: any) {
         dateIssued: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
       };
 
+
       const modalBox = document.querySelector('#courseBookingModal .goal-modal-box') as HTMLElement | null;
       if (!modalBox) return false;
+
 
       if (!__fifsOriginalBookingFormHtml) {
         __fifsOriginalBookingFormHtml = modalBox.innerHTML;
       }
+
 
       const p = __fifsCurrentBookingPayload;
       const invoiceHtml = `
@@ -2926,9 +3128,11 @@ export default function TrainWithFIFS(props: any) {
         </div>
       `;
 
+
       modalBox.innerHTML = invoiceHtml;
       return true;
     };
+
 
     (window as any).returnToBookingForm = function() {
       const modalBox = document.querySelector('#courseBookingModal .goal-modal-box') as HTMLElement | null;
@@ -2943,6 +3147,7 @@ export default function TrainWithFIFS(props: any) {
             const courseSelect = document.getElementById('courseSelection') as HTMLSelectElement | null;
             const commentsInput = document.getElementById('comments') as HTMLTextAreaElement | null;
 
+
             if (fullNameInput) fullNameInput.value = __fifsCurrentBookingPayload.fullName || '';
             if (emailInput) emailInput.value = __fifsCurrentBookingPayload.email || '';
             if (phoneInput) phoneInput.value = __fifsCurrentBookingPayload.phone || '';
@@ -2953,16 +3158,20 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).confirmAndFinalizeBooking = function(payInFull: boolean = false) {
       const p = __fifsCurrentBookingPayload;
       if (!p) return;
+
 
       const btnDeposit = document.getElementById('btn-confirm-invoice-deposit') as HTMLButtonElement | null;
       const btnFull = document.getElementById('btn-confirm-invoice-full') as HTMLButtonElement | null;
       const statusDiv = document.getElementById('invoice-status-div');
 
+
       if (btnDeposit) btnDeposit.disabled = true;
       if (btnFull) btnFull.disabled = true;
+
 
       if (statusDiv) {
         statusDiv.style.display = 'block';
@@ -2971,6 +3180,7 @@ export default function TrainWithFIFS(props: any) {
         statusDiv.style.border = '1px solid var(--accent-cyan)';
         statusDiv.innerHTML = '⚡ Securing reservation &amp; redirecting to Stripe Checkout...';
       }
+
 
       const payload = {
         invoiceId: p.invoiceId,
@@ -2989,6 +3199,7 @@ export default function TrainWithFIFS(props: any) {
         taxAmount: p.pricing.mdTax,
         payInFull: Boolean(payInFull)
       };
+
 
       if (typeof (window as any).callFifsBackend === 'function') {
         (window as any).callFifsBackend('submitBooking', payload, (res: any) => {
@@ -3029,6 +3240,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).closeCourseBookingModal = function() {
       const modal = document.getElementById('courseBookingModal');
       if (modal) {
@@ -3038,20 +3250,24 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     (window as any).deleteClientPermit = async function(permitId: string) {
       if (!permitId) return;
       const confirmDelete = window.confirm("Are you sure you want to remove this active permit record from your verified profile?");
       if (!confirmDelete) return;
 
+
       try {
         const rowEl = document.getElementById('permit-badge-' + permitId);
         if (rowEl) rowEl.style.opacity = '0.35';
+
 
         // 1. Call Supabase Direct if available
         const supabase = (typeof (window as any).createSupabaseClient === 'function') ? (window as any).createSupabaseClient() : null;
         if (supabase) {
           await supabase.from('user_permits').delete().eq('id', permitId);
         }
+
 
         // 2. Call FIFS Backend Route Handler
         await fetch('/api/fifs', {
@@ -3060,12 +3276,14 @@ export default function TrainWithFIFS(props: any) {
           body: JSON.stringify({ action: 'deletePermit', permitId })
         }).catch(() => {});
 
+
         if (rowEl) rowEl.remove();
       } catch (err) {
         console.error('Failed to remove permit record:', err);
         alert('Notice: Permit removal could not be synced immediately.');
       }
     };
+
 
     document.addEventListener('click', handleDelegatedClick);
     document.addEventListener('change', handleDelegatedChange);
@@ -3138,7 +3356,13 @@ export default function TrainWithFIFS(props: any) {
     };
 
 
+
+
 document.addEventListener('submit', handleDelegatedSubmit);
+
+
+
+
 
 
 
@@ -3158,6 +3382,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
     };
     window.addEventListener('keydown', handleModalEscapeKey);
 
+
     return () => {
       window.removeEventListener('keydown', handleModalEscapeKey);
       document.removeEventListener('click', handleDelegatedClick);
@@ -3165,6 +3390,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
       document.removeEventListener('submit', handleDelegatedSubmit);
     };
   }, []);
+
+
 
 
   return (
@@ -3186,6 +3413,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
       </Head>
 
 
+
+
       {/* External Dependencies */}
       <Script src="https://js.stripe.com/v3/" strategy="afterInteractive" />
       <Script src="https://js.stripe.com/dahlia/stripe.js" strategy="afterInteractive" />
@@ -3195,6 +3424,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
         onLoad={() => console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch)}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
+
+
 
 
       {/* Main Converted JSX Structure Wrapped in Single Parent */}
@@ -3813,6 +4044,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
 
 
+
+
               <div id="dash-scoresheet-body">
                 {/* Pending notice placeholder */}
                 <div id="dash-scoresheet-pending" style={{"padding": "16px", "background": "rgba(245, 158, 11, 0.08)", "border": "1px dashed rgba(245, 158, 11, 0.4)", "borderRadius": "8px", "textAlign": "center"}}>
@@ -3823,6 +4056,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     Instructor Kai Wade will upload your certified Maryland State Police Live-Fire Qualification Score Sheet upon course completion.
                   </p>
                 </div>
+
+
 
 
                 {/* Live Scoresheet Card Content when available */}
@@ -4055,6 +4290,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
               </div>
 
+
               {/* Card 5: Multi-State CCW Reciprocity Navigator & Travel Hub (Half Width) */}
               <div className="portal-feature-launcher-card" style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                 <div>
@@ -4075,6 +4311,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </button>
                 </div>
               </div>
+
 
               {/* Card 6: 34+ State Multi-Permit Expansion System Field Guide */}
               <div className="portal-feature-launcher-card" onClick={(e) => { if ((e.target as HTMLElement).tagName !== 'BUTTON' && typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} style={{"border": "2px solid #F59E0B", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer"}}>
@@ -4489,6 +4726,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     <div style={{"position": "absolute", "top": "-20px", "right": "-20px", "width": "180px", "height": "180px", "background": "radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%)", "pointerEvents": "none"}} />
                     <div style={{"position": "absolute", "bottom": "-30px", "left": "-30px", "width": "160px", "height": "160px", "background": "radial-gradient(circle, rgba(0, 229, 255, 0.12) 0%, transparent 70%)", "pointerEvents": "none"}} />
 
+
                     {/* PERMIT HEADER BAR */}
                     <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "borderBottom": "2px solid rgba(245, 158, 11, 0.4)", "paddingBottom": "14px", "marginBottom": "18px", "flexWrap": "wrap", "gap": "12px"}}>
                       <div style={{"display": "flex", "alignItems": "center", "gap": "14px"}}>
@@ -4508,6 +4746,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         </div>
                       </div>
 
+
                       {/* TOP-RIGHT CORNER: MEMBER OF SITE SINCE (REQUESTED SPECIFICATION) */}
                       <div style={{"background": "rgba(0, 229, 255, 0.08)", "border": "1.5px solid rgba(0, 229, 255, 0.45)", "borderRadius": "10px", "padding": "6px 14px", "textAlign": "right", "boxShadow": "0 0 12px rgba(0, 229, 255, 0.15)"}}>
                         <span style={{"fontSize": "0.68rem", "color": "#94a3b8", "textTransform": "uppercase", "letterSpacing": "1.2px", "display": "block", "fontWeight": "700"}}>
@@ -4520,6 +4759,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         <span id="wallet-client-since-badge" style={{"display": "none"}}>Client since Oct 2026</span>
                       </div>
                     </div>
+
 
                     {/* PERMIT MAIN BODY: PHOTO ID BOX + OFFICIAL CREDENTIAL DATA */}
                     <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(280px, 1fr))", "gap": "20px", "background": "rgba(11, 17, 26, 0.8)", "border": "1px solid rgba(255, 255, 255, 0.08)", "borderRadius": "14px", "padding": "18px 20px", "marginBottom": "18px"}}>
@@ -4545,6 +4785,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         </div>
                       </div>
 
+
                       {/* RIGHT: STRUCTURED PERMIT CREDENTIAL FIELDS */}
                       <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "14px"}}>
                         <div>
@@ -4556,6 +4797,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                           </div>
                         </div>
 
+
                         <div>
                           <span style={{"fontSize": "0.70rem", "textTransform": "uppercase", "color": "#94a3b8", "fontWeight": "800", "letterSpacing": "0.8px", "display": "block"}}>
                             CARDHOLDER NAME
@@ -4564,6 +4806,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                             MARCUS VANCE
                           </div>
                         </div>
+
 
                         <div>
                           <span style={{"fontSize": "0.70rem", "textTransform": "uppercase", "color": "#94a3b8", "fontWeight": "800", "letterSpacing": "0.8px", "display": "block"}}>
@@ -4574,6 +4817,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                           </div>
                         </div>
 
+
                         <div>
                           <span style={{"fontSize": "0.70rem", "textTransform": "uppercase", "color": "#94a3b8", "fontWeight": "800", "letterSpacing": "0.8px", "display": "block"}}>
                             PERMIT EXPIRATION DATE
@@ -4582,6 +4826,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                             Oct 15, 2026
                           </div>
                         </div>
+
 
                         <div>
                           <span style={{"fontSize": "0.70rem", "textTransform": "uppercase", "color": "#94a3b8", "fontWeight": "800", "letterSpacing": "0.8px", "display": "block"}}>
@@ -4592,6 +4837,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                           </div>
                         </div>
 
+
                         <div>
                           <span style={{"fontSize": "0.70rem", "textTransform": "uppercase", "color": "#94a3b8", "fontWeight": "800", "letterSpacing": "0.8px", "display": "block"}}>
                             90-DAY RENEWAL WATCH
@@ -4600,6 +4846,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                             Active (90+ Days)
                           </div>
                         </div>
+
 
                         <div style={{"gridColumn": "1 / -1", "paddingTop": "6px", "borderTop": "1px solid rgba(255, 255, 255, 0.06)", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "6px"}}>
                           <div style={{"fontSize": "0.72rem", "color": "#94a3b8"}}>
@@ -4611,6 +4858,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         </div>
                       </div>
                     </div>
+
 
                     {/* PERMIT FOOTER BAR: SECURITY BARCODE & ACTIVE PERMITS + ACTIONS */}
                     <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "14px"}}>
@@ -4640,6 +4888,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                           </span>
                         </div>
                       </div>
+
 
                       <div style={{"display": "flex", "gap": "10px", "flexWrap": "wrap"}}>
                         <button className="btn-spark" data-onclick="toggleReciprocityHubModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleReciprocityHubModal) (window as any).toggleReciprocityHubModal(true); }} style={{"width": "auto", "padding": "8px 16px", "fontSize": "0.85rem", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)"}} type="button">
@@ -4686,6 +4935,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </button>
                 </div>
 
+
                 {/* CARD 2: 34+ STATE MULTI-PERMIT EXPANSION SYSTEM */}
                 <div className="fi-feature-card highlight" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} style={{"borderColor": "rgba(245, 158, 11, 0.45)", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.98) 100%)", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                   <div>
@@ -4707,6 +4957,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </button>
                 </div>
 
+
                 {/* CARD 3: TRAVELING WITH A FIREARM */}
                 <div className="fi-feature-card" onClick={() => { if (typeof window !== 'undefined' && (window as any).openVehicleTravelModal) (window as any).openVehicleTravelModal(); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                   <div>
@@ -4724,6 +4975,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     🚗 Launch Vehicle Travel Hub ↗
                   </button>
                 </div>
+
 
                 {/* CARD 4: FLYING WITH A FIREARM */}
                 <div className="fi-feature-card" onClick={() => { if (typeof window !== 'undefined' && (window as any).openFlyingWithFirearmModal) (window as any).openFlyingWithFirearmModal(); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
@@ -4743,6 +4995,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </button>
                 </div>
 
+
                 {/* CARD 5: PERMIT & RENEWAL CENTER */}
                 <div className="fi-feature-card highlight" onClick={() => { if (typeof window !== 'undefined' && (window as any).openPermitRenewalModal) (window as any).openPermitRenewalModal(); }} style={{"borderColor": "rgba(255,183,3,0.35)", "cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                   <div>
@@ -4760,6 +5013,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     ⏱️ Open Renewal Center ↗
                   </button>
                 </div>
+
 
                 {/* CARD 6: CLIENT PROFILE & REMINDERS */}
                 <div className="fi-feature-card" onClick={() => { if (typeof window !== 'undefined' && (window as any).openClientProfileModal) (window as any).openClientProfileModal(); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
@@ -4779,6 +5033,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </button>
                 </div>
 
+
                 {/* CARD 7: FUTURE INITIATIVE SERVICES */}
                 <div className="fi-feature-card" onClick={() => { if (typeof window !== 'undefined' && (window as any).openFutureServicesModal) (window as any).openFutureServicesModal(); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                   <div>
@@ -4796,6 +5051,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     Explore Services &amp; Book ↗
                   </button>
                 </div>
+
 
                 {/* CARD 8: CLIENT FAQ */}
                 <div className="fi-feature-card" onClick={() => { if (typeof window !== 'undefined' && (window as any).openClientFaqModal) (window as any).openClientFaqModal(); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
@@ -4816,6 +5072,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
               </div>
               {/* Closes fi-hub-cards-grid - Hub cleaned up upon login */}
+
 
               {/* ================= STATUTORY DISCLAIMER & CITATIONS ================= */}
               <div style={{"background": "rgba(0,0,0,0.4)", "border": "1px solid rgba(255,255,255,0.06)", "borderRadius": "12px", "padding": "18px 20px", "marginTop": "40px", "fontSize": "0.8rem", "color": "var(--text-muted)", "lineHeight": "1.5"}}>
@@ -4876,6 +5133,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
 
 
+
+
           {/* 4 INTERACTIVE INTELLIGENCE CARDS (Primary Navigation Deck - MSP Portal Styling) */}
           <div className="admin-intel-cards-container msp-intel-deck-grid" style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(260px, 1fr))", "gap": "16px", "margin": "20px 0 24px"}}>
             {/* Card 1: Student Roster & Ops */}
@@ -4900,6 +5159,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
 
 
+
+
             {/* Card 2: Future Initiative Clients */}
             <div className="portal-feature-launcher-card msp-intel-card msp-card-amber" id="btn-admin-tab-clients" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('clients'); }} data-onclick="switchAdminTab('clients')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <span className="card-badge msp-card-unread-badge" id="admin-tab-clients-badge" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "var(--accent-amber)", "color": "#070b10", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px var(--accent-amber)", "display": "none"}}>🔔 <span id="admin-tab-clients-badge-count">0</span> NEW</span>
@@ -4920,6 +5181,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </button>
               </div>
             </div>
+
+
 
 
             {/* Card 3: Live Chat Command */}
@@ -4944,6 +5207,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
 
 
+
+
             {/* Card 4: Website Telemetry */}
             <div className="portal-feature-launcher-card msp-intel-card msp-card-emerald" id="btn-admin-tab-telemetry" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('telemetry'); }} data-onclick="switchAdminTab('telemetry')" role="button" tabIndex={0} style={{"border": "2px solid #10b981", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(16, 185, 129, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <span className="card-badge msp-card-unread-badge" id="admin-tab-telemetry-badge" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "#10b981", "color": "#070b10", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px #10b981", "display": "inline-block"}}>📡 LIVE</span>
@@ -4965,6 +5230,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
           </div>
+
+
 
 
           {/* SECONDARY TACTICAL UTILITY TOOLBAR */}
@@ -5582,6 +5849,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
 
+
             <div
               className="interactive-promise-card"
               data-onclick="openPromiseDetailModal('maryland_law')"
@@ -5604,6 +5872,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
 
+
             <div
               className="interactive-promise-card"
               data-onclick="openPromiseDetailModal('cindys_live_fire')"
@@ -5625,6 +5894,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <span>Tap for detailed breakdown</span> <span>&rarr;</span>
               </div>
             </div>
+
 
             <div
               className="interactive-promise-card"
@@ -7647,6 +7917,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </div>
       </div>
 
+
       {/* ================= 2. STANDARDIZED PERMIT RENEWAL CENTER MODAL ================= */}
       <div className="reciprocity-hub-modal-overlay" id="permitRenewalModal" style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "overflowY": "auto", "padding": "24px 16px"}}>
         <div style={{"maxWidth": "1140px", "margin": "0 auto", "position": "relative"}}>
@@ -7711,6 +7982,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </div>
       </div>
 
+
       {/* ================= 3. STANDARDIZED FUTURE INITIATIVE SERVICES MODAL ================= */}
       <div className="reciprocity-hub-modal-overlay" id="futureServicesModal" style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "overflowY": "auto", "padding": "24px 16px"}}>
         <div style={{"maxWidth": "1140px", "margin": "0 auto", "position": "relative"}}>
@@ -7756,6 +8028,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </div>
+
 
       {/* ================= DEDICATED RECIPROCITY & TRAVEL HUB MODAL ================= */}
       {/* ================= 50-STATE RECIPROCITY ENGINE FULL-SCREEN MODAL ================= */}
@@ -8977,6 +9250,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </div>
       </div>
 
+
       {/* ================= DESIGNATED COLLECTOR INFO MODAL ================= */}
       <div className="state-dossier-modal-overlay" id="collectorInfoModal" data-onclick="if(event.target===this) closeCollectorModal()" style={{"display": "none"}}>
         <div aria-modal="true" className="state-dossier-card" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "620px"}}>
@@ -9653,6 +9927,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
       </div>
 
 
+
+
       {/* ================= DEDICATED ADMIN SCORESHEET MODAL ================= */}
       <div className="goal-modal-overlay" id="adminScoresheetModal" data-onclick="if(event.target===this) closeStudentScoresheetModal()" style={{"display": "none"}}>
         <div aria-labelledby="adminScoresheetModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "640px", "borderColor": "var(--accent-cyan)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 35px var(--accent-cyan-glow)"}}>
@@ -9672,6 +9948,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </p>
 
 
+
+
           <div style={{"background": "rgba(255,255,255,0.02)", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "14px", "marginBottom": "14px"}}>
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
               <div>
@@ -9689,12 +9967,16 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
 
 
+
+
             <div id="scoresheetModalPreviewBox" style={{"display": "none", "textAlign": "center", "padding": "12px", "background": "#05080c", "borderRadius": "6px", "marginBottom": "12px", "border": "1px dashed var(--border-subtle)"}}>
               <span style={{"fontSize": "0.80rem", "color": "#94a3b8", "display": "block", "marginBottom": "6px"}}>Live File Preview / Current File:</span>
               <a id="scoresheetModalCurrentLink" href="#" target="_blank" rel="noopener noreferrer" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.88rem", "textDecoration": "underline"}}>
                 📄 View Scoresheet Document ↗
               </a>
             </div>
+
+
 
 
             <div style={{"display": "flex", "gap": "10px", "marginTop": "8px"}}>
@@ -9709,6 +9991,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </div>
+
+
 
 
       {/* ================= SUPABASE STUDENT DOSSIER & INSTRUCTOR NOTES MODAL ================= */}
@@ -9791,6 +10075,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </p>
 
 
+
+
           <div style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "14px", "marginBottom": "14px"}}>
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
               <div>
@@ -9808,12 +10094,16 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
 
 
+
+
             <div id="scoresheetModalPreviewBox" style={{"display": "none", "textAlign": "center", "padding": "12px", "background": "#05080c", "borderRadius": "6px", "marginBottom": "12px", "border": "1px dashed var(--border-subtle)"}}>
               <span style={{"fontSize": "0.80rem", "color": "#94a3b8", "display": "block", "marginBottom": "6px"}}>Live File Preview / Current File:</span>
               <a id="scoresheetModalCurrentLink" href="#" target="_blank" rel="noopener noreferrer" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.88rem", "textDecoration": "underline"}}>
                 📄 View Scoresheet Document ↗
               </a>
             </div>
+
+
 
 
             <div style={{"display": "flex", "gap": "10px", "alignItems": "center", "justifyContent": "flex-end"}}>
@@ -9828,6 +10118,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </div>
+
+
 
 
       {/* ================= MODAL 4: ADMIN EDIT CLIENT RECORD MODAL ================= */}
@@ -12130,6 +12422,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
       {/* ================= END P2P ENCRYPTED COMMS HUD ================= */}
 
 
+
+
       </div>
     
       {/* ================= MANDATORY FORCED PASSWORD RESET MODAL ================= */}
@@ -12193,6 +12487,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
       </div>
 
 
+
+
       {/* State Detail Comparison Modal */}
       <div id="stateDetailModal" className="modal-backdrop" style={{"display": "none", "position": "fixed", "inset": 0, "backgroundColor": "rgba(3, 7, 18, 0.88)", "backdropFilter": "blur(6px)", "zIndex": 99999, "alignItems": "center", "justifyContent": "center", "padding": "16px"}}>
         <div style={{"background": "#0b1320", "border": "1px solid rgba(0, 229, 255, 0.4)", "borderRadius": "16px", "width": "100%", "maxWidth": "640px", "maxHeight": "90vh", "overflowY": "auto", "padding": "24px", "position": "relative", "boxShadow": "0 20px 50px rgba(0,0,0,0.9)"}}>
@@ -12245,6 +12541,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </div>
+
 
       {/* ================= MODAL: CHANGE ACCOUNT PASSWORD (STUDENT & CLIENT) ================= */}
       <div id="changePasswordModal" data-onclick="if(event.target===this) closeChangePasswordModal()" style={{"position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "9999999", "display": "none", "alignItems": "center", "justifyContent": "center", "overflowY": "auto", "padding": "20px"}}>
@@ -12303,7 +12600,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </div>
       </div>
 
+
     </div>
   );
 }
-
