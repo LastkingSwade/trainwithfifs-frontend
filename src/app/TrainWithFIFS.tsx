@@ -16,6 +16,73 @@ export default function TrainWithFIFS(props: any) {
   useEffect(() => {
 
 
+    // Built-in resilient navigation controllers (Direct Client Handlers)
+    if (typeof window !== 'undefined') {
+      (window as any).switchTab = function(tab: string) {
+        const tabs = ['booking', 'portal', 'fi-portal', 'admin', 'about', 'testimonial', 'faq'];
+        tabs.forEach(t => {
+          const panel = document.getElementById('view-' + t);
+          if (panel) {
+            if (t === tab) {
+              panel.classList.remove('hidden');
+              panel.style.setProperty('display', 'block', 'important');
+              panel.style.setProperty('visibility', 'visible', 'important');
+              panel.style.setProperty('opacity', '1', 'important');
+              panel.style.setProperty('pointer-events', 'auto', 'important');
+            } else {
+              panel.classList.add('hidden');
+              panel.style.setProperty('display', 'none', 'important');
+              panel.style.setProperty('pointer-events', 'none', 'important');
+            }
+          }
+        });
+        const hero = document.getElementById('hero-landing');
+        const app = document.getElementById('app-container');
+        if (hero) {
+          hero.style.setProperty('display', 'none', 'important');
+          hero.style.setProperty('pointer-events', 'none', 'important');
+        }
+        if (app) {
+          app.style.setProperty('display', 'block', 'important');
+          app.style.setProperty('visibility', 'visible', 'important');
+          app.style.setProperty('opacity', '1', 'important');
+          app.style.setProperty('pointer-events', 'auto', 'important');
+        }
+        document.body.classList.remove('in-home');
+        document.body.classList.add('in-app');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+
+      (window as any).openAndSwitch = function(tabId: string) {
+        (window as any).switchTab(tabId);
+      };
+
+      (window as any).openPortalSelectionModal = function() {
+        const modal = document.getElementById('fiPortalSelectionModal');
+        if (modal) {
+          modal.classList.add('active');
+          modal.style.setProperty('display', 'flex', 'important');
+          modal.style.setProperty('visibility', 'visible', 'important');
+          modal.style.setProperty('opacity', '1', 'important');
+          modal.style.setProperty('pointer-events', 'auto', 'important');
+          document.body.classList.add('modal-open');
+          document.body.style.overflow = 'hidden';
+        }
+      };
+
+      (window as any).closePortalSelectionModal = function() {
+        const modal = document.getElementById('fiPortalSelectionModal');
+        if (modal) {
+          modal.classList.remove('active');
+          modal.style.setProperty('display', 'none', 'important');
+          modal.style.setProperty('opacity', '0', 'important');
+          modal.style.setProperty('pointer-events', 'none', 'important');
+        }
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      };
+    }
+
     // Global delegated click handler for data-onclick attributes
     const handleGlobalDataOnClick = (e: MouseEvent) => {
       const target = e.target as Element | null;
