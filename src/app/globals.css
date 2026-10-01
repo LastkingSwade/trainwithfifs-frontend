@@ -1,8 +1,8 @@
-
 /* ==========================================================================
    MODERN EXECUTIVE REDESIGN ARCHITECTURE OVERHAUL
    Contemporary dark luxury, balanced whitespace, modular cards, glassmorphism
    ========================================================================== */
+
 
 body {
   background-color: var(--bg-dark-core) !important;
@@ -13,6 +13,7 @@ body {
   line-height: 1.6;
   letter-spacing: -0.011em;
 }
+
 
 /* Modernized Modular Cards with Generous Breathing Room */
 .modular-card, 
@@ -31,6 +32,7 @@ body {
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease !important;
 }
 
+
 .modular-card:hover, 
 .tuition-card:hover, 
 .target-card-student:hover,
@@ -39,6 +41,7 @@ body {
   border-color: var(--border-medium) !important;
   box-shadow: var(--shadow-lg) !important;
 }
+
 
 /* Contemporary Pill & Primary Buttons */
 .btn-primary, 
@@ -56,6 +59,7 @@ body {
   text-transform: none !important;
 }
 
+
 .btn-primary:hover, 
 .btn-spark:hover {
   background: linear-gradient(135deg, #334155 0%, #1e293b 100%) !important;
@@ -63,6 +67,7 @@ body {
   box-shadow: var(--shadow-md) !important;
   transform: translateY(-1px);
 }
+
 
 /* Modernized Navigation & Floating Dock */
 .portal-subnav, 
@@ -83,6 +88,7 @@ body {
   padding: 10px 0 !important;
 }
 
+
 /* Modals & Dialog Overlays */
 .goal-modal-overlay, 
 .modal-backdrop, 
@@ -91,6 +97,7 @@ body {
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
 }
+
 
 .modal-content, 
 .admin-modal-container, 
@@ -101,6 +108,7 @@ body {
   box-shadow: var(--shadow-xl) !important;
   padding: 32px !important;
 }
+
 
 /* Form Controls & Inputs */
 input, select, textarea {
@@ -113,11 +121,13 @@ input, select, textarea {
   transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
+
 input:focus, select:focus, textarea:focus {
   border-color: var(--accent-cyan) !important;
   box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15) !important;
   outline: none !important;
 }
+
 
 /* Clean Modern Badges & Chips */
 .meta-chip, .badge-course, .badge-score, .pathway-pill {
@@ -132,9 +142,14 @@ input:focus, select:focus, textarea:focus {
 
 
 
+
+
+
 /* ==========================================================================
    TRAIN WITH FIFS - GLOBAL STYLESHEET
    ========================================================================== */
+
+
 
 
     :root {
@@ -3799,6 +3814,7 @@ input:focus, select:focus, textarea:focus {
       }
     }
 
+
 /* Tactical Waiver Pending Red Blinking Border & Certified States */
 @keyframes waiverPendingRedBlink {
   0%, 100% {
@@ -3822,7 +3838,12 @@ input:focus, select:focus, textarea:focus {
 
 
 
+
+
+
 /* --- STYLE BLOCK --- */
+
+
 
 
 /* Running legs animation keyframes */
@@ -3937,7 +3958,13 @@ body.in-home .sticky-bottom-dock,
 }
 
 
+
+
 /* --- STYLE BLOCK --- */
+
+
+
+
 
 
 
@@ -3955,6 +3982,8 @@ body.in-home .sticky-bottom-dock,
   50% { opacity: 1; transform: translateX(4px); }
   100% { opacity: 0.3; transform: translateX(0); }
 }
+
+
 
 
 @keyframes muzzleFlashBurst {
@@ -4025,7 +4054,11 @@ body.in-home .sticky-bottom-dock,
 }
 
 
+
+
 /* --- STYLE BLOCK --- */
+
+
 
 
 @keyframes holoGlowPulse {
@@ -4085,7 +4118,11 @@ body.in-home .sticky-bottom-dock,
 }
 
 
+
+
 /* --- STYLE BLOCK --- */
+
+
 
 
     /* ================= CYBER-TACTICAL HUD BUTTONS & ACTIVE PRESS ANIMATIONS ================= */
@@ -4190,6 +4227,8 @@ body.in-home .sticky-bottom-dock,
     }
 
 
+
+
     .btn-tactical-hud.hud-red {
       --hud-glow: rgba(239, 68, 68, 0.6);
       --hud-border: #ef4444;
@@ -4263,7 +4302,11 @@ body.in-home .sticky-bottom-dock,
     }
 
 
+
+
 /* --- STYLE BLOCK --- */
+
+
 
 
 /* TACTICAL SHOOTING ANIMATION FOR REFRESH BUTTON */
@@ -4376,7 +4419,11 @@ body.in-home .sticky-bottom-dock,
 }
 
 
+
+
 /* --- STYLE BLOCK --- */
+
+
 
 
     :root {
@@ -4791,6 +4838,7 @@ body.in-home .sticky-bottom-dock,
       color: #ffffff;
     }
 
+
     @media (max-width: 768px) {
       .chat-header {
         height: auto;
@@ -4824,6 +4872,7 @@ body.in-home .sticky-bottom-dock,
         display: none;
       }
     }
+
 
     /* Message Stream Log */
     .chat-stream {
@@ -5092,6 +5141,7 @@ body.in-home .sticky-bottom-dock,
       }
     }
 
+
 /* ==========================================================================
    MOBILE & RESPONSIVE APP-HEADER REPAIRS (Fixes Logo Squeeze & Centers Navigation)
    ========================================================================== */
@@ -5145,6 +5195,7 @@ body.in-home .sticky-bottom-dock,
   }
 }
 
+
 @media (max-width: 480px) {
   .app-header {
     padding: 6px 8px !important;
@@ -5164,6 +5215,7 @@ body.in-home .sticky-bottom-dock,
     font-size: 0.68rem !important;
   }
 }
+
 
 /* Instructor Operations & Intelligence Terminal Notification Badges Above Buttons */
 .tactical-tab-deck .admin-toggle-btn {
@@ -5194,9 +5246,11 @@ body.in-home .sticky-bottom-dock,
   50% { transform: scale(1.18); box-shadow: var(--shadow-lg); }
 }
 
+
 /* ==========================================================================
    ADMIN OPERATIONS HUB - MSP-STYLE INTEL CARDS & iPad / MOBILE ADAPTATIONS
    ========================================================================== */
+
 
 .admin-intel-cards-container {
   display: grid;
@@ -5205,6 +5259,7 @@ body.in-home .sticky-bottom-dock,
   margin: 20px 0 24px 0;
   width: 100%;
 }
+
 
 .admin-intel-card {
   position: relative;
@@ -5220,11 +5275,13 @@ body.in-home .sticky-bottom-dock,
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
+
 .admin-intel-card:hover {
   border-color: var(--accent-cyan);
   box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
 }
+
 
 .admin-intel-card.active {
   background: linear-gradient(135deg, rgba(0, 229, 255, 0.12) 0%, rgba(13, 22, 34, 0.98) 100%);
@@ -5232,10 +5289,12 @@ body.in-home .sticky-bottom-dock,
   box-shadow: 0 0 30px rgba(0, 229, 255, 0.45), inset 0 0 20px rgba(0, 229, 255, 0.15);
 }
 
+
 .admin-intel-card .card-icon {
   font-size: 1.8rem;
   margin-bottom: 12px;
 }
+
 
 .admin-intel-card .card-title {
   font-family: var(--font-display, 'Rajdhani', sans-serif);
@@ -5247,11 +5306,13 @@ body.in-home .sticky-bottom-dock,
   text-transform: uppercase;
 }
 
+
 .admin-intel-card .card-meta {
   font-size: 0.82rem;
   color: #94a3b8;
   line-height: 1.4;
 }
+
 
 .admin-intel-card .card-badge {
   position: absolute;
@@ -5266,9 +5327,11 @@ body.in-home .sticky-bottom-dock,
   box-shadow: var(--shadow-md);
 }
 
+
 .admin-intel-card .card-badge.hidden {
   display: none;
 }
+
 
 .admin-secondary-toolbar {
   display: flex;
@@ -5281,6 +5344,7 @@ body.in-home .sticky-bottom-dock,
   border-radius: 10px;
 }
 
+
 /* Gun reload recoil keyframes */
 @keyframes gunRecoil {
   0% { transform: scale(1) translateX(0); }
@@ -5289,9 +5353,11 @@ body.in-home .sticky-bottom-dock,
   100% { transform: scale(1) translateX(0); }
 }
 
+
 .gun-recoil-active {
   animation: gunRecoil 0.35s ease-out;
 }
+
 
 /* iPad Top Header & Navigation Fixes */
 @media (min-width: 768px) and (max-width: 1024px) {
@@ -5304,6 +5370,7 @@ body.in-home .sticky-bottom-dock,
     border: 1px solid rgba(0, 229, 255, 0.4) !important;
   }
 }
+
 
 /* Compact mobile scaling for action table & cards */
 @media (max-width: 640px) {
@@ -5320,9 +5387,11 @@ body.in-home .sticky-bottom-dock,
   }
 }
 
+
 /* ==========================================================================
    ADMIN OPERATIONS HUB - MSP-STYLE INTEL CARDS (MATCHING STATE LICENSING)
    ========================================================================== */
+
 
 .msp-intel-deck-grid {
   display: grid;
@@ -5331,6 +5400,7 @@ body.in-home .sticky-bottom-dock,
   margin: 20px 0 28px 0;
   width: 100%;
 }
+
 
 .msp-intel-card {
   position: relative;
@@ -5345,9 +5415,11 @@ body.in-home .sticky-bottom-dock,
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
+
 .msp-intel-card:hover {
   transform: translateY(-2px);
 }
+
 
 /* Card Themes */
 .msp-card-cyan {
@@ -5360,6 +5432,7 @@ body.in-home .sticky-bottom-dock,
   border-color: #38bdf8;
 }
 
+
 .msp-card-amber {
   border: 2px solid var(--accent-amber);
   box-shadow: var(--shadow-md);
@@ -5369,6 +5442,7 @@ body.in-home .sticky-bottom-dock,
   box-shadow: 0 0 35px rgba(255, 183, 3, 0.4), inset 0 0 20px rgba(255, 183, 3, 0.15);
   border-color: #fde047;
 }
+
 
 .msp-card-purple {
   border: 2px solid #a855f7;
@@ -5380,6 +5454,7 @@ body.in-home .sticky-bottom-dock,
   border-color: #c084fc;
 }
 
+
 .msp-card-emerald {
   border: 2px solid #10b981;
   box-shadow: var(--shadow-md);
@@ -5389,6 +5464,7 @@ body.in-home .sticky-bottom-dock,
   box-shadow: 0 0 35px rgba(16, 185, 129, 0.4), inset 0 0 20px rgba(16, 185, 129, 0.15);
   border-color: #34d399;
 }
+
 
 /* Eyebrow Badges */
 .msp-card-eyebrow {
@@ -5405,6 +5481,7 @@ body.in-home .sticky-bottom-dock,
 .eyebrow-purple { color: #c084fc; }
 .eyebrow-emerald { color: #34d399; }
 
+
 .msp-card-title {
   font-family: var(--font-display, 'Rajdhani', sans-serif);
   font-size: 1.25rem;
@@ -5415,12 +5492,14 @@ body.in-home .sticky-bottom-dock,
   letter-spacing: 0.5px;
 }
 
+
 .msp-card-desc {
   font-size: 0.88rem;
   color: #cbd5e1;
   line-height: 1.5;
   margin: 0 0 18px 0;
 }
+
 
 /* Card Launch Buttons */
 .msp-card-action-btn {
@@ -5437,6 +5516,7 @@ body.in-home .sticky-bottom-dock,
   background: rgba(13, 19, 27, 0.8);
 }
 
+
 .action-cyan {
   border: 1.5px solid var(--accent-cyan);
   color: var(--accent-cyan);
@@ -5445,6 +5525,7 @@ body.in-home .sticky-bottom-dock,
   background: var(--accent-cyan);
   color: #070b10;
 }
+
 
 .action-amber {
   border: 1.5px solid var(--accent-amber);
@@ -5455,6 +5536,7 @@ body.in-home .sticky-bottom-dock,
   color: #070b10;
 }
 
+
 .action-purple {
   border: 1.5px solid #a855f7;
   color: #c084fc;
@@ -5464,6 +5546,7 @@ body.in-home .sticky-bottom-dock,
   color: #ffffff;
 }
 
+
 .action-emerald {
   border: 1.5px solid #10b981;
   color: #34d399;
@@ -5472,6 +5555,7 @@ body.in-home .sticky-bottom-dock,
   background: #10b981;
   color: #070b10;
 }
+
 
 .msp-card-unread-badge {
   position: absolute;
@@ -5490,6 +5574,8 @@ body.in-home .sticky-bottom-dock,
 }
 
 
+
+
 /* authoritatively defined tactical gun reload shake and recoil physics */
 @keyframes tacticalGunShakeBounce {
   0% { transform: scale(1) translate(0px, 0px) rotate(0deg); }
@@ -5505,12 +5591,14 @@ body.in-home .sticky-bottom-dock,
   100% { transform: scale(1) translate(0px, 0px) rotate(0deg); }
 }
 
+
 .tactical-gun-recoil,
 .gun-recoil-active {
   animation: tacticalGunShakeBounce 0.45s ease-in-out infinite !important;
   will-change: transform, box-shadow;
   outline: 2px solid rgba(255, 255, 255, 0.8) !important;
 }
+
 
 /* Header utility buttons - high visibility tactical styling */
 .btn-nav-back {
@@ -5533,6 +5621,8 @@ body.in-home .sticky-bottom-dock,
 }
 
 
+
+
 /* Brand Accent Button Click & Active Interactions */
 button:active, 
 .btn-primary:active, 
@@ -5547,12 +5637,14 @@ button:active,
   color: #ffffff !important;
 }
 
+
 button:focus-visible,
 .btn-primary:focus-visible,
 .btn-spark:focus-visible {
   outline: 2px solid #00e5ff !important;
   outline-offset: 2px !important;
 }
+
 
 /* Category Legend & SVG State Node Interactive Fills */
 .status-constitutional .state-bg-rect {
@@ -5571,6 +5663,8 @@ button:focus-visible,
   fill: rgba(239, 68, 68, 0.22) !important;
   stroke: #ef4444 !important;
 }
+
+
 
 
 /* Restored High-Contrast Start Your Journey CTA */
@@ -5615,6 +5709,8 @@ button:focus-visible,
 }
 
 
+
+
 /* Admin & Dossier/Scoresheet Modal Mobile Responsiveness */
 @media (max-width: 768px) {
   .goal-modal-overlay {
@@ -5652,6 +5748,8 @@ button:focus-visible,
 }
 
 
+
+
 /* Modern Frosted-Glass Button Styling (No circular decorative clutter) */
 .btn-hero-booking-prime,
 .btn-hero-twin {
@@ -5666,6 +5764,7 @@ button:focus-visible,
   transition: all 0.25s ease !important;
 }
 
+
 .btn-hero-booking-prime:hover,
 .btn-hero-twin:hover {
   background: rgba(255, 255, 255, 0.22) !important;
@@ -5674,12 +5773,14 @@ button:focus-visible,
   transform: translateY(-2px) !important;
 }
 
+
 .btn-hero-booking-prime .prime-label,
 .btn-hero-twin .twin-title {
   color: #ffffff !important;
   font-weight: 800 !important;
   letter-spacing: 0.5px !important;
 }
+
 
 .btn-hero-booking-prime .prime-sub,
 .btn-hero-twin .twin-sub {
@@ -5688,11 +5789,14 @@ button:focus-visible,
   opacity: 0.95 !important;
 }
 
+
 /* Remove decorative corner brackets from hero dock */
 .hero-command-dock::before,
 .hero-command-dock::after {
   display: none !important;
 }
+
+
 
 
 /* ==========================================================================
@@ -5714,6 +5818,7 @@ button:focus-visible,
   transition: opacity 0.25s ease, transform 0.25s ease !important;
 }
 
+
 .start-journey-btn:hover, 
 .fifs-portal-btn:hover, 
 .lead-instructor-btn:hover,
@@ -5728,6 +5833,7 @@ button:focus-visible,
   transform: translateY(-1px) !important;
 }
 
+
 .start-journey-btn .prime-label,
 .fifs-portal-btn .twin-title,
 .lead-instructor-btn .twin-title {
@@ -5735,9 +5841,70 @@ button:focus-visible,
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.85) !important;
 }
 
+
 .start-journey-btn .prime-sub,
 .fifs-portal-btn .twin-sub,
 .lead-instructor-btn .twin-sub {
   color: #f1f5f9 !important;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9) !important;
 }
+/* ==========================================================================
+   MOBILE CALENDAR GRID RESPONSIVE STACKING & BOUNDS (< 768px)
+   Eliminates element distortion, text squashing, and layout shifts
+   ========================================================================== */
+.calendar-responsive-container {
+  width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: thin;
+}
+
+@media (max-width: 767px) {
+  .calendar-responsive-container {
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+  }
+  #bookingCalDaysGrid {
+    min-width: 320px !important;
+  }
+  .cal-day-cell {
+    min-height: 48px !important;
+    padding: 6px 2px !important;
+    font-size: 0.82rem !important;
+  }
+  #bookingCalDaysGrid > div {
+    min-height: 44px !important;
+  }
+}
+
+/* ==========================================================================
+   INTERACTIVE GLOWING BADGE ANIMATIONS
+   Matches hero neon elements with pulsing glow and ping dot
+   ========================================================================== */
+@keyframes fifsCyanGlowPulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.3), inset 0 0 8px rgba(0, 229, 255, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.6), inset 0 0 12px rgba(0, 229, 255, 0.3);
+  }
+}
+
+.interactive-glow-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.70rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(0, 229, 255, 0.12);
+  color: #00e5ff;
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  animation: fifsCyanGlowPulse 2.5s infinite ease-in-out;
+  vertical-align: middle;
+}
+

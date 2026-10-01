@@ -1,9 +1,11 @@
 "use client";
 
+
 import React, { useEffect } from "react";
 import Script from "next/script";
 import Head from "next/head";
 import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
+
 
 /**
  * TrainWithFIFS - Maryland Firearms Training Platform Next.js Component
@@ -12,6 +14,7 @@ import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
  */
 export default function TrainWithFIFS(props: any) {
   useEffect(() => {
+
 
     // Global delegated click handler for data-onclick attributes
     const handleGlobalDataOnClick = (e: MouseEvent) => {
@@ -29,6 +32,7 @@ export default function TrainWithFIFS(props: any) {
     };
     document.addEventListener('click', handleGlobalDataOnClick);
 
+
     // Initialize interactive reciprocity map once script engine is ready
     let mapRetryCount = 0;
     const mapInitTimer = setInterval(() => {
@@ -43,29 +47,25 @@ export default function TrainWithFIFS(props: any) {
       if (mapRetryCount > 25) clearInterval(mapInitTimer);
     }, 200);
 
+
     // 1. Intercept student magic link or portal invite from URL
     try {
       const params = new URLSearchParams(window.location.search);
       const portal = params.get('portal');
       const studentId = params.get('id') || params.get('student');
-      const tempPass = params.get('temp') || params.get('pwd') || params.get('password');
       if (portal === 'student' || studentId) {
-        const input = document.getElementById('studentAuthInput') as HTMLInputElement | null;
+        const input = document.getElementById('studentLookupInput') as HTMLInputElement | null;
         if (input && studentId) input.value = studentId;
-        const passInput = document.getElementById('studentAuthPassword') as HTMLInputElement | null;
-        if (passInput && tempPass) passInput.value = tempPass;
         const modal = document.getElementById('studentPortalModal');
         if (modal) {
           modal.classList.add('active');
           modal.style.setProperty('display', 'block', 'important');
         }
-        if (typeof (window as any).lookupStudentAccount === 'function' && studentId) {
-          setTimeout(() => (window as any).lookupStudentAccount(), 300);
-        }
       }
     } catch (e) {
       console.warn('Portal invite error:', e);
     }
+
 
     // 2. Track site visit to Discord once per browser session
     try {
@@ -80,6 +80,7 @@ export default function TrainWithFIFS(props: any) {
     } catch (e) {}
   }, []);
 
+
   if (typeof window !== "undefined") {
     (window as any).dismissPwaLandingBanner = (window as any).dismissPwaLandingBanner || function() {
       var b = document.getElementById("pwa-landing-banner");
@@ -88,8 +89,9 @@ export default function TrainWithFIFS(props: any) {
   }
   useEffect(() => {
 
+
     // Direct Next.js /api/checkout bridge for Stripe Checkout
-        (window as any).callFifsBackend = async (action: string, payload: any, onComplete: Function, onError: Function) => {
+    (window as any).callFifsBackend = async (action: string, payload: any, onComplete: Function, onError: Function) => {
       if (action === 'submitBooking') {
         try {
           const res = await fetch('/api/checkout', {
@@ -99,21 +101,40 @@ export default function TrainWithFIFS(props: any) {
           });
           const data = await res.json();
           if (!res.ok || data.error) {
-            throw new Error(data.error || 'Failed to initialize payment checkout.');
+            throw new Error(data.error || 'Failed to create Stripe checkout session');
           }
-          if (data.checkoutUrl || data.url) {
-            // Instant redirect directly to Stripe Hosted Checkout
-            window.location.href = data.checkoutUrl || data.url;
+          if (data.url) {
+            window.location.href = data.url;
             return;
           }
-          if (typeof onComplete === 'function') onComplete(data);
+          if (onComplete) onComplete(data);
         } catch (err: any) {
-          console.error('[Stripe Checkout Client Error]:', err);
-          if (typeof onError === 'function') onError(err);
-          else alert('Checkout Error: ' + (err.message || 'Could not redirect to Stripe.'));
+          console.error('Checkout error:', err);
+          if (onError) onError(err);
+          else alert('Payment Error: ' + (err.message || 'Unable to connect to Stripe checkout.'));
+        }
+      } else {
+        try {
+          const bodyData = Object.assign({ action: action }, payload || {});
+          if (!bodyData.passcode && bodyData.pin) bodyData.passcode = bodyData.pin;
+          const res = await fetch('/api/fifs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyData)
+          });
+          const data = await res.json();
+          if (!res.ok && !data.status) {
+            throw new Error(data.error || ('HTTP ' + res.status));
+          }
+          if (onComplete) onComplete(data);
+        } catch (err: any) {
+          console.error('FIFS Backend call error:', err);
+          if (onError) onError(err);
         }
       }
     };
+
+
 
 
     // Configure default Stripe live publishable key if not already defined
@@ -122,6 +143,7 @@ export default function TrainWithFIFS(props: any) {
         (window as any).STRIPE_PUBLISHABLE_KEY ||
         "pk_live_51LqGwfH3ll5w8Qh1DmpXqIgXrN1OO2eQ4cQMOL3bDHVf6baTP4YgHp7CRCsOgC4UepBfe7w6wH1p8plUXuJnuOm500U20Ny7fS";
     }
+
 
     // Helper to decode HTML entities in data attributes
     const decodeEntities = (str: string) => {
@@ -132,6 +154,7 @@ export default function TrainWithFIFS(props: any) {
         .replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>');
     };
+
 
     // Global event delegator for data-onclick, data-onchange, and data-onsubmit
     const handleDelegatedClick = (e: MouseEvent) => {
@@ -148,6 +171,7 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
     const handleDelegatedChange = (e: Event) => {
       const target = (e.target as HTMLElement).closest('[data-onchange]') as HTMLElement | null;
       if (!target) return;
@@ -161,6 +185,7 @@ export default function TrainWithFIFS(props: any) {
         console.error('Error executing data-onchange handler: "' + handlerStr + '"', err);
       }
     };
+
 
     const handleDelegatedSubmit = (e: Event) => {
       const target = (e.target as HTMLElement).closest('[data-onsubmit]') as HTMLElement | null;
@@ -176,6 +201,7 @@ export default function TrainWithFIFS(props: any) {
         console.error('Error executing data-onsubmit handler: "' + handlerStr + '"', err);
       }
     };
+
 
     
     const syncOperatingHours = () => {
@@ -219,6 +245,154 @@ export default function TrainWithFIFS(props: any) {
     };
     syncOperatingHours();
     const hoursInterval = setInterval(syncOperatingHours, 30000);
+
+
+    
+    // Modal Controller Functions for Standardized Pop-ups
+    (window as any).openMultistateMasteryModal = function() {
+      const modal = document.getElementById('multistateMasteryModal');
+      if (modal) {
+        modal.style.display = 'block';
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+      }
+    };
+    (window as any).closeMultistateMasteryModal = function() {
+      const modal = document.getElementById('multistateMasteryModal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+      }
+    };
+
+    (window as any).openPermitRenewalModal = function() {
+      const modal = document.getElementById('permitRenewalModal');
+      if (modal) {
+        modal.style.display = 'block';
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+      }
+    };
+    (window as any).closePermitRenewalModal = function() {
+      const modal = document.getElementById('permitRenewalModal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+      }
+    };
+
+    (window as any).openFutureServicesModal = function() {
+      const modal = document.getElementById('futureServicesModal');
+      if (modal) {
+        modal.style.display = 'block';
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+      }
+    };
+    (window as any).closeFutureServicesModal = function() {
+      const modal = document.getElementById('futureServicesModal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+      }
+    };
+
+    // Reservia Training Card Mapping & Enhanced Course Selector
+    (window as any).selectCourse = function(courseValue: string) {
+      if (typeof (window as any).openAndSwitch === 'function') {
+        (window as any).openAndSwitch('booking');
+      } else if (typeof (window as any).switchTab === 'function') {
+        (window as any).switchTab('booking');
+      }
+
+      const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
+      if (!selectElem) return;
+
+      const valClean = (courseValue || '').toLowerCase().trim();
+
+      // Explicit Mapping for Maryland Wear & Carry (8-Hour Renewal) - Unique ID: 48daf0ba-41a3-4d89-a148-07f26f1e89f5
+      if (valClean.includes('renewal')) {
+        const isVip = valClean.includes('vip') || valClean.includes('249');
+        for (let i = 0; i < selectElem.options.length; i++) {
+          const optVal = selectElem.options[i].value.toLowerCase().trim();
+          if (optVal.includes('renewal')) {
+            if ((isVip && optVal.includes('vip')) || (!isVip && (optVal.includes('base') || optVal.includes('149')))) {
+              selectElem.selectedIndex = i;
+              break;
+            }
+          }
+        }
+        (window as any).__selectedCourseClassId = '48daf0ba-41a3-4d89-a148-07f26f1e89f5';
+        if (typeof (window as any).updateFormPriceDisplay === 'function') {
+          (window as any).updateFormPriceDisplay();
+        }
+        return;
+      }
+
+      // Explicit Mapping for Mid-Atlantic Multi-State Mastery - Standard Rate $425 Base / $550 VIP
+      if (valClean.includes('mastery') || valClean.includes('multi-state') || valClean.includes('multistate')) {
+        const isVip = valClean.includes('vip') || valClean.includes('550');
+        for (let i = 0; i < selectElem.options.length; i++) {
+          const optVal = selectElem.options[i].value.toLowerCase().trim();
+          if (optVal.includes('mastery') || optVal.includes('multi-state')) {
+            if ((isVip && optVal.includes('vip')) || (!isVip && (optVal.includes('base') || optVal.includes('425')))) {
+              selectElem.selectedIndex = i;
+              break;
+            }
+          }
+        }
+        (window as any).__selectedCourseClassId = '282526dc-97b9-4481-8e2d-3ca90f719bdf';
+        if (typeof (window as any).updateFormPriceDisplay === 'function') {
+          (window as any).updateFormPriceDisplay();
+        }
+        return;
+      }
+
+      // Default course selection matcher
+      for (let i = 0; i < selectElem.options.length; i++) {
+        const optVal = selectElem.options[i].value.toLowerCase().trim();
+        if (optVal === valClean || optVal.includes(valClean)) {
+          selectElem.selectedIndex = i;
+          break;
+        }
+      }
+      if (typeof (window as any).updateFormPriceDisplay === 'function') {
+        (window as any).updateFormPriceDisplay();
+      }
+    };
+
+    // Client Portal Permit CRUD (Delete Permit respecting RLS auth.uid() = user_id)
+    (window as any).deleteClientPermit = async function(permitId: string) {
+      if (!permitId) return;
+      const confirmDelete = window.confirm("Are you sure you want to remove this active permit record from your verified profile?");
+      if (!confirmDelete) return;
+
+      try {
+        const rowEl = document.getElementById('permit-badge-' + permitId);
+        if (rowEl) rowEl.style.opacity = '0.35';
+
+        // 1. Call Supabase Direct if available
+        const supabase = (typeof (window as any).createSupabaseClient === 'function') ? (window as any).createSupabaseClient() : null;
+        if (supabase) {
+          await supabase.from('user_permits').delete().eq('id', permitId);
+        }
+
+        // 2. Call FIFS Backend Route Handler
+        await fetch('/api/fifs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'deletePermit', permitId })
+        }).catch(() => {});
+
+        if (rowEl) rowEl.remove();
+      } catch (err) {
+        console.error('Failed to remove permit record:', err);
+        alert('Notice: Permit removal could not be synced immediately.');
+      }
+    };
 
     document.addEventListener('click', handleDelegatedClick);
     document.addEventListener('change', handleDelegatedChange);
@@ -289,7 +463,9 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+
 document.addEventListener('submit', handleDelegatedSubmit);
+
 
     return () => {
       document.removeEventListener('click', handleDelegatedClick);
@@ -297,6 +473,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       document.removeEventListener('submit', handleDelegatedSubmit);
     };
   }, []);
+
 
   return (
     <div className="train-with-fifs-root min-h-screen bg-[#070b10] text-[#f8fafc] font-sans">
@@ -316,6 +493,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         />
       </Head>
 
+
       {/* External Dependencies */}
       <Script src="https://js.stripe.com/v3/" strategy="afterInteractive" />
       <Script src="https://js.stripe.com/dahlia/stripe.js" strategy="afterInteractive" />
@@ -325,6 +503,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         onLoad={() => console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch)}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
+
 
       {/* Main Converted JSX Structure Wrapped in Single Parent */}
       <div className="fifs-content-wrapper w-full relative">
@@ -435,7 +614,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         {/* Command Dock Launcher */}
         <div className="hero-command-dock">
           {/* SPECIALIZED 1-ON-1 INSTRUCTION CALLOUT BANNER */}
-          <div id="hero-1on1-callout-banner" style={{"background": "rgba(255, 183, 3, 0.08)", "border": "1px solid var(--accent-amber)", "borderRadius": "12px", "padding": "12px 18px", "marginBottom": "14px", "maxWidth": "540px", "margin": "0 auto 14px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.18)", "textAlign": "center", "transform": "translateY(-20%)", "transition": "transform 0.3s ease"}}>
+          <div style={{"background": "rgba(255, 183, 3, 0.08)", "border": "1px solid var(--accent-amber)", "borderRadius": "12px", "padding": "12px 18px", "marginBottom": "14px", "maxWidth": "540px", "margin": "0 auto 14px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.18)", "textAlign": "center"}}>
             <span style={{"color": "var(--accent-amber)", "fontWeight": "800", "fontSize": "0.95rem", "display": "block", "fontFamily": "var(--font-display)", "letterSpacing": "0.5px"}}>
               🛡️ DEDICATED PRIVATE 1-ON-1 SPECIALIZATION
             </span>
@@ -893,32 +1072,11 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </span>
                 </div>
               </div>
-              <div style={{"display": "flex", "flexDirection": "column", "alignItems": "flex-end", "gap": "8px"}}>
-                <button className="btn-sign-out" data-onclick="logoutStudent()" type="button">
-                  Sign Out
-                </button>
-                <button
-                  type="button"
-                  className="btn-change-password"
-                  data-onclick="openStudentPasswordModal(false)"
-                  style={{
-                    "background": "rgba(255, 255, 255, 0.05)",
-                    "border": "1px solid rgba(255, 255, 255, 0.18)",
-                    "color": "#cbd5e1",
-                    "padding": "5px 12px",
-                    "borderRadius": "6px",
-                    "fontSize": "0.78rem",
-                    "fontWeight": 600,
-                    "cursor": "pointer",
-                    "display": "inline-flex",
-                    "alignItems": "center",
-                    "gap": "6px",
-                    "transition": "all 0.2s ease"
-                  }}
-                >
-                  🔒 Change Password
-                </button>
-              </div>
+              <button className="btn-sign-out" data-onclick="logoutStudent()" type="button">
+                
+            Sign Out
+          
+              </button>
             </div>
             {/* Priority Action Concierge Hero Card */}
             <div className="next-step-card">
@@ -941,7 +1099,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             {/* 8-Step Progress Tracker Roadmap */}
             
-                        {/* Official Maryland Qualification Scoresheet Card (MSP Form 29-14) */}
+            {/* Official Maryland Qualification Scoresheet Card (MSP Form 29-14) */}
             <div className="fi-card" id="dash-scoresheet-card" style={{"marginBottom": "24px", "border": "1px solid rgba(0, 229, 255, 0.28)", "background": "linear-gradient(135deg, rgba(7,11,16,0.95), rgba(15,23,42,0.85))", "borderRadius": "12px", "padding": "20px"}}>
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "12px", "flexWrap": "wrap", "gap": "8px"}}>
                 <div>
@@ -959,6 +1117,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
               </div>
 
+
               <div id="dash-scoresheet-body">
                 {/* Pending notice placeholder */}
                 <div id="dash-scoresheet-pending" style={{"padding": "16px", "background": "rgba(245, 158, 11, 0.08)", "border": "1px dashed rgba(245, 158, 11, 0.4)", "borderRadius": "8px", "textAlign": "center"}}>
@@ -969,6 +1128,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     Instructor Kai Wade will upload your certified Maryland State Police Live-Fire Qualification Score Sheet upon course completion.
                   </p>
                 </div>
+
 
                 {/* Live Scoresheet Card Content when available */}
                 <div id="dash-scoresheet-active" style={{"display": "none", "padding": "14px", "background": "rgba(0, 229, 255, 0.04)", "border": "1px solid var(--border-subtle)", "borderRadius": "8px"}}>
@@ -990,10 +1150,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center"}}>
                 <div>
                   <h4 style={{"fontFamily": "var(--font-display)", "color": "#fff", "fontSize": "1.1rem", "marginBottom": "2px"}}>
-                    Your 8-Step Training Journey <span style={{"display": "inline-flex", "alignItems": "center", "gap": "6px", "marginLeft": "12px", "padding": "4px 12px", "borderRadius": "9999px", "fontSize": "0.75rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "background": "rgba(0, 229, 255, 0.15)", "color": "var(--accent-cyan)", "border": "1px solid rgba(0, 229, 255, 0.45)", "boxShadow": "0 0 14px rgba(0, 229, 255, 0.4)", "verticalAlign": "middle"}}>
-                <span style={{"width": "7px", "height": "7px", "borderRadius": "50%", "background": "var(--accent-cyan)", "boxShadow": "0 0 8px var(--accent-cyan)"}} />
-                Interactive
-              </span>
+                    Your 8-Step Fit Journey <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-cyan-500/10 text-[#00e5ff] border border-[#00e5ff]/40 shadow-[0_0_12px_rgba(0,229,255,0.35)] animate-pulse align-middle ml-2"><span className="w-1.5 h-1.5 rounded-full bg-[#00e5ff] animate-ping" />Interactive</span>
                   </h4>
                   <span style={{"fontSize": "0.72rem", "color": "var(--accent-amber)", "fontWeight": "700", "letterSpacing": "0.5px", "textTransform": "uppercase"}}>
                     🔒 Status Locked • Managed by Instructor Kai Wade
@@ -1206,57 +1363,32 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </a>
                 </div>
               </div>
-              {/* Card 5: Multi-State Concealed Carry Mastery Resource Suite */}
-              <div id="dash-multistate-mastery-card" className="portal-feature-launcher-card" style={{"border": "2px solid #f59e0b", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
+            </div>
+            {/* ================= EXCLUSIVE STUDENT TRAVEL & RECIPROCITY HUB ================= */}
+            <div className="portal-feature-launcher-card" style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "marginBottom": "24px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.15)"}}>
+              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "16px"}}>
                 <div>
-                  <span className="next-step-badge" style={{"color": "#f59e0b", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
-                    ⚡ 16-HOUR INTENSIVE CURRICULUM
-                  </span>
-                  <h3 className="portal-feature-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.4rem", "color": "#fff", "marginBottom": "6px"}}>
-                    🛡️ Multi-State Concealed Carry Mastery Resource Suite
-                  </h3>
-                  <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
-                    Engineered specifically for Multi-State Mastery students. Comprehensive 16-hour legal &amp; tactical curriculum across multi-jurisdiction reciprocity (MD, VA, UT, FL, PA). Click below to launch the full-screen interactive companion field guide.
-                  </p>
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    data-onclick="toggleMultiStateMasteryModal(true)"
-                    className="btn-spark"
-                    style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "borderColor": "#f59e0b", "color": "#f59e0b", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "gap": "8px", "boxShadow": "0 0 16px rgba(245, 158, 11, 0.25)"}}
-                  >
-                    <span>🛡️ Launch Multi-State Mastery Suite ↗</span>
-                  </button>
-                </div>
-              </div>
-              {/* Card 6: Multi-State CCW Reciprocity Navigator & Travel Hub */}
-              <div id="dash-reciprocity-card" className="portal-feature-launcher-card" style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
-                <div>
-                  <span className="next-step-badge" style={{"color": "var(--accent-cyan)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                  <span className="next-step-badge" style={{"color": "var(--accent-cyan)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.82rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                     STUDENT PORTAL EXCLUSIVE TOOL
                   </span>
-                  <h3 className="portal-feature-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.4rem", "color": "#fff", "marginBottom": "6px"}}>
-                    🗺️ Multi-State CCW Reciprocity Navigator &amp; Travel Hub
+                  <h3 className="portal-feature-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.45rem", "color": "#fff", "marginBottom": "6px"}}>
+                    🗺️ Multi-State CCW Reciprocity Navigator & Travel Hub
                   </h3>
-                  <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
-                    Interactive 50-state recognition map. See where you can carry with your Maryland permit, test Utah/Florida non-resident add-ons, plan interstate car travel corridors, and review mandatory TSA flying rules.
+                  <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "maxWidth": "620px"}}>
+                    
+                Interactive 50-state recognition map. See where you can carry with your Maryland permit, test Utah/Florida non-resident add-ons, plan interstate car travel corridors, and review mandatory TSA flying rules.
+              
                   </p>
                 </div>
-                <div>
-                  <button
-                    type="button"
-                    data-onclick="toggleReciprocityHubModal(true)"
-                    className="btn-spark"
-                    style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "gap": "8px", "boxShadow": "0 0 16px var(--accent-cyan-glow)"}}
-                  >
-                    <span>Launch Reciprocity Navigator ↗</span>
-                  </button>
-                </div>
+                <button className="btn-primary" data-onclick="toggleReciprocityHubModal(true)" style={{"width": "auto", "padding": "12px 24px", "fontSize": "0.95rem", "whiteSpace": "nowrap", "boxShadow": "0 0 18px var(--accent-cyan-glow)", "cursor": "pointer"}} type="button">
+                  
+              LAUNCH RECIPROCITY NAVIGATOR ↗
+            
+                </button>
               </div>
             </div>
             {/* ================= DYNAMIC COURSE FOLLOW-ALONG PACKET CARD ================= */}
-            <div id="student-course-packet-card" style={{"display": "none", "background": "#0d121a", "border": "1px solid rgba(0, 229, 255, 0.3)", "borderRadius": "14px", "padding": "20px", "marginBottom": "24px"}}>
+            <div id="student-course-packet-card" style={{"background": "#0d121a", "border": "1px solid rgba(0, 229, 255, 0.3)", "borderRadius": "14px", "padding": "20px", "marginBottom": "24px"}}>
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "14px"}}>
                 <div>
                   <span style={{"fontFamily": "var(--font-display)", "fontSize": "0.78rem", "fontWeight": "800", "color": "var(--accent-cyan)", "letterSpacing": "1px", "textTransform": "uppercase"}}>
@@ -1278,203 +1410,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </a>
               </div>
             </div>
-      
-      {/* ================= MULTI-STATE MASTERY FULL EXPANSION MODAL ================= */}
-      <div
-        className="reciprocity-hub-modal-overlay"
-        id="multistate-modal-drawer"
-        style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "overflowY": "auto", "padding": "24px 16px"}}
-      >
-        <div style={{"maxWidth": "1280px", "margin": "0 auto", "position": "relative"}}>
-          <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "18px", "paddingBottom": "12px", "borderBottom": "1px solid rgba(245, 158, 11, 0.35)", "flexWrap": "wrap", "gap": "12px"}}>
-            <div style={{"display": "flex", "alignItems": "center", "gap": "12px", "flexWrap": "wrap"}}>
-              <span style={{"fontSize": "0.75rem", "letterSpacing": "1px", "color": "#f59e0b", "fontWeight": "800", "textTransform": "uppercase", "background": "rgba(245, 158, 11, 0.15)", "padding": "4px 10px", "borderRadius": "4px", "border": "1px solid rgba(245, 158, 11, 0.35)"}}>
-                ⚡ 16-HOUR INTENSIVE MASTER ACADEMY
-              </span>
-              <h2 style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "color": "#fff", "margin": 0, "letterSpacing": "0.5px"}}>
-                🛡️ Multi-State Concealed Carry Mastery Resource Suite
-              </h2>
-            </div>
-            <div style={{"display": "flex", "alignItems": "center", "gap": "10px"}}>
-              <a
-                href="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-spark"
-                style={{"padding": "8px 16px", "fontSize": "0.85rem", "borderColor": "#f59e0b", "color": "#f59e0b", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}
-              >
-                Open In New Tab ↗
-              </a>
-              <button
-                className="btn-return-home"
-                data-onclick="toggleMultiStateMasteryModal(false)"
-                style={{"padding": "8px 18px", "fontSize": "0.95rem", "minHeight": "40px", "cursor": "pointer"}}
-                type="button"
-              >
-                ✕ CLOSE SUITE
-              </button>
-            </div>
-          </div>
-          <div style={{"width": "100%", "height": "82vh", "minHeight": "650px", "borderRadius": "12px", "overflow": "hidden", "border": "1px solid rgba(245, 158, 11, 0.3)", "boxShadow": "0 10px 40px rgba(0,0,0,0.8)", "background": "#070a11"}}>
-            <iframe
-              src="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
-              style={{"width": "100%", "height": "100%", "border": "none", "display": "block", "background": "#070a11"}}
-              title="Multi-State Concealed Carry Mastery Full Expansion"
-            />
-          </div>
-          <div style={{"marginTop": "18px", "display": "flex", "justifyContent": "center", "gap": "14px", "flexWrap": "wrap"}}>
-            <button
-              className="btn-return-home"
-              data-onclick="toggleMultiStateMasteryModal(false)"
-              style={{"minHeight": "46px", "padding": "10px 28px", "fontSize": "1rem", "cursor": "pointer"}}
-              type="button"
-            >
-              ← RETURN TO PLATFORM
-            </button>
-            <button
-              className="btn-secondary-modal"
-              data-onclick="toggleMultiStateMasteryModal(false); toggleReciprocityHubModal(true);"
-              style={{"padding": "10px 22px", "fontSize": "0.95rem", "fontWeight": "700", "cursor": "pointer"}}
-              type="button"
-            >
-              🗺️ Explore 50-State Reciprocity Hub
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ================= MANDATORY & SELF-SERVICE PASSWORD CHANGE MODAL ================= */}
-      <div
-        id="fifsPasswordChangeModal"
-        style={{
-          display: 'none',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 9999999,
-          backgroundColor: 'rgba(5, 8, 14, 0.92)',
-          backdropFilter: 'blur(8px)',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}
-      >
-        <div
-          style={{
-            background: 'linear-gradient(135deg, #0d131f 0%, #151d2d 100%)',
-            border: '1px solid rgba(0, 229, 255, 0.4)',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 229, 255, 0.15)',
-            borderRadius: '16px',
-            maxWidth: '460px',
-            width: '100%',
-            padding: '28px',
-            color: '#fff',
-            position: 'relative'
-          }}
-        >
-          <button
-            id="fifsPasswordModalCloseBtn"
-            type="button"
-            data-onclick="closeFifsPasswordModal()"
-            style={{
-              position: 'absolute',
-              top: '16px',
-              right: '16px',
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              color: '#cbd5e1',
-              borderRadius: '8px',
-              padding: '4px 10px',
-              cursor: 'pointer',
-              fontSize: '0.9rem'
-            }}
-          >
-            ✕
-          </button>
-
-          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🔐</div>
-            <h3 id="fifsPasswordModalTitle" style={{ fontSize: '1.35rem', margin: '0 0 6px', fontWeight: 800 }}>
-              Update Portal Password
-            </h3>
-            <p id="fifsPasswordModalDesc" style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0, lineHeight: '1.4' }}>
-              For security compliance, please create a personalized permanent password for future logins.
-            </p>
-          </div>
-
-          <form id="fifsPasswordChangeForm" data-onsubmit="handleFifsPasswordChangeSubmit(event); return false;">
-            <input type="hidden" id="fifsPasswordUserType" value="student" />
-            <input type="hidden" id="fifsPasswordUserIdentifier" value="" />
-
-            <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                New Password
-              </label>
-              <input
-                id="fifsNewPassword"
-                type="password"
-                placeholder="Minimum 8 characters"
-                required
-                style={{
-                  width: '100%',
-                  background: '#070b12',
-                  border: '1px solid #1f2e4d',
-                  borderRadius: '8px',
-                  padding: '12px 14px',
-                  color: '#fff',
-                  fontSize: '0.95rem',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-
-            <div style={{ marginBottom: '18px' }}>
-              <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Confirm New Password
-              </label>
-              <input
-                id="fifsConfirmPassword"
-                type="password"
-                placeholder="Re-enter new password"
-                required
-                style={{
-                  width: '100%',
-                  background: '#070b12',
-                  border: '1px solid #1f2e4d',
-                  borderRadius: '8px',
-                  padding: '12px 14px',
-                  color: '#fff',
-                  fontSize: '0.95rem',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-
-            <div id="fifsPasswordModalStatus" className="status-msg" style={{ display: 'none', marginBottom: '14px' }}></div>
-
-            <button
-              type="submit"
-              id="fifsPasswordSubmitBtn"
-              className="btn-primary"
-              style={{
-                width: '100%',
-                padding: '12px',
-                fontWeight: 800,
-                fontSize: '0.95rem',
-                letterSpacing: '0.5px'
-              }}
-            >
-              Set New Password &amp; Continue →
-            </button>
-          </form>
-        </div>
-      </div>
-
-      {/* State Dossier Details Modal */}
+            {/* State Dossier Details Modal */}
             <div className="state-dossier-modal-overlay" id="stateDossierModal" data-onclick="if(event.target===this) closeStateDossier()" style={{"display": "none"}}>
               <div aria-labelledby="dossierStateTitle" aria-modal="true" className="state-dossier-card" data-onclick="event.stopPropagation()" role="dialog">
                 <button aria-label="Close dossier" className="dossier-close-btn" data-onclick="closeStateDossier()" type="button">
@@ -1695,7 +1631,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         <label htmlFor="regClientPassword">
                           Create Password <span className="req">*</span>
                         </label>
-                        <input id="regClientPassword" placeholder="Minimum 8 characters" required="" type="password" />
+                        <input id="regClientPassword" placeholder="Minimum 6 characters" required="" type="password" />
                       </div>
                       <div className="form-group">
                         <label htmlFor="regClientPasswordConfirm">
@@ -1763,32 +1699,11 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     </span>
                   </div>
                 </div>
-                <div style={{"display": "flex", "flexDirection": "column", "alignItems": "flex-end", "gap": "8px"}}>
                 <button className="btn-sign-out" data-onclick="fiLogoutClient()" type="button">
-                  Sign Out
+                  
+              Sign Out
+            
                 </button>
-                <button
-                  type="button"
-                  className="btn-change-password"
-                  data-onclick="openClientPasswordModal(false)"
-                  style={{
-                    "background": "rgba(255, 255, 255, 0.05)",
-                    "border": "1px solid rgba(255, 255, 255, 0.18)",
-                    "color": "#cbd5e1",
-                    "padding": "5px 12px",
-                    "borderRadius": "6px",
-                    "fontSize": "0.78rem",
-                    "fontWeight": 600,
-                    "cursor": "pointer",
-                    "display": "inline-flex",
-                    "alignItems": "center",
-                    "gap": "6px",
-                    "transition": "all 0.2s ease"
-                  }}
-                >
-                  🔒 Change Password
-                </button>
-              </div>
               </div>
               {/* CLIENT PORTAL STICKY SUBNAV */}
               <nav aria-label="Client Portal Navigation" className="fi-portal-subnav">
@@ -1870,9 +1785,12 @@ document.addEventListener('submit', handleDelegatedSubmit);
                           Lead Instructor: Kai Wade • Certified MSP Qualified Handgun Instructor (§ 5-101)
                         </p>
                       </div>
-                      <div style={{"textAlign": "right"}}>
+                      <div style={{"textAlign": "right", "display": "flex", "flexDirection": "column", "alignItems": "flex-end", "gap": "6px"}}>
                         <span className="meta-chip chip-status" id="wallet-status-badge" style={{"fontSize": "0.85rem", "padding": "5px 14px"}}>
                           ACTIVE CARRIER
+                        </span>
+                        <span className="meta-chip" id="wallet-client-since-badge" style={{"color": "var(--accent-cyan)", "borderColor": "var(--accent-cyan)", "fontSize": "0.76rem", "fontWeight": "700"}}>
+                          Client since Oct 2026
                         </span>
                       </div>
                     </div>
@@ -1911,19 +1829,31 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       </div>
                     </div>
                     <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "10px"}}>
-                      <div id="wallet-multiplier-badges" style={{"display": "flex", "gap": "8px", "flexWrap": "wrap"}}>
-                        <span className="meta-chip" style={{"color": "var(--accent-cyan)", "borderColor": "var(--accent-cyan)"}}>
-                          MD Resident
-                        </span>
-                        <span className="meta-chip" style={{"color": "#10b981", "borderColor": "#10b981"}}>
-                          +UT Multiplier
-                        </span>
-                        <span className="meta-chip" style={{"color": "#60a5fa", "borderColor": "#60a5fa"}}>
-                          +FL Multiplier
-                        </span>
-                        <span className="meta-chip" style={{"color": "#c084fc", "borderColor": "#c084fc"}}>
-                          +PA LTCF Roadmap
-                        </span>
+                      <div>
+                        <div style={{"fontSize": "0.72rem", "textTransform": "uppercase", "color": "var(--text-muted)", "fontWeight": "700", "marginBottom": "6px"}}>
+                          Active Registered Permits & Reciprocity Credentials
+                        </div>
+                        <div id="wallet-multiplier-badges" style={{"display": "flex", "gap": "8px", "flexWrap": "wrap"}}>
+                          <span className="meta-chip" id="permit-badge-md" style={{"color": "var(--accent-cyan)", "borderColor": "var(--accent-cyan)", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                            <span>MD Wear & Carry (Resident Lead)</span>
+                          </span>
+                          <span className="meta-chip" id="permit-badge-va" style={{"color": "#10b981", "borderColor": "#10b981", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                            <span>+VA Non-Resident CHP</span>
+                            <button type="button" data-onclick="deleteClientPermit('va')" onClick={() => { if (typeof window !== 'undefined' && (window as any).deleteClientPermit) (window as any).deleteClientPermit('va'); }} title="Remove active permit record" style={{"background": "none", "border": "none", "color": "#ef4444", "cursor": "pointer", "fontSize": "11px", "fontWeight": "bold", "padding": "0 2px"}}>✕</button>
+                          </span>
+                          <span className="meta-chip" id="permit-badge-fl" style={{"color": "#60a5fa", "borderColor": "#60a5fa", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                            <span>+FL Non-Resident CWL</span>
+                            <button type="button" data-onclick="deleteClientPermit('fl')" onClick={() => { if (typeof window !== 'undefined' && (window as any).deleteClientPermit) (window as any).deleteClientPermit('fl'); }} title="Remove active permit record" style={{"background": "none", "border": "none", "color": "#ef4444", "cursor": "pointer", "fontSize": "11px", "fontWeight": "bold", "padding": "0 2px"}}>✕</button>
+                          </span>
+                          <span className="meta-chip" id="permit-badge-az" style={{"color": "#c084fc", "borderColor": "#c084fc", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                            <span>+AZ Non-Resident CWP</span>
+                            <button type="button" data-onclick="deleteClientPermit('az')" onClick={() => { if (typeof window !== 'undefined' && (window as any).deleteClientPermit) (window as any).deleteClientPermit('az'); }} title="Remove active permit record" style={{"background": "none", "border": "none", "color": "#ef4444", "cursor": "pointer", "fontSize": "11px", "fontWeight": "bold", "padding": "0 2px"}}>✕</button>
+                          </span>
+                          <span className="meta-chip" id="permit-badge-pa" style={{"color": "var(--accent-amber)", "borderColor": "var(--accent-amber)", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                            <span>+PA LTCF Border Permit</span>
+                            <button type="button" data-onclick="deleteClientPermit('pa')" onClick={() => { if (typeof window !== 'undefined' && (window as any).deleteClientPermit) (window as any).deleteClientPermit('pa'); }} title="Remove active permit record" style={{"background": "none", "border": "none", "color": "#ef4444", "cursor": "pointer", "fontSize": "11px", "fontWeight": "bold", "padding": "0 2px"}}>✕</button>
+                          </span>
+                        </div>
                       </div>
                       <button className="btn-spark" data-onclick="toggleReciprocityHubModal(true)" style={{"width": "auto", "padding": "8px 16px", "fontSize": "0.85rem", "borderColor": "var(--accent-amber)", "color": "var(--accent-amber)"}} type="button">
                         
@@ -2025,8 +1955,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
               
                     </p>
                   </div>
-                  <button className="btn-primary" data-onclick="fiScrollTo('fi-sec-renewal')" type="button">
-                    Open Renewal Center ↓
+                  <button className="btn-primary" data-onclick="openPermitRenewalModal()" onClick={() => { if (typeof window !== "undefined" && (window as any).openPermitRenewalModal) (window as any).openPermitRenewalModal(); }} type="button">
+                    Open Renewal Center ↗
                   </button>
                 </div>
                 {/* CARD 5 */}
@@ -2063,8 +1993,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
               
                     </p>
                   </div>
-                  <button className="btn-spark" data-onclick="fiScrollTo('fi-sec-services')" type="button">
-                    Explore Services & Book ↓
+                  <button className="btn-spark" data-onclick="openFutureServicesModal()" onClick={() => { if (typeof window !== "undefined" && (window as any).openFutureServicesModal) (window as any).openFutureServicesModal(); }} type="button">
+                    Explore Services & Book ↗
                   </button>
                 </div>
               </div>
@@ -2352,38 +2282,33 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     Book Renewal Class →
                   </button>
                 </div>
-                <div className="fi-feature-card" style={{"border": "1.5px solid var(--accent-amber)", "boxShadow": "0 0 25px rgba(255, 183, 3, 0.2)", "position": "relative"}}>
-                  <div style={{"position": "absolute", "top": "-10px", "right": "16px", "background": "var(--accent-amber)", "color": "#000", "fontSize": "0.7rem", "fontWeight": "900", "padding": "2px 10px", "borderRadius": "9999px", "letterSpacing": "0.5px", "textTransform": "uppercase"}}>
-                    Most Popular Mastery Track
-                  </div>
+                <div className="fi-feature-card">
                   <div>
                     <span className="fi-badge fi-badge-cyan">
-                      34+ State Reciprocity
+                      Multi-State Reciprocity
                     </span>
                     <h3 className="fi-feature-title">
                       Multi-State Concealed Carry Mastery
                     </h3>
                     <p className="fi-feature-desc">
-                      Comprehensive 16-Hour Legal &amp; Tactical Curriculum. Multi-jurisdiction certification across Maryland Wear &amp; Carry, Virginia CHP, Utah CFP, Florida CWL, and PA LTCF with exclusive private 1-on-1 range coaching.
+                      
+                Comprehensive Utah, Florida, and Virginia non-resident permit training. Expands your legal carry recognition to over 34 states with zero classroom fluff.
+              
                     </p>
-                    <div style={{"display": "flex", "gap": "8px", "flexWrap": "wrap", "margin": "8px 0 12px"}}>
-                      <span style={{"fontSize": "0.75rem", "color": "#38bdf8", "background": "rgba(56, 189, 248, 0.1)", "padding": "2px 8px", "borderRadius": "4px"}}>✔ 16-Hour Comprehensive Track</span>
-                      <span style={{"fontSize": "0.75rem", "color": "#38bdf8", "background": "rgba(56, 189, 248, 0.1)", "padding": "2px 8px", "borderRadius": "4px"}}>✔ 34+ State Carry Rights</span>
-                      <span style={{"fontSize": "0.75rem", "color": "#38bdf8", "background": "rgba(56, 189, 248, 0.1)", "padding": "2px 8px", "borderRadius": "4px"}}>✔ Field Guide SOP Included</span>
-                    </div>
-                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.3rem", "color": "#fff", "marginBottom": "14px"}}>
-                      25 
+                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.3rem", "color": "#fff", "marginBottom": "12px"}}>
+                      
+                $425 
                       <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "fontFamily": "var(--font-body)"}}>
                         Base
                       </span>
-                       • 50 
-                      <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)", "fontFamily": "var(--font-body)", "fontWeight": "700"}}>
+                       • $550 
+                      <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)", "fontFamily": "var(--font-body)"}}>
                         VIP Turnkey
                       </span>
                     </div>
                   </div>
-                  <button className="btn-primary" style={{"background": "linear-gradient(135deg, #ffb703 0%, #fb8500 100%)", "color": "#000", "fontWeight": "900", "boxShadow": "0 0 18px rgba(255, 183, 3, 0.45)", "border": "none"}} onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Multi-State Concealed Carry Mastery — Base Track (25.00)"); }} data-onclick="selectCourse('Multi-State Concealed Carry Mastery — Base Track (25.00)')" type="button">
-                    ⚡ Enroll in Multi-State Mastery Track →
+                  <button className="btn-spark" onClick={() => { if (typeof window !== "undefined" && (window as any).openMultistateMasteryModal) (window as any).openMultistateMasteryModal(); }} data-onclick="openMultistateMasteryModal()" type="button">
+                    Explore 34+ State Shield ↗
                   </button>
                 </div>
                 <div className="fi-feature-card">
@@ -2626,6 +2551,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
           </div>
 
+
           {/* 4 INTERACTIVE INTELLIGENCE CARDS (Primary Navigation Deck - MSP Portal Styling) */}
           <div className="admin-intel-cards-container msp-intel-deck-grid" style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(260px, 1fr))", "gap": "16px", "margin": "20px 0 24px"}}>
             {/* Card 1: Student Roster & Ops */}
@@ -2649,6 +2575,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
 
+
             {/* Card 2: Future Initiative Clients */}
             <div className="portal-feature-launcher-card msp-intel-card msp-card-amber" id="btn-admin-tab-clients" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('clients'); }} data-onclick="switchAdminTab('clients')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <span className="card-badge msp-card-unread-badge" id="admin-tab-clients-badge" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "var(--accent-amber)", "color": "#070b10", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px var(--accent-amber)", "display": "none"}}>🔔 <span id="admin-tab-clients-badge-count">0</span> NEW</span>
@@ -2669,6 +2596,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </button>
               </div>
             </div>
+
 
             {/* Card 3: Live Chat Command */}
             <div className="portal-feature-launcher-card msp-intel-card msp-card-purple" id="btn-admin-tab-chat" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('chat'); }} data-onclick="switchAdminTab('chat')" role="button" tabIndex={0} style={{"border": "2px solid #a855f7", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(168, 85, 247, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
@@ -2691,6 +2619,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
 
+
             {/* Card 4: Website Telemetry */}
             <div className="portal-feature-launcher-card msp-intel-card msp-card-emerald" id="btn-admin-tab-telemetry" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('telemetry'); }} data-onclick="switchAdminTab('telemetry')" role="button" tabIndex={0} style={{"border": "2px solid #10b981", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(16, 185, 129, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <span className="card-badge msp-card-unread-badge" id="admin-tab-telemetry-badge" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "#10b981", "color": "#070b10", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px #10b981", "display": "inline-block"}}>📡 LIVE</span>
@@ -2712,6 +2641,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
           </div>
+
 
           {/* SECONDARY TACTICAL UTILITY TOOLBAR */}
           <div className="admin-secondary-toolbar">
@@ -3430,7 +3360,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Learn More →
               </div>
             </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('need_multistate', this)" title="Learn more about multi-state carry" type="button">
+            <button className="pathway-pill" data-onclick="openMultistateMasteryModal()" onClick={() => { if (typeof window !== "undefined" && (window as any).openMultistateMasteryModal) (window as any).openMultistateMasteryModal(); }} title="Learn more about multi-state carry" type="button">
               <div className="pathway-intent" style={{"color": "var(--accent-amber)"}}>
                 Do I Need a Multi-State Permit?
               </div>
@@ -3447,10 +3377,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         <div style={{"marginBottom": "32px"}}>
           <div className="panel-header">
             <h3>
-              Your 8-Step FIFS Journey <span style={{"display": "inline-flex", "alignItems": "center", "gap": "6px", "marginLeft": "12px", "padding": "4px 12px", "borderRadius": "9999px", "fontSize": "0.75rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "background": "rgba(0, 229, 255, 0.15)", "color": "var(--accent-cyan)", "border": "1px solid rgba(0, 229, 255, 0.45)", "boxShadow": "0 0 14px rgba(0, 229, 255, 0.4)", "verticalAlign": "middle"}}>
-                <span style={{"width": "7px", "height": "7px", "borderRadius": "50%", "background": "var(--accent-cyan)", "boxShadow": "0 0 8px var(--accent-cyan)"}} />
-                Interactive
-              </span>
+              Your 8-Step Fit Journey <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider bg-cyan-500/10 text-[#00e5ff] border border-[#00e5ff]/40 shadow-[0_0_12px_rgba(0,229,255,0.35)] animate-pulse align-middle ml-2"><span className="w-1.5 h-1.5 rounded-full bg-[#00e5ff] animate-ping" />Interactive</span>
             </h3>
             <p>
               From registration through state licensing, know exactly where you are in the process:
@@ -5276,6 +5203,205 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </section>
+      
+      {/* ================= 1. STANDARDIZED MULTISTATE MASTERY MODAL ================= */}
+      <div className="reciprocity-hub-modal-overlay" id="multistateMasteryModal" style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "overflowY": "auto", "padding": "24px 16px"}}>
+        <div style={{"maxWidth": "1140px", "margin": "0 auto", "position": "relative"}}>
+          <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "18px", "paddingBottom": "12px", "borderBottom": "1px solid var(--border-subtle)"}}>
+            <h2 style={{"fontFamily": "var(--font-display)", "fontSize": "1.65rem", "color": "#fff", "letterSpacing": "1px"}}>
+              ⭐ Mid-Atlantic Multi-State Mastery (34+ State Legal Shield)
+            </h2>
+            <button className="btn-return-home" data-onclick="closeMultistateMasteryModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closeMultistateMasteryModal) (window as any).closeMultistateMasteryModal(); }} style={{"padding": "8px 18px", "fontSize": "0.95rem", "minHeight": "40px", "cursor": "pointer"}} type="button">
+              ✕ CLOSE MODAL
+            </button>
+          </div>
+          <div style={{"background": "#0d131d", "border": "1px solid var(--border-subtle)", "borderRadius": "16px", "padding": "28px", "marginBottom": "24px", "boxShadow": "0 12px 30px rgba(0,0,0,0.8)"}}>
+            <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "flexWrap": "wrap", "gap": "16px", "marginBottom": "20px"}}>
+              <div>
+                <span className="badge-pop" style={{"background": "var(--accent-amber)", "color": "#070b10", "fontWeight": "800"}}>
+                  AUTHORIZED FIELD GUIDE SYSTEM
+                </span>
+                <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.85rem", "color": "#fff", "margin": "8px 0 4px"}}>
+                  34+ State Multi-Permit Expansion Protocol
+                </h3>
+                <p style={{"color": "var(--text-muted)", "fontSize": "0.95rem", "maxWidth": "760px"}}>
+                  Lead Instructor: Kai Wade (NRA #262929961 • MSP QHIC § 5-101). Transform your Maryland certification into a seamless, coast-to-coast multi-state defensive shield while bypassing clerical disqualifications and saving on state licensing.
+                </p>
+              </div>
+              <div style={{"background": "rgba(245, 158, 11, 0.12)", "border": "1px solid var(--accent-amber)", "borderRadius": "12px", "padding": "16px 20px", "textAlign": "right"}}>
+                <div style={{"fontSize": "0.78rem", "color": "var(--accent-amber)", "fontWeight": "800", "textTransform": "uppercase"}}>
+                  Standardized Tuition Rate
+                </div>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "2rem", "fontWeight": "900", "color": "#fff"}}>
+                  $425 <span style={{"fontSize": "1rem", "color": "var(--text-muted)"}}>Base</span> / $550 <span style={{"fontSize": "1rem", "color": "var(--accent-amber)"}}>VIP</span>
+                </div>
+              </div>
+            </div>
+            {/* System At A Glance Metrics */}
+            <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(220px, 1fr))", "gap": "16px", "marginBottom": "24px"}}>
+              <div style={{"background": "rgba(18, 26, 44, 0.6)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "16px"}}>
+                <div style={{"fontSize": "0.74rem", "textTransform": "uppercase", "color": "var(--accent-cyan)", "fontWeight": "800"}}>Reciprocity Reach</div>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.6rem", "fontWeight": "800", "color": "#fff", "marginTop": "4px"}}>34+ STATES</div>
+                <div style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "marginTop": "2px"}}>Interstate legal reciprocity footprint</div>
+              </div>
+              <div style={{"background": "rgba(18, 26, 44, 0.6)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "16px"}}>
+                <div style={{"fontSize": "0.74rem", "textTransform": "uppercase", "color": "#10b981", "fontWeight": "800"}}>Course Architecture</div>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.6rem", "fontWeight": "800", "color": "#fff", "marginTop": "4px"}}>5-IN-1 STACK</div>
+                <div style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "marginTop": "2px"}}>One comprehensive training framework</div>
+              </div>
+              <div style={{"background": "rgba(18, 26, 44, 0.6)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "16px"}}>
+                <div style={{"fontSize": "0.74rem", "textTransform": "uppercase", "color": "var(--accent-amber)", "fontWeight": "800"}}>Statutory Proof</div>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.6rem", "fontWeight": "800", "color": "#fff", "marginTop": "4px"}}>100% IN-PERSON</div>
+                <div style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "marginTop": "2px"}}>Strict Va. Code § 18.2-308 compliance</div>
+              </div>
+              <div style={{"background": "rgba(18, 26, 44, 0.6)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "16px"}}>
+                <div style={{"fontSize": "0.74rem", "textTransform": "uppercase", "color": "#38bdf8", "fontWeight": "800"}}>Student Benefit</div>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.6rem", "fontWeight": "800", "color": "#fff", "marginTop": "4px"}}>$150 SAVED</div>
+                <div style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "marginTop": "2px"}}>Free Maryland HQL Exemption unlocked</div>
+              </div>
+            </div>
+            {/* Phased Roadmap */}
+            <div style={{"background": "rgba(10, 16, 26, 0.8)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "20px", "marginBottom": "24px"}}>
+              <h4 style={{"fontFamily": "var(--font-display)", "color": "var(--accent-cyan)", "fontSize": "1.2rem", "marginBottom": "12px", "textTransform": "uppercase"}}>
+                Chronological Phased Dispatch Flow
+              </h4>
+              <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(280px, 1fr))", "gap": "16px"}}>
+                <div style={{"borderLeft": "3px solid var(--accent-cyan)", "paddingLeft": "14px"}}>
+                  <strong style={{"color": "#fff", "display": "block"}}>Phase 1: Maryland Wear & Carry (Home Base)</strong>
+                  <p style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "marginTop": "4px"}}>Submit 100% online via MSP Licensing Portal immediately following LiveScan. Unlocks $0 Free Maryland HQL Exemption.</p>
+                </div>
+                <div style={{"borderLeft": "3px solid #10b981", "paddingLeft": "14px"}}>
+                  <strong style={{"color": "#fff", "display": "block"}}>Phase 2: Virginia • Florida • Arizona (Parallel Mail)</strong>
+                  <p style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "marginTop": "4px"}}>Assemble packets with Kai's notarized credentials and dispatch via USPS. Do not wait for Maryland approval!</p>
+                </div>
+                <div style={{"borderLeft": "3px solid var(--accent-amber)", "paddingLeft": "14px"}}>
+                  <strong style={{"color": "#fff", "display": "block"}}>Phase 3: Pennsylvania LTCF (Border Pickup)</strong>
+                  <p style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "marginTop": "4px"}}>York County online submission, then 35-min drive for rapid 5-minute photo issuance once physical MD permit arrives.</p>
+                </div>
+              </div>
+            </div>
+            <div style={{"display": "flex", "gap": "14px", "justifyContent": "flex-end", "flexWrap": "wrap"}}>
+              <button type="button" className="btn-secondary" data-onclick="closeMultistateMasteryModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closeMultistateMasteryModal) (window as any).closeMultistateMasteryModal(); }}>
+                Close
+              </button>
+              <button type="button" className="btn-primary" data-onclick="closeMultistateMasteryModal(); selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeMultistateMasteryModal) (window as any).closeMultistateMasteryModal(); if ((window as any).selectCourse) (window as any).selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)'); } }}>
+                Enroll in Multi-State Mastery ($425) →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= 2. STANDARDIZED PERMIT RENEWAL CENTER MODAL ================= */}
+      <div className="reciprocity-hub-modal-overlay" id="permitRenewalModal" style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "overflowY": "auto", "padding": "24px 16px"}}>
+        <div style={{"maxWidth": "1140px", "margin": "0 auto", "position": "relative"}}>
+          <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "18px", "paddingBottom": "12px", "borderBottom": "1px solid var(--border-subtle)"}}>
+            <h2 style={{"fontFamily": "var(--font-display)", "fontSize": "1.65rem", "color": "#fff", "letterSpacing": "1px"}}>
+              ⏱️ Maryland Wear & Carry Permit Renewal Center
+            </h2>
+            <button className="btn-return-home" data-onclick="closePermitRenewalModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closePermitRenewalModal) (window as any).closePermitRenewalModal(); }} style={{"padding": "8px 18px", "fontSize": "0.95rem", "minHeight": "40px", "cursor": "pointer"}} type="button">
+              ✕ CLOSE MODAL
+            </button>
+          </div>
+          <div style={{"background": "#0d131d", "border": "1px solid var(--border-subtle)", "borderRadius": "16px", "padding": "28px", "marginBottom": "24px", "boxShadow": "0 12px 30px rgba(0,0,0,0.8)"}}>
+            <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "flexWrap": "wrap", "gap": "16px", "marginBottom": "20px"}}>
+              <div>
+                <span className="badge-pop" style={{"background": "rgba(0, 229, 255, 0.15)", "color": "var(--accent-cyan)", "border": "1px solid var(--accent-cyan)"}}>
+                  8-HOUR STATUTORY MANDATE • MD PS § 5-306
+                </span>
+                <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.85rem", "color": "#fff", "margin": "8px 0 4px"}}>
+                  Biennial Recertification & Expiration Countdown
+                </h3>
+                <p style={{"color": "var(--text-muted)", "fontSize": "0.95rem", "maxWidth": "760px"}}>
+                  Maryland Wear & Carry permits expire every 2 to 3 years. State Police require submission at least 90 days prior to expiration. Complete your 8-hour refresher and 25-round live-fire qualification at Cindy's Hot Shots.
+                </p>
+              </div>
+              <div style={{"background": "rgba(0, 229, 255, 0.10)", "border": "1px solid var(--accent-cyan)", "borderRadius": "12px", "padding": "16px 20px", "textAlign": "right"}}>
+                <div style={{"fontSize": "0.78rem", "color": "var(--accent-cyan)", "fontWeight": "800", "textTransform": "uppercase"}}>
+                  Renewal Class Tuition
+                </div>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "2rem", "fontWeight": "900", "color": "#fff"}}>
+                  $149.99 <span style={{"fontSize": "1rem", "color": "var(--text-muted)"}}>Base</span> / $249.99 <span style={{"fontSize": "1rem", "color": "var(--accent-amber)"}}>VIP</span>
+                </div>
+              </div>
+            </div>
+            {/* Countdown & Checklist */}
+            <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(280px, 1fr))", "gap": "16px", "marginBottom": "24px"}}>
+              <div style={{"background": "rgba(16, 22, 31, 0.7)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "18px"}}>
+                <strong style={{"color": "var(--accent-amber)", "fontFamily": "var(--font-display)", "fontSize": "1.1rem", "display": "block", "marginBottom": "8px"}}>
+                  ⚠️ 90-Day Legal Window Reminder
+                </strong>
+                <p style={{"fontSize": "0.85rem", "color": "#cbd5e1", "lineHeight": "1.5"}}>
+                  If your permit expires before your renewal is processed, your concealed carry privileges are completely suspended until the new card arrives. Complete your training 90–120 days out.
+                </p>
+              </div>
+              <div style={{"background": "rgba(16, 22, 31, 0.7)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "18px"}}>
+                <strong style={{"color": "var(--accent-cyan)", "fontFamily": "var(--font-display)", "fontSize": "1.1rem", "display": "block", "marginBottom": "8px"}}>
+                  🎯 Range Qualification Standards
+                </strong>
+                <p style={{"fontSize": "0.85rem", "color": "#cbd5e1", "lineHeight": "1.5"}}>
+                  25-round Civilian BPHC course of fire on B-27 silhouette targets at 3, 5, 7, and 15 yards. Minimum 70% passing score (175/250 pts) with official signed Form MSP 29-14 scoresheet.
+                </p>
+              </div>
+            </div>
+            <div style={{"display": "flex", "gap": "14px", "justifyContent": "flex-end", "flexWrap": "wrap"}}>
+              <button type="button" className="btn-secondary" data-onclick="closePermitRenewalModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closePermitRenewalModal) (window as any).closePermitRenewalModal(); }}>
+                Close
+              </button>
+              <button type="button" className="btn-primary" data-onclick="closePermitRenewalModal(); selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closePermitRenewalModal) (window as any).closePermitRenewalModal(); if ((window as any).selectCourse) (window as any).selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)'); } }}>
+                Book 8-Hour Renewal ($149.99) →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= 3. STANDARDIZED FUTURE INITIATIVE SERVICES MODAL ================= */}
+      <div className="reciprocity-hub-modal-overlay" id="futureServicesModal" style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "overflowY": "auto", "padding": "24px 16px"}}>
+        <div style={{"maxWidth": "1140px", "margin": "0 auto", "position": "relative"}}>
+          <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "18px", "paddingBottom": "12px", "borderBottom": "1px solid var(--border-subtle)"}}>
+            <h2 style={{"fontFamily": "var(--font-display)", "fontSize": "1.65rem", "color": "#fff", "letterSpacing": "1px"}}>
+              🛡️ Future Initiative Certified Training Catalog
+            </h2>
+            <button className="btn-return-home" data-onclick="closeFutureServicesModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closeFutureServicesModal) (window as any).closeFutureServicesModal(); }} style={{"padding": "8px 18px", "fontSize": "0.95rem", "minHeight": "40px", "cursor": "pointer"}} type="button">
+              ✕ CLOSE MODAL
+            </button>
+          </div>
+          <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(300px, 1fr))", "gap": "20px", "marginBottom": "24px"}}>
+            {/* Service 1: Multi-State Mastery */}
+            <div className="modular-card" style={{"padding": "24px", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
+              <div>
+                <span className="badge-pop" style={{"background": "var(--accent-amber)", "color": "#070b10", "fontWeight": "800"}}>FLAGSHIP MULTI-STATE</span>
+                <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "margin": "10px 0 6px"}}>Mid-Atlantic Multi-State Mastery</h4>
+                <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "marginBottom": "14px"}}>16-hr Maryland Wear & Carry + reciprocal affidavits for VA, FL, AZ, and PA (34+ states total).</p>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$425 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $550 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
+              </div>
+              <button type="button" className="btn-primary" data-onclick="closeFutureServicesModal(); selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeFutureServicesModal) (window as any).closeFutureServicesModal(); if ((window as any).selectCourse) (window as any).selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)'); } }}>Select Multi-State →</button>
+            </div>
+            {/* Service 2: 8-Hour Renewal */}
+            <div className="modular-card" style={{"padding": "24px", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
+              <div>
+                <span className="badge-pop" style={{"background": "rgba(0, 229, 255, 0.15)", "color": "var(--accent-cyan)", "border": "1px solid var(--accent-cyan)"}}>BIENNIAL RECERTIFICATION</span>
+                <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "margin": "10px 0 6px"}}>Maryland Wear & Carry Renewal</h4>
+                <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "marginBottom": "14px"}}>8-hour statutory renewal instruction + 25-round live-fire qualification at Cindy's Hot Shots.</p>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$149.99 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $249.99 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
+              </div>
+              <button type="button" className="btn-primary" data-onclick="closeFutureServicesModal(); selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeFutureServicesModal) (window as any).closeFutureServicesModal(); if ((window as any).selectCourse) (window as any).selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)'); } }}>Select Renewal →</button>
+            </div>
+            {/* Service 3: CCW & HQL Combo */}
+            <div className="modular-card" style={{"padding": "24px", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
+              <div>
+                <span className="badge-pop" style={{"background": "rgba(16, 185, 129, 0.15)", "color": "#10b981", "border": "1px solid #10b981"}}>MOST POPULAR COMBO</span>
+                <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "margin": "10px 0 6px"}}>Maryland CCW & HQL Combo</h4>
+                <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "marginBottom": "14px"}}>Complete 16-hr Maryland CCW plus statutory HQL purchase waiver certification. Save $100.</p>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$249.99 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $375 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
+              </div>
+              <button type="button" className="btn-primary" data-onclick="closeFutureServicesModal(); selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeFutureServicesModal) (window as any).closeFutureServicesModal(); if ((window as any).selectCourse) (window as any).selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)'); } }}>Select Combo →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ================= DEDICATED RECIPROCITY & TRAVEL HUB MODAL ================= */}
       {/* ================= 50-STATE RECIPROCITY ENGINE FULL-SCREEN MODAL ================= */}
       <div className="reciprocity-hub-modal-overlay" id="reciprocityHubModal" style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "overflowY": "auto", "padding": "24px 16px"}}>
@@ -7032,6 +7158,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </div>
       </div>
 
+
       {/* ================= DEDICATED ADMIN SCORESHEET MODAL ================= */}
       <div className="goal-modal-overlay" id="adminScoresheetModal" data-onclick="if(event.target===this) closeStudentScoresheetModal()" style={{"display": "none"}}>
         <div aria-labelledby="adminScoresheetModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "640px", "borderColor": "var(--accent-cyan)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 35px var(--accent-cyan-glow)"}}>
@@ -7050,6 +7177,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             Student: <strong id="scoresheetModalStudentName" style={{"color": "#fff"}}></strong> (<span id="scoresheetModalStudentId" style={{"color": "var(--accent-cyan)", "fontFamily": "var(--font-mono)"}}></span>)
           </p>
 
+
           <div style={{"background": "rgba(255,255,255,0.02)", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "14px", "marginBottom": "14px"}}>
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
               <div>
@@ -7066,12 +7194,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
 
+
             <div id="scoresheetModalPreviewBox" style={{"display": "none", "textAlign": "center", "padding": "12px", "background": "#05080c", "borderRadius": "6px", "marginBottom": "12px", "border": "1px dashed var(--border-subtle)"}}>
               <span style={{"fontSize": "0.80rem", "color": "#94a3b8", "display": "block", "marginBottom": "6px"}}>Live File Preview / Current File:</span>
               <a id="scoresheetModalCurrentLink" href="#" target="_blank" rel="noopener noreferrer" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.88rem", "textDecoration": "underline"}}>
                 📄 View Scoresheet Document ↗
               </a>
             </div>
+
 
             <div style={{"display": "flex", "gap": "10px", "marginTop": "8px"}}>
               <button id="btnSaveScoresheetModal" type="button" data-onclick="saveStudentScoresheetFromModal()" className="btn-primary" style={{"flex": "2", "padding": "10px 14px", "fontSize": "0.85rem", "fontWeight": "700"}}>
@@ -7085,6 +7215,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </div>
+
 
       {/* ================= SUPABASE STUDENT DOSSIER & INSTRUCTOR NOTES MODAL ================= */}
       <div className="goal-modal-overlay"  data-onclick="if(event.target===this) closeStudentDossierModal()" style={{"display": "none"}}>
@@ -7165,6 +7296,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             Manage Certified Live-Fire Qualification Score Sheet for <strong id="scoresheetModalStudentName" style={{"color": "#fff"}}>Student</strong> (<span id="scoresheetModalStudentId" style={{"color": "var(--accent-cyan)"}}>ID</span>).
           </p>
 
+
           <div style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "14px", "marginBottom": "14px"}}>
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
               <div>
@@ -7181,12 +7313,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
 
+
             <div id="scoresheetModalPreviewBox" style={{"display": "none", "textAlign": "center", "padding": "12px", "background": "#05080c", "borderRadius": "6px", "marginBottom": "12px", "border": "1px dashed var(--border-subtle)"}}>
               <span style={{"fontSize": "0.80rem", "color": "#94a3b8", "display": "block", "marginBottom": "6px"}}>Live File Preview / Current File:</span>
               <a id="scoresheetModalCurrentLink" href="#" target="_blank" rel="noopener noreferrer" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.88rem", "textDecoration": "underline"}}>
                 📄 View Scoresheet Document ↗
               </a>
             </div>
+
 
             <div style={{"display": "flex", "gap": "10px", "alignItems": "center", "justifyContent": "flex-end"}}>
               <button id="btnDeleteScoresheetModal" data-onclick="deleteCurrentStudentScoresheet()" style={{"display": "none", "background": "transparent", "border": "1px solid #ef4444", "color": "#ef4444", "borderRadius": "6px", "padding": "8px 14px", "fontSize": "0.82rem", "fontWeight": "600", "cursor": "pointer"}} type="button">
@@ -7200,6 +7334,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </div>
+
 
       {/* ================= MODAL 4: ADMIN EDIT CLIENT RECORD MODAL ================= */}
       <div className="goal-modal-overlay" id="adminEditClientModal" data-onclick="if(event.target===this) closeAdminEditClientModal()" style={{"display": "none"}}>
@@ -7587,8 +7722,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   SAT
                 </div>
               </div>
-              {/* Calendar Days Grid */}
-              <div id="bookingCalDaysGrid" style={{"display": "grid", "gridTemplateColumns": "repeat(7, 1fr)", "gap": "1px", "background": "var(--border-subtle)", "border": "1px solid var(--border-subtle)", "borderRadius": "0 0 8px 8px", "overflow": "hidden"}}>
+              {/* Calendar Days Grid with Responsive Mobile Bounds */}
+              <div className="calendar-responsive-container" style={{"width": "100%", "overflowX": "auto", "WebkitOverflowScrolling": "touch", "paddingBottom": "4px"}}>
+                <div style={{"minWidth": "320px", "width": "100%"}}>
+                  <div id="bookingCalDaysGrid" style={{"display": "grid", "gridTemplateColumns": "repeat(7, 1fr)", "gap": "1px", "background": "var(--border-subtle)", "border": "1px solid var(--border-subtle)", "borderRadius": "0 0 8px 8px", "overflow": "hidden"}}>
                 {/* Dynamically populated via renderBookingCalendar() */}
                 <div style={{"background": "#070b10", "minHeight": "42px"}}>
                 </div>
@@ -8951,14 +9088,33 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </div>
-      {/* Persistent Floating Contact & Live Chat Trigger Pill (Direct child of <body>) */}
-      <div className="floating-comm-bubble" id="floatingCommPill" data-onclick="openContactWidgetModal()" role="button" tabIndex="0" title="Contact Coach Kai Wade • Call, Email or Live Chat">
-        <span style={{"fontSize": "1.25rem"}}>
-          💬
-        </span>
-        <span style={{"fontFamily": "var(--font-display)", "fontSize": "0.90rem", "fontWeight": "800", "letterSpacing": "1px", "textTransform": "uppercase"}}>
-          CHAT
-        </span>
+      {/* Persistent Floating Contact & Live Chat Trigger Pill with Dismiss Handler */}
+      <div className="floating-comm-bubble-wrapper" id="floatingCommWrapper" style={{"position": "fixed", "bottom": "24px", "right": "24px", "zIndex": "99999", "display": "flex", "alignItems": "center", "gap": "8px"}}>
+        <div className="floating-comm-bubble" id="floatingCommPill" data-onclick="openContactWidgetModal()" role="button" tabIndex="0" title="Contact Coach Kai Wade • Call, Email or Live Chat">
+          <span style={{"fontSize": "1.25rem"}}>
+            💬
+          </span>
+          <span style={{"fontFamily": "var(--font-display)", "fontSize": "0.90rem", "fontWeight": "800", "letterSpacing": "1px", "textTransform": "uppercase"}}>
+            CHAT
+          </span>
+        </div>
+        <button
+          type="button"
+          id="floatingChatCloseBtn"
+          aria-label="Close Chat Widget"
+          title="Close Chat Widget"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (window.confirm("Closing this chat requires you to use the primary contact panel on the homepage for future correspondence with Instructor Wade.")) {
+              const w = document.getElementById('floatingCommWrapper') || document.getElementById('floatingCommPill');
+              if (w) w.style.display = 'none';
+            }
+          }}
+          data-onclick="event.stopPropagation(); if (window.confirm('Closing this chat requires you to use the primary contact panel on the homepage for future correspondence with Instructor Wade.')) { var w = document.getElementById('floatingCommWrapper') || document.getElementById('floatingCommPill'); if (w) w.style.display = 'none'; }"
+          style={{"width": "26px", "height": "26px", "borderRadius": "50%", "background": "rgba(9, 14, 21, 0.95)", "border": "1.5px solid rgba(0, 229, 255, 0.4)", "color": "#00e5ff", "display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "12px", "fontWeight": "900", "cursor": "pointer", "boxShadow": "0 2px 10px rgba(0, 0, 0, 0.7)", "transition": "all 0.2s ease"}}
+        >
+          ✕
+        </button>
       </div>
       {/* TACTICAL OPS BRIEFING SPLASH SCREEN */}
       <div id="admin-ops-briefing-modal">
@@ -9456,6 +9612,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       </div>
       {/* ================= END P2P ENCRYPTED COMMS HUD ================= */}
 
+
       </div>
     
       {/* ================= MANDATORY FORCED PASSWORD RESET MODAL ================= */}
@@ -9518,9 +9675,11 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </div>
       </div>
 
+
     </div>
   );
 }
+
 
       {/* State Detail Comparison Modal */}
       <div id="stateDetailModal" className="modal-backdrop" style={{"display": "none", "position": "fixed", "inset": 0, "backgroundColor": "rgba(3, 7, 18, 0.88)", "backdropFilter": "blur(6px)", "zIndex": 99999, "alignItems": "center", "justifyContent": "center", "padding": "16px"}}>
