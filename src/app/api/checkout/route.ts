@@ -18,38 +18,86 @@ function getSupabase() {
 
 // Course pricing synchronization constants
 const COURSE_PRICING: Record<string, { base: number; vip: number }> = {
-  mastery: { base: 42500, vip: 55000 },
-  combo: { base: 24999, vip: 37500 },
-  ccw: { base: 19999, vip: 32500 },
-  renewal: { base: 14999, vip: 24999 },
-  hql: { base: 10000, vip: 19500 },
-  coaching: { base: 12500, vip: 16500 },
-  cleaning: { base: 8500, vip: 11500 },
-  children: { base: 7500, vip: 9500 },
-  alumni: { base: 6500, vip: 9500 }
+  mastery: { base: 425.00, vip: 550.00 },
+  combo: { base: 249.99, vip: 375.00 },
+  ccw: { base: 199.99, vip: 325.00 },
+  renewal: { base: 149.99, vip: 249.99 },
+  hql: { base: 100.00, vip: 195.00 },
+  coaching: { base: 125.00, vip: 195.00 },
+  cleaning: { base: 75.00, vip: 115.00 },
+  children: { base: 199.99, vip: 265.00 },
+  alumni: { base: 65.00, vip: 115.00 }
 };
 
-function resolvePriceCents(courseSelection: string, requestedAmount?: number): number {
-  if (typeof requestedAmount === 'number' && requestedAmount > 0) {
-    return requestedAmount > 1000 ? Math.round(requestedAmount) : Math.round(requestedAmount * 100);
-  }
+export function calculatePricingBreakdown(courseSelection: string, groupSize: string = '1', isPayFull: boolean = false) {
+  const isVip = /VIP/i.test(courseSelection || '');
   const clean = (courseSelection || '').toLowerCase();
+
+  let baseTuitionPerPerson = 249.99;
   if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) {
-    return clean.includes('vip') ? COURSE_PRICING.mastery.vip : COURSE_PRICING.mastery.base;
+    baseTuitionPerPerson = isVip ? COURSE_PRICING.mastery.vip : COURSE_PRICING.mastery.base;
+  } else if (clean.includes('renewal')) {
+    baseTuitionPerPerson = isVip ? COURSE_PRICING.renewal.vip : COURSE_PRICING.renewal.base;
+  } else if (clean.includes('combo')) {
+    baseTuitionPerPerson = isVip ? COURSE_PRICING.combo.vip : COURSE_PRICING.combo.base;
+  } else if (clean.includes('hql')) {
+    baseTuitionPerPerson = isVip ? COURSE_PRICING.hql.vip : COURSE_PRICING.hql.base;
+  } else if (clean.includes('ccw') || clean.includes('wear & carry')) {
+    baseTuitionPerPerson = isVip ? COURSE_PRICING.ccw.vip : COURSE_PRICING.ccw.base;
+  } else if (clean.includes('coaching')) {
+    baseTuitionPerPerson = isVip ? COURSE_PRICING.coaching.vip : COURSE_PRICING.coaching.base;
+  } else if (clean.includes('cleaning')) {
+    baseTuitionPerPerson = isVip ? COURSE_PRICING.cleaning.vip : COURSE_PRICING.cleaning.base;
+  } else if (clean.includes('children')) {
+    baseTuitionPerPerson = isVip ? COURSE_PRICING.children.vip : COURSE_PRICING.children.base;
+  } else if (clean.includes('alumni')) {
+    baseTuitionPerPerson = isVip ? COURSE_PRICING.alumni.vip : COURSE_PRICING.alumni.base;
   }
-  if (clean.includes('renewal')) {
-    return clean.includes('vip') ? COURSE_PRICING.renewal.vip : COURSE_PRICING.renewal.base;
+
+  // Attendees & discount
+  let attendees = 1;
+  let discountPercent = 0;
+  const str = String(groupSize || '1');
+  if (/^2|2 \(paired/i.test(str)) {
+    attendees = 2;
+    discountPercent = 0.05;
+  } else if (/^[34]|[34] \(small/i.test(str)) {
+    attendees = 3;
+    discountPercent = 0.10;
+  } else if (/5\+/i.test(str) || /^5/i.test(str)) {
+    attendees = 5;
+    discountPercent = 0.15;
   }
-  if (clean.includes('combo')) {
-    return clean.includes('vip') ? COURSE_PRICING.combo.vip : COURSE_PRICING.combo.base;
-  }
-  if (clean.includes('hql')) {
-    return clean.includes('vip') ? COURSE_PRICING.hql.vip : COURSE_PRICING.hql.base;
-  }
-  if (clean.includes('ccw') || clean.includes('wear & carry')) {
-    return clean.includes('vip') ? COURSE_PRICING.ccw.vip : COURSE_PRICING.ccw.base;
-  }
-  return 24999;
+
+  const rawTuition = baseTuitionPerPerson * attendees;
+  const discountAmount = rawTuition * discountPercent;
+  const discountedTuition = rawTuition - discountAmount;
+  // Cindy's Hot Shots range lane fee: $45.00 per person if Base track, $0.00 if VIP Turnkey
+  const rangeFee = isVip ? 0 : (45.00 * attendees);
+  const subtotal = discountedTuition + rangeFee;
+  // Maryland 6% sales tax
+  const mdTax = subtotal * 0.06;
+  const grandTotal = subtotal + mdTax;
+  // Required 30% deposit due now
+  const depositDueNow = grandTotal * 0.30;
+  const balanceDueClass = grandTotal - depositDueNow;
+
+  return {
+    isVip,
+    attendees,
+    baseTuitionPerPerson,
+    rawTuition,
+    discountPercent,
+    discountAmount,
+    discountedTuition,
+    rangeFee,
+    subtotal,
+    mdTax,
+    grandTotal,
+    depositDueNow,
+    balanceDueClass,
+    chargeAmount: isPayFull ? grandTotal : depositDueNow
+  };
 }
 
 /**
@@ -109,7 +157,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const unitAmount = resolvePriceCents(courseSelection, amount);
+    const isPayFull = Boolean(body.payInFull || body.pay_in_full);
+    const pricing = calculatePricingBreakdown(courseSelection, groupSize, isPayFull);
+    const unitAmountCents = Math.round(pricing.chargeAmount * 100);
+
     const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://trainwithfifs.com';
     const baseUrl = origin.replace(/\/+$/, '');
 
@@ -130,16 +181,23 @@ export async function POST(req: NextRequest) {
           preferredDates,
           groupSize: String(groupSize),
           comments: String(comments).slice(0, 400),
-          classId: classId || ''
+          classId: classId || '',
+          isVip: String(pricing.isVip),
+          rangeFee: pricing.rangeFee.toFixed(2),
+          mdTax: pricing.mdTax.toFixed(2),
+          grandTotal: pricing.grandTotal.toFixed(2),
+          depositDueNow: pricing.depositDueNow.toFixed(2),
+          balanceDueClass: pricing.balanceDueClass.toFixed(2),
+          isDepositPayment: String(!isPayFull)
         },
         line_items: [
           {
             price_data: {
               currency: 'usd',
-              unit_amount: unitAmount,
+              unit_amount: unitAmountCents,
               product_data: {
-                name: courseSelection,
-                description: `Invoice: ${invoiceId} • Student: ${fullName} • Schedule: ${preferredDates}`,
+                name: `${courseSelection} — ${isPayFull ? 'Full Tuition & Range Fee' : '30% Reservation Deposit'}`,
+                description: `Invoice: ${invoiceId} • Total Course Investment: $${pricing.grandTotal.toFixed(2)} (Tuition + ${pricing.isVip ? 'VIP Range Perk' : '$45 Cindy\'s Range Fee'} + 6% MD Tax) • ${isPayFull ? 'Paid in Full' : 'Deposit: $' + pricing.depositDueNow.toFixed(2) + ' (Remaining $' + pricing.balanceDueClass.toFixed(2) + ' due on class day)'}`,
               },
             },
             quantity: 1,
@@ -179,9 +237,12 @@ export async function POST(req: NextRequest) {
             invoice_number: invoiceId,
             student_id: studentId,
             course: courseSelection,
-            total_amount: (unitAmount / 100).toFixed(2),
+            total_amount: pricing.grandTotal.toFixed(2),
+            tuition_amount: pricing.discountedTuition.toFixed(2),
+            tax_amount: pricing.mdTax.toFixed(2),
+            deposit_due: pricing.depositDueNow.toFixed(2),
             amount_paid: '0.00',
-            balance_due: (unitAmount / 100).toFixed(2),
+            balance_due: pricing.balanceDueClass.toFixed(2),
             status: 'PENDING',
             due_date: preferredDates || 'Upon Class Date',
             stripe_session_id: session.id,
@@ -301,3 +362,4 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+

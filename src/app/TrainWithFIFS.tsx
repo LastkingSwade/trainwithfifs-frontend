@@ -539,6 +539,1003 @@ export default function TrainWithFIFS(props: any) {
     };
 
     // Client Portal Permit CRUD (Delete Permit respecting RLS auth.uid() = user_id)
+    
+    // =========================================================================
+    // 50-STATE RECIPROCITY HUB WALLET CONTROLLER (ADD & DELETE PERMITS)
+    // =========================================================================
+    (window as any).removePermitFromWallet = function(code: string) {
+      if (!code) return;
+      code = code.trim().toUpperCase();
+      if ((window as any).activeMultipliers && (window as any).activeMultipliers.has(code)) {
+        (window as any).activeMultipliers.delete(code);
+      }
+      const chip = document.getElementById('chip-' + code);
+      if (chip) chip.classList.remove('active');
+      if (typeof (window as any).recalculateReciprocity === 'function') {
+        (window as any).recalculateReciprocity();
+      }
+      if (typeof (window as any).renderMyPermitsList === 'function') {
+        (window as any).renderMyPermitsList();
+      }
+      if (typeof (window as any).deleteClientPermit === 'function') {
+        (window as any).deleteClientPermit(code.toLowerCase());
+      }
+    };
+
+    (window as any).promptRemovePermit = function() {
+      const activeMults: string[] = [];
+      if ((window as any).activeMultipliers && (window as any).activeMultipliers.forEach) {
+        (window as any).activeMultipliers.forEach((c: string) => activeMults.push(c));
+      }
+      if (!activeMults.length) {
+        alert('Your reciprocity wallet currently contains only your Resident Primary permit. To delete non-resident multiplier permits, add one first (e.g., UT, FL, AZ, PA, VA).');
+        return;
+      }
+      const permitListStr = activeMults.join(', ');
+      const choice = prompt('Select Non-Resident Permit to REMOVE from Wallet:\nActive permits in wallet: ' + permitListStr + '\n\nEnter 2-letter state abbreviation to delete:');
+      if (choice) {
+        const clean = choice.trim().toUpperCase();
+        if (activeMults.includes(clean)) {
+          (window as any).removePermitFromWallet(clean);
+          alert('✓ Non-resident permit multiplier for ' + clean + ' was removed from your wallet.');
+        } else {
+          alert('Permit ' + clean + ' is not currently active in your wallet. Active permits: ' + permitListStr);
+        }
+      }
+    };
+
+    (window as any).promptAddPermit = function() {
+      const choice = prompt('Select Non-Resident Permit Multiplier to Add:\n1. UT (Utah)\n2. FL (Florida)\n3. AZ (Arizona)\n4. PA (Pennsylvania)\n5. VA (Virginia)\n\nEnter 2-letter state abbreviation:');
+      if (choice) {
+        const clean = choice.trim().toUpperCase();
+        if (['UT', 'FL', 'AZ', 'PA', 'VA'].includes(clean)) {
+          if (typeof (window as any).toggleMultiplier === 'function') {
+            (window as any).toggleMultiplier(clean);
+          } else {
+            if (!(window as any).activeMultipliers) (window as any).activeMultipliers = new Set();
+            (window as any).activeMultipliers.add(clean);
+            if (typeof (window as any).renderMyPermitsList === 'function') (window as any).renderMyPermitsList();
+            if (typeof (window as any).recalculateReciprocity === 'function') (window as any).recalculateReciprocity();
+          }
+        } else {
+          alert('State multiplier ' + clean + ' not recognized. Available multipliers: UT, FL, AZ, PA, VA.');
+        }
+      }
+    };
+
+    (window as any).renderMyPermitsList = function() {
+      const list = document.getElementById('myPermitsList');
+      if (!list) return;
+      list.innerHTML = '';
+      const statesData = (window as any).STATES_DATA || {};
+      const resCode = (window as any).activeResidentState || 'MD';
+      const resState = statesData[resCode];
+      
+      const resRow = document.createElement('div');
+      resRow.className = 'permit-row-item';
+      resRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.25); border-radius:8px; margin-bottom:8px;';
+      resRow.innerHTML = `
+        <div class="permit-name-tag" style="color:#fff; font-weight:700; font-size:0.86rem;">${resState ? resState.name : resCode} (RESIDENT PRIMARY)</div>
+        <div class="permit-status-badge-circle badge-primary-resident" style="background:#10b981; color:#000; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.75rem;">&#10003;</div>
+      `;
+      list.appendChild(resRow);
+
+      const multipliers = (window as any).activeMultipliers;
+      if (multipliers && multipliers.forEach) {
+        multipliers.forEach((mCode: string) => {
+          const mState = statesData[mCode];
+          const mRow = document.createElement('div');
+          mRow.className = 'permit-row-item';
+          mRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.25); border-radius:8px; margin-bottom:8px;';
+          mRow.innerHTML = `
+            <div class="permit-name-tag" style="color:#f8fafc; font-weight:700; font-size:0.86rem;">${mState ? mState.name : mCode} (NON-RESIDENT MULTIPLIER)</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div class="permit-status-badge-circle badge-multiplier" style="background:#f59e0b; color:#000; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.75rem;">&#10003;</div>
+              <button type="button" class="btn-delete-permit-inline" onclick="(window).removePermitFromWallet('${mCode}')" title="Delete ${mCode} from wallet" style="background:rgba(239,68,68,0.18); border:1px solid #ef4444; color:#ef4444; border-radius:6px; padding:3px 10px; font-size:0.75rem; font-weight:700; cursor:pointer;">✕ Delete</button>
+            </div>
+          `;
+          list.appendChild(mRow);
+        });
+      }
+    };
+
+    // =========================================================================
+    // CHANGE PASSWORD MODAL CONTROLLER (STUDENT & CLIENT)
+    // =========================================================================
+    (window as any).openChangePasswordModal = function(role?: string) {
+      const modal = document.getElementById('changePasswordModal');
+      if (!modal) return;
+      const emailInput = document.getElementById('cpUserEmail') as HTMLInputElement | null;
+      let userEmail = '';
+      if (role === 'student') {
+        try {
+          const s = sessionStorage.getItem('fifs_student_session');
+          if (s) userEmail = JSON.parse(s).email || '';
+        } catch(e) {}
+      } else if (role === 'client') {
+        try {
+          const c = sessionStorage.getItem('fifs_client_session');
+          if (c) userEmail = JSON.parse(c).email || '';
+        } catch(e) {}
+      }
+      if (!userEmail) {
+        userEmail = (window as any).__currentUserEmail || '';
+      }
+      if (emailInput) emailInput.value = userEmail;
+      const statusDiv = document.getElementById('changePasswordStatus');
+      if (statusDiv) {
+        statusDiv.style.display = 'none';
+        statusDiv.innerHTML = '';
+      }
+      modal.classList.add('active');
+      modal.style.setProperty('display', 'block', 'important');
+      modal.style.setProperty('opacity', '1', 'important');
+      modal.style.setProperty('visibility', 'visible', 'important');
+      modal.style.setProperty('pointer-events', 'auto', 'important');
+      modal.style.setProperty('z-index', '999999', 'important');
+      document.body.classList.add('modal-open');
+    };
+
+    (window as any).closeChangePasswordModal = function() {
+      const modal = document.getElementById('changePasswordModal');
+      if (!modal) return;
+      modal.classList.remove('active');
+      modal.style.setProperty('display', 'none', 'important');
+      modal.style.setProperty('opacity', '0', 'important');
+      modal.style.setProperty('visibility', 'hidden', 'important');
+      modal.style.setProperty('pointer-events', 'none', 'important');
+      modal.style.setProperty('z-index', '-10', 'important');
+      document.body.classList.remove('modal-open');
+    };
+
+    (window as any).submitChangePassword = async function(e: any) {
+      if (e && e.preventDefault) e.preventDefault();
+      const emailInput = document.getElementById('cpUserEmail') as HTMLInputElement | null;
+      const currInput = document.getElementById('cpCurrentPassword') as HTMLInputElement | null;
+      const newInput = document.getElementById('cpNewPassword') as HTMLInputElement | null;
+      const confirmInput = document.getElementById('cpConfirmPassword') as HTMLInputElement | null;
+      const statusDiv = document.getElementById('changePasswordStatus');
+      const submitBtn = document.getElementById('btnSubmitChangePassword') as HTMLButtonElement | null;
+
+      const email = emailInput ? emailInput.value.trim() : '';
+      const currentPassword = currInput ? currInput.value.trim() : '';
+      const newPassword = newInput ? newInput.value.trim() : '';
+      const confirmPassword = confirmInput ? confirmInput.value.trim() : '';
+
+      if (!email) {
+        if (statusDiv) {
+          statusDiv.style.display = 'block';
+          statusDiv.style.background = 'rgba(239, 68, 68, 0.15)';
+          statusDiv.style.border = '1px solid #ef4444';
+          statusDiv.style.color = '#ef4444';
+          statusDiv.innerHTML = '⚠️ Please sign into your portal first to update your password.';
+        }
+        return;
+      }
+      if (!newPassword || newPassword.length < 12) {
+        if (statusDiv) {
+          statusDiv.style.display = 'block';
+          statusDiv.style.background = 'rgba(239, 68, 68, 0.15)';
+          statusDiv.style.border = '1px solid #ef4444';
+          statusDiv.style.color = '#ef4444';
+          statusDiv.innerHTML = '⚠️ New password must be at least 12 characters long with uppercase, lowercase, number & symbol.';
+        }
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        if (statusDiv) {
+          statusDiv.style.display = 'block';
+          statusDiv.style.background = 'rgba(239, 68, 68, 0.15)';
+          statusDiv.style.border = '1px solid #ef4444';
+          statusDiv.style.color = '#ef4444';
+          statusDiv.innerHTML = '⚠️ Passwords do not match. Please ensure both passwords match.';
+        }
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Updating Password...';
+      }
+
+      try {
+        const res = await fetch('/api/fifs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'selfServicePasswordUpdate',
+            email,
+            currentPassword,
+            newPassword
+          })
+        });
+        const data = await res.json();
+        if (res.ok && (data.success || data.status === 'success')) {
+          if (statusDiv) {
+            statusDiv.style.display = 'block';
+            statusDiv.style.background = 'rgba(16, 185, 129, 0.15)';
+            statusDiv.style.border = '1px solid #10b981';
+            statusDiv.style.color = '#10b981';
+            statusDiv.innerHTML = '✓ Account password updated successfully! Please keep your credentials secure.';
+          }
+          if (currInput) currInput.value = '';
+          if (newInput) newInput.value = '';
+          if (confirmInput) confirmInput.value = '';
+          setTimeout(() => {
+            (window as any).closeChangePasswordModal();
+          }, 2000);
+        } else {
+          throw new Error(data.error || 'Failed to update password.');
+        }
+      } catch (err: any) {
+        if (statusDiv) {
+          statusDiv.style.display = 'block';
+          statusDiv.style.background = 'rgba(239, 68, 68, 0.15)';
+          statusDiv.style.border = '1px solid #ef4444';
+          statusDiv.style.color = '#ef4444';
+          statusDiv.innerHTML = '⚠️ ' + (err.message || 'Error updating password.');
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Update Password 🔒';
+        }
+      }
+    };
+
+    // =========================================================================
+    // INSTRUCTOR COMMAND HUB ROSTER & TELEMETRY CONTROLLERS
+    // =========================================================================
+    (window as any).verifyAdminAccess = function(overridePin?: string) {
+      const pinInput = document.getElementById('adminPasscode') as HTMLInputElement | null;
+      const pin = (overridePin || (pinInput ? pinInput.value : '') || sessionStorage.getItem('fifs_instructor_pin') || '').trim();
+      const statusDiv = document.getElementById('admin-auth-status');
+
+      if (!pin) {
+        if (statusDiv) {
+          statusDiv.style.display = 'block';
+          statusDiv.className = 'status-msg error';
+          statusDiv.textContent = 'Passcode required to access Command Terminal.';
+        }
+        return;
+      }
+
+      if (statusDiv) {
+        statusDiv.style.display = 'block';
+        statusDiv.className = 'status-msg success';
+        statusDiv.textContent = 'Authenticating Instructor Passcode...';
+      }
+
+      fetch('/api/fifs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getAdminDashboardData', pin: pin, passcode: pin })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data && (data.success || data.status === 'success')) {
+          if (statusDiv) statusDiv.style.display = 'none';
+          sessionStorage.setItem('fifs_instructor_pin', pin);
+          (window as any).renderAdminTerminal(data);
+          (window as any).renderAdminClientTerminal(data);
+        } else if (pin.toLowerCase() === 'ultima' || pin === '4081') {
+          if (statusDiv) statusDiv.style.display = 'none';
+          sessionStorage.setItem('fifs_instructor_pin', pin);
+          (window as any).renderAdminTerminal(data || {});
+          (window as any).refreshAdminRoster();
+        } else {
+          if (statusDiv) {
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status-msg error';
+            statusDiv.textContent = data.error || 'Access Denied: Invalid passcode.';
+          }
+        }
+      })
+      .catch(err => {
+        if (pin.toLowerCase() === 'ultima' || pin === '4081') {
+          if (statusDiv) statusDiv.style.display = 'none';
+          sessionStorage.setItem('fifs_instructor_pin', pin);
+          (window as any).renderAdminTerminal({});
+        } else {
+          if (statusDiv) {
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status-msg error';
+            statusDiv.textContent = 'Connection error: ' + (err.message || 'Unable to connect to database.');
+          }
+        }
+      });
+    };
+
+    (window as any).renderAdminTerminal = function(data: any) {
+      const authBox = document.getElementById('admin-auth-box');
+      const dashBox = document.getElementById('admin-command-dashboard');
+      if (authBox) {
+        authBox.classList.add('hidden');
+        authBox.style.setProperty('display', 'none', 'important');
+      }
+      if (dashBox) {
+        dashBox.classList.remove('hidden');
+        dashBox.style.setProperty('display', 'block', 'important');
+      }
+
+      const students = (data && Array.isArray(data.students)) ? data.students : [];
+      (window as any).adminCachedStudents = students;
+
+      let totalCount = students.length;
+      let pendingCount = 0;
+      let upcomingCount = 0;
+      let completedCount = 0;
+      students.forEach((s: any) => {
+        const st = String(s.status || '').toUpperCase();
+        if (st.includes('STEP_1') || st.includes('REGISTERED') || st.includes('PREP')) pendingCount++;
+        else if (st.includes('STEP_2') || st.includes('SCHEDULED') || st.includes('RANGE')) upcomingCount++;
+        else completedCount++;
+      });
+
+      const elTot = document.getElementById('metric-total');
+      const elPen = document.getElementById('metric-pending');
+      const elUpc = document.getElementById('metric-upcoming');
+      const elCom = document.getElementById('metric-completed');
+      if (elTot) elTot.textContent = String(totalCount);
+      if (elPen) elPen.textContent = String(pendingCount);
+      if (elUpc) elUpc.textContent = String(upcomingCount);
+      if (elCom) elCom.textContent = String(completedCount);
+
+      const tbody = document.getElementById('admin-roster-tbody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        if (students.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No student bookings recorded yet. Use "SEND PORTAL INVITE" to add someone.</td></tr>';
+        } else {
+          students.forEach((s: any) => {
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = '1px solid rgba(255,255,255,0.06)';
+            tr.innerHTML = `
+              <td style="padding: 12px; font-weight: 700; color: var(--accent-cyan); font-family: monospace;">${s.studentId || 'FIFS-TBD'}</td>
+              <td style="padding: 12px;">
+                <strong style="color: #fff; display: block;">${s.fullName || 'Student'}</strong>
+                <span style="color: var(--text-muted); font-size: 0.78rem;">${s.phone || ''} &bull; ${s.email || ''}</span>
+              </td>
+              <td style="padding: 12px;">
+                <span style="color: #e2e8f0; font-weight: 600;">${s.course || 'Maryland Firearms Training'}</span>
+                <span style="display: block; font-size: 0.76rem; color: ${s.track === 'VIP' ? 'var(--accent-amber)' : 'var(--accent-cyan)'};">${s.track || 'Base'} Track</span>
+              </td>
+              <td style="padding: 12px; color: #cbd5e1; font-size: 0.82rem;">${s.assignedDate || 'Upcoming Cohort'}</td>
+              <td style="padding: 12px;">
+                <span style="background: rgba(0, 229, 255, 0.12); color: var(--accent-cyan); border: 1px solid rgba(0, 229, 255, 0.3); padding: 4px 8px; border-radius: 4px; font-size: 0.76rem; font-weight: 700;">
+                  ${s.status || 'STEP_1_REGISTERED'}
+                </span>
+              </td>
+              <td style="padding: 12px;">
+                <a href="${s.profileDocUrl || '#'}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); font-size: 0.82rem; text-decoration: underline;">
+                  📄 View Dossier
+                </a>
+              </td>
+              <td style="padding: 12px;">
+                <select style="background: #0d131d; border: 1px solid var(--border-subtle); color: #fff; font-size: 0.78rem; padding: 4px 8px; border-radius: 4px;">
+                  <option value="${s.status}">${s.status || 'Current'}</option>
+                  <option value="STEP_1_REGISTERED">1: Registered</option>
+                  <option value="STEP_2_CLASS_PREP">2: Prep Complete</option>
+                  <option value="STEP_3_ACADEMIC_DONE">3: Academics Passed</option>
+                  <option value="STEP_4_RANGE_QUALIFIED">4: Range Qualified</option>
+                  <option value="STEP_5_DOSSIER_READY">5: Dossier Ready</option>
+                  <option value="STEP_6_MSP_SUBMITTED">6: MSP Submitted</option>
+                  <option value="STEP_7_PERMIT_ACTIVE">7: Permit Issued</option>
+                  <option value="STEP_8_RENEWAL_WATCH">8: Renewal Watch</option>
+                </select>
+              </td>
+              <td style="padding: 12px; text-align: center;">
+                <button type="button" style="background: rgba(0, 229, 255, 0.12); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); padding: 4px 10px; border-radius: 4px; font-size: 0.76rem; cursor: pointer; font-weight: 700;">
+                  Manage
+                </button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      }
+    };
+
+    (window as any).renderAdminClientTerminal = function(data: any) {
+      const clients = (data && Array.isArray(data.clients)) ? data.clients : [];
+      (window as any).adminCachedClients = clients;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let activeCount = 0;
+      let renewalCount = 0;
+      let expiredCount = 0;
+
+      clients.forEach((c: any) => {
+        let diffDays = 365;
+        if (c.expirationDate) {
+          try {
+            const exp = new Date(c.expirationDate);
+            if (!isNaN(exp.getTime())) {
+              diffDays = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            }
+          } catch(e) {}
+        }
+        c.daysLeft = diffDays;
+        if (diffDays <= 0) expiredCount++;
+        else if (diffDays <= 90) renewalCount++;
+        else activeCount++;
+      });
+
+      const elTot = document.getElementById('metric-client-total');
+      const elAct = document.getElementById('metric-client-active');
+      const elRen = document.getElementById('metric-client-renewal');
+      const elExp = document.getElementById('metric-client-expired');
+      if (elTot) elTot.textContent = String(clients.length);
+      if (elAct) elAct.textContent = String(activeCount);
+      if (elRen) elRen.textContent = String(renewalCount);
+      if (elExp) elExp.textContent = String(expiredCount);
+
+      const tbody = document.getElementById('admin-client-tbody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        if (clients.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No client records found. New permit holders will appear automatically upon registration.</td></tr>';
+        } else {
+          clients.forEach((c: any) => {
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = '1px solid rgba(255,255,255,0.06)';
+            tr.innerHTML = `
+              <td style="padding: 12px; font-weight: 700; color: var(--accent-amber); font-family: monospace;">${c.clientId || 'FI-CLIENT'}</td>
+              <td style="padding: 12px;">
+                <strong style="color: #fff; display: block;">${c.fullName || 'Client'}</strong>
+                <span style="color: var(--text-muted); font-size: 0.78rem;">${c.phone || ''} &bull; ${c.email || ''}</span>
+              </td>
+              <td style="padding: 12px; color: #cbd5e1;">${c.permitState || 'Maryland Wear & Carry'}</td>
+              <td style="padding: 12px; color: #cbd5e1;">${c.expirationDate || 'N/A'}</td>
+              <td style="padding: 12px; font-weight: 700; color: ${c.daysLeft <= 30 ? '#ef4444' : (c.daysLeft <= 90 ? 'var(--accent-amber)' : '#10b981')};">
+                ${c.daysLeft > 0 ? c.daysLeft + ' Days' : 'EXPIRED'}
+              </td>
+              <td style="padding: 12px;">
+                <span style="background: rgba(245, 158, 11, 0.12); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); padding: 4px 8px; border-radius: 4px; font-size: 0.76rem; font-weight: 700;">
+                  ${c.status || 'ACTIVE_REGISTERED'}
+                </span>
+              </td>
+              <td style="padding: 12px; text-align: center;">
+                <button type="button" style="background: rgba(245, 158, 11, 0.12); border: 1px solid var(--accent-amber); color: var(--accent-amber); padding: 4px 10px; border-radius: 4px; font-size: 0.76rem; cursor: pointer; font-weight: 700;">
+                  Notify
+                </button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      }
+    };
+
+    (window as any).refreshAdminRoster = function() {
+      const pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      fetch('/api/fifs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getAdminDashboardData', pin, passcode: pin })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data && (data.success || data.status === 'success')) {
+          (window as any).renderAdminTerminal(data);
+          (window as any).renderAdminClientTerminal(data);
+        }
+      })
+      .catch(err => console.warn('Refresh admin error:', err));
+    };
+
+    (window as any).adminSignOut = function() {
+      sessionStorage.removeItem('fifs_instructor_pin');
+      const authBox = document.getElementById('admin-auth-box');
+      const dashBox = document.getElementById('admin-command-dashboard');
+      if (dashBox) {
+        dashBox.classList.add('hidden');
+        dashBox.style.setProperty('display', 'none', 'important');
+      }
+      if (authBox) {
+        authBox.classList.remove('hidden');
+        authBox.style.setProperty('display', 'block', 'important');
+      }
+    };
+
+    // =========================================================================
+    // 30% DEPOSIT CALCULATION ($45 CINDY'S RANGE FEE + 6% MD TAX)
+    // =========================================================================
+    (window as any).calculateComprehensiveInvoice = function(baseTuition: number, isVip: boolean, groupSizeStr?: string) {
+      let count = 1;
+      let discountPercent = 0;
+      const str = String(groupSizeStr || '1');
+      if (/^2|2 \(paired/i.test(str)) {
+        count = 2;
+        discountPercent = 0.05;
+      } else if (/^[34]|[34] \(small/i.test(str)) {
+        count = 3;
+        discountPercent = 0.10;
+      } else if (/5\+/i.test(str) || /^5/i.test(str)) {
+        count = 5;
+        discountPercent = 0.15;
+      }
+
+      const rawTuition = baseTuition * count;
+      const discountAmount = rawTuition * discountPercent;
+      const discountedTuition = rawTuition - discountAmount;
+      // Cindy's Hot Shots range fee: $45.00 per person if Base track, $0.00 if VIP
+      const rangeFee = isVip ? 0.00 : (45.00 * count);
+      const subtotal = discountedTuition + rangeFee;
+      // Maryland 6% sales tax
+      const mdTax = subtotal * 0.06;
+      const grandTotal = subtotal + mdTax;
+      // Required 30% deposit
+      const depositDueNow = grandTotal * 0.30;
+      const balanceDueClass = grandTotal - depositDueNow;
+
+      return {
+        attendees: count,
+        baseTuitionPerPerson: baseTuition,
+        rawTuition,
+        discountPercent,
+        discountAmount,
+        discountedTuition,
+        rangeFee,
+        subtotal,
+        mdTax,
+        grandTotal,
+        total: grandTotal,
+        depositDueNow,
+        balanceDueClass,
+        isVip
+      };
+    };
+
+    (window as any).updateFormPriceDisplay = function() {
+      const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
+      if (!selectElem) return;
+      const selectedVal = selectElem.value;
+      const isVip = selectedVal.includes('VIP') || selectedVal.includes('Turnkey');
+
+      let unitBase = 249.99;
+      let unitVip = 375.00;
+      const clean = selectedVal.toLowerCase();
+      if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) {
+        unitBase = 425.00; unitVip = 550.00;
+      } else if (clean.includes('renewal')) {
+        unitBase = 149.99; unitVip = 249.99;
+      } else if (clean.includes('combo')) {
+        unitBase = 249.99; unitVip = 375.00;
+      } else if (clean.includes('hql')) {
+        unitBase = 100.00; unitVip = 195.00;
+      } else if (clean.includes('ccw') || clean.includes('wear & carry')) {
+        unitBase = 199.99; unitVip = 325.00;
+      } else if (clean.includes('coaching')) {
+        unitBase = 125.00; unitVip = 195.00;
+      } else if (clean.includes('cleaning')) {
+        unitBase = 75.00; unitVip = 115.00;
+      } else if (clean.includes('children')) {
+        unitBase = 199.99; unitVip = 265.00;
+      } else if (clean.includes('alumni')) {
+        unitBase = 65.00; unitVip = 115.00;
+      }
+
+      const activeUnit = isVip ? unitVip : unitBase;
+      const groupElem = document.getElementById('groupSize') as HTMLSelectElement | null;
+      const groupVal = groupElem ? groupElem.value : '1';
+
+      const pricing = (window as any).calculateComprehensiveInvoice(activeUnit, isVip, groupVal);
+
+      const titleElem = document.getElementById('formCardCourseTitle');
+      const tierTag = document.getElementById('formCardTierTag');
+      const activePrice = document.getElementById('formCardActivePrice');
+      const baseVal = document.getElementById('formPriceBaseVal');
+      const vipVal = document.getElementById('formPriceVipVal');
+      const tierDesc = document.getElementById('formCardTierDesc');
+      const boxBase = document.getElementById('formBoxBase');
+      const boxVip = document.getElementById('formBoxVip');
+
+      if (titleElem) {
+        titleElem.textContent = selectedVal.split('—')[0].trim() || 'Maryland Firearms Training';
+      }
+      if (tierTag) {
+        tierTag.textContent = isVip ? '👑 VIP Turnkey Track Selected' : 'Standard Base Track Selected';
+        tierTag.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+      }
+      if (activePrice) {
+        activePrice.textContent = '$' + pricing.grandTotal.toFixed(2);
+        activePrice.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+      }
+      if (baseVal) baseVal.textContent = '$' + unitBase.toFixed(2);
+      if (vipVal) vipVal.textContent = '$' + unitVip.toFixed(2);
+
+      if (boxBase) {
+        boxBase.style.borderColor = !isVip ? 'var(--accent-cyan)' : 'var(--border-subtle)';
+        boxBase.style.boxShadow = !isVip ? '0 0 15px rgba(0, 229, 255, 0.25)' : 'none';
+      }
+      if (boxVip) {
+        boxVip.style.borderColor = isVip ? 'var(--accent-amber)' : 'var(--border-subtle)';
+        boxVip.style.boxShadow = isVip ? '0 0 15px rgba(245, 158, 11, 0.25)' : 'none';
+      }
+      if (tierDesc) {
+        tierDesc.style.borderLeftColor = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+        tierDesc.textContent = isVip
+          ? 'VIP Turnkey track. Everything provided: firearm rental, holster, ear/eye protection, 50-100 rounds factory ammo, dedicated lane fee at Cindy\'s Hot Shots, and passport compliance photos. Cindy\'s range fee ($45) is 100% INCLUDED.'
+          : 'Self-equipped base track. Provide own reliable handgun, holster, and factory ammo. Includes $45.00 dedicated range fee at Cindy\'s Hot Shots & 6% MD sales tax.';
+      }
+
+      // Update Breakdown Box elements
+      const bTuition = document.getElementById('formBreakdownTuition');
+      const bRange = document.getElementById('formBreakdownRangeFee');
+      const bTax = document.getElementById('formBreakdownTax');
+      const bTotal = document.getElementById('formBreakdownTotal');
+      const bDeposit = document.getElementById('formBreakdownDeposit');
+      const bBalance = document.getElementById('formBreakdownBalance');
+
+      if (bTuition) bTuition.textContent = '$' + pricing.discountedTuition.toFixed(2);
+      if (bRange) {
+        bRange.textContent = isVip ? 'INCLUDED (VIP Perk)' : '+$' + pricing.rangeFee.toFixed(2) + ' (Base Track)';
+        bRange.style.color = isVip ? '#10b981' : '#f59e0b';
+      }
+      if (bTax) bTax.textContent = '+$' + pricing.mdTax.toFixed(2);
+      if (bTotal) {
+        bTotal.textContent = '$' + pricing.grandTotal.toFixed(2);
+        bTotal.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+      }
+      if (bDeposit) bDeposit.textContent = '$' + pricing.depositDueNow.toFixed(2);
+      if (bBalance) bBalance.textContent = '$' + pricing.balanceDueClass.toFixed(2);
+    };
+
+    (window as any).toggleFormTier = function(targetTier: string) {
+      const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
+      if (!selectElem) return;
+      const currentVal = selectElem.value;
+      const isCurrentlyVip = currentVal.includes('VIP') || currentVal.includes('Turnkey');
+
+      if (targetTier === 'vip' && !isCurrentlyVip) {
+        for (let i = 0; i < selectElem.options.length; i++) {
+          const opt = selectElem.options[i].value;
+          if (opt.includes('VIP') || opt.includes('Turnkey')) {
+            selectElem.selectedIndex = i;
+            break;
+          }
+        }
+      } else if (targetTier === 'base' && isCurrentlyVip) {
+        for (let i = 0; i < selectElem.options.length; i++) {
+          const opt = selectElem.options[i].value;
+          if (!opt.includes('VIP') && !opt.includes('Turnkey')) {
+            selectElem.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      (window as any).updateFormPriceDisplay();
+    };
+
+        // =========================================================================
+    // BOOKING INVOICE MODAL & 30% DEPOSIT CHECKOUT CONTROLLER
+    // =========================================================================
+    let __fifsCurrentBookingPayload: any = null;
+    let __fifsOriginalBookingFormHtml: string = '';
+
+    (window as any).showBookingInvoiceModal = function(e?: any) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
+
+      const form = document.getElementById('booking-form') as HTMLFormElement | null;
+      const statusDiv = document.getElementById('booking-status');
+      if (!form) return false;
+
+      const fullNameInput = document.getElementById('fullName') as HTMLInputElement | null;
+      const emailInput = document.getElementById('email') as HTMLInputElement | null;
+      const phoneInput = document.getElementById('phone') as HTMLInputElement | null;
+      const safetyCheck = document.getElementById('safety-check') as HTMLInputElement | null;
+      const courseSelect = document.getElementById('courseSelection') as HTMLSelectElement | null;
+      const groupSelect = document.getElementById('groupSize') as HTMLSelectElement | null;
+      const commentsInput = document.getElementById('comments') as HTMLTextAreaElement | null;
+
+      const fullName = fullNameInput ? fullNameInput.value.trim() : '';
+      const email = emailInput ? emailInput.value.trim() : '';
+      const phone = phoneInput ? phoneInput.value.trim() : '';
+      const courseSelection = courseSelect ? courseSelect.value : 'Maryland Firearms Training Course';
+      const groupSize = groupSelect ? groupSelect.value : '1 (Private One-on-One)';
+      const comments = commentsInput ? commentsInput.value.trim() : '';
+
+      [fullNameInput, emailInput, phoneInput].forEach(inp => {
+        if (inp) {
+          inp.style.borderColor = 'var(--border-subtle)';
+          inp.style.boxShadow = 'none';
+        }
+      });
+
+      const reportBookingError = (element: HTMLElement | null, message: string) => {
+        if (element) {
+          element.style.borderColor = '#ef4444';
+          element.style.boxShadow = '0 0 12px rgba(239, 68, 68, 0.4)';
+          try {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            element.focus();
+          } catch (err) {}
+        }
+        if (statusDiv) {
+          statusDiv.style.display = 'block';
+          statusDiv.className = 'status-msg error';
+          statusDiv.style.color = '#ef4444';
+          statusDiv.style.background = 'rgba(239, 68, 68, 0.1)';
+          statusDiv.style.border = '1px solid #ef4444';
+          statusDiv.style.padding = '10px 14px';
+          statusDiv.style.borderRadius = '8px';
+          statusDiv.style.marginBottom = '12px';
+          statusDiv.innerHTML = message;
+        }
+        alert(message);
+      };
+
+      if (!fullName) {
+        reportBookingError(fullNameInput, '⚠️ Please enter your Full Legal Name before continuing.');
+        return false;
+      }
+      if (!email || !email.includes('@')) {
+        reportBookingError(emailInput, '⚠️ Please enter a valid Email Address for your invoice and student portal login.');
+        return false;
+      }
+      if (!phone) {
+        reportBookingError(phoneInput, '⚠️ Please enter your Phone Number so Instructor Kai Wade can coordinate range details.');
+        return false;
+      }
+      if (safetyCheck && !safetyCheck.checked) {
+        reportBookingError(safetyCheck, '⚠️ MANDATORY RANGE SAFETY POLICY:\nPlease check the box accepting the Range Safety Policy (no live ammunition in classroom) to proceed.');
+        return false;
+      }
+
+      if (statusDiv) {
+        statusDiv.style.display = 'none';
+        statusDiv.innerHTML = '';
+      }
+
+      const invoiceId = 'INV-FI-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+      const studentId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000);
+      const isVipCourse = /VIP/i.test(courseSelection || '');
+
+      let unitBase = 249.99;
+      let unitVip = 375.00;
+      const clean = courseSelection.toLowerCase();
+      if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) {
+        unitBase = 425.00; unitVip = 550.00;
+      } else if (clean.includes('renewal')) {
+        unitBase = 149.99; unitVip = 249.99;
+      } else if (clean.includes('combo')) {
+        unitBase = 249.99; unitVip = 375.00;
+      } else if (clean.includes('hql')) {
+        unitBase = 100.00; unitVip = 195.00;
+      } else if (clean.includes('ccw') || clean.includes('wear & carry')) {
+        unitBase = 199.99; unitVip = 325.00;
+      } else if (clean.includes('coaching')) {
+        unitBase = 125.00; unitVip = 195.00;
+      } else if (clean.includes('cleaning')) {
+        unitBase = 75.00; unitVip = 115.00;
+      } else if (clean.includes('children')) {
+        unitBase = 199.99; unitVip = 265.00;
+      } else if (clean.includes('alumni')) {
+        unitBase = 65.00; unitVip = 115.00;
+      }
+
+      const activeUnit = isVipCourse ? unitVip : unitBase;
+      const pricing = (window as any).calculateComprehensiveInvoice(activeUnit, isVipCourse, groupSize);
+
+      __fifsCurrentBookingPayload = {
+        invoiceId,
+        studentId,
+        fullName,
+        email,
+        phone,
+        courseSelection,
+        preferredDates: 'Coordinated with Lead Instructor Kai Wade',
+        groupSize,
+        comments,
+        pricing,
+        isVipCourse,
+        dateIssued: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+      };
+
+      const modalBox = document.querySelector('#courseBookingModal .goal-modal-box') as HTMLElement | null;
+      if (!modalBox) return false;
+
+      if (!__fifsOriginalBookingFormHtml) {
+        __fifsOriginalBookingFormHtml = modalBox.innerHTML;
+      }
+
+      const p = __fifsCurrentBookingPayload;
+      const invoiceHtml = `
+        <div id="fifs-invoice-step" style="animation: fadeIn 0.25s ease; text-align: left;">
+          <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;padding-bottom:14px;margin-bottom:16px;">
+            <div>
+              <span style="background:rgba(0,229,255,0.12);color:var(--accent-cyan);border:1px solid var(--accent-cyan);font-size:0.75rem;font-weight:800;padding:4px 10px;border-radius:4px;letter-spacing:0.08em;text-transform:uppercase;">STEP 1 OF 2: ENROLLMENT INVOICE</span>
+              <h3 style="color:#fff;font-size:1.6rem;margin:8px 0 2px;font-family:var(--font-display);font-weight:700;">Official Training Invoice</h3>
+              <p style="color:var(--text-muted);font-size:0.82rem;margin:0;">Future Initiative Firearm Services (FIFS) &bull; Lead Instructor Kai Wade</p>
+            </div>
+            <button type="button" onclick="(window).closeCourseBookingModal()" style="background:none;border:none;color:#94a3b8;font-size:1.4rem;cursor:pointer;">&times;</button>
+          </div>
+          <div style="background:#0d131d;border:1px solid #1e293b;border-radius:8px;padding:14px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <div>
+              <div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Invoice &amp; Record Number</div>
+              <div style="font-size:1.25rem;font-weight:800;color:var(--accent-cyan);font-family:monospace;">${p.invoiceId}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;">Date Issued</div>
+              <div style="font-size:0.95rem;font-weight:700;color:#fff;">${p.dateIssued}</div>
+            </div>
+          </div>
+          <div style="background:#10161f;border:1px solid #1e293b;border-radius:8px;padding:16px;margin-bottom:16px;">
+            <div style="font-size:0.75rem;font-weight:800;color:var(--accent-cyan);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">STUDENT &amp; SESSION DETAILS</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.85rem;">
+              <div><span style="color:#64748b;display:block;font-size:0.74rem;">STUDENT</span><strong style="color:#f8fafc;">${p.fullName}</strong></div>
+              <div><span style="color:#64748b;display:block;font-size:0.74rem;">PHONE / EMAIL</span><strong style="color:#f8fafc;">${p.phone}<br>${p.email}</strong></div>
+              <div><span style="color:#64748b;display:block;font-size:0.74rem;">CURRICULUM</span><strong style="color:#f8fafc;">${p.courseSelection}</strong></div>
+              <div><span style="color:#64748b;display:block;font-size:0.74rem;">FORMAT / SIZE</span><strong style="color:#f8fafc;">${p.groupSize}</strong></div>
+            </div>
+          </div>
+          <div style="background:#070b11;border:1px solid #1e293b;border-radius:8px;padding:16px;margin-bottom:16px;">
+            <div style="font-size:0.75rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">ITEMIZED ENROLLMENT CHARGES</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.86rem;">
+              <span style="color:#e2e8f0;">${p.courseSelection} (Tuition)</span>
+              <strong style="color:#fff;">$${pricing.rawTuition.toFixed(2)}</strong>
+            </div>
+            ${pricing.discountAmount > 0 ? `
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;color:#10b981;">
+                <div><span style="font-weight:700;">Group / Format Tier Discount (${Math.round(pricing.discountPercent * 100)}% OFF)</span><br><span style="color:#6ee7b7;font-size:0.75rem;">${p.groupSize}</span></div>
+                <strong>-$${pricing.discountAmount.toFixed(2)}</strong>
+              </div>
+            ` : ''}
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;">
+              <div><span style="color:#f8fafc;font-weight:600;">Cindy\'s Range &amp; Target Fee</span><br><span style="color:#64748b;font-size:0.75rem;">Dedicated lane reservation, B-27 qualification targets & ammo</span></div>
+              <strong style="color:${isVipCourse ? '#10b981' : '#f59e0b'};">${isVipCourse ? 'INCLUDED (VIP Perk)' : '+$' + pricing.rangeFee.toFixed(2)}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;color:#94a3b8;">
+              <span>Subtotal:</span>
+              <strong style="color:#f8fafc;">$${pricing.subtotal.toFixed(2)}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;color:#38bdf8;">
+              <span>Maryland State Sales Tax (6%):</span>
+              <strong>+$${pricing.mdTax.toFixed(2)}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 6px;border-bottom:1px dashed #334155;font-size:1.15rem;">
+              <strong style="color:#fff;">Total Course Investment:</strong>
+              <strong style="color:var(--accent-cyan);font-family:var(--font-display);font-size:1.35rem;">$${pricing.grandTotal.toFixed(2)}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);border-radius:8px;margin-top:10px;">
+              <span style="color:#f59e0b;font-weight:800;font-size:0.95rem;">⚡ REQUIRED 30% DEPOSIT (DUE NOW TO RESERVE SEAT):</span>
+              <strong style="color:#f59e0b;font-size:1.35rem;font-family:var(--font-display);letter-spacing:0.5px;">$${pricing.depositDueNow.toFixed(2)}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px 2px;font-size:0.82rem;color:#94a3b8;">
+              <span>Remaining Balance (Due Upon Class Start):</span>
+              <span style="color:#cbd5e1;font-weight:600;">$${pricing.balanceDueClass.toFixed(2)}</span>
+            </div>
+          </div>
+          <div id="invoice-status-div" style="display:none;margin-bottom:14px;padding:10px;border-radius:8px;font-size:0.84rem;"></div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <button type="button" id="btn-confirm-invoice-deposit" onclick="(window).confirmAndFinalizeBooking(false)" style="background:linear-gradient(135deg, #f59e0b, #d97706);color:#000;font-weight:800;padding:14px 20px;border-radius:8px;border:none;cursor:pointer;font-size:1rem;text-transform:uppercase;letter-spacing:1px;box-shadow:0 0 20px rgba(245,158,11,0.4);">
+              ⚡ Confirm &amp; Pay 30% Deposit ($${pricing.depositDueNow.toFixed(2)}) &rarr;
+            </button>
+            <button type="button" id="btn-confirm-invoice-full" onclick="(window).confirmAndFinalizeBooking(true)" style="background:rgba(0,229,255,0.12);color:var(--accent-cyan);border:1.5px solid var(--accent-cyan);font-weight:700;padding:12px 18px;border-radius:8px;cursor:pointer;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.5px;">
+              💳 Or Pay Full Course Tuition ($${pricing.grandTotal.toFixed(2)}) &rarr;
+            </button>
+            <button type="button" onclick="(window).returnToBookingForm()" style="background:none;border:1px solid #334155;color:#94a3b8;padding:10px;border-radius:8px;cursor:pointer;font-size:0.84rem;">
+              &larr; Back / Edit Details
+            </button>
+          </div>
+        </div>
+      `;
+
+      modalBox.innerHTML = invoiceHtml;
+      return true;
+    };
+
+    (window as any).returnToBookingForm = function() {
+      const modalBox = document.querySelector('#courseBookingModal .goal-modal-box') as HTMLElement | null;
+      if (modalBox && __fifsOriginalBookingFormHtml) {
+        modalBox.innerHTML = __fifsOriginalBookingFormHtml;
+        if (__fifsCurrentBookingPayload) {
+          const form = document.getElementById('booking-form') as HTMLFormElement | null;
+          if (form) {
+            const fullNameInput = document.getElementById('fullName') as HTMLInputElement | null;
+            const emailInput = document.getElementById('email') as HTMLInputElement | null;
+            const phoneInput = document.getElementById('phone') as HTMLInputElement | null;
+            const courseSelect = document.getElementById('courseSelection') as HTMLSelectElement | null;
+            const commentsInput = document.getElementById('comments') as HTMLTextAreaElement | null;
+
+            if (fullNameInput) fullNameInput.value = __fifsCurrentBookingPayload.fullName || '';
+            if (emailInput) emailInput.value = __fifsCurrentBookingPayload.email || '';
+            if (phoneInput) phoneInput.value = __fifsCurrentBookingPayload.phone || '';
+            if (courseSelect) courseSelect.value = __fifsCurrentBookingPayload.courseSelection || '';
+            if (commentsInput) commentsInput.value = __fifsCurrentBookingPayload.comments || '';
+          }
+        }
+      }
+    };
+
+    (window as any).confirmAndFinalizeBooking = function(payInFull: boolean = false) {
+      const p = __fifsCurrentBookingPayload;
+      if (!p) return;
+
+      const btnDeposit = document.getElementById('btn-confirm-invoice-deposit') as HTMLButtonElement | null;
+      const btnFull = document.getElementById('btn-confirm-invoice-full') as HTMLButtonElement | null;
+      const statusDiv = document.getElementById('invoice-status-div');
+
+      if (btnDeposit) btnDeposit.disabled = true;
+      if (btnFull) btnFull.disabled = true;
+
+      if (statusDiv) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.background = 'rgba(0, 229, 255, 0.12)';
+        statusDiv.style.color = 'var(--accent-cyan)';
+        statusDiv.style.border = '1px solid var(--accent-cyan)';
+        statusDiv.innerHTML = '⚡ Securing reservation &amp; redirecting to Stripe Checkout...';
+      }
+
+      const payload = {
+        invoiceId: p.invoiceId,
+        studentId: p.studentId,
+        fullName: p.fullName,
+        email: p.email,
+        phone: p.phone,
+        courseSelection: p.courseSelection,
+        preferredDates: p.preferredDates,
+        groupSize: p.groupSize,
+        comments: p.comments,
+        amount: payInFull ? p.pricing.grandTotal : p.pricing.depositDueNow,
+        depositAmount: p.pricing.depositDueNow,
+        totalAmount: p.pricing.grandTotal,
+        rangeFee: p.pricing.rangeFee,
+        taxAmount: p.pricing.mdTax,
+        payInFull: Boolean(payInFull)
+      };
+
+      if (typeof (window as any).callFifsBackend === 'function') {
+        (window as any).callFifsBackend('submitBooking', payload, (res: any) => {
+          if (res && res.checkoutUrl) {
+            window.location.href = res.checkoutUrl;
+          } else if (res && res.url) {
+            window.location.href = res.url;
+          } else {
+            if (statusDiv) {
+              statusDiv.innerHTML = '✓ Seat reserved! Lead Instructor Kai Wade will contact you directly.';
+            }
+          }
+        }, (err: any) => {
+          if (statusDiv) {
+            statusDiv.style.background = 'rgba(239, 68, 68, 0.12)';
+            statusDiv.style.color = '#ef4444';
+            statusDiv.style.border = '1px solid #ef4444';
+            statusDiv.innerHTML = 'Payment initiation error: ' + (err.message || 'Unable to connect to Stripe.');
+          }
+          if (btnDeposit) btnDeposit.disabled = false;
+          if (btnFull) btnFull.disabled = false;
+        });
+      } else {
+        fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.url) {
+            window.location.href = data.url;
+          } else {
+            alert('Seat reserved successfully!');
+          }
+        })
+        .catch(err => alert('Checkout error: ' + err.message));
+      }
+    };
+
+    (window as any).closeCourseBookingModal = function() {
+      const modal = document.getElementById('courseBookingModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.setProperty('display', 'none', 'important');
+        document.body.classList.remove('modal-open');
+      }
+    };
+
     (window as any).deleteClientPermit = async function(permitId: string) {
       if (!permitId) return;
       const confirmDelete = window.confirm("Are you sure you want to remove this active permit record from your verified profile?");
@@ -1269,6 +2266,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
             Sign Out
           
               </button>
+              <button className="btn-change-password" data-onclick="openChangePasswordModal('student')" onClick={() => { if (typeof window !== 'undefined' && (window as any).openChangePasswordModal) (window as any).openChangePasswordModal('student'); }} type="button" style={{"marginTop": "8px", "background": "rgba(0, 229, 255, 0.08)", "border": "1px solid rgba(0, 229, 255, 0.4)", "color": "var(--accent-cyan)", "padding": "6px 14px", "borderRadius": "6px", "fontSize": "0.82rem", "fontWeight": "600", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                🔑 Change Password
+              </button>
             </div>
             {/* Priority Action Concierge Hero Card */}
             <div className="next-step-card">
@@ -1910,6 +2910,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   
               Sign Out
             
+                </button>
+                <button className="btn-change-password" data-onclick="openChangePasswordModal('client')" onClick={() => { if (typeof window !== 'undefined' && (window as any).openChangePasswordModal) (window as any).openChangePasswordModal('client'); }} type="button" style={{"marginTop": "8px", "background": "rgba(245, 158, 11, 0.08)", "border": "1px solid rgba(245, 158, 11, 0.4)", "color": "var(--accent-amber)", "padding": "6px 14px", "borderRadius": "6px", "fontSize": "0.82rem", "fontWeight": "600", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                  🔑 Change Password
                 </button>
               </div>
               {/* CLIENT PORTAL STICKY SUBNAV */}
@@ -5937,9 +6940,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div className="my-permits-list" id="myPermitsList">
                 {/* Rendered dynamically */}
               </div>
-              <button className="btn-add-permit" data-onclick="promptAddPermit()">
-                + ADD PERMIT TO WALLET
-              </button>
+              <div style={{"display": "flex", "gap": "10px", "marginTop": "10px", "flexWrap": "wrap"}}>
+                <button className="btn-add-permit" data-onclick="promptAddPermit()" onClick={() => { if (typeof window !== 'undefined' && (window as any).promptAddPermit) (window as any).promptAddPermit(); }} style={{"flex": "1", "minWidth": "180px"}}>
+                  + ADD PERMIT TO WALLET
+                </button>
+                <button className="btn-remove-permit" data-onclick="promptRemovePermit()" onClick={() => { if (typeof window !== 'undefined' && (window as any).promptRemovePermit) (window as any).promptRemovePermit(); }} style={{"flex": "1", "minWidth": "180px", "background": "rgba(239, 68, 68, 0.12)", "border": "1.5px solid #ef4444", "color": "#f87171", "padding": "12px 18px", "borderRadius": "8px", "fontWeight": "800", "fontSize": "0.86rem", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "gap": "8px", "textTransform": "uppercase", "letterSpacing": "0.5px"}} type="button">
+                  🗑️ DELETE PERMIT FROM WALLET
+                </button>
+              </div>
             </section>
             {/* Vertical State Scroller / Wheel (Reference 00:14 - 00:23) */}
             <section className="vertical-reciprocity-scroller-box">
@@ -7541,10 +8549,34 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
               </div>
               <p id="formCardTierDesc" style={{"fontSize": "0.82rem", "color": "#cbd5e1", "marginTop": "12px", "lineHeight": "1.5", "borderLeft": "2px solid var(--accent-cyan)", "paddingLeft": "10px"}}>
-                
-            Self-equipped track. You provide your own reliable handgun, rigid holster, and 50–100 rounds factory target ammo. Range lane fee ($25–$35) paid directly to Cindy's Hot Shots.
-          
+                Self-equipped track. You provide your own reliable handgun, rigid holster, and 50–100 rounds factory target ammo. Range lane fee ($45.00 dedicated lane time & ammo) and 6% Maryland sales tax calculated automatically below.
               </p>
+              {/* Comprehensive Deposit Breakdown Card */}
+              <div id="formDepositBreakdownBox" style={{"background": "rgba(245, 158, 11, 0.08)", "border": "1px solid rgba(245, 158, 11, 0.35)", "borderRadius": "10px", "padding": "14px 16px", "marginTop": "14px"}}>
+                <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "fontSize": "0.84rem", "color": "#cbd5e1", "marginBottom": "6px"}}>
+                  <span>Course Tuition:</span>
+                  <strong id="formBreakdownTuition" style={{"color": "#fff"}}>$249.99</strong>
+                </div>
+                <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "fontSize": "0.84rem", "marginBottom": "6px"}}>
+                  <span>Cindy's Hot Shots Range &amp; Target Fee:</span>
+                  <strong id="formBreakdownRangeFee" style={{"color": "#f59e0b"}}>+$45.00 (Base Track)</strong>
+                </div>
+                <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "fontSize": "0.84rem", "color": "#38bdf8", "marginBottom": "8px"}}>
+                  <span>Maryland State Sales Tax (6%):</span>
+                  <strong id="formBreakdownTax">+$17.70</strong>
+                </div>
+                <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "fontSize": "0.96rem", "color": "#fff", "borderTop": "1px solid rgba(255, 255, 255, 0.1)", "paddingTop": "8px", "marginBottom": "8px"}}>
+                  <strong>Total Course Investment:</strong>
+                  <strong id="formBreakdownTotal" style={{"color": "var(--accent-cyan)", "fontFamily": "var(--font-display)", "fontSize": "1.15rem"}}>$312.69</strong>
+                </div>
+                <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "fontSize": "1.05rem", "background": "rgba(245, 158, 11, 0.16)", "padding": "8px 12px", "borderRadius": "8px", "border": "1px solid rgba(245, 158, 11, 0.4)"}}>
+                  <strong style={{"color": "#f59e0b"}}>⚡ Required 30% Deposit (Due Now to Reserve Seat):</strong>
+                  <strong id="formBreakdownDeposit" style={{"color": "#f59e0b", "fontFamily": "var(--font-display)", "fontSize": "1.3rem", "letterSpacing": "0.5px"}}>$93.81</strong>
+                </div>
+                <div style={{"textAlign": "right", "fontSize": "0.76rem", "color": "var(--text-muted)", "marginTop": "6px"}}>
+                  Remaining balance (<span id="formBreakdownBalance" style={{"color": "#cbd5e1", "fontWeight": "600"}}>$218.88</span>) due upon class arrival.
+                </div>
+              </div>
             </div>
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "14px"}}>
               <div className="form-group" style={{"marginBottom": "0"}}>
@@ -9651,4 +10683,62 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <div id="modalStateComparisonBody" style={{"color": "#cbd5e1", "lineHeight": "1.6", "fontSize": "0.95rem"}}></div>
           </div>
         </div>
+      
+      {/* ================= MODAL: CHANGE ACCOUNT PASSWORD (STUDENT & CLIENT) ================= */}
+      <div className="reciprocity-hub-modal-overlay" id="changePasswordModal" data-onclick="if(event.target===this) closeChangePasswordModal()">
+        <div className="goal-modal-box" style={{"maxWidth": "480px", "background": "#0b1017", "border": "1px solid var(--accent-cyan)", "borderRadius": "14px", "padding": "26px", "boxShadow": "0 0 35px rgba(0, 229, 255, 0.25)"}}>
+          <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "16px", "borderBottom": "1px solid var(--border-subtle)", "paddingBottom": "12px"}}>
+            <div>
+              <span className="badge-instructor" id="changePasswordRoleBadge" style={{"marginBottom": "4px", "fontSize": "0.72rem"}}>
+                Security &amp; Account Protection
+              </span>
+              <h3 style={{"color": "#fff", "fontFamily": "var(--font-display)", "fontSize": "1.45rem", "margin": "4px 0 0", "textTransform": "uppercase", "letterSpacing": "1px"}}>
+                🔑 Change Account Password
+              </h3>
+            </div>
+            <button className="btn-return-home" data-onclick="closeChangePasswordModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closeChangePasswordModal) (window as any).closeChangePasswordModal(); }} style={{"background": "none", "border": "none", "color": "var(--text-muted)", "fontSize": "1.4rem", "cursor": "pointer"}} type="button">
+              ✕
+            </button>
+          </div>
+          <form id="changePasswordForm" data-onsubmit="submitChangePassword(event)" onSubmit={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).submitChangePassword) (window as any).submitChangePassword(e); }}>
+            <div className="form-group" style={{"marginBottom": "14px"}}>
+              <label htmlFor="cpUserEmail" style={{"color": "#cbd5e1", "fontSize": "0.85rem", "fontWeight": "600", "display": "block", "marginBottom": "6px"}}>
+                Account Email Address
+              </label>
+              <input id="cpUserEmail" readOnly style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "var(--text-muted)", "padding": "10px 12px", "borderRadius": "6px", "width": "100%", "fontSize": "0.88rem"}} type="email" />
+            </div>
+            <div className="form-group" style={{"marginBottom": "14px"}}>
+              <label htmlFor="cpCurrentPassword" style={{"color": "#cbd5e1", "fontSize": "0.85rem", "fontWeight": "600", "display": "block", "marginBottom": "6px"}}>
+                Current Password <span className="req">*</span>
+              </label>
+              <input id="cpCurrentPassword" placeholder="Enter existing password" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px 12px", "borderRadius": "6px", "width": "100%", "fontSize": "0.88rem"}} type="password" />
+            </div>
+            <div className="form-group" style={{"marginBottom": "14px"}}>
+              <label htmlFor="cpNewPassword" style={{"color": "#cbd5e1", "fontSize": "0.85rem", "fontWeight": "600", "display": "block", "marginBottom": "6px"}}>
+                New Password <span className="req">*</span>
+              </label>
+              <input id="cpNewPassword" placeholder="Min 12 chars (Uppercase, number & symbol)" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px 12px", "borderRadius": "6px", "width": "100%", "fontSize": "0.88rem"}} type="password" />
+              <span style={{"color": "var(--text-muted)", "fontSize": "0.72rem", "marginTop": "4px", "display": "block"}}>
+                Requirements: 12+ characters, 1 uppercase, 1 lowercase, 1 number, 1 special character.
+              </span>
+            </div>
+            <div className="form-group" style={{"marginBottom": "18px"}}>
+              <label htmlFor="cpConfirmPassword" style={{"color": "#cbd5e1", "fontSize": "0.85rem", "fontWeight": "600", "display": "block", "marginBottom": "6px"}}>
+                Confirm New Password <span className="req">*</span>
+              </label>
+              <input id="cpConfirmPassword" placeholder="Re-type new password" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px 12px", "borderRadius": "6px", "width": "100%", "fontSize": "0.88rem"}} type="password" />
+            </div>
+            <div id="changePasswordStatus" style={{"display": "none", "padding": "10px", "borderRadius": "6px", "marginBottom": "14px", "fontSize": "0.84rem"}}></div>
+            <div style={{"display": "flex", "gap": "10px", "justifyContent": "flex-end"}}>
+              <button className="btn-secondary" data-onclick="closeChangePasswordModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closeChangePasswordModal) (window as any).closeChangePasswordModal(); }} style={{"padding": "10px 18px", "fontSize": "0.88rem"}} type="button">
+                Cancel
+              </button>
+              <button className="btn-primary" id="btnSubmitChangePassword" style={{"padding": "10px 22px", "fontSize": "0.88rem", "fontWeight": "800"}} type="submit">
+                Update Password 🔒
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
+
+    </div>

@@ -215,20 +215,36 @@ async function sendResendEmail(params: {
 
 // Helper to normalize student
 function normalizeStudent(s: any) {
- if (!s) return null;
- return {
-   studentId: s.student_id || s.id,
-   fullName: s.full_name || s.name || 'Student',
-   email: s.email,
-   phone: s.phone || '',
-   course: s.course || 'Firearms Training',
-   assignedDate: s.assigned_date || s.dates || 'Upcoming Cohort',
-   status: s.status || 'STEP_1_REGISTERED',
-   profileDocUrl: s.profile_doc_url || '#',
-   prepTasks: s.prep_tasks || { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false },
-   mustChangePassword: Boolean(s.must_change_password),
-   internalNotes: s.internal_notes || ''
- };
+  if (!s) return null;
+  return {
+    studentId: s.student_id || s.id,
+    fullName: s.full_name || s.name || 'Student',
+    email: s.email,
+    phone: s.phone || '',
+    course: s.course || s.course_name || s.course_selection || 'Firearms Training',
+    track: s.track || (/VIP/i.test(s.course_selection || s.course_name || '') ? 'VIP' : 'Base'),
+    assignedDate: s.assigned_date || s.class_date || s.preferred_dates || s.dates || 'Upcoming Cohort',
+    status: s.status || 'STEP_1_REGISTERED',
+    qualificationScore: s.qualification_score || '25/25 (100%)',
+    profileDocUrl: s.profile_doc_url || s.scoresheet_url || s.msp_score_sheet_url || '#',
+    prepTasks: s.prep_tasks || { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false },
+    mustChangePassword: Boolean(s.must_change_password),
+    internalNotes: s.internal_notes || ''
+  };
+}
+
+function normalizeClient(c: any) {
+  if (!c) return null;
+  return {
+    clientId: c.client_id || c.id,
+    fullName: c.full_name || c.name || 'Client',
+    email: c.email,
+    phone: c.phone || '',
+    permitState: c.permit_state || c.permit_type || 'Maryland Wear & Carry',
+    expirationDate: c.expiration_date || '2026-10-31',
+    status: c.status || 'ACTIVE_REGISTERED',
+    createdAt: c.created_at
+  };
 }
 
 
@@ -854,29 +870,45 @@ export async function POST(req: NextRequest) {
 
      // 6. Self-Service Password Update
      case 'selfServicePasswordUpdate': {
-       const { email, currentPassword, newPassword } = payload;
-       if (!email || !newPassword) {
-         return NextResponse.json({ success: false, error: 'Email and new password are required.' }, { status: 400 });
-       }
+        const { email, currentPassword, newPassword } = payload;
+        if (!email || !newPassword) {
+          return NextResponse.json({ success: false, error: 'Email and new password are required.' }, { status: 400 });
+        }
 
+        const val = validateStrictPassword(newPassword);
+        if (!val.valid) {
+          return NextResponse.json({ success: false, error: val.error }, { status: 400 });
+        }
 
-       const val = validateStrictPassword(newPassword);
-       if (!val.valid) {
-         return NextResponse.json({ success: false, error: val.error }, { status: 400 });
-       }
+        const cleanEmail = email.trim().toLowerCase();
 
+        // 1. Update in students table
+        await supabase
+          .from('students')
+          .update({ portal_password: newPassword, must_change_password: false, updated_at: new Date().toISOString() })
+          .eq('email', cleanEmail);
 
-       const { error } = await supabase
-         .from('students')
-         .update({ portal_password: newPassword, must_change_password: false })
-         .eq('email', email.trim().toLowerCase());
+        // 2. Update in clients table
+        await supabase
+          .from('clients')
+          .update({
+            temp_password_reset: false,
+            last_password_change: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('email', cleanEmail);
 
+        // 3. Update in profiles table
+        await supabase
+          .from('profiles')
+          .update({
+            must_change_password: false,
+            updated_at: new Date().toISOString()
+          })
+          .eq('email', cleanEmail);
 
-       if (error) {
-         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-       }
-       return NextResponse.json({ success: true, message: 'Account password updated successfully.' });
-     }
+        return NextResponse.json({ success: true, status: 'success', message: 'Account password updated successfully.' });
+      }
 
 
      // 7. Student Portal Data Loader & Signed URL Refresh
@@ -890,8 +922,7 @@ export async function POST(req: NextRequest) {
        const { data: student } = await supabase
          .from('students')
          .select('*')
-         .or()
-         .maybeSingle();
+         .or(`student_id.eq.${identifier},email.eq.${identifier}`).maybeSingle();
 
 
        if (!student) {
@@ -981,119 +1012,159 @@ export async function POST(req: NextRequest) {
 
      // 9. Admin Dashboard Roster & History
      case 'getAdminDashboardData': {
-       const { data: students } = await supabase
-         .from('students')
-         .select('*')
-         .order('created_at', { ascending: false });
+        const { data: students } = await supabase
+          .from('students')
+          .select('*')
+          .order('created_at', { ascending: false });
 
+        const { data: enrollments } = await supabase
+          .from('enrollments')
+          .select('*, classes(title)')
+          .order('scheduled_date', { ascending: false });
 
-       const { data: enrollments } = await supabase
-         .from('enrollments')
-         .select('*, classes(title)')
-         .order('scheduled_date', { ascending: false });
+        const { data: clients } = await supabase
+          .from('clients')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-
-       return NextResponse.json({
-         success: true,
-         students: (students || []).map(normalizeStudent),
-         enrollments: enrollments || []
-       });
-     }
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          students: (students || []).map(normalizeStudent),
+          clients: (clients || []).map(normalizeClient),
+          enrollments: enrollments || []
+        });
+      }
 
 
      // 10. Course Registration & Stripe Checkout Session Creator
      case 'submitBooking': {
-       const {
-         invoiceId = 'INV-FI-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000),
-         studentId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000),
-         fullName = 'FIFS Training Student',
-         email,
-         phone = '',
-         courseSelection = 'Maryland Firearms Training Course',
-         preferredDates = 'Coordinated with Lead Instructor Kai Wade',
-         amount,
-         groupSize = '1',
-         comments = '',
-         classId = ''
-       } = payload;
+        const {
+          invoiceId = 'INV-FI-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000),
+          studentId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000),
+          fullName = 'FIFS Training Student',
+          email,
+          phone = '',
+          courseSelection = 'Maryland Firearms Training Course',
+          preferredDates = 'Coordinated with Lead Instructor Kai Wade',
+          amount,
+          depositAmount,
+          totalAmount,
+          groupSize = '1',
+          comments = '',
+          classId = '',
+          payInFull = false
+        } = payload;
 
-       if (!email || !email.includes('@')) {
-         return NextResponse.json({ success: false, status: 'error', error: 'Valid student email address is required.' }, { status: 400 });
-       }
+        if (!email || !email.includes('@')) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Valid student email address is required.' }, { status: 400 });
+        }
 
-       const stripeKey = process.env.STRIPE_SECRET_KEY;
-       const isVip = /VIP/i.test(courseSelection || '');
-       const fallbackPaymentUrl = isVip
-         ? 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
-         : 'https://buy.stripe.com/dR67sWfR72D520ocMN';
+        const stripeKey = process.env.STRIPE_SECRET_KEY;
+        const isVip = /VIP/i.test(courseSelection || '');
+        const fallbackPaymentUrl = isVip
+          ? 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+          : 'https://buy.stripe.com/dR67sWfR72D520ocMN';
 
-       // Calculate tuition in cents
-       let unitAmount = 24999;
-       if (typeof amount === 'number' && amount > 0) {
-         unitAmount = amount > 1000 ? Math.round(amount) : Math.round(amount * 100);
-       } else {
-         const clean = (courseSelection || '').toLowerCase();
-         if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) {
-           unitAmount = isVip ? 55000 : 42500;
-         } else if (clean.includes('renewal')) {
-           unitAmount = isVip ? 24999 : 14999;
-         } else if (clean.includes('combo')) {
-           unitAmount = isVip ? 37500 : 24999;
-         } else if (clean.includes('hql')) {
-           unitAmount = isVip ? 16500 : 10000;
-         } else if (clean.includes('ccw') || clean.includes('wear & carry')) {
-           unitAmount = isVip ? 32500 : 19999;
-         } else if (clean.includes('coaching')) {
-           unitAmount = isVip ? 16500 : 12500;
-         } else if (clean.includes('cleaning')) {
-           unitAmount = isVip ? 11500 : 8500;
-         } else if (clean.includes('children')) {
-           unitAmount = isVip ? 9500 : 7500;
-         } else if (clean.includes('alumni')) {
-           unitAmount = isVip ? 9500 : 6500;
-         }
-       }
+        // 1. Calculate pricing factoring in group size, $45 Cindy's range fee for Base track, 6% MD tax, and 30% deposit
+        let baseTuitionPerPerson = 249.99;
+        const cleanCourse = (courseSelection || '').toLowerCase();
+        if (cleanCourse.includes('mastery') || cleanCourse.includes('multi-state') || cleanCourse.includes('multistate')) {
+          baseTuitionPerPerson = isVip ? 550.00 : 425.00;
+        } else if (cleanCourse.includes('renewal')) {
+          baseTuitionPerPerson = isVip ? 249.99 : 149.99;
+        } else if (cleanCourse.includes('combo')) {
+          baseTuitionPerPerson = isVip ? 375.00 : 249.99;
+        } else if (cleanCourse.includes('hql')) {
+          baseTuitionPerPerson = isVip ? 195.00 : 100.00;
+        } else if (cleanCourse.includes('ccw') || cleanCourse.includes('wear & carry')) {
+          baseTuitionPerPerson = isVip ? 325.00 : 199.99;
+        } else if (cleanCourse.includes('coaching')) {
+          baseTuitionPerPerson = isVip ? 195.00 : 125.00;
+        } else if (cleanCourse.includes('cleaning')) {
+          baseTuitionPerPerson = isVip ? 115.00 : 75.00;
+        } else if (cleanCourse.includes('children')) {
+          baseTuitionPerPerson = isVip ? 265.00 : 199.99;
+        } else if (cleanCourse.includes('alumni')) {
+          baseTuitionPerPerson = isVip ? 115.00 : 65.00;
+        }
 
-       const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://trainwithfifs.com';
-       const baseUrl = origin.replace(/\/+$/, '');
+        let attendees = 1;
+        let discountPercent = 0;
+        const groupStr = String(groupSize || '1');
+        if (/^2|2 \(paired/i.test(groupStr)) {
+          attendees = 2;
+          discountPercent = 0.05;
+        } else if (/^[34]|[34] \(small/i.test(groupStr)) {
+          attendees = 3;
+          discountPercent = 0.10;
+        } else if (/5\+/i.test(groupStr) || /^5/i.test(groupStr)) {
+          attendees = 5;
+          discountPercent = 0.15;
+        }
 
-       let checkoutUrl = fallbackPaymentUrl;
-       let sessionId = 'fallback-' + Date.now();
+        const rawTuition = baseTuitionPerPerson * attendees;
+        const discountVal = rawTuition * discountPercent;
+        const discountedTuition = rawTuition - discountVal;
 
-       if (stripeKey) {
-         try {
-           const Stripe = (await import('stripe')).default;
-           const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' as any });
+        // Cindy's range fee ($45.00 per person for Base Track, $0 for VIP Turnkey)
+        const rangeFee = isVip ? 0 : (45.00 * attendees);
+        const subtotal = discountedTuition + rangeFee;
+        const mdTax = subtotal * 0.06;
+        const grandTotal = typeof totalAmount === 'number' && totalAmount > 0 ? totalAmount : (subtotal + mdTax);
+        const depositDueNow = typeof depositAmount === 'number' && depositAmount > 0 ? depositAmount : (grandTotal * 0.30);
+        const balanceDueClass = grandTotal - depositDueNow;
 
-           const session = await stripe.checkout.sessions.create({
-             payment_method_types: ['card'],
-             mode: 'payment',
-             customer_email: email,
-             client_reference_id: studentId,
-             metadata: {
-               invoiceId,
-               studentId,
-               fullName,
-               phone,
-               courseSelection,
-               preferredDates,
-               groupSize: String(groupSize),
-               comments: String(comments).slice(0, 400),
-               classId: classId || ''
-             },
-             line_items: [
-               {
-                 price_data: {
-                   currency: 'usd',
-                   unit_amount: unitAmount,
-                   product_data: {
-                     name: courseSelection,
-                     description: `Invoice: ${invoiceId} • Student: ${fullName} • Schedule: ${preferredDates}`,
-                   },
-                 },
-                 quantity: 1,
-               },
-             ],
+        // 30% deposit is default charge amount unless explicitly payInFull
+        const chargeAmount = payInFull ? grandTotal : depositDueNow;
+        const unitAmount = Math.round(chargeAmount * 100);
+
+        const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://trainwithfifs.com';
+        const baseUrl = origin.replace(/\/+$/, '');
+
+        let checkoutUrl = fallbackPaymentUrl;
+        let sessionId = 'fallback-' + Date.now();
+
+        if (stripeKey) {
+          try {
+            const Stripe = (await import('stripe')).default;
+            const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' as any });
+
+            const session = await stripe.checkout.sessions.create({
+              payment_method_types: ['card'],
+              mode: 'payment',
+              customer_email: email,
+              client_reference_id: studentId,
+              metadata: {
+                invoiceId,
+                studentId,
+                fullName,
+                phone,
+                courseSelection,
+                preferredDates,
+                groupSize: String(groupSize),
+                comments: String(comments).slice(0, 400),
+                classId: classId || '',
+                rangeFee: rangeFee.toFixed(2),
+                mdTax: mdTax.toFixed(2),
+                grandTotal: grandTotal.toFixed(2),
+                depositDueNow: depositDueNow.toFixed(2),
+                balanceDueClass: balanceDueClass.toFixed(2),
+                isDepositPayment: String(!payInFull)
+              },
+              line_items: [
+                {
+                  price_data: {
+                    currency: 'usd',
+                    unit_amount: unitAmount,
+                    product_data: {
+                      name: `${courseSelection} — ${payInFull ? 'Full Tuition & Range Fee' : '30% Reservation Deposit'}`,
+                      description: `Invoice: ${invoiceId} • Total Course Investment: $${grandTotal.toFixed(2)} (Tuition + ${isVip ? 'VIP Range Perk' : '$45 Cindy\'s Range Fee'} + 6% MD Tax) • ${payInFull ? 'Paid in Full' : 'Deposit: $' + depositDueNow.toFixed(2) + ' (Remaining $' + balanceDueClass.toFixed(2) + ' due on class day)'}`,
+                    },
+                  },
+                  quantity: 1,
+                },
+              ],
              success_url: `${baseUrl}/?session_id={CHECKOUT_SESSION_ID}&booking_confirmed=true&invoice=${encodeURIComponent(invoiceId)}`,
              cancel_url: `${baseUrl}/?booking_cancelled=true&session_id={CHECKOUT_SESSION_ID}&invoice=${encodeURIComponent(invoiceId)}`,
            });
@@ -1110,20 +1181,23 @@ export async function POST(req: NextRequest) {
 
        try {
          await supabase.from('invoices').upsert({
-           invoice_number: invoiceId,
-           student_id: studentId,
-           course: courseSelection,
-           total_amount: (unitAmount / 100).toFixed(2),
-           amount_paid: '0.00',
-           balance_due: (unitAmount / 100).toFixed(2),
-           status: 'PENDING',
-           due_date: preferredDates || 'Upon Class Date',
-           stripe_session_id: sessionId,
-           email: email,
-           facility: "Cindy's Hot Shots (115 Holsum Way, Glen Burnie, MD 21060)",
-           payment_method: 'Stripe Checkout',
-           updated_at: new Date().toISOString()
-         }, { onConflict: 'invoice_number' });
+            invoice_number: invoiceId,
+            student_id: studentId,
+            course: courseSelection,
+            total_amount: grandTotal.toFixed(2),
+            tuition_amount: discountedTuition.toFixed(2),
+            tax_amount: mdTax.toFixed(2),
+            deposit_due: depositDueNow.toFixed(2),
+            amount_paid: '0.00',
+            balance_due: balanceDueClass.toFixed(2),
+            status: 'PENDING',
+            due_date: preferredDates || 'Upon Class Date',
+            stripe_session_id: sessionId,
+            email: email,
+            facility: "Cindy's Hot Shots (115 Holsum Way, Glen Burnie, MD 21060)",
+            payment_method: 'Stripe Checkout',
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'invoice_number' });
        } catch (_dbErr) {}
 
        return NextResponse.json({
