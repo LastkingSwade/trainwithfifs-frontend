@@ -31,6 +31,14 @@ export default function TrainWithFIFS(props: any) {
       }
     };
     document.addEventListener('click', handleGlobalDataOnClick);
+    // Persistent chat bubble check
+    try {
+      if (typeof window !== 'undefined' && localStorage.getItem('fifs_chat_bubble_dismissed') === '1') {
+        const w = document.getElementById('floatingCommWrapper');
+        if (w) w.style.setProperty('display', 'none', 'important');
+      }
+    } catch(e) {}
+
 
 
     // Initialize interactive reciprocity map once script engine is ready
@@ -300,6 +308,112 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+        // Vehicle Travel Modal Controller
+    (window as any).openVehicleTravelModal = function() {
+      const modal = document.getElementById('vehicleTravelModal');
+      if (modal) {
+        modal.style.setProperty('display', 'block', 'important');
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        modal.scrollTop = 0;
+      }
+    };
+    (window as any).closeVehicleTravelModal = function() {
+      const modal = document.getElementById('vehicleTravelModal');
+      if (modal) {
+        modal.style.setProperty('display', 'none', 'important');
+        modal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      }
+    };
+
+    // Flying With Firearms Modal Controller
+    (window as any).openFlyingWithFirearmModal = function() {
+      const modal = document.getElementById('flyingWithFirearmModal');
+      if (modal) {
+        modal.style.setProperty('display', 'block', 'important');
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        modal.scrollTop = 0;
+      }
+    };
+    (window as any).closeFlyingWithFirearmModal = function() {
+      const modal = document.getElementById('flyingWithFirearmModal');
+      if (modal) {
+        modal.style.setProperty('display', 'none', 'important');
+        modal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      }
+    };
+
+    // Client Profile Modal Controller
+    (window as any).openClientProfileModal = function() {
+      const modal = document.getElementById('clientProfileModal');
+      if (modal) {
+        modal.style.setProperty('display', 'block', 'important');
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        modal.scrollTop = 0;
+      }
+    };
+    (window as any).closeClientProfileModal = function() {
+      const modal = document.getElementById('clientProfileModal');
+      if (modal) {
+        modal.style.setProperty('display', 'none', 'important');
+        modal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      }
+    };
+
+    // Client FAQ Modal Controller
+    (window as any).openClientFaqModal = function() {
+      const modal = document.getElementById('clientFaqModal');
+      if (modal) {
+        modal.style.setProperty('display', 'block', 'important');
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        modal.scrollTop = 0;
+      }
+    };
+    (window as any).closeClientFaqModal = function() {
+      const modal = document.getElementById('clientFaqModal');
+      if (modal) {
+        modal.style.setProperty('display', 'none', 'important');
+        modal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      }
+    };
+
+    // Helper to sync CCW permit card values whenever client data is loaded/updated
+    (window as any).syncClientPermitCard = function(clientData?: any) {
+      const nameEl = document.getElementById('dash-client-name');
+      const cardholderEl = document.getElementById('wallet-cardholder-name');
+      if (nameEl && cardholderEl && nameEl.textContent) {
+        cardholderEl.textContent = nameEl.textContent.trim();
+      }
+      const idEl = document.getElementById('dash-client-id');
+      const permitNumEl = document.getElementById('wallet-permit-number');
+      if (idEl && permitNumEl && idEl.textContent) {
+        const cleanId = idEl.textContent.replace(/^ID:\s*/i, '').trim();
+        permitNumEl.textContent = cleanId ? ('MD-WCP-' + cleanId.replace(/[^a-zA-Z0-9]/g, '')) : 'MD-WCP-1042-88';
+      }
+      const createdDate = clientData?.created_at || (window as any).__currentClientAccount?.created_at;
+      if (createdDate) {
+        const d = new Date(createdDate);
+        const formatted = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        const sinceEl = document.getElementById('wallet-member-since-val');
+        if (sinceEl) sinceEl.textContent = formatted.toUpperCase();
+      }
+    };
+
     // 34+ State Multi-Permit Expansion System Modal Controller
     (window as any).toggleMultiPermitModal = function(show: boolean) {
       const modal = document.getElementById('multiPermitModal');
@@ -531,14 +645,15 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
     const handleModalEscapeKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        const multiModal = document.getElementById('multiPermitModal');
-        if (multiModal && multiModal.classList.contains('active')) {
-          (window as any).toggleMultiPermitModal?.(false);
-        }
-        const recipModal = document.getElementById('reciprocityHubModal');
-        if (recipModal && recipModal.classList.contains('active')) {
-          (window as any).toggleReciprocityHubModal?.(false);
-        }
+        ['multiPermitModal', 'reciprocityHubModal', 'vehicleTravelModal', 'flyingWithFirearmModal', 'permitRenewalModal', 'clientProfileModal', 'futureServicesModal', 'clientFaqModal'].forEach(id => {
+          const m = document.getElementById(id);
+          if (m && m.classList.contains('active')) {
+            m.style.setProperty('display', 'none', 'important');
+            m.classList.remove('active');
+          }
+        });
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
       }
     };
     window.addEventListener('keydown', handleModalEscapeKey);
@@ -1802,28 +1917,31 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <a className="fi-subnav-btn active" href="#fi-sec-dashboard">
                   📊 Dashboard
                 </a>
-                <button className="fi-subnav-btn" data-onclick="toggleReciprocityHubModal(true)" type="button">
+                <button className="fi-subnav-btn" data-onclick="toggleReciprocityHubModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleReciprocityHubModal) (window as any).toggleReciprocityHubModal(true); }} type="button">
                   🗺️ 50-State Reciprocity Hub
                 </button>
-                <button className="fi-subnav-btn" data-onclick="openVehicleTravelModal()" type="button">
+                <button className="fi-subnav-btn" data-onclick="toggleMultiPermitModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} type="button" style={{"borderColor": "rgba(245, 158, 11, 0.45)", "color": "#F59E0B"}}>
+                  ⭐ 34+ State System
+                </button>
+                <button className="fi-subnav-btn" data-onclick="openVehicleTravelModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openVehicleTravelModal) (window as any).openVehicleTravelModal(); }} type="button">
                   🚗 Vehicle Travel
                 </button>
-                <button className="fi-subnav-btn" data-onclick="openFlyingWithFirearmModal()" type="button">
+                <button className="fi-subnav-btn" data-onclick="openFlyingWithFirearmModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openFlyingWithFirearmModal) (window as any).openFlyingWithFirearmModal(); }} type="button">
                   ✈️ Flying With Firearms
                 </button>
-                <a className="fi-subnav-btn" href="#fi-sec-renewal">
+                <button className="fi-subnav-btn" data-onclick="openPermitRenewalModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openPermitRenewalModal) (window as any).openPermitRenewalModal(); }} type="button">
                   ⏱️ Permit & Renewal
-                </a>
-                <a className="fi-subnav-btn" href="#fi-sec-profile">
+                </button>
+                <button className="fi-subnav-btn" data-onclick="openClientProfileModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openClientProfileModal) (window as any).openClientProfileModal(); }} type="button">
                   👤 Client Profile
-                </a>
-                <a className="fi-subnav-btn" href="#fi-sec-services">
+                </button>
+                <button className="fi-subnav-btn" data-onclick="openFutureServicesModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openFutureServicesModal) (window as any).openFutureServicesModal(); }} type="button">
                   🛡️ Services & Booking
-                </a>
-                <a className="fi-subnav-btn" href="#fi-sec-faq">
+                </button>
+                <button className="fi-subnav-btn" data-onclick="openClientFaqModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openClientFaqModal) (window as any).openClientFaqModal(); }} type="button">
                   ❓ Client FAQ
-                </a>
-                <button className="fi-subnav-btn" data-onclick="switchTab('portal')" style={{"borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)"}} type="button">
+                </button>
+                <button className="fi-subnav-btn" data-onclick="switchTab('portal')" onClick={() => { if (typeof window !== 'undefined' && (window as any).switchTab) (window as any).switchTab('portal'); }} style={{"borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)"}} type="button">
                   🎓 Switch to Student Portal
                 </button>
               </nav>
@@ -1859,124 +1977,193 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       Lead Instructor: Kai Wade
                     </div>
                   </div>
-                  {/* ================= EXCLUSIVE CLIENT FEATURE: DIGITAL CCW TACTICAL WALLET ================= */}
-                  <div className="client-ccw-wallet-card" style={{"background": "linear-gradient(135deg, #0d1219 0%, #070b10 100%)", "border": "2px solid var(--accent-amber)", "borderRadius": "16px", "padding": "22px 24px", "marginBottom": "24px", "boxShadow": "0 12px 35px rgba(0,0,0,0.85), 0 0 25px rgba(255,183,3,0.2)", "position": "relative", "overflow": "hidden"}}>
-                    <div style={{"position": "absolute", "top": "-10px", "right": "-10px", "width": "140px", "height": "140px", "background": "radial-gradient(circle, rgba(255,183,3,0.12) 0%, transparent 70%)", "pointerEvents": "none"}}>
-                    </div>
-                    <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "flexWrap": "wrap", "gap": "14px", "marginBottom": "16px"}}>
-                      <div>
-                        <span style={{"fontFamily": "var(--font-display)", "fontSize": "0.78rem", "fontWeight": "800", "color": "var(--accent-amber)", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
-                          VERIFIED CREDENTIAL WALLET
-                        </span>
-                        <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.55rem", "color": "#fff", "textTransform": "uppercase", "margin": "3px 0 2px"}}>
-                          
-                  🛡️ Future Initiative CCW Tactical Card
-                
-                        </h3>
-                        <p style={{"fontSize": "0.84rem", "color": "var(--text-muted)"}}>
-                          Lead Instructor: Kai Wade • Certified MSP Qualified Handgun Instructor (§ 5-101)
-                        </p>
-                      </div>
-                      <div style={{"textAlign": "right", "display": "flex", "flexDirection": "column", "alignItems": "flex-end", "gap": "6px"}}>
-                        <span className="meta-chip chip-status" id="wallet-status-badge" style={{"fontSize": "0.85rem", "padding": "5px 14px"}}>
-                          ACTIVE CARRIER
-                        </span>
-                        <span className="meta-chip" id="wallet-client-since-badge" style={{"color": "var(--accent-cyan)", "borderColor": "var(--accent-cyan)", "fontSize": "0.76rem", "fontWeight": "700"}}>
-                          Client since Oct 2026
-                        </span>
-                      </div>
-                    </div>
-                    <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(200px, 1fr))", "gap": "14px", "background": "rgba(16, 22, 31, 0.7)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "16px 18px", "marginBottom": "16px"}}>
-                      <div>
-                        <span style={{"fontSize": "0.72rem", "textTransform": "uppercase", "color": "var(--text-muted)", "fontWeight": "700", "letterSpacing": "0.5px"}}>
-                          Resident State Permit
-                        </span>
-                        <div id="wallet-primary-permit" style={{"fontFamily": "var(--font-display)", "fontSize": "1.15rem", "fontWeight": "800", "color": "#fff"}}>
-                          Maryland Wear & Carry
+                  {/* ================= EXCLUSIVE CLIENT FEATURE: OFFICIAL STATE CCW PERMIT CARD ================= */}
+                  <div className="client-ccw-wallet-card" style={{"background": "linear-gradient(135deg, #0d1522 0%, #070b12 50%, #0a111a 100%)", "border": "2px solid #F59E0B", "borderRadius": "18px", "padding": "24px 26px", "marginBottom": "24px", "boxShadow": "0 16px 45px rgba(0,0,0,0.92), 0 0 30px rgba(245, 158, 11, 0.22)", "position": "relative", "overflow": "hidden"}}>
+                    {/* Security Micro-Watermark Glow */}
+                    <div style={{"position": "absolute", "top": "-20px", "right": "-20px", "width": "180px", "height": "180px", "background": "radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%)", "pointerEvents": "none"}} />
+                    <div style={{"position": "absolute", "bottom": "-30px", "left": "-30px", "width": "160px", "height": "160px", "background": "radial-gradient(circle, rgba(0, 229, 255, 0.12) 0%, transparent 70%)", "pointerEvents": "none"}} />
+
+                    {/* PERMIT HEADER BAR */}
+                    <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "borderBottom": "2px solid rgba(245, 158, 11, 0.4)", "paddingBottom": "14px", "marginBottom": "18px", "flexWrap": "wrap", "gap": "12px"}}>
+                      <div style={{"display": "flex", "alignItems": "center", "gap": "14px"}}>
+                        <div style={{"width": "46px", "height": "46px", "borderRadius": "10px", "background": "rgba(245, 158, 11, 0.12)", "border": "1.5px solid #F59E0B", "display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "24px", "boxShadow": "0 0 14px rgba(245, 158, 11, 0.3)"}}>
+                          🛡️
+                        </div>
+                        <div>
+                          <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.78rem", "fontWeight": "900", "color": "var(--accent-amber)", "letterSpacing": "2px", "textTransform": "uppercase"}}>
+                            STATE OF MARYLAND • DEPARTMENT OF STATE POLICE
+                          </div>
+                          <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.45rem", "color": "#ffffff", "textTransform": "uppercase", "letterSpacing": "1px", "margin": "2px 0 0"}}>
+                            HANDGUN WEAR AND CARRY PERMIT
+                          </h3>
+                          <div style={{"fontSize": "0.76rem", "color": "var(--text-muted)", "marginTop": "2px"}}>
+                            Official Licensing Division • Md. Code Ann., Public Safety § 5-306
+                          </div>
                         </div>
                       </div>
-                      <div>
-                        <span style={{"fontSize": "0.72rem", "textTransform": "uppercase", "color": "var(--text-muted)", "fontWeight": "700", "letterSpacing": "0.5px"}}>
-                          Permit Expiration Date
+
+                      {/* TOP-RIGHT CORNER: MEMBER OF SITE SINCE (REQUESTED SPECIFICATION) */}
+                      <div style={{"background": "rgba(0, 229, 255, 0.08)", "border": "1.5px solid rgba(0, 229, 255, 0.45)", "borderRadius": "10px", "padding": "6px 14px", "textAlign": "right", "boxShadow": "0 0 12px rgba(0, 229, 255, 0.15)"}}>
+                        <span style={{"fontSize": "0.68rem", "color": "#94a3b8", "textTransform": "uppercase", "letterSpacing": "1.2px", "display": "block", "fontWeight": "700"}}>
+                          MEMBER OF THE SITE SINCE
                         </span>
-                        <div id="wallet-exp-date" style={{"fontFamily": "var(--font-display)", "fontSize": "1.15rem", "fontWeight": "800", "color": "var(--accent-amber)"}}>
-                          Oct 15, 2026
-                        </div>
-                      </div>
-                      <div>
-                        <span style={{"fontSize": "0.72rem", "textTransform": "uppercase", "color": "var(--text-muted)", "fontWeight": "700", "letterSpacing": "0.5px"}}>
-                          Legal Carry Reach
+                        <span id="wallet-member-since-val" style={{"fontFamily": "var(--font-display)", "fontSize": "0.95rem", "color": "var(--accent-cyan)", "fontWeight": "900", "letterSpacing": "0.5px"}}>
+                          OCTOBER 2026
                         </span>
-                        <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.15rem", "fontWeight": "800", "color": "var(--accent-green)"}}>
-                          34+ States Recognized
-                        </div>
-                      </div>
-                      <div>
-                        <span style={{"fontSize": "0.72rem", "textTransform": "uppercase", "color": "var(--text-muted)", "fontWeight": "700", "letterSpacing": "0.5px"}}>
-                          90-Day Renewal Watch
-                        </span>
-                        <div id="wallet-days-left" style={{"fontFamily": "var(--font-display)", "fontSize": "1.15rem", "fontWeight": "800", "color": "var(--accent-cyan)"}}>
-                          Active
-                        </div>
+                        {/* Hidden compatibility hook for existing scripts looking for wallet-client-since-badge */}
+                        <span id="wallet-client-since-badge" style={{"display": "none"}}>Client since Oct 2026</span>
                       </div>
                     </div>
-                    <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "10px"}}>
+
+                    {/* PERMIT MAIN BODY: PHOTO ID BOX + OFFICIAL CREDENTIAL DATA */}
+                    <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(280px, 1fr))", "gap": "20px", "background": "rgba(11, 17, 26, 0.8)", "border": "1px solid rgba(255, 255, 255, 0.08)", "borderRadius": "14px", "padding": "18px 20px", "marginBottom": "18px"}}>
+                      
+                      {/* LEFT: CARRIER PHOTO BADGE & SECURITY HOLOGRAM */}
+                      <div style={{"display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "background": "linear-gradient(135deg, rgba(16, 24, 38, 0.9) 0%, rgba(8, 12, 18, 0.95) 100%)", "border": "1.5px solid rgba(0, 229, 255, 0.3)", "borderRadius": "12px", "padding": "16px", "textAlign": "center"}}>
+                        <div style={{"width": "100px", "height": "110px", "borderRadius": "8px", "background": "linear-gradient(180deg, #1e293b 0%, #0f172a 100%)", "border": "2px solid #F59E0B", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "position": "relative", "overflow": "hidden", "boxShadow": "0 4px 15px rgba(0,0,0,0.6)"}}>
+                          <span style={{"fontSize": "42px", "opacity": "0.9"}}>👤</span>
+                          <div style={{"position": "absolute", "bottom": "0", "width": "100%", "background": "rgba(245, 158, 11, 0.85)", "color": "#030712", "fontSize": "0.62rem", "fontWeight": "900", "padding": "2px 0", "letterSpacing": "1px", "textTransform": "uppercase"}}>
+                            VERIFIED
+                          </div>
+                        </div>
+                        <div style={{"marginTop": "10px", "fontFamily": "var(--font-display)", "fontSize": "0.78rem", "color": "var(--accent-amber)", "fontWeight": "800", "letterSpacing": "1px", "textTransform": "uppercase"}}>
+                          MSP § 5-101 QUALIFIED
+                        </div>
+                        <div style={{"fontSize": "0.72rem", "color": "var(--text-muted)", "marginTop": "2px"}}>
+                          Certified Lead Instructor: Kai Wade
+                        </div>
+                        <div style={{"marginTop": "8px"}}>
+                          <span className="meta-chip chip-status" id="wallet-status-badge" style={{"fontSize": "0.78rem", "padding": "4px 12px", "fontWeight": "800"}}>
+                            ACTIVE CARRIER
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* RIGHT: STRUCTURED PERMIT CREDENTIAL FIELDS */}
+                      <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "14px"}}>
+                        <div>
+                          <span style={{"fontSize": "0.70rem", "textTransform": "uppercase", "color": "#94a3b8", "fontWeight": "800", "letterSpacing": "0.8px", "display": "block"}}>
+                            PERMIT NUMBER
+                          </span>
+                          <div id="wallet-permit-number" style={{"fontFamily": "monospace", "fontSize": "1.1rem", "fontWeight": "900", "color": "var(--accent-amber)", "letterSpacing": "1px"}}>
+                            MD-WCP-1042-88
+                          </div>
+                        </div>
+
+                        <div>
+                          <span style={{"fontSize": "0.70rem", "textTransform": "uppercase", "color": "#94a3b8", "fontWeight": "800", "letterSpacing": "0.8px", "display": "block"}}>
+                            CARDHOLDER NAME
+                          </span>
+                          <div id="wallet-cardholder-name" style={{"fontFamily": "var(--font-display)", "fontSize": "1.15rem", "fontWeight": "900", "color": "#ffffff", "letterSpacing": "0.5px"}}>
+                            MARCUS VANCE
+                          </div>
+                        </div>
+
+                        <div>
+                          <span style={{"fontSize": "0.70rem", "textTransform": "uppercase", "color": "#94a3b8", "fontWeight": "800", "letterSpacing": "0.8px", "display": "block"}}>
+                            PRIMARY RESIDENT PERMIT
+                          </span>
+                          <div id="wallet-primary-permit" style={{"fontFamily": "var(--font-display)", "fontSize": "0.95rem", "fontWeight": "800", "color": "var(--accent-cyan)"}}>
+                            Maryland Wear &amp; Carry
+                          </div>
+                        </div>
+
+                        <div>
+                          <span style={{"fontSize": "0.70rem", "textTransform": "uppercase", "color": "#94a3b8", "fontWeight": "800", "letterSpacing": "0.8px", "display": "block"}}>
+                            PERMIT EXPIRATION DATE
+                          </span>
+                          <div id="wallet-exp-date" style={{"fontFamily": "monospace", "fontSize": "1.05rem", "fontWeight": "900", "color": "#ef4444"}}>
+                            Oct 15, 2026
+                          </div>
+                        </div>
+
+                        <div>
+                          <span style={{"fontSize": "0.70rem", "textTransform": "uppercase", "color": "#94a3b8", "fontWeight": "800", "letterSpacing": "0.8px", "display": "block"}}>
+                            LEGAL CARRY FOOTPRINT
+                          </span>
+                          <div id="wallet-carry-reach" style={{"fontFamily": "var(--font-display)", "fontSize": "0.95rem", "fontWeight": "800", "color": "var(--accent-green)"}}>
+                            34+ States Recognized
+                          </div>
+                        </div>
+
+                        <div>
+                          <span style={{"fontSize": "0.70rem", "textTransform": "uppercase", "color": "#94a3b8", "fontWeight": "800", "letterSpacing": "0.8px", "display": "block"}}>
+                            90-DAY RENEWAL WATCH
+                          </span>
+                          <div id="wallet-days-left" style={{"fontFamily": "var(--font-display)", "fontSize": "0.95rem", "fontWeight": "800", "color": "var(--accent-cyan)"}}>
+                            Active (90+ Days)
+                          </div>
+                        </div>
+
+                        <div style={{"gridColumn": "1 / -1", "paddingTop": "6px", "borderTop": "1px solid rgba(255, 255, 255, 0.06)", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "6px"}}>
+                          <div style={{"fontSize": "0.72rem", "color": "#94a3b8"}}>
+                            <strong style={{"color": "#cbd5e1"}}>RESTRICTIONS:</strong> <span style={{"color": "var(--accent-green)", "fontWeight": "700"}}>NONE (Unrestricted Concealed Carry)</span>
+                          </div>
+                          <div style={{"fontSize": "0.72rem", "color": "#94a3b8"}}>
+                            <strong style={{"color": "#cbd5e1"}}>CLASS:</strong> STANDARD RESIDENT CCW
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* PERMIT FOOTER BAR: SECURITY BARCODE & ACTIVE PERMITS + ACTIONS */}
+                    <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "14px"}}>
                       <div>
-                        <div style={{"fontSize": "0.72rem", "textTransform": "uppercase", "color": "var(--text-muted)", "fontWeight": "700", "marginBottom": "6px"}}>
-                          Active Registered Permits & Reciprocity Credentials
+                        <div style={{"fontSize": "0.70rem", "textTransform": "uppercase", "color": "var(--text-muted)", "fontWeight": "800", "marginBottom": "6px", "letterSpacing": "0.8px"}}>
+                          ACTIVE REGISTERED RECIPROCITY CREDENTIALS:
                         </div>
                         <div id="wallet-multiplier-badges" style={{"display": "flex", "gap": "8px", "flexWrap": "wrap"}}>
-                          <span className="meta-chip" id="permit-badge-md" style={{"color": "var(--accent-cyan)", "borderColor": "var(--accent-cyan)", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
-                            <span>MD Wear & Carry (Resident Lead)</span>
+                          <span className="meta-chip" id="permit-badge-md" style={{"color": "var(--accent-cyan)", "borderColor": "var(--accent-cyan)", "display": "inline-flex", "alignItems": "center", "gap": "6px", "fontSize": "0.76rem"}}>
+                            <span>MD Wear &amp; Carry (Resident Lead)</span>
                           </span>
-                          <span className="meta-chip" id="permit-badge-va" style={{"color": "#10b981", "borderColor": "#10b981", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                          <span className="meta-chip" id="permit-badge-va" style={{"color": "#10b981", "borderColor": "#10b981", "display": "inline-flex", "alignItems": "center", "gap": "6px", "fontSize": "0.76rem"}}>
                             <span>+VA Non-Resident CHP</span>
                             <button type="button" data-onclick="deleteClientPermit('va')" onClick={() => { if (typeof window !== 'undefined' && (window as any).deleteClientPermit) (window as any).deleteClientPermit('va'); }} title="Remove active permit record" style={{"background": "none", "border": "none", "color": "#ef4444", "cursor": "pointer", "fontSize": "11px", "fontWeight": "bold", "padding": "0 2px"}}>✕</button>
                           </span>
-                          <span className="meta-chip" id="permit-badge-fl" style={{"color": "#60a5fa", "borderColor": "#60a5fa", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                          <span className="meta-chip" id="permit-badge-fl" style={{"color": "#60a5fa", "borderColor": "#60a5fa", "display": "inline-flex", "alignItems": "center", "gap": "6px", "fontSize": "0.76rem"}}>
                             <span>+FL Non-Resident CWL</span>
                             <button type="button" data-onclick="deleteClientPermit('fl')" onClick={() => { if (typeof window !== 'undefined' && (window as any).deleteClientPermit) (window as any).deleteClientPermit('fl'); }} title="Remove active permit record" style={{"background": "none", "border": "none", "color": "#ef4444", "cursor": "pointer", "fontSize": "11px", "fontWeight": "bold", "padding": "0 2px"}}>✕</button>
                           </span>
-                          <span className="meta-chip" id="permit-badge-az" style={{"color": "#c084fc", "borderColor": "#c084fc", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                          <span className="meta-chip" id="permit-badge-az" style={{"color": "#c084fc", "borderColor": "#c084fc", "display": "inline-flex", "alignItems": "center", "gap": "6px", "fontSize": "0.76rem"}}>
                             <span>+AZ Non-Resident CWP</span>
                             <button type="button" data-onclick="deleteClientPermit('az')" onClick={() => { if (typeof window !== 'undefined' && (window as any).deleteClientPermit) (window as any).deleteClientPermit('az'); }} title="Remove active permit record" style={{"background": "none", "border": "none", "color": "#ef4444", "cursor": "pointer", "fontSize": "11px", "fontWeight": "bold", "padding": "0 2px"}}>✕</button>
                           </span>
-                          <span className="meta-chip" id="permit-badge-pa" style={{"color": "var(--accent-amber)", "borderColor": "var(--accent-amber)", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                          <span className="meta-chip" id="permit-badge-pa" style={{"color": "var(--accent-amber)", "borderColor": "var(--accent-amber)", "display": "inline-flex", "alignItems": "center", "gap": "6px", "fontSize": "0.76rem"}}>
                             <span>+PA LTCF Border Permit</span>
                             <button type="button" data-onclick="deleteClientPermit('pa')" onClick={() => { if (typeof window !== 'undefined' && (window as any).deleteClientPermit) (window as any).deleteClientPermit('pa'); }} title="Remove active permit record" style={{"background": "none", "border": "none", "color": "#ef4444", "cursor": "pointer", "fontSize": "11px", "fontWeight": "bold", "padding": "0 2px"}}>✕</button>
                           </span>
                         </div>
                       </div>
-                      <button className="btn-spark" data-onclick="toggleReciprocityHubModal(true)" style={{"width": "auto", "padding": "8px 16px", "fontSize": "0.85rem", "borderColor": "var(--accent-amber)", "color": "var(--accent-amber)"}} type="button">
-                        
-                🗺️ Check 50-State Reciprocity Map ↗
-              
-                      </button>
+
+                      <div style={{"display": "flex", "gap": "10px", "flexWrap": "wrap"}}>
+                        <button className="btn-spark" data-onclick="toggleReciprocityHubModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleReciprocityHubModal) (window as any).toggleReciprocityHubModal(true); }} style={{"width": "auto", "padding": "8px 16px", "fontSize": "0.85rem", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)"}} type="button">
+                          🗺️ Check 50-State Reciprocity Map ↗
+                        </button>
+                        <button className="btn-spark" data-onclick="toggleMultiPermitModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} style={{"width": "auto", "padding": "8px 16px", "fontSize": "0.85rem", "borderColor": "#F59E0B", "color": "#F59E0B"}} type="button">
+                          ⭐ 34+ State Expansion Guide ↗
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </div></div>
                 <div style={{"display": "flex", "gap": "12px", "flexWrap": "wrap", "marginTop": "22px", "paddingTop": "18px", "borderTop": "1px solid rgba(255,255,255,0.08)"}}>
-                  <button className="btn-primary" data-onclick="fiScrollTo('fi-sec-renewal')" style={{"width": "auto", "padding": "10px 20px", "fontSize": "0.88rem"}} type="button">
-                    
-              ⏱️ Check Permit Expiration
-            
+                  <button className="btn-primary" data-onclick="openPermitRenewalModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openPermitRenewalModal) (window as any).openPermitRenewalModal(); }} style={{"width": "auto", "padding": "10px 20px", "fontSize": "0.88rem"}} type="button">
+                    ⏱️ Check Permit Expiration ↗
                   </button>
-                  <button className="btn-spark" data-onclick="toggleReciprocityHubModal(true)" style={{"width": "auto", "padding": "10px 20px", "fontSize": "0.88rem"}} type="button">
-                    
-              🗺️ 50-State Reciprocity Engine
-            
+                  <button className="btn-spark" data-onclick="toggleReciprocityHubModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleReciprocityHubModal) (window as any).toggleReciprocityHubModal(true); }} style={{"width": "auto", "padding": "10px 20px", "fontSize": "0.88rem"}} type="button">
+                    🗺️ 50-State Reciprocity Engine ↗
                   </button>
-                  <button className="btn-secondary" data-onclick="openFlyingWithFirearmModal()" style={{"width": "auto", "padding": "10px 20px", "fontSize": "0.88rem"}} type="button">
-                    
-              ✈️ Flying With Firearms Guide ↗
-            
+                  <button className="btn-spark" data-onclick="toggleMultiPermitModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} style={{"width": "auto", "padding": "10px 20px", "fontSize": "0.88rem", "borderColor": "#F59E0B", "color": "#F59E0B"}} type="button">
+                    ⭐ 34+ State Expansion Field Guide ↗
+                  </button>
+                  <button className="btn-secondary" data-onclick="openFlyingWithFirearmModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openFlyingWithFirearmModal) (window as any).openFlyingWithFirearmModal(); }} style={{"width": "auto", "padding": "10px 20px", "fontSize": "0.88rem"}} type="button">
+                    ✈️ Flying With Firearms Guide ↗
                   </button>
                 </div>
               </div>
-              {/* 6 PRIMARY RESOURCE CARDS */}
+              {/* 8 PRIMARY RESOURCE CARDS (INTERACTIVE MODAL LAUNCHERS) */}
               <div className="fi-hub-cards-grid">
-                {/* CARD 1 */}
-                <div className="fi-feature-card">
+                {/* CARD 1: 50-STATE RECIPROCITY HUB */}
+                <div className="fi-feature-card" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleReciprocityHubModal) (window as any).toggleReciprocityHubModal(true); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                   <div>
                     <span className="fi-feature-icon">
                       🗺️
@@ -1985,17 +2172,37 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       50-State Reciprocity Hub
                     </h3>
                     <p className="fi-feature-desc">
-                      
-                Interactive nationwide recognition engine. Evaluate where your Maryland Wear & Carry and multi-state non-resident permits (Utah, Florida, Virginia) are honored in real time.
-              
+                      Interactive nationwide recognition engine. Evaluate where your Maryland Wear &amp; Carry and multi-state non-resident permits (Utah, Florida, Virginia, Arizona) are honored in real time.
                     </p>
                   </div>
-                  <button className="btn-spark" data-onclick="toggleReciprocityHubModal(true)" type="button">
-                    Explore 50-State Reciprocity Hub ↓
+                  <button className="btn-spark" data-onclick="toggleReciprocityHubModal(true)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && (window as any).toggleReciprocityHubModal) (window as any).toggleReciprocityHubModal(true); }} type="button" style={{"width": "100%", "marginTop": "14px"}}>
+                    Launch 50-State Reciprocity Hub ↗
                   </button>
                 </div>
-                {/* CARD 2 */}
-                <div className="fi-feature-card">
+
+                {/* CARD 2: 34+ STATE MULTI-PERMIT EXPANSION SYSTEM */}
+                <div className="fi-feature-card highlight" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} style={{"borderColor": "rgba(245, 158, 11, 0.45)", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.98) 100%)", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
+                  <div>
+                    <span className="fi-feature-icon" style={{"color": "#F59E0B"}}>
+                      ⭐
+                    </span>
+                    <span className="fi-badge fi-badge-amber" style={{"marginBottom": "6px", "display": "inline-block", "fontSize": "0.72rem"}}>
+                      SOP &amp; FIELD GUIDE
+                    </span>
+                    <h3 className="fi-feature-title" style={{"color": "#fff", "marginTop": "4px"}}>
+                      34+ State Multi-Permit Expansion System
+                    </h3>
+                    <p className="fi-feature-desc">
+                      Lead Coach Kai Wade's authorized field guide. Master the chronological multi-state dispatch sequence (MD resident anchor, parallel VA/FL/AZ non-resident packets, and 5-minute PA border pickup), avoid clerical rejections, and unlock your $0 free MD HQL exemption.
+                    </p>
+                  </div>
+                  <button className="btn-spark" data-onclick="toggleMultiPermitModal(true)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} type="button" style={{"borderColor": "#F59E0B", "color": "#F59E0B", "boxShadow": "0 0 16px rgba(245, 158, 11, 0.2)", "width": "100%", "marginTop": "14px", "fontWeight": "800"}}>
+                    ⭐ Open 34+ State Field Guide ↗
+                  </button>
+                </div>
+
+                {/* CARD 3: TRAVELING WITH A FIREARM */}
+                <div className="fi-feature-card" onClick={() => { if (typeof window !== 'undefined' && (window as any).openVehicleTravelModal) (window as any).openVehicleTravelModal(); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                   <div>
                     <span className="fi-feature-icon">
                       🚗
@@ -2004,17 +2211,16 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       Traveling With a Firearm
                     </h3>
                     <p className="fi-feature-desc">
-                      
-                Interstate highway transit compliance under Federal Safe Passage (FOPA 18 U.S.C. § 926A). Vehicle storage standards, trunk rules, and regional state comparison tables.
-              
+                      Interstate highway transit compliance under Federal Safe Passage (FOPA 18 U.S.C. § 926A). Vehicle storage standards, trunk rules, glove box hazards, and regional state comparison tables.
                     </p>
                   </div>
-                  <button className="btn-spark" data-onclick="openVehicleTravelModal()" type="button">
+                  <button className="btn-spark" data-onclick="openVehicleTravelModal()" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && (window as any).openVehicleTravelModal) (window as any).openVehicleTravelModal(); }} type="button" style={{"width": "100%", "marginTop": "14px"}}>
                     🚗 Launch Vehicle Travel Hub ↗
                   </button>
                 </div>
-                {/* CARD 3 */}
-                <div className="fi-feature-card">
+
+                {/* CARD 4: FLYING WITH A FIREARM */}
+                <div className="fi-feature-card" onClick={() => { if (typeof window !== 'undefined' && (window as any).openFlyingWithFirearmModal) (window as any).openFlyingWithFirearmModal(); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                   <div>
                     <span className="fi-feature-icon">
                       ✈️
@@ -2023,55 +2229,52 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       Flying With a Firearm
                     </h3>
                     <p className="fi-feature-desc">
-                      
-                Commercial airline and TSA compliance guide. Complete 6-step check-in workflow, non-TSA padlock mandates, ammunition factory weight limits, and recovery protocols.
-              
+                      Commercial airline and TSA compliance guide. Complete 6-step check-in workflow, non-TSA padlock mandates, ammunition factory weight limits, and baggage recovery protocols.
                     </p>
                   </div>
-                  <button className="btn-spark" data-onclick="openFlyingWithFirearmModal()" type="button">
+                  <button className="btn-spark" data-onclick="openFlyingWithFirearmModal()" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && (window as any).openFlyingWithFirearmModal) (window as any).openFlyingWithFirearmModal(); }} type="button" style={{"width": "100%", "marginTop": "14px"}}>
                     ✈️ Launch Air Travel Guide ↗
                   </button>
                 </div>
-                {/* CARD 4 */}
-                <div className="fi-feature-card highlight" style={{"borderColor": "rgba(255,183,3,0.35)"}}>
+
+                {/* CARD 5: PERMIT & RENEWAL CENTER */}
+                <div className="fi-feature-card highlight" onClick={() => { if (typeof window !== 'undefined' && (window as any).openPermitRenewalModal) (window as any).openPermitRenewalModal(); }} style={{"borderColor": "rgba(255,183,3,0.35)", "cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                   <div>
                     <span className="fi-feature-icon">
                       ⏱️
                     </span>
                     <h3 className="fi-feature-title">
-                      Permit & Renewal Center
+                      Permit &amp; Renewal Center
                     </h3>
                     <p className="fi-feature-desc">
-                      
-                Never let your Maryland permit lapse. Calculate your exact expiration countdown, review the 90-day renewal roadmap, and claim your exclusive 10% FIFS renewal discount.
-              
+                      Never let your Maryland permit lapse. Calculate your exact expiration countdown, review the 90-day renewal roadmap, and claim your exclusive 10% FIFS renewal discount.
                     </p>
                   </div>
-                  <button className="btn-primary" data-onclick="openPermitRenewalModal()" onClick={() => { if (typeof window !== "undefined" && (window as any).openPermitRenewalModal) (window as any).openPermitRenewalModal(); }} type="button">
-                    Open Renewal Center ↗
+                  <button className="btn-primary" data-onclick="openPermitRenewalModal()" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && (window as any).openPermitRenewalModal) (window as any).openPermitRenewalModal(); }} type="button" style={{"width": "100%", "marginTop": "14px"}}>
+                    ⏱️ Open Renewal Center ↗
                   </button>
                 </div>
-                {/* CARD 5 */}
-                <div className="fi-feature-card">
+
+                {/* CARD 6: CLIENT PROFILE & REMINDERS */}
+                <div className="fi-feature-card" onClick={() => { if (typeof window !== 'undefined' && (window as any).openClientProfileModal) (window as any).openClientProfileModal(); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                   <div>
                     <span className="fi-feature-icon">
                       👤
                     </span>
                     <h3 className="fi-feature-title">
-                      Client Profile & Reminders
+                      Client Profile &amp; Reminders
                     </h3>
                     <p className="fi-feature-desc">
-                      
-                Store your permit expiration date securely for automated 90-day renewal notifications. Privacy guaranteed: zero firearm serial numbers or sensitive hardware details collected.
-              
+                      Store your permit expiration date securely for automated 90-day renewal notifications and SMS alert setup. Privacy guaranteed: zero firearm serial numbers collected.
                     </p>
                   </div>
-                  <button className="btn-secondary" data-onclick="openClientProfileModal()" type="button">
+                  <button className="btn-secondary" data-onclick="openClientProfileModal()" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && (window as any).openClientProfileModal) (window as any).openClientProfileModal(); }} type="button" style={{"width": "100%", "marginTop": "14px"}}>
                     🛡️ Manage Client Profile ↗
                   </button>
                 </div>
-                {/* CARD 6 */}
-                <div className="fi-feature-card">
+
+                {/* CARD 7: FUTURE INITIATIVE SERVICES */}
+                <div className="fi-feature-card" onClick={() => { if (typeof window !== 'undefined' && (window as any).openFutureServicesModal) (window as any).openFutureServicesModal(); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                   <div>
                     <span className="fi-feature-icon">
                       🛡️
@@ -2080,511 +2283,34 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       Future Initiative Services
                     </h3>
                     <p className="fi-feature-desc">
-                      
-                Professional instruction with Lead Instructor Kai Wade: Maryland 8-Hour Renewal, Multi-State Permit Expansion (UT/FL/VA), and 1-on-1 Diagnostic Range Coaching.
-              
+                      Professional instruction with Lead Instructor Kai Wade: Maryland 8-Hour Renewal, Multi-State Permit Expansion (UT/FL/VA), and 1-on-1 Diagnostic Range Coaching.
                     </p>
                   </div>
-                  <button className="btn-spark" data-onclick="openFutureServicesModal()" onClick={() => { if (typeof window !== "undefined" && (window as any).openFutureServicesModal) (window as any).openFutureServicesModal(); }} type="button">
-                    Explore Services & Book ↗
+                  <button className="btn-spark" data-onclick="openFutureServicesModal()" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && (window as any).openFutureServicesModal) (window as any).openFutureServicesModal(); }} type="button" style={{"width": "100%", "marginTop": "14px"}}>
+                    Explore Services &amp; Book ↗
                   </button>
                 </div>
-              </div>
-              {/* Closes fi-hub-cards-grid */}
-              {/* ================= SECTION: CLIENT PROFILE & REGISTRY ================= */}
-              {/* (Client Profile moved into #clientProfileModal deep-dive popup) */}
-              <div className="fi-section-header" id="fi-sec-renewal">
-                <h3>
-                  Permit & Renewal Center
-                </h3>
-                <p>
-                  Track your permit expiration, calculate your remaining window, and prepare your 8-hour Maryland renewal qualification.
-                </p>
-              </div>
-              <div className="fi-checklist-card">
-                {/* INTERACTIVE EXPIRATION CALCULATOR */}
-                <div className="fi-calc-box">
+
+                {/* CARD 8: CLIENT FAQ */}
+                <div className="fi-feature-card" onClick={() => { if (typeof window !== 'undefined' && (window as any).openClientFaqModal) (window as any).openClientFaqModal(); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                   <div>
-                    <span className="fi-badge fi-badge-cyan">
-                      Interactive Countdown Tool
-                    </span>
-                    <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "color": "#fff", "textTransform": "uppercase", "margin": "6px 0 8px"}}>
-                      
-                Permit Expiration Calculator
-              
-                    </h4>
-                    <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "14px"}}>
-                      
-                Enter the expiration date printed on your Maryland Wear & Carry permit card to calculate your active renewal timeline.
-              
-                    </p>
-                    <div className="form-group" style={{"marginBottom": "14px"}}>
-                      <label htmlFor="fiPermitExpInput" style={{"fontSize": "0.85rem", "color": "#cbd5e1"}}>
-                        Permit Expiration Date 
-                        <span className="req">
-                          *
-                        </span>
-                      </label>
-                      <input id="fiPermitExpInput" data-onchange="fiCalculateExpiration()" style={{"background": "#10161f", "border": "1px solid rgba(0,229,255,0.35)", "color": "#fff", "padding": "10px 14px", "borderRadius": "8px", "fontFamily": "var(--font-display)", "fontSize": "1.05rem"}} type="date" />
-                    </div>
-                    <button className="btn-spark" data-onclick="fiCalculateExpiration()" style={{"width": "auto", "padding": "9px 18px", "fontSize": "0.88rem"}} type="button">
-                      Calculate Renewal Window ⏱️
-                    </button>
-                  </div>
-                  <div className="fi-countdown-display" id="fiCountdownDisplay">
-                    <div style={{"fontSize": "0.78rem", "textTransform": "uppercase", "color": "var(--text-muted)", "letterSpacing": "1px"}}>
-                      Days Remaining Until Expiration
-                    </div>
-                    <div className="fi-countdown-number" id="fiDaysNumber" style={{"color": "var(--accent-cyan)"}}>
-                      --
-                    </div>
-                    <div className="fi-countdown-status" id="fiStatusLabel" style={{"color": "#94a3b8"}}>
-                      Enter Expiration Date
-                    </div>
-                    <div id="fiTimelineAdvice" style={{"fontSize": "0.82rem", "color": "#cbd5e1", "marginTop": "10px", "lineHeight": "1.4"}}>
-                      
-                Maryland State Police recommend completing training 90 to 120 days prior to permit expiration.
-              
-                    </div>
-                  </div>
-                </div>
-                {/* 10% FIFS RENEWAL DISCOUNT BANNER */}
-                <div style={{"background": "linear-gradient(135deg, rgba(255,183,3,0.15) 0%, rgba(251,133,0,0.15) 100%)", "border": "1px solid rgba(255,183,3,0.5)", "borderRadius": "14px", "padding": "22px 24px", "marginBottom": "28px", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "16px"}}>
-                  <div style={{"maxWidth": "650px"}}>
-                    <span className="fi-badge fi-badge-amber">
-                      Future Initiative Client Exclusive
-                    </span>
-                    <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.6rem", "color": "#fff", "textTransform": "uppercase", "margin": "4px 0 6px"}}>
-                      
-                10% Off Your Maryland Wear & Carry (8-Hour Renewal)
-              
-                    </h4>
-                    <p style={{"fontSize": "0.9rem", "color": "#e2e8f0", "lineHeight": "1.5"}}>
-                      
-                Renewing your permit with Future Initiative ensures complete compliance with Maryland Senate Bill 1 and Faulkner standards, including live-fire qualification shots conducted at Cindy's Hot Shots.
-              
-                    </p>
-                    <div style={{"marginTop": "8px", "fontFamily": "var(--font-display)", "fontSize": "1.05rem", "color": "var(--accent-amber)", "fontWeight": "700"}}>
-                      
-                Promo Code: 
-                      <code style={{"background": "rgba(0,0,0,0.5)", "padding": "3px 10px", "borderRadius": "6px", "border": "1px solid var(--accent-amber)", "color": "#fff"}}>
-                        RENEWAL10
-                      </code>
-                    </div>
-                  </div>
-                  <button className="btn-primary" data-onclick="fiClaimRenewalOffer()" style={{"width": "auto", "padding": "12px 24px", "fontSize": "0.95rem"}} type="button">
-                    
-              Claim 10% Off & Book Renewal →
-            
-                  </button>
-                </div>
-                {/* 90-DAY RENEWAL TIMELINE */}
-                <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.15rem", "color": "#fff", "textTransform": "uppercase", "marginBottom": "14px"}}>
-                  
-            Visual 90-Day Maryland Renewal Timeline
-          
-                </h4>
-                <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(220px, 1fr))", "gap": "14px", "marginBottom": "20px"}}>
-                  <div style={{"background": "rgba(0,0,0,0.3)", "borderTop": "3px solid var(--accent-cyan)", "padding": "14px", "borderRadius": "8px"}}>
-                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1rem", "color": "var(--accent-cyan)", "fontWeight": "700"}}>
-                      Day 90–75
-                    </div>
-                    <div style={{"fontSize": "0.88rem", "fontWeight": "600", "color": "#fff", "margin": "2px 0 4px"}}>
-                      Book 8-Hour Renewal
-                    </div>
-                    <div style={{"fontSize": "0.82rem", "color": "#94a3b8", "lineHeight": "1.4"}}>
-                      Schedule your class with Kai Wade. Secure range date and prep 50–100 target rounds.
-                    </div>
-                  </div>
-                  <div style={{"background": "rgba(0,0,0,0.3)", "borderTop": "3px solid var(--accent-amber)", "padding": "14px", "borderRadius": "8px"}}>
-                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1rem", "color": "var(--accent-amber)", "fontWeight": "700"}}>
-                      Day 60–45
-                    </div>
-                    <div style={{"fontSize": "0.88rem", "fontWeight": "600", "color": "#fff", "margin": "2px 0 4px"}}>
-                      Live-Fire Qualification
-                    </div>
-                    <div style={{"fontSize": "0.82rem", "color": "#94a3b8", "lineHeight": "1.4"}}>
-                      Pass 25-round practical qualification at Cindy's Hot Shots. Receive signed MSP Form 29-14.
-                    </div>
-                  </div>
-                  <div style={{"background": "rgba(0,0,0,0.3)", "borderTop": "3px solid var(--accent-green)", "padding": "14px", "borderRadius": "8px"}}>
-                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1rem", "color": "var(--accent-green)", "fontWeight": "700"}}>
-                      Day 45–30
-                    </div>
-                    <div style={{"fontSize": "0.88rem", "fontWeight": "600", "color": "#fff", "margin": "2px 0 4px"}}>
-                      Submit MSP Portal App
-                    </div>
-                    <div style={{"fontSize": "0.82rem", "color": "#94a3b8", "lineHeight": "1.4"}}>
-                      Log into Maryland State Police Licensing Portal. Upload score sheet and pay state renewal fee.
-                    </div>
-                  </div>
-                  <div style={{"background": "rgba(0,0,0,0.3)", "borderTop": "3px solid #cbd5e1", "padding": "14px", "borderRadius": "8px"}}>
-                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1rem", "color": "#fff", "fontWeight": "700"}}>
-                      Day 14–0
-                    </div>
-                    <div style={{"fontSize": "0.88rem", "fontWeight": "600", "color": "#fff", "margin": "2px 0 4px"}}>
-                      Receive Card in Mail
-                    </div>
-                    <div style={{"fontSize": "0.82rem", "color": "#94a3b8", "lineHeight": "1.4"}}>
-                      MSP issues renewed 3-year Wear & Carry permit card with zero coverage gap.
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* ================= EXCLUSIVE CLIENT FEATURE: SMS RENEWAL WATCH ALERTS ================= */}
-              <div className="fi-checklist-card" style={{"border": "1.5px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.06) 0%, rgba(13, 19, 27, 0.98) 100%)", "marginTop": "24px"}}>
-                <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "flexWrap": "wrap", "gap": "12px", "marginBottom": "14px"}}>
-                  <div>
-                    <span className="fi-badge fi-badge-amber">
-                      Automated Reminder Service
-                    </span>
-                    <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.45rem", "color": "#fff", "textTransform": "uppercase", "margin": "4px 0 2px"}}>
-                      
-                  📱 Push & SMS 90-Day Renewal Watch
-                
-                    </h4>
-                    <p style={{"fontSize": "0.86rem", "color": "var(--text-muted)", "lineHeight": "1.5"}}>
-                      
-                  Activate automated text alerts directly to your phone. Never risk an accidental permit expiration or legal lapse in your Maryland carry coverage.
-                
-                    </p>
-                  </div>
-                </div>
-                <form id="fiSmsRenewalForm" data-onsubmit="handleSmsAlertSubmit(event)">
-                  <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "14px", "marginBottom": "14px"}}>
-                    <div className="form-group" style={{"marginBottom": "0"}}>
-                      <label htmlFor="smsPhoneInput" style={{"fontSize": "0.82rem", "color": "var(--accent-amber)", "fontWeight": "700", "textTransform": "uppercase"}}>
-                        Mobile Phone Number (SMS Enabled) 
-                        <span className="req">
-                          *
-                        </span>
-                      </label>
-                      <input id="smsPhoneInput" placeholder="(410) 555-0192" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="tel" />
-                    </div>
-                    <div className="form-group" style={{"marginBottom": "0"}}>
-                      <label htmlFor="smsCarrierSelect" style={{"fontSize": "0.82rem", "color": "var(--accent-amber)", "fontWeight": "700", "textTransform": "uppercase"}}>
-                        Primary Mobile Carrier
-                      </label>
-                      <select id="smsCarrierSelect" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}}>
-                        <option value="Verizon">
-                          Verizon Wireless
-                        </option>
-                        <option value="AT&amp;T">
-                          AT&T
-                        </option>
-                        <option value="T-Mobile">
-                          T-Mobile / Sprint
-                        </option>
-                        <option value="Other">
-                          Other Carrier
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                  <div style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "10px", "padding": "14px", "marginBottom": "16px"}}>
-                    <strong style={{"color": "#fff", "fontSize": "0.88rem", "display": "block", "marginBottom": "8px"}}>
-                      Select Notification Milestones:
-                    </strong>
-                    <div style={{"display": "flex", "flexDirection": "column", "gap": "8px"}}>
-                      <label style={{"display": "flex", "alignItems": "center", "gap": "10px", "fontSize": "0.84rem", "color": "#cbd5e1", "cursor": "pointer"}}>
-                        <input defaultChecked={true} id="chkSms120" style={{"accentColor": "var(--accent-amber)", "width": "16px", "height": "16px"}} type="checkbox" />
-                        <span>
-                          <strong>
-                            120 Days Prior:
-                          </strong>
-                           Advance planning schedule & range availability alert
-                        </span>
-                      </label>
-                      <label style={{"display": "flex", "alignItems": "center", "gap": "10px", "fontSize": "0.84rem", "color": "#cbd5e1", "cursor": "pointer"}}>
-                        <input defaultChecked={true} id="chkSms90" style={{"accentColor": "var(--accent-amber)", "width": "16px", "height": "16px"}} type="checkbox" />
-                        <span>
-                          <strong>
-                            90 Days Prior:
-                          </strong>
-                           Official renewal window opens + 10% FIFS course discount code (RENEWAL10)
-                        </span>
-                      </label>
-                      <label style={{"display": "flex", "alignItems": "center", "gap": "10px", "fontSize": "0.84rem", "color": "#cbd5e1", "cursor": "pointer"}}>
-                        <input defaultChecked={true} id="chkSms60" style={{"accentColor": "var(--accent-amber)", "width": "16px", "height": "16px"}} type="checkbox" />
-                        <span>
-                          <strong>
-                            60 Days Prior:
-                          </strong>
-                           Cindy's Hot Shots live-fire qualification deadline reminder
-                        </span>
-                      </label>
-                      <label style={{"display": "flex", "alignItems": "center", "gap": "10px", "fontSize": "0.84rem", "color": "#cbd5e1", "cursor": "pointer"}}>
-                        <input defaultChecked={true} id="chkSms30" style={{"accentColor": "var(--accent-amber)", "width": "16px", "height": "16px"}} type="checkbox" />
-                        <span>
-                          <strong>
-                            30 Days Prior:
-                          </strong>
-                           Urgent MSP Licensing Portal cutoff warning
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-                  <button className="btn-primary" id="btn-save-sms-alert" style={{"width": "100%", "padding": "12px", "background": "linear-gradient(135deg, #ffb703 0%, #fb8500 100%)", "color": "#070b10", "fontWeight": "800", "textTransform": "uppercase"}} type="submit">
-                    
-                💾 Activate Mobile SMS Renewal Watch 🛡️
-              
-                  </button>
-                  <div className="status-msg" id="sms-alert-status" style={{"display": "none", "marginTop": "12px"}}>
-                  </div>
-                </form>
-              </div>
-              {/* ================= SECTION: CLIENT PROFILE & REGISTRY ================= */}
-              {/* (Client Profile moved into #clientProfileModal deep-dive popup) */}
-              
-              <div className="fi-section-header" id="fi-sec-services">
-                <h3>
-                  Future Initiative Professional Services
-                </h3>
-                <p>
-                  Certified instruction tailored to permit holders and defensive shooters.
-                </p>
-              </div>
-              <div className="fi-hub-cards-grid">
-                <div className="fi-feature-card">
-                  <div>
-                    <span className="fi-badge fi-badge-amber">
-                      8-Hour Mandate
+                    <span className="fi-feature-icon">
+                      ❓
                     </span>
                     <h3 className="fi-feature-title">
-                      Maryland Wear & Carry (8-Hour Renewal)
+                      Permit Holder FAQ
                     </h3>
                     <p className="fi-feature-desc">
-                      
-                State-mandated refresher course covering SB 1 legal updates, conflict de-escalation, safe storage mandates, and live-fire qualification shots conducted at Cindy's Hot Shots.
-              
+                      Statutory and operational answers by Lead Coach Kai Wade: renewal timelines, fingerprints, FOPA § 926A safe transit, TSA rules, and Constitutional Carry vs Reciprocity.
                     </p>
-                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.3rem", "color": "#fff", "marginBottom": "12px"}}>
-                      
-                $175 
-                      <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "fontFamily": "var(--font-body)"}}>
-                        Base
-                      </span>
-                       • $325 
-                      <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)", "fontFamily": "var(--font-body)"}}>
-                        VIP Turnkey
-                      </span>
-                    </div>
                   </div>
-                  <button className="btn-primary" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (8-Hour Renewal) - $175')" type="button">
-                    Book Renewal Class →
-                  </button>
-                </div>
-                <div className="fi-feature-card">
-                  <div>
-                    <span className="fi-badge fi-badge-cyan">
-                      Multi-State Reciprocity
-                    </span>
-                    <h3 className="fi-feature-title">
-                      Multi-State Concealed Carry Mastery
-                    </h3>
-                    <p className="fi-feature-desc">
-                      
-                Comprehensive Utah, Florida, and Virginia non-resident permit training. Expands your legal carry recognition to over 34 states with zero classroom fluff.
-              
-                    </p>
-                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.3rem", "color": "#fff", "marginBottom": "12px"}}>
-                      
-                $425 
-                      <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "fontFamily": "var(--font-body)"}}>
-                        Base
-                      </span>
-                       • $550 
-                      <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)", "fontFamily": "var(--font-body)"}}>
-                        VIP Turnkey
-                      </span>
-                    </div>
-                  </div>
-                  <button className="btn-spark" onClick={() => { if (typeof window !== "undefined" && (window as any).openMultistateMasteryModal) (window as any).openMultistateMasteryModal(); }} data-onclick="openMultistateMasteryModal()" type="button">
-                    Explore 34+ State Shield ↗
-                  </button>
-                </div>
-                <div className="fi-feature-card">
-                  <div>
-                    <span className="fi-badge fi-badge-green">
-                      Private Coaching
-                    </span>
-                    <h3 className="fi-feature-title">
-                      Private 1-on-1 Range Diagnostic
-                    </h3>
-                    <p className="fi-feature-desc">
-                      
-                Intensive diagnostic coaching with Lead Instructor Kai Wade. Grip mechanics, sight recovery, target transitions, and holster draw diagnostics.
-              
-                    </p>
-                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.3rem", "color": "#fff", "marginBottom": "12px"}}>
-                      
-                $165/hr 
-                      <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "fontFamily": "var(--font-body)"}}>
-                        Base
-                      </span>
-                       • $295 
-                      <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)", "fontFamily": "var(--font-body)"}}>
-                        VIP Turnkey
-                      </span>
-                    </div>
-                  </div>
-                  <button className="btn-secondary" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Private 1-on-1 Range Coaching (Hourly) - $165"); }} data-onclick="selectCourse('Private 1-on-1 Range Coaching (Hourly) - $165')" type="button">
-                    Book Private Session →
+                  <button className="btn-spark" data-onclick="openClientFaqModal()" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && (window as any).openClientFaqModal) (window as any).openClientFaqModal(); }} type="button" style={{"width": "100%", "marginTop": "14px"}}>
+                    ❓ View Client FAQ ↗
                   </button>
                 </div>
               </div>
-              {/* ================= SECTION: PERMIT-HOLDER FAQ ================= */}
-              {/* ================= SECTION: OFFICIAL STATE LICENSING & EXEMPTIONS ================= */}
-              <div className="fi-section-header" id="fi-sec-licensing">
-                <h3>
-                  Official Maryland State Licensing & Statutory Exemptions
-                </h3>
-                <p>
-                  Direct state police portals for Wear & Carry applications, HQL submissions, and Designated Collector status.
-                </p>
-              </div>
-              <div className="fi-checklist-card" style={{"marginBottom": "28px"}}>
-                <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(300px, 1fr))", "gap": "18px"}}>
-                  {/* Card 1: MSP MyLicense Official Portal */}
-                  <div style={{"border": "2px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
-                    <div>
-                      <span className="next-step-badge" style={{"color": "var(--accent-amber)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
-                        OFFICIAL STATE LICENSING
-                      </span>
-                      <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "marginBottom": "6px"}}>
-                        🌐 MSP MyLicense Official Portal
-                      </h4>
-                      <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
-                        
-                  Official state portal to submit your formal Wear & Carry (CCW) or Handgun Qualification License (HQL) application, upload your certified MSP Form 29-14 score sheet, and monitor live state police investigator status.
-                
-                      </p>
-                    </div>
-                    <div>
-                      <a href="https://licensingportal.mdsp.maryland.gov/MspBridgeClient/" target="_blank" rel="noopener noreferrer" className="btn-spark" style={{"textDecoration": "none", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "borderColor": "var(--accent-amber)", "color": "var(--accent-amber)", "boxShadow": "0 0 16px rgba(255, 183, 3, 0.2)"}}>
-                        
-                  Launch Maryland MyLicense Portal ↗
-                
-                      </a>
-                    </div>
-                  </div>
-                  {/* Card 2: Maryland Designated Collector Exemption Hub */}
-                  <div style={{"border": "2px solid #a855f7", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(168, 85, 247, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
-                    <div>
-                      <span className="next-step-badge" style={{"color": "#c084fc", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
-                        STATUTORY PURCHASE EXEMPTION
-                      </span>
-                      <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "marginBottom": "6px"}}>
-                        📋 MSP Designated Firearms Collector Status
-                      </h4>
-                      <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
-                        
-                  Statutory Waiver of the 30-Day Regulated Firearm Purchase Limitation — Under Maryland Public Safety § 5-123 and COMAR 29.03.01.29, recognized collectors may acquire multiple regulated firearms within a 30-day statutory window. Approval establishes permanent statutory exemption with zero state filing fees.
-                
-                      </p>
-                    </div>
-                    <div style={{"display": "flex", "flexDirection": "column", "gap": "8px"}}>
-                      <a href="https://mdsp.maryland.gov/Organization/Pages/CriminalInvestigationBureau/LicensingDivision/Firearms/FirearmsCollectors.aspx" target="_blank" rel="noopener noreferrer" className="btn-spark" style={{"textDecoration": "none", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "borderColor": "#a855f7", "color": "#c084fc", "boxShadow": "0 0 16px rgba(168, 85, 247, 0.2)"}}>
-                        
-                  Launch MSP Collector Portal ↗
-                
-                      </a>
-                      <button type="button" className="btn-secondary-modal" data-onclick="openCollectorModal()" style={{"width": "100%", "padding": "10px 18px", "fontSize": "0.88rem", "fontWeight": "700", "textTransform": "uppercase", "letterSpacing": "0.8px"}}>
-                        
-                  View 4-Step Application Guide & Form 77R-3 ℹ
-                
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="fi-section-header" id="fi-sec-faq">
-                <h3>
-                  Permit Holder Frequently Asked Questions
-                </h3>
-                <p>
-                  Common statutory and operational inquiries answered by Lead Instructor Kai Wade.
-                </p>
-              </div>
-              <div className="fi-checklist-card">
-                <div className="faq-accordion-group">
-                  <div className="faq-item" data-onclick="toggleFaq(this)">
-                    <div className="faq-q">
-                      <span>
-                        When should I begin my Maryland Wear & Carry renewal process?
-                      </span>
-                      <span className="faq-icon">
-                        +
-                      </span>
-                    </div>
-                    <div className="faq-a">
-                      <p>
-                        Maryland State Police recommend completing your required 8-hour training course and submitting your renewal application in the MSP Licensing Portal between 90 and 120 days prior to expiration. This ensures sufficient time for state background processing and prevents any lapse in your permit validity.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="faq-item" data-onclick="toggleFaq(this)">
-                    <div className="faq-q">
-                      <span>
-                        Do I need to submit new fingerprints for my Maryland Wear & Carry renewal?
-                      </span>
-                      <span className="faq-icon">
-                        +
-                      </span>
-                    </div>
-                    <div className="faq-a">
-                      <p>
-                        No. For standard Maryland Wear & Carry permit renewals, livescan fingerprints are NOT required again. You only need your signed MSP Form 29-14 score sheet from a certified Qualified Handgun Instructor, updated passport photo, and the state renewal fee.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="faq-item" data-onclick="toggleFaq(this)">
-                    <div className="faq-q">
-                      <span>
-                        How does FOPA 18 U.S.C. § 926A protect me when driving through non-reciprocal states?
-                      </span>
-                      <span className="faq-icon">
-                        +
-                      </span>
-                    </div>
-                    <div className="faq-a">
-                      <p>
-                        The federal Firearm Owners Protection Act allows you to transport a firearm through any state regardless of local laws, provided: you can legally possess it at origin and destination, the firearm is unloaded, neither the firearm nor ammunition is accessible from the passenger compartment, and both are locked in the trunk or rear cargo container. Travel must be continuous and uninterrupted.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="faq-item" data-onclick="toggleFaq(this)">
-                    <div className="faq-q">
-                      <span>
-                        Can TSA agents open my locked firearm case at the airport without me?
-                      </span>
-                      <span className="faq-icon">
-                        +
-                      </span>
-                    </div>
-                    <div className="faq-a">
-                      <p>
-                        No. Federal regulation (49 CFR § 1540.111) specifies that only the passenger may possess the key or combination to the locked firearm container. If TSA requires physical inspection during baggage screening, airline protocol dictates that they must page you to the screening area to open the case in your presence.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="faq-item" data-onclick="toggleFaq(this)">
-                    <div className="faq-q">
-                      <span>
-                        What is the difference between Constitutional Carry and Reciprocity?
-                      </span>
-                      <span className="faq-icon">
-                        +
-                      </span>
-                    </div>
-                    <div className="faq-a">
-                      <p>
-                        Constitutional Carry (permitless carry) means a state allows lawful adults to carry concealed without needing any permit. Reciprocity means a state formally recognizes a permit issued by another specific state through statutory agreement or executive reciprocity order.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Closes fi-hub-cards-grid - Hub cleaned up upon login */}
+
               {/* ================= STATUTORY DISCLAIMER & CITATIONS ================= */}
               <div style={{"background": "rgba(0,0,0,0.4)", "border": "1px solid rgba(255,255,255,0.06)", "borderRadius": "12px", "padding": "18px 20px", "marginTop": "40px", "fontSize": "0.8rem", "color": "var(--text-muted)", "lineHeight": "1.5"}}>
                 <strong style={{"color": "#cbd5e1"}}>
@@ -6610,6 +6336,105 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </div>
+      {/* ================= MODAL: CLIENT PERMIT HOLDER FAQ ================= */}
+      <div className="reciprocity-hub-modal-overlay" id="clientFaqModal" data-onclick="if(event.target===this) closeClientFaqModal()" onClick={(e) => { if (e.target === e.currentTarget && typeof window !== 'undefined' && (window as any).closeClientFaqModal) (window as any).closeClientFaqModal(); }} style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "overflowY": "auto", "padding": "24px 16px"}}>
+        <div style={{"maxWidth": "960px", "margin": "0 auto", "position": "relative"}}>
+          <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "18px", "paddingBottom": "12px", "borderBottom": "1px solid var(--border-subtle)", "flexWrap": "wrap", "gap": "10px"}}>
+            <h2 style={{"fontFamily": "var(--font-display)", "fontSize": "1.65rem", "color": "#fff", "letterSpacing": "1px", "display": "flex", "alignItems": "center", "gap": "10px"}}>
+              <span>❓</span>
+              <span>Permit Holder Frequently Asked Questions</span>
+            </h2>
+            <button className="btn-return-home" data-onclick="closeClientFaqModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closeClientFaqModal) (window as any).closeClientFaqModal(); }} style={{"padding": "8px 18px", "fontSize": "0.95rem", "minHeight": "40px", "cursor": "pointer"}} type="button">
+              ✕ CLOSE FAQ
+            </button>
+          </div>
+          <div className="fi-checklist-card" style={{"background": "#0d131d", "border": "1px solid var(--border-subtle)", "borderRadius": "16px", "padding": "24px"}}>
+            <div className="faq-accordion-group">
+              <div className="faq-item" data-onclick="toggleFaq(this)">
+                <div className="faq-q">
+                  <span>
+                    When should I begin my Maryland Wear &amp; Carry renewal process?
+                  </span>
+                  <span className="faq-icon">
+                    +
+                  </span>
+                </div>
+                <div className="faq-a">
+                  <p>
+                    Maryland State Police recommend completing your required 8-hour training course and submitting your renewal application in the MSP Licensing Portal between 90 and 120 days prior to expiration. This ensures sufficient time for state background processing and prevents any lapse in your permit validity.
+                  </p>
+                </div>
+              </div>
+              <div className="faq-item" data-onclick="toggleFaq(this)">
+                <div className="faq-q">
+                  <span>
+                    Do I need to submit new fingerprints for my Maryland Wear &amp; Carry renewal?
+                  </span>
+                  <span className="faq-icon">
+                    +
+                  </span>
+                </div>
+                <div className="faq-a">
+                  <p>
+                    No. For standard Maryland Wear &amp; Carry permit renewals, livescan fingerprints are NOT required again. You only need your signed MSP Form 29-14 score sheet from a certified Qualified Handgun Instructor, updated passport photo, and the state renewal fee.
+                  </p>
+                </div>
+              </div>
+              <div className="faq-item" data-onclick="toggleFaq(this)">
+                <div className="faq-q">
+                  <span>
+                    How does FOPA 18 U.S.C. § 926A protect me when driving through non-reciprocal states?
+                  </span>
+                  <span className="faq-icon">
+                    +
+                  </span>
+                </div>
+                <div className="faq-a">
+                  <p>
+                    The federal Firearm Owners Protection Act allows you to transport a firearm through any state regardless of local laws, provided: you can legally possess it at origin and destination, the firearm is unloaded, neither the firearm nor ammunition is accessible from the passenger compartment, and both are locked in the trunk or rear cargo container. Travel must be continuous and uninterrupted.
+                  </p>
+                </div>
+              </div>
+              <div className="faq-item" data-onclick="toggleFaq(this)">
+                <div className="faq-q">
+                  <span>
+                    Can TSA agents open my locked firearm case at the airport without me?
+                  </span>
+                  <span className="faq-icon">
+                    +
+                  </span>
+                </div>
+                <div className="faq-a">
+                  <p>
+                    No. Federal regulation (49 CFR § 1540.111) specifies that only the passenger may possess the key or combination to the locked firearm container. If TSA requires physical inspection during baggage screening, airline protocol dictates that they must page you to the screening area to open the case in your presence.
+                  </p>
+                </div>
+              </div>
+              <div className="faq-item" data-onclick="toggleFaq(this)">
+                <div className="faq-q">
+                  <span>
+                    What is the difference between Constitutional Carry and Reciprocity?
+                  </span>
+                  <span className="faq-icon">
+                    +
+                  </span>
+                </div>
+                <div className="faq-a">
+                  <p>
+                    Constitutional Carry (permitless carry) means a state allows lawful adults to carry concealed without needing any permit. Reciprocity means a state formally recognizes a permit issued by another specific state through statutory agreement or executive reciprocity order.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style={{"marginTop": "24px", "textAlign": "center"}}>
+            <button className="btn-return-home" data-onclick="closeClientFaqModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closeClientFaqModal) (window as any).closeClientFaqModal(); }} style={{"minHeight": "44px", "padding": "10px 24px", "fontSize": "0.95rem", "cursor": "pointer"}} type="button">
+              ← RETURN TO CLIENT PORTAL
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* ================= DESIGNATED COLLECTOR INFO MODAL ================= */}
       <div className="state-dossier-modal-overlay" id="collectorInfoModal" data-onclick="if(event.target===this) closeCollectorModal()" style={{"display": "none"}}>
         <div aria-modal="true" className="state-dossier-card" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "620px"}}>
@@ -9217,9 +9042,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </div>
-      {/* Persistent Floating Contact & Live Chat Trigger Pill with Dismiss Handler */}
-      <div className="floating-comm-bubble-wrapper" id="floatingCommWrapper" style={{"position": "fixed", "bottom": "24px", "right": "24px", "zIndex": "99999", "display": "flex", "alignItems": "center", "gap": "8px"}}>
-        <div className="floating-comm-bubble" id="floatingCommPill" data-onclick="openContactWidgetModal()" role="button" tabIndex="0" title="Contact Coach Kai Wade • Call, Email or Live Chat">
+      {/* Persistent Floating Contact & Live Chat Trigger Pill with Permanent Dismiss Handler */}
+      <div className="floating-comm-bubble-wrapper" id="floatingCommWrapper" style={{"position": "fixed", "bottom": "24px", "right": "24px", "zIndex": "99999", "display": "flex", "alignItems": "center", "gap": "6px"}}>
+        <div className="floating-comm-bubble" id="floatingCommPill" data-onclick="openContactWidgetModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openContactWidgetModal) (window as any).openContactWidgetModal(); }} role="button" tabIndex={0} title="Contact Coach Kai Wade • Call, Email or Live Chat" style={{"cursor": "pointer"}}>
           <span style={{"fontSize": "1.25rem"}}>
             💬
           </span>
@@ -9230,17 +9055,18 @@ document.addEventListener('submit', handleDelegatedSubmit);
         <button
           type="button"
           id="floatingChatCloseBtn"
-          aria-label="Close Chat Widget"
-          title="Close Chat Widget"
+          aria-label="Close Chat Widget Permanently"
+          title="Dismiss Chat Widget"
           onClick={(e) => {
             e.stopPropagation();
-            if (window.confirm("Closing this chat requires you to use the primary contact panel on the homepage for future correspondence with Instructor Wade.")) {
-              const w = document.getElementById('floatingCommWrapper') || document.getElementById('floatingCommPill');
-              if (w) w.style.display = 'none';
+            if (window.confirm("if you close this, you'll have to resort to the contact instructor on the landing page to send a message.")) {
+              try { localStorage.setItem('fifs_chat_bubble_dismissed', '1'); } catch(err){}
+              const w = document.getElementById('floatingCommWrapper');
+              if (w) w.style.setProperty('display', 'none', 'important');
             }
           }}
-          data-onclick="event.stopPropagation(); if (window.confirm('Closing this chat requires you to use the primary contact panel on the homepage for future correspondence with Instructor Wade.')) { var w = document.getElementById('floatingCommWrapper') || document.getElementById('floatingCommPill'); if (w) w.style.display = 'none'; }"
-          style={{"width": "26px", "height": "26px", "borderRadius": "50%", "background": "rgba(9, 14, 21, 0.95)", "border": "1.5px solid rgba(0, 229, 255, 0.4)", "color": "#00e5ff", "display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "12px", "fontWeight": "900", "cursor": "pointer", "boxShadow": "0 2px 10px rgba(0, 0, 0, 0.7)", "transition": "all 0.2s ease"}}
+          data-onclick="event.stopPropagation(); if (window.confirm(&apos;if you close this, you&apos;ll have to resort to the contact instructor on the landing page to send a message.&apos;)) { try { localStorage.setItem(&apos;fifs_chat_bubble_dismissed&apos;, &apos;1&apos;); } catch(e){} var w = document.getElementById(&apos;floatingCommWrapper&apos;); if (w) w.style.setProperty(&apos;display&apos;, &apos;none&apos;, &apos;important&apos;); }"
+          style={{"width": "28px", "height": "28px", "borderRadius": "50%", "background": "rgba(9, 14, 21, 0.95)", "border": "1.5px solid var(--accent-cyan)", "color": "var(--accent-cyan)", "display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "13px", "fontWeight": "900", "cursor": "pointer", "boxShadow": "0 2px 10px rgba(0, 0, 0, 0.7)", "transition": "all 0.2s ease"}}
         >
           ✕
         </button>
