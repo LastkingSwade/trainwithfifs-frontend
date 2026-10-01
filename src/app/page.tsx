@@ -7899,6 +7899,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </span>
                 </div>
               </div>
+                </div>
+              </div>
               <div style={{"marginTop": "10px", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "8px"}}>
                 <span style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
                   
