@@ -910,11 +910,32 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </span>
                 </div>
               </div>
-              <button className="btn-sign-out" data-onclick="logoutStudent()" type="button">
-                
-            Sign Out
-          
-              </button>
+              <div style={{"display": "flex", "flexDirection": "column", "alignItems": "flex-end", "gap": "8px"}}>
+                <button className="btn-sign-out" data-onclick="logoutStudent()" type="button">
+                  Sign Out
+                </button>
+                <button
+                  type="button"
+                  className="btn-change-password"
+                  data-onclick="openStudentPasswordModal(false)"
+                  style={{
+                    "background": "rgba(255, 255, 255, 0.05)",
+                    "border": "1px solid rgba(255, 255, 255, 0.18)",
+                    "color": "#cbd5e1",
+                    "padding": "5px 12px",
+                    "borderRadius": "6px",
+                    "fontSize": "0.78rem",
+                    "fontWeight": 600,
+                    "cursor": "pointer",
+                    "display": "inline-flex",
+                    "alignItems": "center",
+                    "gap": "6px",
+                    "transition": "all 0.2s ease"
+                  }}
+                >
+                  🔒 Change Password
+                </button>
+              </div>
             </div>
             {/* Priority Action Concierge Hero Card */}
             <div className="next-step-card">
@@ -937,309 +958,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             {/* 8-Step Progress Tracker Roadmap */}
             
-                        {/* ================= MULTI-STATE 16-HOUR MASTERY INTERACTIVE CARD ================= */}
-            <div className="fi-card" id="dash-multistate-mastery-card" style={{ marginBottom: '24px', border: '1px solid rgba(245, 158, 11, 0.38)', background: 'linear-gradient(135deg, rgba(7, 10, 17, 0.98), rgba(15, 23, 42, 0.92))', borderRadius: '14px', padding: '24px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.55), 0 0 20px rgba(245, 158, 11, 0.12)', position: 'relative', overflow: 'hidden' }}>
-              {/* Header Badges */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  <span className="meta-chip" style={{ background: 'rgba(245, 158, 11, 0.16)', color: '#f59e0b', border: '1px solid #f59e0b', fontSize: '0.74rem', fontWeight: 800, letterSpacing: '0.8px' }}>
-                    ⚡ 16-HOUR INTENSIVE CURRICULUM
-                  </span>
-                  <span className="meta-chip" style={{ background: 'rgba(6, 182, 212, 0.14)', color: 'var(--accent-cyan)', border: '1px solid var(--accent-cyan)', fontSize: '0.74rem', fontWeight: 800 }}>
-                    34+ STATE MULTI-PERMIT EXPANSION
-                  </span>
-                </div>
-                <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: '#94a3b8' }}>
-                  ACCREDITED FIFS FIELD GUIDE
-                </span>
-              </div>
-
-              {/* Card Title & Curriculum Callout */}
-              <div style={{ marginBottom: '12px' }}>
-                <h3 style={{ fontFamily: 'var(--font-display)', color: '#fff', fontSize: '1.45rem', margin: '0 0 6px', fontWeight: 800, letterSpacing: '-0.3px' }}>
-                  Multi-State Concealed Carry Mastery Resource Suite
-                </h3>
-                <p style={{ color: '#f59e0b', fontSize: '0.82rem', fontFamily: 'var(--font-mono)', fontWeight: 700, margin: 0 }}>
-                  Comprehensive 16-Hour Legal &amp; Tactical Curriculum (Unlike Standard 8-Hour Formats)
-                </p>
-              </div>
-
-              {/* Detailed Description */}
-              <p style={{ color: '#cbd5e1', fontSize: '0.88rem', lineHeight: '1.6', marginBottom: '18px' }}>
-                Engineered specifically for Multi-State Mastery students. This track provides rigorous 16-hour instruction across multi-jurisdiction reciprocity (Maryland Wear &amp; Carry, Virginia CHP, Utah CFP, Florida CWL, and PA LTCF). Click below to launch the interactive tactical field guide or inspect your certified range qualification scoresheet.
-              </p>
-
-              {/* Resource Launch Triggers */}
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const modal = document.getElementById('multistate-modal-drawer');
-                    if (modal) modal.style.display = 'flex';
-                    const sopFrame = document.getElementById('view-sop-frame');
-                    const scoreFrame = document.getElementById('view-score-frame');
-                    if (sopFrame) sopFrame.style.display = 'flex';
-                    if (scoreFrame) scoreFrame.style.display = 'none';
-                    const sopBtn = document.getElementById('tab-sop-btn');
-                    const scoreBtn = document.getElementById('tab-score-btn');
-                    if (sopBtn) {
-                      sopBtn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
-                      sopBtn.style.color = '#070a11';
-                    }
-                    if (scoreBtn) {
-                      scoreBtn.style.background = 'transparent';
-                      scoreBtn.style.color = '#94a3b8';
-                    }
-                  }}
-                  style={{
-                    background: 'linear-gradient(135deg, #F59E0B, #D97706)',
-                    color: '#070A11',
-                    border: 'none',
-                    padding: '10px 20px',
-                    borderRadius: '8px',
-                    fontWeight: 800,
-                    fontSize: '0.86rem',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)'
-                  }}
-                >
-                  <span>📖</span> <span>Launch Interactive 16-Hr Field Guide</span>
-                </button>
-
-                <a
-                  href="/qualification_sheet_2.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    background: 'rgba(6, 182, 212, 0.12)',
-                    color: 'var(--accent-cyan)',
-                    border: '1px solid var(--accent-cyan)',
-                    padding: '9px 18px',
-                    borderRadius: '8px',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    textDecoration: 'none',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}
-                >
-                  <span>🎯</span> <span>MSP Form 29-14 Scoresheet ↗</span>
-                </a>
-              </div>
-            </div>
-
-            {/* ================= INTERACTIVE SLIDE-OVER DRAWER MODAL ================= */}
-            <div
-              id="multistate-modal-drawer"
-              style={{
-                display: 'none',
-                position: 'fixed',
-                inset: 0,
-                zIndex: 99999,
-                backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                backdropFilter: 'blur(8px)',
-                justifyContent: 'flex-end',
-                alignItems: 'stretch'
-              }}
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  e.currentTarget.style.display = 'none';
-                }
-              }}
-            >
-              <div
-                style={{
-                  width: '100%',
-                  maxWidth: '860px',
-                  height: '100vh',
-                  background: '#070a11',
-                  borderLeft: '1px solid rgba(245, 158, 11, 0.35)',
-                  padding: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  boxShadow: '-12px 0 50px rgba(0, 0, 0, 0.85)'
-                }}
-              >
-                {/* Drawer Top Header */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #1f2e4d', paddingBottom: '16px' }}>
-                    <div>
-                      <span style={{ fontSize: '0.72rem', letterSpacing: '1px', color: '#f59e0b', fontWeight: 800, textTransform: 'uppercase' }}>
-                        16-HOUR STUDENT MASTER ACADEMY
-                      </span>
-                      <h2 style={{ fontSize: '1.5rem', color: '#fff', margin: '4px 0', fontWeight: 900 }}>
-                        34+ State Multi-Permit SOP &amp; Field Guide
-                      </h2>
-                      <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
-                        Complete interactive course material, reciprocity breakdown, and live-fire scoring sheet.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const modal = document.getElementById('multistate-modal-drawer');
-                        if (modal) modal.style.display = 'none';
-                      }}
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid #1F2E4D',
-                        color: '#fff',
-                        borderRadius: '8px',
-                        padding: '6px 14px',
-                        cursor: 'pointer',
-                        fontSize: '1.2rem',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-
-                  {/* Tab Selector */}
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '16px', background: '#0d1424', padding: '6px', borderRadius: '10px', border: '1px solid #1f2e4d' }}>
-                    <button
-                      type="button"
-                      id="tab-sop-btn"
-                      onClick={() => {
-                        const sopFrame = document.getElementById('view-sop-frame');
-                        const scoreFrame = document.getElementById('view-score-frame');
-                        if (sopFrame) sopFrame.style.display = 'flex';
-                        if (scoreFrame) scoreFrame.style.display = 'none';
-                        const sopBtn = document.getElementById('tab-sop-btn');
-                        const scoreBtn = document.getElementById('tab-score-btn');
-                        if (sopBtn) {
-                          sopBtn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
-                          sopBtn.style.color = '#070a11';
-                        }
-                        if (scoreBtn) {
-                          scoreBtn.style.background = 'transparent';
-                          scoreBtn.style.color = '#94a3b8';
-                        }
-                      }}
-                      style={{
-                        flex: 1,
-                        padding: '10px',
-                        borderRadius: '6px',
-                        border: 'none',
-                        background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                        color: '#070a11',
-                        fontWeight: 800,
-                        fontSize: '0.84rem',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      📖 16-Hour Follow-Along SOP &amp; Field Guide
-                    </button>
-                    <button
-                      type="button"
-                      id="tab-score-btn"
-                      onClick={() => {
-                        const sopFrame = document.getElementById('view-sop-frame');
-                        const scoreFrame = document.getElementById('view-score-frame');
-                        if (sopFrame) sopFrame.style.display = 'none';
-                        if (scoreFrame) scoreFrame.style.display = 'flex';
-                        const sopBtn = document.getElementById('tab-sop-btn');
-                        const scoreBtn = document.getElementById('tab-score-btn');
-                        if (sopBtn) {
-                          sopBtn.style.background = 'transparent';
-                          sopBtn.style.color = '#94a3b8';
-                        }
-                        if (scoreBtn) {
-                          scoreBtn.style.background = 'var(--accent-cyan)';
-                          scoreBtn.style.color = '#070a11';
-                        }
-                      }}
-                      style={{
-                        flex: 1,
-                        padding: '10px',
-                        borderRadius: '6px',
-                        border: 'none',
-                        background: 'transparent',
-                        color: '#94a3b8',
-                        fontWeight: 800,
-                        fontSize: '0.84rem',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      🎯 Official MSP Form 29-14 Scoresheet
-                    </button>
-                  </div>
-                </div>
-
-                {/* Drawer Body Frames */}
-                <div style={{ flex: 1, margin: '16px 0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                  {/* View 1: SOP Interactive Document */}
-                  <div id="view-sop-frame" style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 700 }}>
-                        Interactive 34+ State Multi-Permit Field Guide (16-Hour Class Companion)
-                      </span>
-                      <a
-                        href="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{ fontSize: '0.78rem', color: '#f59e0b', textDecoration: 'underline' }}
-                      >
-                        Open In Full Browser Tab ↗
-                      </a>
-                    </div>
-                    <iframe
-                      src="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
-                      style={{ width: '100%', flex: 1, minHeight: '450px', border: 'none', borderRadius: '6px', background: '#070a11' }}
-                      title="16-Hour Follow-Along Field Guide"
-                    />
-                  </div>
-
-                  {/* View 2: MSP 29-14 Scoresheet */}
-                  <div id="view-score-frame" style={{ display: 'none', flexDirection: 'column', height: '100%', flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 700 }}>
-                        Official MSP Form 29-14 Live-Fire Scoresheet
-                      </span>
-                      <a
-                        href="/qualification_sheet_2.pdf"
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{ fontSize: '0.78rem', color: 'var(--accent-cyan)', textDecoration: 'underline' }}
-                      >
-                        Download Blank PDF ↗
-                      </a>
-                    </div>
-                    <iframe
-                      src="/qualification_sheet_2.pdf"
-                      style={{ width: '100%', flex: 1, minHeight: '450px', border: 'none', borderRadius: '6px', background: '#070A11' }}
-                      title="MSP Form 29-14 Scoresheet"
-                    />
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #1F2E4D', paddingTop: '14px' }}>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                    Future Initiative Firearm Services • Lead Instructor Kai Wade
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const modal = document.getElementById('multistate-modal-drawer');
-                      if (modal) modal.style.display = 'none';
-                    }}
-                    style={{ background: '#1F2E4D', color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}
-                  >
-                    Close Viewer
-                  </button>
-                </div>
-              </div>
-            </div>
-
-{/* Official Maryland Qualification Scoresheet Card (MSP Form 29-14) */}
+                        {/* Official Maryland Qualification Scoresheet Card (MSP Form 29-14) */}
             <div className="fi-card" id="dash-scoresheet-card" style={{"marginBottom": "24px", "border": "1px solid rgba(0, 229, 255, 0.28)", "background": "linear-gradient(135deg, rgba(7,11,16,0.95), rgba(15,23,42,0.85))", "borderRadius": "12px", "padding": "20px"}}>
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "12px", "flexWrap": "wrap", "gap": "8px"}}>
                 <div>
@@ -1501,32 +1220,58 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </a>
                 </div>
               </div>
-            </div>
-            {/* ================= EXCLUSIVE STUDENT TRAVEL & RECIPROCITY HUB ================= */}
-            <div className="portal-feature-launcher-card" style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "marginBottom": "24px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.15)"}}>
-              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "16px"}}>
+              {/* Card 5: Multi-State Concealed Carry Mastery Resource Suite */}
+              <div id="dash-multistate-mastery-card" className="portal-feature-launcher-card" style={{"border": "2px solid #f59e0b", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                 <div>
-                  <span className="next-step-badge" style={{"color": "var(--accent-cyan)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.82rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
-                    STUDENT PORTAL EXCLUSIVE TOOL
+                  <span className="next-step-badge" style={{"color": "#f59e0b", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                    ⚡ 16-HOUR INTENSIVE CURRICULUM
                   </span>
-                  <h3 className="portal-feature-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.45rem", "color": "#fff", "marginBottom": "6px"}}>
-                    🗺️ Multi-State CCW Reciprocity Navigator & Travel Hub
+                  <h3 className="portal-feature-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.4rem", "color": "#fff", "marginBottom": "6px"}}>
+                    🛡️ Multi-State Concealed Carry Mastery Resource Suite
                   </h3>
-                  <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "maxWidth": "620px"}}>
-                    
-                Interactive 50-state recognition map. See where you can carry with your Maryland permit, test Utah/Florida non-resident add-ons, plan interstate car travel corridors, and review mandatory TSA flying rules.
-              
+                  <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
+                    Engineered specifically for Multi-State Mastery students. Comprehensive 16-hour legal &amp; tactical curriculum across multi-jurisdiction reciprocity (MD, VA, UT, FL, PA). Click below to launch the full-screen interactive companion field guide.
                   </p>
                 </div>
-                <button className="btn-primary" data-onclick="toggleReciprocityHubModal(true)" style={{"width": "auto", "padding": "12px 24px", "fontSize": "0.95rem", "whiteSpace": "nowrap", "boxShadow": "0 0 18px var(--accent-cyan-glow)", "cursor": "pointer"}} type="button">
-                  
-              LAUNCH RECIPROCITY NAVIGATOR ↗
-            
-                </button>
+                <div>
+                  <button
+                    type="button"
+                    data-onclick="openMultiStateFullscreenViewer()"
+                    className="btn-spark"
+                    style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "borderColor": "#f59e0b", "color": "#f59e0b", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "gap": "8px", "boxShadow": "0 0 16px rgba(245, 158, 11, 0.25)"}}
+                  >
+                    <span>📖</span>
+                    <span>Launch Full-Screen Mastery Suite ↗</span>
+                  </button>
+                </div>
+              </div>
+              {/* Card 6: Multi-State CCW Reciprocity Navigator & Travel Hub */}
+              <div id="dash-reciprocity-card" className="portal-feature-launcher-card" style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
+                <div>
+                  <span className="next-step-badge" style={{"color": "var(--accent-cyan)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                    STUDENT PORTAL EXCLUSIVE TOOL
+                  </span>
+                  <h3 className="portal-feature-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.4rem", "color": "#fff", "marginBottom": "6px"}}>
+                    🗺️ Multi-State CCW Reciprocity Navigator &amp; Travel Hub
+                  </h3>
+                  <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
+                    Interactive 50-state recognition map. See where you can carry with your Maryland permit, test Utah/Florida non-resident add-ons, plan interstate car travel corridors, and review mandatory TSA flying rules.
+                  </p>
+                </div>
+                <div>
+                  <button
+                    type="button"
+                    data-onclick="toggleReciprocityHubModal(true)"
+                    className="btn-spark"
+                    style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "gap": "8px", "boxShadow": "0 0 16px var(--accent-cyan-glow)"}}
+                  >
+                    <span>Launch Reciprocity Navigator ↗</span>
+                  </button>
+                </div>
               </div>
             </div>
             {/* ================= DYNAMIC COURSE FOLLOW-ALONG PACKET CARD ================= */}
-            <div id="student-course-packet-card" style={{"background": "#0d121a", "border": "1px solid rgba(0, 229, 255, 0.3)", "borderRadius": "14px", "padding": "20px", "marginBottom": "24px"}}>
+            <div id="student-course-packet-card" style={{"display": "none", "background": "#0d121a", "border": "1px solid rgba(0, 229, 255, 0.3)", "borderRadius": "14px", "padding": "20px", "marginBottom": "24px"}}>
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "14px"}}>
                 <div>
                   <span style={{"fontFamily": "var(--font-display)", "fontSize": "0.78rem", "fontWeight": "800", "color": "var(--accent-cyan)", "letterSpacing": "1px", "textTransform": "uppercase"}}>
@@ -1548,7 +1293,226 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </a>
               </div>
             </div>
-            {/* State Dossier Details Modal */}
+      
+      {/* ================= FULL-SCREEN MULTI-STATE MASTERY VIEWER MODAL ================= */}
+      <div
+        id="multistate-modal-drawer"
+        style={{
+          display: 'none',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 999999,
+          backgroundColor: '#070a11',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}
+      >
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '12px 24px',
+          background: '#0a0f1d',
+          borderBottom: '1px solid rgba(245, 158, 11, 0.35)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
+          zIndex: 10
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <span style={{ fontSize: '0.72rem', letterSpacing: '1px', color: '#f59e0b', fontWeight: 800, textTransform: 'uppercase', background: 'rgba(245, 158, 11, 0.15)', padding: '3px 8px', borderRadius: '4px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+              16-HOUR MASTER ACADEMY
+            </span>
+            <h2 style={{ fontSize: '1.2rem', color: '#fff', margin: 0, fontWeight: 800 }}>
+              Multi-State Concealed Carry Mastery Resource Suite
+            </h2>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <a
+              href="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                background: 'rgba(245, 158, 11, 0.12)',
+                border: '1px solid #f59e0b',
+                color: '#f59e0b',
+                padding: '6px 14px',
+                borderRadius: '6px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <span>Open In New Tab ↗</span>
+            </a>
+            <button
+              type="button"
+              data-onclick="closeMultiStateFullscreenViewer()"
+              style={{
+                background: '#ef4444',
+                border: 'none',
+                color: '#fff',
+                padding: '6px 16px',
+                borderRadius: '6px',
+                fontSize: '0.85rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              ✕ Close Fullscreen
+            </button>
+          </div>
+        </div>
+        <div style={{ flex: 1, width: '100%', height: 'calc(100vh - 60px)', overflow: 'hidden' }}>
+          <iframe
+            src="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
+            style={{ width: '100%', height: '100%', border: 'none', background: '#070a11' }}
+            title="Multi-State Concealed Carry Mastery Fullscreen Suite"
+          />
+        </div>
+      </div>
+
+      {/* ================= MANDATORY & SELF-SERVICE PASSWORD CHANGE MODAL ================= */}
+      <div
+        id="fifsPasswordChangeModal"
+        style={{
+          display: 'none',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999999,
+          backgroundColor: 'rgba(5, 8, 14, 0.92)',
+          backdropFilter: 'blur(8px)',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}
+      >
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #0d131f 0%, #151d2d 100%)',
+            border: '1px solid rgba(0, 229, 255, 0.4)',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 229, 255, 0.15)',
+            borderRadius: '16px',
+            maxWidth: '460px',
+            width: '100%',
+            padding: '28px',
+            color: '#fff',
+            position: 'relative'
+          }}
+        >
+          <button
+            id="fifsPasswordModalCloseBtn"
+            type="button"
+            data-onclick="closeFifsPasswordModal()"
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              color: '#cbd5e1',
+              borderRadius: '8px',
+              padding: '4px 10px',
+              cursor: 'pointer',
+              fontSize: '0.9rem'
+            }}
+          >
+            ✕
+          </button>
+
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🔐</div>
+            <h3 id="fifsPasswordModalTitle" style={{ fontSize: '1.35rem', margin: '0 0 6px', fontWeight: 800 }}>
+              Update Portal Password
+            </h3>
+            <p id="fifsPasswordModalDesc" style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0, lineHeight: '1.4' }}>
+              For security compliance, please create a personalized permanent password for future logins.
+            </p>
+          </div>
+
+          <form id="fifsPasswordChangeForm" data-onsubmit="handleFifsPasswordChangeSubmit(event); return false;">
+            <input type="hidden" id="fifsPasswordUserType" value="student" />
+            <input type="hidden" id="fifsPasswordUserIdentifier" value="" />
+
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                New Password
+              </label>
+              <input
+                id="fifsNewPassword"
+                type="password"
+                placeholder="Minimum 8 characters"
+                required
+                style={{
+                  width: '100%',
+                  background: '#070b12',
+                  border: '1px solid #1f2e4d',
+                  borderRadius: '8px',
+                  padding: '12px 14px',
+                  color: '#fff',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '18px' }}>
+              <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Confirm New Password
+              </label>
+              <input
+                id="fifsConfirmPassword"
+                type="password"
+                placeholder="Re-enter new password"
+                required
+                style={{
+                  width: '100%',
+                  background: '#070b12',
+                  border: '1px solid #1f2e4d',
+                  borderRadius: '8px',
+                  padding: '12px 14px',
+                  color: '#fff',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <div id="fifsPasswordModalStatus" className="status-msg" style={{ display: 'none', marginBottom: '14px' }}></div>
+
+            <button
+              type="submit"
+              id="fifsPasswordSubmitBtn"
+              className="btn-primary"
+              style={{
+                width: '100%',
+                padding: '12px',
+                fontWeight: 800,
+                fontSize: '0.95rem',
+                letterSpacing: '0.5px'
+              }}
+            >
+              Set New Password &amp; Continue →
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* State Dossier Details Modal */}
             <div className="state-dossier-modal-overlay" id="stateDossierModal" data-onclick="if(event.target===this) closeStateDossier()" style={{"display": "none"}}>
               <div aria-labelledby="dossierStateTitle" aria-modal="true" className="state-dossier-card" data-onclick="event.stopPropagation()" role="dialog">
                 <button aria-label="Close dossier" className="dossier-close-btn" data-onclick="closeStateDossier()" type="button">
@@ -1769,7 +1733,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         <label htmlFor="regClientPassword">
                           Create Password <span className="req">*</span>
                         </label>
-                        <input id="regClientPassword" placeholder="Minimum 6 characters" required="" type="password" />
+                        <input id="regClientPassword" placeholder="Minimum 8 characters" required="" type="password" />
                       </div>
                       <div className="form-group">
                         <label htmlFor="regClientPasswordConfirm">
@@ -1837,11 +1801,32 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     </span>
                   </div>
                 </div>
+                <div style={{"display": "flex", "flexDirection": "column", "alignItems": "flex-end", "gap": "8px"}}>
                 <button className="btn-sign-out" data-onclick="fiLogoutClient()" type="button">
-                  
-              Sign Out
-            
+                  Sign Out
                 </button>
+                <button
+                  type="button"
+                  className="btn-change-password"
+                  data-onclick="openClientPasswordModal(false)"
+                  style={{
+                    "background": "rgba(255, 255, 255, 0.05)",
+                    "border": "1px solid rgba(255, 255, 255, 0.18)",
+                    "color": "#cbd5e1",
+                    "padding": "5px 12px",
+                    "borderRadius": "6px",
+                    "fontSize": "0.78rem",
+                    "fontWeight": 600,
+                    "cursor": "pointer",
+                    "display": "inline-flex",
+                    "alignItems": "center",
+                    "gap": "6px",
+                    "transition": "all 0.2s ease"
+                  }}
+                >
+                  🔒 Change Password
+                </button>
+              </div>
               </div>
               {/* CLIENT PORTAL STICKY SUBNAV */}
               <nav aria-label="Client Portal Navigation" className="fi-portal-subnav">

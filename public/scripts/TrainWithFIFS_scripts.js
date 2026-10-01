@@ -3674,6 +3674,12 @@ function loadDemoStudent() {
           if (statusDiv) statusDiv.style.display = 'none';
           sessionStorage.setItem('fifs_student_session', JSON.stringify(res.student));
           renderStudentDashboard(res.student);
+          var mustChangePass = Boolean(res.requirePasswordReset || res.force_password_reset || (res.student && (res.student.mustChangePassword || res.student.tempPasswordReset)));
+          if (mustChangePass) {
+            setTimeout(function() {
+              openStudentPasswordModal(true);
+            }, 350);
+          }
         } else {
           showStatus(statusDiv, res.message || 'Identifier not found in Student Roster.', 'error');
         }
@@ -7073,18 +7079,35 @@ function getStepNumberFromStatus(statusStr) {
       }
     };
     function updateStudentCoursePacketDisplay(courseName) {
+      var packetCard = document.getElementById('student-course-packet-card');
       var titleElem = document.getElementById('packetCardTitle');
       var descElem = document.getElementById('packetCardDesc');
       var linkElem = document.getElementById('packetCardLink');
       var c = (courseName || '').toLowerCase();
-      // Check if Renewal vs Initial
-      var isRenewal = c.includes('renewal') || c.includes('recertification') || c.includes('8-hour') || c.includes('8 hour');
-      var packet = isRenewal ? PACKET_LINKS.renewal : PACKET_LINKS.initial;
-      if (titleElem) titleElem.textContent = packet.title;
-      if (descElem) descElem.textContent = packet.desc;
-      if (linkElem) {
-        linkElem.href = packet.url;
-        linkElem.textContent = isRenewal ? "Open 8-Hour Renewal Guide ↗" : "Open 16-Hour Course Guide ↗";
+
+      // Explicit check for 16-Hour Initial vs 8-Hour Renewal vs other courses (HQL 4-hour, coaching, etc.)
+      var is16Hour = (c.includes('16-hour') || c.includes('16 hour') || c.includes('16hr') || c.includes('mastery') || (c.includes('wear & carry') && !c.includes('renewal') && !c.includes('8-hour') && !c.includes('8 hour') && !c.includes('hql'))) && !c.includes('4-hour') && !c.includes('4 hour') && !c.includes('hql');
+      var isRenewal = (c.includes('renewal') || c.includes('recertification') || c.includes('8-hour') || c.includes('8 hour')) && !c.includes('4-hour') && !c.includes('4 hour') && !c.includes('hql');
+
+      if (is16Hour) {
+        if (packetCard) packetCard.style.display = 'block';
+        if (titleElem) titleElem.textContent = PACKET_LINKS.initial.title;
+        if (descElem) descElem.textContent = PACKET_LINKS.initial.desc;
+        if (linkElem) {
+          linkElem.href = PACKET_LINKS.initial.url;
+          linkElem.textContent = "Open 16-Hour Course Guide ↗";
+        }
+      } else if (isRenewal) {
+        if (packetCard) packetCard.style.display = 'block';
+        if (titleElem) titleElem.textContent = PACKET_LINKS.renewal.title;
+        if (descElem) descElem.textContent = PACKET_LINKS.renewal.desc;
+        if (linkElem) {
+          linkElem.href = PACKET_LINKS.renewal.url;
+          linkElem.textContent = "Open 8-Hour Renewal Guide ↗";
+        }
+      } else {
+        // For 4-Hour HQL, coaching, cleaning, or any non-16-hour class: hide follow-along guide completely
+        if (packetCard) packetCard.style.display = 'none';
       }
     }
         function toggleReciprocityHubModal(show) {
@@ -11905,3 +11928,196 @@ if (typeof window !== 'undefined') {
     }
     return false;
   };
+
+
+    // ================= FULLSCREEN MASTERY SUITE & PASSWORD MODAL HANDLERS =================
+    function openMultiStateFullscreenViewer() {
+      var modal = document.getElementById('multistate-modal-drawer');
+      if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    function closeMultiStateFullscreenViewer() {
+      var modal = document.getElementById('multistate-modal-drawer');
+      if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+    window.openMultiStateFullscreenViewer = openMultiStateFullscreenViewer;
+    window.closeMultiStateFullscreenViewer = closeMultiStateFullscreenViewer;
+
+    var isPasswordModalForced = false;
+
+    function openStudentPasswordModal(isForced) {
+      isPasswordModalForced = Boolean(isForced);
+      var modal = document.getElementById('fifsPasswordChangeModal');
+      var closeBtn = document.getElementById('fifsPasswordModalCloseBtn');
+      var title = document.getElementById('fifsPasswordModalTitle');
+      var desc = document.getElementById('fifsPasswordModalDesc');
+      var userTypeInput = document.getElementById('fifsPasswordUserType');
+      var identInput = document.getElementById('fifsPasswordUserIdentifier');
+      var statusDiv = document.getElementById('fifsPasswordModalStatus');
+      var p1 = document.getElementById('fifsNewPassword');
+      var p2 = document.getElementById('fifsConfirmPassword');
+
+      if (userTypeInput) userTypeInput.value = 'student';
+      if (statusDiv) statusDiv.style.display = 'none';
+      if (p1) p1.value = '';
+      if (p2) p2.value = '';
+
+      var sessionData = null;
+      try {
+        sessionData = JSON.parse(sessionStorage.getItem('fifs_student_session') || '{}');
+      } catch (e) {}
+
+      if (identInput) {
+        identInput.value = (sessionData && (sessionData.studentId || sessionData.email)) || '';
+      }
+
+      if (isPasswordModalForced) {
+        if (closeBtn) closeBtn.style.display = 'none';
+        if (title) title.textContent = '🔒 First-Time Login: Set Your Password';
+        if (desc) desc.textContent = 'For your security, you must update your temporary access password to a permanent password before continuing.';
+      } else {
+        if (closeBtn) closeBtn.style.display = 'block';
+        if (title) title.textContent = 'Update Student Password';
+        if (desc) desc.textContent = 'Create a new personal password for your FIFS Student Portal access.';
+      }
+
+      if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      if (p1) p1.focus();
+    }
+    window.openStudentPasswordModal = openStudentPasswordModal;
+
+    function openClientPasswordModal(isForced) {
+      isPasswordModalForced = Boolean(isForced);
+      var modal = document.getElementById('fifsPasswordChangeModal');
+      var closeBtn = document.getElementById('fifsPasswordModalCloseBtn');
+      var title = document.getElementById('fifsPasswordModalTitle');
+      var desc = document.getElementById('fifsPasswordModalDesc');
+      var userTypeInput = document.getElementById('fifsPasswordUserType');
+      var identInput = document.getElementById('fifsPasswordUserIdentifier');
+      var statusDiv = document.getElementById('fifsPasswordModalStatus');
+      var p1 = document.getElementById('fifsNewPassword');
+      var p2 = document.getElementById('fifsConfirmPassword');
+
+      if (userTypeInput) userTypeInput.value = 'client';
+      if (statusDiv) statusDiv.style.display = 'none';
+      if (p1) p1.value = '';
+      if (p2) p2.value = '';
+
+      var sessionData = null;
+      try {
+        sessionData = JSON.parse(sessionStorage.getItem('fifs_client_session') || '{}');
+      } catch (e) {}
+
+      if (identInput) {
+        identInput.value = (sessionData && (sessionData.clientId || sessionData.email)) || '';
+      }
+
+      if (closeBtn) closeBtn.style.display = isPasswordModalForced ? 'none' : 'block';
+      if (title) title.textContent = 'Update Client Password';
+      if (desc) desc.textContent = 'Create a new personal password for your Future Initiative Portal access.';
+
+      if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      if (p1) p1.focus();
+    }
+    window.openClientPasswordModal = openClientPasswordModal;
+
+    function closeFifsPasswordModal() {
+      if (isPasswordModalForced) return; // Prevent closing if forced
+      var modal = document.getElementById('fifsPasswordChangeModal');
+      if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+    window.closeFifsPasswordModal = closeFifsPasswordModal;
+
+    function handleFifsPasswordChangeSubmit(event) {
+      if (event && event.preventDefault) event.preventDefault();
+      var userType = (document.getElementById('fifsPasswordUserType') || {}).value || 'student';
+      var ident = (document.getElementById('fifsPasswordUserIdentifier') || {}).value || '';
+      var p1 = (document.getElementById('fifsNewPassword') || {}).value || '';
+      var p2 = (document.getElementById('fifsConfirmPassword') || {}).value || '';
+      var statusDiv = document.getElementById('fifsPasswordModalStatus');
+      var submitBtn = document.getElementById('fifsPasswordSubmitBtn');
+
+      if (!ident) {
+        // Fallback to active input if session ident is blank
+        var activeInp = document.getElementById(userType === 'client' ? 'clientAuthInput' : 'studentAuthInput');
+        ident = activeInp ? activeInp.value.trim() : '';
+      }
+
+      if (!ident) {
+        showStatus(statusDiv, 'User session identifier missing. Please re-login.', 'error');
+        return false;
+      }
+
+      if (p1.length < 6) {
+        showStatus(statusDiv, 'Password must be at least 6 characters.', 'error');
+        return false;
+      }
+
+      if (p1 !== p2) {
+        showStatus(statusDiv, 'Passwords do not match. Please verify.', 'error');
+        return false;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Updating Password...';
+      }
+
+      showStatus(statusDiv, 'Encrypting & updating password in Supabase...', 'info');
+
+      callFifsBackend('selfServicePasswordUpdate', {
+        userType: userType,
+        identifier: ident,
+        studentId: ident,
+        password: p1,
+        newPassword: p1
+      }, function(res) {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Set New Password & Continue →';
+        }
+        if (res && (res.status === 'success' || res.success)) {
+          showStatus(statusDiv, 'Password updated successfully! Welcome.', 'success');
+          // Clear forced state & update session
+          isPasswordModalForced = false;
+          try {
+            var sessKey = userType === 'client' ? 'fifs_client_session' : 'fifs_student_session';
+            var sess = JSON.parse(sessionStorage.getItem(sessKey) || '{}');
+            sess.mustChangePassword = false;
+            sess.tempPasswordReset = false;
+            sessionStorage.setItem(sessKey, JSON.stringify(sess));
+          } catch (e) {}
+
+          setTimeout(function() {
+            var modal = document.getElementById('fifsPasswordChangeModal');
+            if (modal) modal.style.display = 'none';
+            document.body.style.overflow = '';
+          }, 600);
+        } else {
+          showStatus(statusDiv, (res && (res.message || res.error)) || 'Failed to update password.', 'error');
+        }
+      }, function(err) {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Set New Password & Continue →';
+        }
+        showStatus(statusDiv, 'Server error updating password. Please retry.', 'error');
+      });
+
+      return false;
+    }
+    window.handleFifsPasswordChangeSubmit = handleFifsPasswordChangeSubmit;

@@ -449,16 +449,40 @@ export async function POST(req: NextRequest) {
       case 'setupStudentPassword':
       case 'firstLoginPasswordChange':
       case 'selfServicePasswordUpdate': {
-        const identifier = (payload.studentId || payload.email || '').trim();
+        const identifier = (payload.identifier || payload.studentId || payload.clientId || payload.email || '').trim();
         const newPassword = (payload.password || payload.newPassword || '').trim();
+        const userType = payload.userType || 'student';
 
         if (!identifier || !newPassword) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Student ID and new password are required.' }, { status: 400 });
+          return NextResponse.json({ success: false, status: 'error', error: 'User identifier and new password are required.' }, { status: 400 });
         }
 
         const val = validateStrictPassword(newPassword);
         if (!val.valid) {
           return NextResponse.json({ success: false, status: 'error', error: val.error }, { status: 400 });
+        }
+
+        if (userType === 'client') {
+          const { data: updatedClient, error: clientErr } = await supabase
+            .from('clients')
+            .update({
+              portal_password: newPassword,
+              updated_at: new Date().toISOString()
+            })
+            .or(`email.ilike.${identifier},client_id.ilike.${identifier}`)
+            .select()
+            .maybeSingle();
+
+          if (clientErr) {
+            return NextResponse.json({ success: false, status: 'error', error: clientErr.message }, { status: 500 });
+          }
+
+          return NextResponse.json({
+            success: true,
+            status: 'success',
+            client: normalizeClient(updatedClient),
+            message: 'Client portal password updated successfully!'
+          });
         }
 
         const { data: updated, error: updateErr } = await supabase
@@ -472,7 +496,7 @@ export async function POST(req: NextRequest) {
           })
           .or(`email.ilike.${identifier},student_id.ilike.${identifier}`)
           .select()
-          .single();
+          .maybeSingle();
 
         if (updateErr) {
           return NextResponse.json({ success: false, status: 'error', error: updateErr.message }, { status: 500 });
