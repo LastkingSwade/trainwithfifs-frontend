@@ -4399,8 +4399,8 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
                 refreshAdminRosterTable();
               }
             }
-            var credsSummary = 'Portal URL: ' + loginPortalUrl + ' | ID: ' + newId + (res.tempPassword ? (' | Temp Password: ' + res.tempPassword) : '');
-            if (urlInput) urlInput.value = credsSummary;
+            var magicLink = (res && res.magicLink) ? res.magicLink : (origin + '/?portal=' + portalType + '&id=' + encodeURIComponent(newId) + (res.tempPassword ? ('&temp=' + encodeURIComponent(res.tempPassword)) : ''));
+            if (urlInput) urlInput.value = magicLink;
             if (resBox) resBox.style.display = 'block';
             showStatus(st, 'Credentials generated and invitation dispatched! Student can sign in at ' + loginPortalUrl + ' using their email/ID.', 'success');
           } else {
@@ -5663,11 +5663,18 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (actionParam) {
         openAndSwitch(actionParam);
       }
+      var tempParam = urlParams.get('temp') || urlParams.get('pwd') || urlParams.get('password');
       if (studentParam) {
         openAndSwitch('portal');
         var authInput = document.getElementById('studentAuthInput');
         if (authInput) {
           authInput.value = studentParam;
+        }
+        var passInput = document.getElementById('studentAuthPassword');
+        if (passInput && tempParam) {
+          passInput.value = tempParam;
+        }
+        if (typeof lookupStudentAccount === 'function') {
           lookupStudentAccount();
         }
       } else {
@@ -11081,6 +11088,7 @@ if (typeof window !== 'undefined') {
         var params = new URLSearchParams(window.location.search);
         var portal = params.get('portal');
         var studentId = params.get('id') || params.get('student');
+        var tempPass = params.get('temp') || params.get('pwd') || params.get('password');
         if (portal === 'student' || studentId) {
           if (typeof openAndSwitch === 'function') {
             openAndSwitch('portal');
@@ -11088,9 +11096,13 @@ if (typeof window !== 'undefined') {
           var authInput = document.getElementById('studentAuthInput');
           if (authInput && studentId) {
             authInput.value = studentId;
-            if (typeof lookupStudentAccount === 'function') {
-              setTimeout(lookupStudentAccount, 300);
-            }
+          }
+          var passInput = document.getElementById('studentAuthPassword');
+          if (passInput && tempPass) {
+            passInput.value = tempPass;
+          }
+          if (studentId && typeof lookupStudentAccount === 'function') {
+            setTimeout(lookupStudentAccount, 300);
           }
         }
       } catch (e) {
