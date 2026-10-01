@@ -870,96 +870,201 @@ export async function POST(req: NextRequest) {
 
      // 6. Self-Service Password Update
      case 'selfServicePasswordUpdate': {
-        const { email, currentPassword, newPassword } = payload;
-        if (!email || !newPassword) {
-          return NextResponse.json({ success: false, error: 'Email and new password are required.' }, { status: 400 });
+        const { email, studentId, identifier, currentPassword, newPassword } = payload;
+        const target = (email || studentId || identifier || '').trim().toLowerCase();
+        if (!target || !newPassword) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Student email or ID and new password are required.' }, { status: 400 });
         }
 
         const val = validateStrictPassword(newPassword);
         if (!val.valid) {
-          return NextResponse.json({ success: false, error: val.error }, { status: 400 });
+          return NextResponse.json({ success: false, status: 'error', error: val.error }, { status: 400 });
         }
 
-        const cleanEmail = email.trim().toLowerCase();
-
-        // 1. Update in students table
-        await supabase
+        // 1. Locate student in students table
+        const { data: student, error: stFindErr } = await supabase
           .from('students')
-          .update({ portal_password: newPassword, must_change_password: false, updated_at: new Date().toISOString() })
-          .eq('email', cleanEmail);
+          .select('*')
+          .or(`email.eq.${target},student_id.eq.${target.toUpperCase()}`)
+          .maybeSingle();
 
-        // 2. Update in clients table
-        await supabase
+        if (student) {
+          // If currentPassword is provided and student has a password, verify
+          if (student.portal_password && currentPassword && student.portal_password !== currentPassword) {
+            return NextResponse.json({ success: false, status: 'error', error: 'Current password does not match our records.' }, { status: 400 });
+          }
+
+          // Update student password and clear temporary/reset flags
+          const { error: updErr } = await supabase
+            .from('students')
+            .update({
+              portal_password: newPassword,
+              must_change_password: false,
+              temp_password_reset: false,
+              last_password_change: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', student.id);
+
+          if (updErr) {
+            return NextResponse.json({ success: false, status: 'error', error: updErr.message }, { status: 500 });
+          }
+
+          // Link & sync into public.profiles
+          if (student.email) {
+            try {
+              await supabase
+                .from('profiles')
+                .upsert({
+                  email: student.email,
+                  full_name: student.full_name,
+                  phone: student.phone,
+                  role: 'student',
+                  must_change_password: false,
+                  updated_at: new Date().toISOString()
+                }, { onConflict: 'email' });
+            } catch (profErr) {
+              console.warn('Profile sync non-fatal:', profErr);
+            }
+
+            // Sync into clients table if existing
+            try {
+              await supabase
+                .from('clients')
+                .update({
+                  temp_password_reset: false,
+                  last_password_change: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                })
+                .eq('email', student.email);
+            } catch (clErr) {
+              console.warn('Client sync non-fatal:', clErr);
+            }
+          }
+
+          return NextResponse.json({
+            success: true,
+            status: 'success',
+            message: 'Password updated successfully and linked to your student profile.',
+            student: {
+              ...normalizeStudent(student),
+              mustChangePassword: false
+            }
+          });
+        }
+
+        // 2. If not found in students, check clients table
+        const { data: client } = await supabase
           .from('clients')
-          .update({
-            temp_password_reset: false,
-            last_password_change: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .eq('email', cleanEmail);
+          .select('*')
+          .or(`email.eq.${target},client_id.eq.${target.toUpperCase()}`)
+          .maybeSingle();
 
-        // 3. Update in profiles table
-        await supabase
-          .from('profiles')
-          .update({
-            must_change_password: false,
-            updated_at: new Date().toISOString()
-          })
-          .eq('email', cleanEmail);
+        if (client) {
+          await supabase
+            .from('clients')
+            .update({
+              temp_password_reset: false,
+              last_password_change: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', client.id);
 
-        return NextResponse.json({ success: true, status: 'success', message: 'Account password updated successfully.' });
+          if (client.email) {
+            try {
+              await supabase
+                .from('profiles')
+                .upsert({
+                  email: client.email,
+                  full_name: client.full_name,
+                  phone: client.phone,
+                  role: 'client',
+                  must_change_password: false,
+                  updated_at: new Date().toISOString()
+                }, { onConflict: 'email' });
+            } catch (e) {}
+          }
+
+          return NextResponse.json({
+            success: true,
+            status: 'success',
+            message: 'Client portal password updated successfully.'
+          });
+        }
+
+        return NextResponse.json({ success: false, status: 'error', error: 'Student record not found for ' + target }, { status: 404 });
       }
 
 
      // 7. Student Portal Data Loader & Signed URL Refresh
      case 'getStudentPortalData': {
-       const identifier = (payload.identifier || payload.studentId || payload.email || '').trim().toLowerCase();
-       if (!identifier) {
-         return NextResponse.json({ success: false, error: 'Missing student identifier.' }, { status: 400 });
-       }
+        const identifier = (payload.identifier || payload.studentId || payload.email || '').trim().toLowerCase();
+        if (!identifier) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier.' }, { status: 400 });
+        }
 
+        const { data: student } = await supabase
+          .from('students')
+          .select('*')
+          .or(`student_id.eq.${identifier.toUpperCase()},email.eq.${identifier}`).maybeSingle();
 
-       const { data: student } = await supabase
-         .from('students')
-         .select('*')
-         .or(`student_id.eq.${identifier},email.eq.${identifier}`).maybeSingle();
+        if (!student) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Student record not found.' }, { status: 404 });
+        }
 
+        const reqPassword = payload.password;
+        // Password verification logic
+        if (student.portal_password) {
+          if (!reqPassword) {
+            return NextResponse.json({
+              success: false,
+              status: 'password_required',
+              message: 'Please enter your portal password to access your training dashboard.'
+            }, { status: 401 });
+          }
+          if (student.portal_password !== reqPassword.trim()) {
+            return NextResponse.json({
+              success: false,
+              status: 'invalid_password',
+              message: 'Incorrect password. Please verify and try again.'
+            }, { status: 401 });
+          }
+        } else if (student.must_change_password) {
+          return NextResponse.json({
+            success: false,
+            status: 'needs_password_setup',
+            message: 'First-time login: create your portal password below.'
+          });
+        }
 
-       if (!student) {
-         return NextResponse.json({ success: false, error: 'Student record not found.' }, { status: 404 });
-       }
+        // Fetch all course enrollments with classes joined
+        const { data: enrollments } = await supabase
+          .from('enrollments')
+          .select('id, class_id, scheduled_date, duration_hours, status, cancellation_reason, previous_dates, created_at, classes(title, description, materials_path, required_gear_notes)')
+          .eq('student_email', student.email)
+          .order('scheduled_date', { ascending: false });
 
+        const enrollmentsWithUrls = await Promise.all((enrollments || []).map(async (e: any) => {
+          let signedUrl = null;
+          if (e.classes?.materials_path) {
+            signedUrl = await getSignedDocumentUrl(supabase, e.classes.materials_path);
+          }
+          return {
+            ...e,
+            materialsUrl: signedUrl
+          };
+        }));
 
-       // Fetch all course enrollments with classes joined (Never expose internal_notes)
-       const { data: enrollments } = await supabase
-         .from('enrollments')
-         .select('id, class_id, scheduled_date, duration_hours, status, cancellation_reason, previous_dates, created_at, classes(title, description, materials_path, required_gear_notes)')
-         .eq('student_email', student.email)
-         .order('scheduled_date', { ascending: false });
-
-
-       // Generate fresh 7-day signed URLs for any active materials
-       const enrollmentsWithUrls = await Promise.all((enrollments || []).map(async (e: any) => {
-         let signedUrl = null;
-         if (e.classes?.materials_path) {
-           signedUrl = await getSignedDocumentUrl(supabase, e.classes.materials_path);
-         }
-         return {
-           ...e,
-           materialsUrl: signedUrl
-         };
-       }));
-
-
-       return NextResponse.json({
-         success: true,
-         student: {
-           ...normalizeStudent(student),
-           enrollments: enrollmentsWithUrls,
-           mustChangePassword: Boolean(student.must_change_password)
-         }
-       });
-     }
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          student: {
+            ...normalizeStudent(student),
+            enrollments: enrollmentsWithUrls,
+            mustChangePassword: Boolean(student.must_change_password)
+          }
+        });
+      }
 
 
      // 8. Automated 24-Hour Reminder Query & Trigger

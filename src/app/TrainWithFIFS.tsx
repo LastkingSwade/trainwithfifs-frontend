@@ -646,33 +646,59 @@ export default function TrainWithFIFS(props: any) {
       const modal = document.getElementById('changePasswordModal');
       if (!modal) return;
       const emailInput = document.getElementById('cpUserEmail') as HTMLInputElement | null;
-      let userEmail = '';
-      if (role === 'student') {
+      let userIdent = '';
+
+      if (role === 'student' || !role) {
         try {
           const s = sessionStorage.getItem('fifs_student_session');
-          if (s) userEmail = JSON.parse(s).email || '';
+          if (s) {
+            const parsed = JSON.parse(s);
+            userIdent = parsed.email || parsed.studentId || '';
+          }
         } catch(e) {}
+        if (!userIdent) {
+          const idChip = document.getElementById('dash-student-id');
+          if (idChip && idChip.textContent) {
+            userIdent = idChip.textContent.replace('ID:', '').trim();
+          }
+        }
+        if (!userIdent) {
+          const loginInp = document.getElementById('studentAuthInput') as HTMLInputElement | null;
+          if (loginInp && loginInp.value) userIdent = loginInp.value.trim();
+        }
       } else if (role === 'client') {
         try {
           const c = sessionStorage.getItem('fifs_client_session');
-          if (c) userEmail = JSON.parse(c).email || '';
+          if (c) {
+            const parsed = JSON.parse(c);
+            userIdent = parsed.email || parsed.clientId || '';
+          }
         } catch(e) {}
+        if (!userIdent) {
+          const idChip = document.getElementById('dash-client-id');
+          if (idChip && idChip.textContent) {
+            userIdent = idChip.textContent.replace('ID:', '').trim();
+          }
+        }
       }
-      if (!userEmail) {
-        userEmail = (window as any).__currentUserEmail || '';
+
+      if (!userIdent) {
+        userIdent = (window as any).__currentUserEmail || (window as any).__currentStudentSession?.email || '';
       }
-      if (emailInput) emailInput.value = userEmail;
+
+      if (emailInput && userIdent) emailInput.value = userIdent;
       const statusDiv = document.getElementById('changePasswordStatus');
       if (statusDiv) {
         statusDiv.style.display = 'none';
         statusDiv.innerHTML = '';
       }
+
       modal.classList.add('active');
-      modal.style.setProperty('display', 'block', 'important');
+      modal.style.setProperty('display', 'flex', 'important');
       modal.style.setProperty('opacity', '1', 'important');
       modal.style.setProperty('visibility', 'visible', 'important');
       modal.style.setProperty('pointer-events', 'auto', 'important');
-      modal.style.setProperty('z-index', '999999', 'important');
+      modal.style.setProperty('z-index', '9999999', 'important');
       document.body.classList.add('modal-open');
     };
 
@@ -681,10 +707,6 @@ export default function TrainWithFIFS(props: any) {
       if (!modal) return;
       modal.classList.remove('active');
       modal.style.setProperty('display', 'none', 'important');
-      modal.style.setProperty('opacity', '0', 'important');
-      modal.style.setProperty('visibility', 'hidden', 'important');
-      modal.style.setProperty('pointer-events', 'none', 'important');
-      modal.style.setProperty('z-index', '-10', 'important');
       document.body.classList.remove('modal-open');
     };
 
@@ -697,18 +719,18 @@ export default function TrainWithFIFS(props: any) {
       const statusDiv = document.getElementById('changePasswordStatus');
       const submitBtn = document.getElementById('btnSubmitChangePassword') as HTMLButtonElement | null;
 
-      const email = emailInput ? emailInput.value.trim() : '';
+      const userIdentifier = emailInput ? emailInput.value.trim() : '';
       const currentPassword = currInput ? currInput.value.trim() : '';
       const newPassword = newInput ? newInput.value.trim() : '';
       const confirmPassword = confirmInput ? confirmInput.value.trim() : '';
 
-      if (!email) {
+      if (!userIdentifier) {
         if (statusDiv) {
           statusDiv.style.display = 'block';
           statusDiv.style.background = 'rgba(239, 68, 68, 0.15)';
           statusDiv.style.border = '1px solid #ef4444';
           statusDiv.style.color = '#ef4444';
-          statusDiv.innerHTML = '⚠️ Please sign into your portal first to update your password.';
+          statusDiv.innerHTML = '⚠️ Please enter your Account Email or Student ID.';
         }
         return;
       }
@@ -728,7 +750,7 @@ export default function TrainWithFIFS(props: any) {
           statusDiv.style.background = 'rgba(239, 68, 68, 0.15)';
           statusDiv.style.border = '1px solid #ef4444';
           statusDiv.style.color = '#ef4444';
-          statusDiv.innerHTML = '⚠️ Passwords do not match. Please ensure both passwords match.';
+          statusDiv.innerHTML = '⚠️ Passwords do not match. Please verify and re-type.';
         }
         return;
       }
@@ -744,7 +766,9 @@ export default function TrainWithFIFS(props: any) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'selfServicePasswordUpdate',
-            email,
+            identifier: userIdentifier,
+            email: userIdentifier,
+            studentId: userIdentifier,
             currentPassword,
             newPassword
           })
@@ -756,16 +780,25 @@ export default function TrainWithFIFS(props: any) {
             statusDiv.style.background = 'rgba(16, 185, 129, 0.15)';
             statusDiv.style.border = '1px solid #10b981';
             statusDiv.style.color = '#10b981';
-            statusDiv.innerHTML = '✓ Account password updated successfully! Please keep your credentials secure.';
+            statusDiv.innerHTML = '✓ Password updated successfully and linked to your student profile!';
           }
+          // Update session in storage
+          try {
+            const s = sessionStorage.getItem('fifs_student_session');
+            if (s) {
+              const parsed = JSON.parse(s);
+              parsed.mustChangePassword = false;
+              sessionStorage.setItem('fifs_student_session', JSON.stringify(parsed));
+            }
+          } catch(e) {}
           if (currInput) currInput.value = '';
           if (newInput) newInput.value = '';
           if (confirmInput) confirmInput.value = '';
           setTimeout(() => {
             (window as any).closeChangePasswordModal();
-          }, 2000);
+          }, 1800);
         } else {
-          throw new Error(data.error || 'Failed to update password.');
+          throw new Error(data.error || data.message || 'Failed to update password.');
         }
       } catch (err: any) {
         if (statusDiv) {
@@ -784,8 +817,175 @@ export default function TrainWithFIFS(props: any) {
     };
 
     // =========================================================================
-    // INSTRUCTOR COMMAND HUB ROSTER & TELEMETRY CONTROLLERS
+    // FIFS PROMISE INTERACTIVE CARDS & DETAIL MODAL CONTROLLER
     // =========================================================================
+    const PROMISE_DATA: Record<string, any> = {
+      zero_intimidation: {
+        badge: "Uncompromising Excellence • Zero Intimidation",
+        icon: "🎯",
+        title: "Zero-Intimidation Mentorship",
+        subtitle: "Dignified, Patient, High-Standard Instruction for Every Background",
+        synopsis: "At Future Initiative Firearm Services, you never need prior shooting experience to step through our doors, you will never experience intimidation or ego on our firing line, and you do not need to have everything figured out before you arrive. Lead Instructor Kai Wade meets every student exactly where they are with calm, individualized coaching.",
+        sections: [
+          {
+            title: "Beginner-Safe Classroom & Firing Line",
+            desc: "Whether you have never touched a firearm or are handling one for the first time in your life, you are welcomed with dignity. Every question is answered patiently, mechanical safety is broken down methodically, and zero intimidation is tolerated."
+          },
+          {
+            title: "Ego-Free Diagnostic Coaching",
+            desc: "Instructor Kai Wade coaches with calm, clear verbal feedback and targeted micro-drills that break down grip mechanics, stance, sight alignment, and trigger press without shouting or artificial stress."
+          },
+          {
+            title: "Confidence Through Verified Competence",
+            desc: "We don't believe in fear-based training. We systematically replace anxiety with verified physical competency, instilling lifelong gun-handling muscle memory and muzzle discipline that you can rely on under real stress."
+          },
+          {
+            title: "Private & Small Group Formats",
+            desc: "Choose between private one-on-one sessions or paired training with a spouse, friend, or family member so you can learn at your own pace in an empowering, supportive environment."
+          }
+        ]
+      },
+      maryland_law: {
+        badge: "Legal Accountability • Maryland Statutes",
+        icon: "⚖️",
+        title: "Maryland Law & Reality Mastery",
+        subtitle: "Street-Level Statutes, Castle Doctrine Boundaries & Lethal Force Realities",
+        synopsis: "Carrying a concealed firearm in Maryland carries profound legal responsibilities. Our legal curriculum cuts through internet rumors and provides authoritative, street-level mastery of Maryland Criminal Law, recent statutory changes under SB 1, permissible transport regulations, and real-world lethal self-defense boundaries.",
+        sections: [
+          {
+            title: "Maryland Wear & Carry Statutory Scope",
+            desc: "Authoritative breakdown of MD Criminal Law § 4-203, sensitive location prohibitions under SB 1 (Gun Safety Act of 2023), private property consent requirements, and where you can lawfully carry daily."
+          },
+          {
+            title: "Castle Doctrine vs. Public Duty to Retreat",
+            desc: "Detailed legal analysis of Maryland’s strict duty to retreat in public, the legal boundaries of Castle Doctrine inside your home, proportional force standards, and defense of third parties."
+          },
+          {
+            title: "FOPA 18 U.S.C. § 926A Interstate Transport",
+            desc: "Master safe vehicular transit through non-reciprocal jurisdictions like DC, New Jersey, and New York. Learn how to lawfully case, separate, and store firearms and ammunition to avoid severe felony pitfalls during interstate travel."
+          },
+          {
+            title: "Post-Incident Legal & 911 Protocols",
+            desc: "Exactly what to say to 911 dispatchers, how to interact with arriving law enforcement after a defensive encounter, establishing self-defense evidence, and exercising your Constitutional rights safely."
+          }
+        ]
+      },
+      cindys_live_fire: {
+        badge: "Range Qualification • Premier Facility",
+        icon: "💥",
+        title: "Live-Fire Qualification at Cindy's Hot Shots",
+        subtitle: "Dedicated Downrange Firing Line & Official Maryland State Police Course-of-Fire",
+        synopsis: "Live-fire practical instruction and live qualification are conducted downrange at Cindy's Hot Shots (115 Holsum Way, Glen Burnie, MD) — Anne Arundel County’s premier indoor shooting facility. Every student experiences real trigger time, practical recoil control, and verified passing score achievement.",
+        sections: [
+          {
+            title: "Premier Facility Partnership",
+            desc: "Cindy's Hot Shots features state-of-the-art climate-controlled lanes, advanced target retrieval systems, and dedicated safety personnel, ensuring an immaculate and secure firing line for all FIFS students."
+          },
+          {
+            title: "Official MSP 25-Round Course of Fire",
+            desc: "Structured qualification covering the official Maryland State Police course-of-fire on B-27 silhouette targets at 3, 5, 7, and 15 yards. Students consistently achieve 90%+ accuracy under Kai Wade’s diagnostic coaching."
+          },
+          {
+            title: "Recoil Control & Malfunction Diagnostics",
+            desc: "Hands-on diagnostic drills covering dominant-eye targeting, recoil mitigation, smooth trigger reset, emergency reloads, and instantaneous tap-rack-bang malfunction clearing."
+          },
+          {
+            title: "VIP Turnkey All-Inclusive Range Access",
+            desc: "VIP students receive all range lane fees fully covered, clean loaner 9mm handguns, rigid holsters, 50-100 rounds of factory target ammunition, and professional eye and ear protection."
+          }
+        ]
+      },
+      lifelong_access: {
+        badge: "Ongoing Mentorship • LIFELONG ADVISORY",
+        icon: "🤝",
+        title: "Lifelong Instructor Access & Advisory",
+        subtitle: "Continuous Mentorship, Firearm Selection & 3-Year Permit Protection",
+        synopsis: "At Future Initiative Firearm Services, graduation is only the beginning of your journey. As an alumnus, you gain an enduring relationship with Lead Instructor Kai Wade for hardware purchasing, holster selection, permit renewal reminders, and advanced defensive mastery.",
+        sections: [
+          {
+            title: "Direct Instructor Communication",
+            desc: "You retain direct access to Instructor Kai Wade for tactical questions, range advice, or carry gear evaluation whenever you need honest, professional guidance."
+          },
+          {
+            title: "Hardware & Holster Purchasing Guidance",
+            desc: "Never waste money on ill-fitting handguns or dangerous holsters. Get personalized equipment recommendations tailored specifically to your grip size, hand strength, attire, and daily carry routine."
+          },
+          {
+            title: "3-Year Maryland Permit Renewal Protection",
+            desc: "We log your permit issuance date into our renewal telemetry system and proactively notify you 120, 90, 60, and 30 days before expiration to seamlessly complete your required 8-hour renewal."
+          },
+          {
+            title: "Alumni Marksmanship & Multi-State Expansion",
+            desc: "Exclusive access to FIFS Graduate marksmanship tune-ups, advanced low-light defensive clinics, and multi-state permit expansion cohorts (UT, FL, AZ, VA, PA) granting carry freedom across 34+ states."
+          }
+        ]
+      }
+    };
+
+    (window as any).openPromiseDetailModal = function(type: string) {
+      const data = PROMISE_DATA[type];
+      if (!data) return;
+      const modal = document.getElementById('promiseDetailModal');
+      const badge = document.getElementById('promiseModalBadge');
+      const heading = document.getElementById('promiseModalHeading');
+      const icon = document.getElementById('promiseModalIcon');
+      const subtitle = document.getElementById('promiseModalSubtitle');
+      const synopsis = document.getElementById('promiseModalSynopsis');
+      const grid = document.getElementById('promiseModalSectionsGrid');
+
+      if (badge) badge.textContent = data.badge;
+      if (heading) heading.textContent = data.title;
+      if (icon) icon.textContent = data.icon;
+      if (subtitle) subtitle.textContent = data.subtitle;
+      if (synopsis) synopsis.textContent = data.synopsis;
+
+      if (grid && Array.isArray(data.sections)) {
+        grid.innerHTML = data.sections.map((s: any) => `
+          <div style="background: rgba(7, 11, 16, 0.9); border: 1px solid var(--border-subtle); border-left: 3px solid var(--accent-cyan); border-radius: 8px; padding: 14px 16px;">
+            <strong style="font-family: var(--font-display); font-size: 1.05rem; color: #fff; display: block; margin-bottom: 4px;">${s.title}</strong>
+            <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.5; margin: 0;">${s.desc}</p>
+          </div>
+        `).join('');
+      }
+
+      if (modal) {
+        modal.classList.add('active');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.style.setProperty('visibility', 'visible', 'important');
+        modal.style.setProperty('pointer-events', 'auto', 'important');
+        modal.style.setProperty('z-index', '999999', 'important');
+        document.body.classList.add('modal-open');
+      }
+    };
+
+    (window as any).closePromiseDetailModal = function() {
+      const modal = document.getElementById('promiseDetailModal');
+      if (!modal) return;
+      modal.classList.remove('active');
+      modal.style.setProperty('display', 'none', 'important');
+      document.body.classList.remove('modal-open');
+    };
+
+    // =========================================================================
+    // PERSISTENT CHAT BUBBLE DISMISS HANDLER
+    // =========================================================================
+    (window as any).dismissFloatingChat = function(e?: any) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      try {
+        localStorage.setItem('fifs_chat_bubble_dismissed', '1');
+      } catch(err) {}
+      const w = document.getElementById('floatingCommWrapper');
+      if (w) {
+        w.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+        w.style.opacity = '0';
+        w.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+          w.style.setProperty('display', 'none', 'important');
+        }, 200);
+      }
+    };
+
     (window as any).verifyAdminAccess = function(overridePin?: string) {
       const pinInput = document.getElementById('adminPasscode') as HTMLInputElement | null;
       const pin = (overridePin || (pinInput ? pinInput.value : '') || sessionStorage.getItem('fifs_instructor_pin') || '').trim();
@@ -4057,61 +4257,92 @@ document.addEventListener('submit', handleDelegatedSubmit);
   
           </p>
           <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(230px, 1fr))", "gap": "14px", "marginTop": "16px"}}>
-            <div style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1px solid rgba(0, 229, 255, 0.25)", "borderLeft": "3px solid var(--accent-cyan)", "borderRadius": "10px", "padding": "14px 16px"}}>
-              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.92rem", "fontWeight": "700", "color": "#fff", "marginBottom": "4px", "display": "flex", "alignItems": "center", "gap": "6px"}}>
-                <span>
-                  🎯
-                </span>
-                 Zero-Intimidation Mentorship
-      
+            <div
+              className="interactive-promise-card"
+              data-onclick="openPromiseDetailModal('zero_intimidation')"
+              onClick={() => { if (typeof window !== 'undefined' && (window as any).openPromiseDetailModal) (window as any).openPromiseDetailModal('zero_intimidation'); }}
+              role="button"
+              tabIndex={0}
+              style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1.5px solid rgba(0, 229, 255, 0.35)", "borderLeft": "4px solid var(--accent-cyan)", "borderRadius": "12px", "padding": "16px 18px", "cursor": "pointer", "transition": "all 0.25s ease"}}
+            >
+              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.96rem", "fontWeight": "700", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "justifyContent": "space-between"}}>
+                <div style={{"display": "flex", "alignItems": "center", "gap": "6px"}}>
+                  <span>🎯</span> Zero-Intimidation Mentorship
+                </div>
+                <span style={{"fontSize": "0.76rem", "color": "var(--accent-cyan)", "fontWeight": "800"}}>EXPLORE ↗</span>
               </div>
               <p style={{"fontSize": "0.82rem", "color": "#cbd5e1", "lineHeight": "1.5", "margin": "0"}}>
-                
-        From brand-new beginners holding a handgun for the first time to experienced shooters refining draw mechanics, every evolution is taught with patience, precision, and respect.
-      
+                From brand-new beginners holding a handgun for the first time to experienced shooters refining draw mechanics, every evolution is taught with patience, precision, and respect.
               </p>
+              <div style={{"marginTop": "10px", "fontSize": "0.75rem", "color": "var(--accent-cyan)", "fontWeight": "700", "display": "flex", "alignItems": "center", "gap": "4px"}}>
+                <span>Tap for detailed breakdown</span> <span>&rarr;</span>
+              </div>
             </div>
-            <div style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1px solid rgba(245, 158, 11, 0.25)", "borderLeft": "3px solid var(--accent-amber)", "borderRadius": "10px", "padding": "14px 16px"}}>
-              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.92rem", "fontWeight": "700", "color": "#fff", "marginBottom": "4px", "display": "flex", "alignItems": "center", "gap": "6px"}}>
-                <span>
-                  ⚖️
-                </span>
-                 Maryland Law & Reality Mastery
-      
+
+            <div
+              className="interactive-promise-card"
+              data-onclick="openPromiseDetailModal('maryland_law')"
+              onClick={() => { if (typeof window !== 'undefined' && (window as any).openPromiseDetailModal) (window as any).openPromiseDetailModal('maryland_law'); }}
+              role="button"
+              tabIndex={0}
+              style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1.5px solid rgba(245, 158, 11, 0.35)", "borderLeft": "4px solid var(--accent-amber)", "borderRadius": "12px", "padding": "16px 18px", "cursor": "pointer", "transition": "all 0.25s ease"}}
+            >
+              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.96rem", "fontWeight": "700", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "justifyContent": "space-between"}}>
+                <div style={{"display": "flex", "alignItems": "center", "gap": "6px"}}>
+                  <span>⚖️</span> Maryland Law &amp; Reality Mastery
+                </div>
+                <span style={{"fontSize": "0.76rem", "color": "var(--accent-amber)", "fontWeight": "800"}}>EXPLORE ↗</span>
               </div>
               <p style={{"fontSize": "0.82rem", "color": "#cbd5e1", "lineHeight": "1.5", "margin": "0"}}>
-                
-        Deep, street-level mastery of Maryland self-defense law, permissible concealed transport protocols, Castle Doctrine boundaries, and lawful shoot/no-shoot decision making.
-      
+                Deep, street-level mastery of Maryland self-defense law, permissible concealed transport protocols, Castle Doctrine boundaries, and lawful shoot/no-shoot decision making.
               </p>
+              <div style={{"marginTop": "10px", "fontSize": "0.75rem", "color": "var(--accent-amber)", "fontWeight": "700", "display": "flex", "alignItems": "center", "gap": "4px"}}>
+                <span>Tap for detailed breakdown</span> <span>&rarr;</span>
+              </div>
             </div>
-            <div style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1px solid rgba(16, 185, 129, 0.25)", "borderLeft": "3px solid #10b981", "borderRadius": "10px", "padding": "14px 16px"}}>
-              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.92rem", "fontWeight": "700", "color": "#fff", "marginBottom": "4px", "display": "flex", "alignItems": "center", "gap": "6px"}}>
-                <span>
-                  💥
-                </span>
-                 Live-Fire Qualification at Cindy's
-      
+
+            <div
+              className="interactive-promise-card"
+              data-onclick="openPromiseDetailModal('cindys_live_fire')"
+              onClick={() => { if (typeof window !== 'undefined' && (window as any).openPromiseDetailModal) (window as any).openPromiseDetailModal('cindys_live_fire'); }}
+              role="button"
+              tabIndex={0}
+              style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1.5px solid rgba(16, 185, 129, 0.35)", "borderLeft": "4px solid #10b981", "borderRadius": "12px", "padding": "16px 18px", "cursor": "pointer", "transition": "all 0.25s ease"}}
+            >
+              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.96rem", "fontWeight": "700", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "justifyContent": "space-between"}}>
+                <div style={{"display": "flex", "alignItems": "center", "gap": "6px"}}>
+                  <span>💥</span> Live-Fire Qualification at Cindy's
+                </div>
+                <span style={{"fontSize": "0.76rem", "color": "#34d399", "fontWeight": "800"}}>EXPLORE ↗</span>
               </div>
               <p style={{"fontSize": "0.82rem", "color": "#cbd5e1", "lineHeight": "1.5", "margin": "0"}}>
-                
-        Hands-on live-fire training downrange at Cindy's Hot Shots in Glen Burnie. Real trigger time, recoil management, and practical Maryland State Police course-of-fire passing standards.
-      
+                Hands-on live-fire training downrange at Cindy's Hot Shots in Glen Burnie. Real trigger time, recoil management, and practical Maryland State Police course-of-fire passing standards.
               </p>
+              <div style={{"marginTop": "10px", "fontSize": "0.75rem", "color": "#34d399", "fontWeight": "700", "display": "flex", "alignItems": "center", "gap": "4px"}}>
+                <span>Tap for detailed breakdown</span> <span>&rarr;</span>
+              </div>
             </div>
-            <div style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1px solid rgba(168, 85, 247, 0.25)", "borderLeft": "3px solid #a855f7", "borderRadius": "10px", "padding": "14px 16px"}}>
-              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.92rem", "fontWeight": "700", "color": "#fff", "marginBottom": "4px", "display": "flex", "alignItems": "center", "gap": "6px"}}>
-                <span>
-                  🤝
-                </span>
-                 Lifelong Instructor Access
-      
+
+            <div
+              className="interactive-promise-card"
+              data-onclick="openPromiseDetailModal('lifelong_access')"
+              onClick={() => { if (typeof window !== 'undefined' && (window as any).openPromiseDetailModal) (window as any).openPromiseDetailModal('lifelong_access'); }}
+              role="button"
+              tabIndex={0}
+              style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1.5px solid rgba(168, 85, 247, 0.35)", "borderLeft": "4px solid #a855f7", "borderRadius": "12px", "padding": "16px 18px", "cursor": "pointer", "transition": "all 0.25s ease"}}
+            >
+              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.96rem", "fontWeight": "700", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "justifyContent": "space-between"}}>
+                <div style={{"display": "flex", "alignItems": "center", "gap": "6px"}}>
+                  <span>🤝</span> Lifelong Instructor Access
+                </div>
+                <span style={{"fontSize": "0.76rem", "color": "#c084fc", "fontWeight": "800"}}>EXPLORE ↗</span>
               </div>
               <p style={{"fontSize": "0.82rem", "color": "#cbd5e1", "lineHeight": "1.5", "margin": "0"}}>
-                
-        Graduation is just the start. You retain direct access to Instructor Kai Wade for firearm purchasing guidance, holster selection, permit renewal, and ongoing defensive training.
-      
+                Graduation is just the start. You retain direct access to Instructor Kai Wade for firearm purchasing guidance, holster selection, permit renewal, and ongoing defensive training.
               </p>
+              <div style={{"marginTop": "10px", "fontSize": "0.75rem", "color": "#c084fc", "fontWeight": "700", "display": "flex", "alignItems": "center", "gap": "4px"}}>
+                <span>Tap for detailed breakdown</span> <span>&rarr;</span>
+              </div>
             </div>
           </div>
         </div>
@@ -10075,8 +10306,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </div>
       </div>
       {/* Persistent Floating Contact & Live Chat Trigger Pill with Permanent Dismiss Handler */}
-      <div className="floating-comm-bubble-wrapper" id="floatingCommWrapper" style={{"position": "fixed", "bottom": "24px", "right": "24px", "zIndex": "99999", "display": "flex", "alignItems": "center", "gap": "6px"}}>
-        <div className="floating-comm-bubble" id="floatingCommPill" data-onclick="openContactWidgetModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openContactWidgetModal) (window as any).openContactWidgetModal(); }} role="button" tabIndex={0} title="Contact Coach Kai Wade • Call, Email or Live Chat" style={{"cursor": "pointer"}}>
+      <div className="floating-comm-bubble-wrapper" id="floatingCommWrapper" style={{"position": "fixed", "bottom": "24px", "right": "24px", "zIndex": "99999", "display": "flex", "alignItems": "center", "gap": "8px"}}>
+        <div className="floating-comm-bubble" id="floatingCommPill" data-onclick="openContactWidgetModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openContactWidgetModal) (window as any).openContactWidgetModal(); }} role="button" tabIndex={0} title="Contact Coach Kai Wade • Call, Email or Live Chat" style={{"position": "relative", "bottom": "auto", "right": "auto", "margin": "0", "cursor": "pointer"}}>
           <span style={{"fontSize": "1.25rem"}}>
             💬
           </span>
@@ -10087,18 +10318,16 @@ document.addEventListener('submit', handleDelegatedSubmit);
         <button
           type="button"
           id="floatingChatCloseBtn"
-          aria-label="Close Chat Widget Permanently"
-          title="Dismiss Chat Widget"
+          aria-label="Close Chat Widget"
+          title="Dismiss Chat Bubble"
           onClick={(e) => {
             e.stopPropagation();
-            if (window.confirm("if you close this, you'll have to resort to the contact instructor on the landing page to send a message.")) {
-              try { localStorage.setItem('fifs_chat_bubble_dismissed', '1'); } catch(err){}
-              const w = document.getElementById('floatingCommWrapper');
-              if (w) w.style.setProperty('display', 'none', 'important');
+            if (typeof window !== 'undefined' && (window as any).dismissFloatingChat) {
+              (window as any).dismissFloatingChat(e);
             }
           }}
-          data-onclick="event.stopPropagation(); if (window.confirm(&apos;if you close this, you&apos;ll have to resort to the contact instructor on the landing page to send a message.&apos;)) { try { localStorage.setItem(&apos;fifs_chat_bubble_dismissed&apos;, &apos;1&apos;); } catch(e){} var w = document.getElementById(&apos;floatingCommWrapper&apos;); if (w) w.style.setProperty(&apos;display&apos;, &apos;none&apos;, &apos;important&apos;); }"
-          style={{"width": "28px", "height": "28px", "borderRadius": "50%", "background": "rgba(9, 14, 21, 0.95)", "border": "1.5px solid var(--accent-cyan)", "color": "var(--accent-cyan)", "display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "13px", "fontWeight": "900", "cursor": "pointer", "boxShadow": "0 2px 10px rgba(0, 0, 0, 0.7)", "transition": "all 0.2s ease"}}
+          data-onclick="dismissFloatingChat(event)"
+          style={{"width": "30px", "height": "30px", "borderRadius": "50%", "background": "rgba(9, 14, 21, 0.95)", "border": "1.5px solid #ef4444", "color": "#ef4444", "display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "14px", "fontWeight": "900", "cursor": "pointer", "boxShadow": "0 2px 10px rgba(0, 0, 0, 0.7)", "transition": "all 0.2s ease"}}
         >
           ✕
         </button>
@@ -10112,7 +10341,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 COMMAND CENTER // OPS BRIEFING
               </span>
               <h3 style={{"margin": "4px 0 0", "color": "#fff", "fontSize": "1.3rem"}}>
-                ⚡ New Notifications & Inquiries
+                ⚡ New Notifications &amp; Inquiries
               </h3>
             </div>
             <button type="button" data-onclick="closeAdminOpsBriefing()" style={{"background": "rgba(255, 255, 255, 0.08)", "border": "1px solid var(--border-subtle)", "color": "#fff", "width": "34px", "height": "34px", "borderRadius": "50%", "cursor": "pointer", "fontSize": "1.1rem"}}>
@@ -10125,15 +10354,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 📡
               </span>
               <p style={{"marginTop": "10px"}}>
-                Scanning master registry and live chat feeds...
+                Scanning system for urgent student dispatches...
               </p>
             </div>
           </div>
           <div style={{"marginTop": "20px", "display": "flex", "gap": "12px", "justifyContent": "flex-end"}}>
             <button type="button" data-onclick="closeAdminOpsBriefing()" className="btn-spark" style={{"padding": "10px 20px", "fontSize": "0.9rem", "fontWeight": "800", "textTransform": "uppercase"}}>
-              
-        Enter Command Console →
-      
+              Enter Command Console →
             </button>
           </div>
         </div>
@@ -10685,39 +10912,75 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </div>
       
       {/* ================= MODAL: CHANGE ACCOUNT PASSWORD (STUDENT & CLIENT) ================= */}
-      <div className="reciprocity-hub-modal-overlay" id="changePasswordModal" data-onclick="if(event.target===this) closeChangePasswordModal()">
-        <div className="goal-modal-box" style={{"maxWidth": "480px", "background": "#0b1017", "border": "1px solid var(--accent-cyan)", "borderRadius": "14px", "padding": "26px", "boxShadow": "0 0 35px rgba(0, 229, 255, 0.25)"}}>
+      {/* ================= PROMISE DETAIL POPUP MODAL ================= */}
+      <div className="goal-modal-overlay" id="promiseDetailModal" data-onclick="if(event.target===this) closePromiseDetailModal()" style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "alignItems": "center", "justifyContent": "center", "overflowY": "auto", "padding": "20px"}}>
+        <div aria-labelledby="promiseModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "620px", "margin": "auto"}}>
+          <button aria-label="Close promise details" className="goal-modal-close-btn" data-onclick="closePromiseDetailModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closePromiseDetailModal) (window as any).closePromiseDetailModal(); }} type="button">
+            ✕
+          </button>
+          <div>
+            <span className="goal-header-badge" id="promiseModalBadge" style={{"background": "rgba(0, 229, 255, 0.12)", "border": "1px solid var(--accent-cyan)", "color": "var(--accent-cyan)", "fontSize": "0.75rem", "fontWeight": "800", "padding": "4px 10px", "borderRadius": "4px", "letterSpacing": "0.08em", "textTransform": "uppercase"}}>
+              FIFS Uncompromising Excellence Guarantee
+            </span>
+          </div>
+          <h3 className="goal-modal-title" id="promiseModalTitle" style={{"display": "flex", "alignItems": "center", "gap": "10px", "color": "#fff", "fontSize": "1.65rem", "margin": "8px 0 4px", "fontFamily": "var(--font-display)"}}>
+            <span id="promiseModalIcon">🎯</span>
+            <span id="promiseModalHeading">Zero-Intimidation Mentorship</span>
+          </h3>
+          <div className="goal-modal-rec" id="promiseModalSubtitle" style={{"color": "var(--accent-cyan)", "fontSize": "0.92rem", "fontWeight": "700", "marginBottom": "12px"}}>
+            Patient, Dignified, High-Standard Instruction
+          </div>
+          <div className="goal-synopsis-card" id="promiseModalSynopsis" style={{"marginBottom": "16px", "background": "rgba(13, 18, 26, 0.8)", "border": "1px solid var(--border-subtle)", "borderRadius": "10px", "padding": "14px 16px", "color": "#cbd5e1", "fontSize": "0.88rem", "lineHeight": "1.6"}}>
+            Detailed synopsis
+          </div>
+          <div id="promiseModalSectionsGrid" style={{"display": "flex", "flexDirection": "column", "gap": "12px", "marginBottom": "20px"}}>
+            {/* Populated dynamically */}
+          </div>
+          <div className="goal-modal-actions" style={{"display": "flex", "gap": "10px", "width": "100%", "marginTop": "16px"}}>
+            <button className="btn-secondary" data-onclick="closePromiseDetailModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closePromiseDetailModal) (window as any).closePromiseDetailModal(); }} style={{"flex": "1", "padding": "12px 18px", "fontSize": "0.88rem"}} type="button">
+              Close
+            </button>
+            <button className="btn-primary" data-onclick="closePromiseDetailModal(); openAndSwitch('booking');" onClick={() => { if (typeof window !== 'undefined') { (window as any).closePromiseDetailModal?.(); (window as any).openAndSwitch?.('booking'); } }} style={{"flex": "2", "padding": "12px 20px", "fontSize": "0.92rem", "fontWeight": "800"}} type="button">
+              Reserve Your Training Seat 🎯
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= MODAL: CHANGE ACCOUNT PASSWORD (STUDENT & CLIENT) ================= */}
+      <div id="changePasswordModal" data-onclick="if(event.target===this) closeChangePasswordModal()" style={{"position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "9999999", "display": "none", "alignItems": "center", "justifyContent": "center", "overflowY": "auto", "padding": "20px"}}>
+        <div className="goal-modal-box" style={{"maxWidth": "480px", "width": "100%", "background": "#0b1017", "border": "1.5px solid var(--accent-cyan)", "borderRadius": "14px", "padding": "26px", "boxShadow": "0 0 35px rgba(0, 229, 255, 0.25)", "margin": "auto", "position": "relative"}}>
           <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "16px", "borderBottom": "1px solid var(--border-subtle)", "paddingBottom": "12px"}}>
             <div>
-              <span className="badge-instructor" id="changePasswordRoleBadge" style={{"marginBottom": "4px", "fontSize": "0.72rem"}}>
+              <span className="badge-instructor" id="changePasswordRoleBadge" style={{"marginBottom": "4px", "fontSize": "0.72rem", "background": "rgba(0, 229, 255, 0.12)", "color": "var(--accent-cyan)", "border": "1px solid var(--accent-cyan)", "padding": "3px 8px", "borderRadius": "4px", "textTransform": "uppercase", "fontWeight": "800"}}>
                 Security &amp; Account Protection
               </span>
-              <h3 style={{"color": "#fff", "fontFamily": "var(--font-display)", "fontSize": "1.45rem", "margin": "4px 0 0", "textTransform": "uppercase", "letterSpacing": "1px"}}>
+              <h3 style={{"color": "#fff", "fontFamily": "var(--font-display)", "fontSize": "1.45rem", "margin": "6px 0 0", "textTransform": "uppercase", "letterSpacing": "1px"}}>
                 🔑 Change Account Password
               </h3>
             </div>
-            <button className="btn-return-home" data-onclick="closeChangePasswordModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closeChangePasswordModal) (window as any).closeChangePasswordModal(); }} style={{"background": "none", "border": "none", "color": "var(--text-muted)", "fontSize": "1.4rem", "cursor": "pointer"}} type="button">
+            <button className="btn-return-home" data-onclick="closeChangePasswordModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closeChangePasswordModal) (window as any).closeChangePasswordModal(); }} style={{"background": "none", "border": "none", "color": "var(--text-muted)", "fontSize": "1.4rem", "cursor": "pointer", "padding": "4px 8px"}} type="button">
               ✕
             </button>
           </div>
           <form id="changePasswordForm" data-onsubmit="submitChangePassword(event)" onSubmit={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).submitChangePassword) (window as any).submitChangePassword(e); }}>
             <div className="form-group" style={{"marginBottom": "14px"}}>
               <label htmlFor="cpUserEmail" style={{"color": "#cbd5e1", "fontSize": "0.85rem", "fontWeight": "600", "display": "block", "marginBottom": "6px"}}>
-                Account Email Address
+                Account Email or Student ID <span className="req">*</span>
               </label>
-              <input id="cpUserEmail" readOnly style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "var(--text-muted)", "padding": "10px 12px", "borderRadius": "6px", "width": "100%", "fontSize": "0.88rem"}} type="email" />
+              <input id="cpUserEmail" placeholder="Enter student email or ID (e.g., FIFS-8172)" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px 12px", "borderRadius": "6px", "width": "100%", "fontSize": "0.88rem"}} type="text" />
             </div>
             <div className="form-group" style={{"marginBottom": "14px"}}>
               <label htmlFor="cpCurrentPassword" style={{"color": "#cbd5e1", "fontSize": "0.85rem", "fontWeight": "600", "display": "block", "marginBottom": "6px"}}>
-                Current Password <span className="req">*</span>
+                Current Password <span style={{"color": "var(--text-muted)", "fontSize": "0.78rem"}}>(Optional if first-time setup)</span>
               </label>
-              <input id="cpCurrentPassword" placeholder="Enter existing password" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px 12px", "borderRadius": "6px", "width": "100%", "fontSize": "0.88rem"}} type="password" />
+              <input id="cpCurrentPassword" placeholder="Enter existing password" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px 12px", "borderRadius": "6px", "width": "100%", "fontSize": "0.88rem"}} type="password" />
             </div>
             <div className="form-group" style={{"marginBottom": "14px"}}>
               <label htmlFor="cpNewPassword" style={{"color": "#cbd5e1", "fontSize": "0.85rem", "fontWeight": "600", "display": "block", "marginBottom": "6px"}}>
                 New Password <span className="req">*</span>
               </label>
-              <input id="cpNewPassword" placeholder="Min 12 chars (Uppercase, number & symbol)" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px 12px", "borderRadius": "6px", "width": "100%", "fontSize": "0.88rem"}} type="password" />
+              <input id="cpNewPassword" placeholder="Min 12 chars (Uppercase, lowercase, number & symbol)" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px 12px", "borderRadius": "6px", "width": "100%", "fontSize": "0.88rem"}} type="password" />
               <span style={{"color": "var(--text-muted)", "fontSize": "0.72rem", "marginTop": "4px", "display": "block"}}>
                 Requirements: 12+ characters, 1 uppercase, 1 lowercase, 1 number, 1 special character.
               </span>
