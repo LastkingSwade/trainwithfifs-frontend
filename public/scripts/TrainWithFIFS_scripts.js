@@ -12132,3 +12132,49 @@ if (typeof window !== 'undefined') {
       return false;
     }
     window.handleFifsPasswordChangeSubmit = handleFifsPasswordChangeSubmit;
+
+    function closeFloatingChatWithConfirmation() {
+      var confirmed = window.confirm("Closing this chat requires you to use the primary contact panel on the homepage for future correspondence with Instructor Wade.");
+      if (confirmed) {
+        var widget = document.getElementById('fi-live-chat-widget') || document.getElementById('chat-widget') || document.querySelector('.live-chat-bubble');
+        if (widget) {
+          widget.style.setProperty('display', 'none', 'important');
+        }
+      }
+    }
+    window.closeFloatingChatWithConfirmation = closeFloatingChatWithConfirmation;
+
+
+    function getReserviaCourseId(courseName) {
+      if (!courseName) return 'maryland-wear-and-carry';
+      var lower = courseName.toLowerCase();
+      if (lower.includes('renewal')) return 'md-wear-carry-renewal';
+      if (lower.includes('mastery')) return 'mid-atlantic-mastery';
+      if (lower.includes('hql')) return 'maryland-hql';
+      return 'maryland-wear-and-carry';
+    }
+    window.getReserviaCourseId = getReserviaCourseId;
+
+
+    async function deleteStudentPermitRecord(permitId) {
+      if (!permitId) return;
+      if (!confirm("Are you sure you want to remove this permit from your profile?")) return;
+      try {
+        var res = await fetch('/api/fifs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete_permit', permitId: permitId })
+        });
+        var data = await res.json();
+        if (data.success) {
+          var el = document.getElementById('permit-item-' + permitId);
+          if (el) el.remove();
+          if (typeof loadStudentPermits === 'function') loadStudentPermits();
+        } else {
+          alert(data.error || 'Failed to remove permit.');
+        }
+      } catch (err) {
+        console.error('Error deleting permit:', err);
+      }
+    }
+    window.deleteStudentPermitRecord = deleteStudentPermitRecord;

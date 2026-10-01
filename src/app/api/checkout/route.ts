@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://ufqnmcincwnlyiwsmzcq.supabase.co';
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, { auth: { persistSession: false } });
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,53 +41,90 @@ export async function POST(req: NextRequest) {
       tier = 'base',
     } = body;
 
-    // Standardize unit amount calculation
+    // Standardize unit amount: Multi-State Mastery Base: $425 (42500), VIP: $550 (55000)
     let unitAmount = 24999;
     if (typeof amount === 'number' && amount > 0) {
       unitAmount = amount > 1000 ? Math.round(amount) : Math.round(amount * 100);
     }
 
+    // Map course ID specifically for Maryland Wear & Carry renewal
+    let resolvedCourseId = courseId;
+    if (courseSelection.toLowerCase().includes('renewal')) {
+      resolvedCourseId = 'md-wear-carry-renewal';
+    }
+
     const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://trainwithfifs.com';
     const baseUrl = origin.replace(/\/+$/, '');
 
-    // Create Stripe Checkout Session with full metadata and cancellation recovery
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      mode: 'payment',
-      customer_email: email && email.includes('@') ? email.trim() : undefined,
-      client_reference_id: studentId,
-      metadata: {
-        invoiceId,
-        studentId,
-        fullName: fullName.trim(),
-        phone: String(phone).trim(),
-        courseId: String(courseId).trim(),
-        courseSelection: String(courseSelection).trim(),
-        preferredDates: String(preferredDates).trim(),
-        groupSize: String(groupSize),
-        tier: String(tier),
-        comments: String(comments).slice(0, 400),
-        abandonment_status: 'initialized',
-      },
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            unit_amount: unitAmount,
-            product_data: {
-              name: courseSelection,
-              description: `Invoice: ${invoiceId} • Student: ${fullName} • Schedule: ${preferredDates}`,
-            },
-          },
-          quantity: 1,
+    let session: Stripe.Checkout.Session;
+    try {
+      session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        mode: 'payment',
+        customer_email: email && email.includes('@') ? email : undefined,
+        client_reference_id: studentId,
+        metadata: {
+          invoiceId,
+          studentId,
+          fullName,
+          phone,
+          courseId: resolvedCourseId,
+          courseSelection,
+          preferredDates,
+          groupSize: String(groupSize),
+          comments: String(comments).slice(0, 400),
+          tier: String(tier),
         },
-      ],
-      success_url: `${baseUrl}/?session_id={CHECKOUT_SESSION_ID}&booking_confirmed=true&invoice=${encodeURIComponent(invoiceId)}&student_id=${encodeURIComponent(studentId)}`,
-      cancel_url: `${baseUrl}/?booking_cancelled=true&invoice=${encodeURIComponent(invoiceId)}&student_id=${encodeURIComponent(studentId)}&abandoned=true`,
-    });
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              unit_amount: unitAmount,
+              product_data: {
+                name: courseSelection,
+                description: `Invoice: ${invoiceId} • Student: ${fullName} • Schedule: ${preferredDates}`,
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        success_url: `${baseUrl}/?session_id={CHECKOUT_SESSION_ID}&booking_confirmed=true&invoice=${encodeURIComponent(invoiceId)}`,
+        cancel_url: `${baseUrl}/?booking_cancelled=true&invoice=${encodeURIComponent(invoiceId)}&session_id={CHECKOUT_SESSION_ID}`,
+      });
+    } catch (stripeErr: any) {
+      console.error('[Stripe Session Creation Error]:', stripeErr);
+      return NextResponse.json(
+        { error: stripeErr?.message || 'Failed to initialize payment session with Stripe.' },
+        { status: 502 }
+      );
+    }
 
-    if (!session.url) {
-      throw new Error('Stripe failed to return a valid checkout redirect URL.');
+    if (!session || !session.url) {
+      return NextResponse.json(
+        { error: 'Stripe did not return a valid session redirect URL.' },
+        { status: 502 }
+      );
+    }
+
+    // Log initialized invoice/session in Supabase for state tracking & abandonment recovery
+    try {
+      const supabase = getSupabaseAdmin();
+      if (supabase) {
+        await supabase.from('invoices').upsert({
+          student_id: studentId,
+          invoice_id: invoiceId,
+          status: 'PENDING_CHECKOUT',
+          amount_due: unitAmount / 100,
+          balance_due: unitAmount / 100,
+          stripe_session_id: session.id,
+          customer_name: fullName,
+          customer_email: email || null,
+          course_selection: courseSelection,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'invoice_id' });
+      }
+    } catch (dbErr) {
+      console.warn('[Checkout DB Log Warning]:', dbErr);
     }
 
     return NextResponse.json({
@@ -89,14 +134,12 @@ export async function POST(req: NextRequest) {
       sessionId: session.id,
       invoiceId,
       studentId,
+      courseId: resolvedCourseId,
     });
   } catch (error: any) {
-    console.error('[Stripe Checkout Exception Caught]:', error);
+    console.error('[Unhandled Stripe Checkout Exception]:', error);
     return NextResponse.json(
-      {
-        error: error?.message || 'A server error occurred while initializing checkout.',
-        status: 'error',
-      },
+      { error: error?.message || 'Internal server error while initializing payment checkout.' },
       { status: 500 }
     );
   }

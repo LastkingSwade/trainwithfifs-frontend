@@ -48,101 +48,122 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text();
     const signature = req.headers.get('stripe-signature');
 
-    let event: Stripe.Event;
-
-    if (webhookSecret && signature) {
-      event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-    } else {
-      // Direct parse fallback for unverified environments or test triggers
-      event = JSON.parse(rawBody) as Stripe.Event;
+    if (!webhookSecret) {
+      console.error('[Stripe Webhook Error]: STRIPE_WEBHOOK_SECRET is not configured.');
+      return NextResponse.json({ error: 'Webhook secret is unconfigured on server.' }, { status: 500 });
     }
 
-    const supabase = getServiceSupabase();
+    if (!signature) {
+      console.warn('[Stripe Webhook Warning]: Request missing stripe-signature header.');
+      return NextResponse.json({ error: 'Missing stripe signature.' }, { status: 400 });
+    }
 
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const studentId = session.client_reference_id || session.metadata?.studentId;
-        const invoiceId = session.metadata?.invoiceId;
-        const customerEmail = session.customer_details?.email || session.customer_email || 'Student';
-        const courseName = session.metadata?.courseSelection || 'Firearms Training Cohort';
-        const amountPaid = (session.amount_total || 0) / 100;
-        const now = new Date().toISOString();
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+    } catch (err: any) {
+      console.error(`[Stripe Webhook Signature Verification Failed]: ${err?.message}`);
+      return NextResponse.json({ error: `Signature verification failed: ${err?.message}` }, { status: 400 });
+    }
 
-        // 1. Mark invoice as PAID in Supabase
-        if (invoiceId || studentId) {
-          const updateData: Record<string, any> = {
-            status: 'PAID',
-            amount_paid: amountPaid,
-            balance_due: 0.0,
-            stripe_session_id: session.id,
-            updated_at: now,
-          };
+    let supabase;
+    try {
+      supabase = getServiceSupabase();
+    } catch (e: any) {
+      console.error('[Supabase Init Error in Webhook]:', e?.message);
+      return NextResponse.json({ error: 'Database service unavailable' }, { status: 503 });
+    }
 
-          if (invoiceId) {
-            await supabase.from('invoices').update(updateData).eq('invoice_id', invoiceId);
-          } else if (studentId) {
-            await supabase.from('invoices').update(updateData).eq('student_id', studentId);
-          }
+    // 1. Handle Completed Checkout Session
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const studentId = session.client_reference_id || session.metadata?.studentId;
+      const invoiceId = session.metadata?.invoiceId;
+
+      try {
+        if (invoiceId) {
+          await supabase
+            .from('invoices')
+            .update({
+              status: 'PAID',
+              amount_paid: (session.amount_total || 0) / 100,
+              balance_due: 0.00,
+              stripe_session_id: session.id,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('invoice_id', invoiceId);
+        } else if (studentId) {
+          await supabase
+            .from('invoices')
+            .update({
+              status: 'PAID',
+              amount_paid: (session.amount_total || 0) / 100,
+              balance_due: 0.00,
+              stripe_session_id: session.id,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('student_id', studentId);
         }
 
-        // 2. Confirm student seat and mark confirmed
         if (studentId) {
           await supabase
             .from('students')
             .update({
               status: 'CONFIRMED',
-              updated_at: now,
+              updated_at: new Date().toISOString(),
             })
             .eq('student_id', studentId);
         }
 
-        // 3. Dispatch operational Discord alert
         await sendDiscordWebhook(
           '💳 Payment Received via Stripe Checkout!',
-          `Tuition paid in full for Student ID **${studentId || 'N/A'}** (${customerEmail}). Seat officially reserved.`,
+          `Tuition paid in full for Student ID **${studentId || 'N/A'}** (${session.customer_email || 'Student'}). Seat officially reserved.`,
           [
-            { name: 'Course', value: courseName, inline: true },
-            { name: 'Amount Paid', value: `$${amountPaid.toFixed(2)}`, inline: true },
-            { name: 'Invoice Ref', value: invoiceId || 'Auto-generated', inline: true },
+            { name: 'Course', value: session.metadata?.courseSelection || 'Firearms Training Course', inline: true },
+            { name: 'Amount Paid', value: `$${((session.amount_total || 0) / 100).toFixed(2)}`, inline: true },
+            { name: 'Invoice ID', value: invoiceId || 'N/A', inline: true },
           ],
           0x10b981
         );
-        break;
+      } catch (dbError: any) {
+        console.error('[Webhook DB Update Error]:', dbError);
       }
+    }
 
-      case 'checkout.session.expired': {
-        // Abandoned session recovery tracking
-        const session = event.data.object as Stripe.Checkout.Session;
-        const studentId = session.client_reference_id || session.metadata?.studentId;
-        const invoiceId = session.metadata?.invoiceId;
+    // 2. Handle Abandoned / Expired Session
+    if (event.type === 'checkout.session.expired') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const invoiceId = session.metadata?.invoiceId;
+      const studentId = session.client_reference_id || session.metadata?.studentId;
 
-        if (invoiceId || studentId) {
-          const abandonUpdate = {
-            status: 'ABANDONED',
-            updated_at: new Date().toISOString(),
-          };
-          if (invoiceId) {
-            await supabase.from('invoices').update(abandonUpdate).eq('invoice_id', invoiceId);
-          }
+      try {
+        if (invoiceId) {
+          await supabase
+            .from('invoices')
+            .update({
+              status: 'ABANDONED',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('invoice_id', invoiceId);
         }
 
         await sendDiscordWebhook(
           '⚠️ Checkout Session Abandoned / Expired',
-          `Invoice **${invoiceId || 'N/A'}** (Student: ${studentId || 'N/A'}) was closed prior to completion.`,
-          [],
+          `Invoice **${invoiceId || 'N/A'}** for Student ID **${studentId || 'N/A'}** was abandoned prior to completion.`,
+          [
+            { name: 'Customer Email', value: session.customer_email || 'N/A', inline: true },
+            { name: 'Course', value: session.metadata?.courseSelection || 'N/A', inline: true },
+          ],
           0xf59e0b
         );
-        break;
+      } catch (expireErr) {
+        console.warn('[Webhook Expire Update Warning]:', expireErr);
       }
-
-      default:
-        break;
     }
 
     return NextResponse.json({ received: true });
   } catch (err: any) {
-    console.error('[Stripe Webhook Processing Error]:', err);
-    return NextResponse.json({ error: err.message || 'Webhook processing failed.' }, { status: 400 });
+    console.error('[Unhandled Webhook Error Boundary]:', err);
+    return NextResponse.json({ error: err?.message || 'Unhandled webhook error' }, { status: 500 });
   }
 }
