@@ -931,7 +931,309 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             {/* 8-Step Progress Tracker Roadmap */}
             
-            {/* Official Maryland Qualification Scoresheet Card (MSP Form 29-14) */}
+                        {/* ================= MULTI-STATE 16-HOUR MASTERY INTERACTIVE CARD ================= */}
+            <div className="fi-card" id="dash-multistate-mastery-card" style={{ marginBottom: '24px', border: '1px solid rgba(245, 158, 11, 0.38)', background: 'linear-gradient(135deg, rgba(7, 10, 17, 0.98), rgba(15, 23, 42, 0.92))', borderRadius: '14px', padding: '24px', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.55), 0 0 20px rgba(245, 158, 11, 0.12)', position: 'relative', overflow: 'hidden' }}>
+              {/* Header Badges */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span className="meta-chip" style={{ background: 'rgba(245, 158, 11, 0.16)', color: '#f59e0b', border: '1px solid #f59e0b', fontSize: '0.74rem', fontWeight: 800, letterSpacing: '0.8px' }}>
+                    ⚡ 16-HOUR INTENSIVE CURRICULUM
+                  </span>
+                  <span className="meta-chip" style={{ background: 'rgba(6, 182, 212, 0.14)', color: 'var(--accent-cyan)', border: '1px solid var(--accent-cyan)', fontSize: '0.74rem', fontWeight: 800 }}>
+                    34+ STATE MULTI-PERMIT EXPANSION
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: '#94a3b8' }}>
+                  ACCREDITED FIFS FIELD GUIDE
+                </span>
+              </div>
+
+              {/* Card Title & Curriculum Callout */}
+              <div style={{ marginBottom: '12px' }}>
+                <h3 style={{ fontFamily: 'var(--font-display)', color: '#fff', fontSize: '1.45rem', margin: '0 0 6px', fontWeight: 800, letterSpacing: '-0.3px' }}>
+                  Multi-State Concealed Carry Mastery Resource Suite
+                </h3>
+                <p style={{ color: '#f59e0b', fontSize: '0.82rem', fontFamily: 'var(--font-mono)', fontWeight: 700, margin: 0 }}>
+                  Comprehensive 16-Hour Legal &amp; Tactical Curriculum (Unlike Standard 8-Hour Formats)
+                </p>
+              </div>
+
+              {/* Detailed Description */}
+              <p style={{ color: '#cbd5e1', fontSize: '0.88rem', lineHeight: '1.6', marginBottom: '18px' }}>
+                Engineered specifically for Multi-State Mastery students. This track provides rigorous 16-hour instruction across multi-jurisdiction reciprocity (Maryland Wear &amp; Carry, Virginia CHP, Utah CFP, Florida CWL, and PA LTCF). Click below to launch the interactive tactical field guide or inspect your certified range qualification scoresheet.
+              </p>
+
+              {/* Resource Launch Triggers */}
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const modal = document.getElementById('multistate-modal-drawer');
+                    if (modal) modal.style.display = 'flex';
+                    const sopFrame = document.getElementById('view-sop-frame');
+                    const scoreFrame = document.getElementById('view-score-frame');
+                    if (sopFrame) sopFrame.style.display = 'flex';
+                    if (scoreFrame) scoreFrame.style.display = 'none';
+                    const sopBtn = document.getElementById('tab-sop-btn');
+                    const scoreBtn = document.getElementById('tab-score-btn');
+                    if (sopBtn) {
+                      sopBtn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                      sopBtn.style.color = '#070a11';
+                    }
+                    if (scoreBtn) {
+                      scoreBtn.style.background = 'transparent';
+                      scoreBtn.style.color = '#94a3b8';
+                    }
+                  }}
+                  style={{
+                    background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                    color: '#070A11',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    fontWeight: 800,
+                    fontSize: '0.86rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)'
+                  }}
+                >
+                  <span>📖</span> <span>Launch Interactive 16-Hr Field Guide</span>
+                </button>
+
+                <a
+                  href="/qualification_sheet_2.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    background: 'rgba(6, 182, 212, 0.12)',
+                    color: 'var(--accent-cyan)',
+                    border: '1px solid var(--accent-cyan)',
+                    padding: '9px 18px',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    fontSize: '0.85rem',
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <span>🎯</span> <span>MSP Form 29-14 Scoresheet ↗</span>
+                </a>
+              </div>
+            </div>
+
+            {/* ================= INTERACTIVE SLIDE-OVER DRAWER MODAL ================= */}
+            <div
+              id="multistate-modal-drawer"
+              style={{
+                display: 'none',
+                position: 'fixed',
+                inset: 0,
+                zIndex: 99999,
+                backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                backdropFilter: 'blur(8px)',
+                justifyContent: 'flex-end',
+                alignItems: 'stretch'
+              }}
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  e.currentTarget.style.display = 'none';
+                }
+              }}
+            >
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: '860px',
+                  height: '100vh',
+                  background: '#070a11',
+                  borderLeft: '1px solid rgba(245, 158, 11, 0.35)',
+                  padding: '24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  boxShadow: '-12px 0 50px rgba(0, 0, 0, 0.85)'
+                }}
+              >
+                {/* Drawer Top Header */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #1f2e4d', paddingBottom: '16px' }}>
+                    <div>
+                      <span style={{ fontSize: '0.72rem', letterSpacing: '1px', color: '#f59e0b', fontWeight: 800, textTransform: 'uppercase' }}>
+                        16-HOUR STUDENT MASTER ACADEMY
+                      </span>
+                      <h2 style={{ fontSize: '1.5rem', color: '#fff', margin: '4px 0', fontWeight: 900 }}>
+                        34+ State Multi-Permit SOP &amp; Field Guide
+                      </h2>
+                      <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
+                        Complete interactive course material, reciprocity breakdown, and live-fire scoring sheet.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const modal = document.getElementById('multistate-modal-drawer');
+                        if (modal) modal.style.display = 'none';
+                      }}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid #1F2E4D',
+                        color: '#fff',
+                        borderRadius: '8px',
+                        padding: '6px 14px',
+                        cursor: 'pointer',
+                        fontSize: '1.2rem',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* Tab Selector */}
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '16px', background: '#0d1424', padding: '6px', borderRadius: '10px', border: '1px solid #1f2e4d' }}>
+                    <button
+                      type="button"
+                      id="tab-sop-btn"
+                      onClick={() => {
+                        const sopFrame = document.getElementById('view-sop-frame');
+                        const scoreFrame = document.getElementById('view-score-frame');
+                        if (sopFrame) sopFrame.style.display = 'flex';
+                        if (scoreFrame) scoreFrame.style.display = 'none';
+                        const sopBtn = document.getElementById('tab-sop-btn');
+                        const scoreBtn = document.getElementById('tab-score-btn');
+                        if (sopBtn) {
+                          sopBtn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                          sopBtn.style.color = '#070a11';
+                        }
+                        if (scoreBtn) {
+                          scoreBtn.style.background = 'transparent';
+                          scoreBtn.style.color = '#94a3b8';
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                        color: '#070a11',
+                        fontWeight: 800,
+                        fontSize: '0.84rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      📖 16-Hour Follow-Along SOP &amp; Field Guide
+                    </button>
+                    <button
+                      type="button"
+                      id="tab-score-btn"
+                      onClick={() => {
+                        const sopFrame = document.getElementById('view-sop-frame');
+                        const scoreFrame = document.getElementById('view-score-frame');
+                        if (sopFrame) sopFrame.style.display = 'none';
+                        if (scoreFrame) scoreFrame.style.display = 'flex';
+                        const sopBtn = document.getElementById('tab-sop-btn');
+                        const scoreBtn = document.getElementById('tab-score-btn');
+                        if (sopBtn) {
+                          sopBtn.style.background = 'transparent';
+                          sopBtn.style.color = '#94a3b8';
+                        }
+                        if (scoreBtn) {
+                          scoreBtn.style.background = 'var(--accent-cyan)';
+                          scoreBtn.style.color = '#070a11';
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: 'transparent',
+                        color: '#94a3b8',
+                        fontWeight: 800,
+                        fontSize: '0.84rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      🎯 Official MSP Form 29-14 Scoresheet
+                    </button>
+                  </div>
+                </div>
+
+                {/* Drawer Body Frames */}
+                <div style={{ flex: 1, margin: '16px 0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                  {/* View 1: SOP Interactive Document */}
+                  <div id="view-sop-frame" style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 700 }}>
+                        Interactive 34+ State Multi-Permit Field Guide (16-Hour Class Companion)
+                      </span>
+                      <a
+                        href="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ fontSize: '0.78rem', color: '#f59e0b', textDecoration: 'underline' }}
+                      >
+                        Open In Full Browser Tab ↗
+                      </a>
+                    </div>
+                    <iframe
+                      src="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
+                      style={{ width: '100%', flex: 1, minHeight: '450px', border: 'none', borderRadius: '6px', background: '#070a11' }}
+                      title="16-Hour Follow-Along Field Guide"
+                    />
+                  </div>
+
+                  {/* View 2: MSP 29-14 Scoresheet */}
+                  <div id="view-score-frame" style={{ display: 'none', flexDirection: 'column', height: '100%', flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 700 }}>
+                        Official MSP Form 29-14 Live-Fire Scoresheet
+                      </span>
+                      <a
+                        href="/qualification_sheet_2.pdf"
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ fontSize: '0.78rem', color: 'var(--accent-cyan)', textDecoration: 'underline' }}
+                      >
+                        Download Blank PDF ↗
+                      </a>
+                    </div>
+                    <iframe
+                      src="/qualification_sheet_2.pdf"
+                      style={{ width: '100%', flex: 1, minHeight: '450px', border: 'none', borderRadius: '6px', background: '#070A11' }}
+                      title="MSP Form 29-14 Scoresheet"
+                    />
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #1F2E4D', paddingTop: '14px' }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    Future Initiative Firearm Services • Lead Instructor Kai Wade
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const modal = document.getElementById('multistate-modal-drawer');
+                      if (modal) modal.style.display = 'none';
+                    }}
+                    style={{ background: '#1F2E4D', color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}
+                  >
+                    Close Viewer
+                  </button>
+                </div>
+              </div>
+            </div>
+
+{/* Official Maryland Qualification Scoresheet Card (MSP Form 29-14) */}
             <div className="fi-card" id="dash-scoresheet-card" style={{"marginBottom": "24px", "border": "1px solid rgba(0, 229, 255, 0.28)", "background": "linear-gradient(135deg, rgba(7,11,16,0.95), rgba(15,23,42,0.85))", "borderRadius": "12px", "padding": "20px"}}>
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "12px", "flexWrap": "wrap", "gap": "8px"}}>
                 <div>
