@@ -17,27 +17,30 @@ const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'carpetcare85@gmail.
 const SENDER_EMAIL = process.env.RESEND_FROM_EMAIL || 'Train With FIFS <onboarding@trainwithfifs.com>';
 
 function generateSecureTempPassword(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
-  const len = 12;
+  const adjectives = [
+    'Blue', 'Silver', 'Golden', 'Iron', 'Swift', 'Bold', 'Rapid', 'Brave',
+    'Bright', 'Apex', 'Prime', 'Delta', 'Noble', 'Storm', 'Cedar', 'Summit',
+    'Timber', 'Sierra', 'Granite', 'Amber', 'Coral', 'Jade', 'Onyx', 'Shadow',
+    'Shield', 'Horizon', 'Harbor', 'Ranger', 'True', 'Alpha', 'Steel', 'Vanguard'
+  ];
+  const nouns = [
+    'Mountain', 'River', 'Valley', 'Timber', 'Falcon', 'Eagle', 'Shield', 'Beacon',
+    'Pioneer', 'Canyon', 'Summit', 'Forest', 'Ridge', 'Harbor', 'Anchor', 'Vanguard',
+    'Patrol', 'Ranger', 'Prairie', 'Glacier', 'Sentinel', 'Fortress', 'Bastion', 'Haven'
+  ];
   try {
     if (typeof crypto !== 'undefined' && crypto && typeof crypto.randomBytes === 'function') {
-      const buf = crypto.randomBytes(len);
-      let res = '';
-      for (let i = 0; i < len; i++) {
-        res += chars[buf[i] % chars.length];
-      }
-      return res;
+      const buf = crypto.randomBytes(4);
+      const adj = adjectives[buf[0] % adjectives.length];
+      const noun = nouns[buf[1] % nouns.length];
+      const num = 10 + (buf[2] % 90);
+      return adj + noun + num;
     }
   } catch (_e) {}
-  const fallbackBuf = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    fallbackBuf[i] = Math.floor(Math.random() * 256);
-  }
-  let res = '';
-  for (let i = 0; i < len; i++) {
-    res += chars[fallbackBuf[i] % chars.length];
-  }
-  return res;
+  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const num = 10 + Math.floor(Math.random() * 90);
+  return adj + noun + num;
 }
 
 function validateStrictPassword(password: string): { valid: boolean; error?: string } {
@@ -68,9 +71,9 @@ function generateIcsCalendar(params: {
   const end = formatIcsDate(endDate);
   const now = formatIcsDate(new Date());
   const uid = 'fifs-class-' + params.startDate.getTime() + '-' + Math.floor(Math.random() * 100000) + '@trainwithfifs.com';
-  const loc = (params.location || "Cindy's Hot Shots, 115 Holsum Way, Glen Burnie, MD 21060").replace(/,/g, '\,');
-  const cleanSummary = (params.title || 'FIFS Firearms Course').split(String.fromCharCode(10)).join(' ').split(String.fromCharCode(13)).join('');
-  const cleanDesc = (params.description || '').split(String.fromCharCode(10)).join('\\n').split(String.fromCharCode(13)).join('');
+  const loc = (params.location || "Cindy's Hot Shots, 115 Holsum Way, Glen Burnie, MD 21060").replace(/,/g, '\\,');
+  const cleanSummary = (params.title || 'FIFS Firearms Course').split('\n').join(' ').split('\r').join('');
+  const cleanDesc = (params.description || '').split('\n').join('\\n').split('\r').join('');
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -93,10 +96,28 @@ function generateIcsCalendar(params: {
     'DESCRIPTION:Reminder: 24 Hours until your FIFS Firearms Course',
     'END:VALARM',
     'END:VEVENT',
+<<<<<<< HEAD
     'END:VCALENDAR',
   ].join(String.fromCharCode(13, 10));
 }
 
+=======
+    'END:VCALENDAR'
+  ].join('\r\n');
+}
+
+async function getSignedDocumentUrl(supabase: any, path?: string | null): Promise<string | null> {
+  if (!path) return null;
+  try {
+    const { data, error } = await supabase.storage.from('course-materials').createSignedUrl(path, 604800);
+    if (error || !data?.signedUrl) return null;
+    return data.signedUrl;
+  } catch (err: any) {
+    return null;
+  }
+}
+
+>>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
 interface ResendAttachment {
   filename: string;
   content: string;
@@ -214,6 +235,7 @@ export async function POST(req: NextRequest) {
         }
 
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trainwithfifs.com';
+<<<<<<< HEAD
         const magicLink =
           portalType === 'student'
             ? `${appUrl}/#student-portal?email=${encodeURIComponent(email)}&auth=direct`
@@ -233,6 +255,53 @@ export async function POST(req: NextRequest) {
             },
             { onConflict: 'email' }
           );
+=======
+        const magicLink = portalType === 'student'
+          ? `${appUrl}/?portal=student&id=${encodeURIComponent(generatedId)}&temp=${encodeURIComponent(tempPassword)}`
+          : `${appUrl}/?tab=fi-portal&id=${encodeURIComponent(generatedId)}`;
+
+        if (portalType === 'client') {
+          const clientId = payload.clientId || ('FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000));
+          const clientData: Record<string, any> = {
+            client_id: clientId,
+            full_name: fullName,
+            email: email,
+            phone: phone,
+            permit_state: courseName,
+            status: 'ACTIVE_REGISTERED',
+            updated_at: now
+          };
+
+          const { data: existingClient } = await supabase
+            .from('clients')
+            .select('client_id, id')
+            .eq('email', email)
+            .maybeSingle();
+
+          let clientErr: any = null;
+          if (existingClient) {
+            const { error } = await supabase
+              .from('clients')
+              .update(clientData)
+              .eq('email', email);
+            clientErr = error;
+          } else {
+            const { error } = await supabase
+              .from('clients')
+              .insert({ ...clientData, created_at: now });
+            clientErr = error;
+          }
+
+          if (clientErr) {
+            console.error('[Supabase Client Save Error]:', clientErr);
+            return NextResponse.json({
+              success: false,
+              status: 'error',
+              error: 'Failed to save client record: ' + clientErr.message
+            }, { status: 500 });
+          }
+
+>>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
           return NextResponse.json({
             success: true,
             status: 'success',
@@ -242,8 +311,12 @@ export async function POST(req: NextRequest) {
           });
         }
 
+<<<<<<< HEAD
         const defaultTasks = { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false };
         const studentPayload: Record<string, any> = {
+=======
+        const studentData: Record<string, any> = {
+>>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
           student_id: generatedId,
           full_name: fullName,
           email: email,
@@ -253,51 +326,96 @@ export async function POST(req: NextRequest) {
           course_selection: courseName,
           preferred_dates: dates,
           assigned_date: dates,
-          group_size: '1',
-          comments: payload.comments || payload.notes || 'Direct invite dispatched by Instructor',
           status: 'STEP_1_REGISTERED',
-          prep_tasks: defaultTasks,
-          waiver_completed: false,
-          created_at: now,
-          updated_at: now,
           portal_password: tempPassword,
           temp_password_reset: true,
           must_change_password: true,
+<<<<<<< HEAD
         };
 
         await supabase.from('students').upsert(studentPayload, { onConflict: 'email' });
+=======
+          updated_at: now
+        };
+
+        const { data: existingStudent } = await supabase
+          .from('students')
+          .select('student_id, id')
+          .or(`email.ilike.${email},student_id.ilike.${generatedId}`)
+          .maybeSingle();
+
+        let studentErr: any = null;
+        if (existingStudent) {
+          const { error } = await supabase
+            .from('students')
+            .update(studentData)
+            .eq('email', email);
+          studentErr = error;
+        } else {
+          // Attempt insert; if non-core columns are rejected by table schema, fallback to core fields
+          const { error: insErr } = await supabase
+            .from('students')
+            .insert({ ...studentData, created_at: now });
+
+          if (insErr) {
+            // Fallback to strict minimal columns to ensure registration never drops
+            const minimalData = {
+              student_id: generatedId,
+              full_name: fullName,
+              email: email,
+              phone: phone,
+              course: courseName,
+              assigned_date: dates,
+              status: 'STEP_1_REGISTERED',
+              portal_password: tempPassword,
+              created_at: now,
+              updated_at: now
+            };
+            const { error: fallbackErr } = await supabase
+              .from('students')
+              .insert(minimalData);
+            studentErr = fallbackErr;
+          }
+        }
+
+        if (studentErr) {
+          console.error('[Supabase Student Save Error]:', studentErr);
+          return NextResponse.json({
+            success: false,
+            status: 'error',
+            error: 'Failed to save student record to Supabase: ' + studentErr.message
+          }, { status: 500 });
+        }
+>>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
 
         const eventStart = new Date(dates);
         const validStartDate = isNaN(eventStart.getTime()) ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : eventStart;
         const icsContent = generateIcsCalendar({
           title: courseName,
-          description: `Future Initiative Firearms Course: ${courseName} for ${fullName}`,
+          description: `Firearms Training Session: ${courseName} with Kai Wade. Schedule: ${dates}.`,
           startDate: validStartDate,
           durationHours: 8,
         });
 
         const html = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #070a11; color: #f8fafc; padding: 24px; border-radius: 8px; border: 1px solid #1f2e4d;">
-            <h2 style="color: #00e5ff; margin-top: 0;">Welcome to Train With FIFS</h2>
-            <p>Hello <strong>${fullName}</strong>,</p>
-            <p>Your access credentials for the <strong>${courseName}</strong> training session have been generated by Instructor Kai Wade.</p>
-            <div style="background: #0d1424; padding: 16px; border-radius: 6px; margin: 16px 0; border: 1px solid #1f2e4d;">
-              <p style="margin: 4px 0;"><strong>Student ID:</strong> ${generatedId}</p>
-              <p style="margin: 4px 0;"><strong>Course:</strong> ${courseName}</p>
-              <p style="margin: 4px 0;"><strong>Date / Time:</strong> ${dates}</p>
-              <p style="margin: 4px 0;"><strong>Temporary Password:</strong> <code style="background: #1f2e4d; color: #f59e0b; padding: 2px 6px; border-radius: 4px;">${tempPassword}</code></p>
+          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#333;">
+            <h2 style="color:#0f172a;">Welcome to Future Initiative Firearm Services</h2>
+            <p>Dear <strong>${fullName}</strong>,</p>
+            <p>Your portal access has been provisioned for <strong>${courseName}</strong> (${dates}).</p>
+            <div style="background:#f1f5f9;border-left:4px solid #0284c7;padding:14px 18px;margin:16px 0;border-radius:4px;">
+              <p style="margin:4px 0;"><strong>Direct 1-Click Access:</strong> <a href="${magicLink}" style="color:#0284c7;font-weight:bold;">Click here to enter your Student Portal</a></p>
+              <p style="margin:6px 0 2px;"><strong>Student ID:</strong> <code>${generatedId}</code></p>
+              <p style="margin:2px 0;"><strong>Temporary Password:</strong> <code>${tempPassword}</code></p>
             </div>
-            <p>Click below to log in directly to your student portal:</p>
-            <div style="text-align: center; margin: 24px 0;">
-              <a href="${magicLink}" style="background: #00e5ff; color: #070a11; padding: 12px 24px; border-radius: 6px; font-weight: bold; text-decoration: none; display: inline-block;">Log In To Student Portal</a>
-            </div>
-            <p style="font-size: 0.85rem; color: #94a3b8;">A calendar invitation (.ics file) has been attached to this email. Please import it to add the scheduled training session to your calendar.</p>
+            <p><em>You will be prompted to set your permanent password upon first login.</em></p>
+            <p>A calendar invitation (.ics) is attached to sync this course session with your phone.</p>
+            <p>Lead Instructor Kai Wade<br>Future Initiative Firearm Services</p>
           </div>
         `;
 
         const emailResult = await sendResendEmail({
           to: email,
-          subject: `Your Train With FIFS Access Credentials: ${courseName}`,
+          subject: `Your Training Portal Access & Invitation - ${courseName}`,
           html: html,
           attachments: [{ filename: 'fifs-training-session.ics', content: Buffer.from(icsContent).toString('base64') }],
         });
@@ -322,11 +440,18 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier.' }, { status: 400 });
         }
 
+<<<<<<< HEAD
         // FIXED: Explicit .or() expression preventing empty filter runtime error
         const { data: student, error: stErr } = await supabase
           .from('students')
           .select('*')
           .or(`student_id.eq.${identifier},email.eq.${identifier}`)
+=======
+        const { data: student, error: stErr } = await supabase
+          .from('students')
+          .select('*')
+          .or(`email.ilike.${identifier},student_id.ilike.${identifier}`)
+>>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
           .maybeSingle();
 
         if (stErr || !student) {
@@ -375,11 +500,15 @@ export async function POST(req: NextRequest) {
       case 'setupStudentPassword':
       case 'firstLoginPasswordChange':
       case 'selfServicePasswordUpdate': {
-        const identifier = (payload.studentId || payload.email || '').trim();
+        const identifier = (payload.identifier || payload.studentId || payload.clientId || payload.email || '').trim();
         const newPassword = (payload.password || payload.newPassword || '').trim();
+<<<<<<< HEAD
+=======
+        const userType = payload.userType || 'student';
+>>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
 
         if (!identifier || !newPassword) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Student ID and new password are required.' }, { status: 400 });
+          return NextResponse.json({ success: false, status: 'error', error: 'User identifier and new password are required.' }, { status: 400 });
         }
 
         const val = validateStrictPassword(newPassword);
@@ -387,7 +516,33 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, status: 'error', error: val.error }, { status: 400 });
         }
 
+<<<<<<< HEAD
         // FIXED: Explicit .or() filter replacing broken empty call
+=======
+        if (userType === 'client') {
+          const { data: updatedClient, error: clientErr } = await supabase
+            .from('clients')
+            .update({
+              portal_password: newPassword,
+              updated_at: new Date().toISOString()
+            })
+            .or(`email.ilike.${identifier},client_id.ilike.${identifier}`)
+            .select()
+            .maybeSingle();
+
+          if (clientErr) {
+            return NextResponse.json({ success: false, status: 'error', error: clientErr.message }, { status: 500 });
+          }
+
+          return NextResponse.json({
+            success: true,
+            status: 'success',
+            client: normalizeClient(updatedClient),
+            message: 'Client portal password updated successfully!'
+          });
+        }
+
+>>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
         const { data: updated, error: updateErr } = await supabase
           .from('students')
           .update({
@@ -397,7 +552,11 @@ export async function POST(req: NextRequest) {
             password_expires_at: null,
             updated_at: new Date().toISOString(),
           })
+<<<<<<< HEAD
           .or(`student_id.eq.${identifier},email.eq.${identifier}`)
+=======
+          .or(`email.ilike.${identifier},student_id.ilike.${identifier}`)
+>>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
           .select()
           .maybeSingle();
 
@@ -413,6 +572,7 @@ export async function POST(req: NextRequest) {
         });
       }
 
+<<<<<<< HEAD
       case 'deleteUserPermit': {
         // Reciprocity Hub Permit CRUD DELETE action
         const permitId = payload.permitId || payload.id;
@@ -457,6 +617,28 @@ export async function POST(req: NextRequest) {
         const { data: clients } = await supabase.from('clients').select('*').order('created_at', { ascending: false });
         const { data: enrollments } = await supabase.from('enrollments').select('*, classes(title)').order('scheduled_date', { ascending: false });
         const { data: liveChats } = await supabase.from('live_chats').select('*').order('created_at', { ascending: false });
+=======
+      case 'getAdminDashboardData': {
+        const { data: students } = await supabase
+          .from('students')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        const { data: clients } = await supabase
+          .from('clients')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        const { data: enrollments } = await supabase
+          .from('enrollments')
+          .select('*, classes(title)')
+          .order('scheduled_date', { ascending: false });
+
+        const { data: liveChats } = await supabase
+          .from('live_chats')
+          .select('*')
+          .order('created_at', { ascending: false });
+>>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
 
         return NextResponse.json({
           success: true,
@@ -474,10 +656,12 @@ export async function POST(req: NextRequest) {
         if (!studentId || !newStatus) {
           return NextResponse.json({ success: false, status: 'error', error: 'Missing studentId or status' }, { status: 400 });
         }
+
         const { error } = await supabase
           .from('students')
           .update({ status: newStatus, updated_at: new Date().toISOString() })
           .eq('student_id', studentId);
+
         if (error) {
           return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 500 });
         }
@@ -488,24 +672,83 @@ export async function POST(req: NextRequest) {
         const studentId = payload.studentId;
         const taskId = payload.taskId;
         const isChecked = Boolean(payload.isChecked);
+<<<<<<< HEAD
         const { data: student } = await supabase.from('students').select('prep_tasks').eq('student_id', studentId).maybeSingle();
         const currentTasks = student && student.prep_tasks ? student.prep_tasks : {};
+=======
+
+        const { data: student } = await supabase
+          .from('students')
+          .select('prep_tasks')
+          .eq('student_id', studentId)
+          .maybeSingle();
+
+        const currentTasks = (student && student.prep_tasks) ? student.prep_tasks : {};
+>>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
         currentTasks[taskId] = isChecked;
+
         await supabase
           .from('students')
           .update({ prep_tasks: currentTasks, updated_at: new Date().toISOString() })
           .eq('student_id', studentId);
+
         return NextResponse.json({ success: true, status: 'success' });
       }
 
+<<<<<<< HEAD
+=======
+      case 'adminEditStudent': {
+        const studentId = payload.studentId;
+        const updates = payload.updates || payload;
+        delete updates.action;
+        delete updates.passcode;
+        delete updates.studentId;
+
+        const { data: updated, error } = await supabase
+          .from('students')
+          .update({
+            full_name: updates.fullName || updates.full_name,
+            email: updates.email,
+            phone: updates.phone,
+            course_name: updates.courseSelection || updates.course,
+            course: updates.courseSelection || updates.course,
+            assigned_date: updates.assignedDate || updates.classDate,
+            status: updates.status,
+            qualification_score: updates.qualificationScore,
+            profile_doc_url: updates.profileDocUrl || updates.dossierUrl,
+            internal_notes: updates.notes,
+            updated_at: new Date().toISOString()
+          })
+          .eq('student_id', studentId)
+          .select()
+          .single();
+
+        if (error) {
+          return NextResponse.json({ success: false, status: 'error', error: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ success: true, status: 'success', student: normalizeStudent(updated) });
+      }
+
+      case 'adminDeleteStudent': {
+        const studentId = payload.studentId;
+        if (!studentId) {
+          return NextResponse.json({ success: false, status: 'error', error: 'Missing studentId' }, { status: 400 });
+        }
+        await supabase.from('students').delete().eq('student_id', studentId);
+        return NextResponse.json({ success: true, status: 'success', message: 'Student removed.' });
+      }
+
+>>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
       case 'handleLiveChatMessage': {
         const threadId = payload.threadId || payload.thread_id;
         const messageText = payload.message || payload.text;
         const senderName = payload.senderName || payload.name || 'Visitor';
         const senderPhone = payload.senderPhone || payload.phone || '';
+
         if (!threadId || !messageText) {
           return NextResponse.json({ success: false, status: 'error', error: 'Missing message content or thread ID' }, { status: 400 });
         }
+
         await supabase.from('live_chats').insert({
           thread_id: threadId,
           sender: 'user',
@@ -514,28 +757,48 @@ export async function POST(req: NextRequest) {
           message: messageText,
           sent_at: new Date().toISOString(),
         });
+
         const { data: threadMessages } = await supabase
           .from('live_chats')
           .select('*')
           .eq('thread_id', threadId)
           .order('sent_at', { ascending: true });
+
         return NextResponse.json({ success: true, status: 'success', messages: threadMessages || [] });
       }
 
       case 'getLiveChats': {
+<<<<<<< HEAD
         const { data: chats } = await supabase.from('live_chats').select('*').order('sent_at', { ascending: false });
+=======
+        const { data: chats } = await supabase
+          .from('live_chats')
+          .select('*')
+          .order('sent_at', { ascending: false });
+
+>>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
         return NextResponse.json({ success: true, status: 'success', liveChats: chats || [] });
       }
 
       case 'getVisitorChatMessages': {
         const threadId = payload.threadId;
+<<<<<<< HEAD
         const { data: msgs } = await supabase.from('live_chats').select('*').eq('thread_id', threadId).order('sent_at', { ascending: true });
+=======
+        const { data: msgs } = await supabase
+          .from('live_chats')
+          .select('*')
+          .eq('thread_id', threadId)
+          .order('sent_at', { ascending: true });
+
+>>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
         return NextResponse.json({ success: true, status: 'success', messages: msgs || [] });
       }
 
       case 'sendAdminLiveChatReply': {
         const threadId = payload.threadId || payload.payload?.threadId;
         const replyText = payload.text || payload.payload?.text || payload.message;
+
         await supabase.from('live_chats').insert({
           thread_id: threadId,
           sender: 'instructor',
@@ -543,6 +806,7 @@ export async function POST(req: NextRequest) {
           message: replyText,
           sent_at: new Date().toISOString(),
         });
+
         return NextResponse.json({ success: true, status: 'success', message: 'Reply recorded.' });
       }
 
