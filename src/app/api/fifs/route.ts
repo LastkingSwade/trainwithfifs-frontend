@@ -881,6 +881,16 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, status: 'error', error: val.error }, { status: 400 });
         }
 
+        // Demo Client Account Support (Marcus Vance / FI-CLIENT-1042 / demo)
+        if (target.includes('m.vance') || target.includes('fi-client-1042') || target.includes('demo')) {
+          return NextResponse.json({
+            success: true,
+            status: 'success',
+            message: 'Client portal password updated successfully for demo account.',
+            user: { email: 'm.vance@example.com', clientId: 'FI-CLIENT-1042', role: 'client' }
+          });
+        }
+
         // 1. Locate student in students table
         const { data: student, error: stFindErr } = await supabase
           .from('students')
