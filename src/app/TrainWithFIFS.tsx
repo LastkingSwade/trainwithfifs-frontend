@@ -467,6 +467,15 @@ export default function TrainWithFIFS(props: any) {
 document.addEventListener('submit', handleDelegatedSubmit);
 
 
+    (window as any).toggleMultiPermitModal = function(show: boolean) {
+      const modal = document.getElementById('multiPermitModal');
+      if (modal) {
+        modal.style.setProperty('display', show ? 'block' : 'none', 'important');
+        document.body.style.overflow = show ? 'hidden' : '';
+        if (show) modal.scrollTop = 0;
+      }
+    };
+
     return () => {
       document.removeEventListener('click', handleDelegatedClick);
       document.removeEventListener('change', handleDelegatedChange);
@@ -1347,44 +1356,59 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     OFFICIAL MSP APPLICATION MANUAL
                   </span>
                   <h3 className="portal-feature-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.4rem", "color": "#fff", "marginBottom": "6px"}}>
-                    📄 MSP Wear & Carry Portal User Guide
+                    📄 MSP Wear &amp; Carry Portal User Guide
                   </h3>
                   <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
-                    
-              Official 20-page Maryland State Police visual guide (MSP Media 474). Step-by-step instructions on creating your state account, uploading your certified Form 29-14 score sheet, and completing background check questionnaires without delays.
-            
+                    Official 20-page Maryland State Police visual guide (MSP Media 474). Step-by-step instructions on creating your state account, uploading your certified Form 29-14 score sheet, and completing background check questionnaires without delays.
                   </p>
                 </div>
                 <div>
                   <a href="https://mdsp.maryland.gov/media/474" target="_blank" rel="noopener noreferrer" className="btn-spark" style={{"textDecoration": "none", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "borderColor": "#38bdf8", "color": "#38bdf8", "boxShadow": "0 0 16px rgba(56, 189, 248, 0.2)"}}>
-                    
-              📄 View Official MSP Portal Guide (PDF) ↗
-            
+                    📄 View Official MSP Portal Guide (PDF) ↗
                   </a>
                 </div>
               </div>
-            </div>
-            {/* ================= EXCLUSIVE STUDENT TRAVEL & RECIPROCITY HUB ================= */}
-            <div className="portal-feature-launcher-card" style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "marginBottom": "24px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.15)"}}>
-              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "16px"}}>
+
+              {/* Card 5: Multi-State CCW Reciprocity Navigator & Travel Hub (Half Width) */}
+              <div className="portal-feature-launcher-card" style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                 <div>
-                  <span className="next-step-badge" style={{"color": "var(--accent-cyan)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.82rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                  <span className="next-step-badge" style={{"color": "var(--accent-cyan)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                     STUDENT PORTAL EXCLUSIVE TOOL
                   </span>
-                  <h3 className="portal-feature-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.45rem", "color": "#fff", "marginBottom": "6px"}}>
-                    🗺️ Multi-State CCW Reciprocity Navigator & Travel Hub
+                  <h3 className="portal-feature-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.4rem", "color": "#fff", "marginBottom": "6px"}}>
+                    🗺️ Multi-State CCW Reciprocity Navigator &amp; Travel Hub
                   </h3>
-                  <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "maxWidth": "620px"}}>
-                    
-                Interactive 50-state recognition map. See where you can carry with your Maryland permit, test Utah/Florida non-resident add-ons, plan interstate car travel corridors, and review mandatory TSA flying rules.
-              
+                  <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
+                    Interactive 50-state recognition map. See where you can carry with your Maryland permit, test Utah/Florida non-resident add-ons, plan interstate car travel corridors, and review mandatory TSA flying rules.
                   </p>
                 </div>
-                <button className="btn-primary" data-onclick="toggleReciprocityHubModal(true)" style={{"width": "auto", "padding": "12px 24px", "fontSize": "0.95rem", "whiteSpace": "nowrap", "boxShadow": "0 0 18px var(--accent-cyan-glow)", "cursor": "pointer"}} type="button">
-                  
-              LAUNCH RECIPROCITY NAVIGATOR ↗
-            
-                </button>
+                <div>
+                  <button className="btn-primary" data-onclick="toggleReciprocityHubModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleReciprocityHubModal) (window as any).toggleReciprocityHubModal(true); }} style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "gap": "8px"}} type="button">
+                    <span>🗺️</span>
+                    <span>LAUNCH RECIPROCITY NAVIGATOR ↗</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Card 6: 34+ State Multi-Permit Expansion System Field Guide */}
+              <div className="portal-feature-launcher-card" style={{"border": "2px solid #F59E0B", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
+                <div>
+                  <span className="next-step-badge" style={{"color": "#F59E0B", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                    TACTICAL COMPLIANCE FIELD GUIDE
+                  </span>
+                  <h3 className="portal-feature-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.4rem", "color": "#fff", "marginBottom": "6px"}}>
+                    ⭐ 34+ State Multi-Permit Expansion System
+                  </h3>
+                  <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
+                    Authorized FIFS SOP &amp; Field Guide by Lead Coach Kai Wade. Master the chronological multi-state dispatch sequence (MD resident anchor, parallel VA/FL/AZ packets, and rapid 5-minute PA border pickup), avoid clerical rejections, and unlock your $0 free MD HQL exemption.
+                  </p>
+                </div>
+                <div>
+                  <button type="button" data-onclick="toggleMultiPermitModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} className="btn-spark" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "borderColor": "#F59E0B", "color": "#F59E0B", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "gap": "8px", "boxShadow": "0 0 16px rgba(245, 158, 11, 0.2)"}}>
+                    <span>⭐</span>
+                    <span>OPEN 34+ STATE FIELD GUIDE ↗</span>
+                  </button>
+                </div>
               </div>
             </div>
             {/* ================= DYNAMIC COURSE FOLLOW-ALONG PACKET CARD ================= */}
@@ -6483,7 +6507,34 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </div>
-      {/* ================= DESIGNATED COLLECTOR INFO MODAL ================= */}
+            {/* ================= 34+ STATE MULTI-PERMIT EXPANSION SYSTEM FULL-SCREEN MODAL ================= */}
+      <div className="reciprocity-hub-modal-overlay" id="multiPermitModal" data-onclick="if(event.target===this) toggleMultiPermitModal(false)" style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "overflowY": "auto", "padding": "24px 16px"}}>
+        <div style={{"maxWidth": "1240px", "margin": "0 auto", "position": "relative"}}>
+          <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "18px", "paddingBottom": "12px", "borderBottom": "1px solid var(--border-subtle)", "flexWrap": "wrap", "gap": "10px"}}>
+            <h2 style={{"fontFamily": "var(--font-display)", "fontSize": "1.65rem", "color": "#fff", "letterSpacing": "1px", "display": "flex", "alignItems": "center", "gap": "10px"}}>
+              <span>⭐</span>
+              <span>34+ State Multi-Permit Expansion System | FIFS SOP &amp; Field Guide</span>
+            </h2>
+            <div style={{"display": "flex", "gap": "10px", "alignItems": "center", "flexWrap": "wrap"}}>
+              <a href="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html" target="_blank" rel="noopener noreferrer" className="btn-spark" style={{"textDecoration": "none", "padding": "8px 16px", "fontSize": "0.85rem", "minHeight": "40px", "display": "inline-flex", "alignItems": "center", "gap": "6px", "borderColor": "#F59E0B", "color": "#F59E0B"}}>
+                <span>↗ Open in New Window</span>
+              </a>
+              <button className="btn-return-home" data-onclick="toggleMultiPermitModal(false)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(false); }} style={{"padding": "8px 18px", "fontSize": "0.95rem", "minHeight": "40px", "cursor": "pointer"}} type="button">
+                ✕ CLOSE GUIDE
+              </button>
+            </div>
+          </div>
+          <div style={{"background": "#070A11", "borderRadius": "16px", "border": "1px solid rgba(245, 158, 11, 0.35)", "overflow": "hidden", "boxShadow": "0 25px 60px rgba(0,0,0,0.95), 0 0 35px rgba(245, 158, 11, 0.2)"}}>
+            <iframe
+              src="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
+              title="34+ State Multi-Permit Expansion System | FIFS SOP & Field Guide"
+              style={{"width": "100%", "height": "85vh", "border": "none", "display": "block", "background": "#070A11"}}
+            />
+          </div>
+        </div>
+      </div>
+
+{/* ================= DESIGNATED COLLECTOR INFO MODAL ================= */}
       <div className="state-dossier-modal-overlay" id="collectorInfoModal" data-onclick="if(event.target===this) closeCollectorModal()" style={{"display": "none"}}>
         <div aria-modal="true" className="state-dossier-card" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "620px"}}>
           <button aria-label="Close modal" className="dossier-close-btn" data-onclick="closeCollectorModal()" type="button">
