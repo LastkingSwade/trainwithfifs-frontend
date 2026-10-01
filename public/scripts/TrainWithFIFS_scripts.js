@@ -1370,8 +1370,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     window.startVisitorChatPolling = startVisitorChatPolling;
     window.stopVisitorChatPolling = stopVisitorChatPolling;
     function closeTwoWayChat() {
-  if (!window.confirm("Closing this chat requires you to use the primary contact panel on the homepage for future correspondence with Instructor Wade.")) return;
-
       stopVisitorChatPolling();
       var modal = document.getElementById('twoWayChatModal');
       var stream = document.getElementById('twoWayChatStream');
@@ -5528,8 +5526,6 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
      * and guarantees zero data retention in browser fields or local storage.
      */
     function closeTwoWayChat() {
-  if (!window.confirm("Closing this chat requires you to use the primary contact panel on the homepage for future correspondence with Instructor Wade.")) return;
-
       var modal = document.getElementById('twoWayChatModal');
       if (modal) {
         modal.style.setProperty('display', 'none', 'important');
@@ -11935,19 +11931,30 @@ if (typeof window !== 'undefined') {
 
 
     // ================= FULLSCREEN MASTERY SUITE & PASSWORD MODAL HANDLERS =================
-    function openMultiStateFullscreenViewer() {
+    function toggleMultiStateMasteryModal(show) {
       var modal = document.getElementById('multistate-modal-drawer');
-      if (modal) {
-        modal.style.display = 'flex';
+      if (!modal) return;
+      if (show) {
+        modal.classList.add('active');
+        modal.style.setProperty('display', 'block', 'important');
+        modal.style.setProperty('visibility', 'visible', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.style.setProperty('pointer-events', 'auto', 'important');
         document.body.style.overflow = 'hidden';
-      }
-    }
-    function closeMultiStateFullscreenViewer() {
-      var modal = document.getElementById('multistate-modal-drawer');
-      if (modal) {
-        modal.style.display = 'none';
+        modal.scrollTop = 0;
+      } else {
+        modal.classList.remove('active');
+        modal.style.setProperty('display', 'none', 'important');
         document.body.style.overflow = '';
       }
+    }
+    window.toggleMultiStateMasteryModal = toggleMultiStateMasteryModal;
+
+    function openMultiStateFullscreenViewer() {
+      toggleMultiStateMasteryModal(true);
+    }
+    function closeMultiStateFullscreenViewer() {
+      toggleMultiStateMasteryModal(false);
     }
     window.openMultiStateFullscreenViewer = openMultiStateFullscreenViewer;
     window.closeMultiStateFullscreenViewer = closeMultiStateFullscreenViewer;
