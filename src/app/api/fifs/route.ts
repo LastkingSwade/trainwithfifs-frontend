@@ -96,12 +96,6 @@ function generateIcsCalendar(params: {
     'DESCRIPTION:Reminder: 24 Hours until your FIFS Firearms Course',
     'END:VALARM',
     'END:VEVENT',
-<<<<<<< HEAD
-    'END:VCALENDAR',
-  ].join(String.fromCharCode(13, 10));
-}
-
-=======
     'END:VCALENDAR'
   ].join('\r\n');
 }
@@ -117,7 +111,6 @@ async function getSignedDocumentUrl(supabase: any, path?: string | null): Promis
   }
 }
 
->>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
 interface ResendAttachment {
   filename: string;
   content: string;
@@ -235,27 +228,6 @@ export async function POST(req: NextRequest) {
         }
 
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trainwithfifs.com';
-<<<<<<< HEAD
-        const magicLink =
-          portalType === 'student'
-            ? `${appUrl}/#student-portal?email=${encodeURIComponent(email)}&auth=direct`
-            : `${appUrl}/#client-portal?email=${encodeURIComponent(email)}&auth=direct`;
-
-        if (portalType === 'client') {
-          const clientId = payload.clientId || 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
-          await supabase.from('clients').upsert(
-            {
-              client_id: clientId,
-              full_name: fullName,
-              email: email,
-              phone: phone,
-              permit_state: courseName,
-              status: 'ACTIVE_REGISTERED',
-              updated_at: now,
-            },
-            { onConflict: 'email' }
-          );
-=======
         const magicLink = portalType === 'student'
           ? `${appUrl}/?portal=student&id=${encodeURIComponent(generatedId)}&temp=${encodeURIComponent(tempPassword)}`
           : `${appUrl}/?tab=fi-portal&id=${encodeURIComponent(generatedId)}`;
@@ -301,7 +273,6 @@ export async function POST(req: NextRequest) {
             }, { status: 500 });
           }
 
->>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
           return NextResponse.json({
             success: true,
             status: 'success',
@@ -311,12 +282,7 @@ export async function POST(req: NextRequest) {
           });
         }
 
-<<<<<<< HEAD
-        const defaultTasks = { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false };
-        const studentPayload: Record<string, any> = {
-=======
         const studentData: Record<string, any> = {
->>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
           student_id: generatedId,
           full_name: fullName,
           email: email,
@@ -330,11 +296,6 @@ export async function POST(req: NextRequest) {
           portal_password: tempPassword,
           temp_password_reset: true,
           must_change_password: true,
-<<<<<<< HEAD
-        };
-
-        await supabase.from('students').upsert(studentPayload, { onConflict: 'email' });
-=======
           updated_at: now
         };
 
@@ -352,13 +313,11 @@ export async function POST(req: NextRequest) {
             .eq('email', email);
           studentErr = error;
         } else {
-          // Attempt insert; if non-core columns are rejected by table schema, fallback to core fields
           const { error: insErr } = await supabase
             .from('students')
             .insert({ ...studentData, created_at: now });
 
           if (insErr) {
-            // Fallback to strict minimal columns to ensure registration never drops
             const minimalData = {
               student_id: generatedId,
               full_name: fullName,
@@ -386,7 +345,6 @@ export async function POST(req: NextRequest) {
             error: 'Failed to save student record to Supabase: ' + studentErr.message
           }, { status: 500 });
         }
->>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
 
         const eventStart = new Date(dates);
         const validStartDate = isNaN(eventStart.getTime()) ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : eventStart;
@@ -440,18 +398,10 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier.' }, { status: 400 });
         }
 
-<<<<<<< HEAD
-        // FIXED: Explicit .or() expression preventing empty filter runtime error
-        const { data: student, error: stErr } = await supabase
-          .from('students')
-          .select('*')
-          .or(`student_id.eq.${identifier},email.eq.${identifier}`)
-=======
         const { data: student, error: stErr } = await supabase
           .from('students')
           .select('*')
           .or(`email.ilike.${identifier},student_id.ilike.${identifier}`)
->>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
           .maybeSingle();
 
         if (stErr || !student) {
@@ -502,10 +452,7 @@ export async function POST(req: NextRequest) {
       case 'selfServicePasswordUpdate': {
         const identifier = (payload.identifier || payload.studentId || payload.clientId || payload.email || '').trim();
         const newPassword = (payload.password || payload.newPassword || '').trim();
-<<<<<<< HEAD
-=======
         const userType = payload.userType || 'student';
->>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
 
         if (!identifier || !newPassword) {
           return NextResponse.json({ success: false, status: 'error', error: 'User identifier and new password are required.' }, { status: 400 });
@@ -516,9 +463,6 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, status: 'error', error: val.error }, { status: 400 });
         }
 
-<<<<<<< HEAD
-        // FIXED: Explicit .or() filter replacing broken empty call
-=======
         if (userType === 'client') {
           const { data: updatedClient, error: clientErr } = await supabase
             .from('clients')
@@ -542,7 +486,6 @@ export async function POST(req: NextRequest) {
           });
         }
 
->>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
         const { data: updated, error: updateErr } = await supabase
           .from('students')
           .update({
@@ -552,11 +495,7 @@ export async function POST(req: NextRequest) {
             password_expires_at: null,
             updated_at: new Date().toISOString(),
           })
-<<<<<<< HEAD
-          .or(`student_id.eq.${identifier},email.eq.${identifier}`)
-=======
           .or(`email.ilike.${identifier},student_id.ilike.${identifier}`)
->>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
           .select()
           .maybeSingle();
 
@@ -572,9 +511,7 @@ export async function POST(req: NextRequest) {
         });
       }
 
-<<<<<<< HEAD
       case 'deleteUserPermit': {
-        // Reciprocity Hub Permit CRUD DELETE action
         const permitId = payload.permitId || payload.id;
         const clientId = payload.clientId || payload.studentId || payload.userId;
 
@@ -582,7 +519,6 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, status: 'error', error: 'Missing permitId or clientId.' }, { status: 400 });
         }
 
-        // 1. Try relational client_permits table first
         const { error: relError } = await supabase
           .from('client_permits')
           .delete()
@@ -593,7 +529,6 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: true, status: 'success', message: 'Permit removed successfully.' });
         }
 
-        // 2. Fallback: JSONB array inside clients table
         const { data: clientRec } = await supabase
           .from('clients')
           .select('permit_data')
@@ -612,12 +547,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, status: 'success', message: 'Permit deleted.' });
       }
 
-      case 'getAdminDashboardData': {
-        const { data: students } = await supabase.from('students').select('*').order('created_at', { ascending: false });
-        const { data: clients } = await supabase.from('clients').select('*').order('created_at', { ascending: false });
-        const { data: enrollments } = await supabase.from('enrollments').select('*, classes(title)').order('scheduled_date', { ascending: false });
-        const { data: liveChats } = await supabase.from('live_chats').select('*').order('created_at', { ascending: false });
-=======
       case 'getAdminDashboardData': {
         const { data: students } = await supabase
           .from('students')
@@ -638,7 +567,6 @@ export async function POST(req: NextRequest) {
           .from('live_chats')
           .select('*')
           .order('created_at', { ascending: false });
->>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
 
         return NextResponse.json({
           success: true,
@@ -672,10 +600,6 @@ export async function POST(req: NextRequest) {
         const studentId = payload.studentId;
         const taskId = payload.taskId;
         const isChecked = Boolean(payload.isChecked);
-<<<<<<< HEAD
-        const { data: student } = await supabase.from('students').select('prep_tasks').eq('student_id', studentId).maybeSingle();
-        const currentTasks = student && student.prep_tasks ? student.prep_tasks : {};
-=======
 
         const { data: student } = await supabase
           .from('students')
@@ -684,7 +608,6 @@ export async function POST(req: NextRequest) {
           .maybeSingle();
 
         const currentTasks = (student && student.prep_tasks) ? student.prep_tasks : {};
->>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
         currentTasks[taskId] = isChecked;
 
         await supabase
@@ -695,8 +618,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, status: 'success' });
       }
 
-<<<<<<< HEAD
-=======
       case 'adminEditStudent': {
         const studentId = payload.studentId;
         const updates = payload.updates || payload;
@@ -738,7 +659,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, status: 'success', message: 'Student removed.' });
       }
 
->>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
       case 'handleLiveChatMessage': {
         const threadId = payload.threadId || payload.thread_id;
         const messageText = payload.message || payload.text;
@@ -768,30 +688,22 @@ export async function POST(req: NextRequest) {
       }
 
       case 'getLiveChats': {
-<<<<<<< HEAD
-        const { data: chats } = await supabase.from('live_chats').select('*').order('sent_at', { ascending: false });
-=======
         const { data: chats } = await supabase
           .from('live_chats')
           .select('*')
           .order('sent_at', { ascending: false });
 
->>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
         return NextResponse.json({ success: true, status: 'success', liveChats: chats || [] });
       }
 
       case 'getVisitorChatMessages': {
         const threadId = payload.threadId;
-<<<<<<< HEAD
-        const { data: msgs } = await supabase.from('live_chats').select('*').eq('thread_id', threadId).order('sent_at', { ascending: true });
-=======
         const { data: msgs } = await supabase
           .from('live_chats')
           .select('*')
           .eq('thread_id', threadId)
           .order('sent_at', { ascending: true });
 
->>>>>>> 221faebded3ace6209def0a57805b8c2266275fe
         return NextResponse.json({ success: true, status: 'success', messages: msgs || [] });
       }
 
