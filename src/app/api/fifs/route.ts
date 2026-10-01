@@ -228,7 +228,7 @@ export async function POST(req: NextRequest) {
 
         if (portalType === 'client') {
           const clientId = payload.clientId || ('FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000));
-          await supabase.from('clients').upsert({
+          const clientData: Record<string, any> = {
             client_id: clientId,
             full_name: fullName,
             email: email,
@@ -236,7 +236,36 @@ export async function POST(req: NextRequest) {
             permit_state: courseName,
             status: 'ACTIVE_REGISTERED',
             updated_at: now
-          }, { onConflict: 'email' });
+          };
+
+          const { data: existingClient } = await supabase
+            .from('clients')
+            .select('client_id, id')
+            .eq('email', email)
+            .maybeSingle();
+
+          let clientErr: any = null;
+          if (existingClient) {
+            const { error } = await supabase
+              .from('clients')
+              .update(clientData)
+              .eq('email', email);
+            clientErr = error;
+          } else {
+            const { error } = await supabase
+              .from('clients')
+              .insert({ ...clientData, created_at: now });
+            clientErr = error;
+          }
+
+          if (clientErr) {
+            console.error('[Supabase Client Save Error]:', clientErr);
+            return NextResponse.json({
+              success: false,
+              status: 'error',
+              error: 'Failed to save client record: ' + clientErr.message
+            }, { status: 500 });
+          }
 
           return NextResponse.json({
             success: true,
@@ -247,8 +276,7 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        const defaultTasks = { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false };
-        const studentPayload: Record<string, any> = {
+        const studentData: Record<string, any> = {
           student_id: generatedId,
           full_name: fullName,
           email: email,
@@ -258,19 +286,61 @@ export async function POST(req: NextRequest) {
           course_selection: courseName,
           preferred_dates: dates,
           assigned_date: dates,
-          group_size: '1',
-          comments: payload.comments || payload.notes || 'Direct invite dispatched by Instructor',
           status: 'STEP_1_REGISTERED',
-          prep_tasks: defaultTasks,
-          waiver_completed: false,
-          created_at: now,
-          updated_at: now,
           portal_password: tempPassword,
           temp_password_reset: true,
-          must_change_password: true
+          must_change_password: true,
+          updated_at: now
         };
 
-        await supabase.from('students').upsert(studentPayload, { onConflict: 'email' });
+        const { data: existingStudent } = await supabase
+          .from('students')
+          .select('student_id, id')
+          .or(`email.ilike.${email},student_id.ilike.${generatedId}`)
+          .maybeSingle();
+
+        let studentErr: any = null;
+        if (existingStudent) {
+          const { error } = await supabase
+            .from('students')
+            .update(studentData)
+            .eq('email', email);
+          studentErr = error;
+        } else {
+          // Attempt insert; if non-core columns are rejected by table schema, fallback to core fields
+          const { error: insErr } = await supabase
+            .from('students')
+            .insert({ ...studentData, created_at: now });
+
+          if (insErr) {
+            // Fallback to strict minimal columns to ensure registration never drops
+            const minimalData = {
+              student_id: generatedId,
+              full_name: fullName,
+              email: email,
+              phone: phone,
+              course: courseName,
+              assigned_date: dates,
+              status: 'STEP_1_REGISTERED',
+              portal_password: tempPassword,
+              created_at: now,
+              updated_at: now
+            };
+            const { error: fallbackErr } = await supabase
+              .from('students')
+              .insert(minimalData);
+            studentErr = fallbackErr;
+          }
+        }
+
+        if (studentErr) {
+          console.error('[Supabase Student Save Error]:', studentErr);
+          return NextResponse.json({
+            success: false,
+            status: 'error',
+            error: 'Failed to save student record to Supabase: ' + studentErr.message
+          }, { status: 500 });
+        }
 
         const eventStart = new Date(dates);
         const validStartDate = isNaN(eventStart.getTime()) ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : eventStart;
