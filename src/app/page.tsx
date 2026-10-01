@@ -89,7 +89,7 @@ export default function TrainWithFIFS(props: any) {
   useEffect(() => {
 
     // Direct Next.js /api/checkout bridge for Stripe Checkout
-    (window as any).callFifsBackend = async (action: string, payload: any, onComplete: Function, onError: Function) => {
+        (window as any).callFifsBackend = async (action: string, payload: any, onComplete: Function, onError: Function) => {
       if (action === 'submitBooking') {
         try {
           const res = await fetch('/api/checkout', {
@@ -99,35 +99,18 @@ export default function TrainWithFIFS(props: any) {
           });
           const data = await res.json();
           if (!res.ok || data.error) {
-            throw new Error(data.error || 'Failed to create Stripe checkout session');
+            throw new Error(data.error || 'Failed to initialize payment checkout.');
           }
-          if (data.url) {
-            window.location.href = data.url;
+          if (data.checkoutUrl || data.url) {
+            // Instant redirect directly to Stripe Hosted Checkout
+            window.location.href = data.checkoutUrl || data.url;
             return;
           }
-          if (onComplete) onComplete(data);
+          if (typeof onComplete === 'function') onComplete(data);
         } catch (err: any) {
-          console.error('Checkout error:', err);
-          if (onError) onError(err);
-          else alert('Payment Error: ' + (err.message || 'Unable to connect to Stripe checkout.'));
-        }
-      } else {
-        try {
-          const bodyData = Object.assign({ action: action }, payload || {});
-          if (!bodyData.passcode && bodyData.pin) bodyData.passcode = bodyData.pin;
-          const res = await fetch('/api/fifs', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bodyData)
-          });
-          const data = await res.json();
-          if (!res.ok && !data.status) {
-            throw new Error(data.error || ('HTTP ' + res.status));
-          }
-          if (onComplete) onComplete(data);
-        } catch (err: any) {
-          console.error('FIFS Backend call error:', err);
-          if (onError) onError(err);
+          console.error('[Stripe Checkout Client Error]:', err);
+          if (typeof onError === 'function') onError(err);
+          else alert('Checkout Error: ' + (err.message || 'Could not redirect to Stripe.'));
         }
       }
     };
@@ -1007,7 +990,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center"}}>
                 <div>
                   <h4 style={{"fontFamily": "var(--font-display)", "color": "#fff", "fontSize": "1.1rem", "marginBottom": "2px"}}>
-                    Your 8-Step Training Journey
+                    Your 8-Step Training Journey <span style={{"display": "inline-flex", "alignItems": "center", "gap": "6px", "marginLeft": "12px", "padding": "4px 12px", "borderRadius": "9999px", "fontSize": "0.75rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "background": "rgba(0, 229, 255, 0.15)", "color": "var(--accent-cyan)", "border": "1px solid rgba(0, 229, 255, 0.45)", "boxShadow": "0 0 14px rgba(0, 229, 255, 0.4)", "verticalAlign": "middle"}}>
+                <span style={{"width": "7px", "height": "7px", "borderRadius": "50%", "background": "var(--accent-cyan)", "boxShadow": "0 0 8px var(--accent-cyan)"}} />
+                Interactive
+              </span>
                   </h4>
                   <span style={{"fontSize": "0.72rem", "color": "var(--accent-amber)", "fontWeight": "700", "letterSpacing": "0.5px", "textTransform": "uppercase"}}>
                     🔒 Status Locked • Managed by Instructor Kai Wade
@@ -1293,145 +1279,66 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
       
-      {/* ================= MULTI-STATE MASTERY RESOURCE SUITE MODAL (MATCHING RECIPROCITY HUB) ================= */}
+      {/* ================= MULTI-STATE MASTERY FULL EXPANSION MODAL ================= */}
       <div
-        className="multistate-mastery-modal-overlay"
+        className="reciprocity-hub-modal-overlay"
         id="multistate-modal-drawer"
-        style={{
-          display: 'none',
-          position: 'fixed',
-          inset: '0',
-          width: '100%',
-          height: '100%',
-          background: 'rgba(4, 7, 11, 0.96)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          zIndex: 999999,
-          overflowY: 'auto',
-          padding: '24px 16px'
-        }}
+        style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "overflowY": "auto", "padding": "24px 16px"}}
       >
-        <div style={{ maxWidth: '1140px', margin: '0 auto', position: 'relative' }}>
-          {/* Top Header Bar */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '18px',
-            paddingBottom: '12px',
-            borderBottom: '1px solid rgba(245, 158, 11, 0.35)',
-            flexWrap: 'wrap',
-            gap: '12px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-              <span style={{
-                fontSize: '0.75rem',
-                letterSpacing: '1px',
-                color: '#f59e0b',
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                background: 'rgba(245, 158, 11, 0.15)',
-                padding: '4px 10px',
-                borderRadius: '4px',
-                border: '1px solid rgba(245, 158, 11, 0.35)'
-              }}>
-                ⚡ 16-HOUR MASTER ACADEMY
+        <div style={{"maxWidth": "1280px", "margin": "0 auto", "position": "relative"}}>
+          <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "18px", "paddingBottom": "12px", "borderBottom": "1px solid rgba(245, 158, 11, 0.35)", "flexWrap": "wrap", "gap": "12px"}}>
+            <div style={{"display": "flex", "alignItems": "center", "gap": "12px", "flexWrap": "wrap"}}>
+              <span style={{"fontSize": "0.75rem", "letterSpacing": "1px", "color": "#f59e0b", "fontWeight": "800", "textTransform": "uppercase", "background": "rgba(245, 158, 11, 0.15)", "padding": "4px 10px", "borderRadius": "4px", "border": "1px solid rgba(245, 158, 11, 0.35)"}}>
+                ⚡ 16-HOUR INTENSIVE MASTER ACADEMY
               </span>
-              <h2 style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '1.45rem',
-                color: '#fff',
-                margin: 0,
-                letterSpacing: '0.5px'
-              }}>
+              <h2 style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "color": "#fff", "margin": 0, "letterSpacing": "0.5px"}}>
                 🛡️ Multi-State Concealed Carry Mastery Resource Suite
               </h2>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{"display": "flex", "alignItems": "center", "gap": "10px"}}>
               <a
                 href="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-secondary-modal"
-                style={{
-                  background: 'rgba(245, 158, 11, 0.12)',
-                  border: '1px solid #f59e0b',
-                  color: '#f59e0b',
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
+                className="btn-spark"
+                style={{"padding": "8px 16px", "fontSize": "0.85rem", "borderColor": "#f59e0b", "color": "#f59e0b", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}
               >
-                <span>Open Guide in New Tab ↗</span>
+                Open In New Tab ↗
               </a>
               <button
                 className="btn-return-home"
                 data-onclick="toggleMultiStateMasteryModal(false)"
-                style={{ padding: '8px 18px', fontSize: '0.95rem', minHeight: '40px', cursor: 'pointer' }}
+                style={{"padding": "8px 18px", "fontSize": "0.95rem", "minHeight": "40px", "cursor": "pointer"}}
                 type="button"
               >
                 ✕ CLOSE SUITE
               </button>
             </div>
           </div>
-
-          {/* Modal Inner Content Card */}
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.04) 0%, rgba(13, 19, 27, 0.98) 100%)',
-            border: '1px solid rgba(245, 158, 11, 0.3)',
-            borderRadius: '14px',
-            overflow: 'hidden',
-            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.7)'
-          }}>
-            {/* Guide Quick Info */}
-            <div style={{ padding: '16px 20px', background: 'rgba(10, 15, 29, 0.85)', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-              <div style={{ fontSize: '0.86rem', color: '#cbd5e1', lineHeight: 1.5 }}>
-                <strong style={{ color: '#fff' }}>Official Field Guide:</strong> Multi-jurisdiction reciprocity standards (MD, VA, UT, FL, PA), firearm transport laws, and legal escalation SOPs.
-              </div>
-            </div>
-
-            {/* Embedded Field Guide Frame */}
-            <div style={{ width: '100%', height: '75vh', minHeight: '520px', position: 'relative' }}>
-              <iframe
-                src="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
-                style={{ width: '100%', height: '100%', border: 'none', background: '#070a11' }}
-                title="Multi-State Concealed Carry Mastery Resource Suite"
-              />
-            </div>
-
-            {/* Modal Bottom Return Actions (Matching Reciprocity Hub Footer) */}
-            <div style={{
-              padding: '20px',
-              background: '#0a0f1d',
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '16px',
-              flexWrap: 'wrap'
-            }}>
-              <button
-                className="btn-return-home"
-                data-onclick="toggleMultiStateMasteryModal(false)"
-                style={{ minHeight: '46px', padding: '10px 26px', fontSize: '1rem', cursor: 'pointer' }}
-                type="button"
-              >
-                ← RETURN TO STUDENT PORTAL
-              </button>
-              <button
-                className="btn-secondary-modal"
-                data-onclick="toggleMultiStateMasteryModal(false); toggleReciprocityHubModal(true);"
-                style={{ padding: '10px 22px', fontSize: '0.92rem', fontWeight: '700', cursor: 'pointer' }}
-                type="button"
-              >
-                🗺️ Open Reciprocity Navigator
-              </button>
-            </div>
+          <div style={{"width": "100%", "height": "82vh", "minHeight": "650px", "borderRadius": "12px", "overflow": "hidden", "border": "1px solid rgba(245, 158, 11, 0.3)", "boxShadow": "0 10px 40px rgba(0,0,0,0.8)", "background": "#070a11"}}>
+            <iframe
+              src="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
+              style={{"width": "100%", "height": "100%", "border": "none", "display": "block", "background": "#070a11"}}
+              title="Multi-State Concealed Carry Mastery Full Expansion"
+            />
+          </div>
+          <div style={{"marginTop": "18px", "display": "flex", "justifyContent": "center", "gap": "14px", "flexWrap": "wrap"}}>
+            <button
+              className="btn-return-home"
+              data-onclick="toggleMultiStateMasteryModal(false)"
+              style={{"minHeight": "46px", "padding": "10px 28px", "fontSize": "1rem", "cursor": "pointer"}}
+              type="button"
+            >
+              ← RETURN TO PLATFORM
+            </button>
+            <button
+              className="btn-secondary-modal"
+              data-onclick="toggleMultiStateMasteryModal(false); toggleReciprocityHubModal(true);"
+              style={{"padding": "10px 22px", "fontSize": "0.95rem", "fontWeight": "700", "cursor": "pointer"}}
+              type="button"
+            >
+              🗺️ Explore 50-State Reciprocity Hub
+            </button>
           </div>
         </div>
       </div>
@@ -3540,7 +3447,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
         <div style={{"marginBottom": "32px"}}>
           <div className="panel-header">
             <h3>
-              Your 8-Step FIFS Journey
+              Your 8-Step FIFS Journey <span style={{"display": "inline-flex", "alignItems": "center", "gap": "6px", "marginLeft": "12px", "padding": "4px 12px", "borderRadius": "9999px", "fontSize": "0.75rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "background": "rgba(0, 229, 255, 0.15)", "color": "var(--accent-cyan)", "border": "1px solid rgba(0, 229, 255, 0.45)", "boxShadow": "0 0 14px rgba(0, 229, 255, 0.4)", "verticalAlign": "middle"}}>
+                <span style={{"width": "7px", "height": "7px", "borderRadius": "50%", "background": "var(--accent-cyan)", "boxShadow": "0 0 8px var(--accent-cyan)"}} />
+                Interactive
+              </span>
             </h3>
             <p>
               From registration through state licensing, know exactly where you are in the process:

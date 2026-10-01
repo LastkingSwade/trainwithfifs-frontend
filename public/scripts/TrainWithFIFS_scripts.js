@@ -6370,7 +6370,13 @@ function getStepNumberFromStatus(statusStr) {
         comments: p.comments
       };
       if (typeof callFifsBackend === 'function') {
-        callFifsBackend('submitBooking', payload, onComplete, onError);
+        callFifsBackend('submitBooking', payload, function(res) {
+          if (res && (res.checkoutUrl || res.url)) {
+            window.location.href = res.checkoutUrl || res.url;
+            return;
+          }
+          if (typeof onComplete === 'function') onComplete(res);
+        }, onError);
       } else if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler(onComplete)
@@ -12178,3 +12184,30 @@ if (typeof window !== 'undefined') {
       }
     }
     window.deleteStudentPermitRecord = deleteStudentPermitRecord;
+
+
+    function removeUserActivePermit(permitState) {
+      if (!permitState) return;
+      if (!window.confirm("Remove " + permitState + " from your active permits list?")) return;
+      
+      if (typeof window.userPermits !== 'undefined' && Array.isArray(window.userPermits)) {
+        window.userPermits = window.userPermits.filter(function(p) { return p !== permitState; });
+      }
+      var el = document.getElementById('active-permit-pill-' + permitState) || document.getElementById('permit-badge-' + permitState);
+      if (el) el.remove();
+
+      if (typeof updateReciprocityMapState === 'function') {
+        updateReciprocityMapState();
+      }
+      if (typeof renderUserPermitBadges === 'function') {
+        renderUserPermitBadges();
+      }
+      
+      // Sync delete with backend
+      fetch('/api/fifs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_permit', state: permitState })
+      }).catch(function(e) { console.warn('Could not sync permit deletion:', e); });
+    }
+    window.removeUserActivePermit = removeUserActivePermit;
