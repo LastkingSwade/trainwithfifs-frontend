@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import Script from "next/script";
 import Head from "next/head";
+import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
 
 /**
  * TrainWithFIFS - Maryland Firearms Training Platform Next.js Component
@@ -10,6 +11,75 @@ import Head from "next/head";
  * Clean JSX structure: all SVGs, light circle elements, self-closing tags, and comments properly parsed.
  */
 export default function TrainWithFIFS(props: any) {
+  useEffect(() => {
+
+    // Global delegated click handler for data-onclick attributes
+    const handleGlobalDataOnClick = (e: MouseEvent) => {
+      const target = e.target as Element | null;
+      const el = target && typeof target.closest === 'function' ? (target.closest('[data-onclick]') as HTMLElement | null) : null;
+      if (!el) return;
+      const cmd = el.getAttribute('data-onclick');
+      if (!cmd) return;
+      try {
+        const fn = new Function('event', cmd);
+        fn.call(el, e);
+      } catch (err) {
+        console.warn('data-onclick execution error:', cmd, err);
+      }
+    };
+    document.addEventListener('click', handleGlobalDataOnClick);
+
+    // Initialize interactive reciprocity map once script engine is ready
+    let mapRetryCount = 0;
+    const mapInitTimer = setInterval(() => {
+      mapRetryCount++;
+      if (typeof window !== 'undefined' && typeof (window as any).initReciprocityEngine === 'function') {
+        const svg = document.getElementById('interactiveUsSvg');
+        if (svg) {
+          (window as any).initReciprocityEngine();
+          clearInterval(mapInitTimer);
+        }
+      }
+      if (mapRetryCount > 25) clearInterval(mapInitTimer);
+    }, 200);
+
+    // 1. Intercept student magic link or portal invite from URL
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const portal = params.get('portal');
+      const studentId = params.get('id') || params.get('student');
+      const tempPass = params.get('temp') || params.get('pwd') || params.get('password');
+      if (portal === 'student' || studentId) {
+        const input = document.getElementById('studentAuthInput') as HTMLInputElement | null;
+        if (input && studentId) input.value = studentId;
+        const passInput = document.getElementById('studentAuthPassword') as HTMLInputElement | null;
+        if (passInput && tempPass) passInput.value = tempPass;
+        const modal = document.getElementById('studentPortalModal');
+        if (modal) {
+          modal.classList.add('active');
+          modal.style.setProperty('display', 'block', 'important');
+        }
+        if (typeof (window as any).lookupStudentAccount === 'function' && studentId) {
+          setTimeout(() => (window as any).lookupStudentAccount(), 300);
+        }
+      }
+    } catch (e) {
+      console.warn('Portal invite error:', e);
+    }
+
+    // 2. Track site visit to Discord once per browser session
+    try {
+      if (!sessionStorage.getItem('fifs_visit_tracked')) {
+        sessionStorage.setItem('fifs_visit_tracked', '1');
+        fetch('/api/fifs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'trackSiteVisit', path: window.location.pathname }),
+        }).catch(() => {});
+      }
+    } catch (e) {}
+  }, []);
+
   if (typeof window !== "undefined") {
     (window as any).dismissPwaLandingBanner = (window as any).dismissPwaLandingBanner || function() {
       var b = document.getElementById("pwa-landing-banner");
@@ -41,8 +111,24 @@ export default function TrainWithFIFS(props: any) {
           if (onError) onError(err);
           else alert('Payment Error: ' + (err.message || 'Unable to connect to Stripe checkout.'));
         }
-      } else if (onComplete) {
-        onComplete({ status: 'success' });
+      } else {
+        try {
+          const bodyData = Object.assign({ action: action }, payload || {});
+          if (!bodyData.passcode && bodyData.pin) bodyData.passcode = bodyData.pin;
+          const res = await fetch('/api/fifs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyData)
+          });
+          const data = await res.json();
+          if (!res.ok && !data.status) {
+            throw new Error(data.error || ('HTTP ' + res.status));
+          }
+          if (onComplete) onComplete(data);
+        } catch (err: any) {
+          console.error('FIFS Backend call error:', err);
+          if (onError) onError(err);
+        }
       }
     };
 
@@ -70,7 +156,7 @@ export default function TrainWithFIFS(props: any) {
       if (!target) return;
       let handlerStr = target.getAttribute('data-onclick');
       if (!handlerStr) return;
-      handlerStr = decodeEntities(handlerStr);
+      handlerStr = decodeEntities(handlerStr).replace(/\\(['"])/g, "$1");
       try {
         const fn = new Function('event', handlerStr);
         fn.call(target, e);
@@ -84,7 +170,7 @@ export default function TrainWithFIFS(props: any) {
       if (!target) return;
       let handlerStr = target.getAttribute('data-onchange');
       if (!handlerStr) return;
-      handlerStr = decodeEntities(handlerStr);
+      handlerStr = decodeEntities(handlerStr).replace(/\\(['"])/g, "$1");
       try {
         const fn = new Function('event', handlerStr);
         fn.call(target, e);
@@ -93,12 +179,139 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+    const handleDelegatedSubmit = (e: Event) => {
+      const target = (e.target as HTMLElement).closest('[data-onsubmit]') as HTMLElement | null;
+      if (!target) return;
+      e.preventDefault();
+      let handlerStr = target.getAttribute('data-onsubmit');
+      if (!handlerStr) return;
+      handlerStr = decodeEntities(handlerStr).replace(/\\(['"])/g, "$1");
+      try {
+        const fn = new Function('event', handlerStr);
+        fn.call(target, e);
+      } catch (err) {
+        console.error('Error executing data-onsubmit handler: "' + handlerStr + '"', err);
+      }
+    };
+
+    
+    const syncOperatingHours = () => {
+      try {
+        const etStr = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hourCycle: 'h23', hour: 'numeric' }).format(new Date());
+        const hour = parseInt(etStr, 10);
+        const isOpen = hour >= 9 && hour < 17;
+        const dot = document.getElementById('live-status-dot');
+        const guide = document.getElementById('neon-start-guide');
+        if (dot) {
+          if (isOpen) {
+            dot.className = 'pulse-dot';
+            dot.style.background = '#10b981';
+            dot.style.boxShadow = '0 0 12px #10b981';
+            dot.title = 'Live Training & Student Operations Active (9 AM - 5 PM ET)';
+          } else {
+            dot.className = 'pulse-dot pulse-red';
+            dot.style.background = '#ef4444';
+            dot.style.boxShadow = '0 0 12px #ef4444';
+            dot.title = 'Standby Mode — Live ops resume at 9 AM ET (online booking open 24/7)';
+          }
+        }
+        if (guide) {
+          if (isOpen) {
+            guide.classList.remove('neon-mode-red');
+            guide.classList.add('neon-mode-cyan');
+            guide.style.borderColor = 'var(--accent-cyan)';
+            guide.style.color = '#00e5ff';
+            guide.title = 'Future Initiative Operations Active • Click to Start Training';
+          } else {
+            guide.classList.remove('neon-mode-cyan');
+            guide.classList.add('neon-mode-red');
+            guide.style.borderColor = '#ef4444';
+            guide.style.color = '#ef4444';
+            guide.title = 'Standby Mode — Live ops resume at 9 AM ET • Online booking open 24/7';
+          }
+        }
+      } catch (err) {
+        console.error('Error syncing operating hours:', err);
+      }
+    };
+    syncOperatingHours();
+    const hoursInterval = setInterval(syncOperatingHours, 30000);
+
     document.addEventListener('click', handleDelegatedClick);
     document.addEventListener('change', handleDelegatedChange);
+    
+    // Ensure live chat opens the real 2-way chat console with background polling
+    (window as any).handleLiveChatSubmit = function(e: any) {
+      if (e && e.preventDefault) e.preventDefault();
+      const nameEl = document.getElementById('chatSenderName') as HTMLInputElement | null;
+      const phoneEl = document.getElementById('chatSenderPhone') as HTMLInputElement | null;
+      const msgEl = document.getElementById('chatMessageText') as HTMLTextAreaElement | null;
+      const btn = document.getElementById('btn-send-chat') as HTMLButtonElement | null;
+      const name = nameEl ? nameEl.value.trim() : '';
+      const phone = phoneEl ? phoneEl.value.trim() : '';
+      const msg = msgEl ? msgEl.value.trim() : '';
+      if (!name || !phone || !msg) {
+        alert('Please fill out your Name, Phone, and Question to open live chat.');
+        return;
+      }
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Opening Live Chat Window...';
+      }
+      if (typeof (window as any).sendClientDiscordAlert === 'function') {
+        try {
+          (window as any).sendClientDiscordAlert(
+            "💬 Incoming Live Chat: " + name,
+            "A visitor initiated a conversation via the website live chat widget.",
+            [
+              { name: "Sender Name", value: name, inline: true },
+              { name: "Phone / SMS Callback", value: phone, inline: true },
+              { name: "Operating Window", value: typeof (window as any).isLiveChatActiveNow === 'function' && (window as any).isLiveChatActiveNow() ? "ONLINE NOW (9 AM – 5 PM EST)" : "AFTER HOURS", inline: true },
+              { name: "Initial Message Content", value: msg, inline: false }
+            ],
+            0x00E5FF
+          );
+        } catch(err) {}
+      }
+      if (typeof (window as any).closeContactWidgetModal === 'function') {
+        (window as any).closeContactWidgetModal();
+      }
+      if (typeof (window as any).openTwoWayChat === 'function') {
+        (window as any).openTwoWayChat(name, phone, msg);
+      } else if (typeof (window as any).openP2pCommsHud === 'function') {
+        (window as any).openP2pCommsHud(name, phone, msg);
+      }
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '💬 Send Message & Open Live Chat →';
+      }
+      const cleanPhone = phone.replace(/\D/g, '');
+      const threadId = cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now());
+      if ((window as any).__currentChatSession) {
+        (window as any).__currentChatSession.threadId = threadId;
+      }
+      const payload = {
+        senderName: name,
+        senderPhone: phone,
+        senderEmail: '',
+        message: msg,
+        threadId: threadId
+      };
+      if (typeof (window as any).callFifsBackend === 'function') {
+        (window as any).callFifsBackend('handleLiveChatMessage', payload, function(res: any) {
+          console.log('Message logged in Google Sheets Live_Chats tab:', res);
+        }, function(err: any) {
+          console.error('Failed to log message in Google Sheets:', err);
+        });
+      }
+    };
+
+document.addEventListener('submit', handleDelegatedSubmit);
 
     return () => {
       document.removeEventListener('click', handleDelegatedClick);
       document.removeEventListener('change', handleDelegatedChange);
+      document.removeEventListener('submit', handleDelegatedSubmit);
     };
   }, []);
 
@@ -124,10 +337,10 @@ export default function TrainWithFIFS(props: any) {
       <Script src="https://js.stripe.com/v3/" strategy="afterInteractive" />
       <Script src="https://js.stripe.com/dahlia/stripe.js" strategy="afterInteractive" />
       <Script 
-        src="/scripts/TrainWithFIFS_scripts.js" 
+      src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
         onLoad={() => console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch)}
-        onError={(e) => console.error("FIFS: Failed to load /scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
+        onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
       {/* Main Converted JSX Structure Wrapped in Single Parent */}
@@ -223,7 +436,7 @@ export default function TrainWithFIFS(props: any) {
         {/* Official Motto Ticker with Dynamic Blinking Light */}
         <div className="hero-top-hud">
           <div className="range-live-ticker">
-            <span className="pulse-dot" id="live-status-dot" style={{"background": "#10b981", "boxShadow": "0 0 12px #10b981"}} title="Live Training &amp; Student Operations Active (9 AM - 5 PM EST)">
+            <span className="pulse-dot" id="live-status-dot" title="Live Training &amp; Student Operations Status">
             </span>
             <span>
               THE FUTURE IS NOW, TAKE THE INITIATIVE!
@@ -238,6 +451,15 @@ export default function TrainWithFIFS(props: any) {
         </div>
         {/* Command Dock Launcher */}
         <div className="hero-command-dock">
+          {/* SPECIALIZED 1-ON-1 INSTRUCTION CALLOUT BANNER */}
+          <div id="hero-1on1-callout-banner" style={{"background": "rgba(255, 183, 3, 0.08)", "border": "1px solid var(--accent-amber)", "borderRadius": "12px", "padding": "12px 18px", "marginBottom": "14px", "maxWidth": "540px", "margin": "0 auto 14px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.18)", "textAlign": "center", "transform": "translateY(-20%)", "transition": "transform 0.3s ease"}}>
+            <span style={{"color": "var(--accent-amber)", "fontWeight": "800", "fontSize": "0.95rem", "display": "block", "fontFamily": "var(--font-display)", "letterSpacing": "0.5px"}}>
+              🛡️ DEDICATED PRIVATE 1-ON-1 SPECIALIZATION
+            </span>
+            <span style={{"color": "#e2e8f0", "fontSize": "0.82rem", "lineHeight": "1.4", "display": "block", "marginTop": "4px"}}>
+              Never sit around a room of strangers. Learn at your own pace with Lead Instructor Kai Wade in an exclusive, judgment-free, private range environment.
+            </span>
+          </div>
           {/* Semi-Transparent Neon Arrow Guide (Colors of the business logo: #00e5ff) */}
           <div className="neon-arrow-guide-wrap" id="wrap-neon-guide" data-onclick="openAndSwitch('booking')" role="button" tabIndex="0" title="New to firearms? Click here to start">
             <div className="neon-arrow-badge neon-mode-cyan" id="neon-start-guide" title="Future Initiative Operations Active • Click to Start Training">
@@ -249,16 +471,16 @@ export default function TrainWithFIFS(props: any) {
               </span>
             </div>
           </div>
-          <button className="btn-hero-booking-prime" id="btn-hero-booking" data-onclick="openAndSwitch('booking')" type="button">
+          <button className="btn-hero-booking-prime start-journey-btn" id="btn-hero-booking" data-onclick="openAndSwitch('booking')" type="button">
             <span className="prime-label">
               🎯 START YOUR JOURNEY
             </span>
             <span className="prime-sub">
-              Maryland CCW • HQL • Private 1-on-1 Coaching
+              ⭐ Specialists in Private 1-on-1 Firearms Training • No Crowded Classrooms
             </span>
           </button>
           <div className="hero-twin-grid">
-            <button aria-haspopup="dialog" aria-label="Open Future Initiative Portal selector" className="btn-hero-twin" id="btn-hero-portal" data-onclick="openPortalSelectionModal()" type="button">
+            <button aria-haspopup="dialog" aria-label="Open Future Initiative Portal selector" className="btn-hero-twin fifs-portal-btn" id="btn-hero-portal" data-onclick="openPortalSelectionModal()" type="button">
               <span className="twin-title">
                 ⚡ Future Initiative Portal
               </span>
@@ -266,9 +488,9 @@ export default function TrainWithFIFS(props: any) {
                 Student & Client Access
               </span>
             </button>
-            <button className="btn-hero-twin" id="btn-hero-about" data-onclick="openAndSwitch('about')" type="button">
+            <button className="btn-hero-twin lead-instructor-btn" id="btn-hero-about" data-onclick="openAndSwitch('about')" type="button">
               <span className="twin-title">
-                👤 About & Instructor
+                👤 Lead Instructor
               </span>
               <span className="twin-sub">
                 Meet Kai Wade • Mission
@@ -288,7 +510,7 @@ export default function TrainWithFIFS(props: any) {
             <span style={{"color": "var(--border-subtle)"}}>
               •
             </span>
-            <button className="btn-hero-aux" id="btn-hero-contact" data-onclick="openP2pCommsHud()" type="button" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "cursor": "pointer"}}>
+            <button className="btn-hero-aux" id="btn-hero-contact" data-onclick="openContactWidgetModal()" type="button" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "cursor": "pointer"}}>
               💬 Chat
             </button>
           </div>
@@ -548,7 +770,7 @@ export default function TrainWithFIFS(props: any) {
       <div className="container" id="app-container">
         <header className="app-header">
           <div className="brand-identity-group" data-onclick="returnToHome()" style={{"cursor": "pointer"}} title="Return to Main Home">
-            <img alt="Future Initiative Logo" className="app-nav-logo" src="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&amp;sz=w500" />
+            <img alt="Future Initiative Logo" id="brand-logo" className="app-nav-logo" src="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&amp;sz=w500" />
             <div className="app-brand-text">
               <h2>
                 Train With FIFS
@@ -559,20 +781,16 @@ export default function TrainWithFIFS(props: any) {
             </div>
           </div>
           <div style={{"display": "flex", "alignItems": "center", "gap": "8px"}}>
-            <button aria-label="Go back to previous view" className="btn-return-home" data-onclick="navigateBack()" style={{"background": "rgba(16, 22, 31, 0.9)", "border": "2px solid var(--border-subtle)", "color": "var(--accent-cyan) !important", "minHeight": "44px", "padding": "8px 16px"}} type="button">
-              
-          ← BACK
-        
+            <button aria-label="Go back to previous view" className="site-header-nav-btn btn-nav-back" id="btnNavBack" data-onclick="navigateBack()" onClick={() => { if (typeof window !== "undefined" && (window as any).navigateBack) (window as any).navigateBack(); }} style={{"background": "linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%)", "border": "2px solid #38bdf8", "color": "#38bdf8", "fontWeight": 800, "fontSize": "0.88rem", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(56, 189, 248, 0.35)", "minHeight": "44px", "padding": "8px 16px", "borderRadius": "8px", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} type="button">
+              ← BACK
             </button>
-            <button type="button" aria-label="Refresh and sync application data" className="btn-return-home btn-universal-refresh" id="topNavRefreshBtn" data-onclick="window.triggerUniversal6SecGunReload(this, 'all')" style={{"background": "rgba(16, 22, 31, 0.9)", "border": "2px solid var(--accent-cyan)", "color": "var(--accent-cyan) !important", "minHeight": "44px", "padding": "8px 16px"}}>
+            <button type="button" aria-label="Refresh and sync application data" className="site-header-nav-btn btn-nav-refresh btn-universal-refresh" id="topNavRefreshBtn" data-onclick="window.triggerTopNavGunReload(event)" onClick={(e) => { if (typeof window !== "undefined" && (window as any).triggerTopNavGunReload) (window as any).triggerTopNavGunReload(e); }} style={{"background": "linear-gradient(135deg, #00e5ff 0%, #00b4d8 100%)", "border": "2px solid #ffffff", "color": "#030a14", "fontWeight": 900, "fontSize": "0.90rem", "letterSpacing": "1px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.75)", "minHeight": "44px", "padding": "8px 18px", "borderRadius": "8px", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
               <span className="refresh-ui-text">
                 🔄 REFRESH
               </span>
             </button>
-            <button aria-label="Return to landing screen" className="btn-return-home" data-onclick="returnToHome()" style={{"minHeight": "44px", "padding": "8px 18px"}} type="button">
-              
-          🏠 HOME
-        
+            <button aria-label="Return to landing screen" className="site-header-nav-btn btn-nav-home" id="btnNavHome" data-onclick="returnToHome()" onClick={() => { if (typeof window !== "undefined" && (window as any).returnToHome) (window as any).returnToHome(); }} style={{"background": "linear-gradient(135deg, #ffb703 0%, #fb8500 100%)", "border": "2px solid #ffffff", "color": "#030a14", "fontWeight": 900, "fontSize": "0.90rem", "letterSpacing": "1px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.75)", "minHeight": "44px", "padding": "8px 18px", "borderRadius": "8px", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} type="button">
+              🏠 HOME
             </button>
           </div>
         </header>
@@ -621,7 +839,25 @@ export default function TrainWithFIFS(props: any) {
                 </label>
                 <input id="studentAuthInput" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupStudentAccount()" placeholder="e.g., student@example.com or FIFS-4081" type="text" />
               </div>
-              <button className="btn-primary" data-onclick="lookupStudentAccount()" type="button">
+              <div className="form-group" style={{"marginTop": "14px"}}>
+                <label htmlFor="studentAuthPassword" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.85rem", "margin": "0 0 4px 0", "display": "block"}}>
+                  Portal Password 
+                  <span className="req">
+                    *
+                  </span>
+                </label>
+                <input id="studentAuthPassword" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupStudentAccount()" placeholder="Enter your portal password" type="password" />
+              </div>
+              <div id="student-setup-password-box" style={{"display": "none", "marginTop": "14px", "padding": "14px", "background": "rgba(0, 229, 255, 0.08)", "borderRadius": "8px", "border": "1px solid var(--accent-cyan)"}}>
+                <p style={{"fontSize": "0.85rem", "color": "#fff", "marginBottom": "8px", "fontWeight": "700"}}>
+                  First-Time Access: Create Your Permanent Portal Password
+                </p>
+                <input id="studentNewPasswordInput" placeholder="Choose a password (min 4 characters)" style={{"marginBottom": "10px"}} type="password" />
+                <button className="btn-primary" data-onclick="submitNewStudentPassword()" style={{"width": "100%", "padding": "10px"}} type="button">
+                  Save Password & Access Portal →
+                </button>
+              </div>
+              <button className="btn-primary" data-onclick="lookupStudentAccount()" style={{"marginTop": "14px"}} type="button">
                 
             Sign In to Portal →
           
@@ -674,11 +910,32 @@ export default function TrainWithFIFS(props: any) {
                   </span>
                 </div>
               </div>
-              <button className="btn-sign-out" data-onclick="logoutStudent()" type="button">
-                
-            Sign Out
-          
-              </button>
+              <div style={{"display": "flex", "flexDirection": "column", "alignItems": "flex-end", "gap": "8px"}}>
+                <button className="btn-sign-out" data-onclick="logoutStudent()" type="button">
+                  Sign Out
+                </button>
+                <button
+                  type="button"
+                  className="btn-change-password"
+                  data-onclick="openStudentPasswordModal(false)"
+                  style={{
+                    "background": "rgba(255, 255, 255, 0.05)",
+                    "border": "1px solid rgba(255, 255, 255, 0.18)",
+                    "color": "#cbd5e1",
+                    "padding": "5px 12px",
+                    "borderRadius": "6px",
+                    "fontSize": "0.78rem",
+                    "fontWeight": 600,
+                    "cursor": "pointer",
+                    "display": "inline-flex",
+                    "alignItems": "center",
+                    "gap": "6px",
+                    "transition": "all 0.2s ease"
+                  }}
+                >
+                  🔒 Change Password
+                </button>
+              </div>
             </div>
             {/* Priority Action Concierge Hero Card */}
             <div className="next-step-card">
@@ -700,7 +957,53 @@ export default function TrainWithFIFS(props: any) {
               </button>
             </div>
             {/* 8-Step Progress Tracker Roadmap */}
-            <div className="progress-track-wrapper">
+            
+                        {/* Official Maryland Qualification Scoresheet Card (MSP Form 29-14) */}
+            <div className="fi-card" id="dash-scoresheet-card" style={{"marginBottom": "24px", "border": "1px solid rgba(0, 229, 255, 0.28)", "background": "linear-gradient(135deg, rgba(7,11,16,0.95), rgba(15,23,42,0.85))", "borderRadius": "12px", "padding": "20px"}}>
+              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "12px", "flexWrap": "wrap", "gap": "8px"}}>
+                <div>
+                  <span className="meta-chip" style={{"background": "rgba(0, 229, 255, 0.15)", "color": "var(--accent-cyan)", "border": "1px solid var(--accent-cyan)", "fontSize": "0.74rem", "fontWeight": "800", "letterSpacing": "0.8px"}}>
+                    OFFICIAL STATE RECORD • MSP FORM 29-14
+                  </span>
+                  <h3 style={{"fontFamily": "var(--font-display)", "color": "#fff", "fontSize": "1.25rem", "margin": "6px 0 2px"}}>
+                    Maryland Certified Qualification Scoresheet
+                  </h3>
+                </div>
+                <div id="dash-scoresheet-badge-box">
+                  <span id="dash-scoresheet-score-badge" style={{"display": "none", "fontSize": "0.85rem", "fontWeight": "800", "padding": "4px 12px", "borderRadius": "20px", "background": "rgba(16, 185, 129, 0.2)", "color": "#10b981", "border": "1px solid #10b981"}}>
+                    Score: 25/25 (100%) - PASS
+                  </span>
+                </div>
+              </div>
+
+              <div id="dash-scoresheet-body">
+                {/* Pending notice placeholder */}
+                <div id="dash-scoresheet-pending" style={{"padding": "16px", "background": "rgba(245, 158, 11, 0.08)", "border": "1px dashed rgba(245, 158, 11, 0.4)", "borderRadius": "8px", "textAlign": "center"}}>
+                  <p style={{"color": "var(--accent-amber)", "fontSize": "0.92rem", "fontWeight": "600", "margin": 0}}>
+                    Scoresheet pending instructor upload.
+                  </p>
+                  <p style={{"color": "#94a3b8", "fontSize": "0.80rem", "marginTop": "6px", "marginBottom": 0}}>
+                    Instructor Kai Wade will upload your certified Maryland State Police Live-Fire Qualification Score Sheet upon course completion.
+                  </p>
+                </div>
+
+                {/* Live Scoresheet Card Content when available */}
+                <div id="dash-scoresheet-active" style={{"display": "none", "padding": "14px", "background": "rgba(0, 229, 255, 0.04)", "border": "1px solid var(--border-subtle)", "borderRadius": "8px"}}>
+                  <p style={{"color": "#cbd5e1", "fontSize": "0.86rem", "marginBottom": "14px"}}>
+                    Your Maryland State Police Form 29-14 Certified Qualification Score Sheet has been verified and registered by Instructor Kai Wade.
+                  </p>
+                  <div style={{"display": "flex", "gap": "12px", "flexWrap": "wrap", "alignItems": "center"}}>
+                    <a id="dash-scoresheet-fullscreen-btn" href="#" target="_blank" rel="noopener noreferrer" style={{"background": "var(--accent-cyan)", "color": "#070b10", "padding": "8px 16px", "borderRadius": "6px", "fontWeight": "700", "fontSize": "0.85rem", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                      <span>👁️</span> <span>View Fullscreen</span>
+                    </a>
+                    <a id="dash-scoresheet-download-btn" href="#" download="MSP-Form-29-14-Qualification-Scoresheet.pdf" target="_blank" rel="noopener noreferrer" style={{"background": "transparent", "border": "1px solid var(--accent-cyan)", "color": "var(--accent-cyan)", "padding": "8px 16px", "borderRadius": "6px", "fontWeight": "700", "fontSize": "0.85rem", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                      <span>📥</span> <span>Download Official PDF / Copy</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+<div className="progress-track-wrapper">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center"}}>
                 <div>
                   <h4 style={{"fontFamily": "var(--font-display)", "color": "#fff", "fontSize": "1.1rem", "marginBottom": "2px"}}>
@@ -840,7 +1143,7 @@ export default function TrainWithFIFS(props: any) {
                 <div>
                   <a className="btn-primary" href="#" id="dash-doc-link" rel="noopener noreferrer" style={{"textDecoration": "none", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)"}} target="_blank">
                     
-                Open Student Dossier (Google Docs) ↗
+                Open Student Dossier (Supabase Document) ↗
               
                   </a>
                 </div>
@@ -917,32 +1220,58 @@ export default function TrainWithFIFS(props: any) {
                   </a>
                 </div>
               </div>
-            </div>
-            {/* ================= EXCLUSIVE STUDENT TRAVEL & RECIPROCITY HUB ================= */}
-            <div className="portal-feature-launcher-card" style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "marginBottom": "24px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.15)"}}>
-              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "16px"}}>
+              {/* Card 5: Multi-State Concealed Carry Mastery Resource Suite */}
+              <div id="dash-multistate-mastery-card" className="portal-feature-launcher-card" style={{"border": "2px solid #f59e0b", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                 <div>
-                  <span className="next-step-badge" style={{"color": "var(--accent-cyan)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.82rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
-                    STUDENT PORTAL EXCLUSIVE TOOL
+                  <span className="next-step-badge" style={{"color": "#f59e0b", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                    ⚡ 16-HOUR INTENSIVE CURRICULUM
                   </span>
-                  <h3 className="portal-feature-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.45rem", "color": "#fff", "marginBottom": "6px"}}>
-                    🗺️ Multi-State CCW Reciprocity Navigator & Travel Hub
+                  <h3 className="portal-feature-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.4rem", "color": "#fff", "marginBottom": "6px"}}>
+                    🛡️ Multi-State Concealed Carry Mastery Resource Suite
                   </h3>
-                  <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "maxWidth": "620px"}}>
-                    
-                Interactive 50-state recognition map. See where you can carry with your Maryland permit, test Utah/Florida non-resident add-ons, plan interstate car travel corridors, and review mandatory TSA flying rules.
-              
+                  <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
+                    Engineered specifically for Multi-State Mastery students. Comprehensive 16-hour legal &amp; tactical curriculum across multi-jurisdiction reciprocity (MD, VA, UT, FL, PA). Click below to launch the full-screen interactive companion field guide.
                   </p>
                 </div>
-                <button className="btn-primary" data-onclick="toggleReciprocityHubModal(true)" style={{"width": "auto", "padding": "12px 24px", "fontSize": "0.95rem", "whiteSpace": "nowrap", "boxShadow": "0 0 18px var(--accent-cyan-glow)", "cursor": "pointer"}} type="button">
-                  
-              LAUNCH RECIPROCITY NAVIGATOR ↗
-            
-                </button>
+                <div>
+                  <button
+                    type="button"
+                    data-onclick="openMultiStateFullscreenViewer()"
+                    className="btn-spark"
+                    style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "borderColor": "#f59e0b", "color": "#f59e0b", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "gap": "8px", "boxShadow": "0 0 16px rgba(245, 158, 11, 0.25)"}}
+                  >
+                    <span>📖</span>
+                    <span>Launch Full-Screen Mastery Suite ↗</span>
+                  </button>
+                </div>
+              </div>
+              {/* Card 6: Multi-State CCW Reciprocity Navigator & Travel Hub */}
+              <div id="dash-reciprocity-card" className="portal-feature-launcher-card" style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
+                <div>
+                  <span className="next-step-badge" style={{"color": "var(--accent-cyan)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                    STUDENT PORTAL EXCLUSIVE TOOL
+                  </span>
+                  <h3 className="portal-feature-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.4rem", "color": "#fff", "marginBottom": "6px"}}>
+                    🗺️ Multi-State CCW Reciprocity Navigator &amp; Travel Hub
+                  </h3>
+                  <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
+                    Interactive 50-state recognition map. See where you can carry with your Maryland permit, test Utah/Florida non-resident add-ons, plan interstate car travel corridors, and review mandatory TSA flying rules.
+                  </p>
+                </div>
+                <div>
+                  <button
+                    type="button"
+                    data-onclick="toggleReciprocityHubModal(true)"
+                    className="btn-spark"
+                    style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "gap": "8px", "boxShadow": "0 0 16px var(--accent-cyan-glow)"}}
+                  >
+                    <span>Launch Reciprocity Navigator ↗</span>
+                  </button>
+                </div>
               </div>
             </div>
             {/* ================= DYNAMIC COURSE FOLLOW-ALONG PACKET CARD ================= */}
-            <div id="student-course-packet-card" style={{"background": "#0d121a", "border": "1px solid rgba(0, 229, 255, 0.3)", "borderRadius": "14px", "padding": "20px", "marginBottom": "24px"}}>
+            <div id="student-course-packet-card" style={{"display": "none", "background": "#0d121a", "border": "1px solid rgba(0, 229, 255, 0.3)", "borderRadius": "14px", "padding": "20px", "marginBottom": "24px"}}>
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "14px"}}>
                 <div>
                   <span style={{"fontFamily": "var(--font-display)", "fontSize": "0.78rem", "fontWeight": "800", "color": "var(--accent-cyan)", "letterSpacing": "1px", "textTransform": "uppercase"}}>
@@ -959,12 +1288,231 @@ export default function TrainWithFIFS(props: any) {
                 </div>
                 <a className="btn-primary" href="#" id="packetCardLink" rel="noopener noreferrer" style={{"width": "auto", "padding": "10px 22px", "fontSize": "0.92rem", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} target="_blank">
                   
-              Open Course Guide (Google Doc) ↗
+              Open Course Guide (PDF) ↗
             
                 </a>
               </div>
             </div>
-            {/* State Dossier Details Modal */}
+      
+      {/* ================= FULL-SCREEN MULTI-STATE MASTERY VIEWER MODAL ================= */}
+      <div
+        id="multistate-modal-drawer"
+        style={{
+          display: 'none',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 999999,
+          backgroundColor: '#070a11',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}
+      >
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '12px 24px',
+          background: '#0a0f1d',
+          borderBottom: '1px solid rgba(245, 158, 11, 0.35)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
+          zIndex: 10
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <span style={{ fontSize: '0.72rem', letterSpacing: '1px', color: '#f59e0b', fontWeight: 800, textTransform: 'uppercase', background: 'rgba(245, 158, 11, 0.15)', padding: '3px 8px', borderRadius: '4px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+              16-HOUR MASTER ACADEMY
+            </span>
+            <h2 style={{ fontSize: '1.2rem', color: '#fff', margin: 0, fontWeight: 800 }}>
+              Multi-State Concealed Carry Mastery Resource Suite
+            </h2>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <a
+              href="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                background: 'rgba(245, 158, 11, 0.12)',
+                border: '1px solid #f59e0b',
+                color: '#f59e0b',
+                padding: '6px 14px',
+                borderRadius: '6px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <span>Open In New Tab ↗</span>
+            </a>
+            <button
+              type="button"
+              data-onclick="closeMultiStateFullscreenViewer()"
+              style={{
+                background: '#ef4444',
+                border: 'none',
+                color: '#fff',
+                padding: '6px 16px',
+                borderRadius: '6px',
+                fontSize: '0.85rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              ✕ Close Fullscreen
+            </button>
+          </div>
+        </div>
+        <div style={{ flex: 1, width: '100%', height: 'calc(100vh - 60px)', overflow: 'hidden' }}>
+          <iframe
+            src="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
+            style={{ width: '100%', height: '100%', border: 'none', background: '#070a11' }}
+            title="Multi-State Concealed Carry Mastery Fullscreen Suite"
+          />
+        </div>
+      </div>
+
+      {/* ================= MANDATORY & SELF-SERVICE PASSWORD CHANGE MODAL ================= */}
+      <div
+        id="fifsPasswordChangeModal"
+        style={{
+          display: 'none',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999999,
+          backgroundColor: 'rgba(5, 8, 14, 0.92)',
+          backdropFilter: 'blur(8px)',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}
+      >
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #0d131f 0%, #151d2d 100%)',
+            border: '1px solid rgba(0, 229, 255, 0.4)',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 229, 255, 0.15)',
+            borderRadius: '16px',
+            maxWidth: '460px',
+            width: '100%',
+            padding: '28px',
+            color: '#fff',
+            position: 'relative'
+          }}
+        >
+          <button
+            id="fifsPasswordModalCloseBtn"
+            type="button"
+            data-onclick="closeFifsPasswordModal()"
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              color: '#cbd5e1',
+              borderRadius: '8px',
+              padding: '4px 10px',
+              cursor: 'pointer',
+              fontSize: '0.9rem'
+            }}
+          >
+            ✕
+          </button>
+
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🔐</div>
+            <h3 id="fifsPasswordModalTitle" style={{ fontSize: '1.35rem', margin: '0 0 6px', fontWeight: 800 }}>
+              Update Portal Password
+            </h3>
+            <p id="fifsPasswordModalDesc" style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0, lineHeight: '1.4' }}>
+              For security compliance, please create a personalized permanent password for future logins.
+            </p>
+          </div>
+
+          <form id="fifsPasswordChangeForm" data-onsubmit="handleFifsPasswordChangeSubmit(event); return false;">
+            <input type="hidden" id="fifsPasswordUserType" value="student" />
+            <input type="hidden" id="fifsPasswordUserIdentifier" value="" />
+
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                New Password
+              </label>
+              <input
+                id="fifsNewPassword"
+                type="password"
+                placeholder="Minimum 8 characters"
+                required
+                style={{
+                  width: '100%',
+                  background: '#070b12',
+                  border: '1px solid #1f2e4d',
+                  borderRadius: '8px',
+                  padding: '12px 14px',
+                  color: '#fff',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '18px' }}>
+              <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Confirm New Password
+              </label>
+              <input
+                id="fifsConfirmPassword"
+                type="password"
+                placeholder="Re-enter new password"
+                required
+                style={{
+                  width: '100%',
+                  background: '#070b12',
+                  border: '1px solid #1f2e4d',
+                  borderRadius: '8px',
+                  padding: '12px 14px',
+                  color: '#fff',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <div id="fifsPasswordModalStatus" className="status-msg" style={{ display: 'none', marginBottom: '14px' }}></div>
+
+            <button
+              type="submit"
+              id="fifsPasswordSubmitBtn"
+              className="btn-primary"
+              style={{
+                width: '100%',
+                padding: '12px',
+                fontWeight: 800,
+                fontSize: '0.95rem',
+                letterSpacing: '0.5px'
+              }}
+            >
+              Set New Password &amp; Continue →
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* State Dossier Details Modal */}
             <div className="state-dossier-modal-overlay" id="stateDossierModal" data-onclick="if(event.target===this) closeStateDossier()" style={{"display": "none"}}>
               <div aria-labelledby="dossierStateTitle" aria-modal="true" className="state-dossier-card" data-onclick="event.stopPropagation()" role="dialog">
                 <button aria-label="Close dossier" className="dossier-close-btn" data-onclick="closeStateDossier()" type="button">
@@ -1070,9 +1618,23 @@ export default function TrainWithFIFS(props: any) {
                         *
                       </span>
                     </label>
-                    <input id="clientAuthInput" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupClientAccount()" placeholder="e.g., marcus@example.com or FI-CLIENT-1042" type="text" />
+                    <input id="clientAuthInput" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupClientAccount()" placeholder="e.g., marcus@example.com" type="email" />
                   </div>
-                  <button className="btn-primary" data-onclick="lookupClientAccount()" type="button">
+                  <div className="form-group" style={{"marginTop": "14px"}}>
+                    <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "4px"}}>
+                      <label htmlFor="clientAuthPassword" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.85rem", "margin": "0"}}>
+                        Portal Password 
+                        <span className="req">
+                          *
+                        </span>
+                      </label>
+                      <a href="javascript:void(0)" data-onclick="handleClientForgotPassword()" style={{"color": "var(--text-muted)", "fontSize": "0.78rem", "textDecoration": "underline"}}>
+                        Forgot password?
+                      </a>
+                    </div>
+                    <input id="clientAuthPassword" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupClientAccount()" placeholder="Enter your portal password" type="password" />
+                  </div>
+                  <button className="btn-primary" data-onclick="lookupClientAccount()" style={{"marginTop": "12px"}} type="button">
                     
                 Sign In to Client Portal →
               
@@ -1166,6 +1728,20 @@ export default function TrainWithFIFS(props: any) {
                         </span>
                       </div>
                     </div>
+                    <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginTop": "12px"}}>
+                      <div className="form-group">
+                        <label htmlFor="regClientPassword">
+                          Create Password <span className="req">*</span>
+                        </label>
+                        <input id="regClientPassword" placeholder="Minimum 8 characters" required="" type="password" />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="regClientPasswordConfirm">
+                          Confirm Password <span className="req">*</span>
+                        </label>
+                        <input id="regClientPasswordConfirm" placeholder="Re-enter password" required="" type="password" />
+                      </div>
+                    </div>
                     <div className="form-group" style={{"margin": "14px 0 18px"}}>
                       <label style={{"display": "flex", "alignItems": "flex-start", "gap": "10px", "cursor": "pointer"}}>
                         <input defaultChecked={true} id="regClientOptIn" style={{"width": "18px", "height": "18px", "accentColor": "var(--accent-cyan)", "marginTop": "2px"}} type="checkbox" />
@@ -1225,11 +1801,32 @@ export default function TrainWithFIFS(props: any) {
                     </span>
                   </div>
                 </div>
+                <div style={{"display": "flex", "flexDirection": "column", "alignItems": "flex-end", "gap": "8px"}}>
                 <button className="btn-sign-out" data-onclick="fiLogoutClient()" type="button">
-                  
-              Sign Out
-            
+                  Sign Out
                 </button>
+                <button
+                  type="button"
+                  className="btn-change-password"
+                  data-onclick="openClientPasswordModal(false)"
+                  style={{
+                    "background": "rgba(255, 255, 255, 0.05)",
+                    "border": "1px solid rgba(255, 255, 255, 0.18)",
+                    "color": "#cbd5e1",
+                    "padding": "5px 12px",
+                    "borderRadius": "6px",
+                    "fontSize": "0.78rem",
+                    "fontWeight": 600,
+                    "cursor": "pointer",
+                    "display": "inline-flex",
+                    "alignItems": "center",
+                    "gap": "6px",
+                    "transition": "all 0.2s ease"
+                  }}
+                >
+                  🔒 Change Password
+                </button>
+              </div>
               </div>
               {/* CLIENT PORTAL STICKY SUBNAV */}
               <nav aria-label="Client Portal Navigation" className="fi-portal-subnav">
@@ -1410,7 +2007,7 @@ export default function TrainWithFIFS(props: any) {
                     </p>
                   </div>
                   <button className="btn-spark" data-onclick="toggleReciprocityHubModal(true)" type="button">
-                    Launch 50-State Reciprocity Hub ↗
+                    Explore 50-State Reciprocity Hub ↓
                   </button>
                 </div>
                 {/* CARD 2 */}
@@ -1510,10 +2107,8 @@ export default function TrainWithFIFS(props: any) {
                 </div>
               </div>
               {/* Closes fi-hub-cards-grid */}
-              {/* ================= SECTION: 50-STATE RECIPROCITY HUB ================= */}
-              {/* (In-page 50-state hub eliminated; full interactive 50-state reciprocity hub accessible via Card 1, Subnav, and CCW Wallet) */}
-              {/* (Vehicle Travel moved into #vehicleTravelModal deep-dive popup) */}
-              {/* (Flying With Firearm moved into #flyingWithFirearmModal deep-dive popup) */}
+              {/* ================= SECTION: CLIENT PROFILE & REGISTRY ================= */}
+              {/* (Client Profile moved into #clientProfileModal deep-dive popup) */}
               <div className="fi-section-header" id="fi-sec-renewal">
                 <h3>
                   Permit & Renewal Center
@@ -1756,6 +2351,7 @@ export default function TrainWithFIFS(props: any) {
               </div>
               {/* ================= SECTION: CLIENT PROFILE & REGISTRY ================= */}
               {/* (Client Profile moved into #clientProfileModal deep-dive popup) */}
+              
               <div className="fi-section-header" id="fi-sec-services">
                 <h3>
                   Future Initiative Professional Services
@@ -1790,37 +2386,42 @@ export default function TrainWithFIFS(props: any) {
                       </span>
                     </div>
                   </div>
-                  <button className="btn-primary" data-onclick="selectCourse('Maryland Wear &amp; Carry (8-Hour Renewal) - $175')" type="button">
+                  <button className="btn-primary" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (8-Hour Renewal) - $175')" type="button">
                     Book Renewal Class →
                   </button>
                 </div>
-                <div className="fi-feature-card">
+                <div className="fi-feature-card" style={{"border": "1.5px solid var(--accent-amber)", "boxShadow": "0 0 25px rgba(255, 183, 3, 0.2)", "position": "relative"}}>
+                  <div style={{"position": "absolute", "top": "-10px", "right": "16px", "background": "var(--accent-amber)", "color": "#000", "fontSize": "0.7rem", "fontWeight": "900", "padding": "2px 10px", "borderRadius": "9999px", "letterSpacing": "0.5px", "textTransform": "uppercase"}}>
+                    Most Popular Mastery Track
+                  </div>
                   <div>
                     <span className="fi-badge fi-badge-cyan">
-                      Multi-State Reciprocity
+                      34+ State Reciprocity
                     </span>
                     <h3 className="fi-feature-title">
                       Multi-State Concealed Carry Mastery
                     </h3>
                     <p className="fi-feature-desc">
-                      
-                Comprehensive Utah, Florida, and Virginia non-resident permit training. Expands your legal carry recognition to over 34 states with zero classroom fluff.
-              
+                      Comprehensive 16-Hour Legal &amp; Tactical Curriculum. Multi-jurisdiction certification across Maryland Wear &amp; Carry, Virginia CHP, Utah CFP, Florida CWL, and PA LTCF with exclusive private 1-on-1 range coaching.
                     </p>
-                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.3rem", "color": "#fff", "marginBottom": "12px"}}>
-                      
-                $175 
+                    <div style={{"display": "flex", "gap": "8px", "flexWrap": "wrap", "margin": "8px 0 12px"}}>
+                      <span style={{"fontSize": "0.75rem", "color": "#38bdf8", "background": "rgba(56, 189, 248, 0.1)", "padding": "2px 8px", "borderRadius": "4px"}}>✔ 16-Hour Comprehensive Track</span>
+                      <span style={{"fontSize": "0.75rem", "color": "#38bdf8", "background": "rgba(56, 189, 248, 0.1)", "padding": "2px 8px", "borderRadius": "4px"}}>✔ 34+ State Carry Rights</span>
+                      <span style={{"fontSize": "0.75rem", "color": "#38bdf8", "background": "rgba(56, 189, 248, 0.1)", "padding": "2px 8px", "borderRadius": "4px"}}>✔ Field Guide SOP Included</span>
+                    </div>
+                    <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.3rem", "color": "#fff", "marginBottom": "14px"}}>
+                      25 
                       <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "fontFamily": "var(--font-body)"}}>
                         Base
                       </span>
-                       • $325 
-                      <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)", "fontFamily": "var(--font-body)"}}>
+                       • 50 
+                      <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)", "fontFamily": "var(--font-body)", "fontWeight": "700"}}>
                         VIP Turnkey
                       </span>
                     </div>
                   </div>
-                  <button className="btn-spark" data-onclick="selectCourse('Multi-State Concealed Carry Mastery - $175')" type="button">
-                    Book Multi-State Class →
+                  <button className="btn-primary" style={{"background": "linear-gradient(135deg, #ffb703 0%, #fb8500 100%)", "color": "#000", "fontWeight": "900", "boxShadow": "0 0 18px rgba(255, 183, 3, 0.45)", "border": "none"}} onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Multi-State Concealed Carry Mastery — Base Track (25.00)"); }} data-onclick="selectCourse('Multi-State Concealed Carry Mastery — Base Track (25.00)')" type="button">
+                    ⚡ Enroll in Multi-State Mastery Track →
                   </button>
                 </div>
                 <div className="fi-feature-card">
@@ -1848,7 +2449,7 @@ export default function TrainWithFIFS(props: any) {
                       </span>
                     </div>
                   </div>
-                  <button className="btn-secondary" data-onclick="selectCourse('Private 1-on-1 Range Coaching (Hourly) - $165')" type="button">
+                  <button className="btn-secondary" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Private 1-on-1 Range Coaching (Hourly) - $165"); }} data-onclick="selectCourse('Private 1-on-1 Range Coaching (Hourly) - $165')" type="button">
                     Book Private Session →
                   </button>
                 </div>
@@ -2049,109 +2650,167 @@ export default function TrainWithFIFS(props: any) {
         </div>
         <div className="hidden" id="admin-command-dashboard">
           {/* High-Tech Instructor Terminal Header Bar */}
-          <div className="panel-header" style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "16px", "marginBottom": "22px"}}>
+          <div className="panel-header" style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "16px", "marginBottom": "18px"}}>
             <div>
               <span className="badge-instructor" style={{"marginBottom": "6px"}}>
                 Lead Instructor Operations
               </span>
               <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.85rem", "color": "#fff", "textTransform": "uppercase", "letterSpacing": "1.2px", "margin": "4px 0 2px"}}>
-                
-              Instructor Operations & Intelligence Terminal
-            
+                Instructor Operations & Intelligence Terminal
               </h3>
               <p style={{"color": "var(--text-muted)", "fontSize": "0.88rem"}}>
                 Synchronized student roster, client permit tracking, and verified real-time device telemetry.
               </p>
             </div>
-            <div className="admin-top-actions-cluster" style={{"display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap"}}>
-              <button className="btn-tactical-hud hud-cyan" id="btn-admin-refresh-data" data-onclick="refreshAdminRoster()" title="Synchronize student and client records from Supabase Cloud Database" type="button">
-                <span>
-                  🔄
+          </div>
+
+          {/* 4 INTERACTIVE INTELLIGENCE CARDS (Primary Navigation Deck - MSP Portal Styling) */}
+          <div className="admin-intel-cards-container msp-intel-deck-grid" style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(260px, 1fr))", "gap": "16px", "margin": "20px 0 24px"}}>
+            {/* Card 1: Student Roster & Ops */}
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-cyan active" id="btn-admin-tab-roster" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('roster'); }} data-onclick="switchAdminTab('roster')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.25)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+              <span className="card-badge msp-card-unread-badge" id="admin-tab-roster-badge" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "var(--accent-cyan)", "color": "#070b10", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px var(--accent-cyan)", "display": "none"}}>🔔 <span id="admin-tab-roster-badge-count">0</span> NEW</span>
+              <div>
+                <span className="next-step-badge msp-card-eyebrow eyebrow-cyan" style={{"color": "var(--accent-cyan)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                  STUDENT ENROLLMENT & OPS
                 </span>
-                <span>
-                  REFRESH ROSTER
+                <h3 className="portal-feature-title msp-card-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "gap": "8px"}}>
+                  👥 Student Roster & Ops
+                </h3>
+                <p className="msp-card-desc" style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
+                  Live training attendees, real-time certification milestones, and active student training dossiers.
+                </p>
+              </div>
+              <div>
+                <button className="btn-primary msp-card-action-btn action-cyan" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('roster'); }} data-onclick="switchAdminTab('roster'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-cyan)", "color": "#070b10", "cursor": "pointer"}}>
+                  LAUNCH ROSTER PORTAL ↗
+                </button>
+              </div>
+            </div>
+
+            {/* Card 2: Future Initiative Clients */}
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-amber" id="btn-admin-tab-clients" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('clients'); }} data-onclick="switchAdminTab('clients')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+              <span className="card-badge msp-card-unread-badge" id="admin-tab-clients-badge" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "var(--accent-amber)", "color": "#070b10", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px var(--accent-amber)", "display": "none"}}>🔔 <span id="admin-tab-clients-badge-count">0</span> NEW</span>
+              <div>
+                <span className="next-step-badge msp-card-eyebrow eyebrow-amber" style={{"color": "var(--accent-amber)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                  VIP PERMIT TRACKING & REGISTRY
                 </span>
-              </button>
-              <button className="btn-tactical-hud hud-purple" id="btn-admin-invite-hdr" data-onclick="openAdminInviteModal()" title="Dispatch student/client portal onboarding invitation" type="button">
-                <span>
-                  ✉️
+                <h3 className="portal-feature-title msp-card-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "gap": "8px"}}>
+                  🛡️ Future Initiative Clients
+                </h3>
+                <p className="msp-card-desc" style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
+                  Private consultation tracking, state wear & carry permit reviews, and statutory exemption assistance.
+                </p>
+              </div>
+              <div>
+                <button className="btn-primary msp-card-action-btn action-amber" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('clients'); }} data-onclick="switchAdminTab('clients'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(255, 183, 3, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "var(--accent-amber)", "color": "#070b10", "cursor": "pointer"}}>
+                  LAUNCH CLIENT PORTAL ↗
+                </button>
+              </div>
+            </div>
+
+            {/* Card 3: Live Chat Command */}
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-purple" id="btn-admin-tab-chat" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('chat'); }} data-onclick="switchAdminTab('chat')" role="button" tabIndex={0} style={{"border": "2px solid #a855f7", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(168, 85, 247, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+              <span className="card-badge msp-card-unread-badge hidden" id="admin-tab-chat-unread" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "#ef4444", "color": "#fff", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px #ef4444"}}>🔔 <span id="admin-tab-chat-badge-count">0</span> NEW</span>
+              <div>
+                <span className="next-step-badge msp-card-eyebrow eyebrow-purple" style={{"color": "#c084fc", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                  TWO-WAY SECURE COMMS
                 </span>
-                <span>
-                  SEND INVITE
+                <h3 className="portal-feature-title msp-card-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "gap": "8px"}}>
+                  💬 Live Chat Command
+                </h3>
+                <p className="msp-card-desc" style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
+                  Real-time visitor questions, instant inquiry notifications, and direct two-way instructor response.
+                </p>
+              </div>
+              <div>
+                <button className="btn-primary msp-card-action-btn action-purple" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('chat'); }} data-onclick="switchAdminTab('chat'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(168, 85, 247, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#a855f7", "color": "#070b10", "cursor": "pointer"}}>
+                  OPEN CHAT COMMAND ↗
+                </button>
+              </div>
+            </div>
+
+            {/* Card 4: Website Telemetry */}
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-emerald" id="btn-admin-tab-telemetry" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('telemetry'); }} data-onclick="switchAdminTab('telemetry')" role="button" tabIndex={0} style={{"border": "2px solid #10b981", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(16, 185, 129, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+              <span className="card-badge msp-card-unread-badge" id="admin-tab-telemetry-badge" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "#10b981", "color": "#070b10", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px #10b981", "display": "inline-block"}}>📡 LIVE</span>
+              <div>
+                <span className="next-step-badge msp-card-eyebrow eyebrow-emerald" style={{"color": "#34d399", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
+                  SYSTEM INTELLIGENCE & TRAFFIC
                 </span>
-              </button>
-              <button className="btn-tactical-hud hud-cyan" data-onclick="loadDemoStudent()" title="Test Student Portal Dashboard with Mock Student Data" type="button">
-                <span>
-                  👁️
-                </span>
-                <span>
-                  DEMO STUDENT
-                </span>
-              </button>
-              <button className="btn-tactical-hud hud-amber" data-onclick="loadDemoClient()" title="Test Client Portal Dashboard with Mock Client Data" type="button">
-                <span>
-                  👁️
-                </span>
-                <span>
-                  DEMO CLIENT
-                </span>
-              </button>
-              <button className="btn-tactical-hud hud-red" id="btn-admin-sign-out" data-onclick="adminSignOut()" title="Sign out and lock Admin Command Center" type="button">
-                <span>
-                  🚪
-                </span>
-                <span>
-                  LOCK TERMINAL
-                </span>
-              </button>
+                <h3 className="portal-feature-title msp-card-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "gap": "8px"}}>
+                  📡 Website Telemetry
+                </h3>
+                <p className="msp-card-desc" style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
+                  Live visitor radar, referral breakdown, device analytics, and verified client engagement tracking.
+                </p>
+              </div>
+              <div>
+                <button className="btn-primary msp-card-action-btn action-emerald" type="button" onClick={(e) => { e.stopPropagation(); (window as any).switchAdminTab?.('telemetry'); }} data-onclick="switchAdminTab('telemetry'); event.stopPropagation();" style={{"width": "100%", "padding": "12px 14px", "fontSize": "0.86rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px rgba(16, 185, 129, 0.4)", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "border": "none", "borderRadius": "8px", "background": "#10b981", "color": "#070b10", "cursor": "pointer"}}>
+                  VIEW TELEMETRY RADAR ↗
+                </button>
+              </div>
             </div>
           </div>
-          {/* High-Visibility 4-Way Unified HUD Viewport Navigation Deck */}
-          <div className="admin-view-toggle-bar tactical-tab-deck">
-            <button className="admin-toggle-btn active" id="btn-admin-tab-roster" data-onclick="switchAdminTab('roster')" type="button">
-              <span>
-                👥
-              </span>
-              <span>
-                Student Roster & Ops
-              </span>
-              <span className="terminal-tab-badge" id="admin-tab-roster-badge" style={{"display": "none"}}>
-                0
-              </span>
+
+          {/* SECONDARY TACTICAL UTILITY TOOLBAR */}
+          <div className="admin-secondary-toolbar">
+            <button className="btn-tactical-hud hud-cyan" id="btn-admin-refresh-data" onClick={(e) => { e.preventDefault(); (window as any).refreshAdminRoster?.(); }} data-onclick="refreshAdminRoster()" title="Synchronize student and client records from Supabase" type="button">
+              <span>🔄</span> <span>REFRESH ROSTER</span>
             </button>
-            <button className="admin-toggle-btn" id="btn-admin-tab-clients" data-onclick="switchAdminTab('clients')" type="button">
-              <span>
-                🛡️
-              </span>
-              <span>
-                Future Initiative Clients
-              </span>
-              <span className="terminal-tab-badge" id="admin-tab-clients-badge" style={{"display": "none"}}>
-                0
-              </span>
+            <button className="btn-tactical-hud hud-purple" id="btn-admin-invite-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminInviteModal?.(); }} data-onclick="openAdminInviteModal()" title="Dispatch student/client portal onboarding invitation" type="button">
+              <span>✉️</span> <span>SEND INVITE</span>
             </button>
-            <button className="admin-toggle-btn" id="btn-admin-tab-chat" data-onclick="switchAdminTab('chat')" type="button">
-              <span>
-                💬
-              </span>
-              <span>
-                Live Chat Command
-              </span>
-              <span className="terminal-tab-badge" id="admin-tab-chat-badge" style={{"display": "none"}}>
-                0
-              </span>
+            <button className="btn-tactical-hud hud-cyan" data-onclick="loadDemoStudent()" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).loadDemoStudent) (window as any).loadDemoStudent(); }} title="Test Student Portal Dashboard with Mock Student Data" type="button">
+              <span>👁️</span> <span>DEMO STUDENT</span>
             </button>
-            <button className="admin-toggle-btn" id="btn-admin-tab-analytics" data-onclick="switchAdminTab('analytics')" type="button">
-              <span>
-                📊
-              </span>
-              <span>
-                Website Telemetry
-              </span>
+            <button className="btn-tactical-hud hud-amber" data-onclick="loadDemoClient()" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).loadDemoClient) (window as any).loadDemoClient(); }} title="Test Client Portal Dashboard with Mock Client Data" type="button">
+              <span>👁️</span> <span>DEMO CLIENT</span>
+            </button>
+            <button className="btn-tactical-hud hud-red" id="btn-admin-sign-out" onClick={(e) => { e.preventDefault(); (window as any).adminSignOut?.(); }} data-onclick="adminSignOut()" title="Sign out and lock Admin Command Center" type="button">
+              <span>🚪</span> <span>LOCK TERMINAL</span>
             </button>
           </div>
-          {/* ================= SUB-PANEL 1: STUDENT ROSTER ================= */}
+          {/* POPUP MODAL DIALOG FOR ADMIN INTEL CARDS (Clean overlay matching What to Expect) */}
+      <div 
+        className="goal-modal-overlay" 
+        id="adminSubpanelModalOverlay" 
+        data-onclick="if(event.target===this) closeAdminSubpanelModal()" 
+        style={{"display": "none", "zIndex": 999999, "alignItems": "center", "justifyContent": "center"}}
+      >
+        <div 
+          aria-modal="true" 
+          className="goal-modal-box" 
+          data-onclick="event.stopPropagation()" 
+          role="dialog" 
+          style={{"maxWidth": "1020px", "width": "96%", "maxHeight": "92vh", "overflowY": "auto", "padding": "28px 24px", "border": "2px solid var(--accent-cyan)", "borderRadius": "16px", "background": "linear-gradient(135deg, rgba(13, 19, 27, 0.98) 0%, rgba(6, 10, 16, 0.99) 100%)", "boxShadow": "0 25px 60px rgba(0,0,0,0.95), 0 0 35px rgba(0, 229, 255, 0.25)", "position": "relative"}}
+        >
+          <button 
+            aria-label="Close details" 
+            className="goal-modal-close-btn" 
+            data-onclick="closeAdminSubpanelModal()" 
+            type="button"
+            style={{"position": "absolute", "top": "18px", "right": "20px", "width": "38px", "height": "38px", "fontSize": "1.4rem", "borderRadius": "50%", "background": "rgba(255,255,255,0.08)", "border": "1px solid var(--border-subtle)", "color": "#fff", "cursor": "pointer", "display": "flex", "alignItems": "center", "justifyContent": "center", "zIndex": 10}}
+          >
+            ✕
+          </button>
+          <div style={{"marginBottom": "16px", "paddingRight": "50px"}}>
+            <span id="adminSubpanelModalEyebrow" style={{"color": "var(--accent-cyan)", "fontFamily": "var(--font-display)", "fontSize": "0.82rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase", "display": "block", "marginBottom": "4px"}}>
+              ADMIN INTELLIGENCE PORTAL
+            </span>
+            <h3 id="adminSubpanelModalTitle" style={{"fontFamily": "var(--font-display)", "fontSize": "1.65rem", "color": "#fff", "margin": 0, "fontWeight": "800"}}>
+              Portal View
+            </h3>
+          </div>
+          
+          {/* SUBPANEL 1: STUDENT ROSTER */}
           <div id="admin-subpanel-roster">
+            <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "14px", "flexWrap": "wrap", "gap": "10px"}}>
+              <span style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "fontWeight": "600"}}>
+                Live Student Ops & Certification Status
+              </span>
+              <button type="button" className="btn-spark btn-modal-subpanel-reload" onClick={(e) => { e.preventDefault(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'roster'); }} data-onclick="triggerCardGunRefresh(this, 'roster')" style={{"padding": "8px 16px", "fontSize": "0.84rem", "fontWeight": "800", "border": "1.5px solid var(--accent-cyan)", "borderRadius": "8px", "background": "rgba(0, 229, 255, 0.12)", "color": "var(--accent-cyan)", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} title="Rerack & Refresh Student Roster">
+                🔄 REFRESH ROSTER
+              </button>
+            </div>
             {/* New Student Registration Notification Alert Beacon */}
             <div id="admin-new-student-alert-box" style={{"display": "none", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, rgba(13, 19, 27, 0.98) 100%)", "border": "2px solid var(--accent-cyan)", "boxShadow": "0 0 25px var(--accent-cyan-glow)", "borderRadius": "12px", "padding": "14px 18px", "marginBottom": "20px", "alignItems": "center", "justifyContent": "space-between", "gap": "14px", "flexWrap": "wrap"}}>
               <div style={{"display": "flex", "alignItems": "center", "gap": "12px"}}>
@@ -2248,6 +2907,14 @@ export default function TrainWithFIFS(props: any) {
           </div>
           {/* ================= SUB-PANEL 2: FUTURE INITIATIVE CLIENT ROSTER ================= */}
           <div id="admin-subpanel-clients" style={{"display": "none"}}>
+            <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "14px", "flexWrap": "wrap", "gap": "10px"}}>
+              <span style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "fontWeight": "600"}}>
+                Future Initiative VIP Client Registry & Renewal Telemetry
+              </span>
+              <button type="button" className="btn-spark btn-modal-subpanel-reload" onClick={(e) => { e.preventDefault(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'clients'); }} data-onclick="triggerCardGunRefresh(this, 'clients')" style={{"padding": "8px 16px", "fontSize": "0.84rem", "fontWeight": "800", "border": "1.5px solid var(--accent-amber)", "borderRadius": "8px", "background": "rgba(255, 183, 3, 0.12)", "color": "var(--accent-amber)", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} title="Rerack & Refresh Clients">
+                🔄 REFRESH CLIENTS
+              </button>
+            </div>
             {/* New Client Registration Notification Alert Beacon */}
             <div id="admin-new-client-alert-box" style={{"display": "none", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.15) 0%, rgba(13, 19, 27, 0.98) 100%)", "border": "2px solid var(--accent-amber)", "boxShadow": "0 0 25px var(--accent-amber-glow)", "borderRadius": "12px", "padding": "14px 18px", "marginBottom": "20px", "alignItems": "center", "justifyContent": "space-between", "gap": "14px", "flexWrap": "wrap"}}>
               <div style={{"display": "flex", "alignItems": "center", "gap": "12px"}}>
@@ -2350,11 +3017,19 @@ export default function TrainWithFIFS(props: any) {
           <div id="admin-subpanel-analytics" style={{"display": "none"}}>
             <div id="admin-analytics-dashboard-container">
               <div style={{"marginTop": "10px", "paddingTop": "10px"}}>
+                <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "14px", "flexWrap": "wrap", "gap": "10px"}}>
+                  <span style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "fontWeight": "600"}}>
+                    Live Visitor Radar & Verified Hardware Diagnostics
+                  </span>
+                  <button type="button" className="btn-spark btn-modal-subpanel-reload" onClick={(e) => { e.preventDefault(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'telemetry'); }} data-onclick="triggerCardGunRefresh(this, 'telemetry')" style={{"padding": "8px 16px", "fontSize": "0.84rem", "fontWeight": "800", "border": "1.5px solid #10b981", "borderRadius": "8px", "background": "rgba(16, 185, 129, 0.12)", "color": "#34d399", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} title="Rerack & Refresh Telemetry Radar">
+                    🔄 REFRESH TELEMETRY
+                  </button>
+                </div>
                 {/* Top KPI Grid */}
                 <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(160px, 1fr))", "gap": "12px", "marginBottom": "22px"}}>
                   <div className="metric-card" style={{"borderColor": "var(--accent-cyan)", "background": "rgba(0, 229, 255, 0.05)"}}>
                     <div className="metric-val" id="telemetry-visitors-val" style={{"color": "var(--accent-cyan)"}}>
-                      1,284
+                      0
                     </div>
                     <div className="metric-name">
                       Verified Unique Visitors
@@ -2362,7 +3037,7 @@ export default function TrainWithFIFS(props: any) {
                   </div>
                   <div className="metric-card" style={{"borderColor": "#60a5fa", "background": "rgba(96, 165, 250, 0.05)"}}>
                     <div className="metric-val" id="telemetry-pageviews-val" style={{"color": "#60a5fa"}}>
-                      3,842
+                      0
                     </div>
                     <div className="metric-name">
                       Verified Pageviews
@@ -2370,7 +3045,7 @@ export default function TrainWithFIFS(props: any) {
                   </div>
                   <div className="metric-card" style={{"borderColor": "var(--accent-green)", "background": "rgba(16, 185, 129, 0.05)"}}>
                     <div className="metric-val" id="telemetry-conversion-val" style={{"color": "var(--accent-green)"}}>
-                      14.2%
+                      0.0%
                     </div>
                     <div className="metric-name">
                       Booking Conversion Rate
@@ -2378,7 +3053,7 @@ export default function TrainWithFIFS(props: any) {
                   </div>
                   <div className="metric-card" style={{"borderColor": "var(--accent-amber)", "background": "rgba(255, 183, 3, 0.05)"}}>
                     <div className="metric-val" id="telemetry-vip-val" style={{"color": "var(--accent-amber)"}}>
-                      28
+                      0
                     </div>
                     <div className="metric-name">
                       VIP Mode Inquiries
@@ -2386,7 +3061,7 @@ export default function TrainWithFIFS(props: any) {
                   </div>
                   <div className="metric-card" style={{"borderColor": "#c084fc", "background": "rgba(192, 132, 252, 0.05)"}}>
                     <div className="metric-val" id="telemetry-milestones-val" style={{"color": "#c084fc"}}>
-                      46
+                      0
                     </div>
                     <div className="metric-name">
                       Confirmed Registrations
@@ -2420,15 +3095,15 @@ export default function TrainWithFIFS(props: any) {
                           📱 Mobile Phones
                         </strong>
                         <span id="telemetry-mob-pct" style={{"color": "var(--accent-cyan)", "fontWeight": "800", "fontFamily": "var(--font-display)", "fontSize": "1.1rem"}}>
-                          64%
+                          0%
                         </span>
                       </div>
                       <div style={{"background": "#1e293b", "height": "7px", "borderRadius": "4px", "overflow": "hidden", "margin": "6px 0 8px"}}>
-                        <div id="telemetry-mob-bar" style={{"background": "var(--accent-cyan)", "width": "64%", "height": "100%"}}>
+                        <div id="telemetry-mob-bar" style={{"background": "var(--accent-cyan)", "width": "0%", "height": "100%"}}>
                         </div>
                       </div>
                       <span id="telemetry-mob-count" style={{"fontSize": "0.75rem", "color": "var(--text-muted)"}}>
-                        821 sessions • iPhones, Android & Razr+
+                        0 sessions • iPhones, Android & Razr+
                       </span>
                     </div>
                     <div style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "10px", "padding": "14px"}}>
@@ -2437,15 +3112,15 @@ export default function TrainWithFIFS(props: any) {
                           📟 Tablets / iPads
                         </strong>
                         <span id="telemetry-tab-pct" style={{"color": "var(--accent-amber)", "fontWeight": "800", "fontFamily": "var(--font-display)", "fontSize": "1.1rem"}}>
-                          22%
+                          0%
                         </span>
                       </div>
                       <div style={{"background": "#1e293b", "height": "7px", "borderRadius": "4px", "overflow": "hidden", "margin": "6px 0 8px"}}>
-                        <div id="telemetry-tab-bar" style={{"background": "var(--accent-amber)", "width": "22%", "height": "100%"}}>
+                        <div id="telemetry-tab-bar" style={{"background": "var(--accent-amber)", "width": "0%", "height": "100%"}}>
                         </div>
                       </div>
                       <span id="telemetry-tab-count" style={{"fontSize": "0.75rem", "color": "var(--text-muted)"}}>
-                        282 sessions • iPad Pro, Mini & Tablets
+                        0 sessions • iPad Pro, Mini & Tablets
                       </span>
                     </div>
                     <div style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "10px", "padding": "14px"}}>
@@ -2454,15 +3129,15 @@ export default function TrainWithFIFS(props: any) {
                           💻 Computers & Laptops
                         </strong>
                         <span id="telemetry-desk-pct" style={{"color": "#10b981", "fontWeight": "800", "fontFamily": "var(--font-display)", "fontSize": "1.1rem"}}>
-                          12%
+                          0%
                         </span>
                       </div>
                       <div style={{"background": "#1e293b", "height": "7px", "borderRadius": "4px", "overflow": "hidden", "margin": "6px 0 8px"}}>
-                        <div id="telemetry-desk-bar" style={{"background": "#10b981", "width": "12%", "height": "100%"}}>
+                        <div id="telemetry-desk-bar" style={{"background": "#10b981", "width": "0%", "height": "100%"}}>
                         </div>
                       </div>
                       <span id="telemetry-desk-count" style={{"fontSize": "0.75rem", "color": "var(--text-muted)"}}>
-                        154 sessions • MacBooks, Windows PCs
+                        0 sessions • MacBooks, Windows PCs
                       </span>
                     </div>
                     <div style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "10px", "padding": "14px"}}>
@@ -2471,15 +3146,15 @@ export default function TrainWithFIFS(props: any) {
                           🎮 Handheld PCs
                         </strong>
                         <span id="telemetry-hand-pct" style={{"color": "#c084fc", "fontWeight": "800", "fontFamily": "var(--font-display)", "fontSize": "1.1rem"}}>
-                          2%
+                          0%
                         </span>
                       </div>
                       <div style={{"background": "#1e293b", "height": "7px", "borderRadius": "4px", "overflow": "hidden", "margin": "6px 0 8px"}}>
-                        <div id="telemetry-hand-bar" style={{"background": "#c084fc", "width": "2%", "height": "100%"}}>
+                        <div id="telemetry-hand-bar" style={{"background": "#c084fc", "width": "0%", "height": "100%"}}>
                         </div>
                       </div>
                       <span id="telemetry-hand-count" style={{"fontSize": "0.75rem", "color": "var(--text-muted)"}}>
-                        27 sessions • ROG Ally, Steam Deck
+                        0 sessions • ROG Ally, Steam Deck
                       </span>
                     </div>
                   </div>
@@ -2495,70 +3170,15 @@ export default function TrainWithFIFS(props: any) {
                     </span>
                   </div>
                   <div id="telemetry-stream-box" style={{"maxHeight": "250px", "overflowY": "auto", "fontFamily": "monospace", "fontSize": "0.82rem", "background": "#070b10", "borderRadius": "8px", "padding": "12px", "border": "1px solid rgba(255,255,255,0.06)"}}>
-                    {/* Stream entries injected dynamically */}
-                    <div style={{"padding": "5px 0", "borderBottom": "1px solid rgba(255,255,255,0.04)", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "gap": "10px", "flexWrap": "wrap"}}>
-                      <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
-                        <span style={{"color": "var(--text-muted)", "fontSize": "0.75rem"}}>
-                          1:12 PM
-                        </span>
-                        <span style={{"color": "var(--accent-cyan)", "fontWeight": "700"}}>
-                          [Client Registration]
-                        </span>
-                        <span style={{"color": "#fff"}}>
-                          New Client Portal Registration
-                        </span>
-                        <span style={{"color": "var(--accent-amber)"}}>
-                          (Maryland Wear & Carry)
-                        </span>
-                      </div>
-                      <span style={{"color": "#cbd5e1", "background": "rgba(255,255,255,0.06)", "padding": "2px 6px", "borderRadius": "4px", "fontSize": "0.72rem"}}>
-                        📱 Mobile Phone • iPadOS
-                      </span>
-                    </div>
-                    <div style={{"padding": "5px 0", "borderBottom": "1px solid rgba(255,255,255,0.04)", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "gap": "10px", "flexWrap": "wrap"}}>
-                      <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
-                        <span style={{"color": "var(--text-muted)", "fontSize": "0.75rem"}}>
-                          1:08 PM
-                        </span>
-                        <span style={{"color": "var(--accent-cyan)", "fontWeight": "700"}}>
-                          [Live Chat]
-                        </span>
-                        <span style={{"color": "#fff"}}>
-                          Live Chat Session Initiated
-                        </span>
-                        <span style={{"color": "var(--accent-amber)"}}>
-                          (Chief Wade)
-                        </span>
-                      </div>
-                      <span style={{"color": "#cbd5e1", "background": "rgba(255,255,255,0.06)", "padding": "2px 6px", "borderRadius": "4px", "fontSize": "0.72rem"}}>
-                        📱 Mobile Phone
-                      </span>
-                    </div>
-                    <div style={{"padding": "5px 0", "borderBottom": "1px solid rgba(255,255,255,0.04)", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "gap": "10px", "flexWrap": "wrap"}}>
-                      <div style={{"display": "flex", "gap": "8px", "alignItems": "center"}}>
-                        <span style={{"color": "var(--text-muted)", "fontSize": "0.75rem"}}>
-                          12:54 PM
-                        </span>
-                        <span style={{"color": "var(--accent-cyan)", "fontWeight": "700"}}>
-                          [Booking Confirmed]
-                        </span>
-                        <span style={{"color": "#fff"}}>
-                          Mid-Atlantic Multi-State Mastery
-                        </span>
-                        <span style={{"color": "var(--accent-amber)"}}>
-                          (👑 VIP Turnkey)
-                        </span>
-                      </div>
-                      <span style={{"color": "#cbd5e1", "background": "rgba(255,255,255,0.06)", "padding": "2px 6px", "borderRadius": "4px", "fontSize": "0.72rem"}}>
-                        💻 Desktop / Laptop
-                      </span>
+                    <div style={{"padding": "12px 8px", "color": "var(--text-muted)", "textAlign": "center", "fontSize": "0.82rem"}}>
+                      Real-time telemetry stream synchronized with Supabase cloud audit log.
                     </div>
                   </div>
                   <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginTop": "14px", "flexWrap": "wrap", "gap": "10px"}}>
                     <span style={{"fontSize": "0.78rem", "color": "var(--text-muted)"}}>
-                      Synced with Google Sheets: 
+                      Synced with Supabase Cloud: 
                       <code>
-                        Student_Booking_Ledger / Analytics_Ledger
+                        Telemetry & Audit Stream
                       </code>
                     </span>
                     <div style={{"display": "flex", "gap": "8px"}}>
@@ -2601,10 +3221,8 @@ export default function TrainWithFIFS(props: any) {
           ● DISPATCH ACTIVE
         
                   </span>
-                  <button type="button" className="btn-spark" data-onclick="triggerAdminChatHandgunRefresh()" style={{"padding": "6px 14px", "fontSize": "0.80rem", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)"}} title="Refresh chat inquiries">
-                    
-          🔄 Refresh Inquiries
-        
+                  <button type="button" className="btn-spark btn-modal-subpanel-reload" onClick={(e) => { e.preventDefault(); (window as any).triggerCardGunRefresh?.(e.currentTarget, 'chat'); }} data-onclick="triggerCardGunRefresh(this, 'chat')" style={{"padding": "7px 16px", "fontSize": "0.82rem", "fontWeight": "800", "border": "1.5px solid #a855f7", "borderRadius": "8px", "background": "rgba(168, 85, 247, 0.12)", "color": "#c084fc", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} title="Rerack & Refresh Chat Inquiries">
+                    🔄 REFRESH CHAT
                   </button>
                 </div>
               </div>
@@ -2672,35 +3290,22 @@ export default function TrainWithFIFS(props: any) {
                       </div>
                     </div>
                   </div>
-                  {/* Tactical Quick Intel Chips */}
-                  <div style={{"display": "flex", "gap": "6px", "flexWrap": "wrap", "marginBottom": "8px"}}>
-                    <button type="button" onClick={() => { const el = document.getElementById('adminLiveChatReplyInput'); if (el) { el.value = "Hello! Classes run 9 AM – 5 PM at Cindys Hot Shots. Range fees and ammo are included."; el.focus(); } }} style={{"background": "rgba(0,229,255,0.06)", "border": "1px solid rgba(0,229,255,0.3)", "color": "#00e5ff", "borderRadius": "16px", "padding": "4px 10px", "fontSize": "0.74rem", "cursor": "pointer", "fontWeight": "600"}}>
-                      ⚡ Hours & Range Info
-                    </button>
-                    <button type="button" onClick={() => { const el = document.getElementById('adminLiveChatReplyInput'); if (el) { el.value = 'Feel free to call or text me directly at (443) 990-1304 so we can get you scheduled right away.'; el.focus(); } }} style={{"background": "rgba(0,229,255,0.06)", "border": "1px solid rgba(0,229,255,0.3)", "color": "#00e5ff", "borderRadius": "16px", "padding": "4px 10px", "fontSize": "0.74rem", "cursor": "pointer", "fontWeight": "600"}}>
-                      📞 Direct Callback
-                    </button>
-                    <button type="button" onClick={() => { const el = document.getElementById('adminLiveChatReplyInput'); if (el) { el.value = 'Your spot is reserved. Check your email inbox for your full course dossier and preparation instructions.'; el.focus(); } }} style={{"background": "rgba(0,229,255,0.06)", "border": "1px solid rgba(0,229,255,0.3)", "color": "#00e5ff", "borderRadius": "16px", "padding": "4px 10px", "fontSize": "0.74rem", "cursor": "pointer", "fontWeight": "600"}}>
-                      📄 Dossier & Email Sent
-                    </button>
-                  </div>
                   {/* Instructor Live Reply Dock */}
-                  <form id="adminLiveChatReplyForm" data-onsubmit="handleAdminLiveChatSend(event)" style={{"display": "flex", "flexDirection": "column", "gap": "8px", "background": "rgba(11, 17, 26, 0.95)", "border": "1px solid rgba(0, 229, 255, 0.35)", "borderRadius": "12px", "padding": "10px 12px", "boxShadow": "0 4px 20px rgba(0, 229, 255, 0.12)"}}>
-                    <textarea id="adminLiveChatReplyInput" placeholder="Dispatch encrypted response to student as Coach Kai Wade... (Press Enter to dispatch)" rows="3" style={{"width": "100%", "background": "rgba(0, 0, 0, 0.4)", "border": "1px solid rgba(255, 255, 255, 0.08)", "borderRadius": "8px", "padding": "10px 12px", "color": "#fff", "fontSize": "0.88rem", "resize": "vertical", "fontFamily": "inherit", "outline": "none", "boxSizing": "border-box", "lineHeight": "1.4"}} required="">
+                  <form id="adminLiveChatReplyForm" data-onsubmit="handleAdminLiveChatSend(event)" style={{"display": "flex", "gap": "10px", "alignItems": "stretch", "background": "rgba(15, 23, 42, 0.6)", "border": "1px solid rgba(0, 229, 255, 0.25)", "borderRadius": "10px", "padding": "6px 8px", "boxShadow": "0 0 15px rgba(0, 229, 255, 0.08)"}}>
+                    <textarea id="adminLiveChatReplyInput" placeholder="Dispatch live response to student as Coach Kai Wade... (Instant cloud relay)" rows="2" style={{"flex": "1", "background": "transparent", "border": "none", "padding": "8px 10px", "color": "#fff", "fontSize": "0.86rem", "resize": "none", "fontFamily": "inherit", "outline": "none"}} required="">
                     </textarea>
-                    <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginTop": "2px"}}>
-                      <span style={{"fontSize": "0.72rem", "color": "#64748b", "fontFamily": "monospace"}}>
-                        SECURE CLOUD RELAY // DIRECT WEBSOCKET & SMS
-                      </span>
-                      <button type="submit" id="adminLiveChatSendBtn" className="btn-spark" style={{"padding": "8px 22px", "fontSize": "0.86rem", "background": "linear-gradient(135deg, #00e5ff 0%, #0284c7 100%)", "color": "#070b10", "border": "none", "borderRadius": "8px", "fontWeight": "900", "cursor": "pointer", "whiteSpace": "nowrap", "boxShadow": "0 0 16px rgba(0, 229, 255, 0.45)", "textTransform": "uppercase", "letterSpacing": "0.5px"}}>
-                        SEND INTEL ⚡
-                      </button>
-                    </div>
+                    <button type="submit" id="adminLiveChatSendBtn" className="btn-spark" style={{"padding": "0 20px", "fontSize": "0.86rem", "background": "linear-gradient(135deg, #00e5ff 0%, #0284c7 100%)", "color": "#070b10", "border": "none", "borderRadius": "8px", "fontWeight": "900", "cursor": "pointer", "whiteSpace": "nowrap", "boxShadow": "0 0 14px rgba(0, 229, 255, 0.4)", "textTransform": "uppercase", "letterSpacing": "0.5px"}}>
+                      
+            Send Reply ⚡
+          
+                    </button>
                   </form>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
         </div>
       </section>
       {/* VIEW 3: DEDICATED COURSE ENROLLMENT & PREPARATION HUB */}
@@ -2988,7 +3593,7 @@ export default function TrainWithFIFS(props: any) {
             </p>
           </div>
           <div className="checklist-grid">
-            <div className="checklist-box interactive-expect-card" data-onclick="openExpectationModal('handgun')" role="button" tabIndex="0" title="Click to view detailed handgun &amp; equipment breakdown">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("handgun");  } }} data-onclick="openExpectationModal('handgun')" role="button" tabIndex="0" title="Click to view detailed handgun &amp; equipment breakdown">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   🔫 Handgun & Equipment
@@ -3021,7 +3626,7 @@ export default function TrainWithFIFS(props: any) {
                 Click for Handgun, Holster & Rental Protocols →
               </div>
             </div>
-            <div className="checklist-box interactive-expect-card" data-onclick="openExpectationModal('ammunition')" role="button" tabIndex="0" title="Click to view ammunition rules &amp; zero-tolerance safety protocol">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("ammunition"); } }} data-onclick="openExpectationModal('ammunition')" role="button" tabIndex="0" title="Click to view ammunition rules &amp; zero-tolerance safety protocol">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   📦 Ammunition Protocol
@@ -3048,7 +3653,7 @@ export default function TrainWithFIFS(props: any) {
                 Click for Zero-Live-Ammo Policy & Caliber Guide →
               </div>
             </div>
-            <div className="checklist-box interactive-expect-card" data-onclick="openExpectationModal('protection')" role="button" tabIndex="0" title="Click to view eye and hearing protection standards">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("protection"); } }} data-onclick="openExpectationModal('protection')" role="button" tabIndex="0" title="Click to view eye and hearing protection standards">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   👓 Eye & Ear Protection
@@ -3075,7 +3680,7 @@ export default function TrainWithFIFS(props: any) {
                 Click for ANSI Z87.1 & Electronic Earmuff Specs →
               </div>
             </div>
-            <div className="checklist-box interactive-expect-card" data-onclick="openExpectationModal('attire')" role="button" tabIndex="0" title="Click to view dress code &amp; government identification requirements">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("attire");  } }} data-onclick="openExpectationModal('attire')" role="button" tabIndex="0" title="Click to view dress code &amp; government identification requirements">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   👕 Attire & Documentation
@@ -3152,12 +3757,8 @@ export default function TrainWithFIFS(props: any) {
               <div className="tier-sliding-switch" id="switch-mastery" data-onclick="toggleCardTier('mastery', event)">
                 <div className="tier-sliding-pill" id="slider-mastery">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-mastery" data-onclick="setCardTier('mastery', 'base', event)" type="button">
-                  Standard
-                </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-mastery" data-onclick="setCardTier(\'mastery\', \'vip\', event)" type="button">
-                  👑
-                </button>
+                <button className="tier-option-btn btn-base-side" id="tog-base-mastery" data-onclick="setCardTier('mastery', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('mastery', 'base', e); }} type="button" aria-label="Standard Mode">Standard</button>
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-mastery" data-onclick="setCardTier('mastery', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('mastery', 'vip', e); }} type="button" aria-label="VIP Mode">👑</button>
               </div>
             </div>
             <div className="tuition-price" id="price-course-mastery">
@@ -3212,7 +3813,7 @@ export default function TrainWithFIFS(props: any) {
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-mastery" data-onclick="selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-mastery" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Mid-Atlantic Multi-State Mastery — Base Track ($425.00)"); }} data-onclick="selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($425.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($425.00) & Reserve Seat →
             
@@ -3243,12 +3844,8 @@ export default function TrainWithFIFS(props: any) {
               <div className="tier-sliding-switch" id="switch-combo" data-onclick="toggleCardTier('combo', event)">
                 <div className="tier-sliding-pill" id="slider-combo">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-combo" data-onclick="setCardTier('combo', 'base', event)" type="button">
-                  Standard
-                </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-combo" data-onclick="setCardTier(\'combo\', \'vip\', event)" type="button">
-                  👑
-                </button>
+                <button className="tier-option-btn btn-base-side" id="tog-base-combo" data-onclick="setCardTier('combo', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('combo', 'base', e); }} type="button" aria-label="Standard Mode">Standard</button>
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-combo" data-onclick="setCardTier('combo', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('combo', 'vip', e); }} type="button" aria-label="VIP Mode">👑</button>
               </div>
             </div>
             <div className="tuition-price" id="price-course-combo">
@@ -3303,7 +3900,7 @@ export default function TrainWithFIFS(props: any) {
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-combo" data-onclick="selectCourse('Maryland CCW &amp; HQL Combo — Base Track ($249.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-combo" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland CCW & HQL Combo — Base Track ($249.99)"); }} data-onclick="selectCourse('Maryland CCW &amp; HQL Combo — Base Track ($249.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($249.99) & Reserve Seat →
             
@@ -3331,12 +3928,8 @@ export default function TrainWithFIFS(props: any) {
               <div className="tier-sliding-switch" id="switch-ccw" data-onclick="toggleCardTier('ccw', event)">
                 <div className="tier-sliding-pill" id="slider-ccw">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-ccw" data-onclick="setCardTier('ccw', 'base', event)" type="button">
-                  Standard
-                </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-ccw" data-onclick="setCardTier(\'ccw\', \'vip\', event)" type="button">
-                  👑
-                </button>
+                <button className="tier-option-btn btn-base-side" id="tog-base-ccw" data-onclick="setCardTier('ccw', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('ccw', 'base', e); }} type="button" aria-label="Standard Mode">Standard</button>
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-ccw" data-onclick="setCardTier('ccw', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('ccw', 'vip', e); }} type="button" aria-label="VIP Mode">👑</button>
               </div>
             </div>
             <div className="tuition-price" id="price-course-ccw">
@@ -3385,7 +3978,7 @@ export default function TrainWithFIFS(props: any) {
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-ccw" data-onclick="selectCourse('Maryland Wear &amp; Carry (CCW) — Base Track ($199.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-ccw" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (CCW) — Base Track ($199.99)"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (CCW) — Base Track ($199.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($199.99) & Reserve Seat →
             
@@ -3393,6 +3986,79 @@ export default function TrainWithFIFS(props: any) {
             </div>
           </div>
           {/* 4. Maryland HQL (4-Hour) */}
+          {/* 4. Maryland Wear & Carry (8-Hour Renewal) Dedicated Card */}
+          <div className="tuition-card" id="card-course-renewal" style={{"position": "relative"}}>
+            <div className="card-tier-badge" id="badge-course-renewal" style={{"display": "none", "background": "var(--accent-amber)", "color": "#070b10", "fontFamily": "var(--font-display)", "fontSize": "0.72rem", "fontWeight": "800", "padding": "2px 10px", "borderRadius": "20px", "textTransform": "uppercase", "position": "absolute", "top": "-10px", "right": "16px"}}>
+              👑 VIP MODE
+            </div>
+            <span className="badge-pop" style={{"background": "rgba(0, 229, 255, 0.15)", "color": "var(--accent-cyan)", "border": "1px solid var(--accent-cyan)"}}>
+              ⏱️ 8-HOUR BIENNIAL RECERTIFICATION
+            </span>
+            <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "margin": "10px 0 6px", "color": "#fff"}}>
+              Maryland Wear &amp; Carry (8-Hour Renewal)
+            </h3>
+            <div className="tier-toggle-wrapper">
+              <div className="tier-sliding-switch" id="switch-renewal" data-onclick="toggleCardTier('renewal', event)">
+                <div className="tier-sliding-pill" id="slider-renewal">
+                </div>
+                <button className="tier-option-btn btn-base-side" id="tog-base-renewal" data-onclick="setCardTier('renewal', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('renewal', 'base', e); }} type="button" aria-label="Standard Mode">Standard</button>
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-renewal" data-onclick="setCardTier('renewal', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('renewal', 'vip', e); }} type="button" aria-label="VIP Mode">👑</button>
+              </div>
+            </div>
+            <div className="tuition-price" id="price-course-renewal">
+              <span className="price-val" style={{"fontFamily": "var(--font-display)", "fontSize": "2.2rem", "fontWeight": "800", "color": "#fff"}}>
+                $149.99
+              </span>
+              <span className="price-tier-tag" style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "fontWeight": "600", "marginLeft": "6px"}}>
+                (Standard Base)
+              </span>
+            </div>
+            <div className="tuition-desc">
+              State-mandated 8-hour classroom recertification + 25-round Maryland practical shooting qualification. Complete before permit expiration to prevent licensing lapse.
+            </div>
+            <div className="tuition-bullets" id="bullets-course-renewal">
+              <div>
+                ✔ 8-Hour State-Approved Recertification Curriculum
+              </div>
+              <div>
+                ✔ State v. Faulkner &amp; SB 1 Legal Updates
+              </div>
+              <div>
+                ✔ 25-Round Live-Fire Qualification at Cindy&#39;s Hot Shots
+              </div>
+              <div>
+                ✔ Official Signed MSP Form 29-14 Scoresheet Provided
+              </div>
+            </div>
+            <div className="vip-perks-box" id="vip-box-course-renewal" style={{"display": "none", "background": "rgba(0, 229, 255, 0.12)", "border": "1px solid var(--accent-cyan)", "borderRadius": "10px", "padding": "14px", "margin": "12px 0", "fontSize": "0.85rem", "color": "#e2e8f0", "lineHeight": "1.6", "textAlign": "left"}}>
+              <strong style={{"color": "var(--accent-cyan)", "display": "block", "marginBottom": "6px", "fontFamily": "var(--font-display)", "fontSize": "1.05rem"}}>
+                👑 What&#39;s Added in VIP Turnkey Mode:
+              </strong>
+              <div className="vip-perk-item" style={{"color": "var(--accent-amber)", "fontWeight": "700"}}>
+                👑 Flexible Any-Day Scheduling (Weekday &amp; Weekend Priority)
+              </div>
+              <div>
+                👑 Cindy&#39;s Hot Shots range lane fee included (Save $25–$35)
+              </div>
+              <div>
+                👑 Loaner 9mm semi-automatic handgun provided
+              </div>
+              <div>
+                👑 50 rounds factory target ammunition included
+              </div>
+              <div>
+                👑 B-27 practical qualification targets provided
+              </div>
+              <div>
+                👑 1-on-1 MSP Licensing Portal renewal filing review
+              </div>
+            </div>
+            <div style={{"marginTop": "14px"}}>
+              <button className="btn-select-course" id="btn-select-course-renewal" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (8-Hour Renewal) — Base Track ($149.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+                Select Base ($149.99) &amp; Reserve Seat →
+              </button>
+            </div>
+          </div>
           <div className="tuition-card" id="card-course-hql">
             <div className="card-tier-badge" id="badge-course-hql" style={{"display": "none", "background": "var(--accent-cyan)", "color": "#070b10", "fontFamily": "var(--font-display)", "fontSize": "0.72rem", "fontWeight": "800", "padding": "2px 10px", "borderRadius": "20px", "textTransform": "uppercase", "position": "absolute", "top": "-10px", "right": "16px"}}>
               
@@ -3413,12 +4079,8 @@ export default function TrainWithFIFS(props: any) {
               <div className="tier-sliding-switch" id="switch-hql" data-onclick="toggleCardTier('hql', event)">
                 <div className="tier-sliding-pill" id="slider-hql">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-hql" data-onclick="setCardTier('hql', 'base', event)" type="button">
-                  Standard
-                </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-hql" data-onclick="setCardTier(\'hql\', \'vip\', event)" type="button">
-                  👑
-                </button>
+                <button className="tier-option-btn btn-base-side" id="tog-base-hql" data-onclick="setCardTier('hql', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('hql', 'base', e); }} type="button" aria-label="Standard Mode">Standard</button>
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-hql" data-onclick="setCardTier('hql', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('hql', 'vip', e); }} type="button" aria-label="VIP Mode">👑</button>
               </div>
             </div>
             <div className="tuition-price" id="price-course-hql">
@@ -3467,7 +4129,7 @@ export default function TrainWithFIFS(props: any) {
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-hql" data-onclick="selectCourse('Maryland HQL (Purchase License) — Base Track ($100.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-hql" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland HQL (Purchase License) — Base Track ($100.00)"); }} data-onclick="selectCourse('Maryland HQL (Purchase License) — Base Track ($100.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($100.00) & Reserve Seat →
             
@@ -3495,12 +4157,8 @@ export default function TrainWithFIFS(props: any) {
               <div className="tier-sliding-switch" id="switch-coaching" data-onclick="toggleCardTier('coaching', event)">
                 <div className="tier-sliding-pill" id="slider-coaching">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-coaching" data-onclick="setCardTier('coaching', 'base', event)" type="button">
-                  Standard
-                </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-coaching" data-onclick="setCardTier(\'coaching\', \'vip\', event)" type="button">
-                  👑
-                </button>
+                <button className="tier-option-btn btn-base-side" id="tog-base-coaching" data-onclick="setCardTier('coaching', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('coaching', 'base', e); }} type="button" aria-label="Standard Mode">Standard</button>
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-coaching" data-onclick="setCardTier('coaching', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('coaching', 'vip', e); }} type="button" aria-label="VIP Mode">👑</button>
               </div>
             </div>
             <div className="tuition-price" id="price-course-coaching">
@@ -3549,7 +4207,7 @@ export default function TrainWithFIFS(props: any) {
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-coaching" data-onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($125.00/hr)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-coaching" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Personal 1-on-1 Coaching — Base Track ($125.00/hr)"); }} data-onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($125.00/hr)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($125/hr) & Reserve Seat →
             
@@ -3577,12 +4235,8 @@ export default function TrainWithFIFS(props: any) {
               <div className="tier-sliding-switch" id="switch-cleaning" data-onclick="toggleCardTier('cleaning', event)">
                 <div className="tier-sliding-pill" id="slider-cleaning">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-cleaning" data-onclick="setCardTier('cleaning', 'base', event)" type="button">
-                  Standard
-                </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-cleaning" data-onclick="setCardTier(\'cleaning\', \'vip\', event)" type="button">
-                  👑
-                </button>
+                <button className="tier-option-btn btn-base-side" id="tog-base-cleaning" data-onclick="setCardTier('cleaning', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('cleaning', 'base', e); }} type="button" aria-label="Standard Mode">Standard</button>
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-cleaning" data-onclick="setCardTier('cleaning', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('cleaning', 'vip', e); }} type="button" aria-label="VIP Mode">👑</button>
               </div>
             </div>
             <div className="tuition-price" id="price-course-cleaning">
@@ -3628,7 +4282,7 @@ export default function TrainWithFIFS(props: any) {
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-cleaning" data-onclick="selectCourse('Gun Cleaning &amp; Maintenance — Base Track ($75.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-cleaning" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Gun Cleaning & Maintenance — Base Track ($75.00)"); }} data-onclick="selectCourse('Gun Cleaning &amp; Maintenance — Base Track ($75.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($75.00) & Reserve Seat →
             
@@ -3656,12 +4310,8 @@ export default function TrainWithFIFS(props: any) {
               <div className="tier-sliding-switch" id="switch-children" data-onclick="toggleCardTier('children', event)">
                 <div className="tier-sliding-pill" id="slider-children">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-children" data-onclick="setCardTier('children', 'base', event)" type="button">
-                  Standard
-                </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-children" data-onclick="setCardTier(\'children\', \'vip\', event)" type="button">
-                  👑
-                </button>
+                <button className="tier-option-btn btn-base-side" id="tog-base-children" data-onclick="setCardTier('children', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('children', 'base', e); }} type="button" aria-label="Standard Mode">Standard</button>
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-children" data-onclick="setCardTier('children', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('children', 'vip', e); }} type="button" aria-label="VIP Mode">👑</button>
               </div>
             </div>
             <div className="tuition-price" id="price-course-children">
@@ -3712,7 +4362,7 @@ export default function TrainWithFIFS(props: any) {
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-children" data-onclick="selectCourse('Children\'s Safety Class — Base Track ($199.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-children" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Children's Safety Class — Base Track ($199.99)"); }} data-onclick="selectCourse('Children\'s Safety Class — Base Track ($199.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($199.99) & Reserve Seat →
             
@@ -3745,12 +4395,8 @@ export default function TrainWithFIFS(props: any) {
               <div className="tier-sliding-switch" id="switch-alumni" data-onclick="toggleCardTier('alumni', event)">
                 <div className="tier-sliding-pill" id="slider-alumni">
                 </div>
-                <button className="tier-option-btn btn-base-side" id="tog-base-alumni" data-onclick="setCardTier('alumni', 'base', event)" type="button">
-                  Standard
-                </button>
-                <button className="tier-option-btn btn-vip-side" id="tog-vip-alumni" data-onclick="setCardTier(\'alumni\', \'vip\', event)" type="button">
-                  👑
-                </button>
+                <button className="tier-option-btn btn-base-side" id="tog-base-alumni" data-onclick="setCardTier('alumni', 'base', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('alumni', 'base', e); }} type="button" aria-label="Standard Mode">Standard</button>
+                <button className="tier-option-btn btn-vip-side" id="tog-vip-alumni" data-onclick="setCardTier('alumni', 'vip', event)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && window.setCardTier) window.setCardTier('alumni', 'vip', e); }} type="button" aria-label="VIP Mode">👑</button>
               </div>
             </div>
             <div className="tuition-price" id="price-course-alumni">
@@ -3802,7 +4448,7 @@ export default function TrainWithFIFS(props: any) {
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-alumni" data-onclick="selectCourse('FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-alumni" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)"); }} data-onclick="selectCourse('FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($65.00) & Reserve Seat →
             
@@ -5077,8 +5723,262 @@ export default function TrainWithFIFS(props: any) {
               </div>
               <div className="svg-canvas-wrapper">
                 <svg className="interactive-us-svg" id="interactiveUsSvg" viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg">
-                  {/* Populated dynamically by JS engine */}
-                </svg>
+  <g className="svg-state-group status-constitutional" data-code="AK" id="stateNode-AK" style={{ cursor: 'pointer' }} data-onclick="selectState('AK'); if(typeof openStateModal==='function') openStateModal('AK');">
+    <rect className="state-bg-rect" x="30" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="60.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">AK</text>
+    <text className="state-status-indicator" x="60.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="WA" id="stateNode-WA" style={{ cursor: 'pointer' }} data-onclick="selectState('WA'); if(typeof openStateModal==='function') openStateModal('WA');">
+    <rect className="state-bg-rect" x="110" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="140.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">WA</text>
+    <text className="state-status-indicator" x="140.0" y="72.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="ID" id="stateNode-ID" style={{ cursor: 'pointer' }} data-onclick="selectState('ID'); if(typeof openStateModal==='function') openStateModal('ID');">
+    <rect className="state-bg-rect" x="185" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="215.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">ID</text>
+    <text className="state-status-indicator" x="215.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="MT" id="stateNode-MT" style={{ cursor: 'pointer' }} data-onclick="selectState('MT'); if(typeof openStateModal==='function') openStateModal('MT');">
+    <rect className="state-bg-rect" x="260" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="290.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MT</text>
+    <text className="state-status-indicator" x="290.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="ND" id="stateNode-ND" style={{ cursor: 'pointer' }} data-onclick="selectState('ND'); if(typeof openStateModal==='function') openStateModal('ND');">
+    <rect className="state-bg-rect" x="335" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">ND</text>
+    <text className="state-status-indicator" x="365.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="MN" id="stateNode-MN" style={{ cursor: 'pointer' }} data-onclick="selectState('MN'); if(typeof openStateModal==='function') openStateModal('MN');">
+    <rect className="state-bg-rect" x="410" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MN</text>
+    <text className="state-status-indicator" x="440.0" y="72.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="WI" id="stateNode-WI" style={{ cursor: 'pointer' }} data-onclick="selectState('WI'); if(typeof openStateModal==='function') openStateModal('WI');">
+    <rect className="state-bg-rect" x="485" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">WI</text>
+    <text className="state-status-indicator" x="515.0" y="72.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="MI" id="stateNode-MI" style={{ cursor: 'pointer' }} data-onclick="selectState('MI'); if(typeof openStateModal==='function') openStateModal('MI');">
+    <rect className="state-bg-rect" x="560" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MI</text>
+    <text className="state-status-indicator" x="590.0" y="72.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="NY" id="stateNode-NY" style={{ cursor: 'pointer' }} data-onclick="selectState('NY'); if(typeof openStateModal==='function') openStateModal('NY');">
+    <rect className="state-bg-rect" x="710" y="35" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="740.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NY</text>
+    <text className="state-status-indicator" x="740.0" y="72.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="VT" id="stateNode-VT" style={{ cursor: 'pointer' }} data-onclick="selectState('VT'); if(typeof openStateModal==='function') openStateModal('VT');">
+    <rect className="state-bg-rect" x="785" y="35" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="810.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">VT</text>
+    <text className="state-status-indicator" x="810.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="NH" id="stateNode-NH" style={{ cursor: 'pointer' }} data-onclick="selectState('NH'); if(typeof openStateModal==='function') openStateModal('NH');">
+    <rect className="state-bg-rect" x="845" y="35" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="870.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NH</text>
+    <text className="state-status-indicator" x="870.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="ME" id="stateNode-ME" style={{ cursor: 'pointer' }} data-onclick="selectState('ME'); if(typeof openStateModal==='function') openStateModal('ME');">
+    <rect className="state-bg-rect" x="900" y="35" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="925.0" y="56.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">ME</text>
+    <text className="state-status-indicator" x="925.0" y="72.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="OR" id="stateNode-OR" style={{ cursor: 'pointer' }} data-onclick="selectState('OR'); if(typeof openStateModal==='function') openStateModal('OR');">
+    <rect className="state-bg-rect" x="110" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="140.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">OR</text>
+    <text className="state-status-indicator" x="140.0" y="132.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="NV" id="stateNode-NV" style={{ cursor: 'pointer' }} data-onclick="selectState('NV'); if(typeof openStateModal==='function') openStateModal('NV');">
+    <rect className="state-bg-rect" x="185" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="215.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NV</text>
+    <text className="state-status-indicator" x="215.0" y="132.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="WY" id="stateNode-WY" style={{ cursor: 'pointer' }} data-onclick="selectState('WY'); if(typeof openStateModal==='function') openStateModal('WY');">
+    <rect className="state-bg-rect" x="260" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="290.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">WY</text>
+    <text className="state-status-indicator" x="290.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="SD" id="stateNode-SD" style={{ cursor: 'pointer' }} data-onclick="selectState('SD'); if(typeof openStateModal==='function') openStateModal('SD');">
+    <rect className="state-bg-rect" x="335" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">SD</text>
+    <text className="state-status-indicator" x="365.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="IA" id="stateNode-IA" style={{ cursor: 'pointer' }} data-onclick="selectState('IA'); if(typeof openStateModal==='function') openStateModal('IA');">
+    <rect className="state-bg-rect" x="410" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">IA</text>
+    <text className="state-status-indicator" x="440.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="IL" id="stateNode-IL" style={{ cursor: 'pointer' }} data-onclick="selectState('IL'); if(typeof openStateModal==='function') openStateModal('IL');">
+    <rect className="state-bg-rect" x="485" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">IL</text>
+    <text className="state-status-indicator" x="515.0" y="132.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="IN" id="stateNode-IN" style={{ cursor: 'pointer' }} data-onclick="selectState('IN'); if(typeof openStateModal==='function') openStateModal('IN');">
+    <rect className="state-bg-rect" x="560" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">IN</text>
+    <text className="state-status-indicator" x="590.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="OH" id="stateNode-OH" style={{ cursor: 'pointer' }} data-onclick="selectState('OH'); if(typeof openStateModal==='function') openStateModal('OH');">
+    <rect className="state-bg-rect" x="635" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="665.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">OH</text>
+    <text className="state-status-indicator" x="665.0" y="132.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="PA" id="stateNode-PA" style={{ cursor: 'pointer' }} data-onclick="selectState('PA'); if(typeof openStateModal==='function') openStateModal('PA');">
+    <rect className="state-bg-rect" x="710" y="95" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="740.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">PA</text>
+    <text className="state-status-indicator" x="740.0" y="132.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="NJ" id="stateNode-NJ" style={{ cursor: 'pointer' }} data-onclick="selectState('NJ'); if(typeof openStateModal==='function') openStateModal('NJ');">
+    <rect className="state-bg-rect" x="785" y="95" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="810.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NJ</text>
+    <text className="state-status-indicator" x="810.0" y="132.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="MA" id="stateNode-MA" style={{ cursor: 'pointer' }} data-onclick="selectState('MA'); if(typeof openStateModal==='function') openStateModal('MA');">
+    <rect className="state-bg-rect" x="845" y="95" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="870.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MA</text>
+    <text className="state-status-indicator" x="870.0" y="132.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="RI" id="stateNode-RI" style={{ cursor: 'pointer' }} data-onclick="selectState('RI'); if(typeof openStateModal==='function') openStateModal('RI');">
+    <rect className="state-bg-rect" x="900" y="95" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="925.0" y="116.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">RI</text>
+    <text className="state-status-indicator" x="925.0" y="132.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="CA" id="stateNode-CA" style={{ cursor: 'pointer' }} data-onclick="selectState('CA'); if(typeof openStateModal==='function') openStateModal('CA');">
+    <rect className="state-bg-rect" x="110" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="140.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">CA</text>
+    <text className="state-status-indicator" x="140.0" y="192.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="UT" id="stateNode-UT" style={{ cursor: 'pointer' }} data-onclick="selectState('UT'); if(typeof openStateModal==='function') openStateModal('UT');">
+    <rect className="state-bg-rect" x="185" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="215.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">UT</text>
+    <text className="state-status-indicator" x="215.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="CO" id="stateNode-CO" style={{ cursor: 'pointer' }} data-onclick="selectState('CO'); if(typeof openStateModal==='function') openStateModal('CO');">
+    <rect className="state-bg-rect" x="260" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="290.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">CO</text>
+    <text className="state-status-indicator" x="290.0" y="192.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="NE" id="stateNode-NE" style={{ cursor: 'pointer' }} data-onclick="selectState('NE'); if(typeof openStateModal==='function') openStateModal('NE');">
+    <rect className="state-bg-rect" x="335" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NE</text>
+    <text className="state-status-indicator" x="365.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="MO" id="stateNode-MO" style={{ cursor: 'pointer' }} data-onclick="selectState('MO'); if(typeof openStateModal==='function') openStateModal('MO');">
+    <rect className="state-bg-rect" x="410" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MO</text>
+    <text className="state-status-indicator" x="440.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="KY" id="stateNode-KY" style={{ cursor: 'pointer' }} data-onclick="selectState('KY'); if(typeof openStateModal==='function') openStateModal('KY');">
+    <rect className="state-bg-rect" x="485" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">KY</text>
+    <text className="state-status-indicator" x="515.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="WV" id="stateNode-WV" style={{ cursor: 'pointer' }} data-onclick="selectState('WV'); if(typeof openStateModal==='function') openStateModal('WV');">
+    <rect className="state-bg-rect" x="560" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">WV</text>
+    <text className="state-status-indicator" x="590.0" y="192.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="VA" id="stateNode-VA" style={{ cursor: 'pointer' }} data-onclick="selectState('VA'); if(typeof openStateModal==='function') openStateModal('VA');">
+    <rect className="state-bg-rect" x="635" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="665.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">VA</text>
+    <text className="state-status-indicator" x="665.0" y="192.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="MD" id="stateNode-MD" style={{ cursor: 'pointer' }} data-onclick="selectState('MD'); if(typeof openStateModal==='function') openStateModal('MD');">
+    <rect className="state-bg-rect" x="710" y="155" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="740.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MD</text>
+    <text className="state-status-indicator" x="740.0" y="192.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="DE" id="stateNode-DE" style={{ cursor: 'pointer' }} data-onclick="selectState('DE'); if(typeof openStateModal==='function') openStateModal('DE');">
+    <rect className="state-bg-rect" x="785" y="155" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="810.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">DE</text>
+    <text className="state-status-indicator" x="810.0" y="192.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="CT" id="stateNode-CT" style={{ cursor: 'pointer' }} data-onclick="selectState('CT'); if(typeof openStateModal==='function') openStateModal('CT');">
+    <rect className="state-bg-rect" x="845" y="155" width="50" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="870.0" y="176.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">CT</text>
+    <text className="state-status-indicator" x="870.0" y="192.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="AZ" id="stateNode-AZ" style={{ cursor: 'pointer' }} data-onclick="selectState('AZ'); if(typeof openStateModal==='function') openStateModal('AZ');">
+    <rect className="state-bg-rect" x="185" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="215.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">AZ</text>
+    <text className="state-status-indicator" x="215.0" y="252.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-special" data-code="NM" id="stateNode-NM" style={{ cursor: 'pointer' }} data-onclick="selectState('NM'); if(typeof openStateModal==='function') openStateModal('NM');">
+    <rect className="state-bg-rect" x="260" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="290.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NM</text>
+    <text className="state-status-indicator" x="290.0" y="252.0" textAnchor="middle" fill="#fbbf24" fontSize="10" fontWeight="600">⚠ Cond.</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="KS" id="stateNode-KS" style={{ cursor: 'pointer' }} data-onclick="selectState('KS'); if(typeof openStateModal==='function') openStateModal('KS');">
+    <rect className="state-bg-rect" x="335" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">KS</text>
+    <text className="state-status-indicator" x="365.0" y="252.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="AR" id="stateNode-AR" style={{ cursor: 'pointer' }} data-onclick="selectState('AR'); if(typeof openStateModal==='function') openStateModal('AR');">
+    <rect className="state-bg-rect" x="410" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">AR</text>
+    <text className="state-status-indicator" x="440.0" y="252.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="TN" id="stateNode-TN" style={{ cursor: 'pointer' }} data-onclick="selectState('TN'); if(typeof openStateModal==='function') openStateModal('TN');">
+    <rect className="state-bg-rect" x="485" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">TN</text>
+    <text className="state-status-indicator" x="515.0" y="252.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-honored" data-code="NC" id="stateNode-NC" style={{ cursor: 'pointer' }} data-onclick="selectState('NC'); if(typeof openStateModal==='function') openStateModal('NC');">
+    <rect className="state-bg-rect" x="635" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="665.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">NC</text>
+    <text className="state-status-indicator" x="665.0" y="252.0" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="600">✓ Recip.</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="DC" id="stateNode-DC" style={{ cursor: 'pointer' }} data-onclick="selectState('DC'); if(typeof openStateModal==='function') openStateModal('DC');">
+    <rect className="state-bg-rect" x="710" y="215" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="740.0" y="236.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">DC</text>
+    <text className="state-status-indicator" x="740.0" y="252.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="OK" id="stateNode-OK" style={{ cursor: 'pointer' }} data-onclick="selectState('OK'); if(typeof openStateModal==='function') openStateModal('OK');">
+    <rect className="state-bg-rect" x="335" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="365.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">OK</text>
+    <text className="state-status-indicator" x="365.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="LA" id="stateNode-LA" style={{ cursor: 'pointer' }} data-onclick="selectState('LA'); if(typeof openStateModal==='function') openStateModal('LA');">
+    <rect className="state-bg-rect" x="410" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="440.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">LA</text>
+    <text className="state-status-indicator" x="440.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="MS" id="stateNode-MS" style={{ cursor: 'pointer' }} data-onclick="selectState('MS'); if(typeof openStateModal==='function') openStateModal('MS');">
+    <rect className="state-bg-rect" x="485" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="515.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">MS</text>
+    <text className="state-status-indicator" x="515.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="AL" id="stateNode-AL" style={{ cursor: 'pointer' }} data-onclick="selectState('AL'); if(typeof openStateModal==='function') openStateModal('AL');">
+    <rect className="state-bg-rect" x="560" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">AL</text>
+    <text className="state-status-indicator" x="590.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="SC" id="stateNode-SC" style={{ cursor: 'pointer' }} data-onclick="selectState('SC'); if(typeof openStateModal==='function') openStateModal('SC');">
+    <rect className="state-bg-rect" x="635" y="275" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="665.0" y="296.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">SC</text>
+    <text className="state-status-indicator" x="665.0" y="312.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="TX" id="stateNode-TX" style={{ cursor: 'pointer' }} data-onclick="selectState('TX'); if(typeof openStateModal==='function') openStateModal('TX');">
+    <rect className="state-bg-rect" x="335" y="335" width="100" height="60" rx="6" ry="6" />
+    <text className="state-code-text" x="385.0" y="361.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">TX</text>
+    <text className="state-status-indicator" x="385.0" y="377.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="GA" id="stateNode-GA" style={{ cursor: 'pointer' }} data-onclick="selectState('GA'); if(typeof openStateModal==='function') openStateModal('GA');">
+    <rect className="state-bg-rect" x="560" y="335" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="590.0" y="356.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">GA</text>
+    <text className="state-status-indicator" x="590.0" y="372.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-constitutional" data-code="FL" id="stateNode-FL" style={{ cursor: 'pointer' }} data-onclick="selectState('FL'); if(typeof openStateModal==='function') openStateModal('FL');">
+    <rect className="state-bg-rect" x="635" y="335" width="70" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="670.0" y="356.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">FL</text>
+    <text className="state-status-indicator" x="670.0" y="372.0" textAnchor="middle" fill="#38bdf8" fontSize="10" fontWeight="600">✓ Carry</text>
+  </g>
+  <g className="svg-state-group status-not-honored" data-code="HI" id="stateNode-HI" style={{ cursor: 'pointer' }} data-onclick="selectState('HI'); if(typeof openStateModal==='function') openStateModal('HI');">
+    <rect className="state-bg-rect" x="110" y="240" width="60" height="50" rx="6" ry="6" />
+    <text className="state-code-text" x="140.0" y="261.0" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">HI</text>
+    <text className="state-status-indicator" x="140.0" y="277.0" textAnchor="middle" fill="#f87171" fontSize="10" fontWeight="600">✕ No</text>
+  </g>
+</svg>
               </div>
             </section>
             {/* Selected State Spotlight Deck (from Reference 00:00 - 00:04) */}
@@ -5111,6 +6011,8 @@ export default function TrainWithFIFS(props: any) {
                 </div>
               </div>
             </section>
+            {/* MARYLAND STATUTORY COMPARISON INSPECTOR */}
+            <div className="md-comparison-inspector" id="mdComparisonInspector"></div>
             {/* My Permits List Section (from Reference 00:03 - 00:04) */}
             <section className="my-permits-card">
               <div className="my-permits-header">
@@ -5594,29 +6496,8 @@ export default function TrainWithFIFS(props: any) {
             {/* Detailed section cards */}
           </div>
           <div className="goal-modal-actions" style={{"flexDirection": "column", "alignItems": "center", "width": "100%", "position": "relative", "marginTop": "14px"}}>
-            {/* Stickmen 10-Second Action Movie Reenactment Stage */}
-            <div style={{"width": "100%", "maxWidth": "520px", "position": "relative", "overflow": "hidden", "borderRadius": "10px 10px 0 0", "background": "linear-gradient(180deg, rgba(3, 7, 12, 0) 0%, rgba(0, 229, 255, 0.05) 100%)"}}>
-              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "padding": "4px 10px", "fontFamily": "monospace", "fontSize": "0.68rem", "color": "var(--accent-cyan)", "borderBottom": "1px dashed rgba(0, 229, 255, 0.25)"}}>
-                <span id="stickmanSceneTitle" style={{"display": "flex", "alignItems": "center", "gap": "6px", "cursor": "pointer"}} data-onclick="if(typeof window.playNextStickmanScene==='function'){window.playNextStickmanScene();}" title="Click to cycle to another action scene">
-                  🎬 
-                  <strong>
-                    10s ACTION REENACTMENT:
-                  </strong>
-                  <span id="stickmanSceneName" style={{"color": "#00e5ff", "fontWeight": "800"}}>
-                    MATRIX ROOFTOP GUN-FU
-                  </span>
-                  <span style={{"fontSize": "0.72rem", "color": "var(--text-muted)", "border": "1px solid rgba(255,255,255,0.2)", "borderRadius": "4px", "padding": "1px 5px", "marginLeft": "6px"}}>
-                    🎲 TAP TO CYCLE
-                  </span>
-                </span>
-                <span id="stickmanTimer" style={{"color": "var(--accent-amber)", "fontWeight": "800"}}>
-                  10.0s
-                </span>
-              </div>
-              <canvas id="stickmanActionCanvas" width="520" height="96" style={{"width": "100%", "height": "96px", "display": "block", "margin": "0 auto", "cursor": "pointer"}} data-onclick="if(typeof window.playNextStickmanScene==='function'){window.playNextStickmanScene();}" title="Tap canvas to randomize next action movie scene">
-              </canvas>
-            </div>
-            <button id="btnExpectationUnderstood" className="btn-primary" data-onclick="closeExpectationModal()" type="button" style={{"width": "100%", "maxWidth": "520px", "borderTopLeftRadius": "0", "borderTopRightRadius": "0", "position": "relative", "zIndex": "3", "boxShadow": "0 4px 20px rgba(0, 229, 255, 0.25)"}}>
+            
+            <button id="btnExpectationUnderstood" className="btn-primary" data-onclick="closeExpectationModal()" type="button" style={{"width": "100%", "maxWidth": "520px", "borderRadius": "8px", "position": "relative", "zIndex": "3", "boxShadow": "0 4px 20px rgba(0, 229, 255, 0.25)"}}>
               
     Understood & Return to Checklist ✔
   
@@ -5777,7 +6658,7 @@ export default function TrainWithFIFS(props: any) {
                 Comprehensive 6-page Maryland-compliant guide prepared by Instructor Kai Wade.
               </span>
             </div>
-            <a className="btn-download-guide" href="https://drive.google.com/file/d/1WIoQO00ALNalIuTjSNacZbBNLYIrVHGN/view?usp=sharing" rel="noopener noreferrer" target="_blank">
+            <a className="btn-download-guide" href="https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/top-50-questions-new-gun-owners.pdf" rel="noopener noreferrer" target="_blank">
               <span>
                 📥 View & Download PDF
               </span>
@@ -5826,7 +6707,7 @@ export default function TrainWithFIFS(props: any) {
             </div>
           </div>
           <div className="goal-modal-actions">
-            <button className="btn-primary" id="goalModalAcceptBtn" data-onclick="closeGoalSynopsis(); selectCourse('Maryland CCW &amp; HQL Combo — Base Track ($249.99)');" type="button">
+            <button className="btn-primary" id="goalModalAcceptBtn" data-onclick="if(typeof window!=='undefined'&&window.confirmSelectedGoalCourse){window.confirmSelectedGoalCourse();}else{closeGoalSynopsis();}" type="button">
               
           Choose This Course & Continue →
         
@@ -5962,41 +6843,35 @@ export default function TrainWithFIFS(props: any) {
                   </span>
                 </label>
                 <select
-  defaultValue={"student"} id="invPortalType" data-onchange="syncInviteCourseDropdown()" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}}>
+  defaultValue={"student"} 
+  id="invPortalType" 
+  onChange={(e) => { (window as any).syncInviteCourseDropdown?.(); }}
+  data-onchange="syncInviteCourseDropdown()" 
+  style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}}>
                   <option value="student">
-                    🎓 Student Training Portal (Course Intake)
+                    🎓 Student Training Portal (Course Attendee)
                   </option>
                   <option value="client">
-                    🛡️ Client & Permit Portal (Permit Holder)
+                    🛡️ Future Initiative Client (Permit Holder / Consultation)
                   </option>
                 </select>
               </div>
               <div className="form-group" style={{"marginBottom": "0"}}>
-                <label htmlFor="invCourse" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
-                  Assigned Course / Permit 
+                <label id="invCourseLabel" htmlFor="invCourse" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
+                  Assigned Class Curriculum / Permit
                   <span className="req">
                     *
                   </span>
                 </label>
                 <select id="invCourse" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}}>
-                  <option value="Maryland CCW &amp; HQL Combo — Base Track ($249.99)">
-                    Maryland CCW & HQL Combo
-                  </option>
-                  <option value="Maryland Wear &amp; Carry (CCW) — Base Track ($199.99)">
-                    Maryland Wear & Carry (16-Hr)
-                  </option>
-                  <option value="Maryland Wear &amp; Carry (8-Hour Renewal) — Base Track ($175.00)">
-                    Maryland Wear & Carry (8-Hr Renewal)
-                  </option>
-                  <option value="Maryland HQL (Purchase License) — Base Track ($100.00)">
-                    Maryland HQL (4-Hour)
-                  </option>
-                  <option value="Mid-Atlantic Multi-State Mastery — Base Track ($425.00)">
-                    Mid-Atlantic Multi-State Mastery
-                  </option>
-                  <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">
-                    Personal 1-on-1 Range Coaching
-                  </option>
+                  <option value="Mid-Atlantic Multi-State Mastery">Mid-Atlantic Multi-State Mastery (5-State)</option>
+                  <option value="Maryland CCW & HQL Combo Certification">Maryland CCW & HQL Combo (16-Hr + HQL)</option>
+                  <option value="Maryland Wear & Carry (CCW) Permit">Maryland Wear & Carry (16-Hr Initial)</option>
+                  <option value="Maryland Wear & Carry (8-Hour Renewal)">Maryland Wear & Carry (8-Hr Renewal)</option>
+                  <option value="Maryland HQL (Handgun Qualification License)">Maryland HQL (4-Hour License)</option>
+                  <option value="Personal 1-on-1 Range Coaching">Personal 1-on-1 Range Coaching</option>
+                  <option value="Defensive Holster Draw & Retention">Defensive Holster Draw & Retention</option>
+                  <option value="Firearm Deep Clean & Maintenance">Firearm Deep Clean & Maintenance</option>
                 </select>
               </div>
             </div>
@@ -6029,7 +6904,7 @@ export default function TrainWithFIFS(props: any) {
         </div>
       </div>
       {/* ================= MODAL 3: ADMIN EDIT STUDENT RECORD MODAL ================= */}
-      <div className="goal-modal-overlay" id="adminEditStudentModrget===this) closeAdminEditStudentModal()" style={{"display": "none"}}>
+      <div className="goal-modal-overlay" id="adminEditStudentModal" data-onclick="if(event.target===this) closeAdminEditStudentModal()" style={{"display": "none"}}>
         <div aria-labelledby="editStudentModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "600px", "borderColor": "var(--accent-cyan)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 30px var(--accent-cyan-glow)"}}>
           <button aria-label="Close edit modal" className="goal-modal-close-btn" data-onclick="closeAdminEditStudentModal()" type="button">
             ✕
@@ -6083,7 +6958,7 @@ export default function TrainWithFIFS(props: any) {
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
               <div className="form-group" style={{"marginBottom": "0"}}>
                 <label htmlFor="editAssignedDate" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
-                  Assigned Schedule Date
+                  Class Date / Scheduled Range Date
                 </label>
                 <input id="editAssignedDate" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
               </div>
@@ -6128,9 +7003,9 @@ export default function TrainWithFIFS(props: any) {
               </div>
               <div className="form-group" style={{"marginBottom": "0"}}>
                 <label htmlFor="editProfileDocUrl" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
-                  Student Dossier (Google Doc URL)
+                  Student Dossier (Supabase Document URL)
                 </label>
-                <input id="editProfileDocUrl" placeholder="https://docs.google.com/..." style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
+                <input id="editProfileDocUrl" placeholder="https://.../storage/v1/object/public/documents/..." style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
               </div>
             </div>
             <div className="form-group" style={{"marginBottom": "16px"}}>
@@ -6154,9 +7029,213 @@ export default function TrainWithFIFS(props: any) {
             </div>
             <div className="status-msg" id="edit-student-status" style={{"marginTop": "10px", "display": "none"}}>
             </div>
+          
+            {/* Dedicated Maryland Qualification Scoresheet (MSP Form 29-14) Control */}
+            <div style={{"background": "rgba(0, 229, 255, 0.05)", "border": "1px solid var(--accent-cyan)", "borderRadius": "8px", "padding": "14px", "marginTop": "14px", "marginBottom": "14px"}}>
+              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "8px"}}>
+                <span style={{"fontWeight": "700", "fontSize": "0.86rem", "color": "var(--accent-cyan)", "letterSpacing": "0.5px"}}>
+                  🎯 MARYLAND QUALIFICATION SCORESHEET (MSP FORM 29-14)
+                </span>
+                <span id="editScoresheetStatusBadge" style={{"fontSize": "0.74rem", "fontWeight": "700", "padding": "2px 8px", "borderRadius": "12px", "background": "rgba(245, 158, 11, 0.2)", "color": "var(--accent-amber)"}}>
+                  Pending Upload
+                </span>
+              </div>
+              <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "10px", "marginBottom": "8px"}}>
+                <div>
+                  <label htmlFor="editScoresheetScore" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Score / Qualification Status</label>
+                  <input id="editScoresheetScore" placeholder="e.g. 25/25 (100%)" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%", "fontSize": "0.82rem"}} type="text" />
+                </div>
+                <div>
+                  <label htmlFor="editScoresheetFileInput" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Upload MSP 29-14 (PDF or Image)</label>
+                  <input accept=".pdf,image/*" id="editScoresheetFileInput" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "6px", "borderRadius": "6px", "width": "100%", "fontSize": "0.78rem"}} type="file" />
+                </div>
+              </div>
+              <div id="editScoresheetActionRow" style={{"display": "flex", "gap": "8px", "alignItems": "center", "marginTop": "8px"}}>
+                <button type="button" id="btnUploadScoresheetFromEdit" data-onclick="handleUploadScoresheetFromEdit()" style={{"background": "var(--accent-cyan)", "color": "#070b10", "border": "none", "borderRadius": "6px", "padding": "6px 12px", "fontSize": "0.80rem", "fontWeight": "700", "cursor": "pointer"}}>
+                  ⚡ Upload / Update Scoresheet
+                </button>
+                <a id="editScoresheetViewLink" href="#" target="_blank" rel="noopener noreferrer" style={{"display": "none", "color": "var(--accent-cyan)", "fontSize": "0.80rem", "textDecoration": "underline", "fontWeight": "600"}}>
+                  👁️ View Current File ↗
+                </a>
+                <button type="button" id="btnDeleteScoresheetFromEdit" data-onclick="handleDeleteScoresheetFromEdit()" style={{"display": "none", "background": "transparent", "color": "#ef4444", "border": "1px solid #ef4444", "borderRadius": "6px", "padding": "4px 8px", "fontSize": "0.76rem", "cursor": "pointer"}}>
+                  🗑️ Remove
+                </button>
+              </div>
+              <div id="editScoresheetFeedback" style={{"fontSize": "0.76rem", "marginTop": "6px", "display": "none"}}></div>
+            </div>
           </form>
         </div>
       </div>
+
+      {/* ================= DEDICATED ADMIN SCORESHEET MODAL ================= */}
+      <div className="goal-modal-overlay" id="adminScoresheetModal" data-onclick="if(event.target===this) closeStudentScoresheetModal()" style={{"display": "none"}}>
+        <div aria-labelledby="adminScoresheetModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "640px", "borderColor": "var(--accent-cyan)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 35px var(--accent-cyan-glow)"}}>
+          <button aria-label="Close modal" className="goal-modal-close-btn" data-onclick="closeStudentScoresheetModal()" type="button">
+            ✕
+          </button>
+          <div>
+            <span className="goal-header-badge">
+              MARYLAND STATE POLICE FORM 29-14
+            </span>
+          </div>
+          <h3 className="goal-modal-title" id="adminScoresheetModalTitle" style={{"color": "#fff", "margin": "6px 0 4px"}}>
+            Certified Live-Fire Qualification Scoresheet
+          </h3>
+          <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "marginBottom": "16px"}}>
+            Student: <strong id="scoresheetModalStudentName" style={{"color": "#fff"}}></strong> (<span id="scoresheetModalStudentId" style={{"color": "var(--accent-cyan)", "fontFamily": "var(--font-mono)"}}></span>)
+          </p>
+
+          <div style={{"background": "rgba(255,255,255,0.02)", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "14px", "marginBottom": "14px"}}>
+            <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
+              <div>
+                <label style={{"fontSize": "0.80rem", "color": "#cbd5e1", "display": "block", "marginBottom": "4px", "fontWeight": "600"}}>
+                  Qualification Score
+                </label>
+                <input id="scoresheetModalScoreInput" placeholder="e.g. 25/25 (100%)" style={{"background": "#0a0f16", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px 10px", "borderRadius": "6px", "width": "100%", "fontSize": "0.85rem"}} type="text" defaultValue="25/25 (100%)" />
+              </div>
+              <div>
+                <label style={{"fontSize": "0.80rem", "color": "#cbd5e1", "display": "block", "marginBottom": "4px", "fontWeight": "600"}}>
+                  Select PDF or Scan Image
+                </label>
+                <input accept=".pdf,image/*" id="scoresheetModalFileInput" style={{"background": "#0a0f16", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "6px 10px", "borderRadius": "6px", "width": "100%", "fontSize": "0.80rem"}} type="file" />
+              </div>
+            </div>
+
+            <div id="scoresheetModalPreviewBox" style={{"display": "none", "textAlign": "center", "padding": "12px", "background": "#05080c", "borderRadius": "6px", "marginBottom": "12px", "border": "1px dashed var(--border-subtle)"}}>
+              <span style={{"fontSize": "0.80rem", "color": "#94a3b8", "display": "block", "marginBottom": "6px"}}>Live File Preview / Current File:</span>
+              <a id="scoresheetModalCurrentLink" href="#" target="_blank" rel="noopener noreferrer" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.88rem", "textDecoration": "underline"}}>
+                📄 View Scoresheet Document ↗
+              </a>
+            </div>
+
+            <div style={{"display": "flex", "gap": "10px", "marginTop": "8px"}}>
+              <button id="btnSaveScoresheetModal" type="button" data-onclick="saveStudentScoresheetFromModal()" className="btn-primary" style={{"flex": "2", "padding": "10px 14px", "fontSize": "0.85rem", "fontWeight": "700"}}>
+                💾 Save & Upload to Supabase
+              </button>
+              <button id="btnDeleteScoresheetModal" type="button" data-onclick="deleteStudentScoresheetFromModal()" style={{"flex": "1", "display": "none", "background": "transparent", "color": "#ef4444", "border": "1px solid #ef4444", "borderRadius": "8px", "padding": "10px 14px", "fontSize": "0.82rem", "fontWeight": "600", "cursor": "pointer"}}>
+                🗑️ Delete
+              </button>
+            </div>
+            <div id="scoresheetModalFeedback" style={{"marginTop": "10px", "fontSize": "0.82rem", "display": "none"}}></div>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= SUPABASE STUDENT DOSSIER & INSTRUCTOR NOTES MODAL ================= */}
+      <div className="goal-modal-overlay"  data-onclick="if(event.target===this) closeStudentDossierModal()" style={{"display": "none"}}>
+        <div aria-labelledby="dossierModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "620px", "borderColor": "var(--accent-amber)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 30px rgba(245, 158, 11, 0.35)"}}>
+          <button aria-label="Close dossier modal" className="goal-modal-close-btn" data-onclick="closeStudentDossierModal()" type="button">
+            ✕
+          </button>
+          <div>
+            <span className="goal-header-badge" id="dossierModalBadge" style={{"background": "rgba(245, 158, 11, 0.15)", "color": "var(--accent-amber)"}}>
+              STUDENT DOSSIER
+            </span>
+          </div>
+          <h3 className="goal-modal-title" id="dossierModalTitle" style={{"color": "#fff", "margin": "6px 0 4px"}}>
+            Dossier & Instructor Notes
+          </h3>
+          <p style={{"color": "var(--text-muted)", "fontSize": "0.85rem", "marginBottom": "14px"}}>
+            <strong id="dossierModalStudentName" style={{"color": "var(--accent-cyan)"}}>Student</strong>
+            {' '}· <span id="dossierModalCourse">Course</span>
+          </p>
+          <form id="studentDossierForm" data-onsubmit="handleSaveStudentDossier(event)">
+            <input id="dossierModalStudentId" type="hidden" />
+            <div className="form-group" style={{"marginBottom": "12px"}}>
+              <label htmlFor="dossierModalClassDate" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
+                Class / Range Date
+              </label>
+              <input id="dossierModalClassDate" placeholder="e.g., Sat, Oct 12 2026 · 9:00 AM" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
+            </div>
+            <div className="form-group" style={{"marginBottom": "12px"}}>
+              <label htmlFor="dossierModalDocUrl" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
+                Official Dossier Document (Supabase Storage URL)
+              </label>
+              <input id="dossierModalDocUrl" placeholder="https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/..." style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
+              <div style={{"display": "flex", "gap": "8px", "flexWrap": "wrap", "marginTop": "8px"}}>
+                <a className="btn-spark" data-target="_blank" id="dossierModalViewLink" rel="noopener noreferrer" style={{"display": "none", "padding": "7px 12px", "fontSize": "0.78rem", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)", "textDecoration": "none", "alignItems": "center", "gap": "6px"}} target="_blank">
+                  👁 Preview Current Dossier
+                </a>
+                <button className="btn-spark" data-onclick="setDossierPresetUrl('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/msp-form-29-14-handgun-score-sheet.pdf')" style={{"padding": "7px 12px", "fontSize": "0.78rem", "borderColor": "var(--accent-amber)", "color": "var(--accent-amber)", "width": "auto"}} type="button">
+                  📋 Use MSP Form 29-14
+                </button>
+                <button className="btn-spark" data-onclick="setDossierPresetUrl('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/fifs-classroom-course-packet.pdf')" style={{"padding": "7px 12px", "fontSize": "0.78rem", "borderColor": "var(--accent-amber)", "color": "var(--accent-amber)", "width": "auto"}} type="button">
+                  📦 Use Course Packet
+                </button>
+              </div>
+            </div>
+            <div className="form-group" style={{"marginBottom": "16px"}}>
+              <label htmlFor="dossierModalNotes" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
+                Instructor Diagnostic & Administrative Notes
+              </label>
+              <textarea id="dossierModalNotes" rows="5" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%", "fontFamily": "inherit", "fontSize": "0.88rem", "resize": "vertical"}}></textarea>
+            </div>
+            <div id="dossierModalStatus" style={{"display": "none", "marginBottom": "10px", "fontSize": "0.82rem", "fontWeight": "700"}}></div>
+            <div style={{"display": "flex", "gap": "10px"}}>
+              <button className="btn-primary" style={{"flex": "2", "padding": "12px"}} type="submit">
+                💾 Save Dossier & Notes to Supabase
+              </button>
+              <button className="btn-secondary-modal" data-onclick="closeStudentDossierModal()" style={{"flex": "1", "padding": "12px"}} type="button">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {/* ================= MODAL: ADMIN SCORESHEET MODAL ================= */}
+      <div className="goal-modal-overlay" id="adminScoresheetModal" data-onclick="if(event.target===this) closeStudentScoresheetModal()" style={{"display": "none"}}>
+        <div aria-labelledby="adminScoresheetModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "600px", "borderColor": "var(--accent-cyan)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 30px rgba(0,240,255,0.2)"}}>
+          <button aria-label="Close scoresheet modal" className="goal-modal-close-btn" data-onclick="closeStudentScoresheetModal()" type="button">
+            ✕
+          </button>
+          <div>
+            <span className="goal-header-badge" style={{"background": "rgba(0, 240, 255, 0.15)", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)"}}>
+              MARYLAND MSP 29-14
+            </span>
+          </div>
+          <h3 className="goal-modal-title" id="adminScoresheetModalTitle" style={{"color": "#fff", "margin": "6px 0 14px"}}>
+            Official Qualification Scoresheet
+          </h3>
+          <p style={{"fontSize": "0.84rem", "color": "#94a3b8", "marginBottom": "16px"}}>
+            Manage Certified Live-Fire Qualification Score Sheet for <strong id="scoresheetModalStudentName" style={{"color": "#fff"}}>Student</strong> (<span id="scoresheetModalStudentId" style={{"color": "var(--accent-cyan)"}}>ID</span>).
+          </p>
+
+          <div style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "14px", "marginBottom": "14px"}}>
+            <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
+              <div>
+                <label style={{"fontSize": "0.80rem", "color": "#cbd5e1", "display": "block", "marginBottom": "4px", "fontWeight": "600"}}>
+                  Qualification Score
+                </label>
+                <input id="scoresheetModalScoreInput" placeholder="e.g. 25/25 (100%)" style={{"background": "#0a0f16", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px 10px", "borderRadius": "6px", "width": "100%", "fontSize": "0.85rem"}} type="text" defaultValue="25/25 (100%)" />
+              </div>
+              <div>
+                <label style={{"fontSize": "0.80rem", "color": "#cbd5e1", "display": "block", "marginBottom": "4px", "fontWeight": "600"}}>
+                  Select PDF or Scan Image
+                </label>
+                <input accept=".pdf,image/*" id="scoresheetModalFileInput" style={{"background": "#0a0f16", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "6px 10px", "borderRadius": "6px", "width": "100%", "fontSize": "0.80rem"}} type="file" />
+              </div>
+            </div>
+
+            <div id="scoresheetModalPreviewBox" style={{"display": "none", "textAlign": "center", "padding": "12px", "background": "#05080c", "borderRadius": "6px", "marginBottom": "12px", "border": "1px dashed var(--border-subtle)"}}>
+              <span style={{"fontSize": "0.80rem", "color": "#94a3b8", "display": "block", "marginBottom": "6px"}}>Live File Preview / Current File:</span>
+              <a id="scoresheetModalCurrentLink" href="#" target="_blank" rel="noopener noreferrer" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.88rem", "textDecoration": "underline"}}>
+                📄 View Scoresheet Document ↗
+              </a>
+            </div>
+
+            <div style={{"display": "flex", "gap": "10px", "alignItems": "center", "justifyContent": "flex-end"}}>
+              <button id="btnDeleteScoresheetModal" data-onclick="deleteCurrentStudentScoresheet()" style={{"display": "none", "background": "transparent", "border": "1px solid #ef4444", "color": "#ef4444", "borderRadius": "6px", "padding": "8px 14px", "fontSize": "0.82rem", "fontWeight": "600", "cursor": "pointer"}} type="button">
+                🗑️ Remove File
+              </button>
+              <button id="btnSaveScoresheetModal" data-onclick="saveStudentScoresheetFromModal()" style={{"background": "var(--accent-cyan)", "border": "none", "color": "#070b10", "borderRadius": "6px", "padding": "8px 18px", "fontSize": "0.85rem", "fontWeight": "800", "cursor": "pointer"}} type="button">
+                💾 Upload & Save to Supabase
+              </button>
+            </div>
+            <div id="scoresheetModalFeedback" style={{"fontSize": "0.80rem", "marginTop": "8px", "textAlign": "right", "display": "none"}}></div>
+          </div>
+        </div>
+      </div>
+
       {/* ================= MODAL 4: ADMIN EDIT CLIENT RECORD MODAL ================= */}
       <div className="goal-modal-overlay" id="adminEditClientModal" data-onclick="if(event.target===this) closeAdminEditClientModal()" style={{"display": "none"}}>
         <div aria-labelledby="editClientModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "600px", "borderColor": "var(--accent-amber)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 30px var(--accent-amber-glow)"}}>
@@ -6298,7 +7377,8 @@ export default function TrainWithFIFS(props: any) {
           </p>
           {/* Clean Form Container (Extracted from old bottom section) */}
           <form id="booking-form" data-onsubmit="event.preventDefault(); return false;">
-            <div className="form-group">
+            {/* Hidden: redundant dropdown eliminated; selection is driven directly by course cards */}
+            <div className="form-group" style={{"display": "none"}}>
               <label htmlFor="courseSelection">
                 Selected Course Curriculum & Tuition 
                 <span className="req">
@@ -6325,6 +7405,12 @@ export default function TrainWithFIFS(props: any) {
                 <option value="Maryland Wear &amp; Carry (CCW) — Base Track ($199.99)">
                   Maryland Wear & Carry (CCW) — Base Track ($199.99)
                 </option>
+                <option value="Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($249.99)">
+                  Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($249.99)
+                </option>
+                <option value="Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)">
+                  Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)
+                </option>
                 <option value="Maryland HQL (Purchase License) — VIP Turnkey ($165.00)">
                   Maryland HQL (Purchase License) — VIP Turnkey ($165.00)
                 </option>
@@ -6337,8 +7423,11 @@ export default function TrainWithFIFS(props: any) {
                 <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">
                   Personal 1-on-1 Coaching — Base Track ($125.00/hr)
                 </option>
-                <option value="FIFS Graduate Alumni Marksmanship Clinic ($65.00)">
-                  FIFS Graduate Alumni Marksmanship Clinic ($65.00)
+                <option value="FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)">
+                  FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)
+                </option>
+                <option value="FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)">
+                  FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)
                 </option>
                 <option value="Gun Cleaning &amp; Maintenance — VIP Turnkey ($115.00)">
                   Gun Cleaning & Maintenance — VIP Turnkey ($115.00)
@@ -6460,6 +7549,13 @@ export default function TrainWithFIFS(props: any) {
                   </option>
                 </select>
               </div>
+            </div>
+            <div className="form-group" style={{"marginBottom": "14px"}}>
+              <label htmlFor="bookingPortalPassword" style={{"fontSize": "0.84rem", "color": "#cbd5e1", "fontWeight": "700", "display": "flex", "justifyContent": "space-between", "alignItems": "center"}}>
+                <span>Student Portal Password</span>
+                <span style={{"fontSize": "0.74rem", "color": "var(--text-muted)", "fontWeight": "400"}}>(Optional — or create upon first login)</span>
+              </label>
+              <input autoComplete="new-password" id="bookingPortalPassword" name="bookingPortalPassword" placeholder="Create a password now (min 4 characters)" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}} type="password" />
             </div>
             <div className="form-group" style={{"marginBottom": "14px"}}>
               <label htmlFor="comments">
@@ -7619,7 +8715,7 @@ export default function TrainWithFIFS(props: any) {
               </div>
               <textarea id="chatMessageText" placeholder="How can Coach Wade assist you today? (Course dates, equipment questions, etc.)" required="" rows="2" style={{"background": "#10161f", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%", "fontFamily": "inherit", "fontSize": "0.88rem", "marginBottom": "10px"}}>
               </textarea>
-              <button className="btn-primary" id="btn-send-chat" style={{"width": "100%", "padding": "11px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px"}} type="submit">
+              <button className="btn-primary" id="btn-send-chat" data-onclick="handleLiveChatSubmit(event)" style={{"width": "100%", "padding": "11px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px"}} type="submit">
                 
             🚀 Dispatch Live Chat Message →
           
@@ -7891,7 +8987,7 @@ export default function TrainWithFIFS(props: any) {
         </div>
       </div>
       {/* Persistent Floating Contact & Live Chat Trigger Pill (Direct child of <body>) */}
-      <div className="floating-comm-bubble" id="floatingCommPill" data-onclick="openP2pCommsHud()" role="button" tabIndex="0" title="Contact Coach Kai Wade • Call, Email or Live Chat">
+      <div className="floating-comm-bubble" id="floatingCommPill" data-onclick="openContactWidgetModal()" role="button" tabIndex="0" title="Contact Coach Kai Wade • Call, Email or Live Chat">
         <span style={{"fontSize": "1.25rem"}}>
           💬
         </span>
@@ -8157,12 +9253,12 @@ export default function TrainWithFIFS(props: any) {
       </div>
       {/* STICKY BOTTOM DOCK (Visible on all pages except landing/home) */}
       <div id="sticky-bottom-dock" className="sticky-bottom-dock">
-        <button aria-label="Go back to previous view" className="btn-return-home" data-onclick="navigateBack()" style={{"background": "rgba(16, 22, 31, 0.95)", "border": "2px solid var(--border-subtle)", "color": "var(--accent-cyan) !important", "minHeight": "42px", "padding": "8px 16px", "fontSize": "0.90rem"}} type="button">
+        <button aria-label="Go back to previous view" className="btn-return-home" data-onclick="navigateBack()" style={{"background": "rgba(16, 22, 31, 0.95)", "border": "2px solid var(--border-subtle)", "color": "#00f0ff", "minHeight": "42px", "padding": "8px 16px", "fontSize": "0.90rem"}} type="button">
           
     ← BACK
   
         </button>
-        <button type="button" aria-label="Refresh and sync application data" className="btn-return-home btn-universal-refresh" data-onclick="window.triggerUniversal6SecGunReload(this, 'all')" style={{"background": "rgba(16, 22, 31, 0.95)", "border": "2px solid var(--accent-cyan)", "color": "var(--accent-cyan) !important", "minHeight": "42px", "padding": "8px 16px", "fontSize": "0.90rem"}}>
+        <button type="button" aria-label="Refresh and sync application data" className="btn-return-home btn-universal-refresh" data-onclick="window.triggerTopNavGunReload(event)" style={{"background": "rgba(16, 22, 31, 0.95)", "border": "2px solid var(--accent-cyan)", "color": "#00f0ff", "minHeight": "42px", "padding": "8px 16px", "fontSize": "0.90rem"}}>
           <span className="refresh-ui-text">
             🔄 REFRESH
           </span>
@@ -8176,7 +9272,9 @@ export default function TrainWithFIFS(props: any) {
       {/* ================= P2P ENCRYPTED COMMS HUD MODAL ================= */}
       <div id="fifsP2pCommsModal" className="goal-modal-overlay" style={{"display": "none", "zIndex": "100000", "padding": "0"}} data-onclick="if(event.target===this) closeP2pCommsHud()">
         <div className="goal-modal-box" style={{"maxWidth": "1200px", "width": "95vw", "height": "88vh", "padding": "0", "overflow": "hidden", "border": "1.5px solid var(--accent-cyan)", "borderRadius": "14px", "background": "#070b10", "boxShadow": "0 25px 60px rgba(0,0,0,0.98), 0 0 35px rgba(0,229,255,0.25)", "position": "relative", "display": "flex", "flexDirection": "column"}} data-onclick="event.stopPropagation()">
-          
+          <button type="button" data-onclick="closeP2pCommsHud()" style={{"position": "absolute", "top": "12px", "right": "16px", "zIndex": "100", "background": "rgba(0,0,0,0.6)", "border": "1px solid rgba(244,208,63,0.3)", "color": "#EDEDED", "borderRadius": "6px", "padding": "4px 12px", "fontFamily": "'JetBrains Mono', monospace", "fontSize": "0.85rem", "cursor": "pointer"}}>
+            ✕ CLOSE HUD
+          </button>
           <div className="hud-scanlines">
           </div>
           <div className="app-shell">
@@ -8264,7 +9362,7 @@ export default function TrainWithFIFS(props: any) {
                   </div>
                 </div>
                 <div className="header-actions">
-                  <button type="button" className="btn-header-action" data-onclick="exportChatSession()" title="Export Session Briefing">
+                  <button className="btn-header-action" data-onclick="exportChatSession()" title="Export Session Briefing">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
                     </svg>
@@ -8272,16 +9370,13 @@ export default function TrainWithFIFS(props: any) {
                       EXPORT
                     </span>
                   </button>
-                  <button type="button" className="btn-header-action" data-onclick="clearChatStream()" title="Purge Terminal Session">
+                  <button className="btn-header-action" data-onclick="clearChatStream()" title="Purge Terminal Session">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
                     </svg>
                     <span>
                       PURGE
                     </span>
-                  </button>
-                  <button type="button" className="btn-header-action close-hud-btn" data-onclick="closeP2pCommsHud()" title="Close Comms HUD">
-                    <span>✕ CLOSE</span>
                   </button>
                 </div>
               </header>
@@ -8291,9 +9386,67 @@ export default function TrainWithFIFS(props: any) {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
                   </svg>
-                  <span>SECURE COMM LINK ESTABLISHED • CHIEF INSTRUCTOR DESK</span>
+                  <span>
+                    P2P ENCRYPTED CHANNEL ESTABLISHED • ZERO PERSISTENT TRACE
+                  </span>
                 </div>
-                <div id="liveChatMessagesContainer" className="live-chat-messages-container"></div>
+                {/* Incoming Sample */}
+                <div className="message-row incoming">
+                  <div className="message-header">
+                    <span className="message-sender">
+                      Tanae’ Wade [STUDENT]
+                    </span>
+                    <span className="message-timestamp">
+                      19:42 EST
+                    </span>
+                  </div>
+                  <div className="message-bubble">
+                    
+            Good evening Instructor Wade. I have completed the MD wear & carry classroom modules and acquired eye and ear protection for Cindy's Hot Shots range qualification. Are my documents synchronized?
+            
+                    <div className="bubble-meta-tag">
+                      <span>
+                        ORIGIN: MOBILE-CLIENT
+                      </span>
+                      <span>
+                        SHA-256: 7F9A...B31C
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                {/* System Sample */}
+                <div className="system-banner">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" />
+                  </svg>
+                  <span>
+                    HANDGUN TRAINING DOCUMENTATION VERIFIED BY CHIEF INSTRUCTOR
+                  </span>
+                </div>
+                {/* Outgoing Sample */}
+                <div className="message-row outgoing">
+                  <div className="message-header">
+                    <span className="message-sender">
+                      Instructor Kai Wade [CHIEF CMD]
+                    </span>
+                    <span className="message-timestamp">
+                      19:45 EST
+                    </span>
+                  </div>
+                  <div className="message-bubble">
+                    
+            Copy that. Your training packet and live range slot are locked for Sunday at 0900. Bring 50 rounds of factory-sealed 9mm and your government ID. Telemetry is verified in the master ledger.
+            
+                    <div className="bubble-meta-tag">
+                      <span>
+                        DISPATCH: SECURE HUD
+                      </span>
+                      <span style={{"color": "var(--brand-primary)"}}>
+                        DELIVERED ✓
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </section>
               {/* Input Console */}
               <footer className="input-console-wrapper">
@@ -8339,6 +9492,84 @@ export default function TrainWithFIFS(props: any) {
       {/* ================= END P2P ENCRYPTED COMMS HUD ================= */}
 
       </div>
+    
+      {/* ================= MANDATORY FORCED PASSWORD RESET MODAL ================= */}
+      <div id="forcedPasswordResetModal" style={{"display": "none", "position": "fixed", "top": "0", "left": "0", "width": "100vw", "height": "100vh", "backgroundColor": "rgba(7, 11, 16, 0.94)", "backdropFilter": "blur(8px)", "zIndex": 999999, "alignItems": "center", "justifyContent": "center", "padding": "20px"}}>
+        <div style={{"background": "#0d131b", "border": "2px solid var(--accent-amber)", "borderRadius": "16px", "padding": "32px", "maxWidth": "480px", "width": "100%", "boxShadow": "0 0 35px rgba(255, 183, 3, 0.25)", "textAlign": "left", "color": "#fff"}}>
+          <div style={{"display": "flex", "alignItems": "center", "gap": "12px", "marginBottom": "16px"}}>
+            <span style={{"fontSize": "1.8rem"}}>🔐</span>
+            <div>
+              <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.3rem", "margin": "0", "color": "#fff"}}>Action Required: Set New Password</h3>
+              <p style={{"fontSize": "0.82rem", "color": "var(--accent-amber)", "margin": "4px 0 0", "fontWeight": "600"}}>You signed in with a temporary password</p>
+            </div>
+          </div>
+          <p style={{"fontSize": "0.88rem", "color": "#94a3b8", "lineHeight": "1.5", "marginBottom": "20px"}}>
+            For security, temporary credentials expire and must be replaced immediately. Please create a permanent password to access your student portal.
+          </p>
+          <form id="forcedPasswordResetForm" onSubmit={(e) => {
+            e.preventDefault();
+            const sid = (document.getElementById('resetStudentIdHidden') as HTMLInputElement)?.value;
+            const np = (document.getElementById('forcedNewPassword') as HTMLInputElement)?.value;
+            const cp = (document.getElementById('forcedConfirmPassword') as HTMLInputElement)?.value;
+            const err = document.getElementById('forcedPasswordError');
+            if (np !== cp) {
+              if (err) { err.textContent = 'Passwords do not match.'; err.style.display = 'block'; }
+              return;
+            }
+            if (typeof window !== 'undefined' && (window as any).callFifsBackend) {
+              (window as any).callFifsBackend('setupStudentPassword', { studentId: sid, password: np })
+                .then((res: any) => {
+                  if (res && res.success) {
+                    const m = document.getElementById('forcedPasswordResetModal');
+                    if (m) m.style.display = 'none';
+                    if (typeof window !== 'undefined' && (window as any).showNotification) {
+                      (window as any).showNotification('Password updated successfully! Welcome to your portal.', 'success');
+                    }
+                  } else if (err) {
+                    err.textContent = res?.error || 'Password update failed.';
+                    err.style.display = 'block';
+                  }
+                });
+            }
+          }}>
+            <input type="hidden" id="resetStudentIdHidden" />
+            <div style={{"marginBottom": "14px"}}>
+              <label style={{"display": "block", "fontSize": "0.82rem", "fontWeight": "700", "color": "#cbd5e1", "marginBottom": "6px"}}>
+                New Password (Min. 12 characters, mix of cases, numbers, symbols)
+              </label>
+              <input type="password" id="forcedNewPassword" required style={{"width": "100%", "padding": "12px", "background": "#070b10", "border": "1px solid var(--accent-cyan)", "borderRadius": "8px", "color": "#fff", "fontSize": "0.95rem"}} />
+            </div>
+            <div style={{"marginBottom": "18px"}}>
+              <label style={{"display": "block", "fontSize": "0.82rem", "fontWeight": "700", "color": "#cbd5e1", "marginBottom": "6px"}}>
+                Confirm New Password
+              </label>
+              <input type="password" id="forcedConfirmPassword" required style={{"width": "100%", "padding": "12px", "background": "#070b10", "border": "1px solid var(--accent-cyan)", "borderRadius": "8px", "color": "#fff", "fontSize": "0.95rem"}} />
+            </div>
+            <div id="forcedPasswordError" style={{"display": "none", "color": "#ef4444", "fontSize": "0.82rem", "marginBottom": "14px", "fontWeight": "600"}}></div>
+            <button type="submit" style={{"width": "100%", "padding": "13px", "background": "linear-gradient(135deg, #ffb703 0%, #d49000 100%)", "color": "#070b10", "border": "none", "borderRadius": "8px", "fontWeight": "800", "fontFamily": "var(--font-display)", "fontSize": "1rem", "cursor": "pointer", "textTransform": "uppercase"}}>
+              Save Permanent Password &amp; Enter Portal →
+            </button>
+          </form>
+        </div>
+      </div>
+
     </div>
   );
 }
+
+      {/* State Detail Comparison Modal */}
+      <div id="stateDetailModal" className="modal-backdrop" style={{"display": "none", "position": "fixed", "inset": 0, "backgroundColor": "rgba(3, 7, 18, 0.88)", "backdropFilter": "blur(6px)", "zIndex": 99999, "alignItems": "center", "justifyContent": "center", "padding": "16px"}}>
+        <div style={{"background": "#0b1320", "border": "1px solid rgba(0, 229, 255, 0.4)", "borderRadius": "16px", "width": "100%", "maxWidth": "640px", "maxHeight": "90vh", "overflowY": "auto", "padding": "24px", "position": "relative", "boxShadow": "0 20px 50px rgba(0,0,0,0.9)"}}>
+          <button type="button" data-onclick="closeStateModal()" style={{"position": "absolute", "top": "16px", "right": "16px", "background": "rgba(255,255,255,0.1)", "border": "none", "color": "#fff", "borderRadius": "50%", "width": "36px", "height": "36px", "cursor": "pointer", "fontSize": "1.2rem", "display": "flex", "alignItems": "center", "justifyContent": "center"}}>✕</button>
+          <div id="stateModalContent">
+            <div style={{"display": "flex", "alignItems": "center", "gap": "12px", "marginBottom": "16px"}}>
+              <span id="modalStateCodeBadge" style={{"background": "var(--accent-cyan)", "color": "#000", "fontWeight": "900", "fontSize": "1.2rem", "padding": "4px 12px", "borderRadius": "8px"}}>MD</span>
+              <div>
+                <h3 id="modalStateTitle" style={{"margin": 0, "color": "#fff", "fontSize": "1.4rem"}}>State Details</h3>
+                <span id="modalStateCategory" style={{"fontSize": "0.85rem", "color": "#38bdf8", "fontWeight": "600"}}>Reciprocity Status</span>
+              </div>
+            </div>
+            <div id="modalStateComparisonBody" style={{"color": "#cbd5e1", "lineHeight": "1.6", "fontSize": "0.95rem"}}></div>
+          </div>
+        </div>
+      </div>
