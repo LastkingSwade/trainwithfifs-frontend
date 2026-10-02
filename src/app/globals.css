@@ -5908,41 +5908,6 @@ button:focus-visible,
   vertical-align: middle;
 }
 
-
-/* Enhanced Mobile Booking Calendar Grid */
-@media (max-width: 767px) {
-  .calendar-responsive-container {
-    width: 100% !important;
-    overflow-x: hidden !important;
-    padding: 0 !important;
-    margin-bottom: 12px;
-  }
-  #bookingCalDaysGrid {
-    display: grid !important;
-    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
-    gap: 2px !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    background: #1e293b !important;
-    border: 1px solid #334155 !important;
-    border-radius: 0 0 8px 8px !important;
-    box-sizing: border-box !important;
-  }
-  #bookingCalDaysGrid > div {
-    min-height: 42px !important;
-    height: auto !important;
-    aspect-ratio: 1 / 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 0.82rem !important;
-    padding: 2px !important;
-    box-sizing: border-box !important;
-  }
-}
-
-
 /* Ensure Booking Calendar Day-of-Week headers are always 7 horizontal columns, never stacked vertically */
 #bookingCalDaysHeader,
 .booking-cal-days-header,

@@ -258,19 +258,144 @@ export async function POST(req: NextRequest) {
 
 
    switch (action) {
+      // --- LIVE CHAT & INQUIRY HANDLERS FOR ADMIN HUB CONSOLE ---
+      case 'handleLiveChatMessage':
+      case 'submitContactInquiry': {
+        const {
+          senderName = body.fullName || body.name || 'Valued Visitor',
+          senderPhone = body.phone || '',
+          senderEmail = body.email || '',
+          message = body.text || '',
+          threadId = body.thread_id || (body.phone ? 'thread_' + String(body.phone).replace(/\D/g, '') : 'thread_' + Date.now()),
+          operatingWindow = '9 AM - 5 PM EST'
+        } = payload;
+
+        console.log('[FIFS Route] Storing live chat message for thread:', threadId);
+
+        // 1. Insert message into messages / live_chats in Supabase
+        const chatRecord = {
+          thread_id: threadId,
+          sender: 'visitor',
+          sender_name: senderName,
+          sender_phone: senderPhone,
+          sender_email: senderEmail,
+          message: message,
+          text: message,
+          created_at: new Date().toISOString()
+        };
+
+        try {
+          await supabase.from('live_chats').insert([chatRecord]);
+        } catch (e) {
+          console.warn('[FIFS Route] live_chats insert warning:', e);
+        }
+
+        try {
+          await supabase.from('messages').insert([{
+            thread_id: threadId,
+            sender_name: senderName,
+            phone: senderPhone,
+            email: senderEmail,
+            message: message,
+            sent_at: new Date().toISOString()
+          }]);
+        } catch (e) {
+          console.warn('[FIFS Route] messages insert warning:', e);
+        }
+
+        // 2. Dispatch to Discord Webhooks
+        const discordUrl = process.env.DISCORD_CHAT_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL;
+        if (discordUrl) {
+          try {
+            await fetch(discordUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                embeds: [{
+                  title: '💬 New Live Chat Inquiry: ' + senderName,
+                  description: 'A website visitor submitted a live inquiry directly to your console.',
+                  color: 0x00e5ff,
+                  fields: [
+                    { name: 'Student / Visitor', value: senderName, inline: true },
+                    { name: 'Phone', value: senderPhone || 'Not provided', inline: true },
+                    { name: 'Thread ID', value: threadId, inline: true },
+                    { name: 'Inquiry Content', value: message || 'No text' }
+                  ],
+                  timestamp: new Date().toISOString()
+                }]
+              })
+            });
+          } catch (err) {
+            console.error('[FIFS Route] Discord chat dispatch error:', err);
+          }
+        }
+
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          message: 'Chat inquiry successfully routed to Instructor Live Console and Discord queue.',
+          threadId
+        });
+      }
+
+      case 'getLiveChats': {
+        console.log('[FIFS Route] Fetching incoming chats for Instructor Console');
+        let chats: any[] = [];
+        try {
+          const { data } = await supabase
+            .from('live_chats')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(100);
+          if (data && data.length > 0) chats = data;
+        } catch (e) {}
+
+        if (chats.length === 0) {
+          try {
+            const { data } = await supabase
+              .from('messages')
+              .select('*')
+              .order('sent_at', { ascending: false })
+              .limit(100);
+            if (data && data.length > 0) chats = data;
+          } catch (e) {}
+        }
+
+        return NextResponse.json({
+          success: true,
+          status: 'success',
+          messages: chats,
+          liveChats: chats
+        });
+      }
+
+      case 'handleAdminLiveChatSend': {
+        const { threadId, text } = payload;
+        if (!threadId || !text) {
+          return NextResponse.json({ success: false, error: 'threadId and text required' }, { status: 400 });
+        }
+        const replyRecord = {
+          thread_id: threadId,
+          sender: 'instructor',
+          sender_name: 'Coach Kai Wade',
+          message: text,
+          text: text,
+          created_at: new Date().toISOString()
+        };
+        try {
+          await supabase.from('live_chats').insert([replyRecord]);
+        } catch (e) {}
+        return NextResponse.json({ success: true, status: 'success' });
+      }
+
       case 'adminDeleteStudent': {
         const studentId = body.studentId || body.id;
         if (!studentId) {
           return NextResponse.json({ success: false, error: 'studentId required' }, { status: 400 });
         }
         console.log('[FIFS Route] Deleting student record:', studentId);
-        // Delete from students table
-        const { error: delErr } = await supabase.from('students').delete().or(`id.eq.${studentId},student_id.eq.${studentId}`);
-        if (delErr) {
-          console.error('[FIFS Route] Supabase delete student error:', delErr);
-        }
-        // Also delete associated enrollments
-        await supabase.from('enrollments').delete().or(`student_id.eq.${studentId},client_id.eq.${studentId}`);
+        await supabase.from('students').delete().or();
+        await supabase.from('enrollments').delete().or();
         return NextResponse.json({ success: true, message: 'Student deleted successfully from Supabase', studentId });
       }
 
@@ -280,38 +405,9 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, error: 'clientId required' }, { status: 400 });
         }
         console.log('[FIFS Route] Deleting client record:', clientId);
-        // Delete from clients table
-        const { error: delErr } = await supabase.from('clients').delete().or(`id.eq.${clientId},client_id.eq.${clientId}`);
-        if (delErr) {
-          console.error('[FIFS Route] Supabase delete client error:', delErr);
-        }
+        await supabase.from('clients').delete().or();
+        await supabase.from('enrollments').delete().or();
         return NextResponse.json({ success: true, message: 'Client deleted successfully from Supabase', clientId });
-      }
-
-      case 'submitContactInquiry': {
-        const { fullName, phone, message } = body;
-        console.log('[FIFS Route] Contact inquiry received:', { fullName, phone, message });
-        
-        // Notify Discord if webhook is configured
-        const discordUrl = process.env.DISCORD_WEBHOOK_URL || process.env.DISCORD_SECURITY_ALERT_WEBHOOK_URL;
-        if (discordUrl) {
-          try {
-            await fetch(discordUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                content: `🔔 **New Live Chat / Contact Inquiry**
-**Name:** ${fullName || 'Anonymous'}
-**Phone:** ${phone || 'N/A'}
-**Message:** ${message || 'N/A'}`
-              })
-            });
-          } catch (dErr) {
-            console.error('[FIFS Route] Discord notification failed:', dErr);
-          }
-        }
-
-        return NextResponse.json({ success: true, message: 'Inquiry received and routed to Lead Instructor Kai Wade' });
       }
 
      // Delete Permit Record for Authenticated Client (Respects RLS)
