@@ -5732,11 +5732,15 @@ button:focus-visible,
     font-size: 16px !important; /* Prevents auto-zoom on iOS */
     min-height: 44px !important;
   }
-  .goal-modal-box .grid,
-  .goal-modal-box [style*="grid-template-columns"],
-  .goal-modal-box [style*="gridTemplateColumns"] {
+  /* Only opt-in content grids stack on narrow screens. Keep fixed 7-column
+     calendar headers and dates intact inside booking dialogs. */
+  .goal-modal-box .mobile-stack-grid {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
+  }
+  .goal-modal-box #bookingCalDaysGrid,
+  .goal-modal-box .booking-calendar-weekdays {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
   }
   .goal-modal-close-btn {
     top: 10px !important;
@@ -5866,6 +5870,10 @@ button:focus-visible,
   }
   #bookingCalDaysGrid {
     min-width: 320px !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  }
+  .booking-calendar-weekdays {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
   }
   .cal-day-cell {
     min-height: 48px !important;

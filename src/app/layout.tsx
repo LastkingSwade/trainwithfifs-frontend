@@ -13,8 +13,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://trainwithfifs.com"),
   title: "TrainwithFIFS.com Future Initiative Firearm Services",
   description: "Maryland firearms training platform designed to build knowledge, safety, and confidence without intimidation. State-approved HQL, Wear & Carry, and private coaching with Lead Instructor Kai Wade.",
+  openGraph: {
+    title: "TrainwithFIFS.com Future Initiative Firearm Services",
+    description: "Maryland firearms training, HQL, Wear & Carry, and private coaching.",
+    url: "https://trainwithfifs.com",
+    siteName: "Train With FIFS",
+    images: [{ url: "/icon.ico", alt: "Train With FIFS site icon" }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "TrainwithFIFS.com Future Initiative Firearm Services",
+    description: "Maryland firearms training, HQL, Wear & Carry, and private coaching.",
+    images: ["/icon.ico"],
+  },
 };
 
 export const viewport: Viewport = {

@@ -1366,8 +1366,8 @@ export default function TrainWithFIFS(props: any) {
     (window as any).loadDemoStudent = () => {
       const demo = {
         studentId: 'FIFS-4081',
-        fullName: 'Jordan Vance (Demo Student)',
-        email: 'jordan.vance@example.com',
+        fullName: 'Demo Student',
+        email: 'demo.student@example.com',
         phone: '(410) 555-0192',
         course: 'Maryland CCW & HQL Combo — Base Track ($249.99)',
         assignedDate: 'Saturday, Oct 12 • 9:00 AM',
@@ -5365,7 +5365,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                             CARDHOLDER NAME
                           </span>
                           <div id="wallet-cardholder-name" style={{"fontFamily": "var(--font-display)", "fontSize": "1.15rem", "fontWeight": "900", "color": "#ffffff", "letterSpacing": "0.5px"}}>
-                            MARCUS VANCE
+                            Client Name
                           </div>
                         </div>
 
@@ -11042,7 +11042,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input autoComplete="name" id="fullName" name="fullName" placeholder="e.g., Jordan Vance" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}} type="text" />
+                <input autoComplete="name" id="fullName" name="fullName" placeholder="e.g., Alex Morgan" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}} type="text" />
               </div>
               <div className="form-group" style={{"marginBottom": "0"}}>
                 <label htmlFor="email">
@@ -11141,7 +11141,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </button>
                 </div>
                 {/* 7-Column Days of Week Header (Always In Sync) */}
-                <div style={{"display": "grid", "gridTemplateColumns": "repeat(7, 1fr)", "background": "#0c1219", "borderBottom": "1px solid var(--border-subtle)", "textAlign": "center", "fontSize": "0.72rem", "fontWeight": "800", "color": "var(--text-muted)", "padding": "8px 0"}}>
+                <div className="booking-calendar-weekdays" style={{"display": "grid", "gridTemplateColumns": "repeat(7, minmax(0, 1fr))", "background": "#0c1219", "borderBottom": "1px solid var(--border-subtle)", "textAlign": "center", "fontSize": "0.72rem", "fontWeight": "800", "color": "var(--text-muted)", "padding": "8px 0"}}>
                   <div>SUN</div>
                   <div>MON</div>
                   <div>TUE</div>
@@ -11151,7 +11151,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   <div>SAT</div>
                 </div>
                 {/* 7-Column Days Grid */}
-                <div id="bookingCalDaysGrid" style={{"display": "grid", "gridTemplateColumns": "repeat(7, 1fr)", "gap": "1px", "background": "var(--border-subtle)", "width": "100%", "boxSizing": "border-box"}}>
+                <div id="bookingCalDaysGrid" style={{"display": "grid", "gridTemplateColumns": "repeat(7, minmax(0, 1fr))", "gap": "1px", "background": "var(--border-subtle)", "width": "100%", "boxSizing": "border-box"}}>
                   {/* Dynamically populated via renderBookingCalendar() */}
                 </div>
               </div>
