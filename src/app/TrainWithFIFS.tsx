@@ -26,6 +26,46 @@ import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
  */
 export default function TrainWithFIFS(props: any) {
   useEffect(() => {
+    // Immediate inline fallbacks for essential homepage navigation actions
+    if (typeof window !== 'undefined') {
+      if (!(window as any).switchTab) {
+        (window as any).switchTab = (tabId: string) => {
+          document.querySelectorAll('section.panel').forEach((el) => el.classList.add('hidden'));
+          const target = document.getElementById(`view-${tabId}`);
+          if (target) {
+            target.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        };
+      }
+      if (!(window as any).openAndSwitch) {
+        (window as any).openAndSwitch = (tabId: string) => {
+          if ((window as any).closeAllOverlays) (window as any).closeAllOverlays();
+          (window as any).switchTab(tabId);
+        };
+      }
+      if (!(window as any).openPortalSelectionModal) {
+        (window as any).openPortalSelectionModal = () => {
+          const m = document.getElementById('fiPortalSelectionModal');
+          if (m) {
+            m.classList.add('active');
+            m.style.display = 'flex';
+            m.style.setProperty('display', 'flex', 'important');
+          }
+        };
+      }
+      if (!(window as any).closePortalSelectionModal) {
+        (window as any).closePortalSelectionModal = () => {
+          const m = document.getElementById('fiPortalSelectionModal');
+          if (m) {
+            m.classList.remove('active');
+            m.style.display = 'none';
+            m.style.setProperty('display', 'none', 'important');
+          }
+        };
+      }
+    }
+
 
 
 
