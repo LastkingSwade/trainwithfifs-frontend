@@ -258,193 +258,172 @@ export async function POST(req: NextRequest) {
 
 
    switch (action) {
-      // --- LIVE CHAT & INQUIRY HANDLERS FOR ADMIN HUB CONSOLE ---
-      case 'handleLiveChatMessage':
-      case 'submitContactInquiry': {
-        const {
-          senderName = body.fullName || body.name || 'Valued Visitor',
-          senderPhone = body.phone || '',
-          senderEmail = body.email || '',
-          message = body.text || '',
-          threadId = body.thread_id || (body.phone ? 'thread_' + String(body.phone).replace(/\D/g, '') : 'thread_' + Date.now()),
-          operatingWindow = '9 AM - 5 PM EST'
-        } = payload;
-
-        console.log('[FIFS Route] Storing live chat message for thread:', threadId);
-
-        // 1. Insert message into messages / live_chats in Supabase
-        const chatRecord = {
-          thread_id: threadId,
-          sender: 'visitor',
-          sender_name: senderName,
-          sender_phone: senderPhone,
-          sender_email: senderEmail,
-          message: message,
-          text: message,
-          created_at: new Date().toISOString()
-        };
-
-        try {
-          await supabase.from('live_chats').insert([chatRecord]);
-        } catch (e) {
-          console.warn('[FIFS Route] live_chats insert warning:', e);
-        }
-
-        try {
-          await supabase.from('messages').insert([{
-            thread_id: threadId,
-            sender_name: senderName,
-            phone: senderPhone,
-            email: senderEmail,
-            message: message,
-            sent_at: new Date().toISOString()
-          }]);
-        } catch (e) {
-          console.warn('[FIFS Route] messages insert warning:', e);
-        }
-
-        // 2. Dispatch to Discord Webhooks
-        const discordUrl = process.env.DISCORD_CHAT_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL;
-        if (discordUrl) {
-          try {
-            await fetch(discordUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                embeds: [{
-                  title: '💬 New Live Chat Inquiry: ' + senderName,
-                  description: 'A website visitor submitted a live inquiry directly to your console.',
-                  color: 0x00e5ff,
-                  fields: [
-                    { name: 'Student / Visitor', value: senderName, inline: true },
-                    { name: 'Phone', value: senderPhone || 'Not provided', inline: true },
-                    { name: 'Thread ID', value: threadId, inline: true },
-                    { name: 'Inquiry Content', value: message || 'No text' }
-                  ],
-                  timestamp: new Date().toISOString()
-                }]
-              })
-            });
-          } catch (err) {
-            console.error('[FIFS Route] Discord chat dispatch error:', err);
-          }
-        }
-
-        return NextResponse.json({
-          success: true,
-          status: 'success',
-          message: 'Chat inquiry successfully routed to Instructor Live Console and Discord queue.',
-          threadId
-        });
-      }
-
-      case 'getLiveChats': {
-        console.log('[FIFS Route] Fetching incoming chats for Instructor Console');
-        let chats: any[] = [];
-        try {
-          const { data } = await supabase
-            .from('live_chats')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(100);
-          if (data && data.length > 0) chats = data;
-        } catch (e) {}
-
-        if (chats.length === 0) {
-          try {
-            const { data } = await supabase
-              .from('messages')
-              .select('*')
-              .order('sent_at', { ascending: false })
-              .limit(100);
-            if (data && data.length > 0) chats = data;
-          } catch (e) {}
-        }
-
-        return NextResponse.json({
-          success: true,
-          status: 'success',
-          messages: chats,
-          liveChats: chats
-        });
-      }
-
-      case 'handleAdminLiveChatSend': {
-        const { threadId, text } = payload;
-        if (!threadId || !text) {
-          return NextResponse.json({ success: false, error: 'threadId and text required' }, { status: 400 });
-        }
-        const replyRecord = {
-          thread_id: threadId,
-          sender: 'instructor',
-          sender_name: 'Coach Kai Wade',
-          message: text,
-          text: text,
-          created_at: new Date().toISOString()
-        };
-        try {
-          await supabase.from('live_chats').insert([replyRecord]);
-        } catch (e) {}
-        return NextResponse.json({ success: true, status: 'success' });
-      }
-
-      case 'adminDeleteStudent': {
-        const studentId = body.studentId || body.id;
-        if (!studentId) {
-          return NextResponse.json({ success: false, error: 'studentId required' }, { status: 400 });
-        }
-        console.log('[FIFS Route] Deleting student record:', studentId);
-        try {
-          await supabase.from('enrollments').delete().eq('student_id', String(studentId));
-        } catch (e) {
-          console.warn('[FIFS Route] enrollments delete warning:', e);
-        }
-        try {
-          await supabase.from('students').delete().eq('student_id', String(studentId));
-        } catch (e) {
-          console.warn('[FIFS Route] students student_id delete warning:', e);
-        }
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(studentId));
-        if (isUuid) {
-          try {
-            await supabase.from('students').delete().eq('id', studentId);
-          } catch (e) {}
-          try {
-            await supabase.from('enrollments').delete().eq('id', studentId);
-          } catch (e) {}
-        }
-        return NextResponse.json({ success: true, message: 'Student deleted successfully from Supabase', studentId });
-      }
-
-      case 'adminDeleteClient': {
-        const clientId = body.clientId || body.id;
-        if (!clientId) {
-          return NextResponse.json({ success: false, error: 'clientId required' }, { status: 400 });
-        }
-        console.log('[FIFS Route] Deleting client record:', clientId);
-        try {
-          await supabase.from('enrollments').delete().eq('client_id', String(clientId));
-        } catch (e) {
-          console.warn('[FIFS Route] enrollments delete warning:', e);
-        }
-        try {
-          await supabase.from('clients').delete().eq('client_id', String(clientId));
-        } catch (e) {
-          console.warn('[FIFS Route] clients client_id delete warning:', e);
-        }
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(clientId));
-        if (isUuid) {
-          try {
-            await supabase.from('clients').delete().eq('id', clientId);
-          } catch (e) {}
-          try {
-            await supabase.from('enrollments').delete().eq('id', clientId);
-          } catch (e) {}
-        }
-        return NextResponse.json({ success: true, message: 'Client deleted successfully from Supabase', clientId });
-      }
-
      // Delete Permit Record for Authenticated Client (Respects RLS)
+          // Delete Student from Supabase (Administrative Roster)
+     case 'adminDeleteStudent': {
+       const adminPass = passcode || payload.passcode || payload.pin || body.passcode || body.pin;
+       if (!verifyAdminPasscode(adminPass)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Invalid admin passcode.' }, { status: 401 });
+       }
+
+       const targetId = (payload.studentId || payload.id || body.studentId || body.id || '').trim();
+       const targetEmail = (payload.email || body.email || '').trim().toLowerCase();
+
+       if (!targetId && !targetEmail) {
+         return NextResponse.json({ success: false, error: 'Student ID or email is required for deletion.' }, { status: 400 });
+       }
+
+       // 1. Locate student to retrieve student_id, id, and email for cascading cleanups
+       let query = supabase.from('students').select('id, student_id, email, full_name');
+       if (targetId) {
+         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetId);
+         if (isUuid) {
+           query = query.or(`student_id.eq.${targetId},id.eq.${targetId}`);
+         } else {
+           query = query.eq('student_id', targetId);
+         }
+       } else {
+         query = query.eq('email', targetEmail);
+       }
+
+       const { data: foundStudent } = await query.maybeSingle();
+
+       const resolvedStudentId = foundStudent?.student_id || (targetId.startsWith('FIFS-') ? targetId : null);
+       const resolvedEmail = foundStudent?.email || (targetEmail.includes('@') ? targetEmail : null);
+       const resolvedUuid = foundStudent?.id || (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetId) ? targetId : null);
+
+       // 2. Cascade delete dependent child records first to satisfy foreign key constraints (e.g., invoices_student_id_fkey)
+       if (resolvedStudentId) {
+         try {
+           await supabase.from('invoices').delete().eq('student_id', resolvedStudentId);
+         } catch (invErr) {
+           console.warn('Invoices deletion note:', invErr);
+         }
+         try {
+           await supabase.from('student_scoresheets').delete().eq('student_id', resolvedStudentId);
+         } catch (scErr) {
+           console.warn('Scoresheet deletion note:', scErr);
+         }
+         try {
+           await supabase.from('messages').delete().eq('student_id', resolvedStudentId);
+         } catch (msgErr) {
+           console.warn('Messages deletion note:', msgErr);
+         }
+       }
+
+       if (resolvedEmail) {
+         try {
+           await supabase.from('enrollments').delete().eq('student_email', resolvedEmail);
+         } catch (enrErr) {
+           console.warn('Enrollments deletion note:', enrErr);
+         }
+         try {
+           await supabase.from('waivers').delete().eq('student_email', resolvedEmail);
+         } catch (waivErr) {
+           console.warn('Waivers deletion note:', waivErr);
+         }
+         try {
+           await supabase.from('dispatches').delete().eq('student_email', resolvedEmail);
+         } catch (dispErr) {
+           console.warn('Dispatches deletion note:', dispErr);
+         }
+       }
+
+       // 3. Delete from students table using explicit eq() filters (no malformed empty .or() calls)
+       let delError = null;
+       if (resolvedUuid) {
+         const res = await supabase.from('students').delete().eq('id', resolvedUuid);
+         delError = res.error;
+       } else if (resolvedStudentId) {
+         const res = await supabase.from('students').delete().eq('student_id', resolvedStudentId);
+         delError = res.error;
+       } else if (resolvedEmail) {
+         const res = await supabase.from('students').delete().eq('email', resolvedEmail);
+         delError = res.error;
+       }
+
+       if (delError) {
+         console.error('Failed to delete student from Supabase:', delError);
+         return NextResponse.json({ success: false, error: delError.message }, { status: 500 });
+       }
+
+       return NextResponse.json({
+         success: true,
+         status: 'success',
+         deletedStudentId: resolvedStudentId || targetId,
+         message: `Student ${foundStudent?.full_name || targetId} successfully removed from Supabase.`
+       });
+     }
+
+     // Delete Client from Supabase (Client Portal Registry)
+     case 'adminDeleteClient': {
+       const adminPass = passcode || payload.passcode || payload.pin || body.passcode || body.pin;
+       if (!verifyAdminPasscode(adminPass)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Invalid admin passcode.' }, { status: 401 });
+       }
+
+       const targetId = (payload.clientId || payload.id || body.clientId || body.id || '').trim();
+       const targetEmail = (payload.email || body.email || '').trim().toLowerCase();
+
+       if (!targetId && !targetEmail) {
+         return NextResponse.json({ success: false, error: 'Client ID or email is required for deletion.' }, { status: 400 });
+       }
+
+       // 1. Locate client record
+       let query = supabase.from('clients').select('id, client_id, email, full_name, user_id');
+       if (targetId) {
+         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetId);
+         if (isUuid) {
+           query = query.or(`client_id.eq.${targetId},id.eq.${targetId}`);
+         } else {
+           query = query.eq('client_id', targetId);
+         }
+       } else {
+         query = query.eq('email', targetEmail);
+       }
+
+       const { data: foundClient } = await query.maybeSingle();
+
+       const resolvedClientId = foundClient?.client_id || (targetId.startsWith('FI-CLIENT-') ? targetId : null);
+       const resolvedEmail = foundClient?.email || (targetEmail.includes('@') ? targetEmail : null);
+       const resolvedUuid = foundClient?.id || (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetId) ? targetId : null);
+       const resolvedUserId = foundClient?.user_id;
+
+       // 2. Delete user permits if user_id exists
+       if (resolvedUserId) {
+         try {
+           await supabase.from('user_permits').delete().eq('user_id', resolvedUserId);
+         } catch (pErr) {
+           console.warn('User permits deletion note:', pErr);
+         }
+       }
+
+       // 3. Delete from clients table using explicit eq() filters
+       let delError = null;
+       if (resolvedUuid) {
+         const res = await supabase.from('clients').delete().eq('id', resolvedUuid);
+         delError = res.error;
+       } else if (resolvedClientId) {
+         const res = await supabase.from('clients').delete().eq('client_id', resolvedClientId);
+         delError = res.error;
+       } else if (resolvedEmail) {
+         const res = await supabase.from('clients').delete().eq('email', resolvedEmail);
+         delError = res.error;
+       }
+
+       if (delError) {
+         console.error('Failed to delete client from Supabase:', delError);
+         return NextResponse.json({ success: false, error: delError.message }, { status: 500 });
+       }
+
+       return NextResponse.json({
+         success: true,
+         status: 'success',
+         deletedClientId: resolvedClientId || targetId,
+         message: `Client ${foundClient?.full_name || targetId} successfully removed from Supabase.`
+       });
+     }
+
      case 'deletePermit': {
        const permitId = payload.permitId;
        if (!permitId) {
@@ -1460,7 +1439,7 @@ case 'getStudentPortalData': {
         } else if (cleanCourse.includes('hql')) {
           baseTuitionPerPerson = isVip ? 195.00 : 100.00;
         } else if (cleanCourse.includes('ccw') || cleanCourse.includes('wear & carry')) {
-          baseTuitionPerPerson = isVip ? 325.00 : 199.99;
+          baseTuitionPerPerson = isVip ? 375.00 : 249.99;
         } else if (cleanCourse.includes('coaching')) {
           baseTuitionPerPerson = isVip ? 195.00 : 125.00;
         } else if (cleanCourse.includes('cleaning')) {

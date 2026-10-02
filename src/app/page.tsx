@@ -26,46 +26,6 @@ import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
  */
 export default function TrainWithFIFS(props: any) {
   useEffect(() => {
-    // Immediate inline fallbacks for essential homepage navigation actions
-    if (typeof window !== 'undefined') {
-      if (!(window as any).switchTab) {
-        (window as any).switchTab = (tabId: string) => {
-          document.querySelectorAll('section.panel').forEach((el) => el.classList.add('hidden'));
-          const target = document.getElementById(`view-${tabId}`);
-          if (target) {
-            target.classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        };
-      }
-      if (!(window as any).openAndSwitch) {
-        (window as any).openAndSwitch = (tabId: string) => {
-          if ((window as any).closeAllOverlays) (window as any).closeAllOverlays();
-          (window as any).switchTab(tabId);
-        };
-      }
-      if (!(window as any).openPortalSelectionModal) {
-        (window as any).openPortalSelectionModal = () => {
-          const m = document.getElementById('fiPortalSelectionModal');
-          if (m) {
-            m.classList.add('active');
-            m.style.display = 'flex';
-            m.style.setProperty('display', 'flex', 'important');
-          }
-        };
-      }
-      if (!(window as any).closePortalSelectionModal) {
-        (window as any).closePortalSelectionModal = () => {
-          const m = document.getElementById('fiPortalSelectionModal');
-          if (m) {
-            m.classList.remove('active');
-            m.style.display = 'none';
-            m.style.setProperty('display', 'none', 'important');
-          }
-        };
-      }
-    }
-
 
 
 
@@ -201,8 +161,8 @@ export default function TrainWithFIFS(props: any) {
       want_to_carry: {
         badge: "Full Public Carry Authorization • 16-Hour",
         title: "I Want to Legally Carry Concealed in Public",
-        rec: "Recommended: Maryland CCW (Wear & Carry Permit) ($199.99)",
-        courseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
+        rec: "Recommended: Maryland CCW (Wear & Carry Permit) ($249.99)",
+        courseValue: "Maryland Wear & Carry (CCW) — Base Track ($249.99)",
         showGuide: false,
         synopsis: "The mandatory state-certified 16-hour curriculum and 25-round practical qualification required to receive your Maryland Handgun Wear and Carry Permit. Provides in-depth training in defensive marksmanship, holster draw mechanics, and Maryland's strict legal use-of-force standards.",
         why: [
@@ -218,8 +178,8 @@ export default function TrainWithFIFS(props: any) {
       want_both: {
         badge: "Most Popular • Maximum Value & Efficiency",
         title: "I Want Both: Purchase & Concealed Carry",
-        rec: "Recommended: Maryland CCW & HQL Combo ($199.99)",
-        courseValue: "Maryland CCW & HQL Combo — Base Track ($199.99)",
+        rec: "Recommended: Maryland CCW & HQL Combo ($249.99)",
+        courseValue: "Maryland CCW & HQL Combo — Base Track ($249.99)",
         showGuide: false,
         synopsis: "The all-inclusive gold standard for Maryland citizens. Complete your full 16-hour Wear & Carry permit certification and qualify for a training exemption on your Maryland HQL application—giving you full carry rights and handgun purchase rights in one streamlined curriculum.",
         why: [
@@ -244,15 +204,15 @@ export default function TrainWithFIFS(props: any) {
           "VIP Turnkey option provides everything: range fees, targets, loaner 9mm, factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos."
         ],
         whyNot: [
-          "If you only stay inside Maryland and rarely travel out of state, the standard Maryland Wear & Carry course ($199.99 Base / $325 VIP) is all you need.",
+          "If you only stay inside Maryland and rarely travel out of state, the standard Maryland Wear & Carry course ($249.99 Base / $375 VIP) is all you need.",
           "If your only goal is keeping a firearm at home for protection, choose the Maryland HQL class instead."
         ]
       },
       personalized_focus: {
         badge: "100% Private • Custom Pace & Confidential",
         title: "Personalized Coaching / Anxiety & Trauma Relief",
-        rec: "Recommended: Private 1-on-1 Coaching ($124.99 / hr)",
-        courseValue: "Personal 1-on-1 Coaching — Base Track ($124.99/hr)",
+        rec: "Recommended: Private 1-on-1 Coaching ($125.00 / hr)",
+        courseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
         showGuide: false,
         synopsis: "Dedicated one-on-one private instruction tailored exclusively to your personal comfort level, physical capabilities, and schedule with Lead Instructor Kai Wade. Zero classmates, zero judgment, and customized range drills.",
         why: [
@@ -261,7 +221,7 @@ export default function TrainWithFIFS(props: any) {
           "Custom scheduling tailored around your personal availability."
         ],
         whyNot: [
-          "Billed at an hourly rate ($124.99/hr). For standard state permit compliance (Wear & Carry or HQL), our packaged group courses provide the most economical rate."
+          "Billed at an hourly rate ($125/hr). For standard state permit compliance (Wear & Carry or HQL), our packaged group courses provide the most economical rate."
         ]
       }
     };
@@ -657,59 +617,113 @@ export default function TrainWithFIFS(props: any) {
 
 
     // 4. DATA: Course Tier Switching (Standard vs VIP)
-    const COURSE_TIER_CONFIG: Record<string, any> = {
+        const COURSE_TIER_CONFIG: Record<string, any> = {
       mastery: {
         basePrice: "$425.00",
         vipPrice: "$550.00",
+        baseTitle: "Mid-Atlantic Multi-State Mastery",
+        vipTitle: "👑 VIP Mid-Atlantic Multi-State Mastery Concierge",
+        baseBadge: "5-STATE EXPANSION (MD+VA+FL+AZ+PA) — 34+ STATES LEGAL CARRY",
+        vipBadge: "👑 ALL-INCLUSIVE VIP 5-STATE CONCIERGE EXPERIENCE",
+        baseDesc: "Full 16-hour Maryland Wear & Carry qualification + application dossiers for Virginia, Florida, Arizona, and Pennsylvania (34+ state legal carry reciprocity). Self-equipped track: bring own firearm and ammo.",
+        vipDesc: "👑 All-Inclusive VIP Turnkey Concierge. 5-state application packets, Livescan fingerprint guidance, priority range lane, loaner firearm, ammunition, photo compliance passport prints, and full notary certification included.",
         baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($425.00)",
         vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)"
       },
       combo: {
-        basePrice: "$199.99",
+        basePrice: "$249.99",
         vipPrice: "$375.00",
-        baseValue: "Maryland CCW & HQL Combo — Base Track ($199.99)",
+        baseTitle: "Maryland CCW & HQL Combo Certification",
+        vipTitle: "👑 VIP Maryland CCW & HQL Combo Concierge",
+        baseBadge: "DUAL CERTIFICATION: CONCEALED CARRY + HANDGUN PURCHASE PERMIT",
+        vipBadge: "👑 ALL-INCLUSIVE VIP COMBO CONCIERGE (LIVESCAN + RANGE INCLUDED)",
+        baseDesc: "Comprehensive dual-licensing package meeting both purchase and carry requirements under Maryland law (MSP PS § 5-306 & § 5-117.1). Self-equipped track: provide own handgun, holster, and 50 rounds ammo. Range fee ($45.00) & 6% tax calculated at checkout.",
+        vipDesc: "👑 Turnkey VIP Concierge. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Includes B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition, holster, eye/ear pro, and on-site passport compliance photos.",
+        baseValue: "Maryland CCW & HQL Combo — Base Track ($249.99)",
         vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($375.00)"
       },
       ccw: {
-        basePrice: "$199.99",
-        vipPrice: "$325.00",
-        baseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
-        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)"
+        basePrice: "$249.99",
+        vipPrice: "$375.00",
+        baseTitle: "Maryland Wear & Carry (CCW) Initial Course",
+        vipTitle: "👑 VIP Maryland Wear & Carry (CCW) Concierge",
+        baseBadge: "MARYLAND STATE POLICE CERTIFIED 16-HOUR INITIAL CCW",
+        vipBadge: "👑 VIP WEAR & CARRY: EXPEDITED PACKET & TURNKEY RANGE EXPERIENCE",
+        baseDesc: "Full 16-Hour Maryland Wear & Carry certification. In-depth legal curriculum (State v. Faulkner, SB 1), weapon mechanics, and 25-round MSP qualification course. Self-equipped track: bring own handgun, holster, and 50 rounds.",
+        vipDesc: "👑 Turnkey VIP Concierge. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Everything provided: loaner 9mm firearm, holster, eye/ear protection, 50 rounds factory ammunition, targets, and passport compliance photos.",
+        baseValue: "Maryland Wear & Carry (CCW) — Base Track ($249.99)",
+        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($375.00)"
       },
       renewal: {
-        basePrice: "$129.99",
-        vipPrice: "$199.99",
-        baseValue: "Maryland Wear & Carry (8-Hour Renewal) — Base Track ($129.99)",
-        vipValue: "Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($199.99)"
+        basePrice: "$149.99",
+        vipPrice: "$249.99",
+        baseTitle: "Maryland Wear & Carry (8-Hour Renewal)",
+        vipTitle: "👑 VIP Maryland Wear & Carry (8-Hour Renewal) Concierge",
+        baseBadge: "8-HOUR MARYLAND STATE POLICE RECERTIFICATION",
+        vipBadge: "👑 ALL-INCLUSIVE VIP 8-HOUR RECERTIFICATION CONCIERGE",
+        baseDesc: "State-mandated 8-hour classroom recertification + 25-round MSP live-fire qualification at Cindy's Hot Shots. Self-equipped track: bring your own handgun, holster, and 50 rounds factory ammo.",
+        vipDesc: "👑 VIP Turnkey Recertification. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Includes B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!",
+        baseValue: "Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)",
+        vipValue: "Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($249.99)"
       },
       hql: {
         basePrice: "$100.00",
         vipPrice: "$165.00",
+        baseTitle: "Maryland Handgun Qualification License (HQL)",
+        vipTitle: "👑 VIP Maryland HQL Concierge Licensing",
+        baseBadge: "MARYLAND HANDGUN PURCHASE PERMIT MANDATORY TRAINING",
+        vipBadge: "👑 VIP HQL: APPLICATION ASSISTANCE + LIVE FIRE EXEMPTION",
+        baseDesc: "State prerequisite for handgun purchase under MD Public Safety § 5-117.1. Covers firearm safety, mechanics, safe storage, and live-fire component. Self-equipped base track.",
+        vipDesc: "👑 VIP HQL Experience. Range fee, loaner handgun, 50 rounds ammunition, eye/ear protection, and hands-on application submission assistance through the Maryland State Police licensing portal.",
         baseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
         vipValue: "Maryland HQL (Purchase License) — VIP Turnkey ($165.00)"
       },
       coaching: {
-        basePrice: "$124.99",
-        vipPrice: "$195.00",
-        baseValue: "Personal 1-on-1 Coaching — Base Track ($124.99/hr)",
+        basePrice: "$125.00/hr",
+        vipPrice: "$195.00/hr",
+        baseTitle: "Personal 1-on-1 Private Firearms Coaching",
+        vipTitle: "👑 VIP Private Masterclass & Tactical Diagnostics",
+        baseBadge: "DEDICATED 1-ON-1 INSTRUCTOR TIME & MARKSMANSHIP TARGETING",
+        vipBadge: "👑 VIP PRIVATE SESSION: DUAL-CALIBER RENTALS & VIDEO DIAGNOSTICS",
+        baseDesc: "Dedicated private coaching. Diagnostic marksmanship, trigger press refinement, draw-stroke economy, malfunction drills, and stress inoculation drills with Lead Instructor Kai Wade.",
+        vipDesc: "👑 VIP Private Masterclass. Multi-caliber handgun rentals (9mm & .45 ACP), 100 rounds match ammunition, high-speed video diagnostics, and customized tactical home defense action plan.",
+        baseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
         vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
       },
       cleaning: {
-        basePrice: "$74.99",
+        basePrice: "$75.00",
         vipPrice: "$115.00",
-        baseValue: "Gun Cleaning & Maintenance — Base Track ($74.99)",
+        baseTitle: "Firearm Maintenance & Deep Cleaning Workshop",
+        vipTitle: "👑 VIP Armorer Inspection & Ultrasonic Deep Clean",
+        baseBadge: "FIELD-STRIP, CLEANING CHEMICAL SAFETY & PROPER LUBRICATION",
+        vipBadge: "👑 VIP ARMORER SERVICE: ULTRASONIC TANK CLEAN & SOLVENTS",
+        baseDesc: "Field-stripping, ultrasonic inspection methods, lubrication points, carbon fouling removal, and proper long-term storage preservation techniques for modern semi-automatic handguns.",
+        vipDesc: "👑 VIP Armorer Service. Professional ultrasonic deep-clean tank soak, bore scoping, sear engagement safety inspection, spring tension testing, and premium Lucas Oil extreme-duty lubricant treatment.",
+        baseValue: "Gun Cleaning & Maintenance — Base Track ($75.00)",
         vipValue: "Gun Cleaning & Maintenance — VIP Turnkey ($115.00)"
       },
       children: {
         basePrice: "$199.99",
         vipPrice: "$265.00",
+        baseTitle: "Youth & Family Gun Safety Academy",
+        vipTitle: "👑 VIP Family Defensive & Safe Storage Mastery",
+        baseBadge: "ACCIDENT PREVENTION, EDDIE EAGLE PROTOCOL & RANGE DISCIPLINE",
+        vipBadge: "👑 VIP FAMILY PACK: LOCKBOX INCLUDED & PRIVATE LANE ACCESS",
+        baseDesc: "Comprehensive youth accident prevention and family home defense. Eddie Eagle 4-step emergency protocol: Stop, Don't Touch, Run Away, Tell an Adult. Safe storage principles and stress-free range introduction.",
+        vipDesc: "👑 VIP Family Safety Bundle. Includes certified biometric rapid-access steel lockbox, youth ear/eye protection kit, private instructor range lane, and hands-on home safety emergency plan.",
         baseValue: "Children's Safety Class — Base Track ($199.99)",
         vipValue: "Children's Safety Class — VIP Turnkey ($265.00)"
       },
       alumni: {
-        basePrice: "$64.99",
+        basePrice: "$65.00",
         vipPrice: "$115.00",
-        baseValue: "FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99)",
+        baseTitle: "FIFS Graduate Alumni Tactical Marksman Clinic",
+        vipTitle: "👑 VIP Alumni Advanced Shoot/Don't-Shoot Shootout",
+        baseBadge: "EXCLUSIVELY FOR FIFS GRADUATES — ADVANCED DRILLS & SPEED",
+        vipBadge: "👑 VIP CLINIC: 100RDS MATCH AMMO & LOW-LIGHT SCENARIO RUNS",
+        baseDesc: "Designed exclusively for Wear & Carry graduates and permit holders. Rapid holster presentation, multiple threat transitions, reload speed drills, and cover/concealment movement.",
+        vipDesc: "👑 VIP Alumni Shootout. Includes 100 rounds match ammunition, low-light weapon mounted light (WML) scenario drills, steel target plate challenge, and computerized split-time scoring.",
+        baseValue: "FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)",
         vipValue: "FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
       }
     };
@@ -718,7 +732,7 @@ export default function TrainWithFIFS(props: any) {
 
 
 
-    (window as any).setCardTier = (courseKey: string, targetTier: string, evt?: Event) => {
+        (window as any).setCardTier = (courseKey: string, targetTier: string, evt?: Event) => {
       if (evt) {
         if (evt.stopPropagation) evt.stopPropagation();
         if (evt.preventDefault) evt.preventDefault();
@@ -730,16 +744,12 @@ export default function TrainWithFIFS(props: any) {
       const slider = document.getElementById('slider-' + courseKey);
       const badge = document.getElementById('badge-course-' + courseKey);
       const priceElem = document.getElementById('price-course-' + courseKey);
+      const titleElem = (document.getElementById('title-course-' + courseKey) || (card ? card.querySelector('.tuition-title, h3') : null)) as HTMLElement | null;
+      const descElem = (document.getElementById('desc-course-' + courseKey) || (card ? card.querySelector('.tuition-desc') : null)) as HTMLElement | null;
       const vipBox = document.getElementById('vip-box-course-' + courseKey) || document.getElementById('vip-box-' + courseKey);
       const btnSelect = document.getElementById('btn-select-course-' + courseKey) as HTMLButtonElement | null;
 
-
-
-
       const isVip = targetTier === 'vip';
-
-
-
 
       if (card) {
         if (isVip) {
@@ -755,9 +765,6 @@ export default function TrainWithFIFS(props: any) {
         }
       }
 
-
-
-
       if (switchBox) {
         if (isVip) {
           switchBox.classList.add('active-vip');
@@ -768,30 +775,21 @@ export default function TrainWithFIFS(props: any) {
         }
       }
 
-
-
-
       if (slider) {
         slider.style.transform = isVip ? 'translateX(100%)' : 'translateX(0)';
       }
 
-
-
-
       if (badge) {
         badge.style.setProperty('display', isVip ? 'block' : 'none', 'important');
+        badge.textContent = isVip ? (config.vipBadge || '👑 VIP MODE') : (config.baseBadge || '');
       }
 
-
-
-
-      if (vipBox) {
-        vipBox.style.setProperty('display', isVip ? 'block' : 'none', 'important');
+      // 1. Dynamic Card Title
+      if (titleElem) {
+        titleElem.textContent = isVip ? config.vipTitle : config.baseTitle;
       }
 
-
-
-
+      // 2. Dynamic Active Price
       if (priceElem) {
         if (isVip) {
           priceElem.innerHTML = `<span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-amber);">${config.vipPrice}</span><span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>`;
@@ -800,8 +798,14 @@ export default function TrainWithFIFS(props: any) {
         }
       }
 
+      // 3. Dynamic Tier Description
+      if (descElem) {
+        descElem.textContent = isVip ? config.vipDesc : config.baseDesc;
+      }
 
-
+      if (vipBox) {
+        vipBox.style.setProperty('display', isVip ? 'block' : 'none', 'important');
+      }
 
       if (btnSelect) {
         if (isVip) {
@@ -820,10 +824,38 @@ export default function TrainWithFIFS(props: any) {
           btnSelect.onclick = () => (window as any).selectCourse(config.baseValue);
         }
       }
+
+      // 4. Dynamic Checkout Totals & Booking Modal Synchronization (Zero Page Reload)
+      const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
+      if (selectElem) {
+        const currentVal = (selectElem.value || '').toLowerCase();
+        const isMatch = (courseKey === 'ccw' && currentVal.includes('wear & carry') && !currentVal.includes('renewal') && !currentVal.includes('combo')) ||
+                        (courseKey === 'renewal' && (currentVal.includes('renewal') || currentVal.includes('8-hour'))) ||
+                        (courseKey === 'combo' && currentVal.includes('combo')) ||
+                        (courseKey === 'mastery' && (currentVal.includes('mastery') || currentVal.includes('multi-state'))) ||
+                        (courseKey === 'hql' && currentVal.includes('hql') && !currentVal.includes('combo')) ||
+                        (courseKey === 'coaching' && currentVal.includes('coaching')) ||
+                        (courseKey === 'cleaning' && currentVal.includes('cleaning')) ||
+                        (courseKey === 'children' && (currentVal.includes('children') || currentVal.includes('youth'))) ||
+                        (courseKey === 'alumni' && currentVal.includes('alumni'));
+
+        if (isMatch) {
+          const targetVal = isVip ? config.vipValue : config.baseValue;
+          for (let i = 0; i < selectElem.options.length; i++) {
+            const optVal = selectElem.options[i].value;
+            if (optVal === targetVal || (isVip && (optVal.includes('VIP') || optVal.includes('Turnkey')) && optVal.toLowerCase().includes(courseKey)) ||
+                (!isVip && !optVal.includes('VIP') && !optVal.includes('Turnkey') && optVal.toLowerCase().includes(courseKey))) {
+              selectElem.selectedIndex = i;
+              selectElem.value = optVal;
+              break;
+            }
+          }
+          if (typeof (window as any).updateFormPriceDisplay === 'function') {
+            (window as any).updateFormPriceDisplay();
+          }
+        }
+      }
     };
-
-
-
 
     (window as any).toggleCardTier = (courseKey: string, evt?: Event) => {
       const card = document.getElementById('card-course-' + courseKey);
@@ -1316,7 +1348,7 @@ export default function TrainWithFIFS(props: any) {
         fullName: 'Jordan Vance (Demo Student)',
         email: 'jordan.vance@example.com',
         phone: '(410) 555-0192',
-        course: 'Maryland CCW & HQL Combo — Base Track ($199.99)',
+        course: 'Maryland CCW & HQL Combo — Base Track ($249.99)',
         assignedDate: 'Saturday, Oct 12 • 9:00 AM',
         groupSize: '1 (Private One-on-One)',
         status: 'STEP_1_REGISTERED',
@@ -3084,44 +3116,85 @@ export default function TrainWithFIFS(props: any) {
 
 
 
-        (window as any).updateFormPriceDisplay = function() {
+            // Modal Form Tier Toggle (Base vs VIP)
+    (window as any).toggleFormTier = function(targetTier: 'base' | 'vip') {
+      const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
+      if (!selectElem) return;
+      const currentVal = selectElem.value;
+      const isCurrentlyVip = currentVal.includes('VIP') || currentVal.includes('Turnkey');
+      if ((targetTier === 'vip' && isCurrentlyVip) || (targetTier === 'base' && !isCurrentlyVip)) {
+        return;
+      }
+
+      const clean = currentVal.toLowerCase();
+      let matchedKey = 'ccw';
+      if (clean.includes('renewal') || clean.includes('8-hour') || clean.includes('8hr')) matchedKey = 'renewal';
+      else if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) matchedKey = 'mastery';
+      else if (clean.includes('combo')) matchedKey = 'combo';
+      else if (clean.includes('hql') && !clean.includes('combo')) matchedKey = 'hql';
+      else if (clean.includes('ccw') || clean.includes('wear & carry')) matchedKey = 'ccw';
+      else if (clean.includes('coaching') || clean.includes('1-on-1')) matchedKey = 'coaching';
+      else if (clean.includes('cleaning')) matchedKey = 'cleaning';
+      else if (clean.includes('children') || clean.includes('youth') || clean.includes('family')) matchedKey = 'children';
+      else if (clean.includes('alumni') || clean.includes('clinic')) matchedKey = 'alumni';
+
+      const config = COURSE_TIER_CONFIG[matchedKey];
+      if (config) {
+        const targetVal = targetTier === 'vip' ? config.vipValue : config.baseValue;
+        for (let i = 0; i < selectElem.options.length; i++) {
+          if (selectElem.options[i].value === targetVal) {
+            selectElem.selectedIndex = i;
+            selectElem.value = selectElem.options[i].value;
+            break;
+          }
+        }
+        // Synchronize corresponding landing page card tier toggle!
+        if (typeof (window as any).setCardTier === 'function') {
+          (window as any).setCardTier(matchedKey, targetTier);
+        }
+      }
+
+      if (typeof (window as any).updateFormPriceDisplay === 'function') {
+        (window as any).updateFormPriceDisplay();
+      }
+    };
+
+    (window as any).updateFormPriceDisplay = function() {
       const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
       if (!selectElem) return;
       const selectedVal = selectElem.value;
       const isVip = selectedVal.includes('VIP') || selectedVal.includes('Turnkey');
 
-
-      let unitBase = 199.99;
+      let unitBase = 249.99;
       let unitVip = 375.00;
       const clean = selectedVal.toLowerCase().replace(/&amp;/g, '&');
+      let matchedKey = 'ccw';
       if (clean.includes('renewal') || clean.includes('8-hour') || clean.includes('8hr')) {
-        unitBase = 129.99; unitVip = 199.99;
+        matchedKey = 'renewal'; unitBase = 149.99; unitVip = 249.99;
       } else if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) {
-        unitBase = 425.00; unitVip = 550.00;
+        matchedKey = 'mastery'; unitBase = 425.00; unitVip = 550.00;
       } else if (clean.includes('combo')) {
-        unitBase = 199.99; unitVip = 375.00;
+        matchedKey = 'combo'; unitBase = 249.99; unitVip = 375.00;
       } else if (clean.includes('hql')) {
-        unitBase = 100.00; unitVip = 165.00;
+        matchedKey = 'hql'; unitBase = 100.00; unitVip = 165.00;
       } else if (clean.includes('ccw') || clean.includes('wear & carry')) {
-        unitBase = 199.99; unitVip = 325.00;
+        matchedKey = 'ccw'; unitBase = 249.99; unitVip = 375.00;
       } else if (clean.includes('coaching') || clean.includes('1-on-1')) {
-        unitBase = 125.00; unitVip = 195.00;
+        matchedKey = 'coaching'; unitBase = 125.00; unitVip = 195.00;
       } else if (clean.includes('cleaning')) {
-        unitBase = 75.00; unitVip = 115.00;
+        matchedKey = 'cleaning'; unitBase = 75.00; unitVip = 115.00;
       } else if (clean.includes('children') || clean.includes('youth')) {
-        unitBase = 199.99; unitVip = 265.00;
+        matchedKey = 'children'; unitBase = 199.99; unitVip = 265.00;
       } else if (clean.includes('alumni') || clean.includes('clinic')) {
-        unitBase = 65.00; unitVip = 115.00;
+        matchedKey = 'alumni'; unitBase = 65.00; unitVip = 115.00;
       }
-
 
       const activeUnit = isVip ? unitVip : unitBase;
       const groupElem = document.getElementById('groupSize') as HTMLSelectElement | null;
       const groupVal = groupElem ? groupElem.value : '1';
 
-
       const pricing = (window as any).calculateComprehensiveInvoice(activeUnit, isVip, groupVal);
-
+      const config = COURSE_TIER_CONFIG[matchedKey];
 
       const titleElem = document.getElementById('formCardCourseTitle');
       const tierTag = document.getElementById('formCardTierTag');
@@ -3132,22 +3205,26 @@ export default function TrainWithFIFS(props: any) {
       const boxBase = document.getElementById('formBoxBase');
       const boxVip = document.getElementById('formBoxVip');
 
-
       const bookingTitle = document.getElementById('bookingModalTitle');
       const bookingBadge = document.getElementById('bookingModalBadge');
-      if (clean.includes('renewal') || clean.includes('8-hour')) {
-        if (titleElem) titleElem.textContent = 'Maryland Wear & Carry (8-Hour Renewal)';
-        if (bookingTitle) bookingTitle.textContent = 'Reserve 8-Hour Wear & Carry Renewal';
-        if (bookingBadge) bookingBadge.textContent = '8-HOUR MARYLAND RECERTIFICATION • MSP PS § 5-306';
-      } else if (clean.includes('combo')) {
-        if (titleElem) titleElem.textContent = 'Maryland CCW & HQL Combo';
-        if (bookingTitle) bookingTitle.textContent = 'Reserve CCW & HQL Combo Certification';
-        if (bookingBadge) bookingBadge.textContent = 'DUAL CERTIFICATION: CONCEALED CARRY + HQL PERMIT';
-      } else {
-        if (titleElem) titleElem.textContent = selectedVal.split('—')[0].trim() || 'Maryland Firearms Training';
-        if (bookingTitle) bookingTitle.textContent = 'Reserve Your Training Session';
-        if (bookingBadge) bookingBadge.textContent = 'CLASS REGISTRATION & SEAT RESERVATION';
+
+      if (titleElem && config) {
+        titleElem.textContent = isVip ? config.vipTitle : config.baseTitle;
+      } else if (titleElem) {
+        titleElem.textContent = selectedVal.split('—')[0].trim() || 'Maryland Firearms Training';
       }
+
+      if (bookingTitle) {
+        if (clean.includes('renewal')) bookingTitle.textContent = isVip ? 'Reserve 👑 VIP 8-Hour Wear & Carry Renewal' : 'Reserve 8-Hour Wear & Carry Renewal';
+        else if (clean.includes('combo')) bookingTitle.textContent = isVip ? 'Reserve 👑 VIP CCW & HQL Combo Concierge' : 'Reserve CCW & HQL Combo Certification';
+        else if (clean.includes('ccw') || clean.includes('wear & carry')) bookingTitle.textContent = isVip ? 'Reserve 👑 VIP Wear & Carry Concierge' : 'Reserve Maryland Wear & Carry Initial';
+        else bookingTitle.textContent = isVip ? `Reserve 👑 VIP ${config?.baseTitle || 'Training Session'}` : `Reserve ${config?.baseTitle || 'Your Training Session'}`;
+      }
+
+      if (bookingBadge && config) {
+        bookingBadge.textContent = isVip ? config.vipBadge : config.baseBadge;
+      }
+
       if (tierTag) {
         tierTag.textContent = isVip ? '👑 VIP Turnkey Track Selected' : 'Standard Base Track Selected';
         tierTag.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
@@ -3159,7 +3236,6 @@ export default function TrainWithFIFS(props: any) {
       if (baseVal) baseVal.textContent = '$' + unitBase.toFixed(2);
       if (vipVal) vipVal.textContent = '$' + unitVip.toFixed(2);
 
-
       if (boxBase) {
         boxBase.style.borderColor = !isVip ? 'var(--accent-cyan)' : 'var(--border-subtle)';
         boxBase.style.background = !isVip ? 'rgba(0, 229, 255, 0.08)' : '#070b10';
@@ -3170,32 +3246,18 @@ export default function TrainWithFIFS(props: any) {
         boxVip.style.background = isVip ? 'rgba(255, 183, 3, 0.12)' : '#070b10';
         boxVip.style.boxShadow = isVip ? '0 0 14px rgba(245, 158, 11, 0.25)' : 'none';
       }
-      if (tierDesc) {
+      if (tierDesc && config) {
         tierDesc.style.borderLeftColor = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
-        if (clean.includes('renewal')) {
-          tierDesc.textContent = isVip
-            ? "👑 VIP Turnkey Track. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Includes B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!"
-            : "Self-equipped track. 8-hour state recertification curriculum and 25-round live-fire qualification at Cindy's Hot Shots. Bring your own firearm, holster, and 50 rounds. Range fee ($45.00) & 6% MD sales tax calculated below.";
-        } else if (clean.includes('combo')) {
-          tierDesc.textContent = isVip
-            ? "👑 VIP Turnkey Track. Cindy's Hot Shots range lane fee ($45 value) is 100% INCLUDED! Includes B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
-            : "Self-equipped track. 16-hour Wear & Carry curriculum + Maryland HQL exemption guide. Provide own handgun, holster, and ammo. Range fee ($45.00) & 6% MD sales tax calculated below.";
-        } else {
-          tierDesc.textContent = isVip
-            ? "👑 VIP Turnkey Track. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Everything provided: firearm rental, holster, ear/eye protection, factory ammo, targets, and passport compliance photos."
-            : "Self-equipped base track. Provide own reliable handgun, holster, and factory ammo. Includes $45.00 dedicated range fee at Cindy's Hot Shots & 6% MD sales tax calculated below.";
-        }
+        tierDesc.textContent = isVip ? config.vipDesc : config.baseDesc;
       }
 
-
-      // Update Breakdown Box elements
+      // Update Breakdown Box elements (Checkout totals!)
       const bTuition = document.getElementById('formBreakdownTuition');
       const bRange = document.getElementById('formBreakdownRangeFee');
       const bTax = document.getElementById('formBreakdownTax');
       const bTotal = document.getElementById('formBreakdownTotal');
       const bDeposit = document.getElementById('formBreakdownDeposit');
       const bBalance = document.getElementById('formBreakdownBalance');
-
 
       if (bTuition) bTuition.textContent = '$' + pricing.discountedTuition.toFixed(2);
       if (bRange) {
@@ -3209,7 +3271,6 @@ export default function TrainWithFIFS(props: any) {
       }
       if (bDeposit) bDeposit.textContent = '$' + pricing.depositDueNow.toFixed(2);
       if (bBalance) bBalance.textContent = '$' + pricing.balanceDueClass.toFixed(2);
-
 
       if (typeof (window as any).renderBookingCalendar === 'function') {
         (window as any).renderBookingCalendar();
@@ -3362,19 +3423,19 @@ export default function TrainWithFIFS(props: any) {
 
 
 
-      let unitBase = 199.99;
+      let unitBase = 249.99;
       let unitVip = 375.00;
       const clean = courseSelection.toLowerCase();
       if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) {
         unitBase = 425.00; unitVip = 550.00;
       } else if (clean.includes('renewal')) {
-        unitBase = 129.99; unitVip = 199.99;
+        unitBase = 149.99; unitVip = 249.99;
       } else if (clean.includes('combo')) {
-        unitBase = 199.99; unitVip = 375.00;
+        unitBase = 249.99; unitVip = 375.00;
       } else if (clean.includes('hql')) {
         unitBase = 100.00; unitVip = 195.00;
       } else if (clean.includes('ccw') || clean.includes('wear & carry')) {
-        unitBase = 199.99; unitVip = 325.00;
+        unitBase = 249.99; unitVip = 375.00;
       } else if (clean.includes('coaching')) {
         unitBase = 125.00; unitVip = 195.00;
       } else if (clean.includes('cleaning')) {
@@ -3983,7 +4044,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </span>
           </div>
           {/* Semi-Transparent Neon Arrow Guide (Colors of the business logo: #00e5ff) */}
-          <div className="neon-arrow-guide-wrap" id="wrap-neon-guide" data-onclick="openAndSwitch('booking')" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined') { (window as any).openAndSwitch ? (window as any).openAndSwitch('booking') : ((window as any).switchTab ? (window as any).switchTab('booking') : null); } }} role="button" tabIndex="0" title="New to firearms? Click here to start">
+          <div className="neon-arrow-guide-wrap" id="wrap-neon-guide" data-onclick="openAndSwitch('booking')" role="button" tabIndex="0" title="New to firearms? Click here to start">
             <div className="neon-arrow-badge neon-mode-cyan" id="neon-start-guide" title="Future Initiative Operations Active • Click to Start Training">
               <span className="neon-arrow-text">
                 New To Firearms? Start Here
@@ -3993,7 +4054,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </span>
             </div>
           </div>
-          <button className="btn-hero-booking-prime start-journey-btn" id="btn-hero-booking" data-onclick="openAndSwitch('booking')" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined') { (window as any).openAndSwitch ? (window as any).openAndSwitch('booking') : ((window as any).switchTab ? (window as any).switchTab('booking') : null); } }} type="button">
+          <button className="btn-hero-booking-prime start-journey-btn" id="btn-hero-booking" data-onclick="openAndSwitch('booking')" type="button">
             <span className="prime-label">
               🎯 START YOUR JOURNEY
             </span>
@@ -4002,7 +4063,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </span>
           </button>
           <div className="hero-twin-grid">
-            <button aria-haspopup="dialog" aria-label="Open Future Initiative Portal selector" className="btn-hero-twin fifs-portal-btn" id="btn-hero-portal" data-onclick="openPortalSelectionModal()" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined') { (window as any).openPortalSelectionModal ? (window as any).openPortalSelectionModal() : ((window as any).openAndSwitch ? (window as any).openAndSwitch('portal') : null); } }} type="button">
+            <button aria-haspopup="dialog" aria-label="Open Future Initiative Portal selector" className="btn-hero-twin fifs-portal-btn" id="btn-hero-portal" data-onclick="openPortalSelectionModal()" type="button">
               <span className="twin-title">
                 ⚡ Future Initiative Portal
               </span>
@@ -4010,7 +4071,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Student & Client Access
               </span>
             </button>
-            <button className="btn-hero-twin lead-instructor-btn" id="btn-hero-about" data-onclick="openAndSwitch('about')" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined') { (window as any).openAndSwitch ? (window as any).openAndSwitch('about') : ((window as any).switchTab ? (window as any).switchTab('about') : null); } }} type="button">
+            <button className="btn-hero-twin lead-instructor-btn" id="btn-hero-about" data-onclick="openAndSwitch('about')" type="button">
               <span className="twin-title">
                 👤 Lead Instructor
               </span>
@@ -4020,19 +4081,19 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </button>
           </div>
           <div className="hero-bottom-strip">
-            <button className="btn-hero-aux" id="btn-hero-targets" data-onclick="openAndSwitch('testimonial')" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined') { (window as any).openAndSwitch ? (window as any).openAndSwitch('testimonial') : ((window as any).switchTab ? (window as any).switchTab('testimonial') : null); } }} type="button">
+            <button className="btn-hero-aux" id="btn-hero-targets" data-onclick="openAndSwitch('testimonial')" type="button">
               🎯 Range Highlights
             </button>
             <span style={{"color": "var(--border-subtle)"}}>
               •
             </span>
-            <button className="btn-hero-aux" id="btn-hero-faq" data-onclick="openAndSwitch('faq')" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined') { (window as any).openAndSwitch ? (window as any).openAndSwitch('faq') : ((window as any).switchTab ? (window as any).switchTab('faq') : null); } }} type="button">
+            <button className="btn-hero-aux" id="btn-hero-faq" data-onclick="openAndSwitch('faq')" type="button">
               ❓ Frequently Asked Questions
             </button>
             <span style={{"color": "var(--border-subtle)"}}>
               •
             </span>
-            <button className="btn-hero-aux" id="btn-hero-contact" data-onclick="openContactWidgetModal()" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined') { (window as any).openContactWidgetModal ? (window as any).openContactWidgetModal() : null; } }} type="button" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "cursor": "pointer"}}>
+            <button className="btn-hero-aux" id="btn-hero-contact" data-onclick="openContactWidgetModal()" type="button" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "cursor": "pointer"}}>
               💬 Chat
             </button>
           </div>
@@ -6445,7 +6506,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         
           </p>
           <div className="pathway-grid">
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('new_to_firearms', this)" onClick={(e) => { e.preventDefault(); if (typeof window !== "undefined" && (window as any).openGoalSynopsis) (window as any).openGoalSynopsis("new_to_firearms", e.currentTarget); }} title="Learn more about starting with HQL" type="button">
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('new_to_firearms', this)" title="Learn more about starting with HQL" type="button">
               <div className="pathway-intent">
                 Brand New to Firearms
               </div>
@@ -6456,7 +6517,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Learn More & Free 50-Q Guide →
               </div>
             </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_purchase', this)" onClick={(e) => { e.preventDefault(); if (typeof window !== "undefined" && (window as any).openGoalSynopsis) (window as any).openGoalSynopsis("want_to_purchase", e.currentTarget); }} title="Learn more about buying a handgun" type="button">
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_purchase', this)" title="Learn more about buying a handgun" type="button">
               <div className="pathway-intent">
                 Looking to Buy a Pistol
               </div>
@@ -6467,7 +6528,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Learn More →
               </div>
             </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_carry', this)" onClick={(e) => { e.preventDefault(); if (typeof window !== "undefined" && (window as any).openGoalSynopsis) (window as any).openGoalSynopsis("want_to_carry", e.currentTarget); }} title="Learn more about concealed carry" type="button">
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_carry', this)" title="Learn more about concealed carry" type="button">
               <div className="pathway-intent">
                 I Want to Carry in Public
               </div>
@@ -6478,7 +6539,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Learn More →
               </div>
             </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_both', this)" onClick={(e) => { e.preventDefault(); if (typeof window !== "undefined" && (window as any).openGoalSynopsis) (window as any).openGoalSynopsis("want_both", e.currentTarget); }} title="Learn more about CCW &amp; HQL combo" type="button">
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_both', this)" title="Learn more about CCW &amp; HQL combo" type="button">
               <div className="pathway-intent">
                 I Want Both: Buy & Carry
               </div>
@@ -6500,7 +6561,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Learn More →
               </div>
             </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('need_multistate', this)" onClick={(e) => { e.preventDefault(); if (typeof window !== "undefined" && (window as any).openGoalSynopsis) (window as any).openGoalSynopsis("need_multistate", e.currentTarget); }} onClick={() => { if (typeof window !== "undefined" && (window as any).openMultistateMasteryModal) (window as any).openGoalSynopsis('need_multistate', this); }} title="Learn more about multi-state carry" type="button">
+            <button className="pathway-pill" data-onclick="openMultistateMasteryModal()" onClick={() => { if (typeof window !== "undefined" && (window as any).openMultistateMasteryModal) (window as any).openMultistateMasteryModal(); }} title="Learn more about multi-state carry" type="button">
               <div className="pathway-intent" style={{"color": "var(--accent-amber)"}}>
                 Do I Need a Multi-State Permit?
               </div>
@@ -6801,7 +6862,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 (Standard Base)
               </span>
             </div>
-            <div className="tuition-desc">
+            <div className="tuition-desc" id="desc-course-mastery">
               Full 16-hour Maryland Wear & Carry qualification + application preparation for Virginia, Florida, Arizona, and Pennsylvania non-resident carry.
             </div>
             <div className="tuition-bullets" id="bullets-course-mastery">
@@ -6882,13 +6943,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="tuition-price" id="price-course-combo">
               <span className="price-val" style={{"fontFamily": "var(--font-display)", "fontSize": "2.2rem", "fontWeight": "800", "color": "#fff"}}>
-                $199.99
+                $249.99
               </span>
               <span className="price-tier-tag" style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "fontWeight": "600", "marginLeft": "6px"}}>
                 (Standard Base)
               </span>
             </div>
-            <div className="tuition-desc">
+            <div className="tuition-desc" id="desc-course-combo">
               Comprehensive dual-licensing package meeting both purchase and carry training mandates in one weekend. Under Md. Public Safety § 5-117.1, completing Wear & Carry waives your HQL classroom training—saving you $100 over booking separately!
             </div>
             <div className="tuition-bullets" id="bullets-course-combo">
@@ -6932,9 +6993,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-combo" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland CCW & HQL Combo — Base Track ($199.99)"); }} data-onclick="selectCourse('Maryland CCW &amp; HQL Combo — Base Track ($199.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-combo" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland CCW & HQL Combo — Base Track ($249.99)"); }} data-onclick="selectCourse('Maryland CCW &amp; HQL Combo — Base Track ($249.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
-              Select Base ($199.99) & Reserve Seat →
+              Select Base ($249.99) & Reserve Seat →
             
               </button>
             </div>
@@ -6946,7 +7007,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             👑 VIP MODE
           
             </div>
-            <div className="tuition-title">
+            <div className="tuition-title" id="title-course-ccw">
               Maryland Wear & Carry
             </div>
             <div className="combo-savings-badge" style={{"background": "rgba(0, 229, 255, 0.15)", "border": "1px solid var(--accent-cyan)", "color": "#00e5ff", "fontFamily": "var(--font-display)", "fontSize": "0.85rem", "fontWeight": "800", "letterSpacing": "0.8px", "padding": "4px 10px", "borderRadius": "6px", "textTransform": "uppercase", "margin": "6px 0", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
@@ -6966,13 +7027,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="tuition-price" id="price-course-ccw">
               <span className="price-val" style={{"fontFamily": "var(--font-display)", "fontSize": "2.2rem", "fontWeight": "800", "color": "#fff"}}>
-                $199.99
+                $249.99
               </span>
               <span className="price-tier-tag" style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "fontWeight": "600", "marginLeft": "6px"}}>
                 (Standard Base)
               </span>
             </div>
-            <div className="tuition-desc">
+            <div className="tuition-desc" id="desc-course-ccw">
               Full Wear & Carry certification. In-depth legal curriculum (State v. Faulkner, SB 1), and 25-round practical qualification.
             </div>
             <div className="tuition-bullets" id="bullets-course-ccw">
@@ -7010,9 +7071,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-ccw" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (CCW) — Base Track ($199.99)"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (CCW) — Base Track ($199.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-ccw" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (CCW) — Base Track ($249.99)"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (CCW) — Base Track ($249.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
-              Select Base ($199.99) & Reserve Seat →
+              Select Base ($249.99) & Reserve Seat →
             
               </button>
             </div>
@@ -7026,7 +7087,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <span className="badge-pop" style={{"background": "rgba(0, 229, 255, 0.15)", "color": "var(--accent-cyan)", "border": "1px solid var(--accent-cyan)"}}>
               ⏱️ 8-HOUR BIENNIAL RECERTIFICATION
             </span>
-            <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "margin": "10px 0 6px", "color": "#fff"}}>
+            <h3 id="title-course-renewal" style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "margin": "10px 0 6px", "color": "#fff"}}>
               Maryland Wear &amp; Carry (8-Hour Renewal)
             </h3>
             <div className="tier-toggle-wrapper">
@@ -7039,13 +7100,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="tuition-price" id="price-course-renewal">
               <span className="price-val" style={{"fontFamily": "var(--font-display)", "fontSize": "2.2rem", "fontWeight": "800", "color": "#fff"}}>
-                $129.99
+                $149.99
               </span>
               <span className="price-tier-tag" style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "fontWeight": "600", "marginLeft": "6px"}}>
                 (Standard Base)
               </span>
             </div>
-            <div className="tuition-desc">
+            <div className="tuition-desc" id="desc-course-renewal">
               State-mandated 8-hour classroom recertification + 25-round Maryland practical shooting qualification. Complete before permit expiration to prevent licensing lapse.
             </div>
             <div className="tuition-bullets" id="bullets-course-renewal">
@@ -7086,8 +7147,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-renewal" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (8-Hour Renewal) — Base Track ($129.99)"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (8-Hour Renewal) — Base Track ($129.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
-                Select Base ($129.99) &amp; Reserve Seat →
+              <button className="btn-select-course" id="btn-select-course-renewal" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)"); }} data-onclick="selectCourse('Maryland Wear &amp; Carry (8-Hour Renewal) — Base Track ($149.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+                Select Base ($149.99) &amp; Reserve Seat →
               </button>
             </div>
           </div>
@@ -7097,7 +7158,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             👑 VIP MODE
           
             </div>
-            <div className="tuition-title">
+            <div className="tuition-title" id="title-course-hql">
               Maryland HQL
             </div>
             <div className="combo-savings-badge" style={{"background": "rgba(192, 132, 252, 0.15)", "border": "1px solid #c084fc", "color": "#c084fc", "fontFamily": "var(--font-display)", "fontSize": "0.85rem", "fontWeight": "800", "letterSpacing": "0.8px", "padding": "4px 10px", "borderRadius": "6px", "textTransform": "uppercase", "margin": "6px 0", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
@@ -7123,7 +7184,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 (Standard Base)
               </span>
             </div>
-            <div className="tuition-desc">
+            <div className="tuition-desc" id="desc-course-hql">
               State prerequisite for handgun purchase. Covers safe firearm handling, home storage compliance (Jaelynn's Law), and live-fire orientation.
             </div>
             <div className="tuition-bullets" id="bullets-course-hql">
@@ -7175,7 +7236,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             👑 VIP MODE
           
             </div>
-            <div className="tuition-title">
+            <div className="tuition-title" id="title-course-coaching">
               Personal 1-on-1 Coaching
             </div>
             <div className="combo-savings-badge" style={{"background": "rgba(56, 189, 248, 0.15)", "border": "1px solid #38bdf8", "color": "#38bdf8", "fontFamily": "var(--font-display)", "fontSize": "0.85rem", "fontWeight": "800", "letterSpacing": "0.8px", "padding": "4px 10px", "borderRadius": "6px", "textTransform": "uppercase", "margin": "6px 0", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
@@ -7195,13 +7256,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="tuition-price" id="price-course-coaching">
               <span className="price-val" style={{"fontFamily": "var(--font-display)", "fontSize": "2.2rem", "fontWeight": "800", "color": "#fff"}}>
-                $124.99
+                $125.00
               </span>
               <span className="price-tier-tag" style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "fontWeight": "600", "marginLeft": "6px"}}>
                 / hr (Standard Base)
               </span>
             </div>
-            <div className="tuition-desc">
+            <div className="tuition-desc" id="desc-course-coaching">
               Dedicated private coaching. Diagnostic marksmanship, trigger reset mechanics, and holster draw cadence.
             </div>
             <div className="tuition-bullets" id="bullets-course-coaching">
@@ -7239,9 +7300,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-coaching" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Personal 1-on-1 Coaching — Base Track ($124.99/hr)"); }} data-onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($124.99/hr)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-coaching" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Personal 1-on-1 Coaching — Base Track ($125.00/hr)"); }} data-onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($125.00/hr)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
-              Select Base ($124.99/hr) & Reserve Seat →
+              Select Base ($125/hr) & Reserve Seat →
             
               </button>
             </div>
@@ -7253,7 +7314,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             👑 VIP MODE
           
             </div>
-            <div className="tuition-title">
+            <div className="tuition-title" id="title-course-cleaning">
               Gun Cleaning Class
             </div>
             <div className="combo-savings-badge" style={{"background": "rgba(251, 146, 60, 0.15)", "border": "1px solid #fb923c", "color": "#fb923c", "fontFamily": "var(--font-display)", "fontSize": "0.85rem", "fontWeight": "800", "letterSpacing": "0.8px", "padding": "4px 10px", "borderRadius": "6px", "textTransform": "uppercase", "margin": "6px 0", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
@@ -7273,13 +7334,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="tuition-price" id="price-course-cleaning">
               <span className="price-val" style={{"fontFamily": "var(--font-display)", "fontSize": "2.2rem", "fontWeight": "800", "color": "#fff"}}>
-                $74.99
+                $75.00
               </span>
               <span className="price-tier-tag" style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "fontWeight": "600", "marginLeft": "6px"}}>
                 (Standard Base)
               </span>
             </div>
-            <div className="tuition-desc">
+            <div className="tuition-desc" id="desc-course-cleaning">
               Field-stripping, ultrasonic inspection methods, lubrication points, and mechanical safety function checks.
             </div>
             <div className="tuition-bullets" id="bullets-course-cleaning">
@@ -7314,9 +7375,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-cleaning" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Gun Cleaning & Maintenance — Base Track ($74.99)"); }} data-onclick="selectCourse('Gun Cleaning &amp; Maintenance — Base Track ($74.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-cleaning" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Gun Cleaning & Maintenance — Base Track ($75.00)"); }} data-onclick="selectCourse('Gun Cleaning &amp; Maintenance — Base Track ($75.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
-              Select Base ($74.99) & Reserve Seat →
+              Select Base ($75.00) & Reserve Seat →
             
               </button>
             </div>
@@ -7328,7 +7389,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             👑 VIP MODE
           
             </div>
-            <div className="tuition-title">
+            <div className="tuition-title" id="title-course-children">
               Children's Safety Class
             </div>
             <div className="combo-savings-badge" style={{"background": "rgba(244, 63, 94, 0.15)", "border": "1px solid #f43f5e", "color": "#f43f5e", "fontFamily": "var(--font-display)", "fontSize": "0.85rem", "fontWeight": "800", "letterSpacing": "0.8px", "padding": "4px 10px", "borderRadius": "6px", "textTransform": "uppercase", "margin": "6px 0", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
@@ -7354,7 +7415,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 (Standard Base)
               </span>
             </div>
-            <div className="tuition-desc">
+            <div className="tuition-desc" id="desc-course-children">
               
             Comprehensive youth accident prevention and family home defense covenant based on NRA Eddie Eagle principles. Teaches children age-appropriate reaction protocols if an unsecured firearm is encountered, coupled with parent-guided safe storage demonstrations and biometric lock fitting in accordance with Maryland Jaelynn's Law.
           
@@ -7403,7 +7464,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
           {/* Properly closes card-course-children */}
           {/* 8. FIFS Graduate Alumni Marksmanship Clinic (Standalone Sibling Card) */}
-          {/* 8. FIFS Graduate Alumni Marksmanship Clinic (Base $64.99 / VIP $115) */}
+          {/* 8. FIFS Graduate Alumni Marksmanship Clinic (Base $65 / VIP $115) */}
           <div className="tuition-card" id="card-course-alumni" style={{"position": "relative"}}>
             <div className="card-tier-badge" id="badge-course-alumni" style={{"display": "none", "background": "var(--accent-cyan)", "color": "#070b10", "fontFamily": "var(--font-display)", "fontSize": "0.72rem", "fontWeight": "800", "padding": "2px 10px", "borderRadius": "20px", "textTransform": "uppercase", "position": "absolute", "top": "-10px", "right": "16px"}}>
               
@@ -7433,13 +7494,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="tuition-price" id="price-course-alumni">
               <span className="price-val" style={{"fontFamily": "var(--font-display)", "fontSize": "2.2rem", "fontWeight": "800", "color": "#fff"}}>
-                $64.99
+                $65.00
               </span>
               <span className="price-tier-tag" style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "fontWeight": "600", "marginLeft": "6px"}}>
                 (Standard Base)
               </span>
             </div>
-            <div className="tuition-desc">
+            <div className="tuition-desc" id="desc-course-alumni">
               
             Designed exclusively for Wear & Carry graduates and permit holders to maintain peak defensive readiness between biennial renewal windows. Fast-paced diagnostic shooting on the line at Cindy's Hot Shots.
           
@@ -7480,9 +7541,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-alumni" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99)"); }} data-onclick="selectCourse('FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-alumni" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)"); }} data-onclick="selectCourse('FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
-              Select Base ($64.99) & Reserve Seat →
+              Select Base ($65.00) & Reserve Seat →
             
               </button>
             </div>
@@ -8464,7 +8525,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Renewal Class Tuition
                 </div>
                 <div style={{"fontFamily": "var(--font-display)", "fontSize": "2rem", "fontWeight": "900", "color": "#fff"}}>
-                  $129.99 <span style={{"fontSize": "1rem", "color": "var(--text-muted)"}}>Base</span> / $199.99 <span style={{"fontSize": "1rem", "color": "var(--accent-amber)"}}>VIP</span>
+                  $149.99 <span style={{"fontSize": "1rem", "color": "var(--text-muted)"}}>Base</span> / $249.99 <span style={{"fontSize": "1rem", "color": "var(--accent-amber)"}}>VIP</span>
                 </div>
               </div>
             </div>
@@ -8491,8 +8552,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <button type="button" className="btn-secondary" data-onclick="closePermitRenewalModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closePermitRenewalModal) (window as any).closePermitRenewalModal(); }}>
                 Close
               </button>
-              <button type="button" className="btn-primary" data-onclick="closePermitRenewalModal(); selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($129.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closePermitRenewalModal) (window as any).closePermitRenewalModal(); if ((window as any).selectCourse) (window as any).selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($129.99)'); } }}>
-                Book 8-Hour Renewal ($129.99) →
+              <button type="button" className="btn-primary" data-onclick="closePermitRenewalModal(); selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closePermitRenewalModal) (window as any).closePermitRenewalModal(); if ((window as any).selectCourse) (window as any).selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)'); } }}>
+                Book 8-Hour Renewal ($149.99) →
               </button>
             </div>
           </div>
@@ -8530,9 +8591,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <span className="badge-pop" style={{"background": "rgba(0, 229, 255, 0.15)", "color": "var(--accent-cyan)", "border": "1px solid var(--accent-cyan)"}}>BIENNIAL RECERTIFICATION</span>
                 <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "margin": "10px 0 6px"}}>Maryland Wear & Carry Renewal</h4>
                 <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "marginBottom": "14px"}}>8-hour statutory renewal instruction + 25-round live-fire qualification at Cindy's Hot Shots.</p>
-                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$129.99 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $199.99 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$149.99 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $249.99 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
               </div>
-              <button type="button" className="btn-primary" data-onclick="closeFutureServicesModal(); selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($129.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeFutureServicesModal) (window as any).closeFutureServicesModal(); if ((window as any).selectCourse) (window as any).selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($129.99)'); } }}>Select Renewal →</button>
+              <button type="button" className="btn-primary" data-onclick="closeFutureServicesModal(); selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeFutureServicesModal) (window as any).closeFutureServicesModal(); if ((window as any).selectCourse) (window as any).selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)'); } }}>Select Renewal →</button>
             </div>
             {/* Service 3: CCW & HQL Combo */}
             <div className="modular-card" style={{"padding": "24px", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
@@ -8540,9 +8601,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <span className="badge-pop" style={{"background": "rgba(16, 185, 129, 0.15)", "color": "#10b981", "border": "1px solid #10b981"}}>MOST POPULAR COMBO</span>
                 <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "margin": "10px 0 6px"}}>Maryland CCW & HQL Combo</h4>
                 <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "marginBottom": "14px"}}>Complete 16-hr Maryland CCW plus statutory HQL purchase waiver certification. Save $100.</p>
-                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$199.99 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $375 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$249.99 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $375 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
               </div>
-              <button type="button" className="btn-primary" data-onclick="closeFutureServicesModal(); selectCourse('Maryland CCW & HQL Combo — Base Track ($199.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeFutureServicesModal) (window as any).closeFutureServicesModal(); if ((window as any).selectCourse) (window as any).selectCourse('Maryland CCW & HQL Combo — Base Track ($199.99)'); } }}>Select Combo →</button>
+              <button type="button" className="btn-primary" data-onclick="closeFutureServicesModal(); selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeFutureServicesModal) (window as any).closeFutureServicesModal(); if ((window as any).selectCourse) (window as any).selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)'); } }}>Select Combo →</button>
             </div>
           </div>
         </div>
@@ -10841,20 +10902,20 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <option value="Maryland CCW &amp; HQL Combo — VIP Turnkey ($375.00)">
                   Maryland CCW & HQL Combo — VIP Turnkey ($375.00)
                 </option>
-                <option value="Maryland CCW &amp; HQL Combo — Base Track ($199.99)">
-                  Maryland CCW & HQL Combo — Base Track ($199.99)
+                <option value="Maryland CCW &amp; HQL Combo — Base Track ($249.99)">
+                  Maryland CCW & HQL Combo — Base Track ($249.99)
                 </option>
-                <option value="Maryland Wear &amp; Carry (CCW) — VIP Turnkey ($325.00)">
-                  Maryland Wear & Carry (CCW) — VIP Turnkey ($325.00)
+                <option value="Maryland Wear &amp; Carry (CCW) — VIP Turnkey ($375.00)">
+                  Maryland Wear & Carry (CCW) — VIP Turnkey ($375.00)
                 </option>
-                <option value="Maryland Wear &amp; Carry (CCW) — Base Track ($199.99)">
-                  Maryland Wear & Carry (CCW) — Base Track ($199.99)
+                <option value="Maryland Wear &amp; Carry (CCW) — Base Track ($249.99)">
+                  Maryland Wear & Carry (CCW) — Base Track ($249.99)
                 </option>
-                <option value="Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($199.99)">
-                  Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($199.99)
+                <option value="Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($249.99)">
+                  Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($249.99)
                 </option>
-                <option value="Maryland Wear & Carry (8-Hour Renewal) — Base Track ($129.99)">
-                  Maryland Wear & Carry (8-Hour Renewal) — Base Track ($129.99)
+                <option value="Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)">
+                  Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)
                 </option>
                 <option value="Maryland HQL (Purchase License) — VIP Turnkey ($165.00)">
                   Maryland HQL (Purchase License) — VIP Turnkey ($165.00)
@@ -10865,20 +10926,20 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <option value="Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)">
                   Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)
                 </option>
-                <option value="Personal 1-on-1 Coaching — Base Track ($124.99/hr)">
-                  Personal 1-on-1 Coaching — Base Track ($124.99/hr)
+                <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">
+                  Personal 1-on-1 Coaching — Base Track ($125.00/hr)
                 </option>
                 <option value="FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)">
                   FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)
                 </option>
-                <option value="FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99)">
-                  FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99)
+                <option value="FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)">
+                  FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)
                 </option>
                 <option value="Gun Cleaning &amp; Maintenance — VIP Turnkey ($115.00)">
                   Gun Cleaning & Maintenance — VIP Turnkey ($115.00)
                 </option>
-                <option value="Gun Cleaning &amp; Maintenance — Base Track ($74.99)">
-                  Gun Cleaning & Maintenance — Base Track ($74.99)
+                <option value="Gun Cleaning &amp; Maintenance — Base Track ($75.00)">
+                  Gun Cleaning & Maintenance — Base Track ($75.00)
                 </option>
                 <option value="Children&#x27;s Safety Class — VIP Turnkey ($265.00)">
                   Children's Safety Class — VIP Turnkey ($265.00)
@@ -10901,7 +10962,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
                 <div style={{"textAlign": "right"}}>
                   <span id="formCardActivePrice" style={{"fontFamily": "var(--font-display)", "fontSize": "1.8rem", "fontWeight": "800", "color": "var(--accent-cyan)"}}>
-                    $199.99
+                    $249.99
                   </span>
                 </div>
               </div>
@@ -10912,7 +10973,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       Standard Base
                     </strong>
                     <span id="formPriceBaseVal" style={{"fontFamily": "var(--font-display)", "fontSize": "1.15rem", "fontWeight": "800", "color": "#fff"}}>
-                      $199.99
+                      $249.99
                     </span>
                   </div>
                   <p style={{"color": "var(--text-muted)", "fontSize": "0.74rem", "marginTop": "3px", "lineHeight": "1.35"}}>
@@ -10940,7 +11001,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div id="formDepositBreakdownBox" style={{"background": "rgba(245, 158, 11, 0.08)", "border": "1px solid rgba(245, 158, 11, 0.35)", "borderRadius": "10px", "padding": "14px 16px", "marginTop": "14px"}}>
                 <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "fontSize": "0.84rem", "color": "#cbd5e1", "marginBottom": "6px"}}>
                   <span>Course Tuition:</span>
-                  <strong id="formBreakdownTuition" style={{"color": "#fff"}}>$199.99</strong>
+                  <strong id="formBreakdownTuition" style={{"color": "#fff"}}>$249.99</strong>
                 </div>
                 <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "fontSize": "0.84rem", "marginBottom": "6px"}}>
                   <span>Cindy's Hot Shots Range &amp; Target Fee:</span>
@@ -11070,7 +11131,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </button>
                 </div>
                 {/* 7-Column Days of Week Header (Always In Sync) */}
-                <div id="bookingCalDaysHeader" className="booking-cal-days-header" style={{"display": "grid", "gridTemplateColumns": "repeat(7, minmax(0, 1fr))", "background": "#0c1219", "borderBottom": "1px solid var(--border-subtle)", "textAlign": "center", "fontSize": "0.72rem", "fontWeight": "800", "color": "var(--text-muted)", "padding": "8px 0"}}>
+                <div style={{"display": "grid", "gridTemplateColumns": "repeat(7, 1fr)", "background": "#0c1219", "borderBottom": "1px solid var(--border-subtle)", "textAlign": "center", "fontSize": "0.72rem", "fontWeight": "800", "color": "var(--text-muted)", "padding": "8px 0"}}>
                   <div>SUN</div>
                   <div>MON</div>
                   <div>TUE</div>
@@ -11083,6 +11144,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <div id="bookingCalDaysGrid" style={{"display": "grid", "gridTemplateColumns": "repeat(7, 1fr)", "gap": "1px", "background": "var(--border-subtle)", "width": "100%", "boxSizing": "border-box"}}>
                   {/* Dynamically populated via renderBookingCalendar() */}
                 </div>
+              </div>
               </div>
               <div style={{"marginTop": "10px", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "8px"}}>
                 <span style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
@@ -12111,7 +12173,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             
         The 
             <strong>
-              FIFS Graduate Alumni Marksmanship Clinic ($64.99)
+              FIFS Graduate Alumni Marksmanship Clinic ($65.00)
             </strong>
              is an exclusive 2-hour diagnostic workshop reserved for verified FIFS graduates and active carry permit holders.
             <br />
@@ -12127,7 +12189,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           <div className="goal-modal-actions" style={{"display": "flex", "flexDirection": "column", "gap": "10px"}}>
             <button className="btn-primary" data-onclick="proceedToClientSignInForAlumni()" style={{"background": "linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)", "color": "#070b10", "fontWeight": "800", "padding": "12px", "width": "100%"}} type="button">
               
-          🔑 Sign In to Client Portal to Unlock ($64.99) →
+          🔑 Sign In to Client Portal to Unlock ($65.00) →
         
             </button>
             <button className="btn-secondary-modal" data-onclick="closeAlumniAccessGateModal()" style={{"width": "100%", "padding": "10px"}} type="button">
