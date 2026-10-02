@@ -1437,7 +1437,7 @@ case 'getStudentPortalData': {
         } else if (cleanCourse.includes('combo')) {
           baseTuitionPerPerson = isVip ? 375.00 : 249.99;
         } else if (cleanCourse.includes('hql')) {
-          baseTuitionPerPerson = isVip ? 195.00 : 100.00;
+          baseTuitionPerPerson = isVip ? 165.00 : 100.00;
         } else if (cleanCourse.includes('ccw') || cleanCourse.includes('wear & carry')) {
           baseTuitionPerPerson = isVip ? 375.00 : 249.99;
         } else if (cleanCourse.includes('coaching')) {
