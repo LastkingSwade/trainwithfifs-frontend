@@ -22,7 +22,7 @@ const COURSE_PRICING: Record<string, { base: number; vip: number }> = {
   combo: { base: 249.99, vip: 375.00 },
   ccw: { base: 249.99, vip: 375.00 },
   renewal: { base: 149.99, vip: 249.99 },
-  hql: { base: 100.00, vip: 165.00 },
+  hql: { base: 100.00, vip: 195.00 },
   coaching: { base: 125.00, vip: 195.00 },
   cleaning: { base: 75.00, vip: 115.00 },
   children: { base: 199.99, vip: 265.00 },
