@@ -251,8 +251,8 @@ export default function TrainWithFIFS(props: any) {
       personalized_focus: {
         badge: "100% Private • Custom Pace & Confidential",
         title: "Personalized Coaching / Anxiety & Trauma Relief",
-        rec: "Recommended: Private 1-on-1 Coaching ($124.99.00 / hr)",
-        courseValue: "Personal 1-on-1 Coaching — Base Track ($124.99.00/hr)",
+        rec: "Recommended: Private 1-on-1 Coaching ($124.99 / hr)",
+        courseValue: "Personal 1-on-1 Coaching — Base Track ($124.99/hr)",
         showGuide: false,
         synopsis: "Dedicated one-on-one private instruction tailored exclusively to your personal comfort level, physical capabilities, and schedule with Lead Instructor Kai Wade. Zero classmates, zero judgment, and customized range drills.",
         why: [
@@ -689,15 +689,15 @@ export default function TrainWithFIFS(props: any) {
         vipValue: "Maryland HQL (Purchase License) — VIP Turnkey ($165.00)"
       },
       coaching: {
-        basePrice: "$124.99.00",
+        basePrice: "$124.99",
         vipPrice: "$195.00",
-        baseValue: "Personal 1-on-1 Coaching — Base Track ($124.99.00/hr)",
+        baseValue: "Personal 1-on-1 Coaching — Base Track ($124.99/hr)",
         vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
       },
       cleaning: {
-        basePrice: "$74.99.00",
+        basePrice: "$74.99",
         vipPrice: "$115.00",
-        baseValue: "Gun Cleaning & Maintenance — Base Track ($74.99.00)",
+        baseValue: "Gun Cleaning & Maintenance — Base Track ($74.99)",
         vipValue: "Gun Cleaning & Maintenance — VIP Turnkey ($115.00)"
       },
       children: {
@@ -707,9 +707,9 @@ export default function TrainWithFIFS(props: any) {
         vipValue: "Children's Safety Class — VIP Turnkey ($265.00)"
       },
       alumni: {
-        basePrice: "$64.99.00",
+        basePrice: "$64.99",
         vipPrice: "$115.00",
-        baseValue: "FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99.00)",
+        baseValue: "FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99)",
         vipValue: "FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
       }
     };
@@ -7195,7 +7195,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="tuition-price" id="price-course-coaching">
               <span className="price-val" style={{"fontFamily": "var(--font-display)", "fontSize": "2.2rem", "fontWeight": "800", "color": "#fff"}}>
-                $124.99.00
+                $124.99
               </span>
               <span className="price-tier-tag" style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "fontWeight": "600", "marginLeft": "6px"}}>
                 / hr (Standard Base)
@@ -7239,7 +7239,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-coaching" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Personal 1-on-1 Coaching — Base Track ($124.99.00/hr)"); }} data-onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($124.99.00/hr)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-coaching" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Personal 1-on-1 Coaching — Base Track ($124.99/hr)"); }} data-onclick="selectCourse('Personal 1-on-1 Coaching — Base Track ($124.99/hr)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
               Select Base ($124.99/hr) & Reserve Seat →
             
@@ -7273,7 +7273,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="tuition-price" id="price-course-cleaning">
               <span className="price-val" style={{"fontFamily": "var(--font-display)", "fontSize": "2.2rem", "fontWeight": "800", "color": "#fff"}}>
-                $74.99.00
+                $74.99
               </span>
               <span className="price-tier-tag" style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "fontWeight": "600", "marginLeft": "6px"}}>
                 (Standard Base)
@@ -7314,9 +7314,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-cleaning" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Gun Cleaning & Maintenance — Base Track ($74.99.00)"); }} data-onclick="selectCourse('Gun Cleaning &amp; Maintenance — Base Track ($74.99.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-cleaning" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Gun Cleaning & Maintenance — Base Track ($74.99)"); }} data-onclick="selectCourse('Gun Cleaning &amp; Maintenance — Base Track ($74.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
-              Select Base ($74.99.00) & Reserve Seat →
+              Select Base ($74.99) & Reserve Seat →
             
               </button>
             </div>
@@ -7433,7 +7433,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="tuition-price" id="price-course-alumni">
               <span className="price-val" style={{"fontFamily": "var(--font-display)", "fontSize": "2.2rem", "fontWeight": "800", "color": "#fff"}}>
-                $64.99.00
+                $64.99
               </span>
               <span className="price-tier-tag" style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "fontWeight": "600", "marginLeft": "6px"}}>
                 (Standard Base)
@@ -7480,9 +7480,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             <div style={{"marginTop": "14px"}}>
-              <button className="btn-select-course" id="btn-select-course-alumni" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99.00)"); }} data-onclick="selectCourse('FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99.00)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
+              <button className="btn-select-course" id="btn-select-course-alumni" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99)"); }} data-onclick="selectCourse('FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
-              Select Base ($64.99.00) & Reserve Seat →
+              Select Base ($64.99) & Reserve Seat →
             
               </button>
             </div>
@@ -10865,20 +10865,20 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <option value="Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)">
                   Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)
                 </option>
-                <option value="Personal 1-on-1 Coaching — Base Track ($124.99.00/hr)">
-                  Personal 1-on-1 Coaching — Base Track ($124.99.00/hr)
+                <option value="Personal 1-on-1 Coaching — Base Track ($124.99/hr)">
+                  Personal 1-on-1 Coaching — Base Track ($124.99/hr)
                 </option>
                 <option value="FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)">
                   FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)
                 </option>
-                <option value="FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99.00)">
-                  FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99.00)
+                <option value="FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99)">
+                  FIFS Graduate Alumni Marksmanship Clinic — Base Track ($64.99)
                 </option>
                 <option value="Gun Cleaning &amp; Maintenance — VIP Turnkey ($115.00)">
                   Gun Cleaning & Maintenance — VIP Turnkey ($115.00)
                 </option>
-                <option value="Gun Cleaning &amp; Maintenance — Base Track ($74.99.00)">
-                  Gun Cleaning & Maintenance — Base Track ($74.99.00)
+                <option value="Gun Cleaning &amp; Maintenance — Base Track ($74.99)">
+                  Gun Cleaning & Maintenance — Base Track ($74.99)
                 </option>
                 <option value="Children&#x27;s Safety Class — VIP Turnkey ($265.00)">
                   Children's Safety Class — VIP Turnkey ($265.00)
@@ -10906,7 +10906,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
               </div>
               <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "10px", "marginTop": "12px", "paddingTop": "12px", "borderTop": "1px solid rgba(255, 255, 255, 0.08)"}}>
-                <div id="formBoxBase" data-onclick="toggleFormTier('base')" style={{"background": "#070b10", "border": "1px solid var(--accent-cyan)", "borderRadius": "8px", "padding": "10px", "cursor": "pointer", "transition": "all 0.2s"}}>
+                <div id="formBoxBase" data-onclick="toggleFormTier('base')" onClick={() => { if (typeof window !== "undefined" && (window as any).toggleFormTier) (window as any).toggleFormTier("base"); }} style={{"background": "#070b10", "border": "1px solid var(--accent-cyan)", "borderRadius": "8px", "padding": "10px", "cursor": "pointer", "transition": "all 0.2s"}}>
                   <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center"}}>
                     <strong style={{"color": "#fff", "fontSize": "0.85rem"}}>
                       Standard Base
@@ -10919,7 +10919,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     Self-equipped (Provide own gun, holster & ammo)
                   </p>
                 </div>
-                <div id="formBoxVip" data-onclick="toggleFormTier('vip')" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "10px", "cursor": "pointer", "transition": "all 0.2s"}}>
+                <div id="formBoxVip" data-onclick="toggleFormTier('vip')" onClick={() => { if (typeof window !== "undefined" && (window as any).toggleFormTier) (window as any).toggleFormTier("vip"); }} style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "10px", "cursor": "pointer", "transition": "all 0.2s"}}>
                   <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center"}}>
                     <strong style={{"color": "var(--accent-amber)", "fontSize": "0.85rem"}}>
                       👑 VIP Turnkey
@@ -11070,7 +11070,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </button>
                 </div>
                 {/* 7-Column Days of Week Header (Always In Sync) */}
-                <div style={{"display": "grid", "gridTemplateColumns": "repeat(7, 1fr)", "background": "#0c1219", "borderBottom": "1px solid var(--border-subtle)", "textAlign": "center", "fontSize": "0.72rem", "fontWeight": "800", "color": "var(--text-muted)", "padding": "8px 0"}}>
+                <div id="bookingCalDaysHeader" className="booking-cal-days-header" style={{"display": "grid", "gridTemplateColumns": "repeat(7, minmax(0, 1fr))", "background": "#0c1219", "borderBottom": "1px solid var(--border-subtle)", "textAlign": "center", "fontSize": "0.72rem", "fontWeight": "800", "color": "var(--text-muted)", "padding": "8px 0"}}>
                   <div>SUN</div>
                   <div>MON</div>
                   <div>TUE</div>
@@ -12111,7 +12111,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             
         The 
             <strong>
-              FIFS Graduate Alumni Marksmanship Clinic ($64.99.00)
+              FIFS Graduate Alumni Marksmanship Clinic ($64.99)
             </strong>
              is an exclusive 2-hour diagnostic workshop reserved for verified FIFS graduates and active carry permit holders.
             <br />
@@ -12127,7 +12127,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           <div className="goal-modal-actions" style={{"display": "flex", "flexDirection": "column", "gap": "10px"}}>
             <button className="btn-primary" data-onclick="proceedToClientSignInForAlumni()" style={{"background": "linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)", "color": "#070b10", "fontWeight": "800", "padding": "12px", "width": "100%"}} type="button">
               
-          🔑 Sign In to Client Portal to Unlock ($64.99.00) →
+          🔑 Sign In to Client Portal to Unlock ($64.99) →
         
             </button>
             <button className="btn-secondary-modal" data-onclick="closeAlumniAccessGateModal()" style={{"width": "100%", "padding": "10px"}} type="button">

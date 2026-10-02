@@ -864,8 +864,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         vipDesc: "👑 VIP Turnkey Track. Includes Cindy&#39;s Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
       },
             "Maryland Wear & Carry (8-Hour Renewal)": {
-        base: "75.00",
-        vip: "75.00",
+        base: "29.99",
+        vip: "99.99",
         baseDesc: "Self-equipped track. 8-hour state recertification curriculum and 25-round live-fire qualification. Bring your own firearm, holster, and 50 rounds.",
         vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range fee, B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!"
       },
@@ -7374,8 +7374,8 @@ function getStepNumberFromStatus(statusStr) {
         vipDesc: "👑 VIP Turnkey Track. Includes Cindy&#39;s Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
       },
             "Maryland Wear & Carry (8-Hour Renewal)": {
-        base: "75.00",
-        vip: "75.00",
+        base: "29.99",
+        vip: "99.99",
         baseDesc: "Self-equipped track. 8-hour state recertification curriculum and 25-round live-fire qualification. Bring your own firearm, holster, and 50 rounds.",
         vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range fee, B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!"
       },

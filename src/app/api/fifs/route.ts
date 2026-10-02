@@ -394,8 +394,25 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, error: 'studentId required' }, { status: 400 });
         }
         console.log('[FIFS Route] Deleting student record:', studentId);
-        await supabase.from('students').delete().or();
-        await supabase.from('enrollments').delete().or();
+        try {
+          await supabase.from('enrollments').delete().eq('student_id', String(studentId));
+        } catch (e) {
+          console.warn('[FIFS Route] enrollments delete warning:', e);
+        }
+        try {
+          await supabase.from('students').delete().eq('student_id', String(studentId));
+        } catch (e) {
+          console.warn('[FIFS Route] students student_id delete warning:', e);
+        }
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(studentId));
+        if (isUuid) {
+          try {
+            await supabase.from('students').delete().eq('id', studentId);
+          } catch (e) {}
+          try {
+            await supabase.from('enrollments').delete().eq('id', studentId);
+          } catch (e) {}
+        }
         return NextResponse.json({ success: true, message: 'Student deleted successfully from Supabase', studentId });
       }
 
@@ -405,8 +422,25 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, error: 'clientId required' }, { status: 400 });
         }
         console.log('[FIFS Route] Deleting client record:', clientId);
-        await supabase.from('clients').delete().or();
-        await supabase.from('enrollments').delete().or();
+        try {
+          await supabase.from('enrollments').delete().eq('client_id', String(clientId));
+        } catch (e) {
+          console.warn('[FIFS Route] enrollments delete warning:', e);
+        }
+        try {
+          await supabase.from('clients').delete().eq('client_id', String(clientId));
+        } catch (e) {
+          console.warn('[FIFS Route] clients client_id delete warning:', e);
+        }
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(clientId));
+        if (isUuid) {
+          try {
+            await supabase.from('clients').delete().eq('id', clientId);
+          } catch (e) {}
+          try {
+            await supabase.from('enrollments').delete().eq('id', clientId);
+          } catch (e) {}
+        }
         return NextResponse.json({ success: true, message: 'Client deleted successfully from Supabase', clientId });
       }
 
