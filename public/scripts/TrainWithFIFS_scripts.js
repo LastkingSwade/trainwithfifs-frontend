@@ -1416,11 +1416,40 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         stream.appendChild(channelBanner);
         var now = new Date();
         var timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-        appendTwoWayBubble('user', name, initialMsg, timeStr);
-        setTimeout(function() {
-          var welcomeReply = "Hello, this is Instructor Wade's personal chat assistant. How can I help you today? Please note, if this message was sent between the hours of 9 AM to 5 PM, there is a great chance of him responding within the next five minutes. So please leave this window open.";
-          appendTwoWayBubble('instructor', 'Coach Kai Wade', welcomeReply, timeStr);
-        }, 400);
+
+        // Restore chat message history from Supabase if thread exists
+        if (typeof callFifsBackend === 'function') {
+          callFifsBackend('getLiveChatMessages', { threadId: activeThreadId }, function(res) {
+            if (res && res.status === 'success' && Array.isArray(res.messages) && res.messages.length > 0) {
+              stream.innerHTML = '';
+              stream.appendChild(channelBanner);
+              var renderedHistory = {};
+              res.messages.forEach(function(m) {
+                var isInst = (m.sender === 'instructor' || m.sender === 'admin');
+                var sType = isInst ? 'instructor' : 'user';
+                var sName = isInst ? 'Coach Kai Wade' : (m.sender_name || m.name || name || 'You');
+                var t = m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : timeStr;
+                renderedHistory[m.sent_at + '_' + m.message] = true;
+                appendTwoWayBubble(sType, sName, m.message, t);
+              });
+              if (window.__currentChatSession) {
+                window.__currentChatSession.renderedMessages = renderedHistory;
+              }
+            } else if (initialMsg) {
+              appendTwoWayBubble('user', name, initialMsg, timeStr);
+              setTimeout(function() {
+                var welcomeReply = "Hello, this is Instructor Wade's personal chat assistant. How can I help you today? Please note, if this message was sent between the hours of 9 AM to 5 PM, there is a great chance of him responding within the next five minutes. So please leave this window open.";
+                appendTwoWayBubble('instructor', 'Coach Kai Wade', welcomeReply, timeStr);
+              }, 400);
+            }
+          }, function() {
+            if (initialMsg) {
+              appendTwoWayBubble('user', name, initialMsg, timeStr);
+            }
+          });
+        } else if (initialMsg) {
+          appendTwoWayBubble('user', name, initialMsg, timeStr);
+        }
       }
       if (modal) {
         modal.classList.add('active');
@@ -1450,17 +1479,19 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
             if (!stream) return;
             var rendered = window.__currentChatSession.renderedMessages || {};
             res.messages.forEach(function(m) {
-              var key = m.timestamp + '_' + m.text;
+              var text = m.text || m.message || m.content || '';
+              var timeVal = m.sent_at || m.timestamp || m.created_at || '';
+              var key = (m.id || timeVal) + '_' + text;
               if (!rendered[key] && m.sender === 'instructor') {
                 rendered[key] = true;
-                var time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
-                appendTwoWayBubble('instructor', m.senderName || 'Coach Kai Wade', m.text, time);
+                var timeStr = timeVal ? new Date(timeVal).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : (m.time || '');
+                appendTwoWayBubble('instructor', m.sender_name || m.senderName || 'Coach Kai Wade', text, timeStr);
               }
             });
             window.__currentChatSession.renderedMessages = rendered;
           }
         }, function(err) {});
-      }, 5000);
+      }, 3000);
     }
     function stopVisitorChatPolling() {
       if (window.__visitorChatPollInterval) {
@@ -2655,7 +2686,11 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     window.resolveCurrentInstructorPasscode = resolveCurrentInstructorPasscode;
     var __fifsCachedBackendChatThreads = [];
     function getStoredChatThreads() {
-      if (__fifsCachedBackendChatThreads && __fifsCachedBackendChatThreads.length > 0) {
+      if (Array.isArray(__fifsCachedBackendChatThreads) && __fifsCachedBackendChatThreads.length > 0) {
+        return __fifsCachedBackendChatThreads;
+      }
+      if (Array.isArray(window.__fifsCachedBackendChatThreads) && window.__fifsCachedBackendChatThreads.length > 0) {
+        __fifsCachedBackendChatThreads = window.__fifsCachedBackendChatThreads;
         return __fifsCachedBackendChatThreads;
       }
       try {
@@ -2672,9 +2707,10 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     }
     window.getStoredChatThreads = getStoredChatThreads;
     function saveChatThreads(threads) {
-      __fifsCachedBackendChatThreads = threads || [];
+      __fifsCachedBackendChatThreads = Array.isArray(threads) ? threads : [];
+      window.__fifsCachedBackendChatThreads = __fifsCachedBackendChatThreads;
       try {
-        /* cloud only: zero browser storage */
+        _fifsMemStorage.setItem('fifs_live_chat_threads', JSON.stringify(__fifsCachedBackendChatThreads));
         _fifsMemStorage.setItem('fifs_live_chat_sync', Date.now().toString());
       } catch(e) {}
     }
@@ -2706,7 +2742,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           <div onclick="selectAdminChatThread('${t.id}')" style="background: ${isSelected ? 'linear-gradient(135deg, rgba(0, 229, 255, 0.16) 0%, rgba(15, 23, 42, 0.95) 100%)' : 'linear-gradient(135deg, #0d141e 0%, #080d14 100%)'}; border: 1px solid ${isSelected ? '#00e5ff' : 'rgba(255,255,255,0.07)'}; box-shadow: ${isSelected ? '0 0 16px rgba(0,229,255,0.25), inset 0 0 12px rgba(0,229,255,0.08)' : '0 2px 6px rgba(0,0,0,0.3)'}; border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 2px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <strong style="color: #fff; font-size: 0.94rem; display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display); letter-spacing: 0.3px;">
-                <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:{isSelected ? '#070b10' : '#cbd5e1'};font-size:0.75rem;font-weight:900;">${(t.senderName || 'S').charAt(0).toUpperCase()}</span>
+                <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:${isSelected ? '#070b10' : '#cbd5e1'};font-size:0.75rem;font-weight:900;">${(t.senderName || 'S').charAt(0).toUpperCase()}</span>
                 ${escapeHtml(t.senderName)}
               </strong>
               <div style="display: flex; align-items: center; gap: 6px;">
@@ -2819,7 +2855,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         } catch(e) {}
       }
       // Sync Admin Reply to Supabase messages table via /api/fifs
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
+      var pin = (typeof resolveCurrentInstructorPasscode === 'function' ? resolveCurrentInstructorPasscode() : '') || sessionStorage.getItem('fifs_instructor_pin') || (window.__fifsAdminAuth && window.__fifsAdminAuth.passcode) || 'Ultima';
       var replyPayload = {
         threadId: thread.id,
         thread_id: thread.id,
@@ -2831,7 +2867,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         senderEmail: thread.senderEmail || ''
       };
       if (typeof callFifsBackend === 'function') {
-        callFifsBackend('sendAdminLiveChatReply', { passcode: pin, payload: replyPayload }, function(res) {
+        callFifsBackend('sendAdminLiveChatReply', Object.assign({ passcode: pin, pin: pin, payload: replyPayload }, replyPayload), function(res) {
           console.log('Admin reply saved to Supabase messages table:', res);
           refreshAdminLiveChats();
         }, function(err) {
@@ -10847,8 +10883,11 @@ if (typeof window !== 'undefined') {
       if (!pin) return;
       if (typeof window.callFifsBackend === 'function') {
         window.callFifsBackend('getLiveChats', { passcode: pin, pin: pin }, function(res) {
-          if (res && res.success && Array.isArray(res.liveChats)) {
+          if (res && (res.success || res.status === 'success') && Array.isArray(res.liveChats)) {
             window.__adminLiveChatThreads = res.liveChats;
+            if (typeof saveChatThreads === 'function') saveChatThreads(res.liveChats);
+            if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
+            if (typeof updateAdminChatBadgeCount === 'function') updateAdminChatBadgeCount();
             var unreadTotal = 0;
             res.liveChats.forEach(function(t) { if (t.unread) unreadTotal++; });
             if (unreadTotal > lastKnownUnreadCount) {
@@ -10866,11 +10905,8 @@ if (typeof window !== 'undefined') {
                 el.style.display = unreadTotal > 0 ? "inline-flex" : "none";
               }
             });
-            if (typeof window.renderAdminLiveChatThreadList === 'function') {
-              window.renderAdminLiveChatThreadList();
-            }
-            if (window.__activeAdminChatThreadId && Array.isArray(window.__adminLiveChatThreads)) {
-              var currentActive = window.__adminLiveChatThreads.find(function(t) { return t.id === window.__activeAdminChatThreadId; });
+            if (window.__activeAdminChatThreadId && Array.isArray(res.liveChats)) {
+              var currentActive = res.liveChats.find(function(t) { return t.id === window.__activeAdminChatThreadId; });
               if (currentActive && typeof window.renderActiveAdminChatMessages === 'function') {
                 window.renderActiveAdminChatMessages(currentActive);
               }

@@ -2783,8 +2783,19 @@ export default function TrainWithFIFS(props: any) {
         dashBox.style.setProperty('display', 'block', 'important');
       }
 
-
-
+      // Sync and render live chats immediately upon dashboard data load
+      if (data && (data.liveChats || data.threads || data.messages)) {
+        const rawThreads = data.liveChats || data.threads;
+        if (typeof (window as any).saveChatThreads === 'function') {
+          (window as any).saveChatThreads(rawThreads);
+        }
+        if (typeof (window as any).renderAdminChatConsole === 'function') {
+          (window as any).renderAdminChatConsole();
+        }
+        if (typeof (window as any).updateAdminChatBadgeCount === 'function') {
+          (window as any).updateAdminChatBadgeCount();
+        }
+      }
 
       const students = (data && Array.isArray(data.students)) ? data.students : [];
       (window as any).adminCachedStudents = students;
@@ -2978,6 +2989,38 @@ export default function TrainWithFIFS(props: any) {
         }
       })
       .catch(err => console.warn('Refresh admin error:', err));
+    };
+
+    (window as any).refreshAdminLiveChats = (window as any).refreshAdminChat = async function() {
+      const pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      try {
+        const res = await fetch('/api/fifs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getLiveChats', passcode: pin, pin: pin })
+        });
+        const data = await res.json();
+        if (data && (data.success || data.status === 'success')) {
+          const rawThreads = data.threads || data.liveChats;
+          if (typeof (window as any).saveChatThreads === 'function') {
+            (window as any).saveChatThreads(rawThreads);
+          }
+          if (typeof (window as any).renderAdminChatConsole === 'function') {
+            (window as any).renderAdminChatConsole();
+          }
+          if (typeof (window as any).updateAdminChatBadgeCount === 'function') {
+            (window as any).updateAdminChatBadgeCount();
+          }
+          if ((window as any).__activeAdminChatThreadId && Array.isArray(rawThreads)) {
+            const active = rawThreads.find((t: any) => t.id === (window as any).__activeAdminChatThreadId);
+            if (active && typeof (window as any).renderActiveAdminChatMessages === 'function') {
+              (window as any).renderActiveAdminChatMessages(active);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('refreshAdminLiveChats error:', err);
+      }
     };
 
 
@@ -6343,10 +6386,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     </div>
                   </div>
                   {/* Instructor Live Reply Dock */}
-                  <form id="adminLiveChatReplyForm" data-onsubmit="handleAdminLiveChatSend(event)" style={{"display": "flex", "gap": "10px", "alignItems": "stretch", "background": "rgba(15, 23, 42, 0.6)", "border": "1px solid rgba(0, 229, 255, 0.25)", "borderRadius": "10px", "padding": "6px 8px", "boxShadow": "0 0 15px rgba(0, 229, 255, 0.08)"}}>
-                    <textarea id="adminLiveChatReplyInput" placeholder="Dispatch live response to student as Coach Kai Wade... (Instant cloud relay)" rows="2" style={{"flex": "1", "background": "transparent", "border": "none", "padding": "8px 10px", "color": "#fff", "fontSize": "0.86rem", "resize": "none", "fontFamily": "inherit", "outline": "none"}} required="">
+                  <form id="adminLiveChatReplyForm" data-onsubmit="handleAdminLiveChatSend(event)" onSubmit={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleAdminLiveChatSend) (window as any).handleAdminLiveChatSend(e); }} style={{"display": "flex", "gap": "10px", "alignItems": "stretch", "background": "rgba(15, 23, 42, 0.6)", "border": "1px solid rgba(0, 229, 255, 0.25)", "borderRadius": "10px", "padding": "6px 8px", "boxShadow": "0 0 15px rgba(0, 229, 255, 0.08)"}}>
+                    <textarea id="adminLiveChatReplyInput" placeholder="Dispatch live response to student as Coach Kai Wade... (Instant cloud relay)" rows={2} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleAdminLiveChatSend) (window as any).handleAdminLiveChatSend(e); } }} style={{"flex": "1", "background": "transparent", "border": "none", "padding": "8px 10px", "color": "#fff", "fontSize": "0.86rem", "resize": "none", "fontFamily": "inherit", "outline": "none"}} required={true}>
                     </textarea>
-                    <button type="submit" id="adminLiveChatSendBtn" className="btn-spark" style={{"padding": "0 20px", "fontSize": "0.86rem", "background": "linear-gradient(135deg, #00e5ff 0%, #0284c7 100%)", "color": "#070b10", "border": "none", "borderRadius": "8px", "fontWeight": "900", "cursor": "pointer", "whiteSpace": "nowrap", "boxShadow": "0 0 14px rgba(0, 229, 255, 0.4)", "textTransform": "uppercase", "letterSpacing": "0.5px"}}>
+                    <button type="submit" id="adminLiveChatSendBtn" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleAdminLiveChatSend) (window as any).handleAdminLiveChatSend(e); }} className="btn-spark" style={{"padding": "0 20px", "fontSize": "0.86rem", "background": "linear-gradient(135deg, #00e5ff 0%, #0284c7 100%)", "color": "#070b10", "border": "none", "borderRadius": "8px", "fontWeight": "900", "cursor": "pointer", "whiteSpace": "nowrap", "boxShadow": "0 0 14px rgba(0, 229, 255, 0.4)", "textTransform": "uppercase", "letterSpacing": "0.5px"}}>
                       
             Send Reply ⚡
           
@@ -12023,14 +12066,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
           Direct dispatch to Coach Kai Wade. Messages submitted during business hours trigger instant priority notification.
         
             </p>
-            <form id="liveChatDispatchForm" data-onsubmit="handleLiveChatSubmit(event)">
+            <form id="liveChatDispatchForm" data-onsubmit="handleLiveChatSubmit(event)" onSubmit={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleLiveChatSubmit) (window as any).handleLiveChatSubmit(e); }}>
               <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "10px", "marginBottom": "10px"}}>
-                <input id="chatSenderName" placeholder="Your Name" required="" style={{"background": "#10161f", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "fontSize": "0.88rem"}} type="text" />
-                <input id="chatSenderPhone" placeholder="Mobile Phone (SMS Callback)" required="" style={{"background": "#10161f", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "fontSize": "0.88rem"}} type="tel" />
+                <input id="chatSenderName" placeholder="Your Name" required={true} style={{"background": "#10161f", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "fontSize": "0.88rem"}} type="text" />
+                <input id="chatSenderPhone" placeholder="Mobile Phone (SMS Callback)" required={true} style={{"background": "#10161f", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "fontSize": "0.88rem"}} type="tel" />
               </div>
-              <textarea id="chatMessageText" placeholder="How can Coach Wade assist you today? (Course dates, equipment questions, etc.)" required="" rows="2" style={{"background": "#10161f", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%", "fontFamily": "inherit", "fontSize": "0.88rem", "marginBottom": "10px"}}>
+              <textarea id="chatMessageText" placeholder="How can Coach Wade assist you today? (Course dates, equipment questions, etc.)" required={true} rows={2} style={{"background": "#10161f", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%", "fontFamily": "inherit", "fontSize": "0.88rem", "marginBottom": "10px"}}>
               </textarea>
-              <button className="btn-primary" id="btn-send-chat" data-onclick="handleLiveChatSubmit(event)" style={{"width": "100%", "padding": "11px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px"}} type="submit">
+              <button className="btn-primary" id="btn-send-chat" data-onclick="handleLiveChatSubmit(event)" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleLiveChatSubmit) (window as any).handleLiveChatSubmit(e); }} style={{"width": "100%", "padding": "11px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px"}} type="submit">
                 
             🚀 Dispatch Live Chat Message →
           
@@ -12101,9 +12144,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
     
           </div>
           {/* Input Dock with Send & Close Actions */}
-          <form id="twoWayChatInputForm" data-onsubmit="handleTwoWayChatSend(event)" style={{"padding": "12px 18px", "background": "#0d131b", "borderTop": "1px solid var(--border-subtle)", "display": "flex", "gap": "10px", "alignItems": "center"}}>
-            <input type="text" id="twoWayMessageInput" placeholder="Type a message to Coach Wade..." autoComplete="off" required="" style={{"flex": "1", "background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "24px", "padding": "12px 18px", "color": "#fff", "fontFamily": "var(--font-body)", "fontSize": "0.92rem", "outline": "none", "transition": "border-color 0.2s"}} />
-            <button type="submit" id="btnTwoWaySend" className="btn-primary" style={{"width": "auto", "padding": "10px 22px", "borderRadius": "24px", "fontSize": "0.95rem", "fontWeight": "800", "display": "inline-flex", "alignItems": "center", "gap": "6px", "textTransform": "uppercase", "minHeight": "44px"}}>
+          <form id="twoWayChatInputForm" data-onsubmit="handleTwoWayChatSend(event)" onSubmit={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleTwoWayChatSend) (window as any).handleTwoWayChatSend(e); }} style={{"padding": "12px 18px", "background": "#0d131b", "borderTop": "1px solid var(--border-subtle)", "display": "flex", "gap": "10px", "alignItems": "center"}}>
+            <input type="text" id="twoWayMessageInput" placeholder="Type a message to Coach Wade..." autoComplete="off" required={true} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleTwoWayChatSend) (window as any).handleTwoWayChatSend(e); } }} style={{"flex": "1", "background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "24px", "padding": "12px 18px", "color": "#fff", "fontFamily": "var(--font-body)", "fontSize": "0.92rem", "outline": "none", "transition": "border-color 0.2s"}} />
+            <button type="submit" id="btnTwoWaySend" className="btn-primary" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleTwoWayChatSend) (window as any).handleTwoWayChatSend(e); }} style={{"width": "auto", "padding": "10px 22px", "borderRadius": "24px", "fontSize": "0.95rem", "fontWeight": "800", "display": "inline-flex", "alignItems": "center", "gap": "6px", "textTransform": "uppercase", "minHeight": "44px"}}>
               <span>
                 Send
               </span>
@@ -12111,7 +12154,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 ➤
               </span>
             </button>
-            <button type="button" data-onclick="closeTwoWayChat()" title="Close chat and clear message" style={{"background": "rgba(255,255,255,0.06)", "border": "1px solid rgba(255,255,255,0.15)", "color": "var(--text-muted)", "padding": "8px 14px", "borderRadius": "20px", "fontSize": "0.80rem", "fontWeight": "700", "cursor": "pointer", "textTransform": "uppercase", "minHeight": "44px"}}>
+            <button type="button" data-onclick="closeTwoWayChat()" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).closeTwoWayChat) (window as any).closeTwoWayChat(); }} title="Close chat and clear message" style={{"background": "rgba(255,255,255,0.06)", "border": "1px solid rgba(255,255,255,0.15)", "color": "var(--text-muted)", "padding": "8px 14px", "borderRadius": "20px", "fontSize": "0.80rem", "fontWeight": "700", "cursor": "pointer", "textTransform": "uppercase", "minHeight": "44px"}}>
               
         Close Chat
       
