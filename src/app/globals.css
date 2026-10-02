@@ -5941,3 +5941,15 @@ button:focus-visible,
     box-sizing: border-box !important;
   }
 }
+
+
+/* Ensure Booking Calendar Day-of-Week headers are always 7 horizontal columns, never stacked vertically */
+#bookingCalDaysHeader,
+.booking-cal-days-header,
+.calendar-days-header,
+div[style*="repeat(7, 1fr)"],
+div[style*="repeat(7,1fr)"] {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  width: 100% !important;
+}

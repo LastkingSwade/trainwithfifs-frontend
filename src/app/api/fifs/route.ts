@@ -258,6 +258,62 @@ export async function POST(req: NextRequest) {
 
 
    switch (action) {
+      case 'adminDeleteStudent': {
+        const studentId = body.studentId || body.id;
+        if (!studentId) {
+          return NextResponse.json({ success: false, error: 'studentId required' }, { status: 400 });
+        }
+        console.log('[FIFS Route] Deleting student record:', studentId);
+        // Delete from students table
+        const { error: delErr } = await supabase.from('students').delete().or(`id.eq.${studentId},student_id.eq.${studentId}`);
+        if (delErr) {
+          console.error('[FIFS Route] Supabase delete student error:', delErr);
+        }
+        // Also delete associated enrollments
+        await supabase.from('enrollments').delete().or(`student_id.eq.${studentId},client_id.eq.${studentId}`);
+        return NextResponse.json({ success: true, message: 'Student deleted successfully from Supabase', studentId });
+      }
+
+      case 'adminDeleteClient': {
+        const clientId = body.clientId || body.id;
+        if (!clientId) {
+          return NextResponse.json({ success: false, error: 'clientId required' }, { status: 400 });
+        }
+        console.log('[FIFS Route] Deleting client record:', clientId);
+        // Delete from clients table
+        const { error: delErr } = await supabase.from('clients').delete().or(`id.eq.${clientId},client_id.eq.${clientId}`);
+        if (delErr) {
+          console.error('[FIFS Route] Supabase delete client error:', delErr);
+        }
+        return NextResponse.json({ success: true, message: 'Client deleted successfully from Supabase', clientId });
+      }
+
+      case 'submitContactInquiry': {
+        const { fullName, phone, message } = body;
+        console.log('[FIFS Route] Contact inquiry received:', { fullName, phone, message });
+        
+        // Notify Discord if webhook is configured
+        const discordUrl = process.env.DISCORD_WEBHOOK_URL || process.env.DISCORD_SECURITY_ALERT_WEBHOOK_URL;
+        if (discordUrl) {
+          try {
+            await fetch(discordUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                content: `🔔 **New Live Chat / Contact Inquiry**
+**Name:** ${fullName || 'Anonymous'}
+**Phone:** ${phone || 'N/A'}
+**Message:** ${message || 'N/A'}`
+              })
+            });
+          } catch (dErr) {
+            console.error('[FIFS Route] Discord notification failed:', dErr);
+          }
+        }
+
+        return NextResponse.json({ success: true, message: 'Inquiry received and routed to Lead Instructor Kai Wade' });
+      }
+
      // Delete Permit Record for Authenticated Client (Respects RLS)
      case 'deletePermit': {
        const permitId = payload.permitId;
