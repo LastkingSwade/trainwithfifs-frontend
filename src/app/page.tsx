@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 
 
@@ -162,7 +162,7 @@ export default function TrainWithFIFS(props: any) {
         badge: "Full Public Carry Authorization • 16-Hour",
         title: "I Want to Legally Carry Concealed in Public",
         rec: "Recommended: Maryland CCW (Wear & Carry Permit) ($249.99)",
-        courseValue: "Maryland Wear & Carry (CCW) — Base Track ($249.99)",
+        courseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
         showGuide: false,
         synopsis: "The mandatory state-certified 16-hour curriculum and 25-round practical qualification required to receive your Maryland Handgun Wear and Carry Permit. Provides in-depth training in defensive marksmanship, holster draw mechanics, and Maryland's strict legal use-of-force standards.",
         why: [
@@ -194,8 +194,8 @@ export default function TrainWithFIFS(props: any) {
       need_multistate: {
         badge: "Multi-State Travel & I-95 Commuters",
         title: "Do I Need a Multi-State Carry Permit?",
-        rec: "Recommended: Mid-Atlantic Multi-State Mastery ($425 Base / $550 VIP)",
-        courseValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)",
+        rec: "Recommended: Mid-Atlantic Multi-State Mastery ($424.99 Base / $549.99 VIP)",
+        courseValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($549.99)",
         showGuide: false,
         synopsis: "Designed for travelers, commuters, and roadtrippers who regularly cross Maryland state borders into Virginia, Pennsylvania, Delaware, the Carolinas, Georgia, or Florida. Fulfills your 16-hour Maryland requirement while preparing documentation for Virginia, Florida, Arizona, and Pennsylvania non-resident carry in a single weekend.",
         why: [
@@ -3405,7 +3405,7 @@ export default function TrainWithFIFS(props: any) {
       let unitVip = 375.00;
       const clean = courseSelection.toLowerCase();
       if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) {
-        unitBase = 425.00; unitVip = 550.00;
+        unitBase = 424.99; unitVip = 549.99;
       } else if (clean.includes('renewal')) {
         unitBase = 149.99; unitVip = 249.99;
       } else if (clean.includes('combo')) {
@@ -6825,7 +6825,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </div>
         <div className="tuition-grid">
           {/* 1. Mid-Atlantic Multi-State Mastery (NEW FLAGSHIP) */}
-          <div className="tuition-card" id="card-course-mastery" style={{"border": "2px solid var(--accent-amber)"}}>
+          <div className="card-container" style={{"display": "flex", "flexDirection": "column", "alignItems": "stretch", "flex": "1", "height": "100%", "width": "100%"}}>
+            <div className="tuition-card" id="card-course-mastery" style={{"border": "2px solid var(--accent-amber)", "height": "100%", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "alignItems": "stretch"}}>
             <div className="card-tier-badge" id="badge-course-mastery" style={{"display": "none", "background": "var(--accent-amber)", "color": "#070b10", "fontFamily": "var(--font-display)", "fontSize": "0.72rem", "fontWeight": "800", "padding": "2px 10px", "borderRadius": "20px", "textTransform": "uppercase", "position": "absolute", "top": "-10px", "right": "16px"}}>
               
             👑 VIP MODE
@@ -6909,6 +6910,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             
               </button>
             </div>
+          </div>
           </div>
           {/* 2. Maryland CCW & HQL Combo */}
           <div className="tuition-card highlight-combo" id="card-course-combo">
@@ -8429,7 +8431,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Standardized Tuition Rate
                 </div>
                 <div style={{"fontFamily": "var(--font-display)", "fontSize": "2rem", "fontWeight": "900", "color": "#fff"}}>
-                  $425 <span style={{"fontSize": "1rem", "color": "var(--text-muted)"}}>Base</span> / $550 <span style={{"fontSize": "1rem", "color": "var(--accent-amber)"}}>VIP</span>
+                  $424.99 <span style={{"fontSize": "1rem", "color": "var(--text-muted)"}}>Base</span> / $549.99 <span style={{"fontSize": "1rem", "color": "var(--accent-amber)"}}>VIP</span>
                 </div>
               </div>
             </div>
@@ -8481,7 +8483,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Close
               </button>
               <button type="button" className="btn-primary" data-onclick="closeMultistateMasteryModal(); selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($424.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeMultistateMasteryModal) (window as any).closeMultistateMasteryModal(); if ((window as any).selectCourse) (window as any).selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($424.99)'); } }}>
-                Enroll in Multi-State Mastery ($425) →
+                Enroll in Multi-State Mastery ($424.99) →
               </button>
             </div>
           </div>
@@ -8576,7 +8578,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <span className="badge-pop" style={{"background": "var(--accent-amber)", "color": "#070b10", "fontWeight": "800"}}>FLAGSHIP MULTI-STATE</span>
                 <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "margin": "10px 0 6px"}}>Mid-Atlantic Multi-State Mastery</h4>
                 <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "marginBottom": "14px"}}>16-hr Maryland Wear & Carry + reciprocal affidavits for VA, FL, AZ, and PA (34+ states total).</p>
-                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$425 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $550 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$424.99 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $549.99 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
               </div>
               <button type="button" className="btn-primary" data-onclick="closeFutureServicesModal(); selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($424.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeFutureServicesModal) (window as any).closeFutureServicesModal(); if ((window as any).selectCourse) (window as any).selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($424.99)'); } }}>Select Multi-State →</button>
             </div>

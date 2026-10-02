@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    MODERN EXECUTIVE REDESIGN ARCHITECTURE OVERHAUL
    Contemporary dark luxury, balanced whitespace, modular cards, glassmorphism
    ========================================================================== */
@@ -5732,9 +5732,9 @@ button:focus-visible,
     font-size: 16px !important; /* Prevents auto-zoom on iOS */
     min-height: 44px !important;
   }
-  .goal-modal-box .grid:not(#bookingCalDaysGrid):not(#bookingCalDaysHeader):not(.booking-cal-days-header),
-  .goal-modal-box [style*="grid-template-columns"]:not(#bookingCalDaysGrid):not(#bookingCalDaysHeader):not(.booking-cal-days-header):not([style*="repeat(7"]),
-  .goal-modal-box [style*="gridTemplateColumns"]:not(#bookingCalDaysGrid):not(#bookingCalDaysHeader):not(.booking-cal-days-header):not([style*="repeat(7"]) {
+  .goal-modal-box .grid,
+  .goal-modal-box [style*="grid-template-columns"],
+  .goal-modal-box [style*="gridTemplateColumns"] {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
   }
@@ -5908,34 +5908,13 @@ button:focus-visible,
   vertical-align: middle;
 }
 
-/* Ensure Booking Calendar Day-of-Week headers are always 7 horizontal columns, never stacked vertically */
-#bookingCalDaysHeader,
-.booking-cal-days-header,
-.calendar-days-header,
-div[style*="repeat(7, 1fr)"],
-div[style*="repeat(7,1fr)"] {
-  display: grid !important;
-  grid-template-columns: repeat(7, 1fr) !important;
-  width: 100% !important;
-}
-
-
-/* High-specificity enforcement for 7-column calendar and weekday header on all screens */
-.goal-modal-box #bookingCalDaysHeader,
-.goal-modal-box #bookingCalDaysGrid,
-.goal-modal-box .booking-cal-days-header,
-#bookingCalDaysHeader,
-#bookingCalDaysGrid,
-div[id="bookingCalDaysGrid"],
-div[id="bookingCalDaysHeader"] {
-  display: grid !important;
-  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
-  width: 100% !important;
-}
-
-#bookingCalDaysHeader > div,
-.booking-cal-days-header > div,
-#bookingCalDaysGrid > div {
+/* Card Container for Equalized Heights and Grid Alignment */
+.card-container {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  flex: 1 1 0% !important;
+  height: 100% !important;
   width: 100% !important;
   box-sizing: border-box !important;
 }

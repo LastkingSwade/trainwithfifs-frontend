@@ -256,6 +256,57 @@ export async function POST(req: NextRequest) {
       }
     }
 
+        // Guest Booking Check & Unauthenticated Lead Trigger
+    const userId = body.user_id || body.userId || null;
+    const isGuest = !userId && !studentId.startsWith('FI-CLIENT-');
+
+    if (supabase && isGuest) {
+      try {
+        await supabase.from('leads').insert([{
+          full_name: fullName,
+          email: email,
+          source: 'Guest Checkout Lead: ' + courseSelection
+        }]);
+      } catch (leadErr) {
+        console.warn('Lead capture note:', leadErr);
+      }
+    }
+
+    // Server-Side Discord Alert
+    const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1547779726746320958/nu4yar-r8aR3c6-P-mm8YeprX5bou1uqej24tEuYhNS5LVusMuBtADVcv1vf1oJp_bum";
+    try {
+      const discordPayload = {
+        username: "FIFS Operations & Command Dispatch",
+        avatar_url: "https://lh3.googleusercontent.com/d/1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa",
+        embeds: [{
+          title: isGuest ? ("🚨 New Unauthenticated Lead (Guest Checkout): " + fullName) : ("🎯 New Course Enrollment Checkout: " + fullName),
+          description: isGuest ? "A guest student without an existing portal account has initiated course reservation checkout." : `Enrolled in ${courseSelection} with reservation invoice ${invoiceId}`,
+          url: "https://trainwithfifs.com",
+          color: isGuest ? 0xF59E0B : 0x00E5FF,
+          fields: [
+            { name: "Student Name", value: fullName, inline: true },
+            { name: "Classification", value: isGuest ? "⚠️ Unauthenticated Lead (Guest)" : "Verified Student", inline: true },
+            { name: "Email", value: email, inline: true },
+            { name: "Phone", value: phone || "Not provided", inline: true },
+            { name: "Course Track", value: courseSelection + (pricing.isVip ? " (👑 VIP Turnkey)" : " (Standard Base)"), inline: false },
+            { name: "Deposit Due", value: "$" + pricing.depositDueNow.toFixed(2) + " Due Now", inline: true },
+            { name: "Total Investment", value: "$" + pricing.grandTotal.toFixed(2), inline: true },
+            { name: "Invoice", value: invoiceId, inline: true }
+          ],
+          footer: {
+            text: "Future Initiative Firearm Services • Operational Relay",
+            icon_url: "https://lh3.googleusercontent.com/d/1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa"
+          },
+          timestamp: new Date().toISOString()
+        }]
+      };
+      await fetch(DISCORD_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(discordPayload)
+      }).catch(e => console.warn('Discord alert note:', e));
+    } catch (_discErr) {}
+
     return NextResponse.json({
       status: 'success',
       url: session.url,
@@ -362,4 +413,3 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-

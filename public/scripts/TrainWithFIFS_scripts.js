@@ -1,84 +1,63 @@
 // === AUTHORITATIVE ALL-8 COURSE TIER CONFIGURATION ===
-    var COURSE_TIER_CONFIG = {
+        var COURSE_TIER_CONFIG = {
       mastery: {
-        basePrice: '$424.99', vipPrice: '$549.99',
-        baseTitle: 'Mid-Atlantic Multi-State Mastery',
-        vipTitle: '👑 VIP Mid-Atlantic Multi-State Mastery',
-        baseBadge: '5-STATE EXPANSION (MD+VA+FL+AZ+PA) — 34+ STATES LEGAL CARRY',
-        vipBadge: '👑 ALL-INCLUSIVE VIP 5-STATE CONCIERGE EXPERIENCE',
-        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
-        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+        basePrice: "$424.99",
+        vipPrice: "$549.99",
+        baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($424.99)",
+        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($549.99)"
       },
       combo: {
-        basePrice: '$249.99',
-        vipPrice: '$375.00',
-        baseTitle: 'Maryland CCW & HQL Combo Certification',
-        vipTitle: '👑 VIP Maryland CCW & HQL Combo Concierge',
-        baseBadge: 'DUAL CERTIFICATION: CONCEALED CARRY + HANDGUN PURCHASE PERMIT',
-        vipBadge: '👑 ALL-INCLUSIVE VIP COMBO CONCIERGE (LIVESCAN + RANGE INCLUDED)',
-        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
-        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+        basePrice: "$249.99",
+        vipPrice: "$375.00",
+        baseValue: "Maryland CCW & HQL Combo — Base Track ($249.99)",
+        vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($375.00)"
       },
       ccw: {
-        basePrice: '$199.99', vipPrice: '$349.99',
-        baseTitle: 'Maryland Wear & Carry (CCW) Initial Course',
-        vipTitle: '👑 VIP Maryland Wear & Carry (CCW) Concierge',
-        baseBadge: 'MARYLAND STATE POLICE CERTIFIED 16-HOUR INITIAL CCW',
-        vipBadge: '👑 VIP WEAR & CARRY: EXPEDITED PACKET & FINGERPRINTING ON-SITE',
-        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
-        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+        basePrice: "$199.99",
+        vipPrice: "$349.99",
+        baseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
+        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($349.99)"
+      },
+      renewal: {
+        basePrice: "$149.99",
+        vipPrice: "$249.99",
+        baseValue: "Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)",
+        vipValue: "Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($249.99)"
       },
       hql: {
-        basePrice: '$100.00',
-        vipPrice: '$165.00',
-        baseTitle: 'Maryland Handgun Qualification License (HQL)',
-        vipTitle: '👑 VIP Maryland HQL Concierge Licensing',
-        baseBadge: 'MARYLAND HANDGUN PURCHASE PERMIT MANDATORY TRAINING',
-        vipBadge: '👑 VIP HQL: APPLICATION SUBMISSION ASSISTANCE + LIVE FIRE EXEMPTION',
-        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
-        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+        basePrice: "$100.00",
+        vipPrice: "$165.00",
+        baseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
+        vipValue: "Maryland HQL (Purchase License) — VIP Turnkey ($165.00)"
       },
       coaching: {
-        basePrice: '$125.00',
-        vipPrice: '$165.00',
-        baseTitle: 'Personal 1-on-1 Private Firearms Coaching',
-        vipTitle: '👑 VIP Private Masterclass & Tactical Diagnostics',
-        baseBadge: 'DEDICATED 1-ON-1 INSTRUCTOR TIME & MARKSMANSHIP TARGETING',
-        vipBadge: '👑 VIP PRIVATE SESSION: DUAL-CALIBER RENTALS & VIDEO DIAGNOSTICS',
-        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
-        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+        basePrice: "$125.00",
+        vipPrice: "$195.00",
+        baseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
+        vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
       },
       cleaning: {
-        basePrice: '$75.00',
-        vipPrice: '$115.00',
-        baseTitle: 'Firearm Maintenance & Deep Cleaning Workshop',
-        vipTitle: '👑 VIP Armorer Inspection & Ultrasonic Deep Clean',
-        baseBadge: 'FIELD-STRIP, CLEANING CHEMICAL SAFETY & PROPER LUBRICATION',
-        vipBadge: '👑 VIP ARMORER SERVICE: ULTRASONIC TANK CLEAN & PRO-GRADE SOLVENTS',
-        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
-        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+        basePrice: "$75.00",
+        vipPrice: "$115.00",
+        baseValue: "Gun Cleaning & Maintenance — Base Track ($75.00)",
+        vipValue: "Gun Cleaning & Maintenance — VIP Turnkey ($115.00)"
       },
       children: {
-        basePrice: '$199.99',
-        vipPrice: '$265.00',
-        baseTitle: 'Youth & Family Gun Safety Academy',
-        vipTitle: '👑 VIP Family Defensive & Safe Storage Mastery',
-        baseBadge: 'ACCIDENT PREVENTION, EDDIE EAGLE PROTOCOL & RANGE DISCIPLINE',
-        vipBadge: '👑 VIP FAMILY PACK: LOCKBOX INCLUDED & PRIVATE RANGE LANE ACCESS',
-        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
-        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+        basePrice: "$199.99",
+        vipPrice: "$265.00",
+        baseValue: "Children's Safety Class — Base Track ($199.99)",
+        vipValue: "Children's Safety Class — VIP Turnkey ($265.00)"
       },
       alumni: {
-        basePrice: '$65.00',
-        vipPrice: '$115.00',
-        baseTitle: 'FIFS Graduate Alumni Tactical Marksman Clinic',
-        vipTitle: "👑 VIP Alumni Advanced Shoot/Don't-Shoot Shootout",
-        baseBadge: 'EXCLUSIVELY FOR FIFS GRADUATES — ADVANCED DRILLS & DRAW SPEED',
-        vipBadge: '👑 VIP CLINIC: 100RDS MATCH AMMO & LOW-LIGHT SCENARIO RUNS',
-        baseStripe: 'https://buy.stripe.com/dR67sWfR72D520ocMN',
-        vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
+        basePrice: "$65.00",
+        vipPrice: "$115.00",
+        baseValue: "FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)",
+        vipValue: "FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
       }
     };
+    var courseTierMap = COURSE_TIER_CONFIG;
+    window.COURSE_TIER_CONFIG = COURSE_TIER_CONFIG;
+    window.courseTierMap = courseTierMap;
 
 
     function setCardTier(courseKey, targetTier, evt) {
@@ -652,7 +631,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         badge: "Full Public Carry Authorization • 16-Hour",
         title: "I Want to Legally Carry Concealed in Public",
         rec: "Recommended: Maryland CCW (Wear & Carry Permit) ($199.99)",
-        courseValue: "Maryland Wear & Carry (CCW) — Base Track ($249.99)",
+        courseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
         showGuide: false,
         synopsis: "The mandatory state-certified 16-hour curriculum and 25-round practical qualification required to receive your Maryland Handgun Wear and Carry Permit. Provides in-depth training in defensive marksmanship, holster draw mechanics, and Maryland's strict legal use-of-force standards.",
         why: [
@@ -684,8 +663,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       need_multistate: {
         badge: "Multi-State Travel & I-95 Commuters",
         title: "Do I Need a Multi-State Carry Permit?",
-        rec: "Recommended: Mid-Atlantic Multi-State Mastery ($425 Base / $550 VIP)",
-        courseValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)",
+        rec: "Recommended: Mid-Atlantic Multi-State Mastery ($424.99 Base / $549.99 VIP)",
+        courseValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($549.99)",
         showGuide: false,
         synopsis: "Designed for travelers, commuters, and roadtrippers who regularly cross Maryland state borders into Virginia, Pennsylvania, Delaware, the Carolinas, Georgia, or Florida. Maryland's permit alone does NOT honor Pennsylvania or Delaware directly. This course fulfills your 16-hour Maryland requirement while preparing the affidavits and documentation needed for Virginia, Florida, Arizona, and Pennsylvania non-resident carry in a single weekend.",
         why: [
@@ -1337,18 +1316,18 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       var bDeposit = document.getElementById('formBreakdownDeposit');
       var bBalance = document.getElementById('formBreakdownBalance');
 
-      if (bTuition) bTuition.textContent = '$' + discountedTuition.toFixed(2);
+      if (bTuition) { bTuition.textContent = '$' + discountedTuition.toFixed(2); bTuition.innerText = '$' + discountedTuition.toFixed(2); }
       if (bRange) {
         bRange.textContent = isVip ? 'INCLUDED (VIP Perk)' : ('+$' + rangeFee.toFixed(2) + ' (Base Track)');
         bRange.style.color = isVip ? '#10b981' : '#f59e0b';
       }
       if (bTax) bTax.textContent = '+$' + mdTax.toFixed(2);
       if (bTotal) {
-        bTotal.textContent = '$' + grandTotal.toFixed(2);
+        bTotal.textContent = '$' + grandTotal.toFixed(2); bTotal.innerText = '$' + grandTotal.toFixed(2);
         bTotal.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
       }
-      if (bDeposit) bDeposit.textContent = '$' + depositDueNow.toFixed(2);
-      if (bBalance) bBalance.textContent = '$' + balanceDueClass.toFixed(2);
+      if (bDeposit) { bDeposit.textContent = '$' + depositDueNow.toFixed(2); bDeposit.innerText = '$' + depositDueNow.toFixed(2); }
+      if (bBalance) { bBalance.textContent = '$' + balanceDueClass.toFixed(2); bBalance.innerText = '$' + balanceDueClass.toFixed(2); }
 
       if (typeof renderBookingCalendar === 'function') {
         renderBookingCalendar();
@@ -3432,12 +3411,12 @@ function loadDemoStudent() {
       }
     }
     window.closeCourseBookingModal = closeCourseBookingModal;
-    var COURSE_TIER_CONFIG = {
+        var COURSE_TIER_CONFIG = {
       mastery: {
-        basePrice: "$425.00",
-        vipPrice: "$550.00",
-        baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($425.00)",
-        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)"
+        basePrice: "$424.99",
+        vipPrice: "$549.99",
+        baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($424.99)",
+        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($549.99)"
       },
       combo: {
         basePrice: "$249.99",
@@ -3446,10 +3425,16 @@ function loadDemoStudent() {
         vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($375.00)"
       },
       ccw: {
-        basePrice: "$249.99",
-        vipPrice: "$375.00",
-        baseValue: "Maryland Wear & Carry (CCW) — Base Track ($249.99)",
-        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($375.00)"
+        basePrice: "$199.99",
+        vipPrice: "$349.99",
+        baseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
+        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($349.99)"
+      },
+      renewal: {
+        basePrice: "$149.99",
+        vipPrice: "$249.99",
+        baseValue: "Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)",
+        vipValue: "Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($249.99)"
       },
       hql: {
         basePrice: "$100.00",
@@ -3459,7 +3444,7 @@ function loadDemoStudent() {
       },
       coaching: {
         basePrice: "$125.00",
-        vipPrice: "$165.00",
+        vipPrice: "$195.00",
         baseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
         vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
       },
@@ -3482,7 +3467,9 @@ function loadDemoStudent() {
         vipValue: "FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
       }
     };
+    var courseTierMap = COURSE_TIER_CONFIG;
     window.COURSE_TIER_CONFIG = COURSE_TIER_CONFIG;
+    window.courseTierMap = courseTierMap;
     function setCardTier(courseKey, targetTier, evt) {
       if (evt && evt.stopPropagation) evt.stopPropagation();
       var config = COURSE_TIER_CONFIG[courseKey];
@@ -4517,10 +4504,10 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
       if (pType === 'student') {
         select.innerHTML = `
           <option value="Maryland CCW & HQL Combo — Base Track ($249.99)">Maryland CCW &amp; HQL Combo</option>
-          <option value="Maryland Wear & Carry (CCW) — Base Track ($249.99)">Maryland Wear &amp; Carry (16-Hr)</option>
+          <option value="Maryland Wear & Carry (CCW) — Base Track ($199.99)">Maryland Wear &amp; Carry (16-Hr)</option>
           <option value="Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)">Maryland Wear &amp; Carry (8-Hr Renewal)</option>
           <option value="Maryland HQL (Purchase License) — Base Track ($100.00)">Maryland HQL (4-Hour)</option>
-          <option value="Mid-Atlantic Multi-State Mastery — Base Track ($425.00)">Mid-Atlantic Multi-State Mastery</option>
+          <option value="Mid-Atlantic Multi-State Mastery — Base Track ($424.99)">Mid-Atlantic Multi-State Mastery</option>
           <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">Personal 1-on-1 Range Coaching</option>
         `;
       } else {
@@ -6846,7 +6833,7 @@ function getStepNumberFromStatus(statusStr) {
         badge: "Full Public Carry Authorization • 16-Hour",
         title: "I Want to Legally Carry Concealed in Public",
         rec: "Recommended: Maryland CCW (Wear & Carry Permit) ($199.99)",
-        courseValue: "Maryland Wear & Carry (CCW) — Base Track ($249.99)",
+        courseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
         showGuide: false,
         synopsis: "The mandatory state-certified 16-hour curriculum and 25-round practical qualification required to receive your Maryland Handgun Wear and Carry Permit. Provides in-depth training in defensive marksmanship, holster draw mechanics, and Maryland's strict legal use-of-force standards.",
         why: [
@@ -6878,8 +6865,8 @@ function getStepNumberFromStatus(statusStr) {
       need_multistate: {
         badge: "Multi-State Travel & I-95 Commuters",
         title: "Do I Need a Multi-State Carry Permit?",
-        rec: "Recommended: Mid-Atlantic Multi-State Mastery ($425 Base / $550 VIP)",
-        courseValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)",
+        rec: "Recommended: Mid-Atlantic Multi-State Mastery ($424.99 Base / $549.99 VIP)",
+        courseValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($549.99)",
         showGuide: false,
         synopsis: "Designed for travelers, commuters, and roadtrippers who regularly cross Maryland state borders into Virginia, Pennsylvania, Delaware, the Carolinas, Georgia, or Florida. Maryland's permit alone does NOT honor Pennsylvania or Delaware directly. This course fulfills your 16-hour Maryland requirement while preparing the affidavits and documentation needed for Virginia, Florida, Arizona, and Pennsylvania non-resident carry in a single weekend.",
         why: [
@@ -7327,12 +7314,12 @@ function getStepNumberFromStatus(statusStr) {
       if (modal) modal.classList.remove('active');
     }
     // ================= DYNAMIC COURSE CARD VIP TOGGLE LOGIC =================
-    var COURSE_TIER_CONFIG = {
+        var COURSE_TIER_CONFIG = {
       mastery: {
-        basePrice: "$425.00",
-        vipPrice: "$550.00",
-        baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($425.00)",
-        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)"
+        basePrice: "$424.99",
+        vipPrice: "$549.99",
+        baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($424.99)",
+        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($549.99)"
       },
       combo: {
         basePrice: "$249.99",
@@ -7341,10 +7328,16 @@ function getStepNumberFromStatus(statusStr) {
         vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($375.00)"
       },
       ccw: {
-        basePrice: "$249.99",
-        vipPrice: "$375.00",
-        baseValue: "Maryland Wear & Carry (CCW) — Base Track ($249.99)",
-        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($375.00)"
+        basePrice: "$199.99",
+        vipPrice: "$349.99",
+        baseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
+        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($349.99)"
+      },
+      renewal: {
+        basePrice: "$149.99",
+        vipPrice: "$249.99",
+        baseValue: "Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)",
+        vipValue: "Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($249.99)"
       },
       hql: {
         basePrice: "$100.00",
@@ -7354,7 +7347,7 @@ function getStepNumberFromStatus(statusStr) {
       },
       coaching: {
         basePrice: "$125.00",
-        vipPrice: "$165.00",
+        vipPrice: "$195.00",
         baseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
         vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
       },
@@ -7377,6 +7370,9 @@ function getStepNumberFromStatus(statusStr) {
         vipValue: "FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
       }
     };
+    var courseTierMap = COURSE_TIER_CONFIG;
+    window.COURSE_TIER_CONFIG = COURSE_TIER_CONFIG;
+    window.courseTierMap = courseTierMap;
     function toggleCourseVip(courseKey) {
       var config = COURSE_TIER_CONFIG[courseKey];
       if (!config) return;
@@ -10960,12 +10956,12 @@ if (typeof window !== 'undefined') {
 
 
     // Robust Course Tier Switcher (Standard vs VIP)
-    var COURSE_TIER_CONFIG = {
+        var COURSE_TIER_CONFIG = {
       mastery: {
-        basePrice: "$425.00",
-        vipPrice: "$550.00",
-        baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($425.00)",
-        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($550.00)"
+        basePrice: "$424.99",
+        vipPrice: "$549.99",
+        baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($424.99)",
+        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($549.99)"
       },
       combo: {
         basePrice: "$249.99",
@@ -10974,10 +10970,10 @@ if (typeof window !== 'undefined') {
         vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($375.00)"
       },
       ccw: {
-        basePrice: "$249.99",
-        vipPrice: "$375.00",
-        baseValue: "Maryland Wear & Carry (CCW) — Base Track ($249.99)",
-        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($375.00)"
+        basePrice: "$199.99",
+        vipPrice: "$349.99",
+        baseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
+        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($349.99)"
       },
       renewal: {
         basePrice: "$149.99",
@@ -10993,7 +10989,7 @@ if (typeof window !== 'undefined') {
       },
       coaching: {
         basePrice: "$125.00",
-        vipPrice: "$165.00",
+        vipPrice: "$195.00",
         baseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
         vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
       },
@@ -11016,7 +11012,9 @@ if (typeof window !== 'undefined') {
         vipValue: "FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
       }
     };
+    var courseTierMap = COURSE_TIER_CONFIG;
     window.COURSE_TIER_CONFIG = COURSE_TIER_CONFIG;
+    window.courseTierMap = courseTierMap;
 
 
     function setCardTier(courseKey, targetTier, evt) {

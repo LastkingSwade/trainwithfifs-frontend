@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
 
@@ -247,6 +247,48 @@ function normalizeClient(c: any) {
   };
 }
 
+
+
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1547779726746320958/nu4yar-r8aR3c6-P-mm8YeprX5bou1uqej24tEuYhNS5LVusMuBtADVcv1vf1oJp_bum";
+
+async function sendServerDiscordAlert(
+  title: string,
+  description: string,
+  fields: Array<{ name: string; value: string; inline?: boolean }> = [],
+  color: number = 0x00E5FF,
+  url: string = "https://trainwithfifs.com"
+) {
+  try {
+    const payload = {
+      username: "FIFS Operations & Command Dispatch",
+      avatar_url: "https://lh3.googleusercontent.com/d/1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa",
+      embeds: [{
+        title,
+        description,
+        url,
+        color,
+        fields: fields.map(f => ({
+          name: f.name || "Detail",
+          value: String(f.value || "N/A"),
+          inline: Boolean(f.inline)
+        })),
+        footer: {
+          text: "Future Initiative Firearm Services • Operational Relay",
+          icon_url: "https://lh3.googleusercontent.com/d/1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa"
+        },
+        timestamp: new Date().toISOString()
+      }]
+    };
+
+    await fetch(DISCORD_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(err => console.warn('[FIFS Discord Webhook Note]:', err.message));
+  } catch (err: any) {
+    console.warn('[FIFS Discord Alert Error]:', err.message);
+  }
+}
 
 export async function POST(req: NextRequest) {
  try {
@@ -1372,6 +1414,169 @@ case 'getStudentPortalData': {
 
 
      // 9. Admin Dashboard Roster & History
+          // 8a. Live Chat Visitor/Student Message Handler (Persists to Supabase & Dispatches Discord Alert)
+     case 'handleLiveChatMessage': {
+       const {
+         name, fullName, senderName,
+         email, senderEmail,
+         phone, senderPhone,
+         message, text: msgText,
+         threadId, thread_id,
+         urgency = 'HIGH'
+       } = payload;
+
+       const finalName = (senderName || fullName || name || 'Website Visitor').trim();
+       const finalEmail = (senderEmail || email || '').trim();
+       const finalPhone = (senderPhone || phone || '').trim();
+       const finalMsg = (message || msgText || '').trim();
+       const finalThread = (threadId || thread_id || (finalPhone ? 'thread_' + finalPhone.replace(/\D/g, '') : 'thread_' + Date.now())).trim();
+
+       if (!finalMsg) {
+         return NextResponse.json({ success: false, error: 'Message content is required.' }, { status: 400 });
+       }
+
+       // 1. Insert into Supabase messages table
+       const { data: insertedMsg, error: insertErr } = await supabase
+         .from('messages')
+         .insert([{
+           name: finalName,
+           sender_name: finalName,
+           email: finalEmail || null,
+           phone: finalPhone || null,
+           sender_phone: finalPhone || null,
+           message: finalMsg,
+           thread_id: finalThread,
+           sender: 'visitor',
+           urgency: urgency,
+           status: 'UNREAD',
+           sent_at: new Date().toISOString()
+         }])
+         .select()
+         .single();
+
+       if (insertErr) {
+         console.error('[FIFS] Error inserting live chat message:', insertErr);
+         return NextResponse.json({ success: false, error: insertErr.message }, { status: 500 });
+       }
+
+       // 2. Asynchronous Server-Side Discord Alert (Runs safely on server)
+       await sendServerDiscordAlert(
+         "💬 Live Chat Inquiry: " + finalName,
+         "A student or visitor submitted a live inquiry on TrainWithFIFS.",
+         [
+           { name: "Sender", value: finalName, inline: true },
+           { name: "Phone", value: finalPhone || "Not provided", inline: true },
+           { name: "Email", value: finalEmail || "Not provided", inline: true },
+           { name: "Thread ID", value: finalThread, inline: true },
+           { name: "Message Content", value: finalMsg, inline: false }
+         ],
+         0x00E5FF
+       );
+
+       return NextResponse.json({
+         success: true,
+         status: 'success',
+         message: 'Live chat message received and synced to Admin Hub.',
+         data: insertedMsg,
+         threadId: finalThread
+       });
+     }
+
+     // 8b. Instructor Reply Handler from Admin Hub (Persists to Supabase & Marks Thread Read)
+     case 'sendAdminLiveChatReply': {
+       const adminPass = passcode || payload.passcode || payload.pin || body.passcode || body.pin;
+       if (!verifyAdminPasscode(adminPass)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Invalid admin passcode.' }, { status: 401 });
+       }
+
+       const {
+         threadId, thread_id,
+         text: replyMsgText, message, replyText,
+         senderPhone, phone,
+         senderEmail, email
+       } = payload;
+
+       const finalMsg = (replyText || message || replyMsgText || '').trim();
+       const finalThread = (threadId || thread_id || '').trim();
+
+       if (!finalMsg || !finalThread) {
+         return NextResponse.json({ success: false, error: 'Thread ID and message text are required.' }, { status: 400 });
+       }
+
+       // 1. Insert instructor reply into Supabase messages table
+       const { data: insertedReply, error: replyErr } = await supabase
+         .from('messages')
+         .insert([{
+           name: 'Coach Kai Wade',
+           sender_name: 'Coach Kai Wade',
+           email: 'kai@trainwithfifs.com',
+           phone: '(443) 990-1304',
+           sender_phone: '(443) 990-1304',
+           message: finalMsg,
+           thread_id: finalThread,
+           sender: 'instructor',
+           urgency: 'HIGH',
+           status: 'READ',
+           sent_at: new Date().toISOString()
+         }])
+         .select()
+         .single();
+
+       if (replyErr) {
+         console.error('[FIFS] Error inserting admin reply:', replyErr);
+         return NextResponse.json({ success: false, error: replyErr.message }, { status: 500 });
+       }
+
+       // 2. Mark visitor messages in this thread as READ
+       try {
+         await supabase
+           .from('messages')
+           .update({ status: 'READ' })
+           .eq('thread_id', finalThread)
+           .eq('sender', 'visitor');
+       } catch (uErr) {
+         console.warn('[FIFS] Error marking messages read:', uErr);
+       }
+
+       // 3. Server-side Discord Alert for outbound reply
+       await sendServerDiscordAlert(
+         "📤 Instructor Reply Sent: Coach Kai Wade",
+         "Lead Instructor responded to thread: " + finalThread,
+         [
+           { name: "Instructor", value: "Coach Kai Wade", inline: true },
+           { name: "Thread ID", value: finalThread, inline: true },
+           { name: "Reply Message", value: finalMsg, inline: false }
+         ],
+         0x10B981
+       );
+
+       return NextResponse.json({
+         success: true,
+         status: 'success',
+         message: 'Instructor reply recorded in Supabase.',
+         data: insertedReply
+       });
+     }
+
+     // 8c. Fetch Live Chat Messages for a specific thread
+     case 'getLiveChatMessages': {
+       const tId = payload.threadId || payload.thread_id;
+       if (!tId) {
+         return NextResponse.json({ success: false, error: 'threadId required' }, { status: 400 });
+       }
+       const { data: msgs } = await supabase
+         .from('messages')
+         .select('*')
+         .eq('thread_id', tId)
+         .order('sent_at', { ascending: true });
+
+       return NextResponse.json({
+         success: true,
+         status: 'success',
+         messages: msgs || []
+       });
+     }
+
      case 'getAdminDashboardData': {
         const { data: students } = await supabase
           .from('students')
@@ -1560,6 +1765,58 @@ case 'getStudentPortalData': {
             updated_at: new Date().toISOString()
           }, { onConflict: 'invoice_number' });
        } catch (_dbErr) {}
+
+       // Guest Booking Check & Unauthenticated Lead Trigger
+       const userId = payload.user_id || payload.userId || null;
+       const isGuest = !userId && !studentId.startsWith('FI-CLIENT-');
+
+       if (isGuest) {
+         // 1. Capture into leads table as Unauthenticated Lead
+         try {
+           await supabase.from('leads').insert([{
+             full_name: fullName,
+             email: email,
+             source: 'Guest Checkout Lead: ' + courseSelection
+           }]);
+         } catch (leadErr) {
+           console.warn('[FIFS] Lead capture note:', leadErr);
+         }
+
+         // 2. Dispatch dedicated "Guest Checkout" Discord alert (asynchronously on server)
+         await sendServerDiscordAlert(
+           "🚨 New Unauthenticated Lead (Guest Checkout): " + fullName,
+           "A guest student without an existing portal account has initiated course reservation checkout.",
+           [
+             { name: "Student Name", value: fullName, inline: true },
+             { name: "Lead Classification", value: "⚠️ Unauthenticated Lead (Guest)", inline: true },
+             { name: "Contact Email", value: email, inline: true },
+             { name: "Contact Phone", value: phone || "Not provided", inline: true },
+             { name: "Curriculum Track", value: courseSelection + (isVip ? " (👑 VIP Turnkey)" : " (Standard Base)"), inline: false },
+             { name: "Reservation Deposit", value: "$" + depositDueNow.toFixed(2) + " Due Now", inline: true },
+             { name: "Total Course Investment", value: "$" + grandTotal.toFixed(2), inline: true },
+             { name: "Training Dates", value: preferredDates, inline: false },
+             { name: "Invoice Reference", value: invoiceId, inline: true }
+           ],
+           0xF59E0B // Warning Amber
+         );
+       } else {
+         // Standard Authenticated Booking Discord Alert
+         await sendServerDiscordAlert(
+           "🎯 New Course Enrollment Checkout: " + fullName,
+           `Enrolled in ${courseSelection} with reservation invoice ${invoiceId}`,
+           [
+             { name: "Student", value: fullName, inline: true },
+             { name: "Course", value: courseSelection, inline: true },
+             { name: "Track", value: isVip ? "👑 VIP Turnkey" : "Standard Base", inline: true },
+             { name: "Email", value: email, inline: true },
+             { name: "Phone", value: phone || "Not provided", inline: true },
+             { name: "Deposit Due", value: "$" + depositDueNow.toFixed(2), inline: true },
+             { name: "Total", value: "$" + grandTotal.toFixed(2), inline: true },
+             { name: "Dates", value: preferredDates, inline: false }
+           ],
+           0x00E5FF // Cyan
+         );
+       }
 
        return NextResponse.json({
          success: true,
