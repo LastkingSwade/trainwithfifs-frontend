@@ -952,52 +952,53 @@ export default function TrainWithFIFS(props: any) {
     (window as any).selectBookingDate = selectBookingDate;
 
 
-    const renderBookingCalendar = () => {
+        const renderBookingCalendar = () => {
       const grid = document.getElementById('bookingCalDaysGrid');
       const label = document.getElementById('bookingCalMonthLabel');
       const policyBanner = document.getElementById('calendarPolicyText');
       if (!grid || !label) return;
 
-
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
       label.textContent = monthNames[calCurrentMonth] + ' ' + calCurrentYear;
 
-
       const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
-      const curVal = (selectElem ? selectElem.value : '').toLowerCase();
+      const curVal = (selectElem ? selectElem.value : '').toLowerCase().replace(/&amp;/g, '&');
       const isVip = curVal.includes('vip') || curVal.includes('turnkey');
-      const is16Hr = is16HourCourseSelected();
-
+      const is16Hr = (window as any).is16HourCourseSelected();
 
       if (policyBanner) {
         if (is16Hr) {
           policyBanner.innerHTML = '📌 <strong style="color:#00e5ff;">16-Hour Maryland Requirement:</strong> Please select <strong>2 dates</strong> on the calendar below:<br>' +
-            "<span style=\"display:inline-block;margin-top:4px;\">• <strong>Day 1:</strong> Classroom Instruction & Firearms Safety (FIFS Classroom)<br>• <strong>Day 2:</strong> Live-Fire Practical Qualification (Cindy's Hot Shots Partner Range)</span>" +
+            "<span style="display:inline-block;margin-top:4px;">• <strong>Day 1:</strong> Classroom Instruction & Firearms Safety (FIFS Classroom)<br>• <strong>Day 2:</strong> Live-Fire Practical Qualification (Cindy's Hot Shots Partner Range)</span>" +
             (isVip ? '<br><span style="color:var(--accent-amber);font-weight:700;">👑 VIP Turnkey: 7-day flexible scheduling unlocked.</span>' : '<br><span style="color:#94a3b8;">📅 Standard Schedule: Saturday & Sunday cohorts.</span>');
+          policyBanner.style.borderColor = '#00e5ff';
+          policyBanner.style.background = 'rgba(0, 229, 255, 0.09)';
         } else if (isVip) {
-          policyBanner.innerHTML = '👑 <strong style="color: var(--accent-amber);">VIP Turnkey Perk:</strong> Priority <strong>7-Day Flexible Scheduling (Monday–Sunday)</strong> is unlocked!';
+          policyBanner.innerHTML = '👑 <strong style="color: var(--accent-amber);">VIP Turnkey Perk:</strong> Priority <strong>7-Day Flexible Scheduling (Monday–Sunday)</strong> is unlocked! Select your date below.';
+          policyBanner.style.borderColor = 'var(--accent-amber)';
+          policyBanner.style.background = 'rgba(255, 183, 3, 0.08)';
         } else {
           policyBanner.innerHTML = '📅 <strong>Schedule:</strong> Classes held on <strong>Saturdays & Sundays</strong>. Weekdays locked. (Toggle to 👑 VIP to unlock 7-day flexible scheduling).';
+          policyBanner.style.borderColor = 'var(--accent-cyan)';
+          policyBanner.style.background = 'rgba(0, 229, 255, 0.08)';
         }
       }
-
 
       grid.innerHTML = '';
       const firstDay = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
       const totalDays = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
 
-
+      // Empty leading cells
       for (let i = 0; i < firstDay; i++) {
         const emptyCell = document.createElement('div');
         emptyCell.style.background = '#070b10';
         emptyCell.style.minHeight = '42px';
+        emptyCell.style.height = '42px';
         grid.appendChild(emptyCell);
       }
 
-
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-
 
       for (let d = 1; d <= totalDays; d++) {
         const cellDate = new Date(calCurrentYear, calCurrentMonth, d);
@@ -1008,64 +1009,84 @@ export default function TrainWithFIFS(props: any) {
         const isBooked = calBookedDates.includes(dateKey);
         const isPast = cellDate < today;
 
-
         const cell = document.createElement('div');
+        cell.className = 'cal-day-cell' + (isWeekend ? ' cal-weekend' : ' cal-weekday');
         cell.style.background = '#0d1219';
-        cell.style.minHeight = '46px';
+        cell.style.minHeight = '42px';
+        cell.style.height = '42px';
         cell.style.display = 'flex';
         cell.style.flexDirection = 'column';
         cell.style.alignItems = 'center';
         cell.style.justifyContent = 'center';
-        cell.style.fontSize = '0.86rem';
+        cell.style.fontSize = '0.84rem';
         cell.style.fontWeight = '700';
         cell.style.cursor = 'pointer';
         cell.style.transition = 'all 0.15s ease';
+        cell.style.position = 'relative';
+        cell.style.padding = '2px';
+        cell.style.boxSizing = 'border-box';
+        cell.style.userSelect = 'none';
         cell.setAttribute('data-date', dateKey);
-
 
         if (isPast) {
           cell.style.color = '#334155';
           cell.style.cursor = 'not-allowed';
-          cell.textContent = String(d);
+          cell.innerHTML = `<span style="opacity:0.35;">${d}</span>`;
+          cell.title = 'Past date';
         } else if (isBooked) {
           cell.style.color = '#ef4444';
           cell.style.cursor = 'not-allowed';
-          cell.innerHTML = `${d}<span style="width: 5px; height: 5px; border-radius: 50%; background: #ef4444; margin-top: 2px;"></span>`;
+          cell.title = 'Class session already booked for this date';
+          cell.innerHTML = `<span style="color:#ef4444;opacity:0.8;">${d}</span><span style="width: 4px; height: 4px; border-radius: 50%; background: #ef4444; margin-top: 2px;"></span>`;
         } else if (!isVip && !isWeekend) {
           cell.style.color = '#475569';
           cell.style.cursor = 'not-allowed';
-          cell.innerHTML = `<span style="opacity: 0.5;">${d}</span><span style="font-size: 0.60rem; color: #64748b; margin-top: 1px;">🔒</span>`;
+          cell.title = 'Weekday locked (Upgrade to VIP for 7-day flexible scheduling)';
+          cell.innerHTML = `<span style="opacity: 0.45; font-size:0.82rem;">${d}</span><span style="font-size: 0.50rem; opacity:0.6; line-height:1; margin-top: 1px;">🔒</span>`;
         } else {
           const isDate1 = (calSelectedDate1 === dateKey);
           const isDate2 = (calSelectedDate2 === dateKey);
 
-
           if (isDate1) {
-            cell.style.background = isVip
-              ? 'linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%)'
-              : 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-            cell.style.color = isVip ? '#0f172a' : '#070b10';
-            cell.style.boxShadow = isVip ? '0 0 14px rgba(226, 232, 240, 0.7)' : '0 0 14px rgba(16, 185, 129, 0.7)';
-            cell.innerHTML = `${d}<span style="font-size:0.62rem;font-weight:800;background:#070b10;color:#10b981;padding:1px 5px;border-radius:3px;margin-top:2px;">${is16Hr ? 'DAY 1' : 'PICKED'}</span>`;
+            if (isVip) {
+              cell.style.background = 'linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%)';
+              cell.style.color = '#0f172a';
+              cell.style.fontWeight = '900';
+              cell.style.boxShadow = '0 0 12px rgba(226, 232, 240, 0.7)';
+              cell.innerHTML = `<span style="line-height:1;">${d}</span><span style="font-size:0.52rem;font-weight:900;background:#0f172a;color:#f8fafc;padding:1px 3px;border-radius:2px;margin-top:2px;line-height:1;">${is16Hr ? 'DAY 1' : 'PICK'}</span>`;
+            } else {
+              cell.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+              cell.style.color = '#070b10';
+              cell.style.fontWeight = '900';
+              cell.style.boxShadow = '0 0 12px rgba(16, 185, 129, 0.7)';
+              cell.innerHTML = `<span style="line-height:1;">${d}</span><span style="font-size:0.52rem;font-weight:900;background:#070b10;color:#10b981;padding:1px 3px;border-radius:2px;margin-top:2px;line-height:1;">${is16Hr ? 'DAY 1' : 'PICK'}</span>`;
+            }
           } else if (isDate2) {
-            cell.style.background = isVip
-              ? 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)'
-              : 'linear-gradient(135deg, #00e5ff 0%, #0284c7 100%)';
-            cell.style.color = '#070b10';
-            cell.style.boxShadow = '0 0 14px var(--accent-cyan-glow)';
-            cell.innerHTML = `${d}<span style="font-size:0.62rem;font-weight:800;background:#070b10;color:#00e5ff;padding:1px 5px;border-radius:3px;margin-top:2px;">DAY 2</span>`;
+            if (isVip) {
+              cell.style.background = 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)';
+              cell.style.color = '#070b10';
+              cell.style.fontWeight = '900';
+              cell.style.boxShadow = '0 0 12px rgba(245, 158, 11, 0.75)';
+              cell.innerHTML = `<span style="line-height:1;">${d}</span><span style="font-size:0.52rem;font-weight:900;background:#070b10;color:#ffd700;padding:1px 3px;border-radius:2px;margin-top:2px;line-height:1;">DAY 2</span>`;
+            } else {
+              cell.style.background = 'linear-gradient(135deg, #00e5ff 0%, #0284c7 100%)';
+              cell.style.color = '#070b10';
+              cell.style.fontWeight = '900';
+              cell.style.boxShadow = '0 0 12px rgba(0, 229, 255, 0.75)';
+              cell.innerHTML = `<span style="line-height:1;">${d}</span><span style="font-size:0.52rem;font-weight:900;background:#070b10;color:#00e5ff;padding:1px 3px;border-radius:2px;margin-top:2px;line-height:1;">DAY 2</span>`;
+            }
           } else {
             cell.style.color = '#fff';
-            cell.textContent = String(d);
+            cell.innerHTML = `<span style="line-height:1;">${d}</span>`;
+            if (isWeekend) {
+              cell.style.background = '#10161f';
+              cell.style.border = '1px solid rgba(0, 229, 255, 0.2)';
+            }
           }
 
-
-          cell.onclick = (e) => {
-            if (e && e.stopPropagation) e.stopPropagation();
-            if (e && e.preventDefault) e.preventDefault();
-            selectBookingDate(dateKey, cellDate, isVip);
-          };
+          cell.onclick = () => selectBookingDate(dateKey, cellDate);
         }
+
         grid.appendChild(cell);
       }
     };
@@ -2690,44 +2711,40 @@ export default function TrainWithFIFS(props: any) {
     };
 
 
-    (window as any).updateFormPriceDisplay = function() {
+        (window as any).updateFormPriceDisplay = function() {
       const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
       if (!selectElem) return;
       const selectedVal = selectElem.value;
       const isVip = selectedVal.includes('VIP') || selectedVal.includes('Turnkey');
 
-
       let unitBase = 249.99;
       let unitVip = 375.00;
-      const clean = selectedVal.toLowerCase();
-      if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) {
-        unitBase = 425.00; unitVip = 550.00;
-      } else if (clean.includes('renewal')) {
+      const clean = selectedVal.toLowerCase().replace(/&amp;/g, '&');
+      if (clean.includes('renewal') || clean.includes('8-hour') || clean.includes('8hr')) {
         unitBase = 149.99; unitVip = 249.99;
+      } else if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) {
+        unitBase = 425.00; unitVip = 550.00;
       } else if (clean.includes('combo')) {
         unitBase = 249.99; unitVip = 375.00;
       } else if (clean.includes('hql')) {
-        unitBase = 100.00; unitVip = 195.00;
+        unitBase = 100.00; unitVip = 165.00;
       } else if (clean.includes('ccw') || clean.includes('wear & carry')) {
         unitBase = 199.99; unitVip = 325.00;
-      } else if (clean.includes('coaching')) {
+      } else if (clean.includes('coaching') || clean.includes('1-on-1')) {
         unitBase = 125.00; unitVip = 195.00;
       } else if (clean.includes('cleaning')) {
         unitBase = 75.00; unitVip = 115.00;
-      } else if (clean.includes('children')) {
+      } else if (clean.includes('children') || clean.includes('youth')) {
         unitBase = 199.99; unitVip = 265.00;
-      } else if (clean.includes('alumni')) {
+      } else if (clean.includes('alumni') || clean.includes('clinic')) {
         unitBase = 65.00; unitVip = 115.00;
       }
-
 
       const activeUnit = isVip ? unitVip : unitBase;
       const groupElem = document.getElementById('groupSize') as HTMLSelectElement | null;
       const groupVal = groupElem ? groupElem.value : '1';
 
-
       const pricing = (window as any).calculateComprehensiveInvoice(activeUnit, isVip, groupVal);
-
 
       const titleElem = document.getElementById('formCardCourseTitle');
       const tierTag = document.getElementById('formCardTierTag');
@@ -2738,13 +2755,16 @@ export default function TrainWithFIFS(props: any) {
       const boxBase = document.getElementById('formBoxBase');
       const boxVip = document.getElementById('formBoxVip');
 
-
       const bookingTitle = document.getElementById('bookingModalTitle');
       const bookingBadge = document.getElementById('bookingModalBadge');
-      if (clean.includes('renewal')) {
+      if (clean.includes('renewal') || clean.includes('8-hour')) {
         if (titleElem) titleElem.textContent = 'Maryland Wear & Carry (8-Hour Renewal)';
         if (bookingTitle) bookingTitle.textContent = 'Reserve 8-Hour Wear & Carry Renewal';
         if (bookingBadge) bookingBadge.textContent = '8-HOUR MARYLAND RECERTIFICATION • MSP PS § 5-306';
+      } else if (clean.includes('combo')) {
+        if (titleElem) titleElem.textContent = 'Maryland CCW & HQL Combo';
+        if (bookingTitle) bookingTitle.textContent = 'Reserve CCW & HQL Combo Certification';
+        if (bookingBadge) bookingBadge.textContent = 'DUAL CERTIFICATION: CONCEALED CARRY + HQL PERMIT';
       } else {
         if (titleElem) titleElem.textContent = selectedVal.split('—')[0].trim() || 'Maryland Firearms Training';
         if (bookingTitle) bookingTitle.textContent = 'Reserve Your Training Session';
@@ -2761,31 +2781,32 @@ export default function TrainWithFIFS(props: any) {
       if (baseVal) baseVal.textContent = '$' + unitBase.toFixed(2);
       if (vipVal) vipVal.textContent = '$' + unitVip.toFixed(2);
 
-
       if (boxBase) {
         boxBase.style.borderColor = !isVip ? 'var(--accent-cyan)' : 'var(--border-subtle)';
-        boxBase.style.boxShadow = !isVip ? '0 0 15px rgba(0, 229, 255, 0.25)' : 'none';
+        boxBase.style.background = !isVip ? 'rgba(0, 229, 255, 0.08)' : '#070b10';
+        boxBase.style.boxShadow = !isVip ? '0 0 14px var(--accent-cyan-glow)' : 'none';
       }
       if (boxVip) {
         boxVip.style.borderColor = isVip ? 'var(--accent-amber)' : 'var(--border-subtle)';
-        boxVip.style.boxShadow = isVip ? '0 0 15px rgba(245, 158, 11, 0.25)' : 'none';
+        boxVip.style.background = isVip ? 'rgba(255, 183, 3, 0.12)' : '#070b10';
+        boxVip.style.boxShadow = isVip ? '0 0 14px rgba(245, 158, 11, 0.25)' : 'none';
       }
       if (tierDesc) {
         tierDesc.style.borderLeftColor = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
         if (clean.includes('renewal')) {
           tierDesc.textContent = isVip
-            ? "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range fee, B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!"
-            : "Self-equipped track. 8-hour state recertification curriculum and 25-round live-fire qualification at Cindy's Hot Shots. Bring your own firearm, holster, and 50 rounds.";
+            ? "👑 VIP Turnkey Track. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Includes B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!"
+            : "Self-equipped track. 8-hour state recertification curriculum and 25-round live-fire qualification at Cindy's Hot Shots. Bring your own firearm, holster, and 50 rounds. Range fee ($45.00) & 6% MD sales tax calculated below.";
+        } else if (clean.includes('combo')) {
+          tierDesc.textContent = isVip
+            ? "👑 VIP Turnkey Track. Cindy's Hot Shots range lane fee ($45 value) is 100% INCLUDED! Includes B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
+            : "Self-equipped track. 16-hour Wear & Carry curriculum + Maryland HQL exemption guide. Provide own handgun, holster, and ammo. Range fee ($45.00) & 6% MD sales tax calculated below.";
         } else {
           tierDesc.textContent = isVip
-            ? 'VIP Turnkey track. Everything provided: firearm rental, holster, ear/eye protection, 50-100 rounds factory ammo, dedicated lane fee at Cindy\'s Hot Shots, and passport compliance photos. Cindy\'s range fee ($45) is 100% INCLUDED.'
-            : 'Self-equipped base track. Provide own reliable handgun, holster, and factory ammo. Includes $45.00 dedicated range fee at Cindy\'s Hot Shots & 6% MD sales tax.';
+            ? "👑 VIP Turnkey Track. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Everything provided: firearm rental, holster, ear/eye protection, factory ammo, targets, and passport compliance photos."
+            : "Self-equipped base track. Provide own reliable handgun, holster, and factory ammo. Includes $45.00 dedicated range fee at Cindy's Hot Shots & 6% MD sales tax calculated below.";
         }
       }
-      if (typeof (window as any).renderBookingCalendar === 'function') {
-        (window as any).renderBookingCalendar();
-      }
-
 
       // Update Breakdown Box elements
       const bTuition = document.getElementById('formBreakdownTuition');
@@ -2794,7 +2815,6 @@ export default function TrainWithFIFS(props: any) {
       const bTotal = document.getElementById('formBreakdownTotal');
       const bDeposit = document.getElementById('formBreakdownDeposit');
       const bBalance = document.getElementById('formBreakdownBalance');
-
 
       if (bTuition) bTuition.textContent = '$' + pricing.discountedTuition.toFixed(2);
       if (bRange) {
@@ -2808,66 +2828,7 @@ export default function TrainWithFIFS(props: any) {
       }
       if (bDeposit) bDeposit.textContent = '$' + pricing.depositDueNow.toFixed(2);
       if (bBalance) bBalance.textContent = '$' + pricing.balanceDueClass.toFixed(2);
-    };
 
-
-    (window as any).toggleFormTier = function(targetTier: string) {
-      const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
-      if (!selectElem) return;
-      const currentVal = selectElem.value;
-      const isCurrentlyVip = currentVal.includes('VIP') || currentVal.includes('Turnkey');
-      const isTargetVip = targetTier === 'vip';
-      if (isCurrentlyVip === isTargetVip) return;
-
-
-      const cleanCur = currentVal.toLowerCase();
-      let courseKeyword = '';
-      if (cleanCur.includes('renewal')) courseKeyword = 'renewal';
-      else if (cleanCur.includes('mastery') || cleanCur.includes('multi-state')) courseKeyword = 'mastery';
-      else if (cleanCur.includes('combo')) courseKeyword = 'combo';
-      else if (cleanCur.includes('wear & carry') || cleanCur.includes('ccw')) courseKeyword = 'wear & carry';
-      else if (cleanCur.includes('hql')) courseKeyword = 'hql';
-      else if (cleanCur.includes('coaching')) courseKeyword = 'coaching';
-      else if (cleanCur.includes('cleaning')) courseKeyword = 'cleaning';
-      else if (cleanCur.includes('children')) courseKeyword = 'children';
-      else if (cleanCur.includes('alumni')) courseKeyword = 'alumni';
-
-
-      for (let i = 0; i < selectElem.options.length; i++) {
-        const opt = selectElem.options[i].value;
-        const optClean = opt.toLowerCase();
-        const optIsVip = opt.includes('VIP') || opt.includes('Turnkey');
-        if (optIsVip === isTargetVip) {
-          if (courseKeyword && optClean.includes(courseKeyword)) {
-            if (courseKeyword === 'wear & carry' && (optClean.includes('combo') || optClean.includes('renewal'))) {
-              continue;
-            }
-            selectElem.selectedIndex = i;
-            selectElem.value = opt;
-            break;
-          }
-        }
-      }
-      (window as any).updateFormPriceDisplay();
-    };
-
-
-    (window as any).openCourseBookingModal = function() {
-      const modal = document.getElementById('courseBookingModal');
-      if (modal) {
-        modal.classList.add('active');
-        modal.style.setProperty('display', 'flex', 'important');
-        modal.style.setProperty('opacity', '1', 'important');
-        modal.style.setProperty('visibility', 'visible', 'important');
-        modal.style.setProperty('pointer-events', 'auto', 'important');
-        modal.style.setProperty('z-index', '999999', 'important');
-        modal.scrollTop = 0;
-        document.body.classList.add('modal-open');
-        document.body.style.overflow = 'hidden';
-      }
-      if (typeof (window as any).updateFormPriceDisplay === 'function') {
-        (window as any).updateFormPriceDisplay();
-      }
       if (typeof (window as any).renderBookingCalendar === 'function') {
         (window as any).renderBookingCalendar();
       }
@@ -10496,220 +10457,35 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   . Weekdays (Mon–Fri) locked. (Toggle to 👑 VIP Turnkey to unlock 7-day flexible scheduling).
                 </span>
               </div>
-              {/* Calendar Month Header */}
-              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "8px 8px 0 0", "padding": "10px 14px"}}>
-                <button type="button" className="btn-spark" data-onclick="changeBookingCalendarMonth(-1)" style={{"padding": "4px 10px", "fontSize": "0.80rem"}}>
-                  ◀ Prev
-                </button>
-                <strong style={{"fontFamily": "var(--font-display)", "fontSize": "1.15rem", "color": "#fff", "textTransform": "uppercase"}} id="bookingCalMonthLabel">
-                  October 2026
-                </strong>
-                <button type="button" className="btn-spark" data-onclick="changeBookingCalendarMonth(1)" style={{"padding": "4px 10px", "fontSize": "0.80rem"}}>
-                  Next ▶
-                </button>
-              </div>
-              {/* Days of Week Header */}
-              <div style={{"display": "grid", "gridTemplateColumns": "repeat(7, 1fr)", "background": "#10161f", "borderLeft": "1px solid var(--border-subtle)", "borderRight": "1px solid var(--border-subtle)", "textAlign": "center", "fontSize": "0.76rem", "fontWeight": "800", "color": "var(--text-muted)", "padding": "8px 0"}}>
-                <div>
-                  SUN
+              {/* Unified Responsive Booking Calendar Card */}
+              <div className="booking-calendar-card" style={{"width": "100%", "background": "#070b10", "border": "1px solid rgba(0, 229, 255, 0.35)", "borderRadius": "12px", "overflow": "hidden", "boxShadow": "0 4px 20px rgba(0,0,0,0.6)", "boxSizing": "border-box"}}>
+                {/* Month / Year Bar */}
+                <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "background": "linear-gradient(180deg, #10161f 0%, #0c1219 100%)", "padding": "10px 14px", "borderBottom": "1px solid var(--border-subtle)"}}>
+                  <button type="button" className="btn-spark" data-onclick="changeBookingCalendarMonth(-1)" style={{"padding": "5px 12px", "fontSize": "0.85rem", "fontWeight": "800", "cursor": "pointer"}}>
+                    ◀ Prev
+                  </button>
+                  <strong id="bookingCalMonthLabel" style={{"fontFamily": "var(--font-display)", "fontSize": "1.2rem", "color": "#fff", "letterSpacing": "1px", "textTransform": "uppercase"}}>
+                    October 2026
+                  </strong>
+                  <button type="button" className="btn-spark" data-onclick="changeBookingCalendarMonth(1)" style={{"padding": "5px 12px", "fontSize": "0.85rem", "fontWeight": "800", "cursor": "pointer"}}>
+                    Next ▶
+                  </button>
                 </div>
-                <div>
-                  MON
+                {/* 7-Column Days of Week Header (Always In Sync) */}
+                <div style={{"display": "grid", "gridTemplateColumns": "repeat(7, 1fr)", "background": "#0c1219", "borderBottom": "1px solid var(--border-subtle)", "textAlign": "center", "fontSize": "0.72rem", "fontWeight": "800", "color": "var(--text-muted)", "padding": "8px 0"}}>
+                  <div>SUN</div>
+                  <div>MON</div>
+                  <div>TUE</div>
+                  <div>WED</div>
+                  <div>THU</div>
+                  <div>FRI</div>
+                  <div>SAT</div>
                 </div>
-                <div>
-                  TUE
-                </div>
-                <div>
-                  WED
-                </div>
-                <div>
-                  THU
-                </div>
-                <div>
-                  FRI
-                </div>
-                <div>
-                  SAT
+                {/* 7-Column Days Grid */}
+                <div id="bookingCalDaysGrid" style={{"display": "grid", "gridTemplateColumns": "repeat(7, 1fr)", "gap": "1px", "background": "var(--border-subtle)", "width": "100%", "boxSizing": "border-box"}}>
+                  {/* Dynamically populated via renderBookingCalendar() */}
                 </div>
               </div>
-              {/* Calendar Days Grid with Responsive Mobile Bounds */}
-              <div className="calendar-responsive-container" style={{"width": "100%", "overflowX": "auto", "WebkitOverflowScrolling": "touch", "paddingBottom": "4px"}}>
-                <div style={{"minWidth": "320px", "width": "100%"}}>
-                  <div id="bookingCalDaysGrid" style={{"display": "grid", "gridTemplateColumns": "repeat(7, 1fr)", "gap": "1px", "background": "var(--border-subtle)", "border": "1px solid var(--border-subtle)", "borderRadius": "0 0 8px 8px", "overflow": "hidden"}}>
-                {/* Dynamically populated via renderBookingCalendar() */}
-                <div style={{"background": "#070b10", "minHeight": "42px"}}>
-                </div>
-                <div style={{"background": "#070b10", "minHeight": "42px"}}>
-                </div>
-                <div style={{"background": "#070b10", "minHeight": "42px"}}>
-                </div>
-                <div style={{"background": "#070b10", "minHeight": "42px"}}>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-01', new Date(2026, 9, 1))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-01">
-                  <span>
-                    1
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-02', new Date(2026, 9, 2))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-02">
-                  <span>
-                    2
-                  </span>
-                </div>
-                <div style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "not-allowed", "color": "#ef4444"}} title="Class session already booked for this date" data-date="2026-10-03">
-                  <span>
-                    3
-                  </span>
-                  <span style={{"width": "5px", "height": "5px", "borderRadius": "50%", "background": "#ef4444", "marginTop": "2px"}}>
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekend" data-onclick="selectBookingDate('2026-10-04', new Date(2026, 9, 4))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Open Training Session" data-date="2026-10-04">
-                  <span>
-                    4
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-05', new Date(2026, 9, 5))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-05">
-                  <span>
-                    5
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-06', new Date(2026, 9, 6))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-06">
-                  <span>
-                    6
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-07', new Date(2026, 9, 7))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-07">
-                  <span>
-                    7
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-08', new Date(2026, 9, 8))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-08">
-                  <span>
-                    8
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-09', new Date(2026, 9, 9))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-09">
-                  <span>
-                    9
-                  </span>
-                </div>
-                <div style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "not-allowed", "color": "#ef4444"}} title="Class session already booked for this date" data-date="2026-10-10">
-                  <span>
-                    10
-                  </span>
-                  <span style={{"width": "5px", "height": "5px", "borderRadius": "50%", "background": "#ef4444", "marginTop": "2px"}}>
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekend" data-onclick="selectBookingDate('2026-10-11', new Date(2026, 9, 11))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Open Training Session" data-date="2026-10-11">
-                  <span>
-                    11
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-12', new Date(2026, 9, 12))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-12">
-                  <span>
-                    12
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-13', new Date(2026, 9, 13))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-13">
-                  <span>
-                    13
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-14', new Date(2026, 9, 14))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-14">
-                  <span>
-                    14
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-15', new Date(2026, 9, 15))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-15">
-                  <span>
-                    15
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-16', new Date(2026, 9, 16))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-16">
-                  <span>
-                    16
-                  </span>
-                </div>
-                <div style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "not-allowed", "color": "#ef4444"}} title="Class session already booked for this date" data-date="2026-10-17">
-                  <span>
-                    17
-                  </span>
-                  <span style={{"width": "5px", "height": "5px", "borderRadius": "50%", "background": "#ef4444", "marginTop": "2px"}}>
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekend" data-onclick="selectBookingDate('2026-10-18', new Date(2026, 9, 18))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Open Training Session" data-date="2026-10-18">
-                  <span>
-                    18
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-19', new Date(2026, 9, 19))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-19">
-                  <span>
-                    19
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-20', new Date(2026, 9, 20))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-20">
-                  <span>
-                    20
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-21', new Date(2026, 9, 21))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-21">
-                  <span>
-                    21
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-22', new Date(2026, 9, 22))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-22">
-                  <span>
-                    22
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-23', new Date(2026, 9, 23))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-23">
-                  <span>
-                    23
-                  </span>
-                </div>
-                <div style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "not-allowed", "color": "#ef4444"}} title="Class session already booked for this date" data-date="2026-10-24">
-                  <span>
-                    24
-                  </span>
-                  <span style={{"width": "5px", "height": "5px", "borderRadius": "50%", "background": "#ef4444", "marginTop": "2px"}}>
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekend" data-onclick="selectBookingDate('2026-10-25', new Date(2026, 9, 25))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Open Training Session" data-date="2026-10-25">
-                  <span>
-                    25
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-26', new Date(2026, 9, 26))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-26">
-                  <span>
-                    26
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-27', new Date(2026, 9, 27))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-27">
-                  <span>
-                    27
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-28', new Date(2026, 9, 28))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-28">
-                  <span>
-                    28
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-29', new Date(2026, 9, 29))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-29">
-                  <span>
-                    29
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekday" data-onclick="selectBookingDate('2026-10-30', new Date(2026, 9, 30))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Available Training Date" data-date="2026-10-30">
-                  <span>
-                    30
-                  </span>
-                </div>
-                <div className="cal-day-cell cal-weekend" data-onclick="selectBookingDate('2026-10-31', new Date(2026, 9, 31))" style={{"background": "#0d1219", "minHeight": "42px", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontSize": "0.86rem", "fontWeight": "700", "cursor": "pointer", "color": "#fff"}} title="Open Training Session" data-date="2026-10-31">
-                  <span>
-                    31
-                  </span>
-                </div>
-              </div>
-                </div>
               </div>
               <div style={{"marginTop": "10px", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "8px"}}>
                 <span style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
