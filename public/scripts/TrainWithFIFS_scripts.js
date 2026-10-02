@@ -1,8 +1,7 @@
 // === AUTHORITATIVE ALL-8 COURSE TIER CONFIGURATION ===
     var COURSE_TIER_CONFIG = {
       mastery: {
-        basePrice: '$424.99',
-        vipPrice: '$549.99',
+        basePrice: '$424.99', vipPrice: '$549.99',
         baseTitle: 'Mid-Atlantic Multi-State Mastery',
         vipTitle: '👑 VIP Mid-Atlantic Multi-State Mastery',
         baseBadge: '5-STATE EXPANSION (MD+VA+FL+AZ+PA) — 34+ STATES LEGAL CARRY',
@@ -21,8 +20,7 @@
         vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
       },
       ccw: {
-        basePrice: '$199.99',
-        vipPrice: '$300.00',
+        basePrice: '$199.99', vipPrice: '$349.99',
         baseTitle: 'Maryland Wear & Carry (CCW) Initial Course',
         vipTitle: '👑 VIP Maryland Wear & Carry (CCW) Concierge',
         baseBadge: 'MARYLAND STATE POLICE CERTIFIED 16-HOUR INITIAL CCW',
@@ -31,8 +29,8 @@
         vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
       },
       hql: {
-        basePrice: '$99.99',
-        vipPrice: '$159.99',
+        basePrice: '$100.00',
+        vipPrice: '$165.00',
         baseTitle: 'Maryland Handgun Qualification License (HQL)',
         vipTitle: '👑 VIP Maryland HQL Concierge Licensing',
         baseBadge: 'MARYLAND HANDGUN PURCHASE PERMIT MANDATORY TRAINING',
@@ -41,8 +39,8 @@
         vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
       },
       coaching: {
-        basePrice: '$124.99',
-        vipPrice: '$194.99',
+        basePrice: '$125.00',
+        vipPrice: '$165.00',
         baseTitle: 'Personal 1-on-1 Private Firearms Coaching',
         vipTitle: '👑 VIP Private Masterclass & Tactical Diagnostics',
         baseBadge: 'DEDICATED 1-ON-1 INSTRUCTOR TIME & MARKSMANSHIP TARGETING',
@@ -51,8 +49,8 @@
         vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
       },
       cleaning: {
-        basePrice: '$74.99',
-        vipPrice: '$124.99',
+        basePrice: '$75.00',
+        vipPrice: '$115.00',
         baseTitle: 'Firearm Maintenance & Deep Cleaning Workshop',
         vipTitle: '👑 VIP Armorer Inspection & Ultrasonic Deep Clean',
         baseBadge: 'FIELD-STRIP, CLEANING CHEMICAL SAFETY & PROPER LUBRICATION',
@@ -62,7 +60,7 @@
       },
       children: {
         basePrice: '$199.99',
-        vipPrice: '$274.99',
+        vipPrice: '$265.00',
         baseTitle: 'Youth & Family Gun Safety Academy',
         vipTitle: '👑 VIP Family Defensive & Safe Storage Mastery',
         baseBadge: 'ACCIDENT PREVENTION, EDDIE EAGLE PROTOCOL & RANGE DISCIPLINE',
@@ -71,8 +69,8 @@
         vipStripe: 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
       },
       alumni: {
-        basePrice: '$64.99',
-        vipPrice: '$109.99',
+        basePrice: '$65.00',
+        vipPrice: '$115.00',
         baseTitle: 'FIFS Graduate Alumni Tactical Marksman Clinic',
         vipTitle: "👑 VIP Alumni Advanced Shoot/Don't-Shoot Shootout",
         baseBadge: 'EXCLUSIVELY FOR FIFS GRADUATES — ADVANCED DRILLS & DRAW SPEED',
@@ -917,28 +915,28 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     window.EXPECTATION_DATA = EXPECTATION_DATA;
     var FORM_COURSE_PRICING = {
       "Mid-Atlantic Multi-State Mastery": {
-        base: "$425.00",
-        vip: "$550.00",
+        base: "$424.99",
+        vip: "$549.99",
         baseDesc: "Self-equipped track. Includes 16-hour instruction + live-fire qualification + documentation for MD, VA, FL, AZ, and PA. Provide own firearm and ammo.",
-        vipDesc: "👑 VIP Turnkey Track. Includes Cindy&#39;s Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
       },
       "Maryland CCW & HQL Combo": {
         base: "$249.99",
         vip: "$375.00",
         baseDesc: "Self-equipped track. 16-hour Wear & Carry curriculum + Maryland HQL exemption guide. Provide own handgun, holster, and ammo.",
-        vipDesc: "👑 VIP Turnkey Track. Includes Cindy&#39;s Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
       },
-            "Maryland Wear & Carry (8-Hour Renewal)": {
-        base: "75.00",
-        vip: "75.00",
+      "Maryland Wear & Carry (8-Hour Renewal)": {
+        base: "$149.99",
+        vip: "$249.99",
         baseDesc: "Self-equipped track. 8-hour state recertification curriculum and 25-round live-fire qualification. Bring your own firearm, holster, and 50 rounds.",
         vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range fee, B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!"
       },
       "Maryland Wear & Carry (CCW)": {
         base: "$199.99",
-        vip: "$325.00",
+        vip: "$349.99",
         baseDesc: "Self-equipped track. 16-hour Wear & Carry certification and live-fire range qualification. Provide own firearm and ammo.",
-        vipDesc: "👑 VIP Turnkey Track. Includes range fee at Cindy&#39;s Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
       },
       "Maryland HQL (Purchase License)": {
         base: "$100.00",
@@ -960,14 +958,15 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       },
       "Children's Safety Class": {
         base: "$199.99",
-        vip: "$265.00",seDesc: "Family safety and Eddie Eagle accident-prevention curriculum.",
-        vipDesc: "👑 VIP Turnkey Track. Includes certified home cable gun locks, youth workbook & completion certificate!"
+        vip: "$265.00",
+        baseDesc: "Family safety and Eddie Eagle accident-prevention curriculum.",
+        vipDesc: "👑 VIP Turnkey Track. Includes certified home cable gun locks, youth workbook & child-safe lockbox guidance!"
       },
       "FIFS Graduate Alumni Marksmanship Clinic": {
         base: "$65.00",
-        vip: "$65.00",
-        baseDesc: "FIFS alumni exclusive clinic. 2-hour practical diagnostic qualification shooting at Cindy&#39;s Hot Shots (Glen Burnie, MD) coached directly by Lead Instructor Kai Wade.",
-        vipDesc: "Flat rate for certified graduates and permit holders ($65.00/session). No VIP package needed—all training and lane access included!"
+        vip: "$115.00",
+        baseDesc: "Advanced diagnostics, holster draw speed, speed reloads & stress shooting drills for FIFS alumni.",
+        vipDesc: "👑 VIP Turnkey Track. Includes range lane fee, 50 rounds ammo, steel silhouette targets & shot-timer telemetry breakdown!"
       }
     };
     window.FORM_COURSE_PRICING = FORM_COURSE_PRICING;
@@ -1211,28 +1210,38 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       return "Maryland CCW & HQL Combo";
     }
     window.getMatchedCourseKey = getMatchedCourseKey;
-    function updateFormPriceDisplay() {
+        function updateFormPriceDisplay() {
       var selectElem = document.getElementById('courseSelection');
       if (!selectElem) return;
-      var selectedVal = selectElem.value;
-      var isVip = selectedVal.includes('VIP') || selectedVal.includes('Turnkey');
-      var matchedKey = getMatchedCourseKey(selectedVal);
-      var pData = FORM_COURSE_PRICING[matchedKey];
-      if (!pData) return;
-      var titleElem = document.getElementById('formCardCourseTitle');
-      var tierTag = document.getElementById('formCardTierTag');
-      var activePrice = document.getElementById('formCardActivePrice');
-      var baseVal = document.getElementById('formPriceBaseVal');
-      var vipVal = document.getElementById('formPriceVipVal');
-      var tierDesc = document.getElementById('formCardTierDesc');
-      var boxBase = document.getElementById('formBoxBase');
-      var boxVip = document.getElementById('formBoxVip');
-      // Parse base and VIP unit rates
-      var baseMatch = (pData.base || '').match(/\$([0-9,]+(?:\.[0-9]{2})?)/);
-      var vipMatch = (pData.vip || '').match(/\$([0-9,]+(?:\.[0-9]{2})?)/);
-      var unitBase = baseMatch ? parseFloat(baseMatch[1].replace(/,/g, '')) : 249.99;
-      var unitVip = vipMatch ? parseFloat(vipMatch[1].replace(/,/g, '')) : 375.00;
-      // Group size factor
+      var selectedVal = selectElem.value || '';
+      var clean = selectedVal.toLowerCase().replace(/&amp;/g, '&').replace(/&#x27;/g, "'");
+      var isVip = clean.includes('vip') || clean.includes('turnkey');
+
+      var unitBase = 199.99;
+      var unitVip = 349.99;
+      var matchedKey = 'ccw';
+
+      if (clean.includes('renewal') || clean.includes('8-hour') || clean.includes('8hr')) {
+        matchedKey = 'renewal'; unitBase = 149.99; unitVip = 249.99;
+      } else if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) {
+        matchedKey = 'mastery'; unitBase = 424.99; unitVip = 549.99;
+      } else if (clean.includes('combo')) {
+        matchedKey = 'combo'; unitBase = 249.99; unitVip = 375.00;
+      } else if (clean.includes('hql')) {
+        matchedKey = 'hql'; unitBase = 100.00; unitVip = 165.00;
+      } else if (clean.includes('ccw') || clean.includes('wear & carry')) {
+        matchedKey = 'ccw'; unitBase = 199.99; unitVip = 349.99;
+      } else if (clean.includes('coaching') || clean.includes('1-on-1')) {
+        matchedKey = 'coaching'; unitBase = 125.00; unitVip = 195.00;
+      } else if (clean.includes('cleaning')) {
+        matchedKey = 'cleaning'; unitBase = 75.00; unitVip = 115.00;
+      } else if (clean.includes('children') || clean.includes('youth') || clean.includes('family')) {
+        matchedKey = 'children'; unitBase = 199.99; unitVip = 265.00;
+      } else if (clean.includes('alumni') || clean.includes('clinic')) {
+        matchedKey = 'alumni'; unitBase = 65.00; unitVip = 115.00;
+      }
+
+      var activeUnit = isVip ? unitVip : unitBase;
       var groupElem = document.getElementById('groupSize');
       var groupVal = groupElem ? groupElem.value : '1 (Private One-on-One)';
       var count = 1;
@@ -1255,109 +1264,148 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         discountPercent = 0.15;
         discountBadge = ' • 5+ Cohort (15% Group Discount)';
       }
-      var calcTierPrice = function(unitPrice) {
-        var raw = unitPrice * count;
-        var disc = raw * discountPercent;
-        return raw - disc;
-      };
-      var totalBase = calcTierPrice(unitBase);
-      var totalVip = calcTierPrice(unitVip);
-      var baseStr = '$' + totalBase.toFixed(2);
-      var vipStr = '$' + totalVip.toFixed(2);
-      if (titleElem) titleElem.textContent = matchedKey;
-      if (baseVal) baseVal.textContent = baseStr;
-      if (vipVal) vipVal.textContent = vipStr;
-      if (isVip) {
-        if (tierTag) {
-          tierTag.textContent = "👑 VIP Turnkey Track" + (discountBadge || " Selected");
-          tierTag.style.color = "var(--accent-amber)";
-        }
-        if (activePrice) {
-          activePrice.textContent = vipStr;
-          activePrice.style.color = "var(--accent-amber)";
-        }
-        if (tierDesc) {
-          tierDesc.textContent = pData.vipDesc;
-          tierDesc.style.borderLeftColor = "var(--accent-amber)";
-        }
-        if (boxVip) {
-          boxVip.style.borderColor = "var(--accent-amber)";
-          boxVip.style.background = "rgba(255, 183, 3, 0.12)";
-          boxVip.style.boxShadow = "0 0 14px rgba(255, 183, 3, 0.25)";
-        }
-        if (boxBase) {
-          boxBase.style.borderColor = "var(--border-subtle)";
-          boxBase.style.background = "#070b10";
-          boxBase.style.boxShadow = "none";
-        }
-      } else {
-        if (tierTag) {
-          tierTag.textContent = "Standard Base Track" + (discountBadge || " Selected");
-          tierTag.style.color = "var(--accent-cyan)";
-        }
-        if (activePrice) {
-          activePrice.textContent = baseStr;
-          activePrice.style.color = "var(--accent-cyan)";
-        }
-        if (tierDesc) {
-          tierDesc.textContent = pData.baseDesc;
-          tierDesc.style.borderLeftColor = "var(--accent-cyan)";
-        }
-        if (boxBase) {
-          boxBase.style.borderColor = "var(--accent-cyan)";
-          boxBase.style.background = "rgba(0, 229, 255, 0.08)";
-          boxBase.style.boxShadow = "0 0 14px var(--accent-cyan-glow)";
-        }
-        if (boxVip) {
-          boxVip.style.borderColor = "var(--border-subtle)";
-          boxVip.style.background = "#070b10";
-          boxVip.style.boxShadow = "none";
-        }
+
+      var rawTuition = activeUnit * count;
+      var discountAmount = rawTuition * discountPercent;
+      var discountedTuition = rawTuition - discountAmount;
+      var rangeFee = isVip ? 0.00 : (45.00 * count);
+      var subtotal = discountedTuition + rangeFee;
+      var mdTax = subtotal * 0.06;
+      var grandTotal = subtotal + mdTax;
+      var depositDueNow = grandTotal * 0.30;
+      var balanceDueClass = grandTotal - depositDueNow;
+
+      var config = typeof COURSE_TIER_CONFIG !== 'undefined' ? COURSE_TIER_CONFIG[matchedKey] : null;
+
+      var titleElem = document.getElementById('formCardCourseTitle');
+      var tierTag = document.getElementById('formCardTierTag');
+      var activePrice = document.getElementById('formCardActivePrice');
+      var baseVal = document.getElementById('formPriceBaseVal');
+      var vipVal = document.getElementById('formPriceVipVal');
+      var tierDesc = document.getElementById('formCardTierDesc');
+      var boxBase = document.getElementById('formBoxBase');
+      var boxVip = document.getElementById('formBoxVip');
+      var bookingTitle = document.getElementById('bookingModalTitle');
+      var bookingBadge = document.getElementById('bookingModalBadge');
+
+      if (titleElem && config) {
+        titleElem.textContent = isVip ? config.vipTitle : config.baseTitle;
+      } else if (titleElem) {
+        titleElem.textContent = selectedVal.split('—')[0].trim() || 'Maryland Firearms Training';
       }
+
+      if (bookingTitle && config) {
+        bookingTitle.textContent = isVip ? ('Reserve 👑 VIP ' + config.baseTitle) : ('Reserve ' + config.baseTitle);
+      }
+      if (bookingBadge && config) {
+        bookingBadge.textContent = isVip ? config.vipBadge : config.baseBadge;
+      }
+
+      if (tierTag) {
+        tierTag.textContent = (isVip ? '👑 VIP Turnkey Track' : 'Standard Base Track') + (discountBadge || ' Selected');
+        tierTag.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+      }
+
+      if (activePrice) {
+        activePrice.textContent = '$' + activeUnit.toFixed(2);
+        activePrice.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+      }
+      if (baseVal) baseVal.textContent = '$' + unitBase.toFixed(2);
+      if (vipVal) vipVal.textContent = '$' + unitVip.toFixed(2);
+
+      if (boxBase) {
+        boxBase.style.borderColor = !isVip ? 'var(--accent-cyan)' : 'var(--border-subtle)';
+        boxBase.style.background = !isVip ? 'rgba(0, 229, 255, 0.08)' : '#070b10';
+        boxBase.style.boxShadow = !isVip ? '0 0 14px var(--accent-cyan-glow)' : 'none';
+      }
+      if (boxVip) {
+        boxVip.style.borderColor = isVip ? 'var(--accent-amber)' : 'var(--border-subtle)';
+        boxVip.style.background = isVip ? 'rgba(255, 183, 3, 0.12)' : '#070b10';
+        boxVip.style.boxShadow = isVip ? '0 0 14px rgba(245, 158, 11, 0.25)' : 'none';
+      }
+
+      if (tierDesc && config) {
+        tierDesc.style.borderLeftColor = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+        tierDesc.textContent = isVip ? config.vipDesc : config.baseDesc;
+      }
+
+      // CRITICAL BREAKDOWN ELEMENTS - Dynamically update course tuition and all charges!
+      var bTuition = document.getElementById('formBreakdownTuition');
+      var bRange = document.getElementById('formBreakdownRangeFee');
+      var bTax = document.getElementById('formBreakdownTax');
+      var bTotal = document.getElementById('formBreakdownTotal');
+      var bDeposit = document.getElementById('formBreakdownDeposit');
+      var bBalance = document.getElementById('formBreakdownBalance');
+
+      if (bTuition) bTuition.textContent = '$' + discountedTuition.toFixed(2);
+      if (bRange) {
+        bRange.textContent = isVip ? 'INCLUDED (VIP Perk)' : ('+$' + rangeFee.toFixed(2) + ' (Base Track)');
+        bRange.style.color = isVip ? '#10b981' : '#f59e0b';
+      }
+      if (bTax) bTax.textContent = '+$' + mdTax.toFixed(2);
+      if (bTotal) {
+        bTotal.textContent = '$' + grandTotal.toFixed(2);
+        bTotal.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
+      }
+      if (bDeposit) bDeposit.textContent = '$' + depositDueNow.toFixed(2);
+      if (bBalance) bBalance.textContent = '$' + balanceDueClass.toFixed(2);
+
       if (typeof renderBookingCalendar === 'function') {
         renderBookingCalendar();
       }
     }
     window.updateFormPriceDisplay = updateFormPriceDisplay;
+
     function toggleFormTier(targetTier) {
       var selectElem = document.getElementById('courseSelection');
       if (!selectElem) return;
-      var currentVal = selectElem.value;
-      var isCurrentlyVip = currentVal.includes('VIP') || currentVal.includes('Turnkey');
+      var currentVal = (selectElem.value || '').toLowerCase().replace(/&amp;/g, '&').replace(/&#x27;/g, "'");
+      var isCurrentlyVip = currentVal.includes('vip') || currentVal.includes('turnkey');
       if ((targetTier === 'vip' && isCurrentlyVip) || (targetTier === 'base' && !isCurrentlyVip)) {
         return;
       }
 
-      var clean = currentVal.toLowerCase();
-      var matchedKey = 'ccw';
-      if (clean.includes('renewal') || clean.includes('8-hour') || clean.includes('8hr')) matchedKey = 'renewal';
-      else if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) matchedKey = 'mastery';
-      else if (clean.includes('combo')) matchedKey = 'combo';
-      else if (clean.includes('hql') && !clean.includes('combo')) matchedKey = 'hql';
-      else if (clean.includes('ccw') || clean.includes('wear & carry')) matchedKey = 'ccw';
-      else if (clean.includes('coaching') || clean.includes('1-on-1')) matchedKey = 'coaching';
-      else if (clean.includes('cleaning')) matchedKey = 'cleaning';
-      else if (clean.includes('children') || clean.includes('youth') || clean.includes('family')) matchedKey = 'children';
-      else if (clean.includes('alumni') || clean.includes('clinic')) matchedKey = 'alumni';
+      var targetIsVip = (targetTier === 'vip');
 
-      var config = COURSE_TIER_CONFIG[matchedKey];
-      if (config) {
-        var targetVal = targetTier === 'vip' ? config.vipValue : config.baseValue;
-        for (var i = 0; i < selectElem.options.length; i++) {
-          if (selectElem.options[i].value === targetVal) {
+      var matchedKey = 'ccw';
+      if (currentVal.includes('renewal') || currentVal.includes('8-hour') || currentVal.includes('8 hour') || currentVal.includes('recertification')) matchedKey = 'renewal';
+      else if (currentVal.includes('mastery') || currentVal.includes('multi-state') || currentVal.includes('multistate')) matchedKey = 'mastery';
+      else if (currentVal.includes('combo')) matchedKey = 'combo';
+      else if (currentVal.includes('hql') && !currentVal.includes('combo')) matchedKey = 'hql';
+      else if (currentVal.includes('ccw') || currentVal.includes('wear & carry')) matchedKey = 'ccw';
+      else if (currentVal.includes('coaching') || currentVal.includes('1-on-1')) matchedKey = 'coaching';
+      else if (currentVal.includes('cleaning')) matchedKey = 'cleaning';
+      else if (currentVal.includes('children') || currentVal.includes('youth') || currentVal.includes('family')) matchedKey = 'children';
+      else if (currentVal.includes('alumni') || currentVal.includes('clinic')) matchedKey = 'alumni';
+
+      for (var i = 0; i < selectElem.options.length; i++) {
+        var optVal = selectElem.options[i].value.toLowerCase().replace(/&amp;/g, '&').replace(/&#x27;/g, "'");
+        var optIsVip = optVal.includes('vip') || optVal.includes('turnkey');
+        if (targetIsVip === optIsVip) {
+          var isOptMatch = false;
+          if (matchedKey === 'renewal' && (optVal.includes('renewal') || optVal.includes('8-hour'))) isOptMatch = true;
+          else if (matchedKey === 'mastery' && (optVal.includes('mastery') || optVal.includes('multi-state'))) isOptMatch = true;
+          else if (matchedKey === 'combo' && optVal.includes('combo')) isOptMatch = true;
+          else if (matchedKey === 'hql' && optVal.includes('hql') && !optVal.includes('combo')) isOptMatch = true;
+          else if (matchedKey === 'ccw' && optVal.includes('wear & carry') && !optVal.includes('combo') && !optVal.includes('renewal')) isOptMatch = true;
+          else if (matchedKey === 'coaching' && (optVal.includes('coaching') || optVal.includes('1-on-1'))) isOptMatch = true;
+          else if (matchedKey === 'cleaning' && optVal.includes('cleaning')) isOptMatch = true;
+          else if (matchedKey === 'children' && (optVal.includes('children') || optVal.includes('youth'))) isOptMatch = true;
+          else if (matchedKey === 'alumni' && optVal.includes('alumni')) isOptMatch = true;
+
+          if (isOptMatch) {
             selectElem.selectedIndex = i;
             selectElem.value = selectElem.options[i].value;
             break;
           }
         }
-        if (typeof setCardTier === 'function') {
-          setCardTier(matchedKey, targetTier);
-        }
       }
 
-      if (typeof updateFormPriceDisplay === 'function') {
-        updateFormPriceDisplay();
+      if (typeof setCardTier === 'function') {
+        setCardTier(matchedKey, targetTier);
       }
+
+      updateFormPriceDisplay();
     }
     window.toggleFormTier = toggleFormTier;
     // ==========================================================================
@@ -3411,7 +3459,7 @@ function loadDemoStudent() {
       },
       coaching: {
         basePrice: "$125.00",
-        vipPrice: "$195.00",
+        vipPrice: "$165.00",
         baseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
         vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
       },
@@ -3505,54 +3553,85 @@ function loadDemoStudent() {
     }
     window.toggleCardTier = toggleCardTier;
     function selectCourse(courseValue) {
-      var valClean = (courseValue || '').toLowerCase().trim();
-      if (valClean.includes('alumni') || valClean.includes('clinic')) {
-        var clientSession = sessionStorage.getItem('fifs_client_session');
-        if (!clientSession) {
-          /* cloud only: zero browser storage */
-          if (typeof openAlumniAccessGateModal === 'function') openAlumniAccessGateModal();
+      if (!courseValue) return;
+
+      if (courseValue.toLowerCase().includes('alumni')) {
+        var cSession = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('fifs_client_session') : null;
+        if (!cSession) {
+          if (typeof openModal === 'function') {
+            openModal('alumniAccessGateModal');
+          }
           return;
         }
       }
+
+      var valClean = courseValue.toLowerCase().replace(/&amp;/g, '&').replace(/&#x27;/g, "'").trim();
+      var isVip = valClean.includes('vip') || valClean.includes('turnkey');
+
+      var matchedKey = 'ccw';
+      if (valClean.includes('renewal') || valClean.includes('8-hour') || valClean.includes('8 hour') || valClean.includes('recertification')) matchedKey = 'renewal';
+      else if (valClean.includes('mastery') || valClean.includes('multi-state') || valClean.includes('multistate')) matchedKey = 'mastery';
+      else if (valClean.includes('combo')) matchedKey = 'combo';
+      else if (valClean.includes('hql') && !valClean.includes('combo')) matchedKey = 'hql';
+      else if (valClean.includes('ccw') || valClean.includes('wear & carry')) matchedKey = 'ccw';
+      else if (valClean.includes('coaching') || valClean.includes('1-on-1')) matchedKey = 'coaching';
+      else if (valClean.includes('cleaning')) matchedKey = 'cleaning';
+      else if (valClean.includes('children') || valClean.includes('youth') || valClean.includes('family')) matchedKey = 'children';
+      else if (valClean.includes('alumni') || valClean.includes('clinic')) matchedKey = 'alumni';
+
       var selectElem = document.getElementById('courseSelection');
       if (selectElem) {
-        var matched = false;
         for (var i = 0; i < selectElem.options.length; i++) {
-          var optVal = selectElem.options[i].value.toLowerCase().trim();
-          if (optVal === valClean) {
-            selectElem.selectedIndex = i;
-            selectElem.value = selectElem.options[i].value;
-            matched = true;
-            break;
-          }
-        }
-        if (!matched) {
-          var isVip = valClean.includes('vip');
-          for (var i = 0; i < selectElem.options.length; i++) {
-            var optVal = selectElem.options[i].value.toLowerCase().trim();
-            var optIsVip = optVal.includes('vip');
-            if (isVip === optIsVip) {
-              if ((valClean.includes('combo') && optVal.includes('combo')) ||
-                  (valClean.includes('mastery') && optVal.includes('mastery')) ||
-                  (valClean.includes('wear & carry') && optVal.includes('wear & carry') && !optVal.includes('combo')) ||
-                  (valClean.includes('hql') && optVal.includes('hql') && !optVal.includes('combo')) ||
-                  (valClean.includes('coaching') && optVal.includes('coaching')) ||
-                  (valClean.includes('cleaning') && optVal.includes('cleaning')) ||
-                  (valClean.includes('children') && optVal.includes('children'))) {
-                selectElem.selectedIndex = i;
-                selectElem.value = selectElem.options[i].value;
-                matched = true;
-                break;
-              }
+          var optVal = selectElem.options[i].value.toLowerCase().replace(/&amp;/g, '&').replace(/&#x27;/g, "'");
+          var optIsVip = optVal.includes('vip') || optVal.includes('turnkey');
+          if (isVip === optIsVip) {
+            var isOptMatch = false;
+            if (matchedKey === 'renewal' && (optVal.includes('renewal') || optVal.includes('8-hour'))) isOptMatch = true;
+            else if (matchedKey === 'mastery' && (optVal.includes('mastery') || optVal.includes('multi-state'))) isOptMatch = true;
+            else if (matchedKey === 'combo' && optVal.includes('combo')) isOptMatch = true;
+            else if (matchedKey === 'hql' && optVal.includes('hql') && !optVal.includes('combo')) isOptMatch = true;
+            else if (matchedKey === 'ccw' && optVal.includes('wear & carry') && !optVal.includes('combo') && !optVal.includes('renewal')) isOptMatch = true;
+            else if (matchedKey === 'coaching' && (optVal.includes('coaching') || optVal.includes('1-on-1'))) isOptMatch = true;
+            else if (matchedKey === 'cleaning' && optVal.includes('cleaning')) isOptMatch = true;
+            else if (matchedKey === 'children' && (optVal.includes('children') || optVal.includes('youth'))) isOptMatch = true;
+            else if (matchedKey === 'alumni' && optVal.includes('alumni')) isOptMatch = true;
+
+            if (isOptMatch) {
+              selectElem.selectedIndex = i;
+              selectElem.value = selectElem.options[i].value;
+              break;
             }
           }
         }
-        if (typeof updateFormPriceDisplay === 'function') {
-          updateFormPriceDisplay();
+      }
+
+      if (typeof setCardTier === 'function') {
+        setCardTier(matchedKey, isVip ? 'vip' : 'base');
+      }
+
+      if (typeof openCourseBookingModal === 'function') {
+        openCourseBookingModal();
+      } else {
+        var modal = document.getElementById('courseBookingModal');
+        if (modal) {
+          modal.classList.add('active');
+          modal.style.setProperty('display', 'flex', 'important');
+          modal.style.setProperty('opacity', '1', 'important');
+          modal.style.setProperty('visibility', 'visible', 'important');
+          modal.style.setProperty('pointer-events', 'auto', 'important');
+          document.body.classList.add('modal-open');
+          document.body.style.overflow = 'hidden';
         }
       }
-      openCourseBookingModal();
+
+      if (typeof updateFormPriceDisplay === 'function') {
+        updateFormPriceDisplay();
+      }
+      if (typeof renderBookingCalendar === 'function') {
+        renderBookingCalendar();
+      }
     }
+    window.selectCourse = selectCourse;
     window.selectCourse = selectCourse;
     // ==========================================================================
     // GLOBAL AUTHENTICATION & PORTAL TRIGGERS (GUARANTEED GLOBAL AVAILABILITY)
@@ -5839,69 +5918,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       `).join('');
     }
     window.mountStudentTargets = mountStudentTargets;
-    function selectCourse(courseValue) {
-      var valClean = (courseValue || '').toLowerCase().trim();
-      // REQUIREMENT 9: Lock Alumni Clinic down to registered clients
-      if (valClean.includes('alumni') || valClean.includes('clinic')) {
-        var clientSession = sessionStorage.getItem('fifs_client_session');
-        if (!clientSession) {
-          /* cloud only: zero browser storage */
-          openAlumniAccessGateModal();
-          return;
-        }
-      }
-      var bookingPanel = document.getElementById('view-booking');
-      if (!bookingPanel || bookingPanel.classList.contains('hidden')) {
-        switchTab('booking');
-      }
-      var selectElem = document.getElementById('courseSelection');
-      if (selectElem) {
-        var valClean = (courseValue || '').toLowerCase().trim();
-        var matched = false;
-        // 1. Exact match check
-        for (var i = 0; i < selectElem.options.length; i++) {
-          var optVal = selectElem.options[i].value.toLowerCase().trim();
-          if (optVal === valClean) {
-            selectElem.selectedIndex = i;
-            selectElem.value = selectElem.options[i].value;
-            matched = true;
-            break;
-          }
-        }
-        // 2. Substring & tier check
-        if (!matched) {
-          var isVip = valClean.includes('vip') || valClean.includes('550') || valClean.includes('375') || valClean.includes('325') || valClean.includes('165') || valClean.includes('195') || valClean.includes('115') || valClean.includes('265');
-          for (var i = 0; i < selectElem.options.length; i++) {
-            var optVal = selectElem.options[i].value.toLowerCase().trim();
-            var optIsVip = optVal.includes('vip');
-            if (isVip === optIsVip) {
-              if ((valClean.includes('multi-state') || valClean.includes('mastery')) && optVal.includes('multi-state')) { selectElem.selectedIndex = i; matched = true; break; }
-              if (valClean.includes('combo') && optVal.includes('combo')) { selectElem.selectedIndex = i; matched = true; break; }
-              if ((valClean.includes('renewal') || valClean.includes('recertification') || valClean.includes('8-hour') || valClean.includes('8 hour')) && optVal.includes('renewal')) { selectElem.selectedIndex = i; matched = true; break; }
-              if ((valClean.includes('wear & carry') || valClean.includes('ccw')) && !valClean.includes('combo') && !valClean.includes('multi-state') && optVal.includes('wear & carry') && !optVal.includes('combo')) { selectElem.selectedIndex = i; matched = true; break; }
-              if (valClean.includes('hql') && !valClean.includes('combo') && optVal.includes('hql') && !optVal.includes('combo')) { selectElem.selectedIndex = i; matched = true; break; }
-              if ((valClean.includes('1-on-1') || valClean.includes('coaching') || valClean.includes('one-on-one')) && (optVal.includes('1-on-1') || optVal.includes('coaching'))) { selectElem.selectedIndex = i; matched = true; break; }
-              if (valClean.includes('cleaning') && optVal.includes('cleaning')) { selectElem.selectedIndex = i; matched = true; break; }
-              if ((valClean.includes('children') || valClean.includes('youth')) && optVal.includes('children')) { selectElem.selectedIndex = i; selectElem.value = selectElem.options[i].value; matched = true; break; }
-              if ((valClean.includes('alumni') || valClean.includes('clinic')) && (optVal.includes('alumni') || optVal.includes('clinic'))) { selectElem.selectedIndex = i; selectElem.value = selectElem.options[i].value; matched = true; break; }
-            }
-          }
-        }
-        if (typeof updateFormPriceDisplay === 'function') {
-          updateFormPriceDisplay();
-        }
-        // Visual flash indicator on the dropdown so user sees the change
-        selectElem.style.borderColor = 'var(--accent-amber)';
-        selectElem.style.boxShadow = '0 0 16px var(--accent-amber-glow)';
-        setTimeout(function() {
-          selectElem.style.borderColor = '';
-          selectElem.style.boxShadow = '';
-        }, 1800);
-      }
-      // Open Course Booking Modal Window immediately in-place
-      openCourseBookingModal();
-    }
-    window.selectCourse = selectCourse;
+/* Duplicate selectCourse removed; authoritative version in head script */
     function toggleFaq(btn) {
       var item = btn.parentElement;
       item.classList.toggle('active');
@@ -7337,7 +7354,7 @@ function getStepNumberFromStatus(statusStr) {
       },
       coaching: {
         basePrice: "$125.00",
-        vipPrice: "$195.00",
+        vipPrice: "$165.00",
         baseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
         vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
       },
@@ -7425,28 +7442,28 @@ function getStepNumberFromStatus(statusStr) {
     // ================= FORM PRICING DUAL-TIER CLARITY LOGIC =================
     var FORM_COURSE_PRICING = {
       "Mid-Atlantic Multi-State Mastery": {
-        base: "$425.00",
-        vip: "$550.00",
+        base: "$424.99",
+        vip: "$549.99",
         baseDesc: "Self-equipped track. Includes 16-hour instruction + live-fire qualification + documentation for MD, VA, FL, AZ, and PA. Provide own firearm and ammo.",
-        vipDesc: "👑 VIP Turnkey Track. Includes Cindy&#39;s Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
       },
       "Maryland CCW & HQL Combo": {
         base: "$249.99",
         vip: "$375.00",
         baseDesc: "Self-equipped track. 16-hour Wear & Carry curriculum + Maryland HQL exemption guide. Provide own handgun, holster, and ammo.",
-        vipDesc: "👑 VIP Turnkey Track. Includes Cindy&#39;s Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
       },
-            "Maryland Wear & Carry (8-Hour Renewal)": {
-        base: "75.00",
-        vip: "75.00",
+      "Maryland Wear & Carry (8-Hour Renewal)": {
+        base: "$149.99",
+        vip: "$249.99",
         baseDesc: "Self-equipped track. 8-hour state recertification curriculum and 25-round live-fire qualification. Bring your own firearm, holster, and 50 rounds.",
         vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range fee, B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!"
       },
       "Maryland Wear & Carry (CCW)": {
         base: "$199.99",
-        vip: "$325.00",
+        vip: "$349.99",
         baseDesc: "Self-equipped track. 16-hour Wear & Carry certification and live-fire range qualification. Provide own firearm and ammo.",
-        vipDesc: "👑 VIP Turnkey Track. Includes range fee at Cindy&#39;s Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
+        vipDesc: "👑 VIP Turnkey Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
       },
       "Maryland HQL (Purchase License)": {
         base: "$100.00",
@@ -7470,13 +7487,13 @@ function getStepNumberFromStatus(statusStr) {
         base: "$199.99",
         vip: "$265.00",
         baseDesc: "Family safety and Eddie Eagle accident-prevention curriculum.",
-        vipDesc: "👑 VIP Turnkey Track. Includes certified home cable gun locks, youth workbook & completion certificate!"
+        vipDesc: "👑 VIP Turnkey Track. Includes certified home cable gun locks, youth workbook & child-safe lockbox guidance!"
       },
       "FIFS Graduate Alumni Marksmanship Clinic": {
         base: "$65.00",
-        vip: "$65.00",
-        baseDesc: "FIFS alumni exclusive clinic. 2-hour practical diagnostic qualification shooting at CindShots (Glen Burnie, MD) coached directly by Lead Instructor Kai Wade.",
-        vipDesc: "Flat rate for certified graduates and permit holders ($65.00/session). No VIP package needed—all training and lane access included!"
+        vip: "$115.00",
+        baseDesc: "Advanced diagnostics, holster draw speed, speed reloads & stress shooting drills for FIFS alumni.",
+        vipDesc: "👑 VIP Turnkey Track. Includes range lane fee, 50 rounds ammo, steel silhouette targets & shot-timer telemetry breakdown!"
       }
     };
         function getMatchedCourseKey(selectedVal) {
@@ -7492,52 +7509,7 @@ function getStepNumberFromStatus(statusStr) {
       if (v.includes('children') || v.includes('youth')) return "Children's Safety Class";
       return "Maryland CCW & HQL Combo";
     }
-    /* Duplicate updateFormPriceDisplay omitted; authoritative version in head script */
-    function toggleFormTier(targetTier) {
-      var selectElem = document.getElementById('courseSelection');
-      if (!selectElem) return;
-      var currentVal = selectElem.value;
-      var isCurrentlyVip = currentVal.includes('VIP');
-      if (targetTier === 'vip' && !isCurrentlyVip) {
-        // Find matching VIP option in select
-        for (var i = 0; i < selectElem.options.length; i++) {
-          var opt = selectElem.options[i].value;
-          if (opt.includes('VIP') && (
-            (currentVal.includes('Multi-State') && opt.includes('Multi-State')) ||
-            (currentVal.includes('Combo') && opt.includes('Combo')) ||
-            (currentVal.includes('Wear & Carry') && opt.includes('Wear & Carry') && !opt.includes('Combo')) ||
-            (currentVal.includes('HQL') && opt.includes('HQL') && !opt.includes('Combo')) ||
-            (currentVal.includes('1-on-1') && opt.includes('1-on-1')) ||
-            (currentVal.includes('Cleaning') && opt.includes('Cleaning')) ||
-            (currentVal.includes('Children') && opt.includes('Children'))
-          )) {
-            selectElem.selectedIndex = i;
-            selectElem.value = opt;
-            break;
-          }
-        }
-      } else if (targetTier === 'base' && isCurrentlyVip) {
-        // Find matching Base option in select
-        for (var i = 0; i < selectElem.options.length; i++) {
-          var opt = selectElem.options[i].value;
-          if (!opt.includes('VIP') && (
-            (currentVal.includes('Multi-State') && opt.includes('Multi-State')) ||
-            (currentVal.includes('Combo') && opt.includes('Combo')) ||
-            (currentVal.includes('Wear & Carry') && opt.includes('Wear & Carry') && !opt.includes('Combo')) ||
-            (currentVal.includes('HQL') && opt.includes('HQL') && !opt.includes('Combo')) ||
-            (currentVal.includes('1-on-1') && opt.includes('1-on-1')) ||
-            (currentVal.includes('Cleaning') && opt.includes('Cleaning')) ||
-            (currentVal.includes('Children') && opt.includes('Children'))
-          )) {
-            selectElem.selectedIndex = i;
-            selectElem.value = opt;
-            break;
-          }
-        }
-      }
-      updateFormPriceDisplay();
-      if (typeof renderBookingCalendar === "function") renderBookingCalendar();
-    }
+    /* Duplicate toggleFormTier removed; authoritative version in head script */
     // ================= DYNAMIC COURSE CARD TIER TOGGLE SWITCH =================
     function setCardTier(courseKey, targetTier, evt) {
       if (evt && evt.stopPropagation) evt.stopPropagation();
@@ -11021,7 +10993,7 @@ if (typeof window !== 'undefined') {
       },
       coaching: {
         basePrice: "$125.00",
-        vipPrice: "$195.00",
+        vipPrice: "$165.00",
         baseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
         vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
       },

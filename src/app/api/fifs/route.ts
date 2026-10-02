@@ -1431,15 +1431,15 @@ case 'getStudentPortalData': {
         let baseTuitionPerPerson = 249.99;
         const cleanCourse = (courseSelection || '').toLowerCase();
         if (cleanCourse.includes('mastery') || cleanCourse.includes('multi-state') || cleanCourse.includes('multistate')) {
-          baseTuitionPerPerson = isVip ? 550.00 : 425.00;
+          baseTuitionPerPerson = isVip ? 549.99 : 424.99;
         } else if (cleanCourse.includes('renewal')) {
           baseTuitionPerPerson = isVip ? 249.99 : 149.99;
         } else if (cleanCourse.includes('combo')) {
           baseTuitionPerPerson = isVip ? 375.00 : 249.99;
         } else if (cleanCourse.includes('hql')) {
-          baseTuitionPerPerson = isVip ? 195.00 : 100.00;
+          baseTuitionPerPerson = isVip ? 165.00 : 100.00;
         } else if (cleanCourse.includes('ccw') || cleanCourse.includes('wear & carry')) {
-          baseTuitionPerPerson = isVip ? 375.00 : 249.99;
+          baseTuitionPerPerson = isVip ? 349.99 : 199.99;
         } else if (cleanCourse.includes('coaching')) {
           baseTuitionPerPerson = isVip ? 195.00 : 125.00;
         } else if (cleanCourse.includes('cleaning')) {
