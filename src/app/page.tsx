@@ -3943,7 +3943,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </span>
           </div>
           {/* Semi-Transparent Neon Arrow Guide (Colors of the business logo: #00e5ff) */}
-          <div className="neon-arrow-guide-wrap" id="wrap-neon-guide" data-onclick="openAndSwitch('booking')" role="button" tabIndex="0" title="New to firearms? Click here to start">
+          <div className="neon-arrow-guide-wrap" id="wrap-neon-guide" data-onclick="openAndSwitch('booking')" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined') { (window as any).openAndSwitch ? (window as any).openAndSwitch('booking') : ((window as any).switchTab ? (window as any).switchTab('booking') : null); } }} role="button" tabIndex="0" title="New to firearms? Click here to start">
             <div className="neon-arrow-badge neon-mode-cyan" id="neon-start-guide" title="Future Initiative Operations Active • Click to Start Training">
               <span className="neon-arrow-text">
                 New To Firearms? Start Here
@@ -3953,7 +3953,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </span>
             </div>
           </div>
-          <button className="btn-hero-booking-prime start-journey-btn" id="btn-hero-booking" data-onclick="openAndSwitch('booking')" type="button">
+          <button className="btn-hero-booking-prime start-journey-btn" id="btn-hero-booking" data-onclick="openAndSwitch('booking')" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined') { (window as any).openAndSwitch ? (window as any).openAndSwitch('booking') : ((window as any).switchTab ? (window as any).switchTab('booking') : null); } }} type="button">
             <span className="prime-label">
               🎯 START YOUR JOURNEY
             </span>
@@ -3962,7 +3962,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </span>
           </button>
           <div className="hero-twin-grid">
-            <button aria-haspopup="dialog" aria-label="Open Future Initiative Portal selector" className="btn-hero-twin fifs-portal-btn" id="btn-hero-portal" data-onclick="openPortalSelectionModal()" type="button">
+            <button aria-haspopup="dialog" aria-label="Open Future Initiative Portal selector" className="btn-hero-twin fifs-portal-btn" id="btn-hero-portal" data-onclick="openPortalSelectionModal()" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined') { (window as any).openPortalSelectionModal ? (window as any).openPortalSelectionModal() : ((window as any).openAndSwitch ? (window as any).openAndSwitch('portal') : null); } }} type="button">
               <span className="twin-title">
                 ⚡ Future Initiative Portal
               </span>
@@ -3970,7 +3970,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Student & Client Access
               </span>
             </button>
-            <button className="btn-hero-twin lead-instructor-btn" id="btn-hero-about" data-onclick="openAndSwitch('about')" type="button">
+            <button className="btn-hero-twin lead-instructor-btn" id="btn-hero-about" data-onclick="openAndSwitch('about')" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined') { (window as any).openAndSwitch ? (window as any).openAndSwitch('about') : ((window as any).switchTab ? (window as any).switchTab('about') : null); } }} type="button">
               <span className="twin-title">
                 👤 Lead Instructor
               </span>
@@ -3980,19 +3980,19 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </button>
           </div>
           <div className="hero-bottom-strip">
-            <button className="btn-hero-aux" id="btn-hero-targets" data-onclick="openAndSwitch('testimonial')" type="button">
+            <button className="btn-hero-aux" id="btn-hero-targets" data-onclick="openAndSwitch('testimonial')" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined') { (window as any).openAndSwitch ? (window as any).openAndSwitch('testimonial') : ((window as any).switchTab ? (window as any).switchTab('testimonial') : null); } }} type="button">
               🎯 Range Highlights
             </button>
             <span style={{"color": "var(--border-subtle)"}}>
               •
             </span>
-            <button className="btn-hero-aux" id="btn-hero-faq" data-onclick="openAndSwitch('faq')" type="button">
+            <button className="btn-hero-aux" id="btn-hero-faq" data-onclick="openAndSwitch('faq')" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined') { (window as any).openAndSwitch ? (window as any).openAndSwitch('faq') : ((window as any).switchTab ? (window as any).switchTab('faq') : null); } }} type="button">
               ❓ Frequently Asked Questions
             </button>
             <span style={{"color": "var(--border-subtle)"}}>
               •
             </span>
-            <button className="btn-hero-aux" id="btn-hero-contact" data-onclick="openContactWidgetModal()" type="button" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "cursor": "pointer"}}>
+            <button className="btn-hero-aux" id="btn-hero-contact" data-onclick="openContactWidgetModal()" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined') { (window as any).openContactWidgetModal ? (window as any).openContactWidgetModal() : null; } }} type="button" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "cursor": "pointer"}}>
               💬 Chat
             </button>
           </div>
@@ -6405,7 +6405,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         
           </p>
           <div className="pathway-grid">
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('new_to_firearms', this)" title="Learn more about starting with HQL" type="button">
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('new_to_firearms', this)" onClick={(e) => { e.preventDefault(); if (typeof window !== "undefined" && (window as any).openGoalSynopsis) (window as any).openGoalSynopsis("new_to_firearms", e.currentTarget); }} title="Learn more about starting with HQL" type="button">
               <div className="pathway-intent">
                 Brand New to Firearms
               </div>
@@ -6416,7 +6416,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Learn More & Free 50-Q Guide →
               </div>
             </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_purchase', this)" title="Learn more about buying a handgun" type="button">
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_purchase', this)" onClick={(e) => { e.preventDefault(); if (typeof window !== "undefined" && (window as any).openGoalSynopsis) (window as any).openGoalSynopsis("want_to_purchase", e.currentTarget); }} title="Learn more about buying a handgun" type="button">
               <div className="pathway-intent">
                 Looking to Buy a Pistol
               </div>
@@ -6427,7 +6427,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Learn More →
               </div>
             </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_carry', this)" title="Learn more about concealed carry" type="button">
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_carry', this)" onClick={(e) => { e.preventDefault(); if (typeof window !== "undefined" && (window as any).openGoalSynopsis) (window as any).openGoalSynopsis("want_to_carry", e.currentTarget); }} title="Learn more about concealed carry" type="button">
               <div className="pathway-intent">
                 I Want to Carry in Public
               </div>
@@ -6438,7 +6438,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Learn More →
               </div>
             </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_both', this)" title="Learn more about CCW &amp; HQL combo" type="button">
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_both', this)" onClick={(e) => { e.preventDefault(); if (typeof window !== "undefined" && (window as any).openGoalSynopsis) (window as any).openGoalSynopsis("want_both", e.currentTarget); }} title="Learn more about CCW &amp; HQL combo" type="button">
               <div className="pathway-intent">
                 I Want Both: Buy & Carry
               </div>
@@ -6460,7 +6460,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Learn More →
               </div>
             </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('need_multistate', this)" onClick={() => { if (typeof window !== "undefined" && (window as any).openMultistateMasteryModal) (window as any).openGoalSynopsis('need_multistate', this); }} title="Learn more about multi-state carry" type="button">
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('need_multistate', this)" onClick={(e) => { e.preventDefault(); if (typeof window !== "undefined" && (window as any).openGoalSynopsis) (window as any).openGoalSynopsis("need_multistate", e.currentTarget); }} onClick={() => { if (typeof window !== "undefined" && (window as any).openMultistateMasteryModal) (window as any).openGoalSynopsis('need_multistate', this); }} title="Learn more about multi-state carry" type="button">
               <div className="pathway-intent" style={{"color": "var(--accent-amber)"}}>
                 Do I Need a Multi-State Permit?
               </div>
