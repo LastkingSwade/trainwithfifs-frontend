@@ -3216,7 +3216,7 @@ export default function TrainWithFIFS(props: any) {
       const groupVal = groupElem ? groupElem.value : '1';
 
       const pricing = (window as any).calculateComprehensiveInvoice(activeUnit, isVip, groupVal);
-      const config = COURSE_TIER_CONFIG[matchedKey];
+      const config = (window as any).COURSE_TIER_CONFIG?.[matchedKey] || {};
 
       const titleElem = document.getElementById('formCardCourseTitle');
       const tierTag = document.getElementById('formCardTierTag');
