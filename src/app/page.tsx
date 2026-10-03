@@ -1437,7 +1437,7 @@ export default function TrainWithFIFS(props: any) {
       } catch (_e) {}
 
       if (!token && typeof getSessionBearerToken === 'function') {
-        token = await getSessionBearerToken();
+        token = (await getSessionBearerToken()) || "";
       }
 
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -1696,7 +1696,7 @@ export default function TrainWithFIFS(props: any) {
           let token = '';
           try {
             if (typeof getSessionBearerToken === 'function') {
-              token = await getSessionBearerToken();
+              token = (await getSessionBearerToken()) || "";
             }
             if (!token && (window as any).__fifsStaffSession?.access_token) {
               token = (window as any).__fifsStaffSession.access_token;
@@ -2437,7 +2437,7 @@ export default function TrainWithFIFS(props: any) {
 
 
       try {
-        const token = await getSessionBearerToken();
+        const token = (await getSessionBearerToken()) || "";
         const res = await fetch('/api/fifs', {
           method: 'POST',
           headers: {
@@ -2972,7 +2972,7 @@ export default function TrainWithFIFS(props: any) {
 
 
     (window as any).refreshAdminRoster = async function() {
-      const token = await getSessionBearerToken();
+      const token = (await getSessionBearerToken()) || "";
       if (!token) return;
       fetch('/api/fifs', {
         method: 'POST',
@@ -2993,7 +2993,7 @@ export default function TrainWithFIFS(props: any) {
     };
 
     (window as any).refreshAdminLiveChats = (window as any).refreshAdminChat = async function() {
-      const token = await getSessionBearerToken();
+      const token = (await getSessionBearerToken()) || "";
       if (!token) return;
       try {
         const res = await fetch('/api/fifs', {
@@ -3792,7 +3792,7 @@ export default function TrainWithFIFS(props: any) {
 
 
         // 2. Call FIFS Backend Route Handler with bearer token
-        const token = await getSessionBearerToken();
+        const token = (await getSessionBearerToken()) || "";
         await fetch('/api/fifs', {
           method: 'POST',
           headers: {
