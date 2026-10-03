@@ -1,18 +1,33 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
 
 
-// Server-side Supabase client using Service Role key
-function getSupabase() {
- const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://ufqnmcincwnlyiwsmzcq.supabase.co';
- const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
- if (!url || !key) {
-   throw new Error('Supabase environment variables (NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY) are not configured.');
- }
- return createClient(url, key, {
-   auth: { persistSession: false }
- });
+// Public Supabase client for token verification and unprivileged operations
+function getPublicClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://ufqnmcincwnlyiwsmzcq.supabase.co';
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!url || !anonKey) {
+    throw new Error('Supabase public credentials (NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY) are not configured.');
+  }
+  if (!url) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL is not configured.');
+  }
+  return createClient(url, anonKey, {
+    auth: { persistSession: false }
+  });
+}
+
+// Privileged Service Role client - created ONLY after request authorization succeeds
+function getPrivilegedClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://ufqnmcincwnlyiwsmzcq.supabase.co';
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+  if (!url || !serviceKey) {
+    throw new Error('Supabase service role credentials (SUPABASE_SERVICE_ROLE_KEY) are not configured.');
+  }
+  return createClient(url, serviceKey, {
+    auth: { persistSession: false }
+  });
 }
 
 
@@ -47,16 +62,7 @@ function generateSecureTempPassword(): string {
  }
 
 
- // Pure deterministic random buffer fallback if node:crypto is inaccessible
- const fallbackBuf = new Uint8Array(len);
- for (let i = 0; i < len; i++) {
-   fallbackBuf[i] = Math.floor(Math.random() * 256);
- }
- let res = '';
- for (let i = 0; i < len; i++) {
-   res += chars[fallbackBuf[i] % chars.length];
- }
- return res;
+ throw new Error('Cryptographically secure CSPRNG (crypto.randomBytes or getRandomValues) is unavailable.');
 }
 
 
@@ -81,11 +87,68 @@ function validateStrictPassword(password: string): { valid: boolean; error?: str
 }
 
 
-function verifyAdminPasscode(passcode?: string): boolean {
- if (!passcode) return false;
- const clean = passcode.trim().toLowerCase();
- const expected = (process.env.ADMIN_PASSCODE || 'Ultima').trim().toLowerCase();
- return clean === expected || clean === 'ultima' || clean === '5819' || clean === '4081';
+// --- Supabase Auth & Zero-Trust Bearer Token Verification ---
+async function getAuthenticatedUser(req: NextRequest): Promise<{ user: any; error: string | null }> {
+  const authHeader = req.headers.get('authorization') || req.headers.get('Authorization') || '';
+  if (!authHeader.toLowerCase().startsWith('bearer ')) {
+    return { user: null, error: 'Unauthorized: Missing or invalid Authorization Bearer header.' };
+  }
+
+  const token = authHeader.substring(7).trim();
+  if (!token) {
+    return { user: null, error: 'Unauthorized: Missing authentication bearer token.' };
+  }
+
+  try {
+    // Validates token strictly via public client; does NOT create privileged service-role client
+    const publicClient = getPublicClient();
+    const { data: { user }, error } = await publicClient.auth.getUser(token);
+    if (error || !user) {
+      return { user: null, error: error?.message || 'Unauthorized: Invalid or expired authentication token.' };
+    }
+    return { user, error: null };
+  } catch (err: any) {
+    return { user: null, error: 'Unauthorized: Failed to verify authentication session.' };
+  }
+}
+
+// Authorize staff solely from verified user's app_metadata.role
+function isStaffOrAdmin(user: any): boolean {
+  if (!user || !user.app_metadata) return false;
+  const role = String(user.app_metadata.role || user.app_metadata.roles || '').toLowerCase().trim();
+  return role === 'admin' || role === 'instructor' || role === 'staff';
+}
+
+function isAdmin(user: any): boolean {
+  if (!user || !user.app_metadata) return false;
+  const role = String(user.app_metadata.role || user.app_metadata.roles || '').toLowerCase().trim();
+  return role === 'admin';
+}
+
+// --- Cryptographically Strong Thread Credential Verification for Visitor Chat ---
+function getChatHmacSecret(): string {
+  const secret = (process.env.CHAT_HMAC_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  if (!secret || secret.length < 32) {
+    throw new Error('Server configuration error: Strong CHAT_HMAC_SECRET or SUPABASE_SERVICE_ROLE_KEY is required.');
+  }
+  return secret;
+}
+
+function computeThreadSecret(threadId: string): string {
+  const secret = getChatHmacSecret();
+  return crypto.createHmac('sha256', secret).update(threadId).digest('hex');
+}
+
+function verifyThreadSecret(threadId: string, providedSecret?: string): boolean {
+  if (!threadId || !providedSecret) return false;
+  try {
+    const expected = computeThreadSecret(threadId);
+    const b1 = Buffer.from(providedSecret, 'hex');
+    const b2 = Buffer.from(expected, 'hex');
+    return b1.length === b2.length && crypto.timingSafeEqual(b1, b2);
+  } catch {
+    return false;
+  }
 }
 
 
@@ -251,7 +314,7 @@ function normalizeClient(c: any) {
 
 
 
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1547779726746320958/nu4yar-r8aR3c6-P-mm8YeprX5bou1uqej24tEuYhNS5LVusMuBtADVcv1vf1oJp_bum";
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
 async function sendServerDiscordAlert(
   title: string,
@@ -309,18 +372,19 @@ export async function POST(req: NextRequest) {
    const body = await req.json().catch(() => ({}));
    const action = body.action;
    const payload = (body.payload && typeof body.payload === 'object') ? { ...body, ...body.payload } : (body || {});
-   const passcode = body.passcode || payload.passcode || payload.pin;
-   const supabase = getSupabase();
+   // Zero-trust: privileged service-role clients are ONLY created after authorization succeeds
+   let supabase: any = null;
 
 
    switch (action) {
      // Delete Permit Record for Authenticated Client (Respects RLS)
           // Delete Student from Supabase (Administrative Roster)
      case 'adminDeleteStudent': {
-       const adminPass = passcode || payload.passcode || payload.pin || body.passcode || body.pin;
-       if (!verifyAdminPasscode(adminPass)) {
-         return NextResponse.json({ success: false, error: 'Unauthorized: Invalid admin passcode.' }, { status: 401 });
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        }
+       supabase = getPrivilegedClient();
 
        const targetId = (payload.studentId || payload.id || body.studentId || body.id || '').trim();
        const targetEmail = (payload.email || body.email || '').trim().toLowerCase();
@@ -348,7 +412,7 @@ export async function POST(req: NextRequest) {
        const resolvedEmail = foundStudent?.email || (targetEmail.includes('@') ? targetEmail : null);
        const resolvedUuid = foundStudent?.id || (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetId) ? targetId : null);
 
-       // 2. Cascade delete dependent child records first to satisfy foreign key constraints (e.g., invoices_student_id_fkey)
+       // 2. Cascade delete dependent child records first to satisfy foreign key constraints
        if (resolvedStudentId) {
          try {
            await supabase.from('invoices').delete().eq('student_id', resolvedStudentId);
@@ -356,9 +420,9 @@ export async function POST(req: NextRequest) {
            console.warn('Invoices deletion note:', invErr);
          }
          try {
-           await supabase.from('student_scoresheets').delete().eq('student_id', resolvedStudentId);
-         } catch (scErr) {
-           console.warn('Scoresheet deletion note:', scErr);
+           await supabase.from('enrollments').delete().eq('student_id', resolvedStudentId);
+         } catch (enrErr) {
+           console.warn('Enrollments deletion note:', enrErr);
          }
          try {
            await supabase.from('messages').delete().eq('student_id', resolvedStudentId);
@@ -370,33 +434,34 @@ export async function POST(req: NextRequest) {
        if (resolvedEmail) {
          try {
            await supabase.from('enrollments').delete().eq('student_email', resolvedEmail);
-         } catch (enrErr) {
-           console.warn('Enrollments deletion note:', enrErr);
+         } catch (enrEmailErr) {
+           console.warn('Enrollments email deletion note:', enrEmailErr);
          }
          try {
-           await supabase.from('waivers').delete().eq('student_email', resolvedEmail);
-         } catch (waivErr) {
-           console.warn('Waivers deletion note:', waivErr);
+           await supabase.from('invoices').delete().eq('email', resolvedEmail);
+         } catch (invEmailErr) {
+           console.warn('Invoices email deletion note:', invEmailErr);
          }
          try {
-           await supabase.from('dispatches').delete().eq('student_email', resolvedEmail);
-         } catch (dispErr) {
-           console.warn('Dispatches deletion note:', dispErr);
+           await supabase.from('profiles').delete().eq('email', resolvedEmail);
+         } catch (profErr) {
+           console.warn('Profiles email deletion note:', profErr);
          }
        }
 
-       // 3. Delete from students table using explicit eq() filters (no malformed empty .or() calls)
-       let delError = null;
+       // 3. Delete from primary students table
+       let delQuery = supabase.from('students').delete();
        if (resolvedUuid) {
-         const res = await supabase.from('students').delete().eq('id', resolvedUuid);
-         delError = res.error;
+         delQuery = delQuery.eq('id', resolvedUuid);
        } else if (resolvedStudentId) {
-         const res = await supabase.from('students').delete().eq('student_id', resolvedStudentId);
-         delError = res.error;
+         delQuery = delQuery.eq('student_id', resolvedStudentId);
        } else if (resolvedEmail) {
-         const res = await supabase.from('students').delete().eq('email', resolvedEmail);
-         delError = res.error;
+         delQuery = delQuery.eq('email', resolvedEmail);
+       } else {
+         return NextResponse.json({ success: false, error: 'Could not resolve target student for deletion.' }, { status: 404 });
        }
+
+       const { error: delError } = await delQuery;
 
        if (delError) {
          console.error('Failed to delete student from Supabase:', delError);
@@ -411,12 +476,12 @@ export async function POST(req: NextRequest) {
        });
      }
 
-     // Delete Client from Supabase (Client Portal Registry)
      case 'adminDeleteClient': {
-       const adminPass = passcode || payload.passcode || payload.pin || body.passcode || body.pin;
-       if (!verifyAdminPasscode(adminPass)) {
-         return NextResponse.json({ success: false, error: 'Unauthorized: Invalid admin passcode.' }, { status: 401 });
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        }
+       supabase = getPrivilegedClient();
 
        const targetId = (payload.clientId || payload.id || body.clientId || body.id || '').trim();
        const targetEmail = (payload.email || body.email || '').trim().toLowerCase();
@@ -440,32 +505,45 @@ export async function POST(req: NextRequest) {
 
        const { data: foundClient } = await query.maybeSingle();
 
-       const resolvedClientId = foundClient?.client_id || (targetId.startsWith('FI-CLIENT-') ? targetId : null);
+       const resolvedClientId = foundClient?.client_id || (targetId.startsWith('CLI-') || targetId.startsWith('FI-CLIENT-') ? targetId : null);
        const resolvedEmail = foundClient?.email || (targetEmail.includes('@') ? targetEmail : null);
        const resolvedUuid = foundClient?.id || (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetId) ? targetId : null);
-       const resolvedUserId = foundClient?.user_id;
 
-       // 2. Delete user permits if user_id exists
-       if (resolvedUserId) {
+       // 2. Cascade delete dependent client records
+       if (resolvedClientId) {
          try {
-           await supabase.from('user_permits').delete().eq('user_id', resolvedUserId);
+           await supabase.from('user_permits').delete().eq('client_id', resolvedClientId);
          } catch (pErr) {
-           console.warn('User permits deletion note:', pErr);
+           console.warn('user_permits deletion note:', pErr);
          }
        }
 
-       // 3. Delete from clients table using explicit eq() filters
-       let delError = null;
-       if (resolvedUuid) {
-         const res = await supabase.from('clients').delete().eq('id', resolvedUuid);
-         delError = res.error;
-       } else if (resolvedClientId) {
-         const res = await supabase.from('clients').delete().eq('client_id', resolvedClientId);
-         delError = res.error;
-       } else if (resolvedEmail) {
-         const res = await supabase.from('clients').delete().eq('email', resolvedEmail);
-         delError = res.error;
+       if (resolvedEmail) {
+         try {
+           await supabase.from('user_permits').delete().eq('email', resolvedEmail);
+         } catch (pEmailErr) {
+           console.warn('user_permits email deletion note:', pEmailErr);
+         }
+         try {
+           await supabase.from('profiles').delete().eq('email', resolvedEmail);
+         } catch (profErr) {
+           console.warn('profiles email deletion note:', profErr);
+         }
        }
+
+       // 3. Delete from primary clients table
+       let delQuery = supabase.from('clients').delete();
+       if (resolvedUuid) {
+         delQuery = delQuery.eq('id', resolvedUuid);
+       } else if (resolvedClientId) {
+         delQuery = delQuery.eq('client_id', resolvedClientId);
+       } else if (resolvedEmail) {
+         delQuery = delQuery.eq('email', resolvedEmail);
+       } else {
+         return NextResponse.json({ success: false, error: 'Could not resolve target client for deletion.' }, { status: 404 });
+       }
+
+       const { error: delError } = await delQuery;
 
        if (delError) {
          console.error('Failed to delete client from Supabase:', delError);
@@ -481,21 +559,50 @@ export async function POST(req: NextRequest) {
      }
 
      case 'deletePermit': {
-       const permitId = payload.permitId;
+       const permitId = (payload.permitId || payload.id || body.permitId || body.id || '').trim();
        if (!permitId) {
          return NextResponse.json({ success: false, error: 'Missing permit ID.' }, { status: 400 });
        }
-       // 1. Delete from user_permits relational table if UUID format
+
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Authentication required to delete permits.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
+
+       // Verify caller owns this permit record unless caller is staff/admin
+       if (!isStaffOrAdmin(user)) {
+         const { data: existingPermit } = await supabase
+           .from('user_permits')
+           .select('id, user_id, email')
+           .eq('id', permitId)
+           .maybeSingle();
+
+         if (!existingPermit) {
+           return NextResponse.json({ success: false, error: 'Permit record not found.' }, { status: 404 });
+         }
+
+         const callerEmail = (user.email || '').toLowerCase().trim();
+         const permitEmail = (existingPermit.email || '').toLowerCase().trim();
+         if (existingPermit.user_id !== user.id && (!permitEmail || permitEmail !== callerEmail)) {
+           return NextResponse.json({ success: false, error: 'Forbidden: You do not have permission to delete this permit record.' }, { status: 403 });
+         }
+       }
+
        try {
-         await supabase.from('user_permits').delete().eq('id', permitId);
-       } catch (e) {
+         const { error: delErr } = await supabase.from('user_permits').delete().eq('id', permitId);
+         if (delErr) {
+           return NextResponse.json({ success: false, error: delErr.message }, { status: 500 });
+         }
+       } catch (e: any) {
          console.warn('user_permits deletion warning:', e);
+         return NextResponse.json({ success: false, error: e?.message || 'Failed to delete permit.' }, { status: 500 });
        }
        return NextResponse.json({ success: true, message: 'Permit record removed successfully.' });
      }
 
-     // 1. Fetch Active Classes
      case 'getClasses': {
+       supabase = getPublicClient();
        const { data, error } = await supabase
          .from('classes')
          .select('*')
@@ -513,173 +620,105 @@ export async function POST(req: NextRequest) {
      // 2. Clean Intake & Single-Course Enrollment (Deprecates broken legacy invite handlers)
            // Direct Portal Invitation Dispatcher (used by Admin Hub Direct Access Dispatcher modal)
      case 'adminDirectInvite': {
-       const adminPass = passcode || (payload && payload.passcode) || body.passcode;
-       if (!verifyAdminPasscode(adminPass)) {
-         // Allow fallback if called from authenticated admin portal
-         console.warn('Passcode check warning in adminDirectInvite');
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        }
+       supabase = getPrivilegedClient();
 
-
-       const fullName = (payload?.fullName || payload?.name || payload?.invFullName || 'Invited Student').trim();
-       const email = (payload?.email || payload?.invEmail || '').trim().toLowerCase();
-       const phone = (payload?.phone || payload?.invPhone || '').trim();
-       const portalType = payload?.portalType || payload?.invPortalType || 'student';
-       const courseName = payload?.course || payload?.courseSelection || payload?.invCourse || 'Maryland Wear & Carry Permit';
-       const dates = payload?.dates || payload?.scheduledDate || payload?.invDates || 'Upcoming Session';
+       const fullName = String(payload?.fullName || payload?.name || payload?.invFullName || 'Invited Student').trim().slice(0, 100);
+       const email = String(payload?.email || payload?.invEmail || '').trim().toLowerCase().slice(0, 150);
+       const phone = String(payload?.phone || payload?.invPhone || '').trim().slice(0, 30);
+       const portalType = String(payload?.portalType || payload?.invPortalType || 'student').trim().toLowerCase();
+       const courseName = String(payload?.course || payload?.courseSelection || payload?.invCourse || 'Maryland Wear & Carry Permit').trim().slice(0, 200);
+       const dates = String(payload?.dates || payload?.scheduledDate || payload?.invDates || 'Upcoming Session').trim().slice(0, 200);
        const generatedId = payload.generatedId || ('FIFS-' + Math.floor(1000 + Math.random() * 9000));
        const tempPassword = generateSecureTempPassword();
        const now = new Date().toISOString();
 
-
-       if (!fullName || !email) {
-         return NextResponse.json({ success: false, error: 'Full name and email are required.' }, { status: 400 });
+       if (!fullName || !email || !email.includes('@')) {
+         return NextResponse.json({ success: false, error: 'Valid full name and email are required.' }, { status: 400 });
        }
 
-
+       // 1. Provision in public.students or public.clients
        if (portalType === 'client') {
-         const clientId = payload.clientId || ('FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000));
          await supabase.from('clients').upsert({
-           client_id: clientId,
+           client_id: generatedId.startsWith('CLI-') ? generatedId : 'CLI-' + Math.floor(1000 + Math.random() * 9000),
            full_name: fullName,
-           email: email,
-           phone: phone,
-           permit_state: courseName,
+           email,
+           phone,
+           permit_type: courseName,
+           permit_state: 'Maryland',
+           status: 'ACTIVE_REGISTERED',
+           created_at: now,
            updated_at: now
-         });
-         return NextResponse.json({
-           success: true,
-           status: 'success',
-           clientId,
-           message: 'Client invite created successfully.'
-         });
+         }, { onConflict: 'email' });
+       } else {
+         await supabase.from('students').upsert({
+           student_id: generatedId,
+           full_name: fullName,
+           email,
+           phone,
+           course_selection: courseName,
+           preferred_dates: dates,
+           status: 'REGISTERED',
+           must_change_password: true,
+           temp_password_reset: true,
+           created_at: now,
+           updated_at: now
+         }, { onConflict: 'student_id' });
        }
 
-
-       // Student onboarding
-       // 1. Insert into students table
-       const defaultTasks = {
-         waiverSigned: false,
-         gearConfirmed: false,
-         rangeRulesAccepted: false,
-         calendarSynced: false
-       };
-
-
-       const studentPayload: Record<string, any> = {
-         student_id: generatedId,
-         full_name: fullName,
-         email: email,
-         phone: phone,
-         course_name: courseName,
-         course_selection: courseName,
-         preferred_dates: dates,
-         group_size: 1,
-         comments: payload.comments || payload.notes || 'Direct invite dispatched by Instructor',
-         status: 'STEP_1_REGISTERED',
-         prep_tasks: defaultTasks,
-         waiver_completed: false,
-         created_at: now,
-         updated_at: now,
-         portal_password: tempPassword,
-         temp_password_reset: true
-       };
-
-
-       let { error: studentErr } = await supabase.from('students').insert(studentPayload);
-       if (studentErr && (studentErr.message.includes('portal_password') || studentErr.message.includes('schema cache'))) {
-         delete studentPayload.portal_password;
-         delete studentPayload.temp_password_reset;
-         const retry = await supabase.from('students').insert(studentPayload);
-         studentErr = retry.error;
-       }
-
-
-       // 2. Also provision in auth / profiles if possible
+       // 2. Also provision in auth if possible
        try {
-         const { data: authUser } = await supabase.auth.admin.createUser({
+         await supabase.auth.admin.createUser({
            email,
            password: tempPassword,
            email_confirm: true,
-           user_metadata: { full_name: fullName, phone }
+           user_metadata: { full_name: fullName, phone, role: portalType }
          });
-         if (authUser?.user) {
-           await supabase.from('profiles').upsert({
-             id: authUser.user.id,
-             email,
-             full_name: fullName,
-             phone: phone || null,
-             role: 'student',
-             must_change_password: true,
-             created_at: now
-           });
-         }
-       } catch (authIgnored: any) {
-         console.warn('Auth user creation note:', authIgnored.message);
+       } catch (authErr) {
+         console.warn('Auth user creation warning:', authErr);
        }
 
-
-       // 3. Dispatch Email via Resend with credentials and calendar invite
-       const eventStart = new Date(dates);
-       const validStartDate = isNaN(eventStart.getTime()) ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : eventStart;
-
-
-       const icsContent = generateIcsCalendar({
-         title: courseName,
-         description: `Firearms Training Session: ${courseName} with Kai Wade. Schedule: ${dates}.`,
-         startDate: validStartDate,
-         durationHours: 8
-       });
-
-
-       const attachments = [
-         {
-           filename: 'fifs-training-session.ics',
-           content: Buffer.from(icsContent).toString('base64')
-         }
-       ];
-
-
-       const html = `
-         <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#333;">
-           <h2 style="color:#0f172a;">Welcome to Future Initiative Firearm Services</h2>
-           <p>Dear <strong>${fullName}</strong>,</p>
-           <p>Your portal access has been provisioned for <strong>${courseName}</strong> (${dates}).</p>
-           <div style="background:#f1f5f9;border-left:4px solid #0284c7;padding:12px 16px;margin:16px 0;">
-             <p style="margin:4px 0;"><strong>Portal URL:</strong> <a href="https://trainwithfifs.com" target="_blank">trainwithfifs.com</a></p>
-             <p style="margin:4px 0;"><strong>Student ID:</strong> <code>${generatedId}</code></p>
-             <p style="margin:4px 0;"><strong>Temporary Password:</strong> <code>${tempPassword}</code></p>
+       // 3. Dispatch invitation email via Resend
+       const isVip = /VIP/i.test(courseName);
+       const emailHtml = `
+         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0b0f14; color: #ffffff; padding: 24px; border-radius: 8px;">
+           <h2 style="color: #ffb703;">Welcome to Future Initiative Firearm Services</h2>
+           <p>Dear ${fullName},</p>
+           <p>Lead Instructor Kai Wade has invited you to access your personal training portal for <strong>${courseName}</strong>.</p>
+           <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 6px; margin: 20px 0;">
+             <p style="margin: 4px 0;"><strong>Portal Login:</strong> ${email}</p>
+             <p style="margin: 4px 0;"><strong>Temporary Password:</strong> <code style="color: #00e5ff; font-size: 16px;">${tempPassword}</code></p>
+             <p style="margin: 4px 0; color: #ffb703; font-size: 13px;">⚠️ You will be prompted to create your permanent password on first sign-in.</p>
            </div>
-           <p><em>Please note: You will be prompted to set your permanent password upon your first login.</em></p>
-           <p>An attached calendar invitation (.ics) has been included to sync this session to your mobile or desktop calendar.</p>
-           <p>Lead Instructor Kai Wade<br>Future Initiative Firearm Services</p>
+           <p><a href="https://trainwithfifs.com" style="display: inline-block; background: #ffb703; color: #000000; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 4px;">Access Your Portal →</a></p>
+           <p style="color: #888; font-size: 12px; margin-top: 24px;">Future Initiative Firearm Services • Maryland State Police Certified Training</p>
          </div>
        `;
 
-
-       const emailResult = await sendResendEmail({
+       await sendResendEmail({
          to: email,
-         subject: `Your Training Portal Access & Invitation - ${courseName}`,
-         html: html,
-         attachments: attachments
+         subject: `Welcome to Train With FIFS — Portal Access for ${courseName}`,
+         html: emailHtml
        });
-
 
        return NextResponse.json({
          success: true,
          status: 'success',
+         message: `Invitation successfully dispatched to ${email}`,
          studentId: generatedId,
-         tempPassword: tempPassword,
-         emailDispatched: emailResult.success,
-         emailError: emailResult.error || null,
-         message: 'Invitation dispatched and credentials created.'
+         tempPassword
        });
      }
 
-
      case 'adminEnrollStudent': {
-       if (!verifyAdminPasscode(passcode)) {
-         return NextResponse.json({ success: false, error: 'Unauthorized: Invalid admin passcode.' }, { status: 401 });
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        }
+       supabase = getPrivilegedClient();
 
 
        const fullName = (payload.fullName || payload.name || '').trim();
@@ -887,12 +926,16 @@ export async function POST(req: NextRequest) {
 
      // 3. Reschedule Enrollment
      case 'adminRescheduleEnrollment': {
-       if (!verifyAdminPasscode(passcode)) {
-         return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        }
+       supabase = getPrivilegedClient();
 
 
-       const { enrollmentId, newScheduledDate, durationHours, reason } = payload;
+       const enrollmentId = payload.enrollmentId || payload.id;
+       const newScheduledDate = payload.newScheduledDate || payload.newDate || payload.date;
+       const { durationHours, reason } = payload;
        if (!enrollmentId || !newScheduledDate) {
          return NextResponse.json({ success: false, error: 'Enrollment ID and new date are required.' }, { status: 400 });
        }
@@ -977,9 +1020,11 @@ export async function POST(req: NextRequest) {
 
      // 4. Cancel Enrollment
      case 'adminCancelEnrollment': {
-       if (!verifyAdminPasscode(passcode)) {
-         return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        }
+       supabase = getPrivilegedClient();
 
 
        const { enrollmentId, reason } = payload;
@@ -1034,353 +1079,290 @@ export async function POST(req: NextRequest) {
 
      // 5. First-Login Password Change & Gate Clear + Admin Alert
      case 'firstLoginPasswordChange': {
-       const { email, currentPassword, newPassword } = payload;
+       const { email, newPassword } = payload;
        if (!email || !newPassword) {
          return NextResponse.json({ success: false, error: 'Email and new password are required.' }, { status: 400 });
        }
 
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
+
+       const callerEmail = (user.email || '').toLowerCase().trim();
+       const targetEmail = email.trim().toLowerCase();
+       if (!isStaffOrAdmin(user) && callerEmail !== targetEmail) {
+         return NextResponse.json({ success: false, error: 'Forbidden: You can only update your own password.' }, { status: 403 });
+       }
 
        const val = validateStrictPassword(newPassword);
        if (!val.valid) {
          return NextResponse.json({ success: false, error: val.error }, { status: 400 });
        }
 
-
        const { data: student, error: stErr } = await supabase
          .from('students')
          .select('*')
-         .eq('email', email.trim().toLowerCase())
+         .eq('email', targetEmail)
          .maybeSingle();
-
 
        if (stErr || !student) {
          return NextResponse.json({ success: false, error: 'Student record not found.' }, { status: 404 });
        }
 
+       // Update Supabase Auth password
+       try {
+         await supabase.auth.admin.updateUserById(user.id, { password: newPassword });
+       } catch (authPassErr) {
+         console.warn('Auth password update note:', authPassErr);
+       }
 
-       // Update permanent password and clear flag
+       // Update student record
        const { error: updateErr } = await supabase
          .from('students')
          .update({
-           portal_password: newPassword, // Store password
+           portal_password: newPassword,
            must_change_password: false,
            temp_password_reset: false,
-           password_expires_at: null
+           password_expires_at: null,
+           last_password_change: new Date().toISOString(),
+           updated_at: new Date().toISOString()
          })
-         .eq('email', email.trim().toLowerCase());
-
+         .eq('email', targetEmail);
 
        if (updateErr) {
          return NextResponse.json({ success: false, error: updateErr.message }, { status: 500 });
        }
 
-
-       // Trigger Admin Alert via Resend
        const studentName = student.full_name || 'Student';
        const nowStr = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
        await sendResendEmail({
          to: ADMIN_EMAIL,
          subject: 'Security Alert: Student Portal Activated - ' + studentName,
-         html: `<p>Student <strong>${studentName}</strong> (${email}) updated their temporary password and activated portal access on ${nowStr}.</p>`
+         html: `<p>Student <strong>${studentName}</strong> (${targetEmail}) activated portal access on ${nowStr}.</p>`
        });
-
 
        return NextResponse.json({ success: true, message: 'Password updated successfully. Welcome to your portal!' });
      }
 
-
-     // 6. Self-Service Password Update
      case 'changePortalPassword':
-      case 'updateStudentPassword':
-      case 'selfServicePasswordUpdate': {
-        const { email, studentId, identifier, currentPassword, newPassword } = payload;
-        const target = (email || studentId || identifier || '').trim().toLowerCase();
-        if (!target || !newPassword) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Student email or ID and new password are required.' }, { status: 400 });
-        }
+     case 'updateStudentPassword':
+     case 'selfServicePasswordUpdate': {
+       const { email, studentId, identifier, currentPassword, newPassword } = payload;
+       const target = (email || studentId || identifier || '').trim().toLowerCase();
+       if (!target || !newPassword) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Student email or ID and new password are required.' }, { status: 400 });
+       }
 
-        const val = validateStrictPassword(newPassword);
-        if (!val.valid) {
-          return NextResponse.json({ success: false, status: 'error', error: val.error }, { status: 400 });
-        }
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
 
-        // Demo Client Account Support (Marcus Vance / FI-CLIENT-1042 / demo)
-        if (target.includes('m.vance') || target.includes('fi-client-1042') || target.includes('demo')) {
-          return NextResponse.json({
-            success: true,
-            status: 'success',
-            message: 'Client portal password updated successfully for demo account.',
-            user: { email: 'm.vance@example.com', clientId: 'FI-CLIENT-1042', role: 'client' }
-          });
-        }
+       const callerEmail = (user.email || '').toLowerCase().trim();
+       if (!isStaffOrAdmin(user) && callerEmail !== target && user.id !== target) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Forbidden: You can only update your own password.' }, { status: 403 });
+       }
 
-        // 1. Locate student in students table
-        const { data: student, error: stFindErr } = await supabase
-          .from('students')
-          .select('*')
-          .or(`email.eq.${target},student_id.eq.${target.toUpperCase()}`)
-          .maybeSingle();
+       const val = validateStrictPassword(newPassword);
+       if (!val.valid) {
+         return NextResponse.json({ success: false, status: 'error', error: val.error }, { status: 400 });
+       }
 
-        if (student) {
-          // If currentPassword is provided and student has a password, verify
-          if (student.portal_password && currentPassword && student.portal_password !== currentPassword) {
-            return NextResponse.json({ success: false, status: 'error', error: 'Current password does not match our records.' }, { status: 400 });
-          }
+       // Update Supabase Auth password for the user
+       try {
+         await supabase.auth.admin.updateUserById(user.id, { password: newPassword });
+       } catch (authPassErr) {
+         console.warn('Auth password update note:', authPassErr);
+       }
 
-          // Update student password and clear temporary/reset flags
-          const { error: updErr } = await supabase
-            .from('students')
-            .update({
-              portal_password: newPassword,
-              must_change_password: false,
-              temp_password_reset: false,
-              last_password_change: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', student.id);
+       // 1. Locate student in students table
+       const { data: student } = await supabase
+         .from('students')
+         .select('*')
+         .or(`email.eq.${target},student_id.eq.${target.toUpperCase()}`)
+         .maybeSingle();
 
-          if (updErr) {
-            return NextResponse.json({ success: false, status: 'error', error: updErr.message }, { status: 500 });
-          }
+       if (student) {
+         const { error: updErr } = await supabase
+           .from('students')
+           .update({
+             portal_password: newPassword,
+             must_change_password: false,
+             temp_password_reset: false,
+             last_password_change: new Date().toISOString(),
+             updated_at: new Date().toISOString()
+           })
+           .eq('id', student.id);
 
-          // Link & sync into public.profiles
-          if (student.email) {
-            try {
-              await supabase
-                .from('profiles')
-                .upsert({
-                  email: student.email,
-                  full_name: student.full_name,
-                  phone: student.phone,
-                  role: 'student',
-                  must_change_password: false,
-                  updated_at: new Date().toISOString()
-                }, { onConflict: 'email' });
-            } catch (profErr) {
-              console.warn('Profile sync non-fatal:', profErr);
-            }
+         if (updErr) {
+           return NextResponse.json({ success: false, status: 'error', error: updErr.message }, { status: 500 });
+         }
 
-            // Sync into clients table if existing
-            try {
-              await supabase
-                .from('clients')
-                .update({
-                  temp_password_reset: false,
-                  last_password_change: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
-                })
-                .eq('email', student.email);
-            } catch (clErr) {
-              console.warn('Client sync non-fatal:', clErr);
-            }
-          }
+         return NextResponse.json({
+           success: true,
+           status: 'success',
+           message: 'Password updated successfully and linked to your student profile.',
+           student: {
+             ...normalizeStudent(student),
+             mustChangePassword: false
+           }
+         });
+       }
 
-          return NextResponse.json({
-            success: true,
-            status: 'success',
-            message: 'Password updated successfully and linked to your student profile.',
-            student: {
-              ...normalizeStudent(student),
-              mustChangePassword: false
-            }
-          });
-        }
+       // 2. Locate in clients table
+       const { data: client } = await supabase
+         .from('clients')
+         .select('*')
+         .or(`email.eq.${target},client_id.eq.${target.toUpperCase()}`)
+         .maybeSingle();
 
-        // 2. If not found in students, check clients table
-        const { data: client } = await supabase
-          .from('clients')
-          .select('*')
-          .or(`email.eq.${target},client_id.eq.${target.toUpperCase()}`)
-          .maybeSingle();
+       if (client) {
+         await supabase
+           .from('clients')
+           .update({
+             temp_password_reset: false,
+             last_password_change: new Date().toISOString(),
+             updated_at: new Date().toISOString()
+           })
+           .eq('id', client.id);
 
-        if (client) {
-          await supabase
-            .from('clients')
-            .update({
-              temp_password_reset: false,
-              last_password_change: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', client.id);
+         return NextResponse.json({
+           success: true,
+           status: 'success',
+           message: 'Client portal password updated successfully.'
+         });
+       }
 
-          if (client.email) {
-            try {
-              await supabase
-                .from('profiles')
-                .upsert({
-                  email: client.email,
-                  full_name: client.full_name,
-                  phone: client.phone,
-                  role: 'client',
-                  must_change_password: false,
-                  updated_at: new Date().toISOString()
-                }, { onConflict: 'email' });
-            } catch (e) {}
-          }
+       return NextResponse.json({ success: false, status: 'error', error: 'Record not found.' }, { status: 404 });
+     }
 
-          return NextResponse.json({
-            success: true,
-            status: 'success',
-            message: 'Client portal password updated successfully.'
-          });
-        }
+     case 'getClientPortalData': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
 
-        return NextResponse.json({ success: false, status: 'error', error: 'Student record not found for ' + target }, { status: 404 });
-      }
+       const callerEmail = (user.email || '').toLowerCase().trim();
+       const identifier = (payload.identifier || payload.clientId || payload.email || callerEmail).trim().toLowerCase();
 
+       // Enforce self-service isolation unless staff/admin
+       if (!isStaffOrAdmin(user) && callerEmail !== identifier) {
+         // Query client by caller email only
+         const { data: ownClient } = await supabase
+           .from('clients')
+           .select('*')
+           .eq('email', callerEmail)
+           .maybeSingle();
 
-     // 7. Student Portal Data Loader & Signed URL Refresh
-           case 'getClientPortalData': {
-        const identifier = (payload.identifier || payload.clientId || payload.email || '').trim().toLowerCase();
-        if (!identifier) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Missing client identifier.' }, { status: 400 });
-        }
+         if (!ownClient || (identifier && identifier !== ownClient.client_id?.toLowerCase() && identifier !== ownClient.id?.toLowerCase())) {
+           return NextResponse.json({ success: false, status: 'error', error: 'Forbidden: Access restricted to your own client account.' }, { status: 403 });
+         }
+       }
 
-        // 1. Check clients table
-        const { data: client } = await supabase
-          .from('clients')
-          .select('*')
-          .or(`client_id.eq.${identifier.toUpperCase()},email.eq.${identifier}`).maybeSingle();
+       // Fetch client
+       const { data: client } = await supabase
+         .from('clients')
+         .select('*')
+         .or(`client_id.eq.${identifier.toUpperCase()},email.eq.${identifier}`)
+         .maybeSingle();
 
-        if (client) {
-          return NextResponse.json({
-            success: true,
-            status: 'success',
-            client: {
-              clientId: client.client_id,
-              fullName: client.full_name,
-              email: client.email,
-              phone: client.phone,
-              permitType: client.permit_type || 'Maryland Wear & Carry (CCW)',
-              permitState: client.permit_state || 'Maryland',
-              expirationDate: client.expiration_date || '2027-10-01',
-              status: client.status || 'ACTIVE_PERMIT_HOLDER',
-              optInReminder: Boolean(client.opt_in_reminder),
-              smsAlertPhone: client.sms_alert_phone || client.phone
-            }
-          });
-        }
+       if (client) {
+         return NextResponse.json({
+           success: true,
+           status: 'success',
+           client: {
+             clientId: client.client_id,
+             fullName: client.full_name,
+             email: client.email,
+             phone: client.phone,
+             permitType: client.permit_type || 'Maryland Wear & Carry (CCW)',
+             permitState: client.permit_state || 'Maryland',
+             expirationDate: client.expiration_date || '2027-10-01',
+             status: client.status || 'ACTIVE_PERMIT_HOLDER',
+             optInReminder: Boolean(client.opt_in_reminder),
+             smsAlertPhone: client.sms_alert_phone || client.phone
+           }
+         });
+       }
 
-        // 2. Check students table as fallback
-        const { data: student } = await supabase
-          .from('students')
-          .select('*')
-          .or(`student_id.eq.${identifier.toUpperCase()},email.eq.${identifier}`).maybeSingle();
+       return NextResponse.json({ success: false, status: 'error', error: 'Client record not found in system.' }, { status: 404 });
+     }
 
-        if (student) {
-          return NextResponse.json({
-            success: true,
-            status: 'success',
-            client: {
-              clientId: 'CLI-' + (student.student_id ? student.student_id.replace('FIFS-', '') : '4081'),
-              fullName: student.full_name,
-              email: student.email,
-              phone: student.phone,
-              permitType: 'Maryland Wear & Carry Permit (CCW)',
-              permitState: 'Maryland',
-              expirationDate: '2027-10-15',
-              status: 'ACTIVE_PERMIT_HOLDER',
-              optInReminder: true,
-              smsAlertPhone: student.phone
-            }
-          });
-        }
+     case 'getStudentPortalData': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required to view student portal.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
 
-        // 3. Demo Client Fallback
-        if (identifier.includes('demo') || identifier === 'cli-4081' || identifier === 'marcus.vance@example.com') {
-          return NextResponse.json({
-            success: true,
-            status: 'success',
-            client: {
-              clientId: 'CLI-4081',
-              fullName: 'Marcus Vance (Demo Client)',
-              email: 'marcus.vance@example.com',
-              phone: '(410) 555-0192',
-              permitType: 'Maryland Wear & Carry + Multi-State Non-Resident',
-              permitState: 'Maryland • Virginia • Florida • Arizona • Pennsylvania',
-              expirationDate: '2027-10-15',
-              status: 'ACTIVE_PERMIT_HOLDER',
-              optInReminder: true,
-              smsAlertPhone: '(410) 555-0192'
-            }
-          });
-        }
+       const callerEmail = (user.email || '').toLowerCase().trim();
+       const identifier = (payload.identifier || payload.studentId || payload.email || callerEmail).trim().toLowerCase();
 
-        return NextResponse.json({ success: false, status: 'error', error: 'Client record not found in system.' }, { status: 404 });
-      }
+       // Enforce self-service student isolation unless staff/admin
+       let studentLookupQuery = supabase.from('students').select('*');
+       if (isStaffOrAdmin(user)) {
+         studentLookupQuery = studentLookupQuery.or(`student_id.eq.${identifier.toUpperCase()},email.eq.${identifier}`);
+       } else {
+         // Non-staff callers can only query their own authenticated account
+         studentLookupQuery = studentLookupQuery.eq('email', callerEmail);
+       }
 
-case 'getStudentPortalData': {
-        const identifier = (payload.identifier || payload.studentId || payload.email || '').trim().toLowerCase();
-        if (!identifier) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Missing student identifier.' }, { status: 400 });
-        }
+       const { data: student } = await studentLookupQuery.maybeSingle();
 
-        const { data: student } = await supabase
-          .from('students')
-          .select('*')
-          .or(`student_id.eq.${identifier.toUpperCase()},email.eq.${identifier}`).maybeSingle();
+       if (!student) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Student record not found.' }, { status: 404 });
+       }
 
-        if (!student) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Student record not found.' }, { status: 404 });
-        }
+       // If identifier was provided and does not match own record, reject
+       if (!isStaffOrAdmin(user) && identifier !== callerEmail && identifier !== student.student_id?.toLowerCase() && identifier !== student.id?.toLowerCase()) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Forbidden: Access restricted to your own student account.' }, { status: 403 });
+       }
 
-        const reqPassword = payload.password;
-        // Password verification logic
-        if (student.portal_password) {
-          if (!reqPassword) {
-            return NextResponse.json({
-              success: false,
-              status: 'password_required',
-              message: 'Please enter your portal password to access your training dashboard.'
-            }, { status: 401 });
-          }
-          if (student.portal_password !== reqPassword.trim()) {
-            return NextResponse.json({
-              success: false,
-              status: 'invalid_password',
-              message: 'Incorrect password. Please verify and try again.'
-            }, { status: 401 });
-          }
-        } else if (student.must_change_password) {
-          return NextResponse.json({
-            success: false,
-            status: 'needs_password_setup',
-            message: 'First-time login: create your portal password below.'
-          });
-        }
+       // Fetch course enrollments with signed materials URLs
+       const { data: enrollments } = await supabase
+         .from('enrollments')
+         .select('id, class_id, scheduled_date, duration_hours, status, cancellation_reason, previous_dates, created_at, classes(title, description, materials_path, required_gear_notes)')
+         .eq('student_email', student.email)
+         .order('scheduled_date', { ascending: false });
 
-        // Fetch all course enrollments with classes joined
-        const { data: enrollments } = await supabase
-          .from('enrollments')
-          .select('id, class_id, scheduled_date, duration_hours, status, cancellation_reason, previous_dates, created_at, classes(title, description, materials_path, required_gear_notes)')
-          .eq('student_email', student.email)
-          .order('scheduled_date', { ascending: false });
+       const enrollmentsWithUrls = await Promise.all((enrollments || []).map(async (e: any) => {
+         let signedUrl = null;
+         if (e.classes?.materials_path) {
+           signedUrl = await getSignedDocumentUrl(supabase, e.classes.materials_path);
+         }
+         return {
+           ...e,
+           materialsUrl: signedUrl
+         };
+       }));
 
-        const enrollmentsWithUrls = await Promise.all((enrollments || []).map(async (e: any) => {
-          let signedUrl = null;
-          if (e.classes?.materials_path) {
-            signedUrl = await getSignedDocumentUrl(supabase, e.classes.materials_path);
-          }
-          return {
-            ...e,
-            materialsUrl: signedUrl
-          };
-        }));
+       return NextResponse.json({
+         success: true,
+         status: 'success',
+         student: {
+           ...normalizeStudent(student),
+           enrollments: enrollmentsWithUrls,
+           mustChangePassword: Boolean(student.must_change_password)
+         }
+       });
+     }
 
-        return NextResponse.json({
-          success: true,
-          status: 'success',
-          student: {
-            ...normalizeStudent(student),
-            enrollments: enrollmentsWithUrls,
-            mustChangePassword: Boolean(student.must_change_password)
-          }
-        });
-      }
-
-
-     // 8. Automated 24-Hour Reminder Query & Trigger
      case 'check24HourReminders': {
+       const cronSecret = req.headers.get('x-cron-secret');
+       const expectedCron = process.env.CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+       const isCron = Boolean(cronSecret && expectedCron && cronSecret === expectedCron);
+
+       if (!isCron) {
+         const { user, error: authErr } = await getAuthenticatedUser(req);
+         if (authErr || !isStaffOrAdmin(user)) {
+           return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication or cron secret required.' }, { status: 401 });
+         }
+       }
+       supabase = getPrivilegedClient();
        const now = new Date();
        const startWindow = new Date(now.getTime() + 23 * 3600 * 1000);
        const endWindow = new Date(now.getTime() + 25 * 3600 * 1000);
@@ -1430,26 +1412,49 @@ case 'getStudentPortalData': {
      // 9. Admin Dashboard Roster & History
           // 8a. Live Chat Visitor/Student Message Handler (Persists to Supabase & Dispatches Discord Alert)
      case 'handleLiveChatMessage': {
+       supabase = getPublicClient();
        const {
          name, fullName, senderName,
          email, senderEmail,
          phone, senderPhone,
          message, text: msgText,
          threadId, thread_id,
+         threadSecret, thread_secret,
          urgency = 'HIGH'
        } = payload;
 
-       const finalName = (senderName || fullName || name || 'Website Visitor').trim();
-       const finalEmail = (senderEmail || email || '').trim();
-       const finalPhone = (senderPhone || phone || '').trim();
-       const finalMsg = (message || msgText || '').trim();
-       const finalThread = (threadId || thread_id || (finalPhone ? 'thread_' + finalPhone.replace(/\D/g, '') : 'thread_' + Date.now())).trim();
+       const finalName = String(senderName || fullName || name || 'Website Visitor').trim().slice(0, 100);
+       const rawEmail = String(senderEmail || email || '').trim().toLowerCase().slice(0, 150);
+       const finalEmail = (rawEmail && rawEmail.includes('@') && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) ? rawEmail : null;
+       const finalPhone = String(senderPhone || phone || '').trim().slice(0, 30);
+       const finalMsg = String(message || msgText || '').trim().slice(0, 2000);
 
        if (!finalMsg) {
          return NextResponse.json({ success: false, error: 'Message content is required.' }, { status: 400 });
        }
 
-       // 1. Insert into Supabase messages table
+       const incomingThread = (threadId || thread_id || '').trim();
+       const incomingSecret = (threadSecret || thread_secret || '').trim();
+
+       let finalThread = incomingThread;
+       let finalSecret = incomingSecret;
+
+       try {
+         if (incomingThread) {
+           // Existing thread: verify caller possesses the valid unguessable thread credential
+           if (!incomingSecret || !verifyThreadSecret(incomingThread, incomingSecret)) {
+             return NextResponse.json({ success: false, error: 'Forbidden: Invalid or missing thread credential.' }, { status: 403 });
+           }
+         } else {
+           // New thread: generate strong unguessable thread ID and cryptographic secret
+           finalThread = 'th_' + crypto.randomBytes(16).toString('hex');
+           finalSecret = computeThreadSecret(finalThread);
+         }
+       } catch (err: any) {
+         return NextResponse.json({ success: false, error: 'Live chat service unavailable: Missing secure server configuration.' }, { status: 500 });
+       }
+
+       // Insert into messages table
        const { data: insertedMsg, error: insertErr } = await supabase
          .from('messages')
          .insert([{
@@ -1473,7 +1478,7 @@ case 'getStudentPortalData': {
          return NextResponse.json({ success: false, error: insertErr.message }, { status: 500 });
        }
 
-       // 2. Asynchronous Server-Side Discord Alert (Runs safely on server)
+       // Asynchronous Server-Side Discord Alert
        await sendServerDiscordAlert(
          "💬 Live Chat Inquiry: " + finalName,
          "A student or visitor submitted a live inquiry on TrainWithFIFS.",
@@ -1491,17 +1496,24 @@ case 'getStudentPortalData': {
          success: true,
          status: 'success',
          message: 'Live chat message received and synced to Admin Hub.',
-         data: insertedMsg,
-         threadId: finalThread
+         threadId: finalThread,
+         threadSecret: finalSecret,
+         data: {
+           id: insertedMsg?.id,
+           sender: 'visitor',
+           senderName: finalName,
+           message: finalMsg,
+           sent_at: insertedMsg?.sent_at
+         }
        });
      }
 
-     // 8b. Instructor Reply Handler from Admin Hub (Persists to Supabase & Marks Thread Read)
      case 'sendAdminLiveChatReply': {
-       const adminPass = passcode || payload.passcode || payload.pin || body.passcode || body.pin;
-       if (!verifyAdminPasscode(adminPass)) {
-         return NextResponse.json({ success: false, error: 'Unauthorized: Invalid admin passcode.' }, { status: 401 });
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        }
+       supabase = getPrivilegedClient();
 
        const {
          threadId, thread_id,
@@ -1517,19 +1529,15 @@ case 'getStudentPortalData': {
          return NextResponse.json({ success: false, error: 'Thread ID and message text are required.' }, { status: 400 });
        }
 
-       // 1. Insert instructor reply into Supabase messages table
-       const { data: insertedReply, error: replyErr } = await supabase
+       // 1. Insert admin reply
+       const { data: replyRecord, error: replyErr } = await supabase
          .from('messages')
          .insert([{
-           name: 'Coach Kai Wade',
-           sender_name: 'Coach Kai Wade',
-           email: 'kai@trainwithfifs.com',
-           phone: '(443) 990-1304',
-           sender_phone: '(443) 990-1304',
+           name: 'Lead Instructor Kai Wade',
+           sender_name: 'Lead Instructor Kai Wade',
            message: finalMsg,
            thread_id: finalThread,
            sender: 'instructor',
-           urgency: 'HIGH',
            status: 'READ',
            sent_at: new Date().toISOString()
          }])
@@ -1541,47 +1549,78 @@ case 'getStudentPortalData': {
          return NextResponse.json({ success: false, error: replyErr.message }, { status: 500 });
        }
 
-       // 2. Mark visitor messages in this thread as READ
-       try {
-         await supabase
-           .from('messages')
-           .update({ status: 'READ' })
-           .eq('thread_id', finalThread)
-           .eq('sender', 'visitor');
-       } catch (uErr) {
-         console.warn('[FIFS] Error marking messages read:', uErr);
-       }
-
-       // 3. Server-side Discord Alert for outbound reply
-       await sendServerDiscordAlert(
-         "📤 Instructor Reply Sent: Coach Kai Wade",
-         "Lead Instructor responded to thread: " + finalThread,
-         [
-           { name: "Instructor", value: "Coach Kai Wade", inline: true },
-           { name: "Thread ID", value: finalThread, inline: true },
-           { name: "Reply Message", value: finalMsg, inline: false }
-         ],
-         0x10B981
-       );
+       // 2. Mark visitor thread messages as READ
+       await supabase
+         .from('messages')
+         .update({ status: 'READ' })
+         .eq('thread_id', finalThread);
 
        return NextResponse.json({
          success: true,
          status: 'success',
-         message: 'Instructor reply recorded in Supabase.',
-         data: insertedReply
+         message: 'Instructor reply dispatched and thread marked resolved.',
+         reply: replyRecord
        });
      }
 
-     // 8c. Fetch Live Chat Inquiries / Threads for Admin Hub & Visitor
-     case 'getVisitorChatMessages':
-     case 'getLiveChats':
-     case 'getLiveChatMessages': {
-       const tId = payload.threadId || payload.thread_id || body.threadId || body.thread_id;
-       let query = supabase.from('messages').select('*').order('sent_at', { ascending: true });
-       if (tId) {
-         query = query.eq('thread_id', tId);
+     case 'getVisitorChatMessages': {
+       supabase = getPublicClient();
+       const tId = (payload.threadId || payload.thread_id || body.threadId || body.thread_id || '').trim();
+       const tSecret = (payload.threadSecret || payload.thread_secret || body.threadSecret || body.thread_secret || '').trim();
+
+       if (!tId || !tSecret) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: threadId and threadSecret are required to access visitor messages.' }, { status: 401 });
        }
-       const { data: msgs, error: chatErr } = await query;
+
+       try {
+         if (!verifyThreadSecret(tId, tSecret)) {
+           return NextResponse.json({ success: false, error: 'Forbidden: Invalid thread credential.' }, { status: 403 });
+         }
+       } catch (err: any) {
+         return NextResponse.json({ success: false, error: 'Live chat service unavailable: Missing secure server configuration.' }, { status: 500 });
+       }
+
+       // Query ONLY messages for this validated thread and select ONLY safe fields
+       const { data: msgs, error: chatErr } = await supabase
+         .from('messages')
+         .select('id, sender, sender_name, message, sent_at')
+         .eq('thread_id', tId)
+         .order('sent_at', { ascending: true });
+
+       if (chatErr) {
+         console.error('[FIFS] Error fetching visitor messages:', chatErr);
+         return NextResponse.json({ success: false, error: chatErr.message }, { status: 500 });
+       }
+
+       const safeMessages = (msgs || []).map((m: any) => ({
+         id: m.id,
+         sender: m.sender,
+         senderName: m.sender === 'instructor' ? 'Lead Instructor Kai Wade' : (m.sender_name || 'Visitor'),
+         text: m.message,
+         sentAt: m.sent_at,
+         time: m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : ''
+       }));
+
+       return NextResponse.json({
+         success: true,
+         status: 'success',
+         threadId: tId,
+         messages: safeMessages
+       });
+     }
+
+     case 'getLiveChats': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
+
+       const { data: msgs, error: chatErr } = await supabase
+         .from('messages')
+         .select('*')
+         .order('sent_at', { ascending: true });
+
        if (chatErr) {
          console.error('[FIFS] Error fetching messages:', chatErr);
          return NextResponse.json({ success: false, error: chatErr.message }, { status: 500 });
@@ -1617,40 +1656,50 @@ case 'getStudentPortalData': {
          threadMap[key].lastUpdated = m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
        });
 
-       // Sort threads: Unread inquiries always rank at the top, then newest timestamp
        const liveChats = Object.values(threadMap).sort((a: any, b: any) => {
          if (a.unread && !b.unread) return -1;
          if (!a.unread && b.unread) return 1;
          return (b.lastTimestamp || 0) - (a.lastTimestamp || 0);
        });
 
-       const normalizedMsgs = (msgs || []).map((m: any) => ({
-         ...m,
-         text: m.message,
-         message: m.message,
-         content: m.message,
-         timestamp: m.sent_at,
-         sent_at: m.sent_at,
-         created_at: m.sent_at,
-         time: m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '',
-         senderName: m.sender === 'instructor' ? 'Coach Kai Wade' : (m.sender_name || m.name || 'Visitor'),
-         sender_name: m.sender === 'instructor' ? 'Coach Kai Wade' : (m.sender_name || m.name || 'Visitor')
-       }));
+       return NextResponse.json({
+         success: true,
+         status: 'success',
+         liveChats: liveChats,
+         threads: liveChats
+       });
+     }
+
+     case 'getLiveChatMessages': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
+
+       const tId = (payload.threadId || payload.thread_id || body.threadId || body.thread_id || '').trim();
+       let query = supabase.from('messages').select('*').order('sent_at', { ascending: true });
+       if (tId) {
+         query = query.eq('thread_id', tId);
+       }
+       const { data: msgs, error: chatErr } = await query;
+       if (chatErr) {
+         return NextResponse.json({ success: false, error: chatErr.message }, { status: 500 });
+       }
 
        return NextResponse.json({
          success: true,
          status: 'success',
-         threads: liveChats,
-         liveChats: liveChats,
-         messages: normalizedMsgs
+         messages: msgs || []
        });
      }
 
      case 'deleteLiveChatThread': {
-       const adminPass = passcode || payload.passcode || payload.pin || body.passcode || body.pin;
-       if (!verifyAdminPasscode(adminPass)) {
-         return NextResponse.json({ success: false, error: 'Unauthorized: Invalid admin passcode.' }, { status: 401 });
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        }
+       supabase = getPrivilegedClient();
        const tId = (payload.threadId || payload.thread_id || body.threadId || body.thread_id || '').trim();
        if (!tId) {
          return NextResponse.json({ success: false, error: 'threadId is required.' }, { status: 400 });
@@ -1662,14 +1711,15 @@ case 'getStudentPortalData': {
        if (delErr) {
          return NextResponse.json({ success: false, error: delErr.message }, { status: 500 });
        }
-       return NextResponse.json({ success: true, status: 'success', message: 'Thread deleted.' });
+       return NextResponse.json({ success: true, message: 'Chat thread deleted.' });
      }
 
      case 'markLiveChatRead': {
-       const adminPass = passcode || payload.passcode || payload.pin || body.passcode || body.pin;
-       if (!verifyAdminPasscode(adminPass)) {
-         return NextResponse.json({ success: false, error: 'Unauthorized: Invalid admin passcode.' }, { status: 401 });
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        }
+       supabase = getPrivilegedClient();
        const tId = (payload.threadId || payload.thread_id || body.threadId || body.thread_id || '').trim();
        if (!tId) {
          return NextResponse.json({ success: false, error: 'threadId is required.' }, { status: 400 });
@@ -1681,11 +1731,15 @@ case 'getStudentPortalData': {
        if (updErr) {
          return NextResponse.json({ success: false, error: updErr.message }, { status: 500 });
        }
-       return NextResponse.json({ success: true, status: 'success', message: 'Thread marked read.' });
+       return NextResponse.json({ success: true, message: 'Chat thread marked read.' });
      }
 
-     // 9. Admin Dashboard Roster, History & Live Chat Inquiries (Realtime Synced)
      case 'getAdminDashboardData': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
         const { data: students } = await supabase
           .from('students')
           .select('*')
@@ -1759,6 +1813,7 @@ case 'getStudentPortalData': {
 
      // 10. Course Registration & Stripe Checkout Session Creator
      case 'submitBooking': {
+       supabase = getPublicClient();
         const {
           invoiceId = 'INV-FI-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000),
           studentId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000),
@@ -1767,9 +1822,6 @@ case 'getStudentPortalData': {
           phone = '',
           courseSelection = 'Maryland Firearms Training Course',
           preferredDates = 'Coordinated with Lead Instructor Kai Wade',
-          amount,
-          depositAmount,
-          totalAmount,
           groupSize = '1',
           comments = '',
           classId = '',
@@ -1781,12 +1833,21 @@ case 'getStudentPortalData': {
         }
 
         const stripeKey = process.env.STRIPE_SECRET_KEY;
-        const isVip = /VIP/i.test(courseSelection || '');
-        const fallbackPaymentUrl = isVip
-          ? 'https://buy.stripe.com/7sI00u5cvb9BcwM9AB'
-          : 'https://buy.stripe.com/dR67sWfR72D520ocMN';
+        if (!stripeKey) {
+          console.error('[submitBooking] Stripe configuration missing: STRIPE_SECRET_KEY not set.');
+          return NextResponse.json(
+            {
+              success: false,
+              status: 'error',
+              error: 'Payment processing gateway is not configured on the server. Please contact FIFS directly.'
+            },
+            { status: 503 }
+          );
+        }
 
-        // 1. Calculate pricing factoring in group size, $45 Cindy's range fee for Base track, 6% MD tax, and 30% deposit
+        const isVip = /VIP/i.test(courseSelection || '');
+
+        // 1. Authoritative server-side pricing calculation - strictly ignores client-supplied totals/deposits
         let baseTuitionPerPerson = 249.99;
         const cleanCourse = (courseSelection || '').toLowerCase();
         if (cleanCourse.includes('mastery') || cleanCourse.includes('multi-state') || cleanCourse.includes('multistate')) {
@@ -1831,8 +1892,8 @@ case 'getStudentPortalData': {
         const rangeFee = isVip ? 0 : (45.00 * attendees);
         const subtotal = discountedTuition + rangeFee;
         const mdTax = subtotal * 0.06;
-        const grandTotal = typeof totalAmount === 'number' && totalAmount > 0 ? totalAmount : (subtotal + mdTax);
-        const depositDueNow = typeof depositAmount === 'number' && depositAmount > 0 ? depositAmount : (grandTotal * 0.30);
+        const grandTotal = subtotal + mdTax;
+        const depositDueNow = grandTotal * 0.30;
         const balanceDueClass = grandTotal - depositDueNow;
 
         // 30% deposit is default charge amount unless explicitly payInFull
@@ -1842,62 +1903,69 @@ case 'getStudentPortalData': {
         const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://trainwithfifs.com';
         const baseUrl = origin.replace(/\/+$/, '');
 
-        let checkoutUrl = fallbackPaymentUrl;
-        let sessionId = 'fallback-' + Date.now();
+        let checkoutUrl: string;
+        let sessionId: string;
 
-        if (stripeKey) {
-          try {
-            const Stripe = (await import('stripe')).default;
-            const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' as any });
+        try {
+          const StripeModule = typeof require === 'function' ? (require('stripe')?.default || require('stripe')) : ((await import('stripe')).default || (await import('stripe')));
+          const stripe = new StripeModule(stripeKey, { apiVersion: '2023-10-16' as any });
 
-            const session = await stripe.checkout.sessions.create({
-              payment_method_types: ['card'],
-              mode: 'payment',
-              customer_email: email,
-              client_reference_id: studentId,
-              metadata: {
-                invoiceId,
-                studentId,
-                fullName,
-                phone,
-                courseSelection,
-                preferredDates,
-                groupSize: String(groupSize),
-                comments: String(comments).slice(0, 400),
-                classId: classId || '',
-                rangeFee: rangeFee.toFixed(2),
-                mdTax: mdTax.toFixed(2),
-                grandTotal: grandTotal.toFixed(2),
-                depositDueNow: depositDueNow.toFixed(2),
-                balanceDueClass: balanceDueClass.toFixed(2),
-                isDepositPayment: String(!payInFull)
-              },
-              line_items: [
-                {
-                  price_data: {
-                    currency: 'usd',
-                    unit_amount: unitAmount,
-                    product_data: {
-                      name: `${courseSelection} — ${payInFull ? 'Full Tuition & Range Fee' : '30% Reservation Deposit'}`,
-                      description: `Invoice: ${invoiceId} • Total Course Investment: $${grandTotal.toFixed(2)} (Tuition + ${isVip ? 'VIP Range Perk' : '$45 Cindy\'s Range Fee'} + 6% MD Tax) • ${payInFull ? 'Paid in Full' : 'Deposit: $' + depositDueNow.toFixed(2) + ' (Remaining $' + balanceDueClass.toFixed(2) + ' due on class day)'}`,
-                    },
+          const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            mode: 'payment',
+            customer_email: email,
+            client_reference_id: studentId,
+            metadata: {
+              invoiceId,
+              studentId,
+              fullName,
+              phone,
+              courseSelection,
+              preferredDates,
+              groupSize: String(groupSize),
+              comments: String(comments).slice(0, 400),
+              classId: classId || '',
+              rangeFee: rangeFee.toFixed(2),
+              mdTax: mdTax.toFixed(2),
+              grandTotal: grandTotal.toFixed(2),
+              depositDueNow: depositDueNow.toFixed(2),
+              balanceDueClass: balanceDueClass.toFixed(2),
+              isDepositPayment: String(!payInFull)
+            },
+            line_items: [
+              {
+                price_data: {
+                  currency: 'usd',
+                  unit_amount: unitAmount,
+                  product_data: {
+                    name: `${courseSelection} — ${payInFull ? 'Full Tuition & Range Fee' : '30% Reservation Deposit'}`,
+                    description: `Invoice: ${invoiceId} • Total Course Investment: $${grandTotal.toFixed(2)} (Tuition + ${isVip ? "VIP Range Perk" : "$45 Range Fee"} + 6% MD Tax) • ${payInFull ? "Paid in Full" : "Deposit: $" + depositDueNow.toFixed(2) + " (Remaining $" + balanceDueClass.toFixed(2) + " due on class day)"}`,
                   },
-                  quantity: 1,
                 },
-              ],
-             success_url: `${baseUrl}/?session_id={CHECKOUT_SESSION_ID}&booking_confirmed=true&invoice=${encodeURIComponent(invoiceId)}`,
-             cancel_url: `${baseUrl}/?booking_cancelled=true&session_id={CHECKOUT_SESSION_ID}&invoice=${encodeURIComponent(invoiceId)}`,
-           });
+                quantity: 1,
+              },
+            ],
+            success_url: `${baseUrl}/?session_id={CHECKOUT_SESSION_ID}&booking_confirmed=true&invoice=${encodeURIComponent(invoiceId)}`,
+            cancel_url: `${baseUrl}/?booking_cancelled=true&session_id={CHECKOUT_SESSION_ID}&invoice=${encodeURIComponent(invoiceId)}`,
+          });
 
-           if (session && session.url) {
-             checkoutUrl = session.url;
-             sessionId = session.id;
-           }
-         } catch (stripeErr: any) {
-           console.error('[Stripe Session Creation Warning]:', stripeErr?.message);
-           checkoutUrl = fallbackPaymentUrl;
-         }
-       }
+          if (!session || !session.url || !session.id) {
+            throw new Error('Stripe failed to return a valid checkout session URL or ID.');
+          }
+
+          checkoutUrl = session.url;
+          sessionId = session.id;
+        } catch (stripeErr: any) {
+          console.error('[submitBooking] Stripe checkout session creation failed:', stripeErr?.message);
+          return NextResponse.json(
+            {
+              success: false,
+              status: 'error',
+              error: 'Failed to create secure checkout session: ' + (stripeErr?.message || 'Payment gateway error')
+            },
+            { status: 502 }
+          );
+        }
 
        try {
          await supabase.from('invoices').upsert({
@@ -2001,6 +2069,48 @@ case 'getStudentPortalData': {
          studentId,
          podInviteCode
        });
+     }
+
+     case 'trackSiteVisit': {
+       const rawPath = String(payload.path || body.path || '/').slice(0, 255);
+       return NextResponse.json({ success: true, tracked: true });
+     }
+
+     case 'submitContactInquiry': {
+       supabase = getPublicClient();
+       const fullName = String(payload.fullName || payload.name || body.fullName || 'Inquiry Visitor').trim().slice(0, 100);
+       const phone = String(payload.phone || body.phone || '').trim().slice(0, 30);
+       const message = String(payload.message || body.message || '').trim().slice(0, 2000);
+       const rawEmail = String(payload.email || body.email || '').trim().toLowerCase().slice(0, 150);
+       const email = (rawEmail && rawEmail.includes('@')) ? rawEmail : null;
+
+       if (!message && !phone) {
+         return NextResponse.json({ success: false, error: 'A message or phone number is required.' }, { status: 400 });
+       }
+
+       try {
+         await supabase.from('leads').insert([{
+           full_name: fullName,
+           phone: phone || null,
+           email: email || null,
+           notes: message,
+           source: 'Contact Inquiry Form'
+         }]);
+       } catch (_e) {}
+
+       await sendServerDiscordAlert(
+         "📩 New Contact Form Inquiry: " + fullName,
+         "A visitor submitted an inquiry via the contact form.",
+         [
+           { name: "Name", value: fullName, inline: true },
+           { name: "Phone", value: phone || "Not provided", inline: true },
+           { name: "Email", value: email || "Not provided", inline: true },
+           { name: "Message", value: message || "No message content", inline: false }
+         ],
+         0xF59E0B
+       );
+
+       return NextResponse.json({ success: true, message: 'Contact inquiry received.' });
      }
 
      default:

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 
 
@@ -1032,6 +1032,23 @@ export default function TrainWithFIFS(props: any) {
 
 
     // Attach logo tap listeners
+        // Initialize browser Supabase client
+    const supabase = typeof window !== 'undefined' && typeof createSupabaseClient === 'function' ? createSupabaseClient() : null;
+    if (typeof window !== 'undefined' && supabase) {
+      (window as any).supabaseClient = supabase;
+    }
+
+    const getSessionBearerToken = async (): Promise<string | null> => {
+      try {
+        const client = (window as any).supabaseClient || (typeof createSupabaseClient === 'function' ? createSupabaseClient() : null);
+        if (!client || !client.auth) return null;
+        const { data: { session } } = await client.auth.getSession();
+        return session?.access_token || null;
+      } catch {
+        return null;
+      }
+    };
+
     const attachLogoListeners = () => {
       const targets = document.querySelectorAll('#brand-logo, .brand-identity-group, .app-nav-logo');
       targets.forEach((el) => {
@@ -1364,43 +1381,24 @@ export default function TrainWithFIFS(props: any) {
 
 
     (window as any).loadDemoStudent = () => {
-      const demo = {
-        studentId: 'FIFS-4081',
-        fullName: 'Jordan Vance (Demo Student)',
-        email: 'jordan.vance@example.com',
-        phone: '(410) 555-0192',
-        course: 'Maryland CCW & HQL Combo — Base Track ($249.99)',
-        assignedDate: 'Saturday, Oct 12 • 9:00 AM',
-        groupSize: '1 (Private One-on-One)',
-        status: 'STEP_1_REGISTERED',
-        trainingStatus: 'PREP_PENDING',
-        profileDocUrl: '#',
-        qualificationScore: '25/25 (100%)',
-        scoresheetUrl: '/qualification_sheet_2.pdf',
-        prepTasks: { transport_law: true, ammo_acquired: true, eye_ear_pro: true, id_ready: true }
-      };
-      (window as any).switchTab('portal');
-      const authInput = document.getElementById('studentAuthInput') as HTMLInputElement | null;
-      if (authInput) authInput.value = 'FIFS-4081';
+      console.warn('Demo student access is disabled.');
       const statusDiv = document.getElementById('student-login-status');
-      if (statusDiv) statusDiv.style.display = 'none';
-      sessionStorage.setItem('fifs_student_session', JSON.stringify(demo));
-      (window as any).renderStudentDashboard(demo);
+      if (statusDiv) {
+        statusDiv.textContent = 'Demo student access is disabled. Please authenticate with your registered student credentials.';
+        statusDiv.style.display = 'block';
+      }
     };
 
 
 
 
-    (window as any).lookupStudentAccount = () => {
+    (window as any).lookupStudentAccount = async () => {
       const input = document.getElementById('studentAuthInput') as HTMLInputElement | null;
       const passInput = document.getElementById('studentAuthPassword') as HTMLInputElement | null;
       const setupBox = document.getElementById('student-setup-password-box');
       const statusDiv = document.getElementById('student-login-status');
       const query = input ? input.value.trim() : '';
       const password = passInput ? passInput.value.trim() : '';
-
-
-
 
       if (!query) {
         if (statusDiv) {
@@ -1410,41 +1408,46 @@ export default function TrainWithFIFS(props: any) {
         return;
       }
 
-
-
-
-      if (query === 'Ultima' || password === 'Ultima') {
-        if (statusDiv) {
-          statusDiv.textContent = 'Instructor credentials verified. Unlocking Command Terminal...';
-          statusDiv.style.display = 'block';
-        }
-        sessionStorage.setItem('fifs_instructor_pin', 'Ultima');
-        (window as any).switchTab('admin');
-        return;
-      }
-
-
-
-
-      if (query.toUpperCase() === 'FIFS-4081' || query.toLowerCase() === 'jordan.vance@example.com') {
-        (window as any).loadDemoStudent();
-        return;
-      }
-
-
-
-
       if (statusDiv) {
         statusDiv.textContent = 'Authenticating Student Operations credentials...';
         statusDiv.style.display = 'block';
       }
 
+      let token = '';
+      try {
+        const client = (window as any).supabaseClient || (typeof createSupabaseClient === 'function' ? createSupabaseClient() : null);
+        if (client && client.auth) {
+          if (password) {
+            const { data: authData } = await client.auth.signInWithPassword({
+              email: query,
+              password: password
+            });
+            if (authData?.session?.access_token) {
+              token = authData.session.access_token;
+              (window as any).__fifsStudentSession = authData.session;
+            }
+          }
+          if (!token) {
+            const { data } = await client.auth.getSession();
+            if (data?.session?.access_token) {
+              token = data.session.access_token;
+            }
+          }
+        }
+      } catch (_e) {}
 
+      if (!token && typeof getSessionBearerToken === 'function') {
+        token = await getSessionBearerToken();
+      }
 
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+      }
 
       fetch('/api/fifs', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
         body: JSON.stringify({
           action: 'getStudentPortalData',
           identifier: query,
@@ -1471,13 +1474,9 @@ export default function TrainWithFIFS(props: any) {
         }
       })
       .catch(() => {
-        if (query.toUpperCase().startsWith('FIFS-') || query.includes('@')) {
-          (window as any).loadDemoStudent();
-        } else {
-          if (statusDiv) {
-            statusDiv.textContent = 'Security verification error. Please try again.';
-            statusDiv.style.display = 'block';
-          }
+        if (statusDiv) {
+          statusDiv.textContent = 'Security verification error. Please check your credentials and try again.';
+          statusDiv.style.display = 'block';
         }
       });
     };
@@ -1694,14 +1693,38 @@ export default function TrainWithFIFS(props: any) {
       } else {
         try {
           const bodyData = Object.assign({ action: action }, payload || {});
-          if (!bodyData.passcode && bodyData.pin) bodyData.passcode = bodyData.pin;
+          let token = '';
+          try {
+            if (typeof getSessionBearerToken === 'function') {
+              token = await getSessionBearerToken();
+            }
+            if (!token && (window as any).__fifsStaffSession?.access_token) {
+              token = (window as any).__fifsStaffSession.access_token;
+            }
+            if (!token && (window as any).__fifsStudentSession?.access_token) {
+              token = (window as any).__fifsStudentSession.access_token;
+            }
+            if (!token && (window as any).__fifsClientSession?.access_token) {
+              token = (window as any).__fifsClientSession.access_token;
+            }
+            if (!token && (window as any).supabaseClient?.auth?.getSession) {
+              const { data } = await (window as any).supabaseClient.auth.getSession();
+              if (data?.session?.access_token) token = data.session.access_token;
+            }
+          } catch (_e) {}
+
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+          if (token) {
+            headers['Authorization'] = 'Bearer ' + token;
+          }
+
           const res = await fetch('/api/fifs', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify(bodyData)
           });
           const data = await res.json();
-          if (!res.ok && !data.status) {
+          if (!res.ok && !data.status && !data.success) {
             throw new Error(data.error || ('HTTP ' + res.status));
           }
           if (onComplete) onComplete(data);
@@ -2380,43 +2403,7 @@ export default function TrainWithFIFS(props: any) {
         }
         return;
       }
-      // Demo client mode immediate handler
-      if (userIdentifier.toLowerCase().includes('m.vance') || userIdentifier.toLowerCase().includes('fi-client-1042') || userIdentifier.toLowerCase().includes('demo')) {
-        if (!newPassword || newPassword.length < 12) {
-          if (statusDiv) {
-            statusDiv.style.display = 'block';
-            statusDiv.style.background = 'rgba(239, 68, 68, 0.15)';
-            statusDiv.style.border = '1px solid #ef4444';
-            statusDiv.style.color = '#ef4444';
-            statusDiv.innerHTML = '⚠️ New password must be at least 12 characters long with uppercase, lowercase, number & symbol.';
-          }
-          return;
-        }
-        if (newPassword !== confirmPassword) {
-          if (statusDiv) {
-            statusDiv.style.display = 'block';
-            statusDiv.style.background = 'rgba(239, 68, 68, 0.15)';
-            statusDiv.style.border = '1px solid #ef4444';
-            statusDiv.style.color = '#ef4444';
-            statusDiv.innerHTML = '⚠️ Passwords do not match. Please verify and re-type.';
-          }
-          return;
-        }
-        if (statusDiv) {
-          statusDiv.style.display = 'block';
-          statusDiv.style.background = 'rgba(16, 185, 129, 0.15)';
-          statusDiv.style.border = '1px solid #10b981';
-          statusDiv.style.color = '#10b981';
-          statusDiv.innerHTML = '✓ Demo Account Password updated successfully! (Verified in Demo Sandbox)';
-        }
-        if (currInput) currInput.value = '';
-        if (newInput) newInput.value = '';
-        if (confirmInput) confirmInput.value = '';
-        setTimeout(() => {
-          (window as any).closeChangePasswordModal();
-        }, 1600);
-        return;
-      }
+
       if (!newPassword || newPassword.length < 12) {
         if (statusDiv) {
           statusDiv.style.display = 'block';
@@ -2450,9 +2437,13 @@ export default function TrainWithFIFS(props: any) {
 
 
       try {
+        const token = await getSessionBearerToken();
         const res = await fetch('/api/fifs', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+          },
           body: JSON.stringify({
             action: 'selfServicePasswordUpdate',
             identifier: userIdentifier,
@@ -2699,73 +2690,79 @@ export default function TrainWithFIFS(props: any) {
 
 
 
-    (window as any).verifyAdminAccess = function(overridePin?: string) {
-      const pinInput = document.getElementById('adminPasscode') as HTMLInputElement | null;
-      const pin = (overridePin || (pinInput ? pinInput.value : '') || sessionStorage.getItem('fifs_instructor_pin') || '').trim();
+    (window as any).verifyAdminAccess = async function() {
+      const emailInput = document.getElementById('adminStaffEmail') as HTMLInputElement | null;
+      const passInput = document.getElementById('adminStaffPassword') as HTMLInputElement | null;
+      const email = (emailInput?.value || '').trim();
+      const password = (passInput?.value || '').trim();
       const statusDiv = document.getElementById('admin-auth-status');
 
-
-
-
-      if (!pin) {
+      if (!email || !password) {
         if (statusDiv) {
           statusDiv.style.display = 'block';
           statusDiv.className = 'status-msg error';
-          statusDiv.textContent = 'Passcode required to access Command Terminal.';
+          statusDiv.textContent = 'Staff email and password are required to sign in.';
         }
         return;
       }
 
-
-
-
       if (statusDiv) {
         statusDiv.style.display = 'block';
         statusDiv.className = 'status-msg success';
-        statusDiv.textContent = 'Authenticating Instructor Passcode...';
+        statusDiv.textContent = 'Authenticating staff credentials with Supabase Auth...';
       }
 
+      try {
+        const client = (window as any).supabaseClient || (typeof createSupabaseClient === 'function' ? createSupabaseClient() : null);
+        if (!client || !client.auth) {
+          throw new Error('Supabase client is not initialized in browser runtime.');
+        }
 
+        const { data: authData, error: authError } = await client.auth.signInWithPassword({
+          email,
+          password
+        });
 
+        if (authError || !authData.session) {
+          if (statusDiv) {
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status-msg error';
+            statusDiv.textContent = authError?.message || 'Access Denied: Invalid credentials.';
+          }
+          return;
+        }
 
-      fetch('/api/fifs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'getAdminDashboardData', pin: pin, passcode: pin })
-      })
-      .then(res => res.json())
-      .then(data => {
+        const token = authData.session.access_token;
+        (window as any).__fifsStaffSession = authData.session;
+
+        const res = await fetch('/api/fifs', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ action: 'getAdminDashboardData' })
+        });
+
+        const data = await res.json();
         if (data && (data.success || data.status === 'success')) {
           if (statusDiv) statusDiv.style.display = 'none';
-          sessionStorage.setItem('fifs_instructor_pin', pin);
           (window as any).renderAdminTerminal(data);
           (window as any).renderAdminClientTerminal(data);
-        } else if (pin.toLowerCase() === 'ultima' || pin === '4081') {
-          if (statusDiv) statusDiv.style.display = 'none';
-          sessionStorage.setItem('fifs_instructor_pin', pin);
-          (window as any).renderAdminTerminal(data || {});
-          (window as any).refreshAdminRoster();
         } else {
           if (statusDiv) {
             statusDiv.style.display = 'block';
             statusDiv.className = 'status-msg error';
-            statusDiv.textContent = data.error || 'Access Denied: Invalid passcode.';
+            statusDiv.textContent = data.error || 'Access Denied: Account lacks administrative privileges.';
           }
         }
-      })
-      .catch(err => {
-        if (pin.toLowerCase() === 'ultima' || pin === '4081') {
-          if (statusDiv) statusDiv.style.display = 'none';
-          sessionStorage.setItem('fifs_instructor_pin', pin);
-          (window as any).renderAdminTerminal({});
-        } else {
-          if (statusDiv) {
-            statusDiv.style.display = 'block';
-            statusDiv.className = 'status-msg error';
-            statusDiv.textContent = 'Connection error: ' + (err.message || 'Unable to connect to database.');
-          }
+      } catch (err: any) {
+        if (statusDiv) {
+          statusDiv.style.display = 'block';
+          statusDiv.className = 'status-msg error';
+          statusDiv.textContent = 'Authentication error: ' + (err.message || 'Unable to connect.');
         }
-      });
+      }
     };
 
 
@@ -2974,12 +2971,16 @@ export default function TrainWithFIFS(props: any) {
 
 
 
-    (window as any).refreshAdminRoster = function() {
-      const pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+    (window as any).refreshAdminRoster = async function() {
+      const token = await getSessionBearerToken();
+      if (!token) return;
       fetch('/api/fifs', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'getAdminDashboardData', pin, passcode: pin })
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ action: 'getAdminDashboardData' })
       })
       .then(res => res.json())
       .then(data => {
@@ -2992,12 +2993,16 @@ export default function TrainWithFIFS(props: any) {
     };
 
     (window as any).refreshAdminLiveChats = (window as any).refreshAdminChat = async function() {
-      const pin = sessionStorage.getItem('fifs_instructor_pin') || 'Ultima';
+      const token = await getSessionBearerToken();
+      if (!token) return;
       try {
         const res = await fetch('/api/fifs', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getLiveChats', passcode: pin, pin: pin })
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ action: 'getLiveChats' })
         });
         const data = await res.json();
         if (data && (data.success || data.status === 'success')) {
@@ -3026,8 +3031,15 @@ export default function TrainWithFIFS(props: any) {
 
 
 
-    (window as any).adminSignOut = function() {
-      sessionStorage.removeItem('fifs_instructor_pin');
+    (window as any).adminSignOut = async function() {
+      try {
+        const client = (window as any).supabaseClient || (typeof createSupabaseClient === 'function' ? createSupabaseClient() : null);
+        if (client && client.auth) {
+          await client.auth.signOut();
+        }
+      } catch (_e) {}
+      delete (window as any).__fifsStaffSession;
+      // staff session in memory only
       const authBox = document.getElementById('admin-auth-box');
       const dashBox = document.getElementById('admin-command-dashboard');
       if (dashBox) {
@@ -3779,10 +3791,14 @@ export default function TrainWithFIFS(props: any) {
 
 
 
-        // 2. Call FIFS Backend Route Handler
+        // 2. Call FIFS Backend Route Handler with bearer token
+        const token = await getSessionBearerToken();
         await fetch('/api/fifs', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+          },
           body: JSON.stringify({ action: 'deletePermit', permitId })
         }).catch(() => {});
 
@@ -5690,19 +5706,26 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </p>
           </div>
           <div style={{"background": "#0d121a", "border": "1px solid rgba(0, 229, 255, 0.25)", "borderRadius": "12px", "padding": "22px", "maxWidth": "440px", "margin": "0 auto"}}>
-            <div className="form-group">
-              <label htmlFor="adminPasscode">
-                Instructor Command Passcode 
+            <div className="form-group" style={{"marginBottom": "14px"}}>
+              <label htmlFor="adminStaffEmail" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.85rem"}}>
+                Staff Account Email 
                 <span className="req">
                   *
                 </span>
               </label>
-              <input id="adminPasscode" placeholder="Enter PIN or Passcode" type="password" data-onkeydown="if(event.key===&#x27;Enter&#x27;) verifyAdminAccess()" />
+              <input id="adminStaffEmail" placeholder="staff@trainwithfifs.com" type="email" data-onkeydown="if(event.key===&#x27;Enter&#x27;) verifyAdminAccess()" />
             </div>
-            <button className="btn-primary" data-onclick="verifyAdminAccess()" type="button">
-              
-            Unlock Command Terminal 🔓
-          
+            <div className="form-group" style={{"marginBottom": "18px"}}>
+              <label htmlFor="adminStaffPassword" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.85rem"}}>
+                Account Password 
+                <span className="req">
+                  *
+                </span>
+              </label>
+              <input id="adminStaffPassword" placeholder="Enter Account Password" type="password" data-onkeydown="if(event.key===&#x27;Enter&#x27;) verifyAdminAccess()" />
+            </div>
+            <button className="btn-primary" data-onclick="verifyAdminAccess()" type="button" style={{"width": "100%"}}>
+              Sign In to Command Center 🔒
             </button>
             <div className="status-msg" id="admin-auth-status">
             </div>
@@ -5854,12 +5877,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <button className="btn-tactical-hud hud-purple" id="btn-admin-invite-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminInviteModal?.(); }} data-onclick="openAdminInviteModal()" title="Dispatch student/client portal onboarding invitation" type="button">
               <span>✉️</span> <span>SEND INVITE</span>
             </button>
-            <button className="btn-tactical-hud hud-cyan" data-onclick="loadDemoStudent()" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).loadDemoStudent) (window as any).loadDemoStudent(); }} title="Test Student Portal Dashboard with Mock Student Data" type="button">
-              <span>👁️</span> <span>DEMO STUDENT</span>
-            </button>
-            <button className="btn-tactical-hud hud-amber" data-onclick="loadDemoClient()" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).loadDemoClient) (window as any).loadDemoClient(); }} title="Test Client Portal Dashboard with Mock Client Data" type="button">
-              <span>👁️</span> <span>DEMO CLIENT</span>
-            </button>
+            
             <button className="btn-tactical-hud hud-red" id="btn-admin-sign-out" onClick={(e) => { e.preventDefault(); (window as any).adminSignOut?.(); }} data-onclick="adminSignOut()" title="Sign out and lock Admin Command Center" type="button">
               <span>🚪</span> <span>LOCK TERMINAL</span>
             </button>

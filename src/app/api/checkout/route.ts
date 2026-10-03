@@ -273,7 +273,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Server-Side Discord Alert
-    const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1547779726746320958/nu4yar-r8aR3c6-P-mm8YeprX5bou1uqej24tEuYhNS5LVusMuBtADVcv1vf1oJp_bum";
+    const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
     try {
       const discordPayload = {
         username: "FIFS Operations & Command Dispatch",

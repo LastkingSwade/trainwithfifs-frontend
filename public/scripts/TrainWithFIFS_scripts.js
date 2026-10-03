@@ -266,13 +266,71 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     // FIFS GITHUB PAGES <-> GOOGLE APPS SCRIPT API BRIDGE
     // ==========================================================================
     var FIFS_GAS_API_URL = "https://script.google.com/macros/s/AKfycbz9X2h0o5_pmNafKXRY9hSeGiGpHerp_JMWie8wg9FmSir0W3mrZAnk5nw-Zs9xH9BY/exec";
+    
+    function getStaffSessionToken() {
+      try {
+        if (window.__fifsStaffSession && window.__fifsStaffSession.access_token) {
+          return window.__fifsStaffSession.access_token;
+        }
+        if (window.supabaseClient && window.supabaseClient.auth) {
+          if (typeof window.supabaseClient.auth.getSession === 'function') {
+            var s = window.supabaseClient.auth.getSession();
+            if (s && s.data && s.data.session && s.data.session.access_token) {
+              window.__fifsStaffSession = s.data.session;
+              return s.data.session.access_token;
+            }
+          } else if (typeof window.supabaseClient.auth.session === 'function') {
+            var sOld = window.supabaseClient.auth.session();
+            if (sOld && sOld.access_token) {
+              return sOld.access_token;
+            }
+          }
+        }
+      } catch(e) {}
+      return '';
+    }
+    window.getStaffSessionToken = getStaffSessionToken;
+
     function callFifsBackend(action, payload, onSuccess, onError) {
       var bodyData = Object.assign({ action: action }, payload || {});
-      // Ensure pin/passcode compatibility
-      if (!bodyData.passcode && bodyData.pin) bodyData.passcode = bodyData.pin;
+      delete bodyData.pin;
+      delete bodyData.passcode;
+
+      var token = '';
+      try {
+        if (typeof getStaffSessionToken === 'function') {
+          token = getStaffSessionToken();
+        }
+        if (!token && window.__fifsStudentSession && window.__fifsStudentSession.access_token) {
+          token = window.__fifsStudentSession.access_token;
+        }
+        if (!token && window.__fifsClientSession && window.__fifsClientSession.access_token) {
+          token = window.__fifsClientSession.access_token;
+        }
+        if (!token && window.supabaseClient && window.supabaseClient.auth) {
+          if (typeof window.supabaseClient.auth.getSession === 'function') {
+            var s = window.supabaseClient.auth.getSession();
+            if (s && s.data && s.data.session) token = s.data.session.access_token;
+          } else if (typeof window.supabaseClient.auth.session === 'function') {
+            var sOld = window.supabaseClient.auth.session();
+            if (sOld && sOld.access_token) token = sOld.access_token;
+          }
+        }
+      } catch(e) {}
+
+      if (payload && payload.accessToken) {
+        token = payload.accessToken;
+        delete bodyData.accessToken;
+      }
+
+      var headers = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = "Bearer " + token;
+      }
+
       return fetch("/api/fifs", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers,
         body: JSON.stringify(bodyData)
       })
       .then(function(res) {
@@ -455,7 +513,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         }
         rawSwitchTab(tabId);
         if (tabId === 'admin') {
-          var savedPin = sessionStorage.getItem('fifs_instructor_pin');
+          var savedPin = getStaffSessionToken();
           if (savedPin && isValidInstructorPin(savedPin)) {
             setTimeout(function() { verifyAdminAccess(savedPin); }, 50);
           }
@@ -949,7 +1007,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
     };
     window.FORM_COURSE_PRICING = FORM_COURSE_PRICING;
-    var DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1547779726746320958/nu4yar-r8aR3c6-P-mm8YeprX5bou1uqej24tEuYhNS5LVusMuBtADVcv1vf1oJp_bum";
+    var DISCORD_WEBHOOK_URL = "";
     window.DISCORD_WEBHOOK_URL = DISCORD_WEBHOOK_URL;
     function sendClientDiscordAlert(title, description, fields, colorInt) {
       try {
@@ -1473,7 +1531,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       window.__visitorChatPollInterval = setInterval(function() {
         if (!window.__currentChatSession || !window.__currentChatSession.threadId) return;
         if (typeof callFifsBackend !== 'function') return;
-        callFifsBackend('getVisitorChatMessages', { threadId: window.__currentChatSession.threadId }, function(res) {
+        callFifsBackend('getVisitorChatMessages', { threadId: window.__currentChatSession.threadId, threadSecret: window.__currentChatSession.threadSecret }, function(res) {
           if (res && res.status === 'success' && Array.isArray(res.messages)) {
             var stream = document.getElementById('twoWayChatStream');
             if (!stream) return;
@@ -1627,6 +1685,11 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
 
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('handleLiveChatMessage', payload, function(res) {
+          if (res && res.threadId) {
+            if (!window.__currentChatSession) window.__currentChatSession = {};
+            window.__currentChatSession.threadId = res.threadId;
+            if (res.threadSecret) window.__currentChatSession.threadSecret = res.threadSecret;
+          }
           console.log('[FIFS] Visitor reply persisted to Supabase:', res);
         }, function(err) {
           console.error('[FIFS] Visitor reply failed to persist:', err);
@@ -2239,44 +2302,98 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     // ==========================================================================
     // AUTHORITATIVE INSTRUCTOR AUTHENTICATION & TERMINAL CONTROLLER IN <HEAD>
     // ==========================================================================
-    function isValidInstructorPin(pin) {
-      if (!pin) return false;
-      var clean = pin.toString().trim().toLowerCase().replace(/\s+/g, '');
-      return (clean === 'ultima' || clean === '5819');
-    }
-    window.isValidInstructorPin = isValidInstructorPin;
-    function verifyAdminAccess(overridePin) {
-      var pinInput = document.getElementById('adminPasscode');
-      var pin = (overridePin || (pinInput ? pinInput.value : '') || sessionStorage.getItem('fifs_instructor_pin') || '').trim();
+    function verifyAdminAccess() {
+      var emailInput = document.getElementById('adminStaffEmail');
+      var passInput = document.getElementById('adminStaffPassword');
+      var email = (emailInput ? emailInput.value : '').trim();
+      var password = (passInput ? passInput.value : '').trim();
       var statusDiv = document.getElementById('admin-auth-status');
-      if (!pin) {
-        if (statusDiv) showStatus(statusDiv, 'Passcode required.', 'error');
+
+      if (!email || !password) {
+        if (statusDiv) {
+          statusDiv.style.display = 'block';
+          statusDiv.className = 'status-msg error';
+          statusDiv.textContent = 'Staff email and password are required to sign in.';
+        }
         return;
       }
-      if (statusDiv) showStatus(statusDiv, 'Authenticating Instructor Passcode...', 'success');
-      callFifsBackend('getAdminDashboardData', { pin: pin }, function(res) {
-        if (res && res.status === 'success') {
-          if (statusDiv) statusDiv.style.display = 'none';
-          sessionStorage.setItem('fifs_instructor_pin', pin);
-          renderAdminTerminal(res);
-        } else {
-          if (isValidInstructorPin(pin)) {
-            if (statusDiv) statusDiv.style.display = 'none';
-            sessionStorage.setItem('fifs_instructor_pin', pin);
-            renderAdminTerminal({});
-          } else {
-            if (statusDiv) showStatus(statusDiv, (res && res.message) || 'Access Denied.', 'error');
+
+      if (statusDiv) {
+        statusDiv.style.display = 'block';
+        statusDiv.className = 'status-msg success';
+        statusDiv.textContent = 'Authenticating staff credentials with Supabase Auth...';
+      }
+
+      var client = window.supabaseClient;
+      if (!client || !client.auth || typeof client.auth.signInWithPassword !== 'function') {
+        if (statusDiv) {
+          statusDiv.className = 'status-msg error';
+          statusDiv.textContent = 'Supabase client is not available. Please refresh the page.';
+        }
+        return;
+      }
+
+      client.auth.signInWithPassword({ email: email, password: password })
+        .then(function(authRes) {
+          if (authRes.error || !authRes.data || !authRes.data.session) {
+            var errMsg = (authRes.error && authRes.error.message) || 'Authentication failed: Invalid email or password.';
+            if (statusDiv) {
+              statusDiv.className = 'status-msg error';
+              statusDiv.textContent = errMsg;
+            }
+            return;
           }
-        }
-      }, function(err) {
-        if (isValidInstructorPin(pin)) {
-          if (statusDiv) statusDiv.style.display = 'none';
-          sessionStorage.setItem('fifs_instructor_pin', pin);
-          renderAdminTerminal({});
-        } else {
-          if (statusDiv) showStatus(statusDiv, 'Authentication error.', 'error');
-        }
-      });
+
+          var session = authRes.data.session;
+          window.__fifsStaffSession = session;
+          var token = session.access_token;
+
+          return fetch('/api/fifs', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ action: 'getAdminDashboardData' })
+          })
+          .then(function(res) {
+            return res.json().then(function(data) {
+              if (!res.ok || (!data.success && data.status !== 'success')) {
+                throw new Error(data.error || ('Authorization error: Access Denied (' + res.status + ')'));
+              }
+
+              if (statusDiv) statusDiv.style.display = 'none';
+
+              var authBox = document.getElementById('admin-auth-box');
+              var dashBox = document.getElementById('admin-command-dashboard');
+              if (authBox) {
+                authBox.classList.add('hidden');
+                authBox.style.setProperty('display', 'none', 'important');
+              }
+              if (dashBox) {
+                dashBox.classList.remove('hidden');
+                dashBox.style.setProperty('display', 'block', 'important');
+              }
+
+              if (typeof renderAdminTerminal === 'function') {
+                renderAdminTerminal(data);
+              }
+              if (typeof renderAdminRoster === 'function') {
+                renderAdminRoster(data.roster || data.students || []);
+              }
+              if (typeof renderAdminLiveChats === 'function') {
+                renderAdminLiveChats(data.liveChats || []);
+              }
+            });
+          });
+        })
+        .catch(function(err) {
+          console.error('Staff sign-in error:', err);
+          if (statusDiv) {
+            statusDiv.className = 'status-msg error';
+            statusDiv.textContent = err.message || 'Staff sign-in failed. Please verify credentials.';
+          }
+        });
     }
     window.verifyAdminAccess = verifyAdminAccess;
     function renderAdminTerminal(data) {
@@ -2411,11 +2528,15 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       return labels[stepNum] || "Step " + stepNum;
     }
     window.formatStepLabel = formatStepLabel;
-    function adminSignOut()  {
+        function adminSignOut() {
       try {
-        sessionStorage.removeItem('fifs_instructor_pin');
-        sessionStorage.removeItem('fifs_instructor_pin');
-        var passInput = document.getElementById('adminPasscode');
+        delete window.__fifsStaffSession;
+        if (window.supabaseClient && window.supabaseClient.auth && typeof window.supabaseClient.auth.signOut === 'function') {
+          window.supabaseClient.auth.signOut().catch(function() {});
+        }
+        var emailInput = document.getElementById('adminStaffEmail');
+        if (emailInput) emailInput.value = '';
+        var passInput = document.getElementById('adminStaffPassword');
         if (passInput) passInput.value = '';
         var authBox = document.getElementById('admin-auth-box');
         if (authBox) {
@@ -2484,9 +2605,9 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           }
         }, 500);
       }
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
+      var pin = getStaffSessionToken();
       if (!pin) return;
-      callFifsBackend('getAdminDashboardData', { pin: pin }, function(res) {
+      callFifsBackend('getAdminDashboardData', {}, function(res) {
         if (res && res.status === 'success') {
           renderAdminTerminal(res);
           if (res.clients && typeof renderAdminClientTerminal === 'function') {
@@ -2505,8 +2626,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         btn.classList.add('btn-animated-loading');
         btn.innerHTML = '<span class="spin-icon">🔄</span> <span>RESETTING LEDGER...</span>';
       }
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
-      if (typeof callFifsBackend === 'function') { callFifsBackend('resetTelemetry', { passcode: pin }); }
+      var pin = getStaffSessionToken();
+      if (typeof callFifsBackend === 'function') { callFifsBackend('resetTelemetry', {}); }
       _fifsMemStorage.removeItem('fifs_analytics_events');
       _fifsMemStorage.removeItem('fifs_analytics_counts');
       _fifsMemStorage.removeItem('fifs_device_counts');
@@ -2665,22 +2786,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     });
     // Universal Passcode Resolver for Admin Hub across all mobile/desktop devices
     function resolveCurrentInstructorPasscode() {
-      try {
-        if (window.__fifsCurrentInstructorPin) return window.__fifsCurrentInstructorPin;
-        var sess = sessionStorage.getItem('FIFS_ADMIN_SESSION_KEY') || _fifsMemStorage.getItem('FIFS_ADMIN_SESSION_KEY');
-        if (sess) {
-          try {
-            var parsed = JSON.parse(sess);
-            if (parsed && (parsed.passcode || parsed.pin)) return parsed.passcode || parsed.pin;
-          } catch(e) {}
-        }
-        var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
-        if (pin) return pin;
-        if (typeof getInstructorPasscode === 'function') {
-          var p = getInstructorPasscode();
-          if (p) return p;
-        }
-      } catch(e) {}
       return '';
     }
     window.resolveCurrentInstructorPasscode = resolveCurrentInstructorPasscode;
@@ -2855,7 +2960,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         } catch(e) {}
       }
       // Sync Admin Reply to Supabase messages table via /api/fifs
-      var pin = (typeof resolveCurrentInstructorPasscode === 'function' ? resolveCurrentInstructorPasscode() : '') || sessionStorage.getItem('fifs_instructor_pin') || (window.__fifsAdminAuth && window.__fifsAdminAuth.passcode) || 'Ultima';
+      var pin = (typeof resolveCurrentInstructorPasscode === 'function' ? '' : '') || getStaffSessionToken() || (window.__fifsAdminAuth && '') || '';
       var replyPayload = {
         threadId: thread.id,
         thread_id: thread.id,
@@ -2867,7 +2972,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         senderEmail: thread.senderEmail || ''
       };
       if (typeof callFifsBackend === 'function') {
-        callFifsBackend('sendAdminLiveChatReply', Object.assign({ passcode: pin, pin: pin, payload: replyPayload }, replyPayload), function(res) {
+        callFifsBackend('sendAdminLiveChatReply', replyPayload, function(res) {
           console.log('Admin reply saved to Supabase messages table:', res);
           refreshAdminLiveChats();
         }, function(err) {
@@ -2939,9 +3044,9 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
 
 
     function refreshAdminLiveChats() {
-      var pin = (typeof resolveCurrentInstructorPasscode === 'function' ? resolveCurrentInstructorPasscode() : '') || sessionStorage.getItem('fifs_instructor_pin') || (window.__fifsAdminAuth && window.__fifsAdminAuth.passcode) || 'Ultima';
+      var pin = (typeof resolveCurrentInstructorPasscode === 'function' ? '' : '') || getStaffSessionToken() || (window.__fifsAdminAuth && '') || '';
       if (typeof callFifsBackend === 'function') {
-        callFifsBackend('getLiveChats', { passcode: pin }, function(res) {
+        callFifsBackend('getLiveChats', {}, function(res) {
           if (res && res.status === 'success') {
             var rawThreads = res.threads || res.liveChats;
             if (!Array.isArray(rawThreads) || rawThreads.length === 0) {
@@ -3204,65 +3309,23 @@ window.openAdminSubpanelModal = openAdminSubpanelModal;
     }
     window.closeAdminInviteModal = closeAdminInviteModal;
 function loadDemoStudent() {
-      var demo = {
-        studentId: 'FIFS-4081',
-        fullName: 'Jordan Vance (Demo Student)',
-        email: 'jordan.vance@example.com',
-        phone: '(410) 555-0192',
-        course: 'Maryland CCW & HQL Combo — Base Track (49.99)',
-        assignedDate: 'Saturday, Oct 12 • 9:00 AM',
-        groupSize: '1 (Private One-on-One)',
-        status: 'STEP_1_REGISTERED',
-        trainingStatus: 'PREP_PENDING',
-        profileDocUrl: '#',
-        qualificationScore: '25/25 (100%)',
-        scoresheetUrl: '/qualification_sheet_2.pdf',
-        scoresheet: {
-          student_id: 'FIFS-4081',
-          image_url: '/qualification_sheet_2.pdf',
-          score: '25/25 (100%)',
-          notes: 'Verified by Instructor Kai Wade (MSP Form 29-14 Demo Qualification)',
-          updated_at: new Date().toISOString()
-        },
-        prepTasks: { transport_law: true, ammo_acquired: true, eye_ear_pro: true, id_ready: true }
-      };
-      if (typeof openAndSwitch === 'function') {
-        openAndSwitch('portal');
-      }
-      var authInput = document.getElementById('studentAuthInput');
-      if (authInput) authInput.value = 'FIFS-4081';
+      console.warn("Demo student mode has been permanently removed.");
       var statusDiv = document.getElementById('student-login-status');
-      if (statusDiv) statusDiv.style.display = 'none';
-      if (typeof renderStudentDashboard === 'function') {
-        renderStudentDashboard(demo);
-      }
-      if (typeof callFifsBackend === 'function') {
-        callFifsBackend('getStudentPortalData', { studentId: 'FIFS-4081', password: '' }, function(res) {
-          if (res && res.status === 'success' && res.student && typeof renderStudentDashboard === 'function') {
-            renderStudentDashboard(res.student);
-          }
-        }, function() {});
+      if (statusDiv) {
+        showStatus(statusDiv, 'Demo access disabled. Please sign in with registered student credentials.', 'error');
       }
     }
     window.loadDemoStudent = loadDemoStudent;
     function loadDemoClient() {
-      var demo = {
-        clientId: 'FI-CLIENT-1042',
-        fullName: 'Marcus Vance',
-        email: 'm.vance@example.com',
-        phone: '(410) 555-0192',
-        permitState: 'Maryland Wear & Carry',
-        expirationDate: '2026-10-31',
-        daysLeft: 50,
-        status: 'ACTIVE_REGISTERED'
-      };
-      sessionStorage.setItem('fifs_client_session', JSON.stringify(demo));
-      openAndSwitch('fi-portal');
-      if (typeof renderClientDashboard === 'function') renderClientDashboard(demo);
+      console.warn("Demo client mode has been permanently removed.");
+      var statusDiv = document.getElementById('client-login-status');
+      if (statusDiv) {
+        showStatus(statusDiv, 'Demo access disabled. Please sign in with registered client credentials.', 'error');
+      }
     }
     window.loadDemoClient = loadDemoClient;
     function updateStudentJourneyStep(studentId, newStepValue) {
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
+      var pin = getStaffSessionToken();
       var ind = document.getElementById('save-ind-' + studentId);
       var chip = document.getElementById('chip-status-' + studentId);
       var stepNum = getStepNumberFromStatus(newStepValue);
@@ -3272,7 +3335,7 @@ function loadDemoStudent() {
         stu.status = newStepValue;
         /* cloud only: zero browser storage */
       }
-      if (typeof callFifsBackend === 'function') { callFifsBackend('updateStudentStatus', { passcode: pin, studentId: studentId, status: newStepValue }); }
+      if (typeof callFifsBackend === 'function') { callFifsBackend('updateStudentStatus', { studentId: studentId, status: newStepValue }); }
       if (ind) {
         ind.style.display = 'inline';
         setTimeout(function() { ind.style.display = 'none'; }, 2000);
@@ -3349,12 +3412,12 @@ function loadDemoStudent() {
     window.closeAdminEditStudentModal = closeAdminEditStudentModal;
     function deleteStudentFromAdmin(studentId) {
       if (!confirm('Are you sure you want to remove student ' + studentId + ' from the administrative roster?')) return;
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
+      var pin = getStaffSessionToken();
       if (typeof adminCachedStudents !== 'undefined' && Array.isArray(adminCachedStudents)) {
         adminCachedStudents = adminCachedStudents.filter(s => s.studentId !== studentId);
         window.adminCachedStudents = adminCachedStudents;
       }
-      callFifsBackend('adminDeleteStudent', { passcode: pin, studentId: studentId }, function(res) {
+      callFifsBackend('adminDeleteStudent', { studentId: studentId }, function(res) {
         console.log('Student deleted from Supabase:', res);
         refreshAdminRoster();
       }, function(err) {
@@ -3404,13 +3467,13 @@ function loadDemoStudent() {
     window.closeAdminEditClientModal = closeAdminEditClientModal;
     function deleteClientFromAdmin(clientId) {
       if (!confirm('Are you sure you want to remove client ' + clientId + ' from the client portal registry?')) return;
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
+      var pin = getStaffSessionToken();
       if (typeof adminCachedClients !== 'undefined' && Array.isArray(adminCachedClients)) {
         adminCachedClients = adminCachedClients.filter(c => c.clientId !== clientId);
         window.adminCachedClients = adminCachedClients;
         /* cloud only: zero browser storage */
       }
-      if (typeof callFifsBackend === 'function') { callFifsBackend('adminDeleteClient', { passcode: pin, pin: pin, clientId: clientId }); }
+      if (typeof callFifsBackend === 'function') { callFifsBackend('adminDeleteClient', { clientId: clientId }); }
       renderAdminClientTerminal({ clients: adminCachedClients });
     }
     window.deleteClientFromAdmin = deleteClientFromAdmin;
@@ -3828,18 +3891,7 @@ function loadDemoStudent() {
         showStatus(statusDiv, 'Please enter your Email Address or Student ID.', 'error');
         return;
       }
-      if (isValidInstructorPin(query)) {
-        showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
-        sessionStorage.setItem('fifs_instructor_pin', 'Ultima');
-        setTimeout(function() {
-          openAndSwitch('admin');
-          var adminPassField = document.getElementById('adminPasscode');
-          if (adminPassField) adminPassField.value = 'Ultima';
-          if (typeof verifyAdminAccess === 'function') verifyAdminAccess();
-          if (statusDiv) statusDiv.style.display = 'none';
-        }, 250);
-        return;
-      }
+      
 
 
       showStatus(statusDiv, 'Authenticating Student Operations credentials...', 'success');
@@ -4239,7 +4291,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
     // ==========================================================================
     // DISCORD WEBHOOK REAL-TIME OPERATIONAL ALERT ENGINE
     // ==========================================================================
-    var DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1547779726746320958/nu4yar-r8aR3c6-P-mm8YeprX5bou1uqej24tEuYhNS5LVusMuBtADVcv1vf1oJp_bum";
+    var DISCORD_WEBHOOK_URL = "";
     function sendClientDiscordAlert(title, description, fields, colorInt) {
       try {
         if (!DISCORD_WEBHOOK_URL) return;
@@ -4587,7 +4639,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
         phone: phone,
         course: course,
         dates: dates || 'Upcoming Cohort',
-        passcode: 'Ultima'
+        
       };
 
 
@@ -4762,10 +4814,10 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
       }
 
 
-      var pin = sessionStorage.getItem("fifs_instructor_pin");
+      var pin = getStaffSessionToken();
       if (typeof callFifsBackend === "function") {
         callFifsBackend("adminEditStudent", {
-          passcode: pin,
+          
           studentId: studentId,
           updates: {
             profileDocUrl: docUrl,
@@ -4849,7 +4901,7 @@ function openAdminEditStudentModal(studentId) {
     window.closeAdminEditStudentModal = closeAdminEditStudentModal;
     function handleAdminEditStudentSubmit(e) {
       e.preventDefault();
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
+      var pin = getStaffSessionToken();
       var studentId = document.getElementById('editStudentId').value;
       var s = adminCachedStudents.find(item => item.studentId === studentId);
       if (!s) return;
@@ -4868,7 +4920,7 @@ function openAdminEditStudentModal(studentId) {
       if (typeof callFifsBackend === 'function') {
         try {
           callFifsBackend('adminEditStudent', {
-            passcode: pin,
+            
             studentId: studentId,
             updates: {
               fullName: s.fullName,
@@ -4910,8 +4962,8 @@ function openAdminEditStudentModal(studentId) {
       }
       adminCachedStudents = adminCachedStudents.filter(item => item.studentId !== studentId);
       /* cloud only: zero browser storage */
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
-      if (typeof callFifsBackend === 'function') { callFifsBackend('adminDeleteStudent', { passcode: pin, studentId: studentId }); }
+      var pin = getStaffSessionToken();
+      if (typeof callFifsBackend === 'function') { callFifsBackend('adminDeleteStudent', { studentId: studentId }); }
       renderAdminTerminal({ students: adminCachedStudents });
     }
     window.deleteStudentFromRoster = deleteStudentFromRoster;
@@ -5107,7 +5159,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     window.closeAdminEditClientModal = closeAdminEditClientModal;
     function handleAdminEditClientSubmit(e) {
       e.preventDefault();
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
+      var pin = getStaffSessionToken();
       var clientId = document.getElementById('editClientId').value;
       var c = adminCachedClients.find(item => item.clientId === clientId);
       if (!c) return;
@@ -5120,7 +5172,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       /* cloud only: zero browser storage */
       var st = document.getElementById('edit-client-status');
       showStatus(st, 'Client permit record updated!', 'success');
-      if (typeof callFifsBackend === 'function') { callFifsBackend('adminEditClient', { passcode: pin, clientId: clientId, client: c }); }
+      if (typeof callFifsBackend === 'function') { callFifsBackend('adminEditClient', { clientId: clientId, client: c }); }
       setTimeout(function() {
         closeAdminEditClientModal();
         renderAdminClientTerminal();
@@ -5135,8 +5187,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }
       adminCachedClients = adminCachedClients.filter(item => item.clientId !== clientId);
       /* cloud only: zero browser storage */
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
-      if (typeof callFifsBackend === 'function') { callFifsBackend('adminDeleteClient', { passcode: pin, pin: pin, clientId: clientId }); }
+      var pin = getStaffSessionToken();
+      if (typeof callFifsBackend === 'function') { callFifsBackend('adminDeleteClient', { clientId: clientId }); }
       renderAdminClientTerminal();
     }
     window.deleteClientFromRoster = deleteClientFromRoster;
@@ -5347,7 +5399,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       var s = adminCachedStudents.find(item => item.studentId === studentId);
       var name = s ? s.fullName : studentId;
       if (!confirm(`Dispatch official Range Day Arrival Briefing & Driving Directions to {s ? s.email : ''})?`)) return;
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
+      var pin = getStaffSessionToken();
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleDispatchRangeBriefing) {
         google.script.run
           .withSuccessHandler(function(res) { alert(res.message || 'Briefing email dispatched!'); })
@@ -5361,7 +5413,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       var s = adminCachedStudents.find(item => item.studentId === studentId);
       var name = s ? s.fullName : studentId;
       if (!confirm(`Send 5-Star Google Review congratulations email to certified graduate {s ? s.email : ''})?`)) return;
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
+      var pin = getStaffSessionToken();
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleDispatchReviewRequest) {
         google.script.run
           .withSuccessHandler(function(res) { alert(res.message || 'Review request dispatched!'); })
@@ -5553,6 +5605,11 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('handleLiveChatMessage', payload, function(res) {
+          if (res && res.threadId) {
+            if (!window.__currentChatSession) window.__currentChatSession = {};
+            window.__currentChatSession.threadId = res.threadId;
+            if (res.threadSecret) window.__currentChatSession.threadSecret = res.threadSecret;
+          }
           if (btn) {
             btn.disabled = false;
             btn.textContent = '🚀 Start Live Chat →';
@@ -5721,6 +5778,11 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
 
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('handleLiveChatMessage', payload, function(res) {
+          if (res && res.threadId) {
+            if (!window.__currentChatSession) window.__currentChatSession = {};
+            window.__currentChatSession.threadId = res.threadId;
+            if (res.threadSecret) window.__currentChatSession.threadSecret = res.threadSecret;
+          }
           console.log('[FIFS] Follow-up message logged to Supabase:', res);
         }, function(err) {
           console.error('[FIFS] Failed to log follow-up to Supabase:', err);
@@ -5839,11 +5901,15 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }, 150);
     }
     window.proceedToClientSignInForAlumni = proceedToClientSignInForAlumni;
-    function adminSignOut()  {
+        function adminSignOut() {
       try {
-        sessionStorage.removeItem('fifs_instructor_pin');
-        sessionStorage.removeItem('fifs_instructor_pin');
-        var passInput = document.getElementById('adminPasscode');
+        delete window.__fifsStaffSession;
+        if (window.supabaseClient && window.supabaseClient.auth && typeof window.supabaseClient.auth.signOut === 'function') {
+          window.supabaseClient.auth.signOut().catch(function() {});
+        }
+        var emailInput = document.getElementById('adminStaffEmail');
+        if (emailInput) emailInput.value = '';
+        var passInput = document.getElementById('adminStaffPassword');
         if (passInput) passInput.value = '';
         var authBox = document.getElementById('admin-auth-box');
         if (authBox) {
@@ -6008,13 +6074,13 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         showStatus(statusDiv, 'Please enter your Email Address or Student ID.', 'error');
         return;
       }
-      if (isValidInstructorPin(query) || query === 'Ultima' || password === 'Ultima') {
+      if (isValidInstructorPin(query) || query === '' || password === '') {
         showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
-        sessionStorage.setItem('fifs_instructor_pin', 'Ultima');
+        // pin removed;
         setTimeout(function() {
           openAndSwitch('admin');
           var adminPassField = document.getElementById('adminPasscode');
-          if (adminPassField) adminPassField.value = 'Ultima';
+          if (adminPassField) adminPassField.value = '';
           if (typeof verifyAdminAccess === 'function') verifyAdminAccess();
           if (statusDiv) statusDiv.style.display = 'none';
         }, 250);
@@ -6057,20 +6123,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
     }
     window.lookupStudentAccount = lookupStudentAccount;
 // duplicate loadDemoStudent removed
-    function getMockStudent(query) {
-      return {
-        studentId: query.startsWith('FIFS') ? query : 'FIFS-4081',
-        fullName: 'Jordan Vance',
-        email: query.includes('@') ? query : 'jordan.vance@example.com',
-        phone: '(410) 555-0192',
-        course: 'Maryland CCW & HQL Combo ($249.99)',
-        assignedDate: 'Saturday, Oct 12 • 9:00 AM',
-        groupSize: '1 (Private One-on-One)',
-        trainingStatus: 'PREP_PENDING',
-        profileDocUrl: 'https://docs.google.com/document/d/1BA5_XAKvSZ-jxq8vwwjbmHggV1JDankPewhNtJImxMg/edit',
-        prepTasks: { transport_law: true, ammo_acquired: true, eye_ear_pro: false, id_ready: true }
-      };
-    }
+    function getMockStudent() { return null; }
     function renderStudentDashboard(student) {
       updateStudentCoursePacketDisplay(student.course);
       var loginBox = document.getElementById('student-login-box');
@@ -6231,7 +6284,7 @@ function getStepNumberFromStatus(statusStr) {
     }
     // Removed obsolete duplicate renderAdminTerminal
     function updateStudentJourneyStep(studentId, newStepValue) {
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
+      var pin = getStaffSessionToken();
       var ind = document.getElementById('save-ind-' + studentId);
       var chip = document.getElementById('chip-status-' + studentId);
       var stepNum = getStepNumberFromStatus(newStepValue);
@@ -8197,16 +8250,7 @@ function getStepNumberFromStatus(statusStr) {
         return;
       }
       // Instructor Authentication Gateway
-      if (isValidInstructorPin(query)) {
-        showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
-        setTimeout(function() {
-          switchTab('admin');
-          var adminPassField = document.getElementById('adminPasscode');
-          if (adminPassField) adminPassField.value = 'Ultima';
-          if (typeof verifyAdminAccess === 'function') verifyAdminAccess();
-        }, 350);
-        return;
-      }
+      
       showStatus(statusDiv, 'Cross-referencing client credentials in database...', 'success');
       if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleGetClientPortalData) {
         google.script.run
@@ -8271,22 +8315,14 @@ function getStepNumberFromStatus(statusStr) {
     }
     window.lookupClientAccount = lookupClientAccount;
     function loadDemoClient() {
-      var demo = getMockClient('FI-CLIENT-1042');
-      sessionStorage.setItem('fifs_client_session', JSON.stringify(demo));
-      renderClientDashboard(demo);
+      console.warn("Demo client mode has been permanently removed.");
+      var statusDiv = document.getElementById('client-login-status');
+      if (statusDiv) {
+        showStatus(statusDiv, 'Demo access disabled. Please sign in with registered client credentials.', 'error');
+      }
     }
     window.loadDemoClient = loadDemoClient;
-    function getMockClient(query) {
-      return {
-        clientId: query.startsWith('FI-') ? query : 'FI-CLIENT-1042',
-        fullName: 'Marcus Vance',
-        email: query.includes('@') ? query : 'm.vance@example.com',
-        phone: '(410) 555-0192',
-        permitState: 'Maryland Wear & Carry',
-        expirationDate: '2026-10-31',
-        optInReminder: true
-      };
-    }
+    function getMockClient() { return null; }
     // Replaced with authoritative handleClientRegisterSubmit
     // Replaced with robust renderClientDashboard
     function fiLogoutClient() {
@@ -9327,9 +9363,9 @@ function deleteAdminChatThread(threadId, event) {
   if (!confirm("Are you sure you want to permanently delete this live chat thread from Supabase and the admin hub?")) {
     return;
   }
-  var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
+  var pin = getStaffSessionToken() || getStaffSessionToken();
   if (typeof callFifsBackend === 'function') {
-    callFifsBackend('deleteLiveChatThread', { threadId: threadId, passcode: pin }, function(res) {
+    callFifsBackend('deleteLiveChatThread', { threadId: threadId }, function(res) {
       alert("Chat thread deleted successfully from registry.");
       if (typeof refreshAdminLiveChats === 'function') {
         refreshAdminLiveChats();
@@ -9344,9 +9380,9 @@ function deleteAdminChatThread(threadId, event) {
 // ==========================================================================
 function clearChatNotificationOnOpen(threadId) {
   if (!threadId) return;
-  var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
+  var pin = getStaffSessionToken() || getStaffSessionToken();
   if (typeof callFifsBackend === 'function') {
-    callFifsBackend('markLiveChatRead', { threadId: threadId, passcode: pin }, function(res) {
+    callFifsBackend('markLiveChatRead', { threadId: threadId }, function(res) {
       console.log('Thread notification cleared across devices:', res);
       var badge = document.getElementById('admin-chat-unread-badge');
       if (badge) {
@@ -9404,9 +9440,9 @@ function sendSplashQuickReply(threadId, idx) {
   var input = document.getElementById('splash-reply-input-' + idx);
   if (!input || !input.value.trim()) return;
   var text = input.value.trim();
-  var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
+  var pin = getStaffSessionToken() || getStaffSessionToken();
   if (typeof callFifsBackend === 'function') {
-    callFifsBackend('sendAdminLiveChatReply', { passcode: pin, threadId: threadId, text: text }, function(res) {
+    callFifsBackend('sendAdminLiveChatReply', { threadId: threadId, text: text }, function(res) {
       alert("Reply sent and logged to Live_Chats sheet!");
       input.value = '';
       clearChatNotificationOnOpen(threadId);
@@ -9870,9 +9906,9 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
       updateAdminChatBadgeCount();
     }
     // 4. Send delete request to Supabase backend API route
-    var pin = sessionStorage.getItem('fifs_instructor_pin') || sessionStorage.getItem('fifs_instructor_pin');
+    var pin = getStaffSessionToken() || getStaffSessionToken();
     if (typeof callFifsBackend === 'function') {
-      callFifsBackend('deleteLiveChatThread', { passcode: pin, threadId: threadId }, function(res) {
+      callFifsBackend('deleteLiveChatThread', { threadId: threadId }, function(res) {
         console.log('Chat thread deleted on backend:', res);
         // Refresh again to ensure absolute consistency
         if (typeof refreshAdminLiveChats === 'function') refreshAdminLiveChats();
@@ -10539,6 +10575,11 @@ function submitCurrentMessage(presetText) {
   
   if (typeof callFifsBackend === 'function') {
     callFifsBackend('handleLiveChatMessage', payload, function(res) {
+          if (res && res.threadId) {
+            if (!window.__currentChatSession) window.__currentChatSession = {};
+            window.__currentChatSession.threadId = res.threadId;
+            if (res.threadSecret) window.__currentChatSession.threadSecret = res.threadSecret;
+          }
       if (res && res.status === 'success' && Array.isArray(res.messages)) {
         renderLiveVisitorStream(res.messages);
       }
@@ -10690,7 +10731,7 @@ function openP2pCommsHud(name, phone, initialMsg) {
     var curThreadId = (window.__activeChatSession && window.__activeChatSession.threadId) || (window.__currentChatSession && window.__currentChatSession.threadId);
     if (!curThreadId || typeof callFifsBackend !== 'function') return;
     
-    callFifsBackend('getVisitorChatMessages', { threadId: curThreadId }, function(res) {
+    callFifsBackend('getVisitorChatMessages', { threadId: curThreadId, threadSecret: (window.__currentChatSession && window.__currentChatSession.threadSecret) }, function(res) {
       if (res && res.status === 'success' && Array.isArray(res.messages)) {
         renderLiveVisitorStream(res.messages);
       }
@@ -10879,10 +10920,10 @@ if (typeof window !== 'undefined') {
   if (typeof window !== 'undefined') {
     var lastKnownUnreadCount = 0;
     setInterval(function() {
-      var pin = sessionStorage.getItem('fifs_instructor_pin') || (window.__fifsAdminAuth && window.__fifsAdminAuth.passcode);
+      var pin = getStaffSessionToken() || (window.__fifsAdminAuth && '');
       if (!pin) return;
       if (typeof window.callFifsBackend === 'function') {
-        window.callFifsBackend('getLiveChats', { passcode: pin, pin: pin }, function(res) {
+        window.callFifsBackend('getLiveChats', {}, function(res) {
           if (res && (res.success || res.status === 'success') && Array.isArray(res.liveChats)) {
             window.__adminLiveChatThreads = res.liveChats;
             if (typeof saveChatThreads === 'function') saveChatThreads(res.liveChats);
@@ -11453,7 +11494,7 @@ if (typeof window !== 'undefined') {
       var feedback = document.getElementById('scoresheetModalFeedback');
       var saveBtn = document.getElementById('btnSaveScoresheetModal');
       var scoreVal = scoreInput ? scoreInput.value.trim() : '25/25 (100%)';
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
+      var pin = getStaffSessionToken();
 
 
       if (feedback) {
@@ -11465,7 +11506,7 @@ if (typeof window !== 'undefined') {
 
 
       function dispatchSave(payload) {
-        payload.passcode = pin;
+        
         payload.studentId = studentId;
         payload.score = scoreVal;
         payload.notes = 'Verified by Instructor Kai Wade (MSP Form 29-14)';
@@ -11534,11 +11575,11 @@ if (typeof window !== 'undefined') {
     function deleteCurrentStudentScoresheet() {
       var studentId = activeScoresheetStudentId;
       if (!studentId || !confirm('Are you sure you want to delete this student\'s Maryland qualification scoresheet?')) return;
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
+      var pin = getStaffSessionToken();
       var feedback = document.getElementById('scoresheetModalFeedback');
 
 
-      callFifsBackend('deleteStudentScoresheet', { passcode: pin, studentId: studentId }, function(res) {
+      callFifsBackend('deleteStudentScoresheet', { studentId: studentId }, function(res) {
         if (res && res.success) {
           alert('Scoresheet removed.');
           var s = (adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
@@ -11564,7 +11605,7 @@ if (typeof window !== 'undefined') {
       var scoreInput = document.getElementById('editScoresheetScore');
       var feedback = document.getElementById('editScoresheetFeedback');
       var scoreVal = scoreInput ? scoreInput.value.trim() : '25/25 (100%)';
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
+      var pin = getStaffSessionToken();
 
 
       if (!fileInput || !fileInput.files || !fileInput.files[0]) {
@@ -11584,7 +11625,7 @@ if (typeof window !== 'undefined') {
       var reader = new FileReader();
       reader.onload = function(e) {
         callFifsBackend('saveStudentScoresheet', {
-          passcode: pin,
+          
           studentId: studentId,
           fileBase64: e.target.result,
           fileName: file.name,
@@ -11632,8 +11673,8 @@ if (typeof window !== 'undefined') {
     function handleDeleteScoresheetFromEdit() {
       var studentId = document.getElementById('editStudentId') ? document.getElementById('editStudentId').value : null;
       if (!studentId || !confirm('Are you sure you want to remove this scoresheet?')) return;
-      var pin = sessionStorage.getItem('fifs_instructor_pin');
-      callFifsBackend('deleteStudentScoresheet', { passcode: pin, studentId: studentId }, function(res) {
+      var pin = getStaffSessionToken();
+      callFifsBackend('deleteStudentScoresheet', { studentId: studentId }, function(res) {
         if (res && res.success) {
           alert('Scoresheet removed.');
           var s = (adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
@@ -12071,69 +12112,8 @@ if (typeof window !== 'undefined') {
             printLine('  SUPABASE STORAGE: CONNECTED (documents // 50MB max)', 'terminal-dim');
             printLine('  SYSTEM STATUS: OPERATIONAL / ZERO THREATS DETECTED', 'terminal-success');
           } else if (cmd === 'auth') {
-            var token = arg.trim();
-            if (!token) {
-              printLine('[ERR] SYNTAX: auth <passcode>', 'terminal-error');
-              return;
-            }
-
-
-            printLine('[SYS] VERIFYING IDENTITY HASH...', 'terminal-amber');
-
-
-            var isPinValid = false;
-            if (typeof isValidInstructorPin === 'function' && isValidInstructorPin(token)) {
-              isPinValid = true;
-            } else if (token === 'Ultima' || token === '7777' || token.toLowerCase() === 'fifs2026') {
-              isPinValid = true;
-            }
-
-
-            if (isPinValid) {
-              failedAttempts = 0;
-              printLine('[SUCCESS] IDENTITY CONFIRMED. ACCESS GRANTED.', 'terminal-success');
-              if (typeof callFifsBackend === 'function') {
-                callFifsBackend('logTerminalSecurityEvent', {
-                  eventType: 'SECURITY_TERMINAL_SUCCESS',
-                  tokenUsed: 'CONFIRMED'
-                }).catch(function() {});
-              }
-              try { sessionStorage.setItem('fifs_instructor_pin', token); } catch(err) {}
-
-
-              setTimeout(function() {
-                closeTerminalGateway();
-                if (typeof openAndSwitch === 'function') {
-                  openAndSwitch('admin');
-                } else {
-                  var adminBtn = document.getElementById('btnNavAdmin') || document.querySelector('[data-switch="admin"]');
-                  if (adminBtn) adminBtn.click();
-                }
-
-
-                var adminPassField = document.getElementById('adminPasscode');
-                if (adminPassField) adminPassField.value = token;
-
-
-                if (typeof verifyAdminAccess === 'function') {
-                  verifyAdminAccess(token);
-                }
-              }, 600);
-            } else {
-              failedAttempts++;
-              printLine('[ERR] INVALID CREDENTIALS. ATTEMPT LOGGED (' + failedAttempts + '/3).', 'terminal-error');
-              if (typeof callFifsBackend === 'function') {
-                callFifsBackend('logTerminalSecurityEvent', {
-                  eventType: 'SECURITY_TERMINAL_FAILED',
-                  attempts: failedAttempts,
-                  locked: failedAttempts >= 3
-                }).catch(function() {});
-              }
-              if (failedAttempts >= 3) {
-                lockUntil = Date.now() + (5 * 60 * 1000);
-                printLine('[SECURITY ALERT] 3 consecutive failures. Terminal locked for 5 minutes.', 'terminal-error');
-              }
-            }
+            printLine('[ERR] PIN/PASSCODE AUTHENTICATION IS DEPRECATED AND DISABLED.', 'terminal-error');
+            printLine('[SYS] Please authenticate via the Admin Hub login modal using verified staff credentials.', 'terminal-dim');
           } else {
             printLine("[ERR] UNRECOGNIZED COMMAND: '" + cmd + "'. Type 'help' for manual.", 'terminal-error');
           }
