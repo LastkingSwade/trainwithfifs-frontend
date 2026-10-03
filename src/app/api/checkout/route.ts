@@ -300,7 +300,7 @@ export async function POST(req: NextRequest) {
           timestamp: new Date().toISOString()
         }]
       };
-      await fetch(DISCORD_WEBHOOK_URL, {
+      if (DISCORD_WEBHOOK_URL) await fetch(DISCORD_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(discordPayload)
