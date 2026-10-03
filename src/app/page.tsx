@@ -25,6 +25,17 @@ import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
  * Clean JSX structure: all SVGs, light circle elements, self-closing tags, and comments properly parsed.
  */
 export default function TrainWithFIFS(props: any) {
+  const getSessionBearerToken = async (): Promise<string | null> => {
+    try {
+      if (typeof window === "undefined") return null;
+      const client = (window as any).supabaseClient || (typeof createSupabaseClient === "function" ? createSupabaseClient() : null);
+      if (!client || !client.auth) return null;
+      const { data } = await client.auth.getSession();
+      return data?.session?.access_token || null;
+    } catch {
+      return null;
+    }
+  };
   useEffect(() => {
 
 
