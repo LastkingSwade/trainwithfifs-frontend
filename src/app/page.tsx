@@ -24,6 +24,12 @@ import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
  * Configured as a Client Component with "use client" as line 1 above all imports.
  * Clean JSX structure: all SVGs, light circle elements, self-closing tags, and comments properly parsed.
  */
+declare global {
+  interface Window {
+    setCardTier?: (courseKey: string, targetTier: string, evt?: any) => void;
+  }
+}
+
 export default function TrainWithFIFS(props: any) {
   const getSessionBearerToken = async (): Promise<string | null> => {
     try {
@@ -4003,31 +4009,31 @@ document.addEventListener('submit', handleDelegatedSubmit);
           <svg className="hero-holo-overlay-svg" viewBox="0 0 893 1600" preserveAspectRatio="xMidYMin slice" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <filter id="fifsCyanGlow" x="-50%" y="-50%" width="200%" height="200%">
-                <fegaussianblur stdDeviation="6" result="blur1">
-                </fegaussianblur>
-                <fegaussianblur stdDeviation="14" result="blur2">
-                </fegaussianblur>
-                <femerge>
-                  <femergenode in="blur2">
-                  </femergenode>
-                  <femergenode in="blur1">
-                  </femergenode>
-                  <femergenode in="SourceGraphic">
-                  </femergenode>
-                </femerge>
+                <feGaussianBlur stdDeviation="6" result="blur1">
+                </feGaussianBlur>
+                <feGaussianBlur stdDeviation="14" result="blur2">
+                </feGaussianBlur>
+                <feMerge>
+                  <feMergeNode in="blur2">
+                  </feMergeNode>
+                  <feMergeNode in="blur1">
+                  </feMergeNode>
+                  <feMergeNode in="SourceGraphic">
+                  </feMergeNode>
+                </feMerge>
               </filter>
-              <lineargradient id="beamGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <linearGradient id="beamGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#00e5ff" stopOpacity="0" />
                 <stop offset="20%" stopColor="#00e5ff" stopOpacity="0.8" />
                 <stop offset="50%" stopColor="#ffffff" stopOpacity="1" />
                 <stop offset="80%" stopColor="#00e5ff" stopOpacity="0.8" />
                 <stop offset="100%" stopColor="#00e5ff" stopOpacity="0" />
-              </lineargradient>
-              <radialgradient id="ringGlow" cx="50%" cy="50%" r="50%">
+              </linearGradient>
+              <radialGradient id="ringGlow" cx="50%" cy="50%" r="50%">
                 <stop offset="0%" stopColor="#00e5ff" stopOpacity="0.9" />
                 <stop offset="70%" stopColor="#00e5ff" stopOpacity="0.3" />
                 <stop offset="100%" stopColor="#00e5ff" stopOpacity="0" />
-              </radialgradient>
+              </radialGradient>
             </defs>
             {/* 1. Central Future Initiative Brand & Blue Light Beam */}
             <g className="fifs-holo-beam" style={{"transformOrigin": "446px 376px"}}>
@@ -4113,7 +4119,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </span>
           </div>
           {/* Semi-Transparent Neon Arrow Guide (Colors of the business logo: #00e5ff) */}
-          <div className="neon-arrow-guide-wrap" id="wrap-neon-guide" data-onclick="openAndSwitch('booking')" role="button" tabIndex="0" title="New to firearms? Click here to start">
+          <div className="neon-arrow-guide-wrap" id="wrap-neon-guide" data-onclick="openAndSwitch('booking')" role="button" tabIndex={0} title="New to firearms? Click here to start">
             <div className="neon-arrow-badge neon-mode-cyan" id="neon-start-guide" title="Future Initiative Operations Active • Click to Start Training">
               <span className="neon-arrow-text">
                 New To Firearms? Start Here
@@ -5084,7 +5090,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                           *
                         </span>
                       </label>
-                      <input id="regClientName" placeholder="e.g., Marcus Vance" required="" type="text" />
+                      <input id="regClientName" placeholder="e.g., Marcus Vance" required type="text" />
                     </div>
                     <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px"}}>
                       <div className="form-group">
@@ -5094,7 +5100,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                             *
                           </span>
                         </label>
-                        <input id="regClientEmail" placeholder="marcus@example.com" required="" type="email" />
+                        <input id="regClientEmail" placeholder="marcus@example.com" required type="email" />
                       </div>
                       <div className="form-group">
                         <label htmlFor="regClientPhone">
@@ -5103,7 +5109,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                             *
                           </span>
                         </label>
-                        <input id="regClientPhone" placeholder="(410) 555-0192" required="" type="tel" />
+                        <input id="regClientPhone" placeholder="(410) 555-0192" required type="tel" />
                       </div>
                     </div>
                     <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px"}}>
@@ -5115,7 +5121,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                           </span>
                         </label>
                         <select
-  defaultValue={"Maryland Wear & Carry"} id="regClientPermitState" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}}>
+  defaultValue={"Maryland Wear & Carry"} id="regClientPermitState" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}}>
                           <option value="Maryland Wear &amp; Carry">
                             Maryland Wear & Carry (CCW)
                           </option>
@@ -5157,13 +5163,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         <label htmlFor="regClientPassword">
                           Create Password <span className="req">*</span>
                         </label>
-                        <input id="regClientPassword" placeholder="Minimum 6 characters" required="" type="password" />
+                        <input id="regClientPassword" placeholder="Minimum 6 characters" required type="password" />
                       </div>
                       <div className="form-group">
                         <label htmlFor="regClientPasswordConfirm">
                           Confirm Password <span className="req">*</span>
                         </label>
-                        <input id="regClientPasswordConfirm" placeholder="Re-enter password" required="" type="password" />
+                        <input id="regClientPasswordConfirm" placeholder="Re-enter password" required type="password" />
                       </div>
                     </div>
                     <div className="form-group" style={{"margin": "14px 0 18px"}}>
@@ -5180,7 +5186,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         </span>
                       </label>
                     </div>
-                    <button className="btn-primary" id="btn-client-register-submit" data-onclick="handleClientRegisterSubmit(event)" style={{"width": "100%", "padding": "14px", "fontSize": "1rem", "fontWeight": "800", "cursor": "pointer", "pointerEvents": "auto !important", "touchAction": "manipulation !important", "position": "relative", "zIndex": "20"}} type="button">
+                    <button className="btn-primary" id="btn-client-register-submit" data-onclick="handleClientRegisterSubmit(event)" style={{"width": "100%", "padding": "14px", "fontSize": "1rem", "fontWeight": "800", "cursor": "pointer", "pointerEvents": "auto", "touchAction": "manipulation", "position": "relative", "zIndex": "20"}} type="button">
                       
                   Create Profile & Activate Renewal Watch 🛡️
                 
@@ -6021,7 +6027,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </thead>
                 <tbody id="admin-roster-tbody">
                   <tr>
-                    <td colSpan="8" style={{"textAlign": "center", "color": "var(--text-muted)", "padding": "20px"}}>
+                    <td colSpan={8} style={{"textAlign": "center", "color": "var(--text-muted)", "padding": "20px"}}>
                       Loading live student roster...
                     </td>
                   </tr>
@@ -6129,7 +6135,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </thead>
                 <tbody id="admin-client-tbody">
                   <tr>
-                    <td colSpan="7" style={{"textAlign": "center", "color": "var(--text-muted)", "padding": "20px"}}>
+                    <td colSpan={7} style={{"textAlign": "center", "color": "var(--text-muted)", "padding": "20px"}}>
                       Loading Future Initiative client records...
                     </td>
                   </tr>
@@ -6757,7 +6763,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </p>
           </div>
           <div className="checklist-grid">
-            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("handgun");  } }} data-onclick="openExpectationModal('handgun')" role="button" tabIndex="0" title="Click to view detailed handgun &amp; equipment breakdown">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("handgun");  } }} data-onclick="openExpectationModal('handgun')" role="button" tabIndex={0} title="Click to view detailed handgun &amp; equipment breakdown">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   🔫 Handgun & Equipment
@@ -6790,7 +6796,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Click for Handgun, Holster & Rental Protocols →
               </div>
             </div>
-            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("ammunition"); } }} data-onclick="openExpectationModal('ammunition')" role="button" tabIndex="0" title="Click to view ammunition rules &amp; zero-tolerance safety protocol">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("ammunition"); } }} data-onclick="openExpectationModal('ammunition')" role="button" tabIndex={0} title="Click to view ammunition rules &amp; zero-tolerance safety protocol">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   📦 Ammunition Protocol
@@ -6817,7 +6823,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Click for Zero-Live-Ammo Policy & Caliber Guide →
               </div>
             </div>
-            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("protection"); } }} data-onclick="openExpectationModal('protection')" role="button" tabIndex="0" title="Click to view eye and hearing protection standards">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("protection"); } }} data-onclick="openExpectationModal('protection')" role="button" tabIndex={0} title="Click to view eye and hearing protection standards">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   👓 Eye & Ear Protection
@@ -6844,7 +6850,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Click for ANSI Z87.1 & Electronic Earmuff Specs →
               </div>
             </div>
-            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("attire");  } }} data-onclick="openExpectationModal('attire')" role="button" tabIndex="0" title="Click to view dress code &amp; government identification requirements">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("attire");  } }} data-onclick="openExpectationModal('attire')" role="button" tabIndex={0} title="Click to view dress code &amp; government identification requirements">
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
                 <h4 style={{"margin": "0"}}>
                   👕 Attire & Documentation
@@ -7771,7 +7777,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                Call (443) 990-1304
           
             </a>
-            <a className="btn-spark" href="mailto:info@trainwithfifs.com" style={{"textDecoration": "none", "padding": "12px 18px", "yContent": "center", "gap": "8px", "borderColor": "var(--accent-amber)", "color": "var(--accent-amber)"}}>
+            <a className="btn-spark" href="mailto:info@trainwithfifs.com" style={{"textDecoration": "none", "padding": "12px 18px", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "gap": "8px", "borderColor": "var(--accent-amber)", "color": "var(--accent-amber)"}}>
               <span>
                 ✉️
               </span>
@@ -9588,8 +9594,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </span>
               </div>
               <form id="reciprocityLeadForm" data-onsubmit="handleLeadMagnetSubmit(event)" style={{"display": "flex", "gap": "10px", "flexWrap": "wrap", "alignItems": "center"}}>
-                <input id="leadFullName" placeholder="Your Full Name" required="" style={{"flex": "1", "minWidth": "200px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "11px 14px", "borderRadius": "8px", "fontSize": "0.90rem"}} type="text" />
-                <input id="leadEmail" placeholder="Your Email Address" required="" style={{"flex": "1", "minWidth": "220px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "11px 14px", "borderRadius": "8px", "fontSize": "0.90rem"}} type="email" />
+                <input id="leadFullName" placeholder="Your Full Name" required style={{"flex": "1", "minWidth": "200px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "11px 14px", "borderRadius": "8px", "fontSize": "0.90rem"}} type="text" />
+                <input id="leadEmail" placeholder="Your Email Address" required style={{"flex": "1", "minWidth": "220px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "11px 14px", "borderRadius": "8px", "fontSize": "0.90rem"}} type="email" />
                 <button className="btn-primary" style={{"width": "auto", "padding": "11px 22px", "fontSize": "0.92rem", "fontWeight": "800", "textTransform": "uppercase", "whiteSpace": "nowrap", "boxShadow": "0 0 16px var(--accent-cyan-glow)"}} type="submit">
                   
           📥 Get Free Guide (PDF) →
@@ -10186,7 +10192,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Comprehensive 20-page Maryland State Police walkthrough explaining account setup, score sheet upload, and application tracking.
               </span>
             </div>
-            <a className="btn-download-guide" href="https://mdsp.maryland.gov/media/474" rel="noopener noreferrer" style={{"background": "var(--accent-amber)", "color": "#070b10 !important"}} target="_blank">
+            <a className="btn-download-guide" href="https://mdsp.maryland.gov/media/474" rel="noopener noreferrer" style={{"background": "var(--accent-amber)", "color": "#070b10"}} target="_blank">
               <span>
                 📄 View MSP Portal Guide ↗
               </span>
@@ -10327,7 +10333,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   *
                 </span>
               </label>
-              <input id="invFullName" placeholder="e.g., Brandon Miller" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
+              <input id="invFullName" placeholder="e.g., Brandon Miller" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
             </div>
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
               <div className="form-group" style={{"marginBottom": "0"}}>
@@ -10337,7 +10343,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input id="invEmail" placeholder="brandon@example.com" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="email" />
+                <input id="invEmail" placeholder="brandon@example.com" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="email" />
               </div>
               <div className="form-group" style={{"marginBottom": "0"}}>
                 <label htmlFor="invPhone" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
@@ -10407,7 +10413,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               Direct Portal Access Link Generated:
             </strong>
             <div style={{"display": "flex", "gap": "8px", "alignItems": "center", "marginTop": "6px"}}>
-              <input id="invGeneratedUrl" readOnly="" style={{"background": "#10161f", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px 12px", "borderRadius": "6px", "fontSize": "0.85rem", "flex": "1"}} type="text" />
+              <input id="invGeneratedUrl" readOnly style={{"background": "#10161f", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px 12px", "borderRadius": "6px", "fontSize": "0.85rem", "flex": "1"}} type="text" />
               <button className="btn-spark" data-onclick="copyInviteUrl()" style={{"width": "auto", "padding": "8px 14px", "fontSize": "0.82rem", "whiteSpace": "nowrap"}} type="button">
                 📋 Copy
               </button>
@@ -10441,7 +10447,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input id="editFullName" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
+                <input id="editFullName" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
               </div>
               <div className="form-group" style={{"marginBottom": "0"}}>
                 <label htmlFor="editEmail" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
@@ -10450,7 +10456,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input id="editEmail" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="email" />
+                <input id="editEmail" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="email" />
               </div>
             </div>
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
@@ -10524,7 +10530,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <label htmlFor="editNotes" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
                 Instructor Diagnostic & Administrative Notes
               </label>
-              <textarea id="editNotes" rows="2" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%", "fontFamily": "inherit", "fontSize": "0.88rem"}}>
+              <textarea id="editNotes" rows={2} style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%", "fontFamily": "inherit", "fontSize": "0.88rem"}}>
               </textarea>
             </div>
             <div style={{"display": "flex", "gap": "10px"}}>
@@ -10715,7 +10721,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <label htmlFor="dossierModalNotes" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
                 Instructor Diagnostic & Administrative Notes
               </label>
-              <textarea id="dossierModalNotes" rows="5" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%", "fontFamily": "inherit", "fontSize": "0.88rem", "resize": "vertical"}}></textarea>
+              <textarea id="dossierModalNotes" rows={5} style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%", "fontFamily": "inherit", "fontSize": "0.88rem", "resize": "vertical"}}></textarea>
             </div>
             <div id="dossierModalStatus" style={{"display": "none", "marginBottom": "10px", "fontSize": "0.82rem", "fontWeight": "700"}}></div>
             <div style={{"display": "flex", "gap": "10px"}}>
@@ -10837,7 +10843,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input id="editClientFullName" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
+                <input id="editClientFullName" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
               </div>
               <div className="form-group" style={{"marginBottom": "0"}}>
                 <label htmlFor="editClientEmail" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
@@ -10846,7 +10852,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input id="editClientEmail" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="email" />
+                <input id="editClientEmail" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="email" />
               </div>
             </div>
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
@@ -10890,7 +10896,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input id="editClientExpDate" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="date" />
+                <input id="editClientExpDate" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="date" />
               </div>
               <div className="form-group" style={{"marginBottom": "0"}}>
                 <label htmlFor="editClientStatus" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
@@ -10931,7 +10937,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       </div>
       {/* ================= COURSE ENROLLMENT MODAL WINDOW (DEEP DIVE POPUP) ================= */}
       <div className="goal-modal-overlay" id="courseBookingModal" data-onclick="if(event.target===this) closeCourseBookingModal()" style={{"display": "none"}}>
-        <div aria-labelledby="bookingModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"width": "min(680px, 94vw) !important", "minWidth": "min(680px, 94vw) !important", "maxWidth": "680px !important", "margin": "auto !important", "borderColor": "var(--accent-cyan)", "boxShadow": "0 25px 60px rgba(0,0,0,0.95), 0 0 35px var(--accent-cyan-glow)"}}>
+        <div aria-labelledby="bookingModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"width": "min(680px, 94vw)", "minWidth": "min(680px, 94vw)", "maxWidth": "680px", "margin": "auto", "borderColor": "var(--accent-cyan)", "boxShadow": "0 25px 60px rgba(0,0,0,0.95), 0 0 35px var(--accent-cyan-glow)"}}>
           <button aria-label="Close reservation form" className="goal-modal-close-btn" data-onclick="closeCourseBookingModal()" type="button">
             ✕
           </button>
@@ -10966,7 +10972,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 id="courseSelection"
                 data-onchange="updateFormPriceDisplay()"
                 onChange={() => { if (typeof window !== "undefined" && (window as any).updateFormPriceDisplay) (window as any).updateFormPriceDisplay(); }}
-                required=""
+                required
                 style={{"background": "#070b10", "border": "1px solid var(--accent-cyan)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%", "fontSize": "0.95rem", "fontWeight": "700"}}>
                 <option value="Mid-Atlantic Multi-State Mastery — VIP Turnkey ($549.99)">Mid-Atlantic Multi-State Mastery — VIP Turnkey ($549.99)</option>
                 <option value="Mid-Atlantic Multi-State Mastery — Base Track ($424.99)">Mid-Atlantic Multi-State Mastery — Base Track ($424.99)</option>
@@ -11071,7 +11077,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input autoComplete="name" id="fullName" name="fullName" placeholder="e.g., Jordan Vance" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}} type="text" />
+                <input autoComplete="name" id="fullName" name="fullName" placeholder="e.g., Jordan Vance" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}} type="text" />
               </div>
               <div className="form-group" style={{"marginBottom": "0"}}>
                 <label htmlFor="email">
@@ -11080,7 +11086,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input autoComplete="email" id="email" name="email" placeholder="jordan@example.com" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}} type="email" />
+                <input autoComplete="email" id="email" name="email" placeholder="jordan@example.com" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}} type="email" />
               </div>
             </div>
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "14px"}}>
@@ -11091,7 +11097,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input autoComplete="tel" id="phone" name="phone" placeholder="(410) 555-0192" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}} type="tel" />
+                <input autoComplete="tel" id="phone" name="phone" placeholder="(410) 555-0192" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}} type="tel" />
               </div>
               <div className="form-group" style={{"marginBottom": "0"}}>
                 <label htmlFor="groupSize">
@@ -11100,7 +11106,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <select id="groupSize" name="groupSize" data-onchange="updateFormPriceDisplay();" required="" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}}>
+                <select id="groupSize" name="groupSize" data-onchange="updateFormPriceDisplay();" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}}>
                   <option value="1 (Private One-on-One)">
                     1 Person — Standard Rate
                   </option>
@@ -11130,7 +11136,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <label htmlFor="comments">
                 Additional Notes / Prior Experience / Equipment
               </label>
-              <textarea id="comments" name="comments" placeholder="Include your shooting background, handguns owned (if any), or scheduling notes..." rows="2" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%", "fontFamily": "inherit", "fontSize": "0.95rem"}}>
+              <textarea id="comments" name="comments" placeholder="Include your shooting background, handguns owned (if any), or scheduling notes..." rows={2} style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%", "fontFamily": "inherit", "fontSize": "0.95rem"}}>
               </textarea>
             </div>
             <div className="form-group" style={{"marginBottom": "14px"}}>
@@ -11213,7 +11219,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <input type="hidden" id="preferredDates" name="preferredDates" />
             </div>
             <div style={{"background": "rgba(239, 68, 68, 0.08)", "border": "1px solid rgba(239, 68, 68, 0.4)", "borderRadius": "8px", "padding": "12px 14px", "marginBottom": "18px", "display": "flex", "alignItems": "flex-start", "gap": "10px"}}>
-              <input id="safety-check" required="" defaultChecked={false} style={{"width": "18px", "height": "18px", "accentColor": "var(--accent-cyan)", "marginTop": "2px"}} type="checkbox" />
+              <input id="safety-check" required defaultChecked={false} style={{"width": "18px", "height": "18px", "accentColor": "var(--accent-cyan)", "marginTop": "2px"}} type="checkbox" />
                 
                 <label htmlFor="safety-check" style={{"fontSize": "0.80rem", "color": "#fca5a5", "lineHeight": "1.45", "cursor": "pointer"}}>
                   <strong>
@@ -12290,7 +12296,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         *
                       </span>
                     </label>
-                    <input id="fiClientName" placeholder="e.g. Marcus Vance" required="" type="text" />
+                    <input id="fiClientName" placeholder="e.g. Marcus Vance" required type="text" />
                   </div>
                   <div className="form-group">
                     <label htmlFor="fiClientEmail">
@@ -12299,7 +12305,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         *
                       </span>
                     </label>
-                    <input id="fiClientEmail" placeholder="e.g. marcus@example.com" required="" type="email" />
+                    <input id="fiClientEmail" placeholder="e.g. marcus@example.com" required type="email" />
                   </div>
                 </div>
                 <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "16px", "marginBottom": "14px"}}>
@@ -12339,7 +12345,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         *
                       </span>
                     </label>
-                    <input id="fiClientExpDate" required="" type="date" />
+                    <input id="fiClientExpDate" required type="date" />
                   </div>
                 </div>
                 <div className="form-group" style={{"marginBottom": "20px"}}>
@@ -12550,7 +12556,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input type="text" id="waiverStudentName" required="" style={{"width": "100%", "padding": "10px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "borderRadius": "8px"}} />
+                <input type="text" id="waiverStudentName" required style={{"width": "100%", "padding": "10px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "borderRadius": "8px"}} />
               </div>
               <div className="form-group">
                 <label style={{"fontSize": "0.82rem", "color": "var(--text-muted)"}}>
@@ -12559,7 +12565,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input type="tel" id="waiverStudentPhone" required="" style={{"width": "100%", "padding": "10px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "borderRadius": "8px"}} />
+                <input type="tel" id="waiverStudentPhone" required style={{"width": "100%", "padding": "10px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "borderRadius": "8px"}} />
               </div>
             </div>
             <div className="form-group" style={{"marginBottom": "12px"}}>
@@ -12569,7 +12575,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   *
                 </span>
               </label>
-              <input type="email" id="waiverStudentEmail" required="" style={{"width": "100%", "padding": "10px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "borderRadius": "8px"}} />
+              <input type="email" id="waiverStudentEmail" required style={{"width": "100%", "padding": "10px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "borderRadius": "8px"}} />
             </div>
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr 1fr", "gap": "10px", "marginBottom": "14px"}}>
               <div className="form-group">
@@ -12579,7 +12585,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input type="text" id="waiverEmergencyName" required="" style={{"width": "100%", "padding": "9px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "borderRadius": "8px"}} />
+                <input type="text" id="waiverEmergencyName" required style={{"width": "100%", "padding": "9px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "borderRadius": "8px"}} />
               </div>
               <div className="form-group">
                 <label style={{"fontSize": "0.80rem", "color": "var(--text-muted)"}}>
@@ -12588,7 +12594,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input type="text" id="waiverEmergencyRel" required="" placeholder="Spouse / Parent / Sibling" style={{"width": "100%", "padding": "9px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "borderRadius": "8px"}} />
+                <input type="text" id="waiverEmergencyRel" required placeholder="Spouse / Parent / Sibling" style={{"width": "100%", "padding": "9px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "borderRadius": "8px"}} />
               </div>
               <div className="form-group">
                 <label style={{"fontSize": "0.80rem", "color": "var(--text-muted)"}}>
@@ -12597,12 +12603,12 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input type="tel" id="waiverEmergencyPhone" required="" style={{"width": "100%", "padding": "9px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "borderRadius": "8px"}} />
+                <input type="tel" id="waiverEmergencyPhone" required style={{"width": "100%", "padding": "9px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "borderRadius": "8px"}} />
               </div>
             </div>
             <div style={{"background": "rgba(255, 255, 255, 0.03)", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "12px", "marginBottom": "14px"}}>
               <div style={{"display": "flex", "alignItems": "center", "gap": "10px", "marginBottom": "8px"}}>
-                <input type="checkbox" id="waiverLegalSworn" required="" style={{"width": "18px", "height": "18px", "accentColor": "#00e5ff"}}  defaultChecked={false} />
+                <input type="checkbox" id="waiverLegalSworn" required style={{"width": "18px", "height": "18px", "accentColor": "#00e5ff"}}  defaultChecked={false} />
                 <label htmlFor="waiverLegalSworn" style={{"fontSize": "0.82rem", "color": "#fff", "cursor": "pointer"}}>
                   
             I swear I am legally allowed to possess firearms and have no felony convictions or disqualifying offenses.
@@ -12610,7 +12616,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </label>
               </div>
               <div style={{"display": "flex", "alignItems": "center", "gap": "10px"}}>
-                <input type="checkbox" id="waiverRulesSworn" required="" style={{"width": "18px", "height": "18px", "accentColor": "#00e5ff"}}  defaultChecked={false} />
+                <input type="checkbox" id="waiverRulesSworn" required style={{"width": "18px", "height": "18px", "accentColor": "#00e5ff"}}  defaultChecked={false} />
                 <label htmlFor="waiverRulesSworn" style={{"fontSize": "0.82rem", "color": "#fff", "cursor": "pointer"}}>
                   
             I have read, fully understand, and agree to adhere strictly to all 16 Training Rules & Cindy's Range Safety commands.
@@ -12626,7 +12632,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input type="text" id="waiverInitials" maxLength="4" placeholder="e.g. KW" required="" style={{"width": "100%", "padding": "10px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "borderRadius": "8px", "textTransform": "uppercase", "fontWeight": "800", "textAlign": "center"}} />
+                <input type="text" id="waiverInitials" maxLength={4} placeholder="e.g. KW" required style={{"width": "100%", "padding": "10px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "borderRadius": "8px", "textTransform": "uppercase", "fontWeight": "800", "textAlign": "center"}} />
               </div>
               <div className="form-group">
                 <label style={{"fontSize": "0.82rem", "color": "var(--text-muted)"}}>
@@ -12635,7 +12641,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input type="text" id="waiverSignature" placeholder="Type your full legal name as digital signature" required="" style={{"width": "100%", "padding": "10px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#00e5ff", "borderRadius": "8px", "fontFamily": "cursive, sans-serif", "fontSize": "1.1rem"}} />
+                <input type="text" id="waiverSignature" placeholder="Type your full legal name as digital signature" required style={{"width": "100%", "padding": "10px", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#00e5ff", "borderRadius": "8px", "fontFamily": "cursive, sans-serif", "fontSize": "1.1rem"}} />
               </div>
             </div>
             <div style={{"display": "flex", "gap": "12px", "justifyContent": "flex-end"}}>
@@ -12856,7 +12862,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <div className="input-console-card">
                   <div className="input-row">
                     <div className="textarea-container">
-                      <textarea className="chat-textarea" id="messageInput" rows="1" placeholder="ENTER TACTICAL TRANSMISSION (ENTER TO TRANSMIT, SHIFT+ENTER FOR NEWLINE)..." data-onkeydown="handleInputKey(event)" data-oninput="autoResizeInput(this)">
+                      <textarea className="chat-textarea" id="messageInput" rows={1} placeholder="ENTER TACTICAL TRANSMISSION (ENTER TO TRANSMIT, SHIFT+ENTER FOR NEWLINE)..." data-onkeydown="handleInputKey(event)" data-oninput="autoResizeInput(this)">
                       </textarea>
                     </div>
                     <div className="action-button-cluster">
