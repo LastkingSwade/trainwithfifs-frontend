@@ -29,7 +29,7 @@ const COURSE_PRICING: Record<string, { base: number; vip: number }> = {
   alumni: { base: 65.00, vip: 115.00 }
 };
 
-export function calculatePricingBreakdown(courseSelection: string, groupSize: string = '1', isPayFull: boolean = false) {
+function calculatePricingBreakdown(courseSelection: string, groupSize: string = '1', isPayFull: boolean = false) {
   const isVip = /VIP/i.test(courseSelection || '');
   const clean = (courseSelection || '').toLowerCase();
 
