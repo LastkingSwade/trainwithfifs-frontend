@@ -881,7 +881,7 @@ export async function POST(req: NextRequest) {
 
 
        // Email Dispatch
-       let emailResult = { success: false, error: '' };
+       let emailResult: { success: boolean; error?: string } = { success: false };
        const dateFormatted = scheduledDate.toLocaleString('en-US', {
          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
        });
