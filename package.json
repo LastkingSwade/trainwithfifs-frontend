@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node scripts/test_security_suite.js",
     "test:e2e": "node scripts/test_public_registration_e2e.js",
-    "test:all": "npm test && npm run test:e2e"
+    "test:all": "npm test && npm run test:e2e && npm run test:release-gate",
+    "test:release-gate": "node scripts/test_release_gate.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.1",

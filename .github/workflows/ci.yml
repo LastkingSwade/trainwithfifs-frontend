@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify PR head is current
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          live_head=$(gh api "/repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')
+          if [[ "$live_head" != "$EVENT_HEAD_SHA" ]]; then
+            echo "PR head changed after this CI run started: event=$EVENT_HEAD_SHA live=$live_head" >&2
+            exit 1
+          fi
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Verify Node.js 22
+        run: |
+          node -e "const major = Number(process.versions.node.split('.')[0]); if (major !== 22) { console.error('Expected Node.js 22, found ' + process.version); process.exit(1); }"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run registration E2E
+        run: npm run test:e2e
+
+      - name: Run release-gate tests
+        run: npm run test:release-gate
+
+      - name: Run build
+        run: npm run build
