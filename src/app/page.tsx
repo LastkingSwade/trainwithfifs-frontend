@@ -5163,7 +5163,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         <label htmlFor="regClientPassword">
                           Create Password <span className="req">*</span>
                         </label>
-                        <input id="regClientPassword" placeholder="Minimum 6 characters" required type="password" />
+                        <input id="regClientPassword" placeholder="12+ chars, upper/lower, number & symbol" required type="password" />
                       </div>
                       <div className="form-group">
                         <label htmlFor="regClientPasswordConfirm">

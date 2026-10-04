@@ -3746,10 +3746,97 @@ function loadDemoStudent() {
       }
     }
     window.openAuthModal = openAuthModal;
-    function handleClientRegisterSubmit(e) {
+    async function handleClientRegisterSubmit(e) {
       if (e && e.preventDefault) e.preventDefault();
       var statusDiv = document.getElementById('client-register-status');
-      if (statusDiv) showStatus(statusDiv, 'Online client registration is temporarily unavailable. Please contact FIFS to have your account linked securely.', 'error');
+      var submitButton = document.getElementById('btn-client-register-submit');
+      var fullName = (document.getElementById('regClientName') || {}).value || '';
+      var email = ((document.getElementById('regClientEmail') || {}).value || '').trim().toLowerCase();
+      var phone = ((document.getElementById('regClientPhone') || {}).value || '').trim();
+      var permitType = (document.getElementById('regClientPermitState') || {}).value || '';
+      var expirationDate = (document.getElementById('regClientExpDate') || {}).value || '';
+      var password = (document.getElementById('regClientPassword') || {}).value || '';
+      var confirmPassword = (document.getElementById('regClientPasswordConfirm') || {}).value || '';
+      var optInReminder = Boolean((document.getElementById('regClientOptIn') || {}).checked);
+
+      if (!fullName.trim() || !email || !phone || !permitType) {
+        showStatus(statusDiv, 'Complete your name, email, phone number, and permit type.', 'error');
+        return false;
+      }
+      if (!email.includes('@')) {
+        showStatus(statusDiv, 'Enter a valid email address.', 'error');
+        return false;
+      }
+      if (password.length < 12 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+        showStatus(statusDiv, 'Use at least 12 characters with uppercase and lowercase letters, a number, and a special character.', 'error');
+        return false;
+      }
+      if (password !== confirmPassword) {
+        showStatus(statusDiv, 'Your passwords do not match.', 'error');
+        return false;
+      }
+
+      var authClient = window.supabaseClient || (typeof createSupabaseClient === 'function' ? createSupabaseClient() : null);
+      if (!authClient || !authClient.auth) {
+        showStatus(statusDiv, 'Secure registration is unavailable. Please refresh and try again.', 'error');
+        return false;
+      }
+      if (submitButton) submitButton.disabled = true;
+      showStatus(statusDiv, 'Creating your secure client account…', 'success');
+      try {
+        var sessionResult = await authClient.auth.getSession();
+        var session = sessionResult && sessionResult.data && sessionResult.data.session;
+        if (session && String(session.user && session.user.email || '').toLowerCase() !== email) {
+          throw new Error('You are signed in with a different email. Sign out before creating this profile.');
+        }
+        if (!session) {
+          var signUpResult = await authClient.auth.signUp({
+            email: email,
+            password: password,
+            options: { data: { full_name: fullName.trim(), phone: phone } }
+          });
+          if (signUpResult.error) {
+            // A previous attempt may have created the Auth user but required email confirmation.
+            // Sign in with the submitted credentials instead of leaving the user stranded.
+            var signInResult = await authClient.auth.signInWithPassword({ email: email, password: password });
+            if (signInResult.error || !signInResult.data || !signInResult.data.session) {
+              throw new Error('Could not create or sign in to this account. Check your email and password, confirm your email if prompted, then try again.');
+            }
+            session = signInResult.data.session;
+          } else {
+            session = signUpResult.data && signUpResult.data.session;
+          }
+          if (!session) {
+            showStatus(statusDiv, 'Check your email to confirm your account. After confirmation, return here and submit this form again to finish creating your client profile.', 'success');
+            return false;
+          }
+        }
+
+        var response = await fetch('/api/fifs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+          body: JSON.stringify({
+            action: 'registerClient',
+            fullName: fullName.trim(),
+            email: email,
+            phone: phone,
+            permitType: permitType,
+            expirationDate: expirationDate,
+            optInReminder: optInReminder
+          })
+        });
+        var result = await response.json();
+        if (!response.ok || !result.success || !result.client) {
+          throw new Error(result.error || 'Could not save your client profile.');
+        }
+        fifsSetClientSession(result.client);
+        if (statusDiv) statusDiv.style.display = 'none';
+        renderClientDashboard(result.client);
+      } catch (err) {
+        showStatus(statusDiv, (err && err.message) || 'Client registration failed. Please try again.', 'error');
+      } finally {
+        if (submitButton) submitButton.disabled = false;
+      }
       return false;
     }
     window.handleClientRegisterSubmit = handleClientRegisterSubmit;

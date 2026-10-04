@@ -377,6 +377,86 @@ export async function POST(req: NextRequest) {
 
 
    switch (action) {
+     case 'registerClient': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Authentication is required to create a client profile.' }, { status: 401 });
+       }
+
+       const email = String(user.email || '').trim().toLowerCase();
+       const submittedEmail = String(payload.email || '').trim().toLowerCase();
+       const fullName = String(payload.fullName || '').trim().slice(0, 100);
+       const phone = String(payload.phone || '').trim().slice(0, 30);
+       const permitType = String(payload.permitType || '').trim().slice(0, 120);
+       const expirationDate = String(payload.expirationDate || '').trim();
+       const optInReminder = payload.optInReminder === true;
+
+       if (!email || !email.includes('@') || !fullName || !phone || !permitType) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Name, phone, permit type, and a valid authenticated email are required.' }, { status: 400 });
+       }
+       if (submittedEmail && submittedEmail !== email) {
+         return NextResponse.json({ success: false, status: 'error', error: 'The submitted email must match your authenticated account.' }, { status: 403 });
+       }
+       if (expirationDate && !/^\d{4}-\d{2}-\d{2}$/.test(expirationDate)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Enter a valid permit expiration date.' }, { status: 400 });
+       }
+
+       // Only a verified Supabase identity can create a profile. Existing records are never linked by email.
+       supabase = getPrivilegedClient();
+       const { data: existingUserProfile, error: lookupUserErr } = await supabase.from('clients').select('client_id').eq('user_id', user.id).maybeSingle();
+       if (lookupUserErr) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not verify whether a client profile already exists.' }, { status: 500 });
+       }
+       if (existingUserProfile) {
+         return NextResponse.json({ success: false, status: 'error', error: 'A client profile is already linked to this account. Please sign in to your portal.' }, { status: 409 });
+       }
+       const { data: existingEmailProfile, error: lookupEmailErr } = await supabase.from('clients').select('client_id').eq('email', email).maybeSingle();
+       if (lookupEmailErr) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not verify whether this email already has a client profile.' }, { status: 500 });
+       }
+       if (existingEmailProfile) {
+         return NextResponse.json({ success: false, status: 'error', error: 'A client record already exists for this email and cannot be linked automatically. Contact FIFS for secure account recovery.' }, { status: 409 });
+       }
+
+       const clientId = `CLI-${crypto.randomBytes(6).toString('hex').toUpperCase()}`;
+       const clientRecord = {
+         user_id: user.id,
+         client_id: clientId,
+         full_name: fullName,
+         email,
+         phone,
+         permit_type: permitType,
+         permit_state: permitType,
+         expiration_date: expirationDate || null,
+         opt_in_reminder: optInReminder,
+         status: 'ACTIVE_REGISTERED',
+         created_at: new Date().toISOString(),
+         updated_at: new Date().toISOString()
+       };
+       const { data: createdClient, error: insertErr } = await supabase.from('clients').insert(clientRecord).select('*').single();
+       if (insertErr || !createdClient) {
+         console.error('[registerClient] Profile insert failed:', insertErr?.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not save your client profile. Please try again.' }, { status: 500 });
+       }
+
+       return NextResponse.json({
+         success: true,
+         status: 'success',
+         client: {
+           clientId: createdClient.client_id,
+           fullName: createdClient.full_name,
+           email: createdClient.email,
+           phone: createdClient.phone,
+           permitType: createdClient.permit_type || 'Maryland Wear & Carry (CCW)',
+           permitState: createdClient.permit_state || 'Maryland',
+           expirationDate: createdClient.expiration_date || null,
+           status: createdClient.status || 'ACTIVE_REGISTERED',
+           optInReminder: Boolean(createdClient.opt_in_reminder),
+           smsAlertPhone: createdClient.sms_alert_phone || createdClient.phone
+         }
+       });
+     }
+
      // Delete Permit Record for Authenticated Client (Respects RLS)
           // Delete Student from Supabase (Administrative Roster)
      case 'adminDeleteStudent': {

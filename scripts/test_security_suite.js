@@ -182,6 +182,30 @@ const mockSupabase = {
             error: null
           };
         }
+        if (token === 'client-new-registration-token') {
+          return {
+            data: {
+              user: {
+                id: 'uuid-client-new-registration',
+                email: 'newclient@example.com',
+                app_metadata: { role: 'client' }
+              }
+            },
+            error: null
+          };
+        }
+        if (token === 'client-existing-email-registration-token') {
+          return {
+            data: {
+              user: {
+                id: 'uuid-client-existing-email',
+                email: 'dave@client.com',
+                app_metadata: { role: 'client' }
+              }
+            },
+            error: null
+          };
+        }
         return { data: { user: null }, error: { message: 'Invalid or expired token' } };
       },
       admin: {
@@ -616,6 +640,39 @@ async function main() {
       { authorization: 'Bearer student-alice-token' }
     );
     if (status !== 403) throw new Error(`Expected 403, got ${status}`);
+  });
+
+  await runTest('registerClient: Anonymous registration rejected with 401', async () => {
+    const { status } = await executeAction('registerClient', {
+      fullName: 'New Client', email: 'newclient@example.com', phone: '410-555-0100', permitType: 'Maryland Wear & Carry'
+    });
+    if (status !== 401) throw new Error(`Expected 401, got ${status}`);
+  });
+
+  await runTest('registerClient: Creates a client profile linked to verified Auth UID', async () => {
+    const { status, body } = await executeAction('registerClient', {
+      fullName: 'New Client', email: 'newclient@example.com', phone: '410-555-0100', permitType: 'Maryland Wear & Carry', expirationDate: '2027-06-30', optInReminder: true
+    }, { authorization: 'Bearer client-new-registration-token' });
+    if (status !== 200 || !body.success || !body.client) throw new Error(`Expected successful registration, got ${status}`);
+    const created = dbState.clients.find(row => row.email === 'newclient@example.com');
+    if (!created || created.user_id !== 'uuid-client-new-registration') throw new Error('Client row was not linked to the verified Auth user_id');
+    if (!created.client_id || !created.expiration_date || created.opt_in_reminder !== true) throw new Error('Client registration fields were not persisted');
+  });
+
+  await runTest('registerClient: Submitted email mismatch rejected with 403', async () => {
+    const { status } = await executeAction('registerClient', {
+      fullName: 'New Client', email: 'someone-else@example.com', phone: '410-555-0100', permitType: 'Maryland Wear & Carry'
+    }, { authorization: 'Bearer client-new-registration-token' });
+    if (status !== 403) throw new Error(`Expected 403, got ${status}`);
+  });
+
+  await runTest('registerClient: Existing unlinked email profile is not auto-linked', async () => {
+    const { status } = await executeAction('registerClient', {
+      fullName: 'Dave Client', email: 'dave@client.com', phone: '410-555-0100', permitType: 'Maryland Wear & Carry'
+    }, { authorization: 'Bearer client-existing-email-registration-token' });
+    if (status !== 409) throw new Error(`Expected 409, got ${status}`);
+    const legacy = dbState.clients.find(row => row.email === 'dave@client.com');
+    if (legacy.user_id !== 'uuid-client-dave') throw new Error('Existing client profile UID was changed');
   });
 
   await runTest('getClientPortalData: Anonymous call rejected with 401', async () => {
