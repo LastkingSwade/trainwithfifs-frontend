@@ -8,67 +8,122 @@ on:
 permissions:
   contents: read
   deployments: read
+  pull-requests: read
+  actions: read
+  statuses: write
 
 jobs:
   verify-production:
     name: Verify Ready Production deployment for merged SHA
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
-      - name: Verify matching Vercel Production deployment
+      - name: Verify exact merged SHA, PR CI, and Vercel Production deployment
         env:
           GH_TOKEN: ${{ github.token }}
           TARGET_SHA: ${{ github.sha }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          mkdir -p evidence
-          deadline=$((SECONDS + 900))
-          while (( SECONDS < deadline )); do
-            deployments=$(gh api -H "Accept: application/vnd.github+json" \
-              "/repos/${REPOSITORY}/deployments?sha=${TARGET_SHA}&environment=Production&per_page=100")
-            matched=$(jq -c --arg sha "$TARGET_SHA" '[.[] | select(.sha == $sha and .environment == "Production")] | .[0] // empty' <<< "$deployments")
-            if [[ -n "$matched" ]]; then
-              deployment_id=$(jq -r '.id' <<< "$matched")
-              statuses=$(gh api -H "Accept: application/vnd.github+json" \
-                "/repos/${REPOSITORY}/deployments/${deployment_id}/statuses?per_page=100")
-              latest=$(jq -c '.[0] // empty' <<< "$statuses")
-              state=$(jq -r '.state // "unknown"' <<< "$latest")
-              if [[ "$state" == "success" ]]; then
-                ready_at=$(jq -r '.updated_at // .created_at' <<< "$latest")
-                target_url=$(jq -r '.environment_url // .target_url // ""' <<< "$latest")
-                evidence=$(jq -n --arg repo "$REPOSITORY" --arg sha "$TARGET_SHA" \
-                  --argjson deployment "$matched" --argjson status "$latest" \
-                  '{repository:$repo, commit_sha:$sha, deployment:$deployment, latest_status:$status, verified_ready:true}')
-                printf '%s\n' "$evidence" > evidence/production-deployment.json
-                {
-                  echo "## Production deployment verification: READY"
-                  echo "- Repository: \`${REPOSITORY}\`"
-                  echo "- Merged commit SHA: \`${TARGET_SHA}\`"
-                  echo "- Deployment ID: \`${deployment_id}\`"
-                  echo "- Status: \`${state}\`"
-                  echo "- Ready at: \`${ready_at}\`"
-                  echo "- Deployment URL: ${target_url:-not provided}"
-                  echo "- Evidence artifact: \`production-deployment-evidence\`"
-                } >> "$GITHUB_STEP_SUMMARY"
-                exit 0
-              elif [[ "$state" == "failure" || "$state" == "error" || "$state" == "inactive" ]]; then
-                echo "Production deployment ${deployment_id} ended in ${state}; refusing to pass." >&2
-                jq -n --arg repo "$REPOSITORY" --arg sha "$TARGET_SHA" \
-                  --argjson deployment "$matched" --argjson status "$latest" \
-                  '{repository:$repo, commit_sha:$sha, deployment:$deployment, latest_status:$status, verified_ready:false}' \
-                  > evidence/production-deployment.json
-                exit 1
+          fail_status() {
+            local description="$1"
+            gh api --method POST "/repos/${REPOSITORY}/statuses/${TARGET_SHA}" \
+              -f state=failure -f context=release/vercel-production-ready \
+              -f description="$description" >/dev/null || true
+            echo "$description" >&2
+            exit 1
+          }
+
+          # Resolve the merged PR from this exact main-branch commit, and use its immutable head SHA.
+          prs=$(gh api -H "Accept: application/vnd.github+json" \
+            "/repos/${REPOSITORY}/commits/${TARGET_SHA}/pulls?per_page=100")
+          pr=$(jq -c --arg base main '[.[] | select(.base.ref == $base and .merged_at != null)] | sort_by(.merged_at) | last // empty' <<< "$prs")
+          [[ -n "$pr" ]] || fail_status "No merged PR could be matched to this main commit"
+          PR_NUMBER=$(jq -r '.number' <<< "$pr")
+          PR_HEAD_SHA=$(jq -r '.head.sha' <<< "$pr")
+          MERGE_SHA=$(jq -r '.merge_commit_sha // ""' <<< "$pr")
+          [[ "$MERGE_SHA" == "$TARGET_SHA" ]] || fail_status "Merged PR SHA does not equal this main commit"
+          [[ "$PR_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]] || fail_status "Merged PR head SHA was unavailable"
+
+          # Require the newest CI run for this exact PR head to pass, including the Node 22 guard.
+          ci_deadline=$((SECONDS + 900))
+          ci_run=''
+          while (( SECONDS < ci_deadline )); do
+            runs=$(gh api "/repos/${REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${PR_HEAD_SHA}&event=pull_request&per_page=100")
+            ci_run=$(jq -c --arg sha "$PR_HEAD_SHA" '[.workflow_runs[] | select(.head_sha == $sha and .event == "pull_request")] | sort_by(.created_at) | last // empty' <<< "$runs")
+            if [[ -n "$ci_run" ]]; then
+              run_id=$(jq -r '.id' <<< "$ci_run")
+              run_status=$(jq -r '.status' <<< "$ci_run")
+              conclusion=$(jq -r '.conclusion // ""' <<< "$ci_run")
+              if [[ "$run_status" == "completed" ]]; then
+                [[ "$conclusion" == "success" ]] || fail_status "PR CI did not pass for merged PR head ${PR_HEAD_SHA}"
+                jobs=$(gh api "/repos/${REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
+                guard=$(jq -r '[.jobs[].steps[] | select(.name == "Verify Node.js 22")][0].conclusion // ""' <<< "$jobs")
+                [[ "$guard" == "success" ]] || fail_status "Successful PR CI run did not verify Node.js 22 for ${PR_HEAD_SHA}"
+                break
               fi
             fi
             sleep 30
           done
-          echo "No successful Production deployment for ${TARGET_SHA} appeared within 15 minutes." >&2
-          exit 1
-      - name: Upload deployment evidence
-        if: always() && hashFiles('evidence/production-deployment.json') != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: production-deployment-evidence
-          path: evidence/production-deployment.json
-          if-no-files-found: error
+          [[ -n "$ci_run" && "$(jq -r '.status' <<< "$ci_run")" == "completed" && "$(jq -r '.conclusion' <<< "$ci_run")" == "success" ]] || fail_status "No successful Node.js 22 CI run found for merged PR head ${PR_HEAD_SHA} within 15 minutes"
+
+          CI_RUN_ID=$(jq -r '.id' <<< "$ci_run")
+          CI_RUN_URL=$(jq -r '.html_url' <<< "$ci_run")
+
+          # Vercel deployments can arrive after the push. Poll exact-SHA Production records for up to 15 minutes.
+          deploy_deadline=$((SECONDS + 900))
+          selected=''
+          selected_status=''
+          while (( SECONDS < deploy_deadline )); do
+            deployments=$(gh api "/repos/${REPOSITORY}/deployments?sha=${TARGET_SHA}&environment=Production&per_page=100")
+            while IFS= read -r deployment; do
+              [[ -n "$deployment" ]] || continue
+              [[ "$(jq -r '.sha' <<< "$deployment")" == "$TARGET_SHA" ]] || continue
+              [[ "$(jq -r '.environment' <<< "$deployment")" == "Production" ]] || continue
+              [[ "$(jq -r '.creator.login // ""' <<< "$deployment")" == "vercel[bot]" ]] || continue
+              dep_id=$(jq -r '.id' <<< "$deployment")
+              statuses=$(gh api "/repos/${REPOSITORY}/deployments/${dep_id}/statuses?per_page=100")
+              latest=$(jq -c '.[0] // empty' <<< "$statuses")
+              [[ -n "$latest" ]] || continue
+              if [[ "$(jq -r '.state // ""' <<< "$latest")" == "success" && "$(jq -r '.environment // ""' <<< "$latest")" == "Production" ]]; then
+                selected="$deployment"
+                selected_status="$latest"
+                break
+              fi
+            done < <(jq -c 'sort_by(.created_at) | reverse | .[]' <<< "$deployments")
+            [[ -n "$selected" ]] && break
+            sleep 30
+          done
+          [[ -n "$selected" ]] || fail_status "No Ready Vercel Production deployment found for exact merged SHA ${TARGET_SHA} within 15 minutes"
+
+          DEPLOYMENT_ID=$(jq -r '.id' <<< "$selected")
+          DEPLOYMENT_URL=$(jq -r '.environment_url // .target_url // ""' <<< "$selected_status")
+          DEPLOYED_AT=$(jq -r '.updated_at // .created_at // "unknown"' <<< "$selected_status")
+          DEPLOYMENT_EVIDENCE=$(jq -n \
+            --arg repository "$REPOSITORY" --arg merge_sha "$TARGET_SHA" \
+            --arg pr_number "$PR_NUMBER" --arg pr_head_sha "$PR_HEAD_SHA" \
+            --arg ci_run_id "$CI_RUN_ID" --arg ci_run_url "$CI_RUN_URL" \
+            --arg deployment_url "$DEPLOYMENT_URL" --arg deployed_at "$DEPLOYED_AT" \
+            --argjson deployment "$selected" --argjson status "$selected_status" \
+            '{verified_ready:true,repository:$repository,merged_sha:$merge_sha,pr_number:$pr_number,pr_head_sha:$pr_head_sha,ci_run_id:$ci_run_id,ci_run_url:$ci_run_url,deployment:$deployment,latest_status:$status,deployment_url:$deployment_url,ready_at:$deployed_at}')
+
+          # Durable evidence on the merged commit plus a readable Actions run summary.
+          gh api --method POST "/repos/${REPOSITORY}/statuses/${TARGET_SHA}" \
+            -f state=success -f context=release/vercel-production-ready \
+            -f description="Ready Vercel Production deployment verified for exact SHA" \
+            -f target_url="$DEPLOYMENT_URL" >/dev/null
+          {
+            echo "## Production deployment verification: READY"
+            echo "- Merged commit SHA: \`${TARGET_SHA}\`"
+            echo "- Merged PR: #${PR_NUMBER} (head \`${PR_HEAD_SHA}\`)"
+            echo "- PR CI run: [#${CI_RUN_ID}](${CI_RUN_URL}) (Node.js 22 guard passed)"
+            echo "- Vercel Production deployment ID: \`${DEPLOYMENT_ID}\`"
+            echo "- Deployment status: \`success\`"
+            echo "- Ready at: \`${DEPLOYED_AT}\`"
+            echo "- URL: ${DEPLOYMENT_URL:-not provided}"
+            echo "- Commit status: \`release/vercel-production-ready = success\`"
+            echo
+            echo '```json'
+            echo "$DEPLOYMENT_EVIDENCE" | jq .
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
