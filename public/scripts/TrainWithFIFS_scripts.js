@@ -1,3 +1,13 @@
+try { sessionStorage.removeItem('fifs_student_session'); sessionStorage.removeItem('fifs_client_session'); } catch (_) {}
+// Portal profiles stay in memory only; Supabase Auth owns the durable session.
+window.__fifsStudentPortalRecord = null;
+window.__fifsClientPortalRecord = null;
+function fifsGetStudentSession() { return window.__fifsStudentPortalRecord ? JSON.stringify(window.__fifsStudentPortalRecord) : null; }
+function fifsSetStudentSession(value) { try { window.__fifsStudentPortalRecord = typeof value === 'string' ? JSON.parse(value) : value; } catch (_) { window.__fifsStudentPortalRecord = null; } }
+function fifsRemoveStudentSession() { window.__fifsStudentPortalRecord = null; }
+function fifsGetClientSession() { return window.__fifsClientPortalRecord ? JSON.stringify(window.__fifsClientPortalRecord) : null; }
+function fifsSetClientSession(value) { try { window.__fifsClientPortalRecord = typeof value === 'string' ? JSON.parse(value) : value; } catch (_) { window.__fifsClientPortalRecord = null; } }
+function fifsRemoveClientSession() { window.__fifsClientPortalRecord = null; }
 // === AUTHORITATIVE ALL-8 COURSE TIER CONFIGURATION ===
         var COURSE_TIER_CONFIG = {
       mastery: {
@@ -463,7 +473,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         try { mountStudentTargets(); } catch(e) {}
       }
       var userTag = document.getElementById('portal-user-tag');
-      var savedSession = sessionStorage.getItem('fifs_student_session');
+      var savedSession = fifsGetStudentSession();
       if (tab !== 'portal' || !savedSession) {
         if (userTag && SECTION_TITLES[tab]) {
           userTag.textContent = SECTION_TITLES[tab];
@@ -2054,8 +2064,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     // DUAL-SESSION LOCKOUT CONTROLLER (STRICT ACCESS INTEGRITY)
     // ==========================================================================
     function checkPortalSessionConflict(targetPortal) {
-      var studentSessionStr = sessionStorage.getItem('fifs_student_session');
-      var clientSessionStr = sessionStorage.getItem('fifs_client_session');
+      var studentSessionStr = fifsGetStudentSession();
+      var clientSessionStr = fifsGetClientSession();
       if (targetPortal === 'client' || targetPortal === 'fi-portal') {
         if (studentSessionStr) {
           try {
@@ -2144,8 +2154,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     window.purgeAllSessionCookies = purgeAllSessionCookies;
     function logoutStudent() {
       try {
-        sessionStorage.removeItem('fifs_student_session');
-        sessionStorage.removeItem('fifs_student_session');
+        fifsRemoveStudentSession();
+        fifsRemoveStudentSession();
         purgeAllSessionCookies();
         var dash = document.getElementById('student-active-dashboard');
         var login = document.getElementById('student-login-box');
@@ -2171,8 +2181,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     window.logoutStudent = logoutStudent;
     function logoutClient() {
       try {
-        sessionStorage.removeItem('fifs_client_session');
-        sessionStorage.removeItem('fifs_client_session');
+        fifsRemoveClientSession();
+        fifsRemoveClientSession();
         purgeAllSessionCookies();
         var authBox = document.getElementById('client-auth-box');
         var dashBox = document.getElementById('client-active-dashboard');
@@ -3642,7 +3652,7 @@ function loadDemoStudent() {
       if (!courseValue) return;
 
       if (courseValue.toLowerCase().includes('alumni')) {
-        var cSession = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('fifs_client_session') : null;
+        var cSession = typeof sessionStorage !== 'undefined' ? fifsGetClientSession() : null;
         if (!cSession) {
           if (typeof openModal === 'function') {
             openModal('alumniAccessGateModal');
@@ -3736,59 +3746,98 @@ function loadDemoStudent() {
       }
     }
     window.openAuthModal = openAuthModal;
-    function handleClientRegisterSubmit(e) {
+    async function handleClientRegisterSubmit(e) {
       if (e && e.preventDefault) e.preventDefault();
       var statusDiv = document.getElementById('client-register-status');
-      var btn = document.getElementById('btn-client-register-submit');
-      var nameInput = document.getElementById('regClientName');
-      var emailInput = document.getElementById('regClientEmail');
-      var phoneInput = document.getElementById('regClientPhone');
-      var stateInput = document.getElementById('regClientPermitState');
-      var expInput = document.getElementById('regClientExpDate');
-      var name = nameInput ? nameInput.value.trim() : '';
-      var email = emailInput ? emailInput.value.trim() : '';
-      var phone = phoneInput ? phoneInput.value.trim() : '';
-      var permitState = stateInput ? stateInput.value : 'Maryland Wear & Carry';
-      var expDate = expInput ? expInput.value : '';
-      if (!name || !email) {
-        if (statusDiv) showStatus(statusDiv, 'Full Legal Name and Email Address are required.', 'error');
-        return;
+      var submitButton = document.getElementById('btn-client-register-submit');
+      var fullName = (document.getElementById('regClientName') || {}).value || '';
+      var email = ((document.getElementById('regClientEmail') || {}).value || '').trim().toLowerCase();
+      var phone = ((document.getElementById('regClientPhone') || {}).value || '').trim();
+      var permitType = (document.getElementById('regClientPermitState') || {}).value || '';
+      var expirationDate = (document.getElementById('regClientExpDate') || {}).value || '';
+      var password = (document.getElementById('regClientPassword') || {}).value || '';
+      var confirmPassword = (document.getElementById('regClientPasswordConfirm') || {}).value || '';
+      var optInReminder = Boolean((document.getElementById('regClientOptIn') || {}).checked);
+
+      if (!fullName.trim() || !email || !phone || !permitType) {
+        showStatus(statusDiv, 'Complete your name, email, phone number, and permit type.', 'error');
+        return false;
       }
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span>⏳ Saving directly to FIFS Cloud Ledger...</span>';
+      if (!email.includes('@')) {
+        showStatus(statusDiv, 'Enter a valid email address.', 'error');
+        return false;
       }
-      if (statusDiv) showStatus(statusDiv, 'Connecting to Supabase Cloud Database...', 'success');
-      var clientPayload = {
-        fullName: name,
-        email: email,
-        phone: phone,
-        permitState: permitState,
-        expirationDate: expDate
-      };
-      callFifsBackend('registerClient', clientPayload, function(res) {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = '<span>✓ Profile Created!</span>';
+      if (password.length < 12 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+        showStatus(statusDiv, 'Use at least 12 characters with uppercase and lowercase letters, a number, and a special character.', 'error');
+        return false;
+      }
+      if (password !== confirmPassword) {
+        showStatus(statusDiv, 'Your passwords do not match.', 'error');
+        return false;
+      }
+
+      var authClient = window.supabaseClient || (typeof createSupabaseClient === 'function' ? createSupabaseClient() : null);
+      if (!authClient || !authClient.auth) {
+        showStatus(statusDiv, 'Secure registration is unavailable. Please refresh and try again.', 'error');
+        return false;
+      }
+      if (submitButton) submitButton.disabled = true;
+      showStatus(statusDiv, 'Creating your secure client account…', 'success');
+      try {
+        var sessionResult = await authClient.auth.getSession();
+        var session = sessionResult && sessionResult.data && sessionResult.data.session;
+        if (session && String(session.user && session.user.email || '').toLowerCase() !== email) {
+          throw new Error('You are signed in with a different email. Sign out before creating this profile.');
         }
-        if (res && res.status === 'success') {
-          if (statusDiv) showStatus(statusDiv, 'Registration saved directly to Supabase! Client ID: ' + res.clientId, 'success');
-          clientPayload.clientId = res.clientId;
-          renderClientDashboard(clientPayload);
-        } else {
-          clientPayload.clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
-          if (statusDiv) showStatus(statusDiv, 'Profile established! Client ID: ' + clientPayload.clientId, 'success');
-          renderClientDashboard(clientPayload);
+        if (!session) {
+          var signUpResult = await authClient.auth.signUp({
+            email: email,
+            password: password,
+            options: { data: { full_name: fullName.trim(), phone: phone } }
+          });
+          if (signUpResult.error) {
+            // A previous attempt may have created the Auth user but required email confirmation.
+            // Sign in with the submitted credentials instead of leaving the user stranded.
+            var signInResult = await authClient.auth.signInWithPassword({ email: email, password: password });
+            if (signInResult.error || !signInResult.data || !signInResult.data.session) {
+              throw new Error('Could not create or sign in to this account. Check your email and password, confirm your email if prompted, then try again.');
+            }
+            session = signInResult.data.session;
+          } else {
+            session = signUpResult.data && signUpResult.data.session;
+          }
+          if (!session) {
+            showStatus(statusDiv, 'Check your email to confirm your account. After confirmation, return here and submit this form again to finish creating your client profile.', 'success');
+            return false;
+          }
         }
-      }, function(err) {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = '<span>Create Profile & Activate Renewal Watch 🛡️</span>';
+
+        var response = await fetch('/api/fifs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+          body: JSON.stringify({
+            action: 'registerClient',
+            fullName: fullName.trim(),
+            email: email,
+            phone: phone,
+            permitType: permitType,
+            expirationDate: expirationDate,
+            optInReminder: optInReminder
+          })
+        });
+        var result = await response.json();
+        if (!response.ok || !result.success || !result.client) {
+          throw new Error(result.error || 'Could not save your client profile.');
         }
-        clientPayload.clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
-        if (statusDiv) showStatus(statusDiv, 'Profile established! Client ID: ' + clientPayload.clientId, 'success');
-        renderClientDashboard(clientPayload);
-      });
+        fifsSetClientSession(result.client);
+        if (statusDiv) statusDiv.style.display = 'none';
+        renderClientDashboard(result.client);
+      } catch (err) {
+        showStatus(statusDiv, (err && err.message) || 'Client registration failed. Please try again.', 'error');
+      } finally {
+        if (submitButton) submitButton.disabled = false;
+      }
+      return false;
     }
     window.handleClientRegisterSubmit = handleClientRegisterSubmit;
     function renderClientDashboard(client) {
@@ -3929,7 +3978,7 @@ function loadDemoStudent() {
 
         if (res.status === 'success' && res.student) {
           if (statusDiv) statusDiv.style.display = 'none';
-          sessionStorage.setItem('fifs_student_session', JSON.stringify(res.student));
+          fifsSetStudentSession(res.student);
           renderStudentDashboard(res.student);
         } else {
           showStatus(statusDiv, res.message || 'Identifier not found in Student Roster.', 'error');
@@ -3941,43 +3990,9 @@ function loadDemoStudent() {
 
 
     function submitNewStudentPassword() {
-      var input = document.getElementById('studentAuthInput');
-      var newPassInput = document.getElementById('studentNewPasswordInput');
       var statusDiv = document.getElementById('student-login-status');
-      var setupBox = document.getElementById('student-setup-password-box');
-      var query = input ? input.value.trim() : '';
-      var newPassword = newPassInput ? newPassInput.value.trim() : '';
-
-
-      if (!query) {
-        showStatus(statusDiv, 'Please enter your email or Student ID first.', 'error');
-        return;
-      }
-      if (!newPassword || newPassword.length < 4) {
-        showStatus(statusDiv, 'Password must be at least 4 characters long.', 'error');
-        return;
-      }
-
-
-      showStatus(statusDiv, 'Registering permanent portal password...', 'success');
-      callFifsBackend('setupStudentPassword', {
-        email: query.includes('@') ? query : '',
-        studentId: query.includes('@') ? '' : query,
-        password: newPassword
-      }, function(res) {
-        if (res && res.status === 'success' && res.student) {
-          showStatus(statusDiv, 'Password confirmed. Accessing Student Portal...', 'success');
-          sessionStorage.setItem('fifs_student_session', JSON.stringify(res.student));
-          if (setupBox) setupBox.style.display = 'none';
-          setTimeout(function() {
-            renderStudentDashboard(res.student);
-          }, 300);
-        } else {
-          showStatus(statusDiv, res.message || res.error || 'Failed to set password.', 'error');
-        }
-      }, function(err) {
-        showStatus(statusDiv, 'Password setup request failed.', 'error');
-      });
+      showStatus(statusDiv, 'Password setup requires an authenticated account. Please sign in or contact FIFS for secure account setup.', 'error');
+      return false;
     }
     window.submitNewStudentPassword = submitNewStudentPassword;
     window.lookupStudentAccount = lookupStudentAccount;
@@ -3993,7 +4008,7 @@ function loadDemoStudent() {
       callFifsBackend('getClientPortalData', { email: query.includes('@') ? query : '', clientId: query.includes('@') ? '' : query }, function(res) {
         if (res && res.status === 'success') {
           if (statusDiv) statusDiv.style.display = 'none';
-          sessionStorage.setItem('fifs_client_session', JSON.stringify(res.client));
+          fifsSetClientSession(res.client);
           renderClientDashboard(res.client);
         } else {
           showStatus(statusDiv, res.message || 'Client record not found.', 'error');
@@ -4091,7 +4106,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
         }
       });
       var userTag = document.getElementById('portal-user-tag');
-      var savedSession = sessionStorage.getItem('fifs_student_session');
+      var savedSession = fifsGetStudentSession();
       if (tab !== 'portal' || !savedSession) {
         if (userTag && SECTION_TITLES[tab]) {
           userTag.textContent = SECTION_TITLES[tab];
@@ -4493,8 +4508,8 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
     // 2. SINGLE PORTAL SESSION ENFORCER & CONFLICT POPUP
     // ==========================================================================
     function checkPortalSessionConflict(targetPortal) {
-      var studentSessionStr = sessionStorage.getItem('fifs_student_session');
-      var clientSessionStr = sessionStorage.getItem('fifs_client_session');
+      var studentSessionStr = fifsGetStudentSession();
+      var clientSessionStr = fifsGetClientSession();
       if (targetPortal === 'client' || targetPortal === 'fi-portal') {
         if (studentSessionStr) {
           try {
@@ -5329,7 +5344,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }
       showStatus(st, 'Configuring automated SMS renewal alerts...', 'success');
       try {
-        var savedClientStr = sessionStorage.getItem('fifs_client_session');
+        var savedClientStr = fifsGetClientSession();
         if (savedClientStr) {
           var client = JSON.parse(savedClientStr);
           client.smsAlertPhone = phone;
@@ -5340,7 +5355,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
             m60: document.getElementById('chkSms60').checked,
             m30: document.getElementById('chkSms30').checked
           };
-          sessionStorage.setItem('fifs_client_session', JSON.stringify(client));
+          fifsSetClientSession(client);
         }
       } catch (err) {}
       setTimeout(function() {
@@ -5942,7 +5957,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         _fifsMemStorage.setItem('fifs_pageviews_count', pvCount.toString());
       } catch(e) {}
       if (typeof initReciprocityEngine === 'function') initReciprocityEngine();
-      var savedClientSession = sessionStorage.getItem('fifs_client_session');
+      var savedClientSession = fifsGetClientSession();
       if (savedClientSession) {
         try { renderClientDashboard(JSON.parse(savedClientSession)); } catch(e) {}
       }
@@ -5975,7 +5990,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           lookupStudentAccount();
         }
       } else {
-        var savedSession = sessionStorage.getItem('fifs_student_session');
+        var savedSession = fifsGetStudentSession();
         if (savedSession) {
           try {
             renderStudentDashboard(JSON.parse(savedSession));
@@ -6062,64 +6077,34 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       }
     }
     window.updateLivePulseTicker = updateLivePulseTicker;
-    function lookupStudentAccount() {
+    async function lookupStudentAccount() {
       var input = document.getElementById('studentAuthInput');
       var passInput = document.getElementById('studentAuthPassword');
       var setupBox = document.getElementById('student-setup-password-box');
       var statusDiv = document.getElementById('student-login-status');
-      var query = input ? input.value.trim() : '';
-      var password = passInput ? passInput.value.trim() : '';
-
-      if (!query) {
-        showStatus(statusDiv, 'Please enter your Email Address or Student ID.', 'error');
+      var email = input ? input.value.trim().toLowerCase() : '';
+      var password = passInput ? passInput.value : '';
+      if (!email || !email.includes('@') || !password) {
+        showStatus(statusDiv, 'Enter the email address linked to your student account and your password.', 'error');
         return;
       }
-      if (isValidInstructorPin(query) || query === '' || password === '') {
-        showStatus(statusDiv, 'Instructor credentials verified. Unlocking Command Terminal...', 'success');
-        // pin removed;
-        setTimeout(function() {
-          openAndSwitch('admin');
-          var adminPassField = document.getElementById('adminPasscode');
-          if (adminPassField) adminPassField.value = '';
-          if (typeof verifyAdminAccess === 'function') verifyAdminAccess();
-          if (statusDiv) statusDiv.style.display = 'none';
-        }, 250);
-        return;
+      try {
+        var authClient = window.supabaseClient || (typeof createSupabaseClient === 'function' ? createSupabaseClient() : null);
+        if (!authClient || !authClient.auth) throw new Error('Secure sign-in is unavailable. Please try again later.');
+        var authResult = await authClient.auth.signInWithPassword({ email: email, password: password });
+        if (authResult.error || !authResult.data || !authResult.data.session) throw new Error('Email or password is incorrect.');
+        var response = await fetch('/api/fifs', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authResult.data.session.access_token }, body: JSON.stringify({ action: 'getStudentPortalData' }) });
+        var result = await response.json();
+        if (!response.ok || !result.success || !result.student) {
+          if (setupBox) setupBox.style.display = 'none';
+          throw new Error(result.error || 'A linked student profile was not found. Contact FIFS for account setup.');
+        }
+        fifsSetStudentSession(result.student);
+        if (statusDiv) statusDiv.style.display = 'none';
+        renderStudentDashboard(result.student);
+      } catch (err) {
+        showStatus(statusDiv, (err && err.message) || 'Student sign-in failed. Please try again.', 'error');
       }
-      if (query.toUpperCase() === 'FIFS-4081' || query.toLowerCase() === 'jordan.vance@example.com') {
-        loadDemoStudent();
-        return;
-      }
-
-      showStatus(statusDiv, 'Authenticating Student Operations credentials...', 'success');
-      callFifsBackend('getStudentPortalData', {
-        email: query.includes('@') ? query : '',
-        studentId: query.includes('@') ? '' : query,
-        password: password
-      }, function(res) {
-        if (!res) {
-          showStatus(statusDiv, 'Unable to verify credentials. Please try again.', 'error');
-          return;
-        }
-        if (res.status === 'needs_password_setup') {
-          if (setupBox) setupBox.style.display = 'block';
-          showStatus(statusDiv, res.message || 'First-time login: create your portal password below.', 'success');
-          return;
-        }
-        if (res.success && res.student) {
-          if (statusDiv) statusDiv.style.display = 'none';
-          sessionStorage.setItem('fifs_student_session', JSON.stringify(res.student));
-          renderStudentDashboard(res.student);
-        } else {
-          showStatus(statusDiv, res.message || res.error || 'Unauthorized access: Email or Student ID is not present in Student Roster.', 'error');
-        }
-      }, function(err) {
-        if (query.toUpperCase().startsWith('FIFS-') || query.includes('@')) {
-          loadDemoStudent();
-        } else {
-          showStatus(statusDiv, 'Security verification error. Please try again.', 'error');
-        }
-      });
     }
     window.lookupStudentAccount = lookupStudentAccount;
 // duplicate loadDemoStudent removed
@@ -6238,17 +6223,17 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         if (isChecked) card.classList.add('is-done');
         else card.classList.remove('is-done');
       }
-      var session = sessionStorage.getItem('fifs_student_session');
+      var session = fifsGetStudentSession();
       if (session) {
         var student = JSON.parse(session);
         student.prepTasks = student.prepTasks || {};
         student.prepTasks[taskId] = isChecked;
-        sessionStorage.setItem('fifs_student_session', JSON.stringify(student));
+        fifsSetStudentSession(student);
         if (typeof callFifsBackend === 'function') { callFifsBackend('updateStudentTask', { studentId: student.studentId, email: student.email, taskId: taskId, isChecked: isChecked }); }
       }
     }
     function logoutStudent() {
-      sessionStorage.removeItem('fifs_student_session');
+      fifsRemoveStudentSession();
       var dash = document.getElementById('student-active-dashboard');
       var login = document.getElementById('student-login-box');
       if (dash) dash.classList.add('hidden');
@@ -8241,76 +8226,29 @@ function getStepNumberFromStatus(statusStr) {
       }
     }
     window.switchClientAuthTab = switchClientAuthTab;
-    function lookupClientAccount() {
+    async function lookupClientAccount() {
       var input = document.getElementById('clientAuthInput');
+      var passInput = document.getElementById('clientAuthPassword');
       var statusDiv = document.getElementById('client-login-status');
-      var query = input ? input.value.trim() : '';
-      if (!query) {
-        showStatus(statusDiv, 'Please enter your Email Address or Client ID.', 'error');
+      var email = input ? input.value.trim().toLowerCase() : '';
+      var password = passInput ? passInput.value : '';
+      if (!email || !email.includes('@') || !password) {
+        showStatus(statusDiv, 'Enter the email address linked to your account and your password.', 'error');
         return;
       }
-      // Instructor Authentication Gateway
-      
-      showStatus(statusDiv, 'Cross-referencing client credentials in database...', 'success');
-      if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.handleGetClientPortalData) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            if (res && res.status === 'success') {
-              statusDiv.style.display = 'none';
-              sessionStorage.setItem('fifs_client_session', JSON.stringify(res.client));
-              renderClientDashboard(res.client);
-            } else {
-              showStatus(statusDiv, res.message || 'Unauthorized access: Provided email or Client ID is not registered in Future Initiative records.', 'error');
-            }
-          })
-          .withFailureHandler(function(err) {
-            showStatus(statusDiv, 'Security verification error. Access rejected.', 'error');
-          })
-          .handleGetClientPortalData(query.includes('@') ? query : '', query.includes('@') ? '' : query);
-      } else {
-        setTimeout(function() {
-          var foundClient = null;
-          // 1. SClient Roster cache
-          var rosterSaved = _fifsMemStorage.getItem('fifs_client_roster');
-          if (rosterSaved) {
-            try {
-              var parsed = JSON.parse(rosterSaved);
-              foundClient = parsed.find(c => (c.email && c.email.toLowerCase() === query.toLowerCase()) || (c.clientId && c.clientId.toUpperCase() === query.toUpperCase()));
-            } catch(e) {}
-          }
-          if (!foundClient && typeof adminCachedClients !== 'undefined' && Array.isArray(adminCachedClients)) {
-            foundClient = adminCachedClients.find(c => (c.email && c.email.toLowerCase() === query.toLowerCase()) || (c.clientId && c.clientId.toUpperCase() === query.toUpperCase()));
-          }
-          // 2. Search Student Roster / Operations cache
-          if (!foundClient) {
-            var studentRoster = _fifsMemStorage.getItem('fifs_roster_students');
-            if (studentRoster) {
-              try {
-                var sList = JSON.parse(studentRoster);
-                var sFound = sList.find(s => (s.email && s.email.toLowerCase() === query.toLowerCase()) || (s.studentId && s.studentId.toUpperCase() === query.toUpperCase()));
-                if (sFound) {
-                  foundClient = {
-                    clientId: 'FI-CLIENT-' + sFound.studentId.replace(/\D/g, ''),
-                    fullName: sFound.fullName,
-                    email: sFound.email,
-                    phone: sFound.phone,
-                    permitState: sFound.course || 'Maryland Wear & Carry',
-                    expirationDate: sFound.renewalDueDate || '2027-10-31',
-                    daysLeft: 365,
-                    status: 'ACTIVE_REGISTERED'
-                  };
-                }
-              } catch(e) {}
-            }
-          }
-          if (foundClient) {
-            statusDiv.style.display = 'none';
-            sessionStorage.setItem('fifs_client_session', JSON.stringify(foundClient));
-            renderClientDashboard(foundClient);
-          } else {
-            showStatus(statusDiv, 'Unauthorized access: Provided email or identifier was not found in the Student Roster, Operations, or Future Initiative Clients database.', 'error');
-          }
-        }, 300);
+      try {
+        var authClient = window.supabaseClient || (typeof createSupabaseClient === 'function' ? createSupabaseClient() : null);
+        if (!authClient || !authClient.auth) throw new Error('Secure sign-in is unavailable. Please try again later.');
+        var authResult = await authClient.auth.signInWithPassword({ email: email, password: password });
+        if (authResult.error || !authResult.data || !authResult.data.session) throw new Error('Email or password is incorrect.');
+        var response = await fetch('/api/fifs', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authResult.data.session.access_token }, body: JSON.stringify({ action: 'getClientPortalData' }) });
+        var result = await response.json();
+        if (!response.ok || !result.success || !result.client) throw new Error(result.error || 'A linked client profile was not found. Contact FIFS for account setup.');
+        fifsSetClientSession(result.client);
+        if (statusDiv) statusDiv.style.display = 'none';
+        renderClientDashboard(result.client);
+      } catch (err) {
+        showStatus(statusDiv, (err && err.message) || 'Client sign-in failed. Please try again.', 'error');
       }
     }
     window.lookupClientAccount = lookupClientAccount;
@@ -8326,7 +8264,7 @@ function getStepNumberFromStatus(statusStr) {
     // Replaced with authoritative handleClientRegisterSubmit
     // Replaced with robust renderClientDashboard
     function fiLogoutClient() {
-      sessionStorage.removeItem('fifs_client_session');
+      fifsRemoveClientSession();
       var authBox = document.getElementById('client-auth-box');
       var dashBox = document.getElementById('client-active-dashboard');
       if (dashBox) dashBox.style.display = 'none';

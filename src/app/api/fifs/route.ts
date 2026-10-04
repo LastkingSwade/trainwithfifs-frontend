@@ -377,6 +377,86 @@ export async function POST(req: NextRequest) {
 
 
    switch (action) {
+     case 'registerClient': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Authentication is required to create a client profile.' }, { status: 401 });
+       }
+
+       const email = String(user.email || '').trim().toLowerCase();
+       const submittedEmail = String(payload.email || '').trim().toLowerCase();
+       const fullName = String(payload.fullName || '').trim().slice(0, 100);
+       const phone = String(payload.phone || '').trim().slice(0, 30);
+       const permitType = String(payload.permitType || '').trim().slice(0, 120);
+       const expirationDate = String(payload.expirationDate || '').trim();
+       const optInReminder = payload.optInReminder === true;
+
+       if (!email || !email.includes('@') || !fullName || !phone || !permitType) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Name, phone, permit type, and a valid authenticated email are required.' }, { status: 400 });
+       }
+       if (submittedEmail && submittedEmail !== email) {
+         return NextResponse.json({ success: false, status: 'error', error: 'The submitted email must match your authenticated account.' }, { status: 403 });
+       }
+       if (expirationDate && !/^\d{4}-\d{2}-\d{2}$/.test(expirationDate)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Enter a valid permit expiration date.' }, { status: 400 });
+       }
+
+       // Only a verified Supabase identity can create a profile. Existing records are never linked by email.
+       supabase = getPrivilegedClient();
+       const { data: existingUserProfile, error: lookupUserErr } = await supabase.from('clients').select('client_id').eq('user_id', user.id).maybeSingle();
+       if (lookupUserErr) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not verify whether a client profile already exists.' }, { status: 500 });
+       }
+       if (existingUserProfile) {
+         return NextResponse.json({ success: false, status: 'error', error: 'A client profile is already linked to this account. Please sign in to your portal.' }, { status: 409 });
+       }
+       const { data: existingEmailProfile, error: lookupEmailErr } = await supabase.from('clients').select('client_id').eq('email', email).maybeSingle();
+       if (lookupEmailErr) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not verify whether this email already has a client profile.' }, { status: 500 });
+       }
+       if (existingEmailProfile) {
+         return NextResponse.json({ success: false, status: 'error', error: 'A client record already exists for this email and cannot be linked automatically. Contact FIFS for secure account recovery.' }, { status: 409 });
+       }
+
+       const clientId = `CLI-${crypto.randomBytes(6).toString('hex').toUpperCase()}`;
+       const clientRecord = {
+         user_id: user.id,
+         client_id: clientId,
+         full_name: fullName,
+         email,
+         phone,
+         permit_type: permitType,
+         permit_state: permitType,
+         expiration_date: expirationDate || null,
+         opt_in_reminder: optInReminder,
+         status: 'ACTIVE_REGISTERED',
+         created_at: new Date().toISOString(),
+         updated_at: new Date().toISOString()
+       };
+       const { data: createdClient, error: insertErr } = await supabase.from('clients').insert(clientRecord).select('*').single();
+       if (insertErr || !createdClient) {
+         console.error('[registerClient] Profile insert failed:', insertErr?.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not save your client profile. Please try again.' }, { status: 500 });
+       }
+
+       return NextResponse.json({
+         success: true,
+         status: 'success',
+         client: {
+           clientId: createdClient.client_id,
+           fullName: createdClient.full_name,
+           email: createdClient.email,
+           phone: createdClient.phone,
+           permitType: createdClient.permit_type || 'Maryland Wear & Carry (CCW)',
+           permitState: createdClient.permit_state || 'Maryland',
+           expirationDate: createdClient.expiration_date || null,
+           status: createdClient.status || 'ACTIVE_REGISTERED',
+           optInReminder: Boolean(createdClient.opt_in_reminder),
+           smsAlertPhone: createdClient.sms_alert_phone || createdClient.phone
+         }
+       });
+     }
+
      // Delete Permit Record for Authenticated Client (Respects RLS)
           // Delete Student from Supabase (Administrative Roster)
      case 'adminDeleteStudent': {
@@ -640,45 +720,35 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, error: 'Valid full name and email are required.' }, { status: 400 });
        }
 
-       // 1. Provision in public.students or public.clients
-       if (portalType === 'client') {
-         await supabase.from('clients').upsert({
-           client_id: generatedId.startsWith('CLI-') ? generatedId : 'CLI-' + Math.floor(1000 + Math.random() * 9000),
-           full_name: fullName,
-           email,
-           phone,
-           permit_type: courseName,
-           permit_state: 'Maryland',
-           status: 'ACTIVE_REGISTERED',
-           created_at: now,
-           updated_at: now
-         }, { onConflict: 'email' });
-       } else {
-         await supabase.from('students').upsert({
-           student_id: generatedId,
-           full_name: fullName,
-           email,
-           phone,
-           course_selection: courseName,
-           preferred_dates: dates,
-           status: 'REGISTERED',
-           must_change_password: true,
-           temp_password_reset: true,
-           created_at: now,
-           updated_at: now
-         }, { onConflict: 'student_id' });
+       // Create Auth first, then attach the portal profile to the returned Auth UID.
+       // Existing identities are not overwritten or guessed from email/IDs.
+       const { data: createdAuth, error: createAuthErr } = await supabase.auth.admin.createUser({
+         email,
+         password: tempPassword,
+         email_confirm: true,
+         app_metadata: { role: portalType === 'client' ? 'client' : 'student' },
+         user_metadata: { full_name: fullName, phone }
+       });
+       const authUserId = createdAuth?.user?.id;
+       if (createAuthErr || !authUserId) {
+         return NextResponse.json({ success: false, error: 'Could not create a new secure sign-in. If this email already has an account, use the account-recovery process instead.' }, { status: 409 });
        }
 
-       // 2. Also provision in auth if possible
-       try {
-         await supabase.auth.admin.createUser({
-           email,
-           password: tempPassword,
-           email_confirm: true,
-           user_metadata: { full_name: fullName, phone, role: portalType }
-         });
-       } catch (authErr) {
-         console.warn('Auth user creation warning:', authErr);
+       const profileTable = portalType === 'client' ? 'clients' : 'students';
+       const profile = portalType === 'client' ? {
+         user_id: authUserId,
+         client_id: generatedId.startsWith('CLI-') ? generatedId : 'CLI-' + Math.floor(1000 + Math.random() * 9000),
+         full_name: fullName, email, phone, permit_type: courseName, permit_state: 'Maryland',
+         status: 'ACTIVE_REGISTERED', created_at: now, updated_at: now
+       } : {
+         user_id: authUserId, student_id: generatedId, full_name: fullName, email, phone,
+         course_selection: courseName, preferred_dates: dates, status: 'REGISTERED',
+         must_change_password: true, temp_password_reset: true, created_at: now, updated_at: now
+       };
+       const { error: profileErr } = await supabase.from(profileTable).insert(profile);
+       if (profileErr) {
+         await supabase.auth.admin.deleteUser(authUserId);
+         return NextResponse.json({ success: false, error: 'Could not save a linked portal profile. No invitation was sent.' }, { status: 500 });
        }
 
        // 3. Dispatch invitation email via Resend
@@ -821,8 +891,7 @@ export async function POST(req: NextRequest) {
            must_change_password: true,
            temp_password_reset: true,
            password_expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-           internal_notes: internalNotes,
-           portal_password: tempPassword // Stored for one-time verification during first login
+           internal_notes: internalNotes
          });
          if (insertErr) {
            return NextResponse.json({ success: false, error: insertErr.message }, { status: 500 });
@@ -1079,276 +1148,128 @@ export async function POST(req: NextRequest) {
 
      // 5. First-Login Password Change & Gate Clear + Admin Alert
      case 'firstLoginPasswordChange': {
-       const { email, newPassword } = payload;
-       if (!email || !newPassword) {
-         return NextResponse.json({ success: false, error: 'Email and new password are required.' }, { status: 400 });
+       const { email, identifier, newPassword } = payload;
+       if (!newPassword) {
+         return NextResponse.json({ success: false, error: 'A new password is required.' }, { status: 400 });
        }
-
        const { user, error: authErr } = await getAuthenticatedUser(req);
        if (authErr || !user) {
          return NextResponse.json({ success: false, error: 'Unauthorized: Authentication required.' }, { status: 401 });
        }
-       supabase = getPrivilegedClient();
-
-       const callerEmail = (user.email || '').toLowerCase().trim();
-       const targetEmail = email.trim().toLowerCase();
-       if (!isStaffOrAdmin(user) && callerEmail !== targetEmail) {
+       const val = validateStrictPassword(newPassword);
+       if (!val.valid) return NextResponse.json({ success: false, error: val.error }, { status: 400 });
+       const targetEmail = String(email || '').trim().toLowerCase();
+       if (targetEmail && targetEmail !== String(user.email || '').toLowerCase()) {
          return NextResponse.json({ success: false, error: 'Forbidden: You can only update your own password.' }, { status: 403 });
        }
-
-       const val = validateStrictPassword(newPassword);
-       if (!val.valid) {
-         return NextResponse.json({ success: false, error: val.error }, { status: 400 });
+       supabase = getPrivilegedClient();
+       const { data: student, error: studentErr } = await supabase.from('students').select('*').eq('user_id', user.id).maybeSingle();
+       if (studentErr || !student || student.user_id !== user.id) {
+         return NextResponse.json({ success: false, error: 'Linked student record not found.' }, { status: 404 });
        }
-
-       const { data: student, error: stErr } = await supabase
-         .from('students')
-         .select('*')
-         .eq('email', targetEmail)
-         .maybeSingle();
-
-       if (stErr || !student) {
-         return NextResponse.json({ success: false, error: 'Student record not found.' }, { status: 404 });
+       const { error: authUpdateErr } = await supabase.auth.admin.updateUserById(user.id, { password: newPassword });
+       if (authUpdateErr) {
+         console.error('[firstLoginPasswordChange] Auth password update failed:', authUpdateErr);
+         return NextResponse.json({ success: false, error: 'Password update failed. Please try again.' }, { status: 500 });
        }
-
-       // Update Supabase Auth password
-       try {
-         await supabase.auth.admin.updateUserById(user.id, { password: newPassword });
-       } catch (authPassErr) {
-         console.warn('Auth password update note:', authPassErr);
-       }
-
-       // Update student record
-       const { error: updateErr } = await supabase
-         .from('students')
-         .update({
-           portal_password: newPassword,
-           must_change_password: false,
-           temp_password_reset: false,
-           password_expires_at: null,
-           last_password_change: new Date().toISOString(),
-           updated_at: new Date().toISOString()
-         })
-         .eq('email', targetEmail);
-
-       if (updateErr) {
-         return NextResponse.json({ success: false, error: updateErr.message }, { status: 500 });
-       }
-
-       const studentName = student.full_name || 'Student';
-       const nowStr = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
-       await sendResendEmail({
-         to: ADMIN_EMAIL,
-         subject: 'Security Alert: Student Portal Activated - ' + studentName,
-         html: `<p>Student <strong>${studentName}</strong> (${targetEmail}) activated portal access on ${nowStr}.</p>`
-       });
-
-       return NextResponse.json({ success: true, message: 'Password updated successfully. Welcome to your portal!' });
+       const { error: updateErr } = await supabase.from('students').update({
+         must_change_password: false,
+         temp_password_reset: false,
+         password_expires_at: null,
+         last_password_change: new Date().toISOString(),
+         updated_at: new Date().toISOString()
+       }).eq('user_id', user.id);
+       if (updateErr) return NextResponse.json({ success: false, error: 'Password changed, but the portal status could not be updated.' }, { status: 500 });
+       return NextResponse.json({ success: true, message: 'Password updated successfully.' });
      }
 
      case 'changePortalPassword':
      case 'updateStudentPassword':
      case 'selfServicePasswordUpdate': {
-       const { email, studentId, identifier, currentPassword, newPassword } = payload;
-       const target = (email || studentId || identifier || '').trim().toLowerCase();
-       if (!target || !newPassword) {
-         return NextResponse.json({ success: false, status: 'error', error: 'Student email or ID and new password are required.' }, { status: 400 });
-       }
-
+       const { email, studentId, identifier, newPassword } = payload;
+       const requestedTarget = String(email || studentId || identifier || '').trim().toLowerCase();
+       if (!newPassword) return NextResponse.json({ success: false, status: 'error', error: 'A new password is required.' }, { status: 400 });
        const { user, error: authErr } = await getAuthenticatedUser(req);
-       if (authErr || !user) {
-         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required.' }, { status: 401 });
-       }
-       supabase = getPrivilegedClient();
-
-       const callerEmail = (user.email || '').toLowerCase().trim();
-       if (!isStaffOrAdmin(user) && callerEmail !== target && user.id !== target) {
-         return NextResponse.json({ success: false, status: 'error', error: 'Forbidden: You can only update your own password.' }, { status: 403 });
-       }
-
+       if (authErr || !user) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required.' }, { status: 401 });
+       if (isStaffOrAdmin(user)) return NextResponse.json({ success: false, status: 'error', error: 'Use the staff password reset workflow.' }, { status: 403 });
        const val = validateStrictPassword(newPassword);
-       if (!val.valid) {
-         return NextResponse.json({ success: false, status: 'error', error: val.error }, { status: 400 });
-       }
-
-       // Update Supabase Auth password for the user
-       try {
-         await supabase.auth.admin.updateUserById(user.id, { password: newPassword });
-       } catch (authPassErr) {
-         console.warn('Auth password update note:', authPassErr);
-       }
-
-       // 1. Locate student in students table
-       const { data: student } = await supabase
-         .from('students')
-         .select('*')
-         .or(`email.eq.${target},student_id.eq.${target.toUpperCase()}`)
-         .maybeSingle();
-
-       if (student) {
-         const { error: updErr } = await supabase
-           .from('students')
-           .update({
-             portal_password: newPassword,
-             must_change_password: false,
-             temp_password_reset: false,
-             last_password_change: new Date().toISOString(),
-             updated_at: new Date().toISOString()
-           })
-           .eq('id', student.id);
-
-         if (updErr) {
-           return NextResponse.json({ success: false, status: 'error', error: updErr.message }, { status: 500 });
-         }
-
-         return NextResponse.json({
-           success: true,
-           status: 'success',
-           message: 'Password updated successfully and linked to your student profile.',
-           student: {
-             ...normalizeStudent(student),
-             mustChangePassword: false
-           }
-         });
-       }
-
-       // 2. Locate in clients table
-       const { data: client } = await supabase
-         .from('clients')
-         .select('*')
-         .or(`email.eq.${target},client_id.eq.${target.toUpperCase()}`)
-         .maybeSingle();
-
-       if (client) {
-         await supabase
-           .from('clients')
-           .update({
-             temp_password_reset: false,
-             last_password_change: new Date().toISOString(),
-             updated_at: new Date().toISOString()
-           })
-           .eq('id', client.id);
-
-         return NextResponse.json({
-           success: true,
-           status: 'success',
-           message: 'Client portal password updated successfully.'
-         });
-       }
-
-       return NextResponse.json({ success: false, status: 'error', error: 'Record not found.' }, { status: 404 });
+       if (!val.valid) return NextResponse.json({ success: false, status: 'error', error: val.error }, { status: 400 });
+       supabase = getPrivilegedClient();
+       const [studentResult, clientResult] = await Promise.all([
+         supabase.from('students').select('*').eq('user_id', user.id).maybeSingle(),
+         supabase.from('clients').select('*').eq('user_id', user.id).maybeSingle()
+       ]);
+       const student = studentResult.data;
+       const client = clientResult.data;
+       if (!student && !client) return NextResponse.json({ success: false, status: 'error', error: 'Linked portal record not found.' }, { status: 404 });
+       const ownedRecord = student || client;
+       const allowedTargets = [String(user.email || '').toLowerCase(), String(ownedRecord.email || '').toLowerCase(), String(ownedRecord.student_id || ownedRecord.client_id || '').toLowerCase(), String(ownedRecord.id || '').toLowerCase()];
+       if (requestedTarget && !allowedTargets.includes(requestedTarget)) return NextResponse.json({ success: false, status: 'error', error: 'Forbidden: You can only update your own password.' }, { status: 403 });
+       const { error: authUpdateErr } = await supabase.auth.admin.updateUserById(user.id, { password: newPassword });
+       if (authUpdateErr) return NextResponse.json({ success: false, status: 'error', error: 'Password update failed. Please try again.' }, { status: 500 });
+       const passwordStatusUpdate = student
+         ? { must_change_password: false, temp_password_reset: false, password_expires_at: null, last_password_change: new Date().toISOString(), updated_at: new Date().toISOString() }
+         : { temp_password_reset: false, last_password_change: new Date().toISOString(), updated_at: new Date().toISOString() };
+       const { error: updateErr } = await supabase.from(student ? 'students' : 'clients').update(passwordStatusUpdate).eq('user_id', user.id);
+       if (updateErr) return NextResponse.json({ success: false, status: 'error', error: 'Password changed, but the portal status could not be updated.' }, { status: 500 });
+       return NextResponse.json({ success: true, status: 'success', message: 'Password updated successfully.' });
      }
 
      case 'getClientPortalData': {
        const { user, error: authErr } = await getAuthenticatedUser(req);
-       if (authErr || !user) {
-         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required.' }, { status: 401 });
-       }
+       if (authErr || !user) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required.' }, { status: 401 });
        supabase = getPrivilegedClient();
-
-       const callerEmail = (user.email || '').toLowerCase().trim();
-       const identifier = (payload.identifier || payload.clientId || payload.email || callerEmail).trim().toLowerCase();
-
-       // Enforce self-service isolation unless staff/admin
-       if (!isStaffOrAdmin(user) && callerEmail !== identifier) {
-         // Query client by caller email only
-         const { data: ownClient } = await supabase
-           .from('clients')
-           .select('*')
-           .eq('email', callerEmail)
-           .maybeSingle();
-
-         if (!ownClient || (identifier && identifier !== ownClient.client_id?.toLowerCase() && identifier !== ownClient.id?.toLowerCase())) {
+       const identifier = String(payload.identifier || payload.clientId || payload.email || '').trim().toLowerCase();
+       let client: any = null;
+       if (isStaffOrAdmin(user)) {
+         if (!identifier) return NextResponse.json({ success: false, status: 'error', error: 'Client identifier required.' }, { status: 400 });
+         const { data } = await supabase.from('clients').select('*').or(`client_id.eq.${identifier.toUpperCase()},email.eq.${identifier}`).maybeSingle();
+         client = data;
+       } else {
+         const { data } = await supabase.from('clients').select('*').eq('user_id', user.id).maybeSingle();
+         client = data;
+         if (client && identifier && identifier !== String(client.client_id || '').toLowerCase() && identifier !== String(user.email || '').toLowerCase()) {
            return NextResponse.json({ success: false, status: 'error', error: 'Forbidden: Access restricted to your own client account.' }, { status: 403 });
          }
        }
-
-       // Fetch client
-       const { data: client } = await supabase
-         .from('clients')
-         .select('*')
-         .or(`client_id.eq.${identifier.toUpperCase()},email.eq.${identifier}`)
-         .maybeSingle();
-
-       if (client) {
-         return NextResponse.json({
-           success: true,
-           status: 'success',
-           client: {
-             clientId: client.client_id,
-             fullName: client.full_name,
-             email: client.email,
-             phone: client.phone,
-             permitType: client.permit_type || 'Maryland Wear & Carry (CCW)',
-             permitState: client.permit_state || 'Maryland',
-             expirationDate: client.expiration_date || '2027-10-01',
-             status: client.status || 'ACTIVE_PERMIT_HOLDER',
-             optInReminder: Boolean(client.opt_in_reminder),
-             smsAlertPhone: client.sms_alert_phone || client.phone
-           }
-         });
-       }
-
-       return NextResponse.json({ success: false, status: 'error', error: 'Client record not found in system.' }, { status: 404 });
+       if (!client) return NextResponse.json({ success: false, status: 'error', error: 'Linked client record not found.' }, { status: 404 });
+       return NextResponse.json({ success: true, status: 'success', client: {
+         clientId: client.client_id, fullName: client.full_name, email: client.email, phone: client.phone,
+         permitType: client.permit_type || 'Maryland Wear & Carry (CCW)', permitState: client.permit_state || 'Maryland',
+         expirationDate: client.expiration_date || null, status: client.status || 'ACTIVE_PERMIT_HOLDER',
+         optInReminder: Boolean(client.opt_in_reminder), smsAlertPhone: client.sms_alert_phone || client.phone
+       }});
      }
 
      case 'getStudentPortalData': {
        const { user, error: authErr } = await getAuthenticatedUser(req);
-       if (authErr || !user) {
-         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required to view student portal.' }, { status: 401 });
-       }
+       if (authErr || !user) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required to view student portal.' }, { status: 401 });
        supabase = getPrivilegedClient();
-
-       const callerEmail = (user.email || '').toLowerCase().trim();
-       const identifier = (payload.identifier || payload.studentId || payload.email || callerEmail).trim().toLowerCase();
-
-       // Enforce self-service student isolation unless staff/admin
-       let studentLookupQuery = supabase.from('students').select('*');
+       const identifier = String(payload.identifier || payload.studentId || payload.email || '').trim().toLowerCase();
+       let student: any = null;
        if (isStaffOrAdmin(user)) {
-         studentLookupQuery = studentLookupQuery.or(`student_id.eq.${identifier.toUpperCase()},email.eq.${identifier}`);
+         if (!identifier) return NextResponse.json({ success: false, status: 'error', error: 'Student identifier required.' }, { status: 400 });
+         const { data } = await supabase.from('students').select('*').or(`student_id.eq.${identifier.toUpperCase()},email.eq.${identifier}`).maybeSingle();
+         student = data;
        } else {
-         // Non-staff callers can only query their own authenticated account
-         studentLookupQuery = studentLookupQuery.eq('email', callerEmail);
+         const { data } = await supabase.from('students').select('*').eq('user_id', user.id).maybeSingle();
+         student = data;
+         if (student && identifier && identifier !== String(student.student_id || '').toLowerCase() && identifier !== String(user.email || '').toLowerCase()) {
+           return NextResponse.json({ success: false, status: 'error', error: 'Forbidden: Access restricted to your own student account.' }, { status: 403 });
+         }
        }
-
-       const { data: student } = await studentLookupQuery.maybeSingle();
-
-       if (!student) {
-         return NextResponse.json({ success: false, status: 'error', error: 'Student record not found.' }, { status: 404 });
-       }
-
-       // If identifier was provided and does not match own record, reject
-       if (!isStaffOrAdmin(user) && identifier !== callerEmail && identifier !== student.student_id?.toLowerCase() && identifier !== student.id?.toLowerCase()) {
-         return NextResponse.json({ success: false, status: 'error', error: 'Forbidden: Access restricted to your own student account.' }, { status: 403 });
-       }
-
-       // Fetch course enrollments with signed materials URLs
-       const { data: enrollments } = await supabase
-         .from('enrollments')
+       if (!student) return NextResponse.json({ success: false, status: 'error', error: 'Linked student record not found.' }, { status: 404 });
+       if (!isStaffOrAdmin(user) && student.user_id !== user.id) return NextResponse.json({ success: false, status: 'error', error: 'Linked student record not found.' }, { status: 404 });
+       const { data: enrollments } = await supabase.from('enrollments')
          .select('id, class_id, scheduled_date, duration_hours, status, cancellation_reason, previous_dates, created_at, classes(title, description, materials_path, required_gear_notes)')
-         .eq('student_email', student.email)
-         .order('scheduled_date', { ascending: false });
-
-       const enrollmentsWithUrls = await Promise.all((enrollments || []).map(async (e: any) => {
-         let signedUrl = null;
-         if (e.classes?.materials_path) {
-           signedUrl = await getSignedDocumentUrl(supabase, e.classes.materials_path);
-         }
-         return {
-           ...e,
-           materialsUrl: signedUrl
-         };
-       }));
-
-       return NextResponse.json({
-         success: true,
-         status: 'success',
-         student: {
-           ...normalizeStudent(student),
-           enrollments: enrollmentsWithUrls,
-           mustChangePassword: Boolean(student.must_change_password)
-         }
-       });
+         .eq('student_email', student.email).order('scheduled_date', { ascending: false });
+       const enrollmentsWithUrls = await Promise.all((enrollments || []).map(async (enrollment: any) => ({
+         ...enrollment,
+         materialsUrl: enrollment.classes?.materials_path ? await getSignedDocumentUrl(supabase, enrollment.classes.materials_path) : null
+       })));
+       return NextResponse.json({ success: true, status: 'success', student: {
+         ...normalizeStudent(student), enrollments: enrollmentsWithUrls, mustChangePassword: Boolean(student.must_change_password)
+       }});
      }
 
      case 'check24HourReminders': {

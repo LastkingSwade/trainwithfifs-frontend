@@ -889,7 +889,7 @@ export default function TrainWithFIFS(props: any) {
       if (!courseValue) return;
 
       if (courseValue.toLowerCase().includes('alumni')) {
-        const cSession = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('fifs_client_session') : null;
+        const cSession = typeof sessionStorage !== 'undefined' ? ((window as any).__fifsClientPortalRecord ? JSON.stringify((window as any).__fifsClientPortalRecord) : null) : null;
         if (!cSession) {
           if (typeof (window as any).openModal === 'function') {
             (window as any).openModal('alumniAccessGateModal');
@@ -1475,7 +1475,7 @@ export default function TrainWithFIFS(props: any) {
       .then((data) => {
         if (data && data.success && data.student) {
           if (statusDiv) statusDiv.style.display = 'none';
-          sessionStorage.setItem('fifs_student_session', JSON.stringify(data.student));
+          (window as any).__fifsStudentPortalRecord = data.student;
           (window as any).renderStudentDashboard(data.student);
         } else if (data && data.status === 'needs_password_setup') {
           if (setupBox) setupBox.style.display = 'block';
@@ -2315,7 +2315,7 @@ export default function TrainWithFIFS(props: any) {
 
       if (role === 'student' || !role) {
         try {
-          const s = sessionStorage.getItem('fifs_student_session');
+          const s = ((window as any).__fifsStudentPortalRecord ? JSON.stringify((window as any).__fifsStudentPortalRecord) : null);
           if (s) {
             const parsed = JSON.parse(s);
             userIdent = parsed.email || parsed.studentId || '';
@@ -2333,7 +2333,7 @@ export default function TrainWithFIFS(props: any) {
         }
       } else if (role === 'client') {
         try {
-          const c = sessionStorage.getItem('fifs_client_session');
+          const c = ((window as any).__fifsClientPortalRecord ? JSON.stringify((window as any).__fifsClientPortalRecord) : null);
           if (c) {
             const parsed = JSON.parse(c);
             userIdent = parsed.email || parsed.clientId || '';
@@ -2481,11 +2481,11 @@ export default function TrainWithFIFS(props: any) {
           }
           // Update session in storage
           try {
-            const s = sessionStorage.getItem('fifs_student_session');
+            const s = ((window as any).__fifsStudentPortalRecord ? JSON.stringify((window as any).__fifsStudentPortalRecord) : null);
             if (s) {
               const parsed = JSON.parse(s);
               parsed.mustChangePassword = false;
-              sessionStorage.setItem('fifs_student_session', JSON.stringify(parsed));
+              (window as any).__fifsStudentPortalRecord = parsed;
             }
           } catch(e) {}
           if (currInput) currInput.value = '';
@@ -5163,7 +5163,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         <label htmlFor="regClientPassword">
                           Create Password <span className="req">*</span>
                         </label>
-                        <input id="regClientPassword" placeholder="Minimum 6 characters" required type="password" />
+                        <input id="regClientPassword" placeholder="12+ chars, upper/lower, number & symbol" required type="password" />
                       </div>
                       <div className="form-group">
                         <label htmlFor="regClientPasswordConfirm">
@@ -12933,7 +12933,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               return;
             }
             if (typeof window !== 'undefined' && (window as any).callFifsBackend) {
-              (window as any).callFifsBackend('setupStudentPassword', { studentId: sid, password: np })
+              (window as any).callFifsBackend('firstLoginPasswordChange', { studentId: sid, newPassword: np })
                 .then((res: any) => {
                   if (res && res.success) {
                     const m = document.getElementById('forcedPasswordResetModal');

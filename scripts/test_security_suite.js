@@ -50,12 +50,13 @@ let dbState = {
     { id: 'c2', title: 'Maryland Handgun Qualification License (HQL)', is_active: true }
   ],
   students: [
-    { id: 'uuid-student-alice', student_id: 'FIFS-1001', email: 'alice@student.com', full_name: 'Alice Student', portal_password: 'OldPassword123!' },
-    { id: 'uuid-student-bob', student_id: 'FIFS-1002', email: 'bob@student.com', full_name: 'Bob Student', portal_password: 'OldPassword123!' }
+    { id: 'uuid-student-alice', user_id: 'uuid-student-alice', student_id: 'FIFS-1001', email: 'alice@student.com', full_name: 'Alice Student', portal_password: 'OldPassword123!' },
+    { id: 'uuid-student-bob', user_id: 'uuid-student-bob', student_id: 'FIFS-1002', email: 'bob@student.com', full_name: 'Bob Student', portal_password: 'OldPassword123!' },
+    { id: 'uuid-student-unlinked', user_id: null, student_id: 'FIFS-1003', email: 'unlinked@student.com', full_name: 'Unlinked Student' }
   ],
   clients: [
-    { id: 'uuid-client-charlie', client_id: 'CLI-2001', email: 'charlie@client.com', full_name: 'Charlie Client' },
-    { id: 'uuid-client-dave', client_id: 'CLI-2002', email: 'dave@client.com', full_name: 'Dave Client' }
+    { id: 'uuid-client-charlie', user_id: 'uuid-client-charlie', client_id: 'CLI-2001', email: 'charlie@client.com', full_name: 'Charlie Client' },
+    { id: 'uuid-client-dave', user_id: 'uuid-client-dave', client_id: 'CLI-2002', email: 'dave@client.com', full_name: 'Dave Client' }
   ],
   user_permits: [
     { id: 'permit-alice', user_id: 'uuid-student-alice', email: 'alice@student.com', permit_type: 'MD CCW' },
@@ -154,6 +155,9 @@ const mockSupabase = {
             error: null
           };
         }
+        if (token === 'student-unlinked-token') {
+          return { data: { user: { id: 'uuid-unlinked-auth', email: 'unlinked@student.com', app_metadata: { role: 'student' } } }, error: null };
+        }
         if (token === 'student-bob-token') {
           return {
             data: {
@@ -172,6 +176,30 @@ const mockSupabase = {
               user: {
                 id: 'uuid-client-charlie',
                 email: 'charlie@client.com',
+                app_metadata: { role: 'client' }
+              }
+            },
+            error: null
+          };
+        }
+        if (token === 'client-new-registration-token') {
+          return {
+            data: {
+              user: {
+                id: 'uuid-client-new-registration',
+                email: 'newclient@example.com',
+                app_metadata: { role: 'client' }
+              }
+            },
+            error: null
+          };
+        }
+        if (token === 'client-existing-email-registration-token') {
+          return {
+            data: {
+              user: {
+                id: 'uuid-client-existing-email',
+                email: 'dave@client.com',
                 app_metadata: { role: 'client' }
               }
             },
@@ -595,6 +623,16 @@ async function main() {
     }
   });
 
+  await runTest('getStudentPortalData: Auth owner cannot access an email-matching but unlinked record', async () => {
+    const { status } = await executeAction('getStudentPortalData', { identifier: 'unlinked@student.com' }, { authorization: 'Bearer student-unlinked-token' });
+    if (status !== 404) throw new Error(`Expected 404 for unlinked record, got ${status}`);
+  });
+
+  await runTest('getStudentPortalData: Email-matching unlinked record is inaccessible to another owner', async () => {
+    const { status } = await executeAction('getStudentPortalData', { identifier: 'unlinked@student.com' }, { authorization: 'Bearer student-alice-token' });
+    if (status !== 403 && status !== 404) throw new Error(`Expected 403 or 404, got ${status}`);
+  });
+
   await runTest('getStudentPortalData: Student Alice attempting to read Student Bob rejected with 403', async () => {
     const { status } = await executeAction(
       'getStudentPortalData',
@@ -602,6 +640,39 @@ async function main() {
       { authorization: 'Bearer student-alice-token' }
     );
     if (status !== 403) throw new Error(`Expected 403, got ${status}`);
+  });
+
+  await runTest('registerClient: Anonymous registration rejected with 401', async () => {
+    const { status } = await executeAction('registerClient', {
+      fullName: 'New Client', email: 'newclient@example.com', phone: '410-555-0100', permitType: 'Maryland Wear & Carry'
+    });
+    if (status !== 401) throw new Error(`Expected 401, got ${status}`);
+  });
+
+  await runTest('registerClient: Creates a client profile linked to verified Auth UID', async () => {
+    const { status, body } = await executeAction('registerClient', {
+      fullName: 'New Client', email: 'newclient@example.com', phone: '410-555-0100', permitType: 'Maryland Wear & Carry', expirationDate: '2027-06-30', optInReminder: true
+    }, { authorization: 'Bearer client-new-registration-token' });
+    if (status !== 200 || !body.success || !body.client) throw new Error(`Expected successful registration, got ${status}`);
+    const created = dbState.clients.find(row => row.email === 'newclient@example.com');
+    if (!created || created.user_id !== 'uuid-client-new-registration') throw new Error('Client row was not linked to the verified Auth user_id');
+    if (!created.client_id || !created.expiration_date || created.opt_in_reminder !== true) throw new Error('Client registration fields were not persisted');
+  });
+
+  await runTest('registerClient: Submitted email mismatch rejected with 403', async () => {
+    const { status } = await executeAction('registerClient', {
+      fullName: 'New Client', email: 'someone-else@example.com', phone: '410-555-0100', permitType: 'Maryland Wear & Carry'
+    }, { authorization: 'Bearer client-new-registration-token' });
+    if (status !== 403) throw new Error(`Expected 403, got ${status}`);
+  });
+
+  await runTest('registerClient: Existing unlinked email profile is not auto-linked', async () => {
+    const { status } = await executeAction('registerClient', {
+      fullName: 'Dave Client', email: 'dave@client.com', phone: '410-555-0100', permitType: 'Maryland Wear & Carry'
+    }, { authorization: 'Bearer client-existing-email-registration-token' });
+    if (status !== 409) throw new Error(`Expected 409, got ${status}`);
+    const legacy = dbState.clients.find(row => row.email === 'dave@client.com');
+    if (legacy.user_id !== 'uuid-client-dave') throw new Error('Existing client profile UID was changed');
   });
 
   await runTest('getClientPortalData: Anonymous call rejected with 401', async () => {
@@ -616,6 +687,11 @@ async function main() {
       { authorization: 'Bearer client-charlie-token' }
     );
     if (status !== 200 || !body.success) throw new Error(`Expected 200, got ${status}`);
+  });
+
+  await runTest('getClientPortalData: Client email without a matching UID cannot access an unlinked record', async () => {
+    const { status } = await executeAction('getClientPortalData', { email: 'dave@client.com' }, { authorization: 'Bearer client-charlie-token' });
+    if (status !== 403 && status !== 404) throw new Error(`Expected 403 or 404, got ${status}`);
   });
 
   await runTest('getClientPortalData: Client Charlie attempting to read Client Dave rejected with 403', async () => {
@@ -665,6 +741,11 @@ async function main() {
       { email: 'bob@student.com', newPassword: 'StrongPassword2026!' },
       { authorization: 'Bearer student-alice-token' }
     );
+    if (status !== 403) throw new Error(`Expected 403, got ${status}`);
+  });
+
+  await runTest('selfServicePasswordUpdate: Owner cannot update password using another account identifier', async () => {
+    const { status } = await executeAction('selfServicePasswordUpdate', { studentId: 'FIFS-1002', newPassword: 'StrongPassword2026!' }, { authorization: 'Bearer student-alice-token' });
     if (status !== 403) throw new Error(`Expected 403, got ${status}`);
   });
 

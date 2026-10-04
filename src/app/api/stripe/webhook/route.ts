@@ -15,28 +15,47 @@ function getServiceSupabase() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
+async function findInvoice(supabase: any, sessionId: string, invoiceId?: string | null) {
+  const bySession = await supabase
+    .from('invoices')
+    .select('id, status, stripe_session_id')
+    .eq('stripe_session_id', sessionId)
+    .maybeSingle();
+
+  if (bySession.error) throw new Error(`Invoice lookup by Stripe session failed: ${bySession.error.message}`);
+  if (bySession.data) return bySession.data;
+  if (!invoiceId) return null;
+
+  // Existing invoices may not have the session ID saved; use the exact invoice number
+  // from Checkout metadata as a deterministic fallback, never a multi-row student lookup.
+  const byInvoiceNumber = await supabase
+    .from('invoices')
+    .select('id, status, stripe_session_id')
+    .eq('invoice_number', invoiceId)
+    .maybeSingle();
+
+  if (byInvoiceNumber.error) throw new Error(`Invoice lookup by invoice number failed: ${byInvoiceNumber.error.message}`);
+  if (byInvoiceNumber.data?.stripe_session_id && byInvoiceNumber.data.stripe_session_id !== sessionId) {
+    throw new Error('Invoice is already associated with a different Stripe Checkout session.');
+  }
+  return byInvoiceNumber.data;
+}
+
 async function sendDiscordWebhook(title: string, description: string, fields: any[] = [], color = 0x10b981) {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
   if (!webhookUrl) return;
 
   try {
-    await fetch(webhookUrl, {
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        embeds: [
-          {
-            title,
-            description,
-            fields,
-            color,
-            timestamp: new Date().toISOString(),
-            footer: { text: 'Train With FIFS • Security & Operations Desk' },
-          },
-        ],
+        embeds: [{ title, description, fields, color, timestamp: new Date().toISOString(), footer: { text: 'Train With FIFS • Security & Operations Desk' } }],
       }),
     });
+    if (!response.ok) console.warn('[Discord Webhook Warning]: alert delivery failed with status', response.status);
   } catch (err) {
+    // Operational alerts are deliberately non-fatal to Stripe payment processing.
     console.error('Failed to dispatch Discord operational alert:', err);
   }
 }
@@ -74,96 +93,92 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Database service unavailable' }, { status: 503 });
     }
 
-    // 1. Handle Completed Checkout Session
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
       const studentId = session.client_reference_id || session.metadata?.studentId;
       const invoiceId = session.metadata?.invoiceId;
 
-      try {
-        if (invoiceId) {
-          await supabase
-            .from('invoices')
-            .update({
-              status: 'PAID',
-              amount_paid: (session.amount_total || 0) / 100,
-              balance_due: 0.00,
-              stripe_session_id: session.id,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('invoice_id', invoiceId);
-        } else if (studentId) {
-          await supabase
-            .from('invoices')
-            .update({
-              status: 'PAID',
-              amount_paid: (session.amount_total || 0) / 100,
-              balance_due: 0.00,
-              stripe_session_id: session.id,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('student_id', studentId);
-        }
-
-        if (studentId) {
-          await supabase
-            .from('students')
-            .update({
-              status: 'CONFIRMED',
-              updated_at: new Date().toISOString(),
-            })
-            .eq('student_id', studentId);
-        }
-
-        await sendDiscordWebhook(
-          '💳 Payment Received via Stripe Checkout!',
-          `Tuition paid in full for Student ID **${studentId || 'N/A'}** (${session.customer_email || 'Student'}). Seat officially reserved.`,
-          [
-            { name: 'Course', value: session.metadata?.courseSelection || 'Firearms Training Course', inline: true },
-            { name: 'Amount Paid', value: `$${((session.amount_total || 0) / 100).toFixed(2)}`, inline: true },
-            { name: 'Invoice ID', value: invoiceId || 'N/A', inline: true },
-          ],
-          0x10b981
-        );
-      } catch (dbError: any) {
-        console.error('[Webhook DB Update Error]:', dbError);
+      if (session.payment_status !== 'paid') {
+        // Do not mark an unpaid Checkout session as paid. Stripe can send a later
+        // asynchronous success event if an asynchronous method is enabled.
+        return NextResponse.json({ received: true });
       }
+
+      const invoice = await findInvoice(supabase, session.id, invoiceId);
+      if (!invoice) throw new Error(`No invoice found for Stripe session ${session.id}.`);
+
+      const { data: updatedInvoice, error: invoiceUpdateError } = await supabase
+        .from('invoices')
+        .update({
+          status: 'PAID',
+          amount_paid: (session.amount_total || 0) / 100,
+          balance_due: 0.00,
+          stripe_session_id: session.id,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', invoice.id)
+        .select('id')
+        .maybeSingle();
+
+      if (invoiceUpdateError) throw new Error(`Invoice payment update failed: ${invoiceUpdateError.message}`);
+      if (!updatedInvoice) throw new Error(`Invoice ${invoice.id} was not updated for Stripe session ${session.id}.`);
+
+      // Public/guest checkout can legitimately have no matching student row.
+      // Treat database errors as retryable, but a zero-row update is not an error.
+      if (studentId) {
+        const { error: studentUpdateError } = await supabase
+          .from('students')
+          .update({ status: 'CONFIRMED', updated_at: new Date().toISOString() })
+          .eq('student_id', studentId);
+        if (studentUpdateError) throw new Error(`Student confirmation update failed: ${studentUpdateError.message}`);
+      }
+
+      await sendDiscordWebhook(
+        '💳 Payment Received via Stripe Checkout!',
+        `Tuition paid in full for Student ID **${studentId || 'N/A'}** (${session.customer_email || 'Student'}). Seat officially reserved.`,
+        [
+          { name: 'Course', value: session.metadata?.courseSelection || 'Firearms Training Course', inline: true },
+          { name: 'Amount Paid', value: `$${((session.amount_total || 0) / 100).toFixed(2)}`, inline: true },
+          { name: 'Invoice ID', value: invoiceId || 'N/A', inline: true },
+        ],
+        0x10b981
+      );
     }
 
-    // 2. Handle Abandoned / Expired Session
     if (event.type === 'checkout.session.expired') {
       const session = event.data.object as Stripe.Checkout.Session;
       const invoiceId = session.metadata?.invoiceId;
       const studentId = session.client_reference_id || session.metadata?.studentId;
+      const invoice = await findInvoice(supabase, session.id, invoiceId);
 
-      try {
-        if (invoiceId) {
-          await supabase
-            .from('invoices')
-            .update({
-              status: 'ABANDONED',
-              updated_at: new Date().toISOString(),
-            })
-            .eq('invoice_id', invoiceId);
-        }
+      if (!invoice) throw new Error(`No invoice found for expired Stripe session ${session.id}.`);
 
-        await sendDiscordWebhook(
-          '⚠️ Checkout Session Abandoned / Expired',
-          `Invoice **${invoiceId || 'N/A'}** for Student ID **${studentId || 'N/A'}** was abandoned prior to completion.`,
-          [
-            { name: 'Customer Email', value: session.customer_email || 'N/A', inline: true },
-            { name: 'Course', value: session.metadata?.courseSelection || 'N/A', inline: true },
-          ],
-          0xf59e0b
-        );
-      } catch (expireErr) {
-        console.warn('[Webhook Expire Update Warning]:', expireErr);
+      // The conditional update makes expiry idempotent and prevents a delayed
+      // expiration event from overwriting a completed payment.
+      if (invoice.status !== 'PAID') {
+        const { error: expireError } = await supabase
+          .from('invoices')
+          .update({ status: 'ABANDONED', updated_at: new Date().toISOString() })
+          .eq('id', invoice.id)
+          .neq('status', 'PAID');
+        if (expireError) throw new Error(`Invoice expiration update failed: ${expireError.message}`);
       }
+
+      await sendDiscordWebhook(
+        '⚠️ Checkout Session Abandoned / Expired',
+        `Invoice **${invoiceId || 'N/A'}** for Student ID **${studentId || 'N/A'}** was abandoned prior to completion.`,
+        [
+          { name: 'Customer Email', value: session.customer_email || 'N/A', inline: true },
+          { name: 'Course', value: session.metadata?.courseSelection || 'N/A', inline: true },
+        ],
+        0xf59e0b
+      );
     }
 
     return NextResponse.json({ received: true });
   } catch (err: any) {
-    console.error('[Unhandled Webhook Error Boundary]:', err);
-    return NextResponse.json({ error: err?.message || 'Unhandled webhook error' }, { status: 500 });
+    console.error('[Stripe Webhook Processing Error]:', err);
+    // Stripe retries non-2xx responses. Never acknowledge failed persistence as success.
+    return NextResponse.json({ error: err?.message || 'Webhook processing failed' }, { status: 500 });
   }
 }
