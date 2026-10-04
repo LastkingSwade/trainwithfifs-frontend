@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/test_security_suite.js"
+    "test": "node scripts/test_security_suite.js",
+    "test:e2e": "node scripts/test_public_registration_e2e.js",
+    "test:all": "npm test && npm run test:e2e"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.1",
