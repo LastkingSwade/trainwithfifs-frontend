@@ -93,26 +93,63 @@ Copy once per test case. Use the exact, full commit SHA and immutable deployment
 
 ```text
 Scenario name: [known-good / pending-hold / missing-or-mismatched-SHA / missing-or-failed-CI / unavailable-check-update / other]
-Run date/time (UTC):
+Run start/end (UTC):
+Evidence capture time(s) (UTC):
 Operator:
-Vercel project ID:
-Environment/target: [isolated staging / Production read-only configuration review]
-Deployment ID:
-Full commit SHA (40 characters):
-Dispatch event type and required fields verified: [yes/no; evidence link]
+Vercel project ID (link/API evidence):
+Environment/target (config evidence): [isolated staging / Production read-only configuration review]
+Deployment ID (Vercel deployment link/API evidence):
+Full commit SHA (40 characters; GitHub/Vercel evidence):
+Dispatch event type and required fields verified: [yes/no; sanitized event/run link]
 Matching PR and exact head SHA:
-GitHub Actions run ID and URL:
+GitHub Actions run ID and URL (run summary + required-step results):
 Required CI evidence: [Node 22, install, typecheck, security tests, registration E2E, release-gate tests, build; list each pass/fail]
-Vercel check ID:
-Vercel check-run ID:
+Vercel check ID (definition read-back link):
+Vercel check-run ID (deployment-specific link/API evidence):
 Check-run result: [pending / succeeded / failed / update unavailable or unconfirmed]
 Check result confirmed in Vercel for this exact deployment ID and SHA: [yes/no; evidence link]
 Observed staging-promotion outcome: [blocked while pending/failed / successful only after check passed / not tested]
-Promotion or alias evidence and timestamp:
-Actions/Vercel evidence links (secrets redacted):
+Promotion/alias evidence link and observed timestamp(s) (UTC):
+Actions/Vercel evidence links (include IDs; secrets/personal data redacted):
 Exceptions or operator notes:
 Overall scenario: [PASS / FAIL / UNVERIFIED]
 ```
+
+## Evidence retention by verification-record field
+
+Keep one evidence folder or ticket per scenario. Retain links to authoritative GitHub/Vercel records wherever possible; use screenshots only to preserve UI state that is not otherwise exposed. Every capture should show the page/API context, UTC timestamp, and the relevant immutable ID. Avoid screenshots containing secret values; redact tokens, passwords, email addresses, and unrelated personal data. Keep raw webhook payloads out of tickets unless sanitized.
+
+| Record field | Retain this evidence | Timestamp to record |
+|---|---|---|
+| Scenario and operator | Run/ticket link; operator initials/name and purpose | Test start and end, UTC |
+| Vercel project ID and environment/target | Vercel project Settings or API response showing immutable project ID; project target configuration; for staging, evidence it is isolated from Production | Capture time, UTC; note configuration review time |
+| Deployment ID and full SHA | Vercel deployment details URL or API response showing both fields; GitHub deployment/event details showing the same deployment ID and full SHA; retain full 40-character SHA, not only an abbreviated display | Deployment created/ready time and capture time, UTC |
+| Dispatch event type and required fields | GitHub Actions run/event details or sanitized `repository_dispatch` evidence with event type, deployment ID, environment, and full SHA. Preserve an immutable run link; do not include secret headers or credentials | Event received time and workflow start time, UTC |
+| Matching PR and exact head SHA | GitHub PR URL and head SHA evidence; link the exact Actions run and show the head did not change at final recheck | CI completion and final head-recheck times, UTC |
+| Actions run ID/URL and required CI evidence | Canonical Actions run URL plus run summary; retain job/step results for Node 22, install, typecheck, security, registration E2E, release-gate tests, and build. For failures, keep the failed-step log excerpt and run conclusion | Run start/end and final evidence recheck, UTC |
+| Vercel check ID and check-run ID | Vercel check definition page/API read-back for immutable check ID and scope; deployment-specific check-run details/API response showing check-run ID, deployment ID, check ID, completed state and conclusion | Check created/updated/completed time, UTC |
+| Check result confirmed for exact deployment | Vercel deployment details link/screenshot or API response where deployment ID, full SHA, attached check-run ID and final result are visible together; Actions result is supporting evidence, not a substitute for Vercel confirmation | Vercel confirmation time, UTC |
+| Staging-promotion outcome | Before/after Vercel deployment details or API evidence for alias/domain/promotion state tied to the same deployment ID; capture pending/failed state before check completion and successful state only after pass. Label Production configuration review as read-only, not a promotion test | Each state transition and observation, UTC |
+| Promotion/alias evidence | Vercel deployment/alias page or API response identifying the deployment and alias state; include timestamp and the exact deployment ID/SHA | Immediately before and after the relevant check transition, UTC |
+| Exceptions/notes and final disposition | Actions run link and relevant short log excerpt; Vercel check/deployment evidence; note missing evidence explicitly. Do not infer results from a queued run or from a different SHA | Observation time, UTC |
+
+**Evidence integrity rule:** links should resolve to the same deployment ID and full SHA recorded in the row. A screenshot that omits those identifiers is context only, not proof of binding. If the UI truncates a SHA, pair the screenshot with an API response or GitHub page that exposes the full SHA. Record timestamps in UTC (ISO 8601 preferred, e.g. `2026-10-04T09:34:00Z`) and distinguish event time from screenshot/capture time. Keep evidence according to the repository's normal access and retention policy.
+
+## Troubleshooting: failure signal → likely cause → next action
+
+Do not continue to later steps after a fail condition. Do not bypass a pending or failed Production gate. Use only isolated staging for failure injection; Production checks below are read-only unless an explicitly approved release is being processed.
+
+| Runbook step | Fail evidence | Likely cause | Operator next action |
+|---|---|---|---|
+| 1. Project and test target | Project ID missing/does not match; staging has Production domain, traffic, variables, or shared credentials | Wrong Vercel project selected, similarly named project, or staging is not actually isolated | Stop testing. Re-identify projects by immutable IDs; establish a separate non-production staging project and remove shared Production configuration before any test. |
+| 2. Check definition | Check cannot be read back, wrong project/target, not required, or promotion-blocking action absent | Check created in wrong project, configuration saved with advisory/alias-only behavior, or insufficient access | Do not call the gate configured. Correct the check in the intended project, read it back, compare immutable ID and blocking settings, and retain new evidence. |
+| 3. Dispatch and workflow | No event/run; wrong event type; deployment ID, `production`, or full SHA missing; workflow absent from default branch or not triggered | Integration subscription/filter or payload mapping is wrong; Actions policy blocks dispatch; workflow event name/branch is wrong | Inspect sanitized event delivery and workflow triggers/policy. Correct subscription/payload or Actions policy; resend only a safe test event. Missing deployment ID means no deployment-attached result is possible, so the required check must remain pending. |
+| 4. Credentials and isolation | Vercel API returns unauthorized/forbidden; project/check lookup fails; staging call reaches Production or vice versa | Token expired/under-scoped, wrong team/project/check ID, or secrets are scoped to the wrong environment | Stop dispatches. Validate secret names and environment scope without exposing values; obtain least-privilege project access and correct IDs. Keep staging and Production secrets separate; rerun read-only validation before proceeding. |
+| 5. Exact binding/evidence | Returned deployment ID/project/target/SHA differs; no matching successful CI; CI queued/failed/stale; PR head changed; required step absent; check update unconfirmed | Wrong deployment/event pairing, stale run or wrong PR head, missing CI step, timing/race, API outage, or malformed Vercel response | Treat as failure. Inspect the exact event, deployment-by-ID response, PR head, Actions run and named steps. Rerun CI for the current exact head if appropriate; retry only bounded API retries. Do not look up “latest” deployment or claim success without Vercel confirmation. |
+| 6. Staging promotion proof | Pending/failed staging check still promotes, passing check is not bound to the deployment, failure injection hits Production, or Production settings changed | Check is not truly blocking, test isolation is broken, check-run is attached to another deployment, or staging secrets/config were mixed | Stop the test immediately and treat the gate as unverified. Preserve evidence, restore staging-only configuration, inspect Vercel target/check binding and aliases, and confirm Production configuration is unchanged. Do not attempt a Production failure test. |
+| 7. Verification record | IDs/SHA disagree, timestamps absent, screenshots omit identifiers, link is inaccessible, or required result is inferred rather than recorded | Evidence captured from different deployments, UI truncation, missing API/run link, or incomplete operator notes | Mark **UNVERIFIED**. Retrieve the authoritative GitHub/Vercel run or API record for the same IDs; add UTC event/capture timestamps and full SHA. If evidence cannot be recovered, repeat only in the approved safe environment. |
+
+For a Vercel update timeout or unavailable check API, record the Actions run and error response, use only the workflow's bounded retry behavior, and inspect the exact deployment's check state in Vercel. If Vercel still shows pending, promotion must stay blocked. Escalate the integration/API issue; never manually mark the gate successful or bypass it.
 
 ## Required CI evidence
 
