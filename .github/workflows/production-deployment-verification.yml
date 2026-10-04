@@ -1,0 +1,74 @@
+name: Verify Production Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  deployments: read
+
+jobs:
+  verify-production:
+    name: Verify Ready Production deployment for merged SHA
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Verify matching Vercel Production deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ github.sha }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          deadline=$((SECONDS + 900))
+          while (( SECONDS < deadline )); do
+            deployments=$(gh api -H "Accept: application/vnd.github+json" \
+              "/repos/${REPOSITORY}/deployments?sha=${TARGET_SHA}&environment=Production&per_page=100")
+            matched=$(jq -c --arg sha "$TARGET_SHA" '[.[] | select(.sha == $sha and .environment == "Production")] | .[0] // empty' <<< "$deployments")
+            if [[ -n "$matched" ]]; then
+              deployment_id=$(jq -r '.id' <<< "$matched")
+              statuses=$(gh api -H "Accept: application/vnd.github+json" \
+                "/repos/${REPOSITORY}/deployments/${deployment_id}/statuses?per_page=100")
+              latest=$(jq -c '.[0] // empty' <<< "$statuses")
+              state=$(jq -r '.state // "unknown"' <<< "$latest")
+              if [[ "$state" == "success" ]]; then
+                ready_at=$(jq -r '.updated_at // .created_at' <<< "$latest")
+                target_url=$(jq -r '.environment_url // .target_url // ""' <<< "$latest")
+                evidence=$(jq -n --arg repo "$REPOSITORY" --arg sha "$TARGET_SHA" \
+                  --argjson deployment "$matched" --argjson status "$latest" \
+                  '{repository:$repo, commit_sha:$sha, deployment:$deployment, latest_status:$status, verified_ready:true}')
+                printf '%s\n' "$evidence" > evidence/production-deployment.json
+                {
+                  echo "## Production deployment verification: READY"
+                  echo "- Repository: \`${REPOSITORY}\`"
+                  echo "- Merged commit SHA: \`${TARGET_SHA}\`"
+                  echo "- Deployment ID: \`${deployment_id}\`"
+                  echo "- Status: \`${state}\`"
+                  echo "- Ready at: \`${ready_at}\`"
+                  echo "- Deployment URL: ${target_url:-not provided}"
+                  echo "- Evidence artifact: \`production-deployment-evidence\`"
+                } >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+              elif [[ "$state" == "failure" || "$state" == "error" || "$state" == "inactive" ]]; then
+                echo "Production deployment ${deployment_id} ended in ${state}; refusing to pass." >&2
+                jq -n --arg repo "$REPOSITORY" --arg sha "$TARGET_SHA" \
+                  --argjson deployment "$matched" --argjson status "$latest" \
+                  '{repository:$repo, commit_sha:$sha, deployment:$deployment, latest_status:$status, verified_ready:false}' \
+                  > evidence/production-deployment.json
+                exit 1
+              fi
+            fi
+            sleep 30
+          done
+          echo "No successful Production deployment for ${TARGET_SHA} appeared within 15 minutes." >&2
+          exit 1
+      - name: Upload deployment evidence
+        if: always() && hashFiles('evidence/production-deployment.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-deployment-evidence
+          path: evidence/production-deployment.json
+          if-no-files-found: error
