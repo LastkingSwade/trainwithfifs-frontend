@@ -1,138 +1,179 @@
-name: Verify Production Deployment
+name: Verify Vercel Production Deployment
 
 on:
-  push:
-    branches:
-      - main
+  repository_dispatch:
+    types:
+      - vercel.deployment.ready
 
 permissions:
   contents: read
-  deployments: read
-  pull-requests: read
   actions: read
-  statuses: write
+  pull-requests: read
+
+concurrency:
+  group: vercel-release-${{ github.event.client_payload.id || github.run_id }}
+  cancel-in-progress: false
 
 jobs:
-  verify-production:
-    name: Verify Ready Production deployment for merged SHA
+  verify-production-deployment:
+    name: Release verification
+    # Explicitly ignore known preview events; missing environment metadata is a failure path.
+    if: github.event.client_payload.environment == 'production' || !github.event.client_payload.environment
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     steps:
-      - name: Verify exact merged SHA, PR CI, and Vercel Production deployment
+      - name: Validate evidence and report the deployment check
         env:
           GH_TOKEN: ${{ github.token }}
-          TARGET_SHA: ${{ github.sha }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_CHECK_ID: ${{ secrets.VERCEL_CHECK_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
           REPOSITORY: ${{ github.repository }}
+          DEPLOYMENT_ID: ${{ github.event.client_payload.id }}
+          EVENT_SHA: ${{ github.event.client_payload.git.sha }}
+          EVENT_ENVIRONMENT: ${{ github.event.client_payload.environment }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RUN_ID: ${{ github.run_id }}
         run: |
-          set -euo pipefail
-          fail_status() {
-            local description="$1"
-            gh api --method POST "/repos/${REPOSITORY}/statuses/${TARGET_SHA}" \
-              -f state=failure -f context=release/vercel-production-ready \
-              -f description="$description" >/dev/null || true
-            echo "$description" >&2
-            exit 1
+          set -Eeuo pipefail
+
+          die() { echo "RELEASE_GATE_ERROR: $*" >&2; exit 1; }
+          [[ -n "$VERCEL_TOKEN" ]] || die "VERCEL_TOKEN secret is missing; deployment check cannot be updated and remains blocking."
+          [[ -n "$VERCEL_CHECK_ID" ]] || die "VERCEL_CHECK_ID secret is missing; deployment check cannot be created."
+          [[ -n "$VERCEL_PROJECT_ID" ]] || die "VERCEL_PROJECT_ID secret is missing; project identity cannot be verified."
+          [[ -n "$DEPLOYMENT_ID" ]] || die "Vercel dispatch omitted deployment ID; no deployment-specific check can be attached."
+
+          VERCEL_QUERY=""
+          if [[ -n "${VERCEL_TEAM_ID:-}" ]]; then VERCEL_QUERY="?teamId=${VERCEL_TEAM_ID}"; fi
+          vercel_api() {
+            local method="$1" path="$2" data="${3:-}"
+            if [[ -n "$data" ]]; then
+              curl --fail-with-body --silent --show-error --retry 2 --retry-all-errors --retry-delay 2 \
+                -X "$method" "https://api.vercel.com${path}${VERCEL_QUERY}" \
+                -H "Authorization: Bearer ${VERCEL_TOKEN}" -H 'Content-Type: application/json' --data "$data"
+            else
+              curl --fail-with-body --silent --show-error --retry 2 --retry-all-errors --retry-delay 2 \
+                -X "$method" "https://api.vercel.com${path}${VERCEL_QUERY}" \
+                -H "Authorization: Bearer ${VERCEL_TOKEN}" -H 'Content-Type: application/json'
+            fi
+          }
+          gh_api() {
+            gh api -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "$1"
           }
 
-          # Resolve the merged PR from this exact main-branch commit, and use its immutable head SHA.
-          prs=$(gh api -H "Accept: application/vnd.github+json" \
-            "/repos/${REPOSITORY}/commits/${TARGET_SHA}/pulls?per_page=100")
-          pr=$(jq -c --arg base main '[.[] | select(.base.ref == $base and .merged_at != null)] | sort_by(.merged_at) | last // empty' <<< "$prs")
-          [[ -n "$pr" ]] || fail_status "No merged PR could be matched to this main commit"
-          PR_NUMBER=$(jq -r '.number' <<< "$pr")
-          PR_HEAD_SHA=$(jq -r '.head.sha' <<< "$pr")
-          MERGE_SHA=$(jq -r '.merge_commit_sha // ""' <<< "$pr")
-          [[ "$MERGE_SHA" == "$TARGET_SHA" ]] || fail_status "Merged PR SHA does not equal this main commit"
-          [[ "$PR_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]] || fail_status "Merged PR head SHA was unavailable"
+          # Create a run on this exact deployment before validating so every later failure
+          # can be reported to Vercel. If creation itself fails, the configured required check
+          # remains pending and the GitHub job fails visibly.
+          CHECK_CREATE=$(jq -n --arg checkId "$VERCEL_CHECK_ID" '{checkId:$checkId}')
+          if ! CHECK_RUN=$(vercel_api POST "/v2/deployments/${DEPLOYMENT_ID}/check-runs" "$CHECK_CREATE"); then
+            die "Could not create the deployment-specific Vercel check run; promotion must remain blocked."
+          fi
+          CHECK_RUN_ID=$(jq -r '.id // empty' <<< "$CHECK_RUN")
+          [[ -n "$CHECK_RUN_ID" ]] || die "Vercel did not return a check-run ID; check result cannot be reported."
 
-          # Require the newest CI run for this exact PR head to pass, including the Node 22 guard.
-          ci_deadline=$((SECONDS + 900))
-          ci_run=''
-          while (( SECONDS < ci_deadline )); do
-            runs=$(gh api "/repos/${REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${PR_HEAD_SHA}&event=pull_request&per_page=100")
-            ci_run=$(jq -c --arg sha "$PR_HEAD_SHA" '[.workflow_runs[] | select(.head_sha == $sha and .event == "pull_request")] | sort_by(.created_at) | last // empty' <<< "$runs")
-            if [[ -n "$ci_run" ]]; then
-              run_id=$(jq -r '.id' <<< "$ci_run")
-              run_status=$(jq -r '.status' <<< "$ci_run")
-              conclusion=$(jq -r '.conclusion // ""' <<< "$ci_run")
-              if [[ "$run_status" == "completed" ]]; then
-                [[ "$conclusion" == "success" ]] || fail_status "PR CI did not pass for merged PR head ${PR_HEAD_SHA}"
-                jobs=$(gh api "/repos/${REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
-                guard=$(jq -r '[.jobs[].steps[] | select(.name == "Verify Node.js 22")][0].conclusion // ""' <<< "$jobs")
-                [[ "$guard" == "success" ]] || fail_status "Successful PR CI run did not verify Node.js 22 for ${PR_HEAD_SHA}"
+          CHECK_FINISHED=0
+          finish_check() {
+            local conclusion="$1" title="$2" summary="$3"
+            [[ "$CHECK_FINISHED" == 0 ]] || return 0
+            local now output body response
+            now=$(date +%s%3N)
+            output=$(jq -n --arg title "$title" --arg summary "$summary" '{title:$title,summary:$summary}')
+            body=$(jq -n --arg conclusion "$conclusion" --arg text "$summary" \
+              --arg url "$WORKFLOW_URL" --arg externalId "$RUN_ID" --argjson completedAt "$now" --argjson output "$output" \
+              '{status:"completed",conclusion:$conclusion,conclusionText:$text,externalUrl:$url,externalId:$externalId,completedAt:$completedAt,output:$output}')
+            if response=$(vercel_api PATCH "/v2/deployments/${DEPLOYMENT_ID}/check-runs/${CHECK_RUN_ID}" "$body"); then
+              CHECK_FINISHED=1
+              echo "## Vercel deployment check: ${conclusion}" >> "$GITHUB_STEP_SUMMARY"
+              echo "- Deployment ID: \`${DEPLOYMENT_ID}\`" >> "$GITHUB_STEP_SUMMARY"
+              echo "- Deployment SHA: \`${EVENT_SHA:-missing}\`" >> "$GITHUB_STEP_SUMMARY"
+              echo "- Vercel check-run ID: \`${CHECK_RUN_ID}\`" >> "$GITHUB_STEP_SUMMARY"
+              echo "- Result: ${summary}" >> "$GITHUB_STEP_SUMMARY"
+              echo "$response" | jq '{id,deploymentId,checkId,status,conclusion}' >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "RELEASE_GATE_ERROR: Unable to confirm Vercel check update; the Vercel check may remain pending. Do not promote manually." >&2
+              echo "## Vercel deployment check update unavailable" >> "$GITHUB_STEP_SUMMARY"
+              echo "The API update was not confirmed. Keep Production blocked and investigate deployment \`${DEPLOYMENT_ID}\`, check run \`${CHECK_RUN_ID}\`." >> "$GITHUB_STEP_SUMMARY"
+              return 1
+            fi
+          }
+          fail() {
+            local reason="$1"
+            echo "RELEASE_GATE_ERROR: ${reason}" >&2
+            finish_check failed "Release verification failed" "$reason" || true
+            exit 1
+          }
+          trap 'rc=$?; if [[ "$rc" != 0 && "$CHECK_FINISHED" == 0 ]]; then finish_check failed "Release verification workflow failed" "Unexpected workflow error (exit ${rc}); inspect the linked GitHub Actions run. This check must not be treated as passed." || true; fi' EXIT
 
-                # Re-read the PR head at the last moment before accepting this CI evidence.
-                live_head=$(gh api "/repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')
-                [[ "$live_head" == "$PR_HEAD_SHA" ]] || fail_status "Merged PR head changed after CI: expected ${PR_HEAD_SHA}, current ${live_head}"
+          # Confirm Vercel accepted the run and that it belongs to the deployment in the event.
+          [[ "$(jq -r '.deploymentId // empty' <<< "$CHECK_RUN")" == "$DEPLOYMENT_ID" ]] || fail "Vercel check run is not attached to the dispatch deployment."
+          [[ "$(jq -r '.checkId // empty' <<< "$CHECK_RUN")" == "$VERCEL_CHECK_ID" ]] || fail "Vercel returned a different check definition than configured."
 
-                # Confirm the same Actions run remains completed and successful for that exact SHA.
-                confirmed_run=$(gh api "/repos/${REPOSITORY}/actions/runs/${run_id}")
-                [[ "$(jq -r '.head_sha' <<< "$confirmed_run")" == "$PR_HEAD_SHA" ]] || fail_status "CI run head SHA no longer matches merged PR head"
-                [[ "$(jq -r '.status' <<< "$confirmed_run")" == "completed" && "$(jq -r '.conclusion' <<< "$confirmed_run")" == "success" ]] || fail_status "CI run is no longer successful for merged PR head"
+          [[ "$EVENT_ENVIRONMENT" == "production" ]] || fail "Dispatch environment is missing or is not production."
+          [[ "$EVENT_SHA" =~ ^[0-9a-fA-F]{40}$ ]] || fail "Vercel dispatch SHA is missing or malformed."
+
+          if ! DEPLOYMENT=$(vercel_api GET "/v13/deployments/${DEPLOYMENT_ID}?withGitRepoInfo=true"); then
+            fail "Unable to retrieve the exact Vercel deployment record."
+          fi
+          DEPLOYMENT_SHA=$(jq -r '.gitSource.sha // .meta.githubCommitSha // empty' <<< "$DEPLOYMENT")
+          DEPLOYMENT_TARGET=$(jq -r '.target // empty' <<< "$DEPLOYMENT")
+          DEPLOYMENT_PROJECT=$(jq -r '.projectId // empty' <<< "$DEPLOYMENT")
+          [[ "$DEPLOYMENT_SHA" == "$EVENT_SHA" ]] || fail "Dispatch SHA does not match Vercel deployment git SHA."
+          [[ "$DEPLOYMENT_TARGET" == "production" ]] || fail "The deployment record is not a Production target."
+          DEPLOYMENT_READY_STATE=$(jq -r '.readyState // .state // empty' <<< "$DEPLOYMENT")
+          [[ "$DEPLOYMENT_READY_STATE" == "READY" ]] || fail "Vercel deployment is not in READY state."
+          [[ "$DEPLOYMENT_PROJECT" == "$VERCEL_PROJECT_ID" ]] || fail "Deployment belongs to a different Vercel project."
+
+          # The target must be the exact merge commit for a PR merged into main.
+          if ! PULLS=$(gh_api "/repos/${REPOSITORY}/commits/${EVENT_SHA}/pulls?per_page=100"); then
+            fail "Could not identify the merged PR associated with the deployment SHA."
+          fi
+          PR=$(jq -c --arg sha "$EVENT_SHA" '[.[] | select(.base.ref == "main" and .merged_at != null and .merge_commit_sha == $sha)] | sort_by(.merged_at) | last // empty' <<< "$PULLS")
+          [[ -n "$PR" ]] || fail "Deployment SHA is not the exact merge commit of a merged PR into main."
+          PR_NUMBER=$(jq -r '.number' <<< "$PR")
+          PR_HEAD_SHA=$(jq -r '.head.sha // empty' <<< "$PR")
+          [[ "$PR_HEAD_SHA" =~ ^[0-9a-fA-F]{40}$ ]] || fail "Merged PR head SHA is unavailable."
+
+          # Wait a bounded period for CI, but accept only the newest run for this exact PR head.
+          CI_DEADLINE=$((SECONDS + 900))
+          CI_RUN=''
+          while (( SECONDS < CI_DEADLINE )); do
+            if ! RUNS=$(gh_api "/repos/${REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${PR_HEAD_SHA}&event=pull_request&per_page=100"); then
+              fail "GitHub Actions CI run lookup failed."
+            fi
+            CI_RUN=$(jq -c --arg sha "$PR_HEAD_SHA" '[.workflow_runs[] | select(.head_sha == $sha and .event == "pull_request")] | sort_by(.created_at) | last // empty' <<< "$RUNS")
+            if [[ -n "$CI_RUN" ]]; then
+              CI_RUN_ID=$(jq -r '.id' <<< "$CI_RUN")
+              if [[ "$(jq -r '.status' <<< "$CI_RUN")" == "completed" ]]; then
+                [[ "$(jq -r '.conclusion // empty' <<< "$CI_RUN")" == "success" ]] || fail "Newest CI run for exact PR head ${PR_HEAD_SHA} did not pass."
                 break
               fi
             fi
             sleep 30
           done
-          [[ -n "$ci_run" && "$(jq -r '.status' <<< "$ci_run")" == "completed" && "$(jq -r '.conclusion' <<< "$ci_run")" == "success" ]] || fail_status "No successful Node.js 22 CI run found for merged PR head ${PR_HEAD_SHA} within 15 minutes"
+          [[ -n "$CI_RUN" && "$(jq -r '.status' <<< "$CI_RUN")" == "completed" && "$(jq -r '.conclusion // empty' <<< "$CI_RUN")" == "success" ]] || fail "No successful CI run for exact PR head within 15 minutes."
 
-          CI_RUN_ID=$(jq -r '.id' <<< "$ci_run")
-          CI_RUN_URL=$(jq -r '.html_url' <<< "$ci_run")
+          CI_RUN_ID=$(jq -r '.id' <<< "$CI_RUN")
+          CI_RUN_URL=$(jq -r '.html_url' <<< "$CI_RUN")
+          if ! JOBS=$(gh_api "/repos/${REPOSITORY}/actions/runs/${CI_RUN_ID}/jobs?per_page=100"); then
+            fail "Could not retrieve successful CI job and step evidence."
+          fi
+          REQUIRED_STEPS='["Verify PR head is current","Verify Node.js 22","Install dependencies","Run typecheck","Run tests","Run build"]'
+          MISSING=$(jq -r --argjson required "$REQUIRED_STEPS" '[.jobs[].steps[] | select(.conclusion == "success") | .name] as $passed | [$required[] as $step | select(($passed | index($step)) == null) | $step] | join(", ")' <<< "$JOBS")
+          [[ -z "$MISSING" ]] || fail "Required CI steps are missing or not successful: ${MISSING}."
+          JOB_SHA=$(jq -r '.head_sha // empty' <<< "$CI_RUN")
+          [[ "$JOB_SHA" == "$PR_HEAD_SHA" ]] || fail "CI workflow run head SHA does not equal the associated PR head SHA."
 
-          # Vercel deployments can arrive after the push. Poll exact-SHA Production records for up to 15 minutes.
-          deploy_deadline=$((SECONDS + 900))
-          selected=''
-          selected_status=''
-          while (( SECONDS < deploy_deadline )); do
-            deployments=$(gh api "/repos/${REPOSITORY}/deployments?sha=${TARGET_SHA}&environment=Production&per_page=100")
-            while IFS= read -r deployment; do
-              [[ -n "$deployment" ]] || continue
-              [[ "$(jq -r '.sha' <<< "$deployment")" == "$TARGET_SHA" ]] || continue
-              [[ "$(jq -r '.environment' <<< "$deployment")" == "Production" ]] || continue
-              [[ "$(jq -r '.creator.login // ""' <<< "$deployment")" == "vercel[bot]" ]] || continue
-              dep_id=$(jq -r '.id' <<< "$deployment")
-              statuses=$(gh api "/repos/${REPOSITORY}/deployments/${dep_id}/statuses?per_page=100")
-              latest=$(jq -c '.[0] // empty' <<< "$statuses")
-              [[ -n "$latest" ]] || continue
-              if [[ "$(jq -r '.state // ""' <<< "$latest")" == "success" && "$(jq -r '.environment // ""' <<< "$latest")" == "Production" ]]; then
-                selected="$deployment"
-                selected_status="$latest"
-                break
-              fi
-            done < <(jq -c 'sort_by(.created_at) | reverse | .[]' <<< "$deployments")
-            [[ -n "$selected" ]] && break
-            sleep 30
-          done
-          [[ -n "$selected" ]] || fail_status "No Ready Vercel Production deployment found for exact merged SHA ${TARGET_SHA} within 15 minutes"
+          # Recheck live PR head and exact Actions run immediately before accepting evidence.
+          if ! LIVE_PR=$(gh_api "/repos/${REPOSITORY}/pulls/${PR_NUMBER}"); then
+            fail "Could not recheck the live PR head."
+          fi
+          [[ "$(jq -r '.head.sha // empty' <<< "$LIVE_PR")" == "$PR_HEAD_SHA" ]] || fail "PR head changed since the successful CI evidence was produced."
+          if ! CONFIRMED_RUN=$(gh_api "/repos/${REPOSITORY}/actions/runs/${CI_RUN_ID}"); then
+            fail "Could not recheck the exact CI run immediately before accepting it."
+          fi
+          [[ "$(jq -r '.head_sha // empty' <<< "$CONFIRMED_RUN")" == "$PR_HEAD_SHA" && "$(jq -r '.status // empty' <<< "$CONFIRMED_RUN")" == "completed" && "$(jq -r '.conclusion // empty' <<< "$CONFIRMED_RUN")" == "success" ]] || fail "CI run changed or no longer passes for the exact PR head."
 
-          DEPLOYMENT_ID=$(jq -r '.id' <<< "$selected")
-          DEPLOYMENT_URL=$(jq -r '.environment_url // .target_url // ""' <<< "$selected_status")
-          DEPLOYED_AT=$(jq -r '.updated_at // .created_at // "unknown"' <<< "$selected_status")
-          DEPLOYMENT_EVIDENCE=$(jq -n \
-            --arg repository "$REPOSITORY" --arg merge_sha "$TARGET_SHA" \
-            --arg pr_number "$PR_NUMBER" --arg pr_head_sha "$PR_HEAD_SHA" \
-            --arg ci_run_id "$CI_RUN_ID" --arg ci_run_url "$CI_RUN_URL" \
-            --arg deployment_url "$DEPLOYMENT_URL" --arg deployed_at "$DEPLOYED_AT" \
-            --argjson deployment "$selected" --argjson status "$selected_status" \
-            '{verified_ready:true,repository:$repository,merged_sha:$merge_sha,pr_number:$pr_number,pr_head_sha:$pr_head_sha,ci_run_id:$ci_run_id,ci_run_url:$ci_run_url,deployment:$deployment,latest_status:$status,deployment_url:$deployment_url,ready_at:$deployed_at}')
-
-          # Durable evidence on the merged commit plus a readable Actions run summary.
-          gh api --method POST "/repos/${REPOSITORY}/statuses/${TARGET_SHA}" \
-            -f state=success -f context=release/vercel-production-ready \
-            -f description="Ready Vercel Production deployment verified for exact SHA" \
-            -f target_url="$DEPLOYMENT_URL" >/dev/null
-          {
-            echo "## Production deployment verification: READY"
-            echo "- Merged commit SHA: \`${TARGET_SHA}\`"
-            echo "- Merged PR: #${PR_NUMBER} (head \`${PR_HEAD_SHA}\`)"
-            echo "- PR CI run: [#${CI_RUN_ID}](${CI_RUN_URL}) (Node.js 22 guard passed)"
-            echo "- Vercel Production deployment ID: \`${DEPLOYMENT_ID}\`"
-            echo "- Deployment status: \`success\`"
-            echo "- Ready at: \`${DEPLOYED_AT}\`"
-            echo "- URL: ${DEPLOYMENT_URL:-not provided}"
-            echo "- Commit status: \`release/vercel-production-ready = success\`"
-            echo
-            echo '```json'
-            echo "$DEPLOYMENT_EVIDENCE" | jq .
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          SUMMARY="Verified deployment SHA ${EVENT_SHA}; merged PR #${PR_NUMBER} head ${PR_HEAD_SHA}; successful CI run ${CI_RUN_ID} (${CI_RUN_URL}); required Node 22, install, typecheck, security tests, and production build steps passed. Dedicated E2E evidence is excluded until CI runs a dedicated E2E command."
+          finish_check succeeded "Release evidence verified" "$SUMMARY" || die "Could not confirm success update to the Vercel check; do not promote."
+          trap - EXIT
