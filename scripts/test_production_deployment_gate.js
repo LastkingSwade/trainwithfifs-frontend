@@ -1,6 +1,6 @@
 'use strict';
 const assert = require('node:assert/strict');
-const { evaluateDeployment } = require('./production_deployment_gate');
+const { evaluateDeployment, evaluateRequiredCheck } = require('./production_deployment_gate');
 process.env.VERCEL_PROJECT_ID = 'prj_test_123';
 const sha = 'a'.repeat(40);
 const goodEvent = { client_payload: { id: 'dpl_expected_123', environment: 'production', git: { sha } } };
@@ -41,4 +41,15 @@ expectBlocked('deployment not ready', goodEvent,
   { ...goodDeployment, readyState: 'BUILDING' }, goodEvent.client_payload.id,
   'deployment ready state', 'reach READY');
 
-console.log('Production deployment gate tests passed (8 assertions groups, including ID/SHA/environment mismatch fail-closed evidence).');
+function expectCheckBlocked(name, checks, checkId, expectedError) {
+  const result = evaluateRequiredCheck({ checks, checkId });
+  assert.equal(result.passed, false, `${name} must block the gate`);
+  assert.ok(result.errors.some(message => message.includes(expectedError)), `${name} must include actionable repair guidance`);
+  assert.ok(result.evidence.some(row => row.result === 'FAIL'), `${name} must include failure evidence`);
+}
+const requiredCheck = { id: 'icfg_fifs_release', blocks: 'deployment-promotion', targets: ['production'] };
+assert.equal(evaluateRequiredCheck({ checks: [requiredCheck], checkId: requiredCheck.id }).passed, true, 'configured Production promotion check must pass');
+expectCheckBlocked('missing configured check', [], requiredCheck.id, 'Project Settings → Deployment Checks');
+expectCheckBlocked('wrong blocking stage', [{ ...requiredCheck, blocks: 'none' }], requiredCheck.id, 'Deployment Promotion');
+expectCheckBlocked('missing Production target', [{ ...requiredCheck, targets: ['preview'] }], requiredCheck.id, 'enable the Production target');
+console.log('Production deployment gate tests passed (8 deployment identity groups and 4 required-check configuration cases).');

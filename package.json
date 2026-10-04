@@ -9,8 +9,9 @@
     "typecheck": "tsc --noEmit",
     "test": "node scripts/test_security_suite.js",
     "test:e2e": "node scripts/test_public_registration_e2e.js",
-    "test:all": "npm test && npm run test:e2e && npm run test:deployment-gate",
-    "test:deployment-gate": "node scripts/test_production_deployment_gate.js"
+    "test:all": "npm test && npm run test:e2e && npm run test:deployment-gate && npm run test:workflow-dependency",
+    "test:deployment-gate": "node scripts/test_production_deployment_gate.js",
+    "test:workflow-dependency": "node scripts/test_production_workflow_dependency.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.1",

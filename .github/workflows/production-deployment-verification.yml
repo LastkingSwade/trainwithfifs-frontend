@@ -26,6 +26,8 @@ jobs:
           node-version: 22
       - name: Test deployment ID, commit SHA, and environment rejection
         run: node scripts/test_production_deployment_gate.js
+      - name: Test Production promotion dependency contract
+        run: node scripts/test_production_workflow_dependency.js
 
   verify-deployment:
     name: Verify exact Vercel deployment before promotion
