@@ -22,6 +22,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Check out release-gate validators
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Validate evidence and report the deployment check
         env:
           GH_TOKEN: ${{ github.token }}
@@ -83,6 +91,10 @@ jobs:
               --arg url "$WORKFLOW_URL" --arg externalId "$RUN_ID" --argjson completedAt "$now" --argjson output "$output" \
               '{status:"completed",conclusion:$conclusion,conclusionText:$text,externalUrl:$url,externalId:$externalId,completedAt:$completedAt,output:$output}')
             if response=$(vercel_api PATCH "/v2/deployments/${DEPLOYMENT_ID}/check-runs/${CHECK_RUN_ID}" "$body"); then
+              if ! node scripts/release_gate_validation.js check-response "$response" "$CHECK_RUN_ID" "$DEPLOYMENT_ID" "$VERCEL_CHECK_ID" "$conclusion"; then
+                echo "RELEASE_GATE_ERROR: Vercel API response did not confirm the exact completed check result; keep promotion blocked." >&2
+                return 1
+              fi
               CHECK_FINISHED=1
               echo "## Vercel deployment check: ${conclusion}" >> "$GITHUB_STEP_SUMMARY"
               echo "- Deployment ID: \`${DEPLOYMENT_ID}\`" >> "$GITHUB_STEP_SUMMARY"
@@ -158,11 +170,11 @@ jobs:
           if ! JOBS=$(gh_api "/repos/${REPOSITORY}/actions/runs/${CI_RUN_ID}/jobs?per_page=100"); then
             fail "Could not retrieve successful CI job and step evidence."
           fi
-          REQUIRED_STEPS='["Verify PR head is current","Verify Node.js 22","Install dependencies","Run typecheck","Run tests","Run build"]'
-          MISSING=$(jq -r --argjson required "$REQUIRED_STEPS" '[.jobs[].steps[] | select(.conclusion == "success") | .name] as $passed | [$required[] as $step | select(($passed | index($step)) == null) | $step] | join(", ")' <<< "$JOBS")
-          [[ -z "$MISSING" ]] || fail "Required CI steps are missing or not successful: ${MISSING}."
-          JOB_SHA=$(jq -r '.head_sha // empty' <<< "$CI_RUN")
-          [[ "$JOB_SHA" == "$PR_HEAD_SHA" ]] || fail "CI workflow run head SHA does not equal the associated PR head SHA."
+          EVIDENCE=$(jq -n --arg eventSha "$EVENT_SHA" --argjson deployment "$DEPLOYMENT" --argjson ciRun "$CI_RUN" --argjson ciJobs "$JOBS" --arg expectedProjectId "$VERCEL_PROJECT_ID" --arg expectedPrHeadSha "$PR_HEAD_SHA" \
+            '{eventSha:$eventSha,deployment:$deployment,ciRun:$ciRun,ciJobs:$ciJobs,expectedProjectId:$expectedProjectId,expectedPrHeadSha:$expectedPrHeadSha}')
+          if ! EVIDENCE_ERROR=$(printf '%s' "$EVIDENCE" | node scripts/release_gate_validation.js 2>&1); then
+            fail "$EVIDENCE_ERROR"
+          fi
 
           # Recheck live PR head and exact Actions run immediately before accepting evidence.
           if ! LIVE_PR=$(gh_api "/repos/${REPOSITORY}/pulls/${PR_NUMBER}"); then
@@ -174,6 +186,6 @@ jobs:
           fi
           [[ "$(jq -r '.head_sha // empty' <<< "$CONFIRMED_RUN")" == "$PR_HEAD_SHA" && "$(jq -r '.status // empty' <<< "$CONFIRMED_RUN")" == "completed" && "$(jq -r '.conclusion // empty' <<< "$CONFIRMED_RUN")" == "success" ]] || fail "CI run changed or no longer passes for the exact PR head."
 
-          SUMMARY="Verified deployment SHA ${EVENT_SHA}; merged PR #${PR_NUMBER} head ${PR_HEAD_SHA}; successful CI run ${CI_RUN_ID} (${CI_RUN_URL}); required Node 22, install, typecheck, security tests, and production build steps passed. Dedicated E2E evidence is excluded until CI runs a dedicated E2E command."
+          SUMMARY="Verified deployment SHA ${EVENT_SHA}; merged PR #${PR_NUMBER} head ${PR_HEAD_SHA}; successful CI run ${CI_RUN_ID} (${CI_RUN_URL}); required Node 22, install, typecheck, security tests, registration E2E, release-gate tests, and production build steps passed."
           finish_check succeeded "Release evidence verified" "$SUMMARY" || die "Could not confirm success update to the Vercel check; do not promote."
           trap - EXIT

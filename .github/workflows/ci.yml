@@ -54,5 +54,11 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Run registration E2E
+        run: npm run test:e2e
+
+      - name: Run release-gate tests
+        run: npm run test:release-gate
+
       - name: Run build
         run: npm run build
