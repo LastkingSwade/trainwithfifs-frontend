@@ -60,6 +60,15 @@ jobs:
                 jobs=$(gh api "/repos/${REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100")
                 guard=$(jq -r '[.jobs[].steps[] | select(.name == "Verify Node.js 22")][0].conclusion // ""' <<< "$jobs")
                 [[ "$guard" == "success" ]] || fail_status "Successful PR CI run did not verify Node.js 22 for ${PR_HEAD_SHA}"
+
+                # Re-read the PR head at the last moment before accepting this CI evidence.
+                live_head=$(gh api "/repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')
+                [[ "$live_head" == "$PR_HEAD_SHA" ]] || fail_status "Merged PR head changed after CI: expected ${PR_HEAD_SHA}, current ${live_head}"
+
+                # Confirm the same Actions run remains completed and successful for that exact SHA.
+                confirmed_run=$(gh api "/repos/${REPOSITORY}/actions/runs/${run_id}")
+                [[ "$(jq -r '.head_sha' <<< "$confirmed_run")" == "$PR_HEAD_SHA" ]] || fail_status "CI run head SHA no longer matches merged PR head"
+                [[ "$(jq -r '.status' <<< "$confirmed_run")" == "completed" && "$(jq -r '.conclusion' <<< "$confirmed_run")" == "success" ]] || fail_status "CI run is no longer successful for merged PR head"
                 break
               fi
             fi
