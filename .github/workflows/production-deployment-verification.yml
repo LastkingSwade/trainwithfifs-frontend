@@ -1,0 +1,52 @@
+name: Production Deployment Verification
+
+on:
+  pull_request:
+  repository_dispatch:
+    types: [vercel.deployment.ready]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deployment-check-${{ github.event.client_payload.id || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  gate-tests:
+    name: Test deployment identity and fail-closed evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout workflow code
+        uses: actions/checkout@v4
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test deployment ID, commit SHA, and environment rejection
+        run: node scripts/test_production_deployment_gate.js
+
+  verify-deployment:
+    name: Verify exact Vercel deployment before promotion
+    if: github.event_name == 'repository_dispatch'
+    needs: gate-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout default branch workflow code
+        uses: actions/checkout@v4
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify exact Vercel deployment and record check result
+        env:
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_CHECK_ID: ${{ secrets.VERCEL_CHECK_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+        run: node scripts/production_deployment_gate.js
