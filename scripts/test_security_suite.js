@@ -17,6 +17,14 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-test-secret-key-32chars!';
 process.env.CHAT_HMAC_SECRET = 'chat-hmac-test-secret-key-32chars-long!';
 process.env.ADMIN_NOTIFICATION_EMAIL = 'carpetcare85@gmail.com';
 process.env.CRON_SECRET = 'cron-secret-12345';
+// Never use real outbound credentials; global fetch is stubbed below as well.
+delete process.env.DISCORD_WEBHOOK_URL;
+delete process.env.STRIPE_SECRET_KEY;
+delete process.env.STRIPE_WEBHOOK_SECRET;
+process.env.RESEND_API_KEY = 're_test_dummy_key_not_real';
+process.env.NEXT_PUBLIC_SITE_URL = 'https://trainwithfifs.example';
+const { installFetchStub } = require('./lib/ts-loader');
+const fetchCalls = installFetchStub();
 
 // Mock Next Server
 const mockNextServer = {
@@ -221,6 +229,11 @@ const mockSupabase = {
             error: null
           };
         },
+        generateLink: async (params) => ({
+          data: { properties: { action_link: 'https://auth.example.test/recovery?email=' + encodeURIComponent(params.email) } },
+          error: null
+        }),
+        deleteUser: async (uid) => ({ data: null, error: null }),
         updateUserById: async (uid, params) => {
           return { data: { user: { id: uid, ...params } }, error: null };
         }
@@ -319,68 +332,9 @@ Module.prototype.require = function (id) {
   return originalRequire.apply(this, arguments);
 };
 
-// Portable route loader supporting TypeScript / Babel without @babel/preset-env
+// Load the route through the shared TypeScript loader (resolves @/ imports to src/)
 const routeTsPath = path.resolve(__dirname, '../src/app/api/fifs/route.ts');
-const routeTsCode = fs.readFileSync(routeTsPath, 'utf-8');
-
-let compiledJs = '';
-let transpileSuccess = false;
-
-// 1. Try TypeScript compiler first if installed
-try {
-  const ts = require('typescript');
-  compiledJs = ts.transpileModule(routeTsCode, {
-    compilerOptions: {
-      module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2022,
-      esModuleInterop: true
-    }
-  }).outputText;
-  transpileSuccess = true;
-} catch (_tsErr) {}
-
-// 2. Try Babel if TypeScript is unavailable (WITHOUT requiring @babel/preset-env)
-if (!transpileSuccess) {
-  try {
-    let babel;
-    try { babel = require('@babel/core'); } catch {
-      try { babel = require('/usr/share/nodejs/@babel/core'); } catch {}
-    }
-    if (babel) {
-      let tsPreset = '@babel/preset-typescript';
-      try {
-        if (fs.existsSync('/usr/share/nodejs/@babel/preset-typescript')) {
-          tsPreset = '/usr/share/nodejs/@babel/preset-typescript';
-        }
-      } catch (_pErr) {}
-
-      // Notice: NO @babel/preset-env is required! Node.js 18+ executes modern ES2022 natively.
-      let cjsPlugin = '@babel/plugin-transform-modules-commonjs';
-      try {
-        if (fs.existsSync('/usr/share/nodejs/@babel/plugin-transform-modules-commonjs')) {
-          cjsPlugin = '/usr/share/nodejs/@babel/plugin-transform-modules-commonjs';
-        }
-      } catch (_cErr) {}
-
-      const compiled = babel.transformSync(routeTsCode, {
-        filename: 'route.ts',
-        presets: [tsPreset],
-        plugins: [cjsPlugin]
-      });
-      compiledJs = compiled.code;
-      transpileSuccess = true;
-    }
-  } catch (_babelErr) {}
-}
-
-if (!transpileSuccess) {
-  throw new Error('Unable to transpile route.ts: Please ensure typescript or @babel/preset-typescript is installed.');
-}
-
-const routeModule = { exports: {} };
-const fn = new Function('module', 'exports', 'require', '__dirname', '__filename', compiledJs);
-fn(routeModule, routeModule.exports, require, path.dirname(routeTsPath), routeTsPath);
-const POST = routeModule.exports.POST;
+const POST = require(routeTsPath).POST;
 
 // Test runner helpers
 let passedTests = 0;

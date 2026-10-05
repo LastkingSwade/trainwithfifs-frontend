@@ -5,6 +5,8 @@ const vm = require('node:vm');
 const ts = require('typescript');
 const Module = require('node:module');
 const path = require('node:path');
+// Resolves the "@/..." alias and .ts files for modules the route imports (src/Lib/server/*).
+require('./lib/ts-loader');
 
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';

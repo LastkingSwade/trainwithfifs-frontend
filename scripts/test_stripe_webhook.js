@@ -12,10 +12,14 @@ const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.Modu
 function makeHarness({ event, invoices, students = [], failUpdateTable = null }) {
   let eventToReturn = event;
   const tables = { invoices: structuredClone(invoices), students: structuredClone(students) };
+  const alerts = [];
   const mockRequire = (id) => {
     if (id === 'next/server') return { NextResponse: { json: (body, init = {}) => ({ status: init.status || 200, body }) } };
     if (id === 'stripe') return { __esModule: true, default: class Stripe { constructor() { this.webhooks = { constructEvent: () => eventToReturn }; } } };
     if (id === '@supabase/supabase-js') return { createClient: () => ({ from: (table) => makeQuery(table) }) };
+    // Shared server modules used by the webhook: service-role client and Discord alerts (recorded, never sent).
+    if (id === '@/Lib/server/supabase-admin') return { getPrivilegedClient: () => ({ from: (table) => makeQuery(table) }) };
+    if (id === '@/Lib/server/discord') return { sendDiscordAlert: async (title) => { alerts.push(title); return true; } };
     return require(id);
   };
 
@@ -25,6 +29,7 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null })
     query.update = (values) => { query.operation = 'update'; query.values = values; return query; };
     query.eq = (column, value) => { query.filters.push((row) => row[column] === value); return query; };
     query.neq = (column, value) => { query.filters.push((row) => row[column] !== value); return query; };
+    query.in = (column, values) => { query.filters.push((row) => values.includes(row[column])); return query; };
     query.maybeSingle = async () => {
       const result = await execute(query);
       if (result.error) return result;
@@ -49,11 +54,17 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null })
   vm.runInNewContext(compiled, sandbox, { filename: sourcePath });
   return {
     tables,
+    alerts,
     async post() {
       return sandbox.exports.POST({ text: async () => 'signed raw payload', headers: { get: (key) => key === 'stripe-signature' ? 'valid-signature' : null } });
     },
     setEvent(nextEvent) { eventToReturn = nextEvent; },
   };
+}
+
+// Invoice rows carry the amounts the webhook verifies against ($250.00 total, $75.00 deposit).
+function invoiceRow(overrides = {}) {
+  return { id: 'invoice-uuid', invoice_number: 'INV-1', status: 'PENDING', stripe_session_id: 'cs_test_123', total_amount: '250.00', deposit_due: '75.00', amount_paid: '0.00', balance_due: '250.00', ...overrides };
 }
 
 function sessionEvent(type, overrides = {}) {
@@ -65,32 +76,79 @@ function sessionEvent(type, overrides = {}) {
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-test';
 
   {
-    const h = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [{ id: 'invoice-uuid', invoice_number: 'INV-1', status: 'PENDING', stripe_session_id: 'cs_test_123' }], students: [] });
+    const h = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [invoiceRow()], students: [] });
     const response = await h.post();
     assert.equal(response.status, 200, 'paid guest checkout should succeed without a student row');
     assert.equal(h.tables.invoices[0].status, 'PAID');
+    assert.equal(h.tables.invoices[0].balance_due, '0.00', 'full payment leaves no balance');
+    assert.equal(h.tables.invoices[0].amount_paid, '250.00');
   }
   {
-    const h = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [{ id: 'invoice-uuid', invoice_number: 'INV-1', status: 'PENDING', stripe_session_id: 'cs_test_123' }], failUpdateTable: 'invoices' });
+    const h = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [invoiceRow()], failUpdateTable: 'invoices' });
     assert.equal((await h.post()).status, 500, 'invoice write failure must be retryable');
   }
   {
     const h = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [] });
     assert.equal((await h.post()).status, 500, 'missing invoice must not be acknowledged as success');
+    assert.ok(h.alerts.some((t) => /manual reconciliation/i.test(t)), 'missing invoice must alert staff');
   }
   {
-    const h = makeHarness({ event: sessionEvent('checkout.session.expired'), invoices: [{ id: 'invoice-uuid', invoice_number: 'INV-1', status: 'PAID', stripe_session_id: 'cs_test_123' }] });
+    const h = makeHarness({ event: sessionEvent('checkout.session.expired'), invoices: [invoiceRow({ status: 'PAID' })] });
     assert.equal((await h.post()).status, 200);
     assert.equal(h.tables.invoices[0].status, 'PAID', 'expiration must not overwrite a paid invoice');
   }
   {
-    const h = makeHarness({ event: sessionEvent('checkout.session.expired'), invoices: [{ id: 'invoice-uuid', invoice_number: 'INV-1', status: 'PENDING', stripe_session_id: 'cs_test_123' }], failUpdateTable: 'invoices' });
+    const h = makeHarness({ event: sessionEvent('checkout.session.expired'), invoices: [invoiceRow()], failUpdateTable: 'invoices' });
     assert.equal((await h.post()).status, 500, 'expiration write failure must be retryable');
   }
   {
-    const h = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [{ id: 'invoice-uuid', invoice_number: 'INV-1', status: 'PENDING', stripe_session_id: 'cs_test_other' }] });
+    const h = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [invoiceRow({ stripe_session_id: 'cs_test_other' })] });
     assert.equal((await h.post()).status, 500, 'invoice/session conflict must not overwrite another session');
+    assert.equal(h.tables.invoices[0].status, 'PENDING', 'conflicting invoice must not be modified');
+  }
+  {
+    // Session-first lookup: a legacy invoice without a saved session ID is matched by exact invoice number.
+    const h = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [invoiceRow({ stripe_session_id: null })] });
+    assert.equal((await h.post()).status, 200);
+    assert.equal(h.tables.invoices[0].status, 'PAID');
+    assert.equal(h.tables.invoices[0].stripe_session_id, 'cs_test_123', 'session ID is recorded on the invoice');
+  }
+  {
+    // Session-first lookup: the invoice saved with this session wins even if metadata names another invoice.
+    const h = makeHarness({ event: sessionEvent('checkout.session.completed', { metadata: { invoiceId: 'INV-OTHER' } }), invoices: [invoiceRow()] });
+    assert.equal((await h.post()).status, 200);
+    assert.equal(h.tables.invoices[0].status, 'PAID');
+  }
+  {
+    // Deposit accounting: the remaining balance is preserved, never zeroed.
+    const h = makeHarness({ event: sessionEvent('checkout.session.completed', { amount_total: 7500, metadata: { invoiceId: 'INV-1', isDepositPayment: 'true' } }), invoices: [invoiceRow()] });
+    assert.equal((await h.post()).status, 200);
+    assert.equal(h.tables.invoices[0].status, 'DEPOSIT_PAID');
+    assert.equal(h.tables.invoices[0].amount_paid, '75.00');
+    assert.equal(h.tables.invoices[0].balance_due, '175.00');
+  }
+  {
+    // Amount mismatch: acknowledged (a retry cannot fix it) but never marked paid; staff alerted.
+    const h = makeHarness({ event: sessionEvent('checkout.session.completed', { amount_total: 100 }), invoices: [invoiceRow()] });
+    assert.equal((await h.post()).status, 200);
+    assert.equal(h.tables.invoices[0].status, 'PENDING', 'underpayment must not mark the invoice paid');
+    assert.ok(h.alerts.some((t) => /amount mismatch/i.test(t)), 'mismatch must alert staff');
+  }
+  {
+    // Duplicate delivery: the payment is applied and announced once.
+    const h = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [invoiceRow()] });
+    assert.equal((await h.post()).status, 200);
+    assert.equal((await h.post()).status, 200);
+    assert.equal(h.alerts.filter((t) => /Payment in Full Received/.test(t)).length, 1, 'duplicate event must not re-apply or re-alert');
+  }
+  {
+    // A browser-supplied studentId in metadata never confirms a student; only verified linkedUserId does.
+    const students = [{ student_id: 'FIFS-1001', user_id: 'uuid-other', status: 'STEP_1_REGISTERED' }, { student_id: 'FIFS-2002', user_id: 'uuid-linked', status: 'STEP_1_REGISTERED' }];
+    const h = makeHarness({ event: sessionEvent('checkout.session.completed', { metadata: { invoiceId: 'INV-1', studentId: 'FIFS-1001', linkedUserId: 'uuid-linked' } }), invoices: [invoiceRow()], students });
+    assert.equal((await h.post()).status, 200);
+    assert.equal(h.tables.students[0].status, 'STEP_1_REGISTERED', 'studentId from metadata must not confirm a student');
+    assert.equal(h.tables.students[1].status, 'CONFIRMED', 'verified linked user is confirmed');
   }
 
-  console.log('Stripe webhook regression tests passed (6 cases).');
+  console.log('Stripe webhook regression tests passed (12 cases).');
 })().catch((err) => { console.error(err); process.exitCode = 1; });

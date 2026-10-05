@@ -1,4 +1,41 @@
 try { sessionStorage.removeItem('fifs_student_session'); sessionStorage.removeItem('fifs_client_session'); } catch (_) {}
+// Returns the URL only if it is http(s); blocks javascript:, data:, etc. in dossier links.
+function fifsSafeHttpUrl(value) {
+  try {
+    var url = new URL(String(value || ''), window.location.origin);
+    return (url.protocol === 'https:' || url.protocol === 'http:') ? url.href : '';
+  } catch (e) {
+    return '';
+  }
+}
+// Calls the backend and reports only a change the server confirmed as saved. Works with both
+// callFifsBackend implementations (page.tsx and this script), which signal failure differently.
+function fifsSaveOrReport(action, payload, onSaved, onFailed) {
+  var settled = false;
+  function fail(err) {
+    if (settled) return;
+    settled = true;
+    var e = (err && typeof err.message === 'string') ? err : new Error((err && err.error) || String(err || 'The server did not confirm the save.'));
+    if (onFailed) onFailed(e);
+  }
+  if (typeof callFifsBackend !== 'function') {
+    fail(new Error('Backend unavailable. Nothing was saved.'));
+    return;
+  }
+  try {
+    callFifsBackend(action, payload, function(res) {
+      if (res && (res.success === true || res.status === 'success')) {
+        if (settled) return;
+        settled = true;
+        if (onSaved) onSaved(res);
+      } else {
+        fail(new Error((res && res.error) || 'The server did not confirm the save.'));
+      }
+    }, fail);
+  } catch (e) {
+    fail(e);
+  }
+}
 // Portal profiles stay in memory only; Supabase Auth owns the durable session.
 window.__fifsStudentPortalRecord = null;
 window.__fifsClientPortalRecord = null;
@@ -353,10 +390,17 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       })
       .then(function(data) {
         if (onSuccess) onSuccess(data);
+        return data;
       })
       .catch(function(err) {
         console.error("FIFS Supabase API Error (" + action + "):", err);
-        if (onError) onError(err);
+        if (onError) {
+          onError(err);
+          return undefined;
+        }
+        // Promise-style callers (no callbacks) must see the failure instead of a silent success.
+        if (!onSuccess) throw err;
+        return undefined;
       });
     }
     window.callFifsBackend = callFifsBackend;
@@ -401,7 +445,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           if (log.length > 50) log.pop();
           /* cloud only: zero browser storage */
           // Background sync to GAS ledger if live
-          if (typeof callFifsBackend === 'function') { callFifsBackend('logAnalytics', { entry: entry }); }
+          if (typeof callFifsBackend === 'function') { callFifsBackend('logAnalytics', { entry: entry }).catch(function() {}); }
         } catch (e) {}
       }, 20);
     }
@@ -2637,7 +2681,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         btn.innerHTML = '<span class="spin-icon">🔄</span> <span>RESETTING LEDGER...</span>';
       }
       var pin = getStaffSessionToken();
-      if (typeof callFifsBackend === 'function') { callFifsBackend('resetTelemetry', {}); }
+      if (typeof callFifsBackend === 'function') { callFifsBackend('resetTelemetry', {}).catch(function() {}); }
       _fifsMemStorage.removeItem('fifs_analytics_events');
       _fifsMemStorage.removeItem('fifs_analytics_counts');
       _fifsMemStorage.removeItem('fifs_device_counts');
@@ -3345,11 +3389,15 @@ function loadDemoStudent() {
         stu.status = newStepValue;
         /* cloud only: zero browser storage */
       }
-      if (typeof callFifsBackend === 'function') { callFifsBackend('updateStudentStatus', { studentId: studentId, status: newStepValue }); }
-      if (ind) {
-        ind.style.display = 'inline';
-        setTimeout(function() { ind.style.display = 'none'; }, 2000);
-      }
+      fifsSaveOrReport('updateStudentStatus', { studentId: studentId, status: newStepValue }, function() {
+        if (ind) {
+          ind.style.display = 'inline';
+          setTimeout(function() { ind.style.display = 'none'; }, 2000);
+        }
+      }, function(err) {
+        alert('Student status was NOT saved: ' + err.message);
+        if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
+      });
     }
     window.updateStudentJourneyStep = updateStudentJourneyStep;
     function openAdminEditStudentModal(studentId) {
@@ -3374,14 +3422,14 @@ function loadDemoStudent() {
       if (courseInput) courseInput.value = s.course || s.courseSelection || '';
       if (dateInput) dateInput.value = s.assignedDate || s.preferredDates || '';
       if (statusInput) statusInput.value = s.status || 'STEP_1_REGISTERED';
-      if (scoreInput) scoreInput.value = s.qualificationScore || s.qualification_score || '25/25 (100%)';
+      if (scoreInput) scoreInput.value = s.qualificationScore || s.qualification_score || '';
       if (docUrlInput) docUrlInput.value = s.profileDocUrl || s.dossier_url || '';
       if (notesInput) notesInput.value = s.notes || s.comments || '';
 
 
       // Scoresheet preview in student record
       var scScore = document.getElementById('editScoresheetScore');
-      if (scScore) scScore.value = s.qualificationScore || s.qualification_score || '25/25 (100%)';
+      if (scScore) scScore.value = s.qualificationScore || s.qualification_score || '';
       var badge = document.getElementById('editScoresheetStatusBadge');
       var viewLink = document.getElementById('editScoresheetViewLink');
       var delBtn = document.getElementById('btnDeleteScoresheetFromEdit');
@@ -3427,11 +3475,11 @@ function loadDemoStudent() {
         adminCachedStudents = adminCachedStudents.filter(s => s.studentId !== studentId);
         window.adminCachedStudents = adminCachedStudents;
       }
-      callFifsBackend('adminDeleteStudent', { studentId: studentId }, function(res) {
-        console.log('Student deleted from Supabase:', res);
+      fifsSaveOrReport('adminDeleteStudent', { studentId: studentId }, function() {
         refreshAdminRoster();
       }, function(err) {
-        console.error('Failed to delete student from cloud:', err);
+        alert('Student was NOT deleted: ' + err.message);
+        refreshAdminRoster();
       });
       renderAdminTerminal({ students: adminCachedStudents });
     }
@@ -3483,7 +3531,10 @@ function loadDemoStudent() {
         window.adminCachedClients = adminCachedClients;
         /* cloud only: zero browser storage */
       }
-      if (typeof callFifsBackend === 'function') { callFifsBackend('adminDeleteClient', { clientId: clientId }); }
+      fifsSaveOrReport('adminDeleteClient', { clientId: clientId }, null, function(err) {
+        alert('Client was NOT deleted: ' + err.message);
+        if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
+      });
       renderAdminClientTerminal({ clients: adminCachedClients });
     }
     window.deleteClientFromAdmin = deleteClientFromAdmin;
@@ -4366,7 +4417,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
           if (log.length > 50) log.pop();
           /* cloud only: zero browser storage */
           // Background sync to GAS ledger if live
-          if (typeof callFifsBackend === 'function') { callFifsBackend('logAnalytics', { entry: entry }); }
+          if (typeof callFifsBackend === 'function') { callFifsBackend('logAnalytics', { entry: entry }).catch(function() {}); }
         } catch (e) {}
       }, 20);
     }
@@ -4831,7 +4882,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
 
       var pin = getStaffSessionToken();
       if (typeof callFifsBackend === "function") {
-        callFifsBackend("adminEditStudent", {
+        fifsSaveOrReport("adminEditStudent", {
           
           studentId: studentId,
           updates: {
@@ -4841,7 +4892,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
             preferredDates: classDate,
             notes: notes
           }
-        }).then(function(res) {
+        }, function(res) {
           if (statusElem) {
             statusElem.textContent = "Dossier and notes saved successfully to Supabase!";
             statusElem.style.color = "#10b981";
@@ -4852,16 +4903,12 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
               renderAdminTerminal({ students: window.adminCachedStudents });
             }
           }, 600);
-        }).catch(function(err) {
+        }, function(err) {
           if (statusElem) {
-            statusElem.textContent = "Saved to local state. Supabase message: " + (err && err.message ? err.message : "Updated");
+            statusElem.textContent = "NOT saved: " + err.message;
+            statusElem.style.color = "#ef4444";
           }
-          setTimeout(function() {
-            closeStudentDossierModal();
-            if (typeof renderAdminTerminal === "function") {
-              renderAdminTerminal({ students: window.adminCachedStudents });
-            }
-          }, 800);
+          if (typeof refreshAdminRoster === "function") refreshAdminRoster();
         });
       } else {
         setTimeout(function() {
@@ -4931,10 +4978,8 @@ function openAdminEditStudentModal(studentId) {
       s.notes = document.getElementById('editNotes').value.trim();
       /* cloud only: zero browser storage */
       var st = document.getElementById('edit-student-status');
-      showStatus(st, 'Changes saved successfully!', 'success');
-      if (typeof callFifsBackend === 'function') {
-        try {
-          callFifsBackend('adminEditStudent', {
+      showStatus(st, 'Saving…', 'info');
+      fifsSaveOrReport('adminEditStudent', {
             
             studentId: studentId,
             updates: {
@@ -4950,23 +4995,17 @@ function openAdminEditStudentModal(studentId) {
               dossierUrl: s.profileDocUrl,
               notes: s.notes
             }
-          }, function(res) {
-            console.log('[FIFS] adminEditStudent persisted to Supabase:', res);
-            if (res && (res.success === false || res.status === 'error')) {
-              showStatus(st, 'Supabase error: ' + (res.error || 'update failed'), 'error');
-            }
+          }, function() {
+            showStatus(st, 'Changes saved successfully!', 'success');
+            setTimeout(function() {
+              closeAdminEditStudentModal();
+              renderAdminTerminal({ students: adminCachedStudents });
+            }, 500);
           }, function(err) {
-            console.error('[FIFS] adminEditStudent Supabase failure:', err);
-            showStatus(st, 'Supabase save failed: ' + (err && err.message ? err.message : 'unknown error'), 'error');
+            // Keep the modal open; reload the roster so unsaved values are not shown as current.
+            showStatus(st, 'NOT saved: ' + err.message, 'error');
+            if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
           });
-        } catch (e) {
-          console.error('[FIFS] adminEditStudent dispatch error:', e);
-        }
-      }
-      setTimeout(function() {
-        closeAdminEditStudentModal();
-        renderAdminTerminal({ students: adminCachedStudents });
-      }, 500);
     }
     window.handleAdminEditStudentSubmit = handleAdminEditStudentSubmit;
     function deleteStudentFromRoster(studentId) {
@@ -4978,7 +5017,10 @@ function openAdminEditStudentModal(studentId) {
       adminCachedStudents = adminCachedStudents.filter(item => item.studentId !== studentId);
       /* cloud only: zero browser storage */
       var pin = getStaffSessionToken();
-      if (typeof callFifsBackend === 'function') { callFifsBackend('adminDeleteStudent', { studentId: studentId }); }
+      fifsSaveOrReport('adminDeleteStudent', { studentId: studentId }, null, function(err) {
+        alert('Student was NOT deleted: ' + err.message);
+        if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
+      });
       renderAdminTerminal({ students: adminCachedStudents });
     }
     window.deleteStudentFromRoster = deleteStudentFromRoster;
@@ -5186,12 +5228,17 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       c.status = document.getElementById('editClientStatus').value;
       /* cloud only: zero browser storage */
       var st = document.getElementById('edit-client-status');
-      showStatus(st, 'Client permit record updated!', 'success');
-      if (typeof callFifsBackend === 'function') { callFifsBackend('adminEditClient', { clientId: clientId, client: c }); }
-      setTimeout(function() {
-        closeAdminEditClientModal();
-        renderAdminClientTerminal();
-      }, 500);
+      showStatus(st, 'Saving…', 'info');
+      fifsSaveOrReport('adminEditClient', { clientId: clientId, client: c }, function() {
+        showStatus(st, 'Client permit record updated!', 'success');
+        setTimeout(function() {
+          closeAdminEditClientModal();
+          renderAdminClientTerminal();
+        }, 500);
+      }, function(err) {
+        showStatus(st, 'NOT saved: ' + err.message, 'error');
+        if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
+      });
     }
     window.handleAdminEditClientSubmit = handleAdminEditClientSubmit;
     function deleteClientFromRoster(clientId) {
@@ -5203,7 +5250,10 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       adminCachedClients = adminCachedClients.filter(item => item.clientId !== clientId);
       /* cloud only: zero browser storage */
       var pin = getStaffSessionToken();
-      if (typeof callFifsBackend === 'function') { callFifsBackend('adminDeleteClient', { clientId: clientId }); }
+      fifsSaveOrReport('adminDeleteClient', { clientId: clientId }, null, function(err) {
+        alert('Client was NOT deleted: ' + err.message);
+        if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
+      });
       renderAdminClientTerminal();
     }
     window.deleteClientFromRoster = deleteClientFromRoster;
@@ -5403,7 +5453,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         leads.unshift({ name: name, email: email, time: new Date().toISOString() });
         /* cloud only: zero browser storage */
       } catch (err) {}
-      if (typeof callFifsBackend === 'function') { callFifsBackend('handleLeadMagnetSubmission', { fullName: name, email: email, source: '50-State Reciprocity Guide' }); }
+      if (typeof callFifsBackend === 'function') { callFifsBackend('handleLeadMagnetSubmission', { fullName: name, email: email, source: '50-State Reciprocity Guide' }).catch(function() {}); }
       setTimeout(function() {
         showStatus(st, 'Success! Download starting. Thank you for training with Future Initiative.', 'success');
         window.open('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/top-50-questions-new-gun-owners.pdf', '_blank');
@@ -6129,8 +6179,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       if (userTag) userTag.textContent = "Student: " + student.fullName + " (" + student.studentId + ")";
       var docLink = document.getElementById('dash-doc-link');
       if (docLink) {
-        if (student.profileDocUrl && student.profileDocUrl !== '#') {
-          docLink.href = student.profileDocUrl;
+        if (student.profileDocUrl && student.profileDocUrl !== '#' && fifsSafeHttpUrl(student.profileDocUrl)) {
+          docLink.href = fifsSafeHttpUrl(student.profileDocUrl);
           docLink.onclick = null;
         } else {
           docLink.href = 'javascript:void(0)';
@@ -6199,7 +6249,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
       } else if (stepNum === 6) {
         if (heroTitle) heroTitle.textContent = "Official Qualification Certified! 🎉";
         if (heroDesc) heroDesc.textContent = "Congratulations! Instructor Kai Wade has certified your marksmanship qualification and completed your training documentation.";
-        if (heroBtn) { heroBtn.textContent = "Open Official Student Dossier 📄"; heroBtn.onclick = function() { window.open(student.profileDocUrl || '#', '_blank'); }; }
+        if (heroBtn) { heroBtn.textContent = "Open Official Student Dossier 📄"; heroBtn.onclick = function() { var safeDocUrl = fifsSafeHttpUrl(student.profileDocUrl); if (safeDocUrl) window.open(safeDocUrl, '_blank', 'noopener'); }; }
       } else if (stepNum === 7) {
         if (heroTitle) heroTitle.textContent = "Submit Application to Maryland State Police Portal";
         if (heroDesc) heroDesc.textContent = "Log in to the official MSP Licensing Portal to upload your signed qualification certificate, passport photo, and LiveScan TCN receipt.";
@@ -6229,7 +6279,17 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
         student.prepTasks = student.prepTasks || {};
         student.prepTasks[taskId] = isChecked;
         fifsSetStudentSession(student);
-        if (typeof callFifsBackend === 'function') { callFifsBackend('updateStudentTask', { studentId: student.studentId, email: student.email, taskId: taskId, isChecked: isChecked }); }
+        fifsSaveOrReport('updateStudentTask', { studentId: student.studentId, email: student.email, taskId: taskId, isChecked: isChecked }, null, function(err) {
+          student.prepTasks[taskId] = !isChecked;
+          fifsSetStudentSession(student);
+          if (card) {
+            if (isChecked) card.classList.remove('is-done');
+            else card.classList.add('is-done');
+          }
+          var box = document.getElementById('chk-' + taskId);
+          if (box && 'checked' in box) box.checked = !isChecked;
+          alert('Checklist progress was NOT saved: ' + err.message);
+        });
       }
     }
     function logoutStudent() {
@@ -9212,7 +9272,7 @@ function closeStateModal() {
           if (log.length > 50) log.pop();
           /* cloud only: zero browser storage */
           // Background sync to GAS ledger if live
-          if (typeof callFifsBackend === 'function') { callFifsBackend('logAnalytics', { entry: entry }); }
+          if (typeof callFifsBackend === 'function') { callFifsBackend('logAnalytics', { entry: entry }).catch(function() {}); }
         } catch (e) {}
       }, 20);
     }
@@ -11364,7 +11424,7 @@ if (typeof window !== 'undefined') {
       activeScoresheetStudentId = studentId;
       var s = (adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
       var studentName = s ? s.fullName : studentId;
-      var currentScore = (s && (s.qualificationScore || s.qualification_score || (s.scoresheet && s.scoresheet.score))) ? (s.qualificationScore || s.qualification_score || s.scoresheet.score) : '25/25 (100%)';
+      var currentScore = (s && (s.qualificationScore || s.qualification_score || (s.scoresheet && s.scoresheet.score))) ? (s.qualificationScore || s.qualification_score || s.scoresheet.score) : '';
       var currentUrl = (s && (s.scoresheet_url || s.scoresheetUrl || (s.scoresheet && (s.scoresheet.image_url || s.scoresheet.imageUrl)))) ? (s.scoresheet_url || s.scoresheetUrl || s.scoresheet.image_url || s.scoresheet.imageUrl) : '';
 
 
@@ -11431,7 +11491,7 @@ if (typeof window !== 'undefined') {
       var scoreInput = document.getElementById('scoresheetModalScoreInput');
       var feedback = document.getElementById('scoresheetModalFeedback');
       var saveBtn = document.getElementById('btnSaveScoresheetModal');
-      var scoreVal = scoreInput ? scoreInput.value.trim() : '25/25 (100%)';
+      var scoreVal = scoreInput ? scoreInput.value.trim() : '';
       var pin = getStaffSessionToken();
 
 
@@ -11531,6 +11591,8 @@ if (typeof window !== 'undefined') {
         } else {
           alert('Delete failed: ' + (res ? res.error : 'Unknown error'));
         }
+      }, function(err) {
+        alert('Delete failed — the scoresheet was NOT removed: ' + err.message);
       });
     }
     window.deleteCurrentStudentScoresheet = deleteCurrentStudentScoresheet;
@@ -11542,7 +11604,7 @@ if (typeof window !== 'undefined') {
       var fileInput = document.getElementById('editScoresheetFileInput');
       var scoreInput = document.getElementById('editScoresheetScore');
       var feedback = document.getElementById('editScoresheetFeedback');
-      var scoreVal = scoreInput ? scoreInput.value.trim() : '25/25 (100%)';
+      var scoreVal = scoreInput ? scoreInput.value.trim() : '';
       var pin = getStaffSessionToken();
 
 
@@ -11601,6 +11663,11 @@ if (typeof window !== 'undefined') {
               feedback.textContent = 'Upload failed: ' + (res ? res.error : 'Unknown error');
             }
           }
+        }, function(err) {
+          if (feedback) {
+            feedback.style.color = '#ef4444';
+            feedback.textContent = 'Upload failed — the scoresheet was NOT saved: ' + err.message;
+          }
         });
       };
       reader.readAsDataURL(file);
@@ -11635,6 +11702,8 @@ if (typeof window !== 'undefined') {
         } else {
           alert('Failed to delete: ' + (res ? res.error : 'Unknown error'));
         }
+      }, function(err) {
+        alert('Failed to delete — the scoresheet was NOT removed: ' + err.message);
       });
     }
     window.handleDeleteScoresheetFromEdit = handleDeleteScoresheetFromEdit;

@@ -16,10 +16,10 @@ const cspHeader = `
   .replace(/\s{2,}/g, " ")
   .trim();
 
+// This is the only Next.js config file: next.config.js would take precedence over it
+// (Next checks next.config.js, then .mjs, then .ts) and silently drop these headers.
 const nextConfig: NextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  reactStrictMode: true,
   async headers() {
     return [
       {

@@ -1688,9 +1688,15 @@ export default function TrainWithFIFS(props: any) {
     (window as any).callFifsBackend = async (action: string, payload: any, onComplete: Function, onError: Function) => {
       if (action === 'submitBooking') {
         try {
+          // A signed-in student's verified session links the booking to their record server-side.
+          const checkoutHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+          try {
+            const sessionToken = typeof getSessionBearerToken === 'function' ? await getSessionBearerToken() : null;
+            if (sessionToken) checkoutHeaders['Authorization'] = 'Bearer ' + sessionToken;
+          } catch (_tokenErr) {}
           const res = await fetch('/api/checkout', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: checkoutHeaders,
             body: JSON.stringify(payload)
           });
           const data = await res.json();
@@ -1741,13 +1747,19 @@ export default function TrainWithFIFS(props: any) {
             body: JSON.stringify(bodyData)
           });
           const data = await res.json();
+          // Promise-style callers (no callbacks) must see any server-reported failure.
+          if (!onComplete && !onError && (!res.ok || data?.success === false || data?.status === 'error')) {
+            throw new Error(data?.error || ('HTTP ' + res.status));
+          }
           if (!res.ok && !data.status && !data.success) {
             throw new Error(data.error || ('HTTP ' + res.status));
           }
           if (onComplete) onComplete(data);
+          return data;
         } catch (err: any) {
           console.error('FIFS Backend call error:', err);
           if (onError) onError(err);
+          else if (!onComplete) throw err;
         }
       }
     };
@@ -2785,6 +2797,20 @@ export default function TrainWithFIFS(props: any) {
 
 
 
+    // Roster data comes from the database; escape it before inserting it as HTML.
+    const escHtml = (value: unknown): string => String(value ?? '').replace(/[&<>"']/g, (ch) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' } as Record<string, string>
+    )[ch]);
+    // Only allow http(s) links (blocks javascript:, data:, etc.).
+    const safeHttpUrl = (value: unknown): string => {
+      try {
+        const url = new URL(String(value ?? ''), window.location.origin);
+        return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : '#';
+      } catch {
+        return '#';
+      }
+    };
+
     (window as any).renderAdminTerminal = function(data: any) {
       const authBox = document.getElementById('admin-auth-box');
       const dashBox = document.getElementById('admin-command-dashboard');
@@ -2853,29 +2879,29 @@ export default function TrainWithFIFS(props: any) {
             const tr = document.createElement('tr');
             tr.style.borderBottom = '1px solid rgba(255,255,255,0.06)';
             tr.innerHTML = `
-              <td style="padding: 12px; font-weight: 700; color: var(--accent-cyan); font-family: monospace;">${s.studentId || 'FIFS-TBD'}</td>
+              <td style="padding: 12px; font-weight: 700; color: var(--accent-cyan); font-family: monospace;">${escHtml(s.studentId || 'FIFS-TBD')}</td>
               <td style="padding: 12px;">
-                <strong style="color: #fff; display: block;">${s.fullName || 'Student'}</strong>
-                <span style="color: var(--text-muted); font-size: 0.78rem;">${s.phone || ''} &bull; ${s.email || ''}</span>
+                <strong style="color: #fff; display: block;">${escHtml(s.fullName || 'Student')}</strong>
+                <span style="color: var(--text-muted); font-size: 0.78rem;">${escHtml(s.phone || '')} &bull; ${escHtml(s.email || '')}</span>
               </td>
               <td style="padding: 12px;">
-                <span style="color: #e2e8f0; font-weight: 600;">${s.course || 'Maryland Firearms Training'}</span>
-                <span style="display: block; font-size: 0.76rem; color: ${s.track === 'VIP' ? 'var(--accent-amber)' : 'var(--accent-cyan)'};">${s.track || 'Base'} Track</span>
+                <span style="color: #e2e8f0; font-weight: 600;">${escHtml(s.course || 'Maryland Firearms Training')}</span>
+                <span style="display: block; font-size: 0.76rem; color: ${s.track === 'VIP' ? 'var(--accent-amber)' : 'var(--accent-cyan)'};">${escHtml(s.track || 'Base')} Track</span>
               </td>
-              <td style="padding: 12px; color: #cbd5e1; font-size: 0.82rem;">${s.assignedDate || 'Upcoming Cohort'}</td>
+              <td style="padding: 12px; color: #cbd5e1; font-size: 0.82rem;">${escHtml(s.assignedDate || 'Upcoming Cohort')}</td>
               <td style="padding: 12px;">
                 <span style="background: rgba(0, 229, 255, 0.12); color: var(--accent-cyan); border: 1px solid rgba(0, 229, 255, 0.3); padding: 4px 8px; border-radius: 4px; font-size: 0.76rem; font-weight: 700;">
-                  ${s.status || 'STEP_1_REGISTERED'}
+                  ${escHtml(s.status || 'STEP_1_REGISTERED')}
                 </span>
               </td>
               <td style="padding: 12px;">
-                <a href="${s.profileDocUrl || '#'}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); font-size: 0.82rem; text-decoration: underline;">
+                <a href="${escHtml(safeHttpUrl(s.profileDocUrl))}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); font-size: 0.82rem; text-decoration: underline;">
                   📄 View Dossier
                 </a>
               </td>
               <td style="padding: 12px;">
                 <select style="background: #0d131d; border: 1px solid var(--border-subtle); color: #fff; font-size: 0.78rem; padding: 4px 8px; border-radius: 4px;">
-                  <option value="${s.status}">${s.status || 'Current'}</option>
+                  <option value="${escHtml(s.status)}">${escHtml(s.status || 'Current')}</option>
                   <option value="STEP_1_REGISTERED">1: Registered</option>
                   <option value="STEP_2_CLASS_PREP">2: Prep Complete</option>
                   <option value="STEP_3_ACADEMIC_DONE">3: Academics Passed</option>
@@ -2958,19 +2984,19 @@ export default function TrainWithFIFS(props: any) {
             const tr = document.createElement('tr');
             tr.style.borderBottom = '1px solid rgba(255,255,255,0.06)';
             tr.innerHTML = `
-              <td style="padding: 12px; font-weight: 700; color: var(--accent-amber); font-family: monospace;">${c.clientId || 'FI-CLIENT'}</td>
+              <td style="padding: 12px; font-weight: 700; color: var(--accent-amber); font-family: monospace;">${escHtml(c.clientId || 'FI-CLIENT')}</td>
               <td style="padding: 12px;">
-                <strong style="color: #fff; display: block;">${c.fullName || 'Client'}</strong>
-                <span style="color: var(--text-muted); font-size: 0.78rem;">${c.phone || ''} &bull; ${c.email || ''}</span>
+                <strong style="color: #fff; display: block;">${escHtml(c.fullName || 'Client')}</strong>
+                <span style="color: var(--text-muted); font-size: 0.78rem;">${escHtml(c.phone || '')} &bull; ${escHtml(c.email || '')}</span>
               </td>
-              <td style="padding: 12px; color: #cbd5e1;">${c.permitState || 'Maryland Wear & Carry'}</td>
-              <td style="padding: 12px; color: #cbd5e1;">${c.expirationDate || 'N/A'}</td>
+              <td style="padding: 12px; color: #cbd5e1;">${escHtml(c.permitState || 'Maryland Wear & Carry')}</td>
+              <td style="padding: 12px; color: #cbd5e1;">${escHtml(c.expirationDate || 'N/A')}</td>
               <td style="padding: 12px; font-weight: 700; color: ${c.daysLeft <= 30 ? '#ef4444' : (c.daysLeft <= 90 ? 'var(--accent-amber)' : '#10b981')};">
-                ${c.daysLeft > 0 ? c.daysLeft + ' Days' : 'EXPIRED'}
+                ${c.daysLeft > 0 ? escHtml(c.daysLeft) + ' Days' : 'EXPIRED'}
               </td>
               <td style="padding: 12px;">
                 <span style="background: rgba(245, 158, 11, 0.12); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); padding: 4px 8px; border-radius: 4px; font-size: 0.76rem; font-weight: 700;">
-                  ${c.status || 'ACTIVE_REGISTERED'}
+                  ${escHtml(c.status || 'ACTIVE_REGISTERED')}
                 </span>
               </td>
               <td style="padding: 12px; text-align: center;">
@@ -3083,7 +3109,8 @@ export default function TrainWithFIFS(props: any) {
         count = 2;
         discountPercent = 0.05;
       } else if (/^[34]|[34] \(small/i.test(str)) {
-        count = 3;
+        // Must match src/Lib/pricing.ts: a group of 4 is charged for 4 attendees
+        count = /^4/.test(str) ? 4 : 3;
         discountPercent = 0.10;
       } else if (/5\+/i.test(str) || /^5/i.test(str)) {
         count = 5;
@@ -12943,6 +12970,12 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     }
                   } else if (err) {
                     err.textContent = res?.error || 'Password update failed.';
+                    err.style.display = 'block';
+                  }
+                })
+                .catch((callErr: any) => {
+                  if (err) {
+                    err.textContent = callErr?.message || 'Password update failed.';
                     err.style.display = 'block';
                   }
                 });

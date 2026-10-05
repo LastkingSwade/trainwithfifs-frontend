@@ -1,34 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'node:crypto';
-
-
-// Public Supabase client for token verification and unprivileged operations
-function getPublicClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://ufqnmcincwnlyiwsmzcq.supabase.co';
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
-  if (!url || !anonKey) {
-    throw new Error('Supabase public credentials (NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY) are not configured.');
-  }
-  if (!url) {
-    throw new Error('NEXT_PUBLIC_SUPABASE_URL is not configured.');
-  }
-  return createClient(url, anonKey, {
-    auth: { persistSession: false }
-  });
-}
-
-// Privileged Service Role client - created ONLY after request authorization succeeds
-function getPrivilegedClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://ufqnmcincwnlyiwsmzcq.supabase.co';
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
-  if (!url || !serviceKey) {
-    throw new Error('Supabase service role credentials (SUPABASE_SERVICE_ROLE_KEY) are not configured.');
-  }
-  return createClient(url, serviceKey, {
-    auth: { persistSession: false }
-  });
-}
+import { getAuthenticatedUser, getPrivilegedClient, getPublicClient } from '@/Lib/server/supabase-admin';
+import { createBookingCheckout } from '@/Lib/server/booking-checkout';
 
 
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'carpetcare85@gmail.com';
@@ -87,30 +60,18 @@ function validateStrictPassword(password: string): { valid: boolean; error?: str
 }
 
 
-// --- Supabase Auth & Zero-Trust Bearer Token Verification ---
-async function getAuthenticatedUser(req: NextRequest): Promise<{ user: any; error: string | null }> {
-  const authHeader = req.headers.get('authorization') || req.headers.get('Authorization') || '';
-  if (!authHeader.toLowerCase().startsWith('bearer ')) {
-    return { user: null, error: 'Unauthorized: Missing or invalid Authorization Bearer header.' };
-  }
-
-  const token = authHeader.substring(7).trim();
-  if (!token) {
-    return { user: null, error: 'Unauthorized: Missing authentication bearer token.' };
-  }
-
-  try {
-    // Validates token strictly via public client; does NOT create privileged service-role client
-    const publicClient = getPublicClient();
-    const { data: { user }, error } = await publicClient.auth.getUser(token);
-    if (error || !user) {
-      return { user: null, error: error?.message || 'Unauthorized: Invalid or expired authentication token.' };
-    }
-    return { user, error: null };
-  } catch (err: any) {
-    return { user: null, error: 'Unauthorized: Failed to verify authentication session.' };
-  }
-}
+// Actions the portal UI calls that have no server-side persistence yet. They fail explicitly
+// (501) so the UI cannot report a change as saved when nothing was stored.
+const NOT_IMPLEMENTED_ACTIONS: Record<string, string> = {
+  updateStudentStatus: 'Saving a student journey status',
+  adminEditStudent: 'Saving student record edits',
+  adminEditClient: 'Saving client record edits',
+  updateStudentTask: 'Saving prep checklist progress',
+  saveStudentScoresheet: 'Saving qualification scoresheets',
+  deleteStudentScoresheet: 'Removing qualification scoresheets',
+  submitStudentWaiver: 'Online waiver submission',
+  handleLeadMagnetSubmission: 'Lead capture for the free guide'
+};
 
 // Authorize staff solely from verified user's app_metadata.role
 function isStaffOrAdmin(user: any): boolean {
@@ -127,11 +88,20 @@ function isAdmin(user: any): boolean {
 
 // --- Cryptographically Strong Thread Credential Verification for Visitor Chat ---
 function getChatHmacSecret(): string {
-  const secret = (process.env.CHAT_HMAC_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  // Dedicated secret only; never reuse the Supabase service-role key.
+  const secret = (process.env.CHAT_HMAC_SECRET || '').trim();
   if (!secret || secret.length < 32) {
-    throw new Error('Server configuration error: Strong CHAT_HMAC_SECRET or SUPABASE_SERVICE_ROLE_KEY is required.');
+    throw new Error('Server configuration error: A dedicated CHAT_HMAC_SECRET of at least 32 characters is required.');
   }
   return secret;
+}
+
+// Constant-time comparison for shared secrets of any length (both sides hashed to 32 bytes).
+function secretsMatch(provided: string | null, expected: string | undefined): boolean {
+  if (!provided || !expected) return false;
+  const a = crypto.createHash('sha256').update(provided).digest();
+  const b = crypto.createHash('sha256').update(expected).digest();
+  return crypto.timingSafeEqual(a, b);
 }
 
 function computeThreadSecret(threadId: string): string {
@@ -278,6 +248,14 @@ async function sendResendEmail(params: {
 }
 
 
+function escapeHtml(value: unknown): string {
+ const text = String(value ?? '');
+ return text.replace(/[&<>"']/g, (char) => ({
+   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+ }[char] as string));
+}
+
+
 // Helper to normalize student
 function normalizeStudent(s: any) {
   if (!s) return null;
@@ -290,7 +268,8 @@ function normalizeStudent(s: any) {
     track: s.track || (/VIP/i.test(s.course_selection || s.course_name || '') ? 'VIP' : 'Base'),
     assignedDate: s.assigned_date || s.class_date || s.preferred_dates || s.dates || 'Upcoming Cohort',
     status: s.status || 'STEP_1_REGISTERED',
-    qualificationScore: s.qualification_score || '25/25 (100%)',
+    // No recorded score means no score; never present an unverified qualification as passed.
+    qualificationScore: s.qualification_score || null,
     profileDocUrl: s.profile_doc_url || s.scoresheet_url || s.msp_score_sheet_url || '#',
     prepTasks: s.prep_tasks || { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false },
     mustChangePassword: Boolean(s.must_change_password),
@@ -712,19 +691,21 @@ export async function POST(req: NextRequest) {
        const portalType = String(payload?.portalType || payload?.invPortalType || 'student').trim().toLowerCase();
        const courseName = String(payload?.course || payload?.courseSelection || payload?.invCourse || 'Maryland Wear & Carry Permit').trim().slice(0, 200);
        const dates = String(payload?.dates || payload?.scheduledDate || payload?.invDates || 'Upcoming Session').trim().slice(0, 200);
-       const generatedId = payload.generatedId || ('FIFS-' + Math.floor(1000 + Math.random() * 9000));
-       const tempPassword = generateSecureTempPassword();
+       const generatedId = String(payload?.generatedId || ('FIFS-' + Math.floor(1000 + Math.random() * 9000))).trim().slice(0, 60);
        const now = new Date().toISOString();
 
        if (!fullName || !email || !email.includes('@')) {
          return NextResponse.json({ success: false, error: 'Valid full name and email are required.' }, { status: 400 });
        }
+       if (portalType !== 'student' && portalType !== 'client') {
+         return NextResponse.json({ success: false, error: 'Portal type must be student or client.' }, { status: 400 });
+       }
 
-       // Create Auth first, then attach the portal profile to the returned Auth UID.
-       // Existing identities are not overwritten or guessed from email/IDs.
+       // A random password is used only to initialize the Auth identity. It is never emailed or returned.
+       const initialPassword = generateSecureTempPassword();
        const { data: createdAuth, error: createAuthErr } = await supabase.auth.admin.createUser({
          email,
-         password: tempPassword,
+         password: initialPassword,
          email_confirm: true,
          app_metadata: { role: portalType === 'client' ? 'client' : 'student' },
          user_metadata: { full_name: fullName, phone }
@@ -747,39 +728,70 @@ export async function POST(req: NextRequest) {
        };
        const { error: profileErr } = await supabase.from(profileTable).insert(profile);
        if (profileErr) {
-         await supabase.auth.admin.deleteUser(authUserId);
+         const { error: cleanupErr } = await supabase.auth.admin.deleteUser(authUserId);
+         if (cleanupErr) console.error('[adminDirectInvite] Auth cleanup failed after profile insert error:', cleanupErr);
          return NextResponse.json({ success: false, error: 'Could not save a linked portal profile. No invitation was sent.' }, { status: 500 });
        }
 
-       // 3. Dispatch invitation email via Resend
-       const isVip = /VIP/i.test(courseName);
-       const emailHtml = `
-         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0b0f14; color: #ffffff; padding: 24px; border-radius: 8px;">
-           <h2 style="color: #ffb703;">Welcome to Future Initiative Firearm Services</h2>
-           <p>Dear ${fullName},</p>
-           <p>Lead Instructor Kai Wade has invited you to access your personal training portal for <strong>${courseName}</strong>.</p>
-           <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 6px; margin: 20px 0;">
-             <p style="margin: 4px 0;"><strong>Portal Login:</strong> ${email}</p>
-             <p style="margin: 4px 0;"><strong>Temporary Password:</strong> <code style="color: #00e5ff; font-size: 16px;">${tempPassword}</code></p>
-             <p style="margin: 4px 0; color: #ffb703; font-size: 13px;">⚠️ You will be prompted to create your permanent password on first sign-in.</p>
-           </div>
-           <p><a href="https://trainwithfifs.com" style="display: inline-block; background: #ffb703; color: #000000; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 4px;">Access Your Portal →</a></p>
-           <p style="color: #888; font-size: 12px; margin-top: 24px;">Future Initiative Firearm Services • Maryland State Police Certified Training</p>
-         </div>
-       `;
+       const redirectPath = portalType === 'client' ? '/?tab=fi-portal' : '/?portal=student';
+       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://trainwithfifs.com';
+       let setupLink: string | null = null;
+       let setupLinkError: string | null = null;
+       try {
+         const redirectTo = new URL(redirectPath, siteUrl).toString();
+         const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
+           type: 'recovery',
+           email,
+           options: { redirectTo }
+         });
+         if (linkErr || !linkData?.properties?.action_link) {
+           setupLinkError = linkErr?.message || 'Supabase did not return a password setup link.';
+         } else {
+           setupLink = linkData.properties.action_link;
+         }
+       } catch (linkErr: any) {
+         setupLinkError = linkErr?.message || 'Could not generate the password setup link.';
+       }
 
-       await sendResendEmail({
-         to: email,
-         subject: `Welcome to Train With FIFS — Portal Access for ${courseName}`,
-         html: emailHtml
-       });
+       let emailResult: { success: boolean; error?: string } = { success: false, error: setupLinkError || 'Password setup link unavailable.' };
+       if (setupLink) {
+         const safeName = escapeHtml(fullName);
+         const safeCourse = escapeHtml(courseName);
+         const safeSetupLink = escapeHtml(setupLink);
+         const emailHtml = `
+           <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#0b0f14;color:#fff;padding:24px;border-radius:8px;">
+             <h2 style="color:#ffb703;">Welcome to Future Initiative Firearm Services</h2>
+             <p>Dear ${safeName},</p>
+             <p>Lead Instructor Kai Wade has invited you to access your personal training portal for <strong>${safeCourse}</strong>.</p>
+             <p>Use the secure link below to set your password and activate portal access. This link is time-limited and can only be used through Supabase's account recovery flow.</p>
+             <p><a href="${safeSetupLink}" style="display:inline-block;background:#ffb703;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;border-radius:4px;">Set up your password and access the portal</a></p>
+             <p style="color:#aaa;font-size:12px;">Your Student/Client ID is for record reference only. Do not share your setup link.</p>
+             <p style="color:#888;font-size:12px;margin-top:24px;">Future Initiative Firearm Services • Maryland State Police Certified Training</p>
+           </div>`;
+         emailResult = await sendResendEmail({
+           to: email,
+           subject: `Welcome to Train With FIFS — Portal Access for ${courseName}`,
+           html: emailHtml
+         });
+       }
+
+       if (!setupLink || !emailResult.success) {
+         console.error('[adminDirectInvite] Setup invitation not delivered:', setupLinkError || emailResult.error || 'Unknown email error');
+         return NextResponse.json({
+           success: false,
+           recordCreated: true,
+           emailDispatched: false,
+           studentId: generatedId,
+           error: 'The linked portal profile was created, but the secure password setup email was not delivered. Do not retry the invite; use the account recovery/resend process for this address.'
+         }, { status: 502 });
+       }
 
        return NextResponse.json({
          success: true,
          status: 'success',
-         message: `Invitation successfully dispatched to ${email}`,
+         message: `Secure password setup invitation sent to ${email}.`,
          studentId: generatedId,
-         tempPassword
+         emailDispatched: true
        });
      }
 
@@ -790,18 +802,16 @@ export async function POST(req: NextRequest) {
        }
        supabase = getPrivilegedClient();
 
-
-       const fullName = (payload.fullName || payload.name || '').trim();
-       const email = (payload.email || '').trim().toLowerCase();
-       const phone = (payload.phone || '').trim();
+       const fullName = String(payload.fullName || payload.name || '').trim();
+       const email = String(payload.email || '').trim().toLowerCase();
+       const phone = String(payload.phone || '').trim();
        const role = payload.role || 'student';
        const internalNotes = payload.internalNotes || payload.notes || '';
        let classId = payload.classId;
-       // Curriculum selector explicit mapping
        if (!classId || classId === 'default') {
-         const courseNameLower = (payload.courseName || payload.courseSelection || '').toLowerCase();
+         const courseNameLower = String(payload.courseName || payload.courseSelection || '').toLowerCase();
          if (courseNameLower.includes('renewal')) {
-           classId = '48daf0ba-41a3-4d89-a148-07f26f1e89f5'; // Explicit Maryland Wear & Carry (8-Hour Renewal) unique ID
+           classId = '48daf0ba-41a3-4d89-a148-07f26f1e89f5';
          } else if (courseNameLower.includes('mastery') || courseNameLower.includes('multi-state')) {
            classId = '282526dc-97b9-4481-8e2d-3ca90f719bdf';
          } else if (courseNameLower.includes('combo')) {
@@ -813,187 +823,178 @@ export async function POST(req: NextRequest) {
        const scheduledDateStr = payload.scheduledDate;
        let durationHours = Number(payload.durationHours) || 8;
 
-
-       if (!fullName || !email) {
-         return NextResponse.json({ success: false, error: 'Full name and email are required.' }, { status: 400 });
+       if (!fullName || !email || !email.includes('@')) {
+         return NextResponse.json({ success: false, error: 'Full name and valid email are required.' }, { status: 400 });
        }
 
-
-       // If client or admin role (Non-course onboarding)
        if (role !== 'student') {
          const clientId = 'FI-CLIENT-' + Math.floor(1000 + Math.random() * 9000);
-         await supabase.from('clients').upsert({
-           client_id: clientId,
-           full_name: fullName,
-           email: email,
-           phone: phone,
-           permit_state: 'Maryland Wear & Carry',
-           updated_at: new Date().toISOString()
+         const { error: clientErr } = await supabase.from('clients').insert({
+           client_id: clientId, full_name: fullName, email, phone: phone || null,
+           permit_state: 'Maryland Wear & Carry', status: 'ACTIVE_REGISTERED', created_at: new Date().toISOString()
          });
-         return NextResponse.json({ success: true, isNewUser: true, message: 'Client profile created. Welcome email with portal credentials sent.' });
+         if (clientErr) {
+           return NextResponse.json({ success: false, error: 'Could not create client profile: ' + clientErr.message }, { status: 500 });
+         }
+         return NextResponse.json({ success: true, isNewUser: true, emailDispatched: false, clientId, message: 'Client profile created. No portal credentials or invitation email were generated by this enrollment action.' });
        }
-
 
        if (!classId || !scheduledDateStr) {
          return NextResponse.json({ success: false, error: 'Class and scheduled date/time are required for student enrollment.' }, { status: 400 });
        }
-
-
        const scheduledDate = new Date(scheduledDateStr);
        if (isNaN(scheduledDate.getTime())) {
          return NextResponse.json({ success: false, error: 'Invalid scheduled date/time provided.' }, { status: 400 });
        }
 
-
-       // Query class details
-       const { data: classRecord } = await supabase
-         .from('classes')
-         .select('*')
-         .eq('id', classId)
-         .single();
-
-
+       const { data: classRecord } = await supabase.from('classes').select('*').eq('id', classId).single();
        const classTitle = classRecord?.title || 'Firearms Qualification Course';
        const gearNotes = classRecord?.required_gear_notes || 'Eye and ear protection, government-issued photo ID, range fee (0 cash), functional firearm with 50 rounds of factory ammunition.';
        const materialsPath = classRecord?.materials_path || null;
-       if (!payload.durationHours && classRecord?.duration_hours) {
-         durationHours = Number(classRecord.duration_hours);
+       if (!payload.durationHours && classRecord?.duration_hours) durationHours = Number(classRecord.duration_hours);
+
+       const { data: existingStudent, error: existingStudentErr } = await supabase
+         .from('students').select('*').eq('email', email).maybeSingle();
+       if (existingStudentErr) {
+         return NextResponse.json({ success: false, error: 'Could not verify existing student record: ' + existingStudentErr.message }, { status: 500 });
        }
 
-
-       // Check if student exists
-       const { data: existingStudent } = await supabase
-         .from('students')
-         .select('*')
-         .eq('email', email)
-         .maybeSingle();
-
-
        const isNewUser = !existingStudent;
-       let tempPassword = '';
        let studentId = existingStudent?.student_id;
-
-
+       let authUserId: string | null = null;
+       let createdStudentRow = false;
        if (isNewUser) {
-         // Branch B: New User Provisioning
          studentId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000);
-         tempPassword = generateSecureTempPassword();
-
+         const initialPassword = generateSecureTempPassword();
+         const { data: createdAuth, error: createAuthErr } = await supabase.auth.admin.createUser({
+           email,
+           password: initialPassword,
+           email_confirm: true,
+           app_metadata: { role: 'student' },
+           user_metadata: { full_name: fullName, phone }
+         });
+         authUserId = createdAuth?.user?.id || null;
+         if (createAuthErr || !authUserId) {
+           return NextResponse.json({ success: false, error: 'Could not create a new secure sign-in. If this email already has an account, use the account-recovery process instead. Existing student records are not automatically linked by email.' }, { status: 409 });
+         }
 
          const { error: insertErr } = await supabase.from('students').insert({
+           user_id: authUserId,
            student_id: studentId,
            full_name: fullName,
-           email: email,
-           phone: phone,
-           course: classTitle,
-           assigned_date: scheduledDate.toLocaleDateString(),
+           email,
+           phone: phone || null,
+           course_selection: classTitle,
+           preferred_dates: scheduledDate.toISOString(),
            status: 'STEP_1_REGISTERED',
-           must_change_password: true,
-           temp_password_reset: true,
-           password_expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-           internal_notes: internalNotes
+           created_at: new Date().toISOString()
          });
          if (insertErr) {
-           return NextResponse.json({ success: false, error: insertErr.message }, { status: 500 });
+           const { error: cleanupErr } = await supabase.auth.admin.deleteUser(authUserId);
+           if (cleanupErr) console.error('[adminEnrollStudent] Auth cleanup failed after student insert error:', cleanupErr);
+           return NextResponse.json({ success: false, error: 'Could not create the linked student profile. No enrollment was recorded.' }, { status: 500 });
          }
+         createdStudentRow = true;
        } else {
-         // Branch A: Existing User
-         await supabase.from('students').update({
+         // Do not auto-link existing unlinked records by matching email.
+         const { error: updateErr } = await supabase.from('students').update({
            phone: phone || existingStudent.phone,
            internal_notes: internalNotes || existingStudent.internal_notes,
            course: classTitle,
            assigned_date: scheduledDate.toLocaleDateString()
-         }).eq('email', email);
+         }).eq('id', existingStudent.id);
+         if (updateErr) {
+           return NextResponse.json({ success: false, error: 'Could not update the existing student record: ' + updateErr.message }, { status: 500 });
+         }
        }
 
-
-       // Insert new enrollment record
-       const { data: enrollment, error: enrollErr } = await supabase
-         .from('enrollments')
-         .insert({
-           student_email: email,
-           student_name: fullName,
-           class_id: classId,
-           scheduled_date: scheduledDate.toISOString(),
-           duration_hours: durationHours,
-           reminder_sent: false,
-           status: 'confirmed',
-           previous_dates: [],
-           internal_notes: internalNotes
-         })
-         .select()
-         .single();
-
-
+       const { data: enrollment, error: enrollErr } = await supabase.from('enrollments').insert({
+         student_email: email,
+         student_name: fullName,
+         class_id: classId,
+         scheduled_date: scheduledDate.toISOString(),
+         duration_hours: durationHours,
+         reminder_sent: false,
+         status: 'confirmed',
+         previous_dates: [],
+         internal_notes: internalNotes
+       }).select().single();
        if (enrollErr) {
+         if (createdStudentRow && authUserId) {
+           const { error: rowCleanupErr } = await supabase.from('students').delete().eq('user_id', authUserId);
+           if (rowCleanupErr) console.error('[adminEnrollStudent] Student cleanup failed after enrollment insert error:', rowCleanupErr);
+           const { error: authCleanupErr } = await supabase.auth.admin.deleteUser(authUserId);
+           if (authCleanupErr) console.error('[adminEnrollStudent] Auth cleanup failed after enrollment insert error:', authCleanupErr);
+         }
          return NextResponse.json({ success: false, error: 'Failed to record enrollment: ' + enrollErr.message }, { status: 500 });
        }
 
-
-       // Dynamic 7-day signed materials link
        const signedDocUrl = await getSignedDocumentUrl(supabase, materialsPath);
-
-
-       // Generate ICS Calendar Event
-       const icsDescription = 'FIFS Qualification Course - Gear: ' + gearNotes;
-       const icsContent = generateIcsCalendar({
-         title: classTitle,
-         description: icsDescription,
-         startDate: scheduledDate,
-         durationHours: durationHours
-       });
-       const icsBase64 = Buffer.from(icsContent).toString('base64');
-       const attachments: ResendAttachment[] = [{
-         filename: 'FIFS_Course_Invitation.ics',
-         content: icsBase64
-       }];
-
-
-       // Email Dispatch
-       let emailResult: { success: boolean; error?: string } = { success: false };
        const dateFormatted = scheduledDate.toLocaleString('en-US', {
          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
        });
+       const icsContent = generateIcsCalendar({
+         title: classTitle,
+         description: 'FIFS Qualification Course - Gear: ' + gearNotes,
+         startDate: scheduledDate,
+         durationHours
+       });
+       const attachments: ResendAttachment[] = [{ filename: 'FIFS_Course_Invitation.ics', content: Buffer.from(icsContent).toString('base64') }];
 
-
+       let setupLink: string | null = null;
+       let setupLinkError: string | null = null;
        if (isNewUser) {
-         // Welcome & Temporary Credentials
-         const html = `<p>Welcome to <strong>${classTitle}</strong>! Your session is confirmed for <strong>${dateFormatted}</strong>.</p>` +
-           (signedDocUrl ? `<p style="margin:10px 0 0 0;"><a href="${signedDocUrl}" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>` : '') +
-           (isNewUser && tempPassword ? `<p>Your temporary password is: <code>${tempPassword}</code></p><p>You will be required to change this password at first login.</p>` : '');
-         emailResult = await sendResendEmail({
-           to: email,
-           subject: 'Course Confirmation & Portal Access - ' + classTitle,
-           html: html,
-           attachments: attachments
-         });
-       } else {
-         // Existing User Enrollment Confirmation
-         const html = `<p>Welcome to <strong>${classTitle}</strong>! Your session is confirmed for <strong>${dateFormatted}</strong>.</p>` +
-           (signedDocUrl ? `<p style="margin:10px 0 0 0;"><a href="${signedDocUrl}" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>` : '') +
-           (isNewUser && tempPassword ? `<p>Your temporary password is: <code>${tempPassword}</code></p><p>You will be required to change this password at first login.</p>` : '');
-         emailResult = await sendResendEmail({
-           to: email,
-           subject: 'Course Confirmation & Portal Access - ' + classTitle,
-           html: html,
-           attachments: attachments
-         });
+         try {
+           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://trainwithfifs.com';
+           const redirectTo = new URL('/?portal=student', siteUrl).toString();
+           const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
+             type: 'recovery', email, options: { redirectTo }
+           });
+           if (linkErr || !linkData?.properties?.action_link) {
+             setupLinkError = linkErr?.message || 'Supabase did not return a password setup link.';
+           } else {
+             setupLink = linkData.properties.action_link;
+           }
+         } catch (linkErr: any) {
+           setupLinkError = linkErr?.message || 'Could not generate the password setup link.';
+         }
        }
 
+       const safeClassTitle = escapeHtml(classTitle);
+       const safeSetupLink = setupLink ? escapeHtml(setupLink) : null;
+       const emailHtml = `<p>Welcome to <strong>${safeClassTitle}</strong>! Your session is confirmed for <strong>${escapeHtml(dateFormatted)}</strong>.</p>` +
+         (safeSetupLink ? `<p>Use this secure, time-limited link to set your portal password: <a href="${safeSetupLink}">Set up your portal password</a>. Do not share the link.</p>` : '') +
+         (isNewUser && !safeSetupLink ? `<p>Your enrollment is recorded, but we could not generate the portal setup link. Please contact FIFS to complete portal setup.</p>` : '') +
+         (signedDocUrl ? `<p style="margin:10px 0 0 0;"><a href="${escapeHtml(signedDocUrl)}" style="background:#0284c7;color:#ffffff;text-decoration:none;padding:8px 16px;border-radius:4px;font-weight:bold;display:inline-block;">Download Course Materials (7-Day Secure Link)</a></p>` : '');
+       const emailResult = await sendResendEmail({
+         to: email,
+         subject: 'Course Confirmation & Portal Access - ' + classTitle,
+         html: emailHtml,
+         attachments
+       });
+
+       const portalSetupEmailDispatched = isNewUser ? Boolean(setupLink && emailResult.success) : null;
+       const message = !emailResult.success
+         ? 'Enrollment recorded, but the confirmation email could not be delivered.'
+         : (isNewUser && !setupLink
+           ? 'Enrollment recorded and confirmation email delivered, but portal password setup is still required. Contact FIFS; no temporary password was sent.'
+           : (isNewUser
+             ? 'Enrollment recorded and secure password setup link sent. No temporary password was sent.'
+             : 'Enrollment recorded and confirmation email delivered. Existing portal access was not changed.'));
 
        return NextResponse.json({
          success: true,
-         isNewUser: isNewUser,
-         studentId: studentId,
-         tempPassword: isNewUser ? tempPassword : null,
+         isNewUser,
+         studentId,
          emailDispatched: emailResult.success,
-         emailError: emailResult.error || null,
-         enrollment: enrollment
+         portalSetupEmailDispatched,
+         portalSetupLinkGenerated: isNewUser ? Boolean(setupLink) : null,
+         emailError: emailResult.error || setupLinkError || null,
+         message,
+         enrollment
        });
      }
 
-
-     // 3. Reschedule Enrollment
      case 'adminRescheduleEnrollment': {
        const { user, error: authErr } = await getAuthenticatedUser(req);
        if (authErr || !isStaffOrAdmin(user)) {
@@ -1072,7 +1073,7 @@ export async function POST(req: NextRequest) {
        });
 
 
-       const html = `<p>Your course session for <strong>${classTitle}</strong> has been rescheduled to <strong>${dateStr}</strong>.</p><p style="margin:8px 0 0 0;color:#713f12;"><strong>Instructor Note:</strong> ${reason || "Schedule adjusted by instructor."}</p>`;
+       const html = `<p>Your course session for <strong>${escapeHtml(classTitle)}</strong> has been rescheduled to <strong>${escapeHtml(dateStr)}</strong>.</p><p style="margin:8px 0 0 0;color:#713f12;"><strong>Instructor Note:</strong> ${escapeHtml(reason || "Schedule adjusted by instructor.")}</p>`;
 
 
        await sendResendEmail({
@@ -1132,7 +1133,7 @@ export async function POST(req: NextRequest) {
        const dateStr = new Date(enrollment.scheduled_date).toLocaleString();
 
 
-       const html = `<p>Your session for <strong>${classTitle}</strong> scheduled for ${dateStr} has been cancelled.</p><div style="background:#fef2f2;border:1px solid #fecaca;padding:12px;border-radius:6px;margin:16px 0;"><strong>Reason:</strong> ${reason || "Cancelled by instructor."}</div>`;
+       const html = `<p>Your session for <strong>${escapeHtml(classTitle)}</strong> scheduled for ${escapeHtml(dateStr)} has been cancelled.</p><div style="background:#fef2f2;border:1px solid #fecaca;padding:12px;border-radius:6px;margin:16px 0;"><strong>Reason:</strong> ${escapeHtml(reason || "Cancelled by instructor.")}</div>`;
 
 
        await sendResendEmail({
@@ -1267,15 +1268,18 @@ export async function POST(req: NextRequest) {
          ...enrollment,
          materialsUrl: enrollment.classes?.materials_path ? await getSignedDocumentUrl(supabase, enrollment.classes.materials_path) : null
        })));
+       const studentView: any = normalizeStudent(student);
+       // Staff-only notes are never returned to the student themself.
+       if (!isStaffOrAdmin(user)) delete studentView.internalNotes;
        return NextResponse.json({ success: true, status: 'success', student: {
-         ...normalizeStudent(student), enrollments: enrollmentsWithUrls, mustChangePassword: Boolean(student.must_change_password)
+         ...studentView, enrollments: enrollmentsWithUrls, mustChangePassword: Boolean(student.must_change_password)
        }});
      }
 
      case 'check24HourReminders': {
        const cronSecret = req.headers.get('x-cron-secret');
-       const expectedCron = process.env.CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
-       const isCron = Boolean(cronSecret && expectedCron && cronSecret === expectedCron);
+       // Dedicated CRON_SECRET only; the service-role key is never accepted as a cron credential.
+       const isCron = secretsMatch(cronSecret, process.env.CRON_SECRET);
 
        if (!isCron) {
          const { user, error: authErr } = await getAuthenticatedUser(req);
@@ -1311,7 +1315,7 @@ export async function POST(req: NextRequest) {
          const docUrl = await getSignedDocumentUrl(supabase, enr.classes?.materials_path);
 
 
-         const html = `<p>Reminder: Your upcoming class <strong>${classTitle}</strong> is scheduled for <strong>${dateStr}</strong>.</p>` + (docUrl ? `<p><a href="${docUrl}" style="background:#0284c7;color:#ffffff;padding:8px 16px;border-radius:4px;text-decoration:none;font-weight:bold;">Review Course Study Guide</a></p>` : "");
+         const html = `<p>Reminder: Your upcoming class <strong>${escapeHtml(classTitle)}</strong> is scheduled for <strong>${escapeHtml(dateStr)}</strong>.</p>` + (docUrl ? `<p><a href="${escapeHtml(docUrl)}" style="background:#0284c7;color:#ffffff;padding:8px 16px;border-radius:4px;text-decoration:none;font-weight:bold;">Review Course Study Guide</a></p>` : "");
 
 
          await sendResendEmail({
@@ -1734,245 +1738,25 @@ export async function POST(req: NextRequest) {
 
      // 10. Course Registration & Stripe Checkout Session Creator
      case 'submitBooking': {
-       supabase = getPublicClient();
-        const {
-          invoiceId = 'INV-FI-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000),
-          studentId = 'FIFS-' + Math.floor(1000 + Math.random() * 9000),
-          fullName = 'FIFS Training Student',
-          email,
-          phone = '',
-          courseSelection = 'Maryland Firearms Training Course',
-          preferredDates = 'Coordinated with Lead Instructor Kai Wade',
-          groupSize = '1',
-          comments = '',
-          classId = '',
-          payInFull = false
-        } = payload;
-
-        if (!email || !email.includes('@')) {
-          return NextResponse.json({ success: false, status: 'error', error: 'Valid student email address is required.' }, { status: 400 });
-        }
-
-        const stripeKey = process.env.STRIPE_SECRET_KEY;
-        if (!stripeKey) {
-          console.error('[submitBooking] Stripe configuration missing: STRIPE_SECRET_KEY not set.');
-          return NextResponse.json(
-            {
-              success: false,
-              status: 'error',
-              error: 'Payment processing gateway is not configured on the server. Please contact FIFS directly.'
-            },
-            { status: 503 }
-          );
-        }
-
-        const isVip = /VIP/i.test(courseSelection || '');
-
-        // 1. Authoritative server-side pricing calculation - strictly ignores client-supplied totals/deposits
-        let baseTuitionPerPerson = 249.99;
-        const cleanCourse = (courseSelection || '').toLowerCase();
-        if (cleanCourse.includes('mastery') || cleanCourse.includes('multi-state') || cleanCourse.includes('multistate')) {
-          baseTuitionPerPerson = isVip ? 549.99 : 424.99;
-        } else if (cleanCourse.includes('renewal')) {
-          baseTuitionPerPerson = isVip ? 249.99 : 149.99;
-        } else if (cleanCourse.includes('combo')) {
-          baseTuitionPerPerson = isVip ? 375.00 : 249.99;
-        } else if (cleanCourse.includes('hql')) {
-          baseTuitionPerPerson = isVip ? 165.00 : 100.00;
-        } else if (cleanCourse.includes('ccw') || cleanCourse.includes('wear & carry')) {
-          baseTuitionPerPerson = isVip ? 349.99 : 199.99;
-        } else if (cleanCourse.includes('coaching')) {
-          baseTuitionPerPerson = isVip ? 195.00 : 125.00;
-        } else if (cleanCourse.includes('cleaning')) {
-          baseTuitionPerPerson = isVip ? 115.00 : 75.00;
-        } else if (cleanCourse.includes('children')) {
-          baseTuitionPerPerson = isVip ? 265.00 : 199.99;
-        } else if (cleanCourse.includes('alumni')) {
-          baseTuitionPerPerson = isVip ? 115.00 : 65.00;
-        }
-
-        let attendees = 1;
-        let discountPercent = 0;
-        const groupStr = String(groupSize || '1');
-        if (/^2|2 \(paired/i.test(groupStr)) {
-          attendees = 2;
-          discountPercent = 0.05;
-        } else if (/^[34]|[34] \(small/i.test(groupStr)) {
-          attendees = 3;
-          discountPercent = 0.10;
-        } else if (/5\+/i.test(groupStr) || /^5/i.test(groupStr)) {
-          attendees = 5;
-          discountPercent = 0.15;
-        }
-
-        const rawTuition = baseTuitionPerPerson * attendees;
-        const discountVal = rawTuition * discountPercent;
-        const discountedTuition = rawTuition - discountVal;
-
-        // Cindy's range fee ($45.00 per person for Base Track, $0 for VIP Turnkey)
-        const rangeFee = isVip ? 0 : (45.00 * attendees);
-        const subtotal = discountedTuition + rangeFee;
-        const mdTax = subtotal * 0.06;
-        const grandTotal = subtotal + mdTax;
-        const depositDueNow = grandTotal * 0.30;
-        const balanceDueClass = grandTotal - depositDueNow;
-
-        // 30% deposit is default charge amount unless explicitly payInFull
-        const chargeAmount = payInFull ? grandTotal : depositDueNow;
-        const unitAmount = Math.round(chargeAmount * 100);
-
-        const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://trainwithfifs.com';
-        const baseUrl = origin.replace(/\/+$/, '');
-
-        let checkoutUrl: string;
-        let sessionId: string;
-
-        try {
-          const StripeModule = typeof require === 'function' ? (require('stripe')?.default || require('stripe')) : ((await import('stripe')).default || (await import('stripe')));
-          const stripe = new StripeModule(stripeKey, { apiVersion: '2023-10-16' as any });
-
-          const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            mode: 'payment',
-            customer_email: email,
-            client_reference_id: studentId,
-            metadata: {
-              invoiceId,
-              studentId,
-              fullName,
-              phone,
-              courseSelection,
-              preferredDates,
-              groupSize: String(groupSize),
-              comments: String(comments).slice(0, 400),
-              classId: classId || '',
-              rangeFee: rangeFee.toFixed(2),
-              mdTax: mdTax.toFixed(2),
-              grandTotal: grandTotal.toFixed(2),
-              depositDueNow: depositDueNow.toFixed(2),
-              balanceDueClass: balanceDueClass.toFixed(2),
-              isDepositPayment: String(!payInFull)
-            },
-            line_items: [
-              {
-                price_data: {
-                  currency: 'usd',
-                  unit_amount: unitAmount,
-                  product_data: {
-                    name: `${courseSelection} — ${payInFull ? 'Full Tuition & Range Fee' : '30% Reservation Deposit'}`,
-                    description: `Invoice: ${invoiceId} • Total Course Investment: $${grandTotal.toFixed(2)} (Tuition + ${isVip ? "VIP Range Perk" : "$45 Range Fee"} + 6% MD Tax) • ${payInFull ? "Paid in Full" : "Deposit: $" + depositDueNow.toFixed(2) + " (Remaining $" + balanceDueClass.toFixed(2) + " due on class day)"}`,
-                  },
-                },
-                quantity: 1,
-              },
-            ],
-            success_url: `${baseUrl}/?session_id={CHECKOUT_SESSION_ID}&booking_confirmed=true&invoice=${encodeURIComponent(invoiceId)}`,
-            cancel_url: `${baseUrl}/?booking_cancelled=true&session_id={CHECKOUT_SESSION_ID}&invoice=${encodeURIComponent(invoiceId)}`,
-          });
-
-          if (!session || !session.url || !session.id) {
-            throw new Error('Stripe failed to return a valid checkout session URL or ID.');
-          }
-
-          checkoutUrl = session.url;
-          sessionId = session.id;
-        } catch (stripeErr: any) {
-          console.error('[submitBooking] Stripe checkout session creation failed:', stripeErr?.message);
-          return NextResponse.json(
-            {
-              success: false,
-              status: 'error',
-              error: 'Failed to create secure checkout session: ' + (stripeErr?.message || 'Payment gateway error')
-            },
-            { status: 502 }
-          );
-        }
-
-       try {
-         await supabase.from('invoices').upsert({
-            invoice_number: invoiceId,
-            student_id: studentId,
-            course: courseSelection,
-            total_amount: grandTotal.toFixed(2),
-            tuition_amount: discountedTuition.toFixed(2),
-            tax_amount: mdTax.toFixed(2),
-            deposit_due: depositDueNow.toFixed(2),
-            amount_paid: '0.00',
-            balance_due: balanceDueClass.toFixed(2),
-            status: 'PENDING',
-            due_date: preferredDates || 'Upon Class Date',
-            stripe_session_id: sessionId,
-            email: email,
-            facility: "Cindy's Hot Shots (115 Holsum Way, Glen Burnie, MD 21060)",
-            payment_method: 'Stripe Checkout',
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'invoice_number' });
-       } catch (_dbErr) {}
-
-       // Guest Booking Check & Unauthenticated Lead Trigger
-       const userId = payload.user_id || payload.userId || null;
-       const isGuest = !userId && !studentId.startsWith('FI-CLIENT-');
-
-       if (isGuest) {
-         // 1. Capture into leads table as Unauthenticated Lead
-         try {
-           await supabase.from('leads').insert([{
-             full_name: fullName,
-             email: email,
-             source: 'Guest Checkout Lead: ' + courseSelection
-           }]);
-         } catch (leadErr) {
-           console.warn('[FIFS] Lead capture note:', leadErr);
-         }
-
-         // 2. Dispatch dedicated "Guest Checkout" Discord alert (asynchronously on server)
-         await sendServerDiscordAlert(
-           "🚨 New Unauthenticated Lead (Guest Checkout): " + fullName,
-           "A guest student without an existing portal account has initiated course reservation checkout.",
-           [
-             { name: "Student Name", value: fullName, inline: true },
-             { name: "Lead Classification", value: "⚠️ Unauthenticated Lead (Guest)", inline: true },
-             { name: "Contact Email", value: email, inline: true },
-             { name: "Contact Phone", value: phone || "Not provided", inline: true },
-             { name: "Curriculum Track", value: courseSelection + (isVip ? " (👑 VIP Turnkey)" : " (Standard Base)"), inline: false },
-             { name: "Reservation Deposit", value: "$" + depositDueNow.toFixed(2) + " Due Now", inline: true },
-             { name: "Total Course Investment", value: "$" + grandTotal.toFixed(2), inline: true },
-             { name: "Training Dates", value: preferredDates, inline: false },
-             { name: "Invoice Reference", value: invoiceId, inline: true }
-           ],
-           0xF59E0B // Warning Amber
-         );
-       } else {
-         // Standard Authenticated Booking Discord Alert
-         await sendServerDiscordAlert(
-           "🎯 New Course Enrollment Checkout: " + fullName,
-           `Enrolled in ${courseSelection} with reservation invoice ${invoiceId}`,
-           [
-             { name: "Student", value: fullName, inline: true },
-             { name: "Course", value: courseSelection, inline: true },
-             { name: "Track", value: isVip ? "👑 VIP Turnkey" : "Standard Base", inline: true },
-             { name: "Email", value: email, inline: true },
-             { name: "Phone", value: phone || "Not provided", inline: true },
-             { name: "Deposit Due", value: "$" + depositDueNow.toFixed(2), inline: true },
-             { name: "Total", value: "$" + grandTotal.toFixed(2), inline: true },
-             { name: "Dates", value: preferredDates, inline: false }
-           ],
-           0x00E5FF // Cyan
-         );
+       // Shared, server-priced checkout: client-supplied IDs, totals, and user IDs are ignored.
+       const result = await createBookingCheckout(req, payload);
+       if (result.status !== 200) {
+         return NextResponse.json(result.body, { status: result.status });
        }
 
        // If group booking (more than 1 person), generate private pod invite code
        let podInviteCode = null;
-       if (attendees > 1) {
+       if (result.body.attendees > 1) {
          try {
-           const { data: codeData } = await supabase.rpc('create_booking_group', {
-             p_leader_name: fullName,
-             p_leader_email: email,
-             p_leader_phone: phone || null,
-             p_course: courseSelection,
-             p_track: isVip ? 'VIP' : 'Base',
-             p_preferred_dates: preferredDates,
-             p_max_seats: attendees
+           const pricingCourse = String(payload.courseSelection || 'Maryland Firearms Training Course').trim().slice(0, 200);
+           const { data: codeData } = await getPublicClient().rpc('create_booking_group', {
+             p_leader_name: String(payload.fullName || 'FIFS Training Student').trim().slice(0, 100),
+             p_leader_email: String(payload.email).trim().toLowerCase(),
+             p_leader_phone: String(payload.phone || '').trim().slice(0, 30) || null,
+             p_course: pricingCourse,
+             p_track: result.body.isVip ? 'VIP' : 'Base',
+             p_preferred_dates: String(payload.preferredDates || 'Coordinated with Lead Instructor Kai Wade').trim().slice(0, 200),
+             p_max_seats: result.body.attendees
            });
            podInviteCode = codeData;
          } catch (podErr) {
@@ -1980,16 +1764,7 @@ export async function POST(req: NextRequest) {
          }
        }
 
-       return NextResponse.json({
-         success: true,
-         status: 'success',
-         url: checkoutUrl,
-         checkoutUrl: checkoutUrl,
-         sessionId: sessionId,
-         invoiceId,
-         studentId,
-         podInviteCode
-       });
+       return NextResponse.json({ ...result.body, podInviteCode });
      }
 
      case 'trackSiteVisit': {
@@ -2035,6 +1810,14 @@ export async function POST(req: NextRequest) {
      }
 
      default:
+       if (typeof action === 'string' && Object.prototype.hasOwnProperty.call(NOT_IMPLEMENTED_ACTIONS, action)) {
+         return NextResponse.json({
+           success: false,
+           status: 'error',
+           notImplemented: true,
+           error: `${NOT_IMPLEMENTED_ACTIONS[action]} is not available yet. This change was NOT saved.`
+         }, { status: 501 });
+       }
        return NextResponse.json({ success: false, error: 'Unhandled action: ' + action }, { status: 400 });
    }
  } catch (err: any) {
