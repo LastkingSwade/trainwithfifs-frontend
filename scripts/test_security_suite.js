@@ -11,8 +11,9 @@ const path = require('path');
 const Module = require('module');
 const crypto = require('crypto');
 
-process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ufqnmcincwnlyiwsmzcq.supabase.co';
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'test-anon-key-fifs-public';
+// Always fixed, fake, non-production values: never inherit a real URL or key from the shell.
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://fifstestproject0000000.supabase.co';
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key-fifs-public';
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-test-secret-key-32chars!';
 process.env.CHAT_HMAC_SECRET = 'chat-hmac-test-secret-key-32chars-long!';
 process.env.ADMIN_NOTIFICATION_EMAIL = 'carpetcare85@gmail.com';

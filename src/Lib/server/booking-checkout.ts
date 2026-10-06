@@ -1,8 +1,9 @@
 import crypto from 'node:crypto';
 import Stripe from 'stripe';
 import { calculatePricingBreakdown, parseAttendeeCount } from '../pricing';
-import { getAuthenticatedUser, getPrivilegedClient, hasBearerToken } from './supabase-admin';
+import { getAuthenticatedUser, getPrivilegedClient, hasBearerToken, resolveStripeSecretKey } from './supabase-admin';
 import { sendDiscordAlert } from './discord';
+import { ConfigurationError, isProductionDeployment, resolveSiteUrl } from '../config/environment';
 
 export const STRIPE_API_VERSION = '2023-10-16' as any;
 const FACILITY = "Cindy's Hot Shots (115 Holsum Way, Glen Burnie, MD 21060)";
@@ -10,15 +11,11 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * Trusted public site origin for Stripe return URLs. Never derived from request
- * Origin/Referer headers, which callers control.
+ * Origin/Referer headers, which callers control. Outside Production it must be configured
+ * and must not be the Production site (see resolveSiteUrl).
  */
 export function getSiteUrl(): string {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL || 'https://trainwithfifs.com';
-  try {
-    const url = new URL(configured);
-    if (url.protocol === 'https:' || url.protocol === 'http:') return url.origin;
-  } catch {}
-  return 'https://trainwithfifs.com';
+  return resolveSiteUrl();
 }
 
 // Server-generated identifiers. Request-supplied invoice/student IDs are ignored.
@@ -73,7 +70,21 @@ export async function createBookingCheckout(
   const classId = text(input.classId, '', 64);
   const isPayFull = Boolean(input.payInFull || input.pay_in_full);
 
-  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  // Validate environment configuration before any Stripe session or database write.
+  let stripeKey: string | null;
+  let baseUrl: string;
+  try {
+    stripeKey = resolveStripeSecretKey();
+    baseUrl = getSiteUrl();
+    // Outside Production, also confirm the database configuration up front (no network call).
+    if (!isProductionDeployment()) getPrivilegedClient();
+  } catch (err) {
+    if (err instanceof ConfigurationError) {
+      console.error('[Checkout] Configuration error:', err.message);
+      return { status: 503, body: { success: false, status: 'error', error: 'Checkout is not configured for this environment. ' + err.message } };
+    }
+    throw err;
+  }
   if (!stripeKey) {
     console.error('[Checkout] STRIPE_SECRET_KEY is not configured.');
     return { status: 503, body: { success: false, status: 'error', error: 'Payment processing is not configured on the server. Please contact FIFS directly.' } };
@@ -106,7 +117,6 @@ export async function createBookingCheckout(
 
   const invoiceId = generateInvoiceId();
   const pricing = calculatePricingBreakdown(courseSelection, attendees, isPayFull);
-  const baseUrl = getSiteUrl();
 
   let session: Stripe.Checkout.Session;
   try {

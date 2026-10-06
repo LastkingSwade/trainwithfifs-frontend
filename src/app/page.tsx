@@ -1050,7 +1050,12 @@ export default function TrainWithFIFS(props: any) {
 
     // Attach logo tap listeners
         // Initialize browser Supabase client
-    const supabase = typeof window !== 'undefined' && typeof createSupabaseClient === 'function' ? createSupabaseClient() : null;
+    let supabase: ReturnType<typeof createSupabaseClient> | null = null;
+    try {
+      supabase = typeof window !== 'undefined' && typeof createSupabaseClient === 'function' ? createSupabaseClient() : null;
+    } catch (configErr: any) {
+      console.error('[FIFS] Supabase is not configured for this environment:', configErr?.message);
+    }
     if (typeof window !== 'undefined' && supabase) {
       (window as any).supabaseClient = supabase;
     }
@@ -1779,12 +1784,8 @@ export default function TrainWithFIFS(props: any) {
 
 
 
-    // Configure default Stripe live publishable key if not already defined
-    if (typeof window !== "undefined") {
-      (window as any).STRIPE_PUBLISHABLE_KEY =
-        (window as any).STRIPE_PUBLISHABLE_KEY ||
-        "pk_live_51LqGwfH3ll5w8Qh1DmpXqIgXrN1OO2eQ4cQMOL3bDHVf6baTP4YgHp7CRCsOgC4UepBfe7w6wH1p8plUXuJnuOm500U20Ny7fS";
-    }
+    // No Stripe publishable key is hardcoded: checkout uses server-created Stripe Checkout
+    // sessions, and a Production key must never be baked into non-production builds.
 
 
 

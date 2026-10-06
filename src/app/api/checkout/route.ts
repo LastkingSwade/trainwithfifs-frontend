@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createBookingCheckout, STRIPE_API_VERSION } from '@/Lib/server/booking-checkout';
-import { getPrivilegedClient } from '@/Lib/server/supabase-admin';
+import { getPrivilegedClient, resolveStripeSecretKey } from '@/Lib/server/supabase-admin';
+import { ConfigurationError } from '@/Lib/config/environment';
 
 /**
  * POST /api/checkout - Create Stripe Checkout Session (server-priced, server-generated IDs)
@@ -47,7 +48,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ status: 'error', error: 'A valid Stripe checkout session_id is required.' }, { status: 400 });
     }
 
-    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    let stripeKey: string | null;
+    try {
+      stripeKey = resolveStripeSecretKey();
+    } catch (cfgErr) {
+      if (cfgErr instanceof ConfigurationError) {
+        return NextResponse.json({ status: 'error', error: 'Payment processing is not configured for this environment. ' + cfgErr.message }, { status: 503 });
+      }
+      throw cfgErr;
+    }
     if (!stripeKey) {
       return NextResponse.json({ status: 'error', error: 'Payment processing is not configured on the server.' }, { status: 503 });
     }

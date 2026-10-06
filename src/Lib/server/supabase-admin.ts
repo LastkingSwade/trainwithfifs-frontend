@@ -1,29 +1,72 @@
 import { createClient } from '@supabase/supabase-js';
+import {
+  ConfigurationError,
+  assertNonProductionSupabaseKey,
+  inspectSupabaseKey,
+  isProductionDeployment,
+  resolvePublicSupabaseConfig,
+  resolveSupabaseUrl
+} from '../config/environment';
 
-function getSupabaseUrl(): string {
-  return process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://ufqnmcincwnlyiwsmzcq.supabase.co';
-}
+// Server-only module: the service-role key below must never be imported into browser code.
 
 // Public Supabase client for token verification and unprivileged operations
 export function getPublicClient() {
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
-  if (!anonKey) {
-    throw new Error('Supabase public credentials (NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY) are not configured.');
-  }
-  return createClient(getSupabaseUrl(), anonKey, {
+  // Legacy aliases are honored in Production only (see resolvePublicSupabaseConfig).
+  const { url, anonKey } = resolvePublicSupabaseConfig({
+    url: process.env.SUPABASE_URL,
+    anonKey: process.env.SUPABASE_ANON_KEY
+  });
+  return createClient(url, anonKey, {
     auth: { persistSession: false }
   });
+}
+
+/**
+ * Service-role key. Production keeps the SUPABASE_SERVICE_KEY alias; elsewhere only
+ * SUPABASE_SERVICE_ROLE_KEY is accepted, and it must belong to the configured non-Production project.
+ */
+function resolveServiceRoleKey(url: string): string {
+  if (isProductionDeployment()) {
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+    if (!serviceKey) {
+      throw new ConfigurationError('Supabase service role credentials (SUPABASE_SERVICE_ROLE_KEY) are not configured.');
+    }
+    return serviceKey;
+  }
+
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) {
+    throw new ConfigurationError('SUPABASE_SERVICE_ROLE_KEY is required outside Production (aliases and Production fallbacks are not used).');
+  }
+  const info = inspectSupabaseKey(serviceKey);
+  if (info.format === 'publishable' || (info.role && info.role !== 'service_role')) {
+    throw new ConfigurationError('SUPABASE_SERVICE_ROLE_KEY is not a service-role key.');
+  }
+  assertNonProductionSupabaseKey(info, url, 'SUPABASE_SERVICE_ROLE_KEY');
+  return serviceKey;
 }
 
 // Privileged Service Role client - create ONLY after request authorization succeeds
 export function getPrivilegedClient() {
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
-  if (!serviceKey) {
-    throw new Error('Supabase service role credentials (SUPABASE_SERVICE_ROLE_KEY) are not configured.');
-  }
-  return createClient(getSupabaseUrl(), serviceKey, {
+  const url = resolveSupabaseUrl(process.env.SUPABASE_URL);
+  const serviceKey = resolveServiceRoleKey(url);
+  return createClient(url, serviceKey, {
     auth: { persistSession: false }
   });
+}
+
+/**
+ * Stripe secret key, or null when not configured (callers return 503).
+ * Outside Production a live-mode key is refused.
+ */
+export function resolveStripeSecretKey(): string | null {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) return null;
+  if (!isProductionDeployment() && /^(sk|rk)_live_/.test(key)) {
+    throw new ConfigurationError('STRIPE_SECRET_KEY is a live-mode key and cannot be used outside Production; use a test-mode key.');
+  }
+  return key;
 }
 
 export function hasBearerToken(req: { headers: { get(name: string): string | null } }): boolean {

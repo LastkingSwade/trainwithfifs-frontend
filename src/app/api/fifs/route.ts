@@ -2,6 +2,7 @@
 import crypto from 'node:crypto';
 import { getAuthenticatedUser, getPrivilegedClient, getPublicClient } from '@/Lib/server/supabase-admin';
 import { createBookingCheckout } from '@/Lib/server/booking-checkout';
+import { ConfigurationError, resolveSiteUrl } from '@/Lib/config/environment';
 
 
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'carpetcare85@gmail.com';
@@ -684,6 +685,8 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        }
        supabase = getPrivilegedClient();
+       // Resolved before any account is created so a configuration error leaves nothing behind.
+       const siteUrl = resolveSiteUrl();
 
        const fullName = String(payload?.fullName || payload?.name || payload?.invFullName || 'Invited Student').trim().slice(0, 100);
        const email = String(payload?.email || payload?.invEmail || '').trim().toLowerCase().slice(0, 150);
@@ -734,7 +737,6 @@ export async function POST(req: NextRequest) {
        }
 
        const redirectPath = portalType === 'client' ? '/?tab=fi-portal' : '/?portal=student';
-       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://trainwithfifs.com';
        let setupLink: string | null = null;
        let setupLinkError: string | null = null;
        try {
@@ -801,6 +803,8 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        }
        supabase = getPrivilegedClient();
+       // Resolved before any account is created so a configuration error leaves nothing behind.
+       const siteUrl = resolveSiteUrl();
 
        const fullName = String(payload.fullName || payload.name || '').trim();
        const email = String(payload.email || '').trim().toLowerCase();
@@ -945,7 +949,6 @@ export async function POST(req: NextRequest) {
        let setupLinkError: string | null = null;
        if (isNewUser) {
          try {
-           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://trainwithfifs.com';
            const redirectTo = new URL('/?portal=student', siteUrl).toString();
            const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
              type: 'recovery', email, options: { redirectTo }
@@ -1821,6 +1824,11 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ success: false, error: 'Unhandled action: ' + action }, { status: 400 });
    }
  } catch (err: any) {
+   if (err instanceof ConfigurationError) {
+     // Missing or unsafe environment configuration (message names variables only, never values).
+     console.error('[API FIFS Configuration Error]:', err.message);
+     return NextResponse.json({ success: false, status: 'error', error: 'Service is not configured for this environment. ' + err.message }, { status: 503 });
+   }
    console.error('[API FIFS Error]:', err);
    return NextResponse.json({ success: false, error: err?.message || 'Internal server error' }, { status: 500 });
  }

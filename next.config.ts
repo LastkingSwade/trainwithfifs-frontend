@@ -20,6 +20,13 @@ const cspHeader = `
 // (Next checks next.config.js, then .mjs, then .ts) and silently drop these headers.
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Deployment environment for browser code, fixed at build time from Vercel's VERCEL_ENV.
+  // Only a Vercel Production build is "production"; Preview, development, local, and test builds
+  // are non-production and must not use Production services (see src/Lib/config/environment.ts).
+  // Defined here so it cannot be overridden by an environment variable of the same name.
+  env: {
+    NEXT_PUBLIC_FIFS_DEPLOYMENT_ENV: process.env.VERCEL_ENV === 'production' ? 'production' : 'non-production',
+  },
   async headers() {
     return [
       {
