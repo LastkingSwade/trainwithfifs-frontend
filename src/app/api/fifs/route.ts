@@ -1297,6 +1297,11 @@ export async function POST(req: NextRequest) {
            return NextResponse.json({ success: false, error: 'Unauthorized: Admin authentication or cron secret required.' }, { status: 401 });
          }
        }
+       // Without an email provider key nothing can be sent, so do not query or mark anything.
+       if (!(process.env.RESEND_API_KEY || '').trim()) {
+         console.error('[Reminders] RESEND_API_KEY is not configured; no reminders were attempted.');
+         return NextResponse.json({ success: false, error: 'Reminder email is not configured on the server.', processedCount: 0, sentIds: [], failedCount: 0, failedIds: [] }, { status: 503 });
+       }
        supabase = getPrivilegedClient();
        const now = new Date();
        const startWindow = new Date(now.getTime() + 23 * 3600 * 1000);
@@ -1317,30 +1322,68 @@ export async function POST(req: NextRequest) {
        }
 
 
+       // A reminder is marked sent only after the email provider accepted it. A failure on one
+       // enrollment never stops the others, and failures are reported with generic reason codes only
+       // (never recipient addresses, secrets, or provider error text).
        const sentList: string[] = [];
+       const failures: Array<{ id: string; reason: 'missing_recipient' | 'send_failed' | 'mark_failed' }> = [];
        for (const enr of (pendingReminders || [])) {
-         const classTitle = enr.classes?.title || 'Firearms Qualification Course';
-         const gearNotes = enr.classes?.required_gear_notes || 'Eye and ear protection, government ID, range fees.';
-         const dateStr = new Date(enr.scheduled_date).toLocaleString();
-         const docUrl = await getSignedDocumentUrl(supabase, enr.classes?.materials_path);
+         try {
+           const recipient = String(enr.student_email || '').trim();
+           if (!recipient) {
+             failures.push({ id: enr.id, reason: 'missing_recipient' });
+             continue;
+           }
+
+           const classTitle = enr.classes?.title || 'Firearms Qualification Course';
+           const gearNotes = enr.classes?.required_gear_notes || 'Eye and ear protection, government ID, range fees.';
+           const dateStr = new Date(enr.scheduled_date).toLocaleString();
+           const docUrl = await getSignedDocumentUrl(supabase, enr.classes?.materials_path);
 
 
-         const html = `<p>Reminder: Your upcoming class <strong>${escapeHtml(classTitle)}</strong> is scheduled for <strong>${escapeHtml(dateStr)}</strong>.</p>` + (docUrl ? `<p><a href="${escapeHtml(docUrl)}" style="background:#0284c7;color:#ffffff;padding:8px 16px;border-radius:4px;text-decoration:none;font-weight:bold;">Review Course Study Guide</a></p>` : "");
+           const html = `<p>Reminder: Your upcoming class <strong>${escapeHtml(classTitle)}</strong> is scheduled for <strong>${escapeHtml(dateStr)}</strong>.</p>` + (docUrl ? `<p><a href="${escapeHtml(docUrl)}" style="background:#0284c7;color:#ffffff;padding:8px 16px;border-radius:4px;text-decoration:none;font-weight:bold;">Review Course Study Guide</a></p>` : "");
 
 
-         await sendResendEmail({
-           to: enr.student_email,
-           subject: 'Course Confirmation & Portal Access - ' + classTitle,
-           html: html
-         });
+           const sendResult = await sendResendEmail({
+             to: recipient,
+             subject: 'Course Confirmation & Portal Access - ' + classTitle,
+             html: html
+           });
+           if (!sendResult || !sendResult.success) {
+             failures.push({ id: enr.id, reason: 'send_failed' });
+             continue;
+           }
 
-
-         await supabase.from('enrollments').update({ reminder_sent: true }).eq('id', enr.id);
-         sentList.push(enr.id);
+           const { error: markErr } = await supabase
+             .from('enrollments')
+             .update({ reminder_sent: true })
+             .eq('id', enr.id)
+             .eq('reminder_sent', false);
+           if (markErr) {
+             // The email went out but could not be recorded, so a later run may send it again.
+             failures.push({ id: enr.id, reason: 'mark_failed' });
+             continue;
+           }
+           sentList.push(enr.id);
+         } catch {
+           failures.push({ id: enr.id, reason: 'send_failed' });
+         }
        }
 
+       for (const f of failures) console.warn('[Reminders] Not completed for enrollment', f.id, '- reason:', f.reason);
+       if (failures.length > 0) {
+         return NextResponse.json({
+           success: false,
+           error: 'One or more reminders could not be completed.',
+           processedCount: sentList.length,
+           sentIds: sentList,
+           failedCount: failures.length,
+           failedIds: failures.map((f) => f.id),
+           failures
+         }, { status: 502 });
+       }
 
-       return NextResponse.json({ success: true, processedCount: sentList.length, sentIds: sentList });
+       return NextResponse.json({ success: true, processedCount: sentList.length, sentIds: sentList, failedCount: 0, failedIds: [] });
      }
 
 

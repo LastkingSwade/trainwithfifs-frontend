@@ -24,6 +24,7 @@ process.env.STRIPE_SECRET_KEY = 'sk_test_mock_offline_only';
 process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_mock_offline_only';
 process.env.NEXT_PUBLIC_SITE_URL = 'https://trainwithfifs.example';
 const fetchCalls = installFetchStub();
+const stubFetch = global.fetch;
 
 // ---- Mock Next.js server primitives ----
 const mockNextServer = {
@@ -597,10 +598,146 @@ async function main() {
   });
   await test('Correct CRON_SECRET is accepted', async () => {
     process.env.CRON_SECRET = 'cron-secret-for-tests-only-0123456789';
+    process.env.RESEND_API_KEY = 're_test_dummy_key_not_real';
     try {
       const { status } = await fifs('check24HourReminders', {}, { 'x-cron-secret': 'cron-secret-for-tests-only-0123456789' });
       assert(status === 200, `expected 200, got ${status}`);
-    } finally { delete process.env.CRON_SECRET; }
+    } finally { delete process.env.CRON_SECRET; delete process.env.RESEND_API_KEY; }
+  });
+
+  console.log('\n[SECTION: 24-hour reminders are marked sent only after the email succeeds]');
+  const REMINDER_CRON = 'cron-secret-for-tests-only-0123456789';
+  const REMINDER_RESEND_KEY = 're_test_dummy_key_not_real';
+  const PROVIDER_ERROR_TEXT = 'PROVIDER_SENTINEL domain is not verified';
+  const dueEnrollment = (id, overrides = {}) => ({
+    id, student_email: `${id}@student.test`, status: 'confirmed', reminder_sent: false,
+    scheduled_date: new Date(Date.now() + 24 * 3600 * 1000).toISOString(), duration_hours: 8, previous_dates: [],
+    classes: { title: 'Maryland Wear & Carry (CCW)' }, ...overrides
+  });
+  /** Runs the reminder action with a fake Resend. behavior(to) returns 'ok' | 'fail' | 'throw'. */
+  async function runReminders(enrollments, behavior = () => 'ok', { resendKey = REMINDER_RESEND_KEY } = {}) {
+    db.enrollments = enrollments;
+    if (resendKey) process.env.RESEND_API_KEY = resendKey; else delete process.env.RESEND_API_KEY;
+    process.env.CRON_SECRET = REMINDER_CRON;
+    const resendCalls = [];
+    const logs = [];
+    const savedWarn = console.warn;
+    console.warn = (...args) => { logs.push(args.join(' ')); };
+    global.fetch = async (url, init = {}) => {
+      if (String(url).includes('api.resend.com')) {
+        const to = JSON.parse(init.body).to[0];
+        resendCalls.push(to);
+        const outcome = behavior(to);
+        if (outcome === 'throw') throw new Error('network down ' + to);
+        if (outcome === 'fail') return { ok: false, status: 422, text: async () => PROVIDER_ERROR_TEXT, json: async () => ({}) };
+        return { ok: true, status: 200, text: async () => '', json: async () => ({ id: 'email_fake' }) };
+      }
+      return stubFetch(url, init);
+    };
+    try {
+      const res = await fifs('check24HourReminders', {}, { 'x-cron-secret': REMINDER_CRON });
+      return { ...res, resendCalls, logs: logs.filter((l) => l.startsWith('[Reminders]')) };
+    } finally {
+      global.fetch = stubFetch;
+      console.warn = savedWarn;
+      delete process.env.RESEND_API_KEY;
+      delete process.env.CRON_SECRET;
+    }
+  }
+  const marked = (id) => db.enrollments.find((e) => e.id === id).reminder_sent === true;
+
+  await test('Reminder email succeeds: row is marked sent and the response reports it', async () => {
+    const { status, body, resendCalls } = await runReminders([dueEnrollment('enr-a')]);
+    assert(status === 200 && body.success === true, `expected 200 success, got ${status}`);
+    assert(body.processedCount === 1 && body.sentIds.join() === 'enr-a' && body.failedCount === 0 && body.failedIds.length === 0, 'unexpected counts: ' + JSON.stringify(body));
+    assert(resendCalls.length === 1 && resendCalls[0] === 'enr-a@student.test', 'exactly one email to the student');
+    assert(marked('enr-a'), 'row must be marked sent after success');
+  });
+  await test('Provider failure: row stays unmarked, 502, failed id reported with a generic reason', async () => {
+    const { status, body } = await runReminders([dueEnrollment('enr-a')], () => 'fail');
+    assert(status === 502 && body.success === false, `expected 502, got ${status}`);
+    assert(body.processedCount === 0 && body.sentIds.length === 0 && body.failedCount === 1 && body.failedIds.join() === 'enr-a', 'unexpected counts: ' + JSON.stringify(body));
+    assert(body.failures[0].reason === 'send_failed', 'reason code: ' + body.failures[0].reason);
+    assert(!marked('enr-a'), 'a failed send must not mark the reminder sent');
+  });
+  await test('Thrown network error: row stays unmarked and the run reports 502 instead of crashing', async () => {
+    const { status, body } = await runReminders([dueEnrollment('enr-a')], () => 'throw');
+    assert(status === 502 && body.failedIds.join() === 'enr-a' && body.sentIds.length === 0, `got ${status} ${JSON.stringify(body)}`);
+    assert(!marked('enr-a'), 'row must stay unmarked');
+  });
+  await test('Missing RESEND_API_KEY: 503 before any query, email, or write', async () => {
+    createdClientKeys.length = 0;
+    const { status, body, resendCalls } = await runReminders([dueEnrollment('enr-a')], () => 'ok', { resendKey: '' });
+    assert(status === 503 && body.success === false && body.failedCount === 0 && body.sentIds.length === 0, `got ${status} ${JSON.stringify(body)}`);
+    assert(resendCalls.length === 0, 'nothing may be sent');
+    assert(createdClientKeys.length === 0, 'no database client may be created, so nothing is queried');
+    assert(!writes.length && !marked('enr-a'), 'nothing may be written or marked');
+  });
+  await test('A missing API key does not bypass authorization (unauthenticated request still gets 401)', async () => {
+    delete process.env.RESEND_API_KEY;
+    const { status } = await fifs('check24HourReminders', {}, {});
+    assert(status === 401, `expected 401, got ${status}`);
+  });
+  await test('Mixed batch: one failure does not stop the others; only successful rows are marked', async () => {
+    const { status, body, resendCalls } = await runReminders(
+      [dueEnrollment('enr-1x'), dueEnrollment('enr-2x'), dueEnrollment('enr-3x')],
+      (to) => (to.startsWith('enr-2x') ? 'fail' : 'ok')
+    );
+    assert(status === 502 && body.sentIds.join() === 'enr-1x,enr-3x' && body.failedIds.join() === 'enr-2x' && body.failedCount === 1, `got ${status} ${JSON.stringify(body)}`);
+    assert(resendCalls.length === 3, 'all three rows must be attempted');
+    assert(marked('enr-1x') && !marked('enr-2x') && marked('enr-3x'), 'only the successful rows are marked');
+  });
+  await test('Missing student email is counted as failed and left unmarked without sending', async () => {
+    const { status, body, resendCalls } = await runReminders([
+      dueEnrollment('enr-empty', { student_email: '' }), dueEnrollment('enr-null', { student_email: null }),
+      dueEnrollment('enr-blank', { student_email: '   ' }), dueEnrollment('enr-ok')
+    ]);
+    assert(status === 502 && body.failedCount === 3 && body.sentIds.join() === 'enr-ok', `got ${status} ${JSON.stringify(body)}`);
+    assert(body.failures.every((f) => f.reason === 'missing_recipient'), 'reason must be missing_recipient');
+    assert(resendCalls.length === 1 && resendCalls[0] === 'enr-ok@student.test', 'only the row with an address is emailed');
+    assert(!marked('enr-empty') && !marked('enr-null') && !marked('enr-blank') && marked('enr-ok'), 'only the emailed row is marked');
+  });
+  await test('Marking failure after a successful send is reported and the row stays unmarked', async () => {
+    failures['enrollments.update'] = { message: 'update failed' };
+    const { status, body, resendCalls } = await runReminders([dueEnrollment('enr-a')]);
+    assert(resendCalls.length === 1, 'the email was sent');
+    assert(status === 502 && body.sentIds.length === 0 && body.failedIds.join() === 'enr-a' && body.failures[0].reason === 'mark_failed', `got ${status} ${JSON.stringify(body)}`);
+    assert(!marked('enr-a'), 'the row must remain unmarked so it is not silently lost');
+  });
+  await test('Retry: failed rows are sent on the next run, already-sent rows are never resent', async () => {
+    const rows = [dueEnrollment('enr-1x'), dueEnrollment('enr-2x')];
+    const first = await runReminders(rows, (to) => (to.startsWith('enr-2x') ? 'fail' : 'ok'));
+    assert(first.status === 502 && marked('enr-1x') && !marked('enr-2x'), 'first run: one sent, one failed');
+    const second = await runReminders(db.enrollments, () => 'ok');
+    assert(second.status === 200 && second.body.sentIds.join() === 'enr-2x', `retry should send only the failed row, got ${JSON.stringify(second.body)}`);
+    assert(second.resendCalls.join() === 'enr-2x@student.test', 'the already-sent row must not be emailed again');
+    assert(marked('enr-1x') && marked('enr-2x'), 'both rows are now marked');
+    const third = await runReminders(db.enrollments, () => 'ok');
+    assert(third.status === 200 && third.body.processedCount === 0 && third.resendCalls.length === 0, 'a further run must send nothing');
+  });
+  await test('Already-sent, cancelled, and out-of-window enrollments are not emailed (existing selection unchanged)', async () => {
+    const { status, body, resendCalls } = await runReminders([
+      dueEnrollment('enr-sent', { reminder_sent: true }), dueEnrollment('enr-cancelled', { status: 'cancelled' }),
+      dueEnrollment('enr-soon', { scheduled_date: new Date(Date.now() + 3 * 3600 * 1000).toISOString() }),
+      dueEnrollment('enr-late', { scheduled_date: new Date(Date.now() + 72 * 3600 * 1000).toISOString() }), dueEnrollment('enr-due')
+    ]);
+    assert(status === 200 && body.sentIds.join() === 'enr-due' && resendCalls.join() === 'enr-due@student.test', `got ${status} ${JSON.stringify(body)}`);
+  });
+  await test('Reminder responses and logs never contain email addresses, provider text, or secrets', async () => {
+    const scenarios = [
+      () => runReminders([dueEnrollment('enr-a')], () => 'fail'),
+      () => runReminders([dueEnrollment('enr-a')], () => 'throw'),
+      () => runReminders([dueEnrollment('enr-a', { student_email: '' }), dueEnrollment('enr-b')]),
+      () => runReminders([dueEnrollment('enr-a')], () => 'ok', { resendKey: '' }),
+      async () => { failures['enrollments.update'] = { message: 'update failed PROVIDER_SENTINEL' }; return runReminders([dueEnrollment('enr-a')]); }
+    ];
+    const forbidden = ['@', 'student.test', PROVIDER_ERROR_TEXT, 'PROVIDER_SENTINEL', REMINDER_RESEND_KEY, REMINDER_CRON, process.env.SUPABASE_SERVICE_ROLE_KEY, 'network down'];
+    for (const run of scenarios) {
+      resetDb();
+      const { body, logs } = await run();
+      const text = JSON.stringify(body) + '\n' + logs.join('\n');
+      for (const bad of forbidden) assert(!text.includes(bad), `output leaked "${bad === process.env.SUPABASE_SERVICE_ROLE_KEY ? '<service key>' : bad}"`);
+    }
   });
   await test('Visitor chat does not fall back to the service-role key for thread signing', async () => {
     process.env.SUPABASE_SERVICE_KEY = 'legacy-service-key-alias-32chars-long!';
