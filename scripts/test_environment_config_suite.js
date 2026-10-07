@@ -355,6 +355,32 @@ async function main() {
     }
   });
 
+  await test('CSP script-src does not allow Supabase hosts; every other directive is unchanged', async () => {
+    const configPath = path.join(ROOT, 'next.config.ts');
+    delete require.cache[require.resolve(configPath)];
+    const cfg = require(configPath);
+    const rules = await (cfg.default || cfg).headers();
+    const csp = rules.find((r) => r.source === '/(.*)').headers.find((h) => h.key === 'Content-Security-Policy').value;
+    const directives = Object.fromEntries(csp.split(';').map((d) => d.trim()).filter(Boolean).map((d) => { const [name, ...vals] = d.split(/\s+/); return [name, vals.join(' ')]; }));
+    // Any *.supabase.co host in script-src would let scripts load from any Supabase project's Storage.
+    assert(directives['script-src'] === "'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com", `unexpected script-src: ${directives['script-src']}`);
+    assert(!/supabase/i.test(directives['script-src']), 'script-src must not allow Supabase hosts');
+    const expected = {
+      'default-src': "'self'",
+      'style-src': "'self' 'unsafe-inline' https://fonts.googleapis.com",
+      'img-src': "'self' blob: data: https: https://drive.google.com https://*.googleusercontent.com",
+      'font-src': "'self' https://fonts.gstatic.com data:",
+      'connect-src': "'self' https://api.stripe.com https://*.supabase.co wss://*.supabase.co https://licensingportal.mdsp.maryland.gov https://script.google.com https://script.googleusercontent.com",
+      'frame-src': "'self' https://js.stripe.com https://hooks.stripe.com",
+      'frame-ancestors': "'self'",
+      'form-action': "'self'",
+      'base-uri': "'self'",
+      'object-src': "'none'"
+    };
+    for (const [name, value] of Object.entries(expected)) assert(directives[name] === value, `CSP ${name} changed: ${directives[name]}`);
+    assert(Object.keys(directives).length === Object.keys(expected).length + 1, 'unexpected CSP directive added or removed');
+  });
+
   console.log('\n[SECTION E: Browser code never receives a service-role key]');
   await test('Browser client refuses a service-role key as its anon key, in every environment', async () => {
     for (const base of [PRODUCTION, PREVIEW_OK]) {
