@@ -11,6 +11,14 @@ import React, { useEffect } from "react";
 import Script from "next/script";
 import Head from "next/head";
 import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
+import { createRecoveryClient } from "@/Lib/supabase/recovery-client";
+import {
+  RESET_COOLDOWN_MS,
+  RESET_PORTAL_HINT_KEY,
+  isPortalKey,
+  portalTab,
+  requestPasswordReset,
+} from "@/Lib/auth/password-reset";
 
 
 
@@ -1413,6 +1421,66 @@ export default function TrainWithFIFS(props: any) {
 
 
 
+
+    // "Forgot password?" for the student, client and staff logins. Always shows the same message
+    // whether or not the address has an account, and pauses the link briefly after each use.
+    (window as any).fifsRequestPasswordReset = async (portal: string, trigger?: HTMLElement | null) => {
+      if (!isPortalKey(portal)) return;
+      const targets = {
+        student: { input: 'studentAuthInput', status: 'student-login-status' },
+        client: { input: 'clientAuthInput', status: 'client-login-status' },
+        staff: { input: 'adminStaffEmail', status: 'admin-auth-status' },
+      }[portal];
+      const emailInput = document.getElementById(targets.input) as HTMLInputElement | null;
+      const statusDiv = document.getElementById(targets.status);
+      const show = (message: string) => {
+        if (statusDiv) {
+          statusDiv.textContent = message;
+          statusDiv.style.display = 'block';
+        }
+      };
+      const button = trigger as HTMLButtonElement | null | undefined;
+      if (button && button.disabled) return;
+      if (button) button.disabled = true;
+      let pauseMs = 5000;
+      try {
+        const client = createRecoveryClient();
+        const result = await requestPasswordReset(client, emailInput ? emailInput.value : '', window.location.origin);
+        show(result.message);
+        if (result.cooldown) pauseMs = RESET_COOLDOWN_MS;
+        if (result.ok) {
+          try { window.localStorage.setItem(RESET_PORTAL_HINT_KEY, portal); } catch { /* storage unavailable */ }
+        }
+      } catch {
+        show('Password reset is not available right now. Please contact FIFS directly.');
+      }
+      window.setTimeout(() => { if (button) button.disabled = false; }, pauseMs);
+    };
+
+    // After /reset-password succeeds it sends people back here; open the matching login with a notice.
+    try {
+      const landing = new URLSearchParams(window.location.search);
+      if (landing.get('password_reset') === 'success') {
+        const requested = landing.get('portal');
+        const portal = isPortalKey(requested) ? requested : 'student';
+        window.history.replaceState(null, '', window.location.pathname);
+        const statusId = { student: 'student-login-status', client: 'client-login-status', staff: 'admin-auth-status' }[portal];
+        let attempts = 0;
+        const timer = window.setInterval(() => {
+          attempts += 1;
+          const open = (window as any).openAndSwitch || (window as any).switchTab;
+          const statusDiv = document.getElementById(statusId);
+          if (typeof open === 'function' && statusDiv) {
+            window.clearInterval(timer);
+            open(portalTab(portal));
+            statusDiv.textContent = 'Your password was updated. Sign in with your new password.';
+            statusDiv.style.display = 'block';
+          } else if (attempts > 50) {
+            window.clearInterval(timer);
+          }
+        }, 200);
+      }
+    } catch { /* the notice is a convenience only */ }
 
     (window as any).lookupStudentAccount = async () => {
       const input = document.getElementById('studentAuthInput') as HTMLInputElement | null;
@@ -4533,6 +4601,11 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </span>
                 </label>
                 <input id="studentAuthPassword" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupStudentAccount()" placeholder="Enter your portal password" type="password" />
+                <div style={{"textAlign": "right", "marginTop": "6px"}}>
+                  <button data-onclick="fifsRequestPasswordReset('student', this)" style={{"background": "none", "border": "none", "padding": "0", "color": "var(--text-muted)", "fontSize": "0.78rem", "textDecoration": "underline", "cursor": "pointer"}} type="button">
+                    Forgot password?
+                  </button>
+                </div>
               </div>
               <div id="student-setup-password-box" style={{"display": "none", "marginTop": "14px", "padding": "14px", "background": "rgba(0, 229, 255, 0.08)", "borderRadius": "8px", "border": "1px solid var(--accent-cyan)"}}>
                 <p style={{"fontSize": "0.85rem", "color": "#fff", "marginBottom": "8px", "fontWeight": "700"}}>
@@ -5086,9 +5159,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
                           *
                         </span>
                       </label>
-                      <a href="javascript:void(0)" data-onclick="handleClientForgotPassword()" style={{"color": "var(--text-muted)", "fontSize": "0.78rem", "textDecoration": "underline"}}>
+                      <button data-onclick="fifsRequestPasswordReset('client', this)" style={{"background": "none", "border": "none", "padding": "0", "color": "var(--text-muted)", "fontSize": "0.78rem", "textDecoration": "underline", "cursor": "pointer"}} type="button">
                         Forgot password?
-                      </a>
+                      </button>
                     </div>
                     <input id="clientAuthPassword" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupClientAccount()" placeholder="Enter your portal password" type="password" />
                   </div>
@@ -5768,6 +5841,11 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </span>
               </label>
               <input id="adminStaffPassword" placeholder="Enter Account Password" type="password" data-onkeydown="if(event.key===&#x27;Enter&#x27;) verifyAdminAccess()" />
+              <div style={{"textAlign": "right", "marginTop": "6px"}}>
+                <button data-onclick="fifsRequestPasswordReset('staff', this)" style={{"background": "none", "border": "none", "padding": "0", "color": "var(--text-muted)", "fontSize": "0.78rem", "textDecoration": "underline", "cursor": "pointer"}} type="button">
+                  Forgot password?
+                </button>
+              </div>
             </div>
             <button className="btn-primary" data-onclick="verifyAdminAccess()" type="button" style={{"width": "100%"}}>
               Sign In to Command Center 🔒
