@@ -23,8 +23,22 @@ export function getPublicClient() {
 }
 
 /**
+ * A key that is a publishable/anon key (or carries any role other than service_role) must never
+ * be used for privileged operations, in any environment. Opaque keys with no readable role claim
+ * are not second-guessed here.
+ */
+function assertServiceRoleKey(serviceKey: string) {
+  const info = inspectSupabaseKey(serviceKey);
+  if (info.format === 'publishable' || (info.role && info.role !== 'service_role')) {
+    throw new ConfigurationError('SUPABASE_SERVICE_ROLE_KEY is not a service-role key.');
+  }
+  return info;
+}
+
+/**
  * Service-role key. Production keeps the SUPABASE_SERVICE_KEY alias; elsewhere only
  * SUPABASE_SERVICE_ROLE_KEY is accepted, and it must belong to the configured non-Production project.
+ * In every environment the key must be a service-role key, never an anon or publishable key.
  */
 function resolveServiceRoleKey(url: string): string {
   if (isProductionDeployment()) {
@@ -32,6 +46,7 @@ function resolveServiceRoleKey(url: string): string {
     if (!serviceKey) {
       throw new ConfigurationError('Supabase service role credentials (SUPABASE_SERVICE_ROLE_KEY) are not configured.');
     }
+    assertServiceRoleKey(serviceKey);
     return serviceKey;
   }
 
@@ -39,10 +54,7 @@ function resolveServiceRoleKey(url: string): string {
   if (!serviceKey) {
     throw new ConfigurationError('SUPABASE_SERVICE_ROLE_KEY is required outside Production (aliases and Production fallbacks are not used).');
   }
-  const info = inspectSupabaseKey(serviceKey);
-  if (info.format === 'publishable' || (info.role && info.role !== 'service_role')) {
-    throw new ConfigurationError('SUPABASE_SERVICE_ROLE_KEY is not a service-role key.');
-  }
+  const info = assertServiceRoleKey(serviceKey);
   assertNonProductionSupabaseKey(info, url, 'SUPABASE_SERVICE_ROLE_KEY');
   return serviceKey;
 }

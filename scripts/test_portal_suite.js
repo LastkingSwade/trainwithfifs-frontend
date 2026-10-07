@@ -35,7 +35,10 @@ function resetDb() {
       { id: 'row-alice', user_id: 'uuid-student-alice', student_id: 'FIFS-1001', email: 'alice@student.com', full_name: 'Alice Student',
         status: 'STEP_2_CONFIRMED', internal_notes: 'Staff only: payment plan discussed', qualification_score: null },
       { id: 'row-bob', user_id: 'uuid-student-bob', student_id: 'FIFS-1002', email: 'bob@student.com', full_name: 'Bob Student',
-        status: 'STEP_6_QUALIFIED', internal_notes: 'Staff only', qualification_score: '24/25 (96%)' }
+        status: 'STEP_6_QUALIFIED', internal_notes: 'Staff only', qualification_score: '24/25 (96%)' },
+      // A student-editable is_admin flag must never grant staff access.
+      { id: 'row-carol', user_id: 'uuid-student-carol', student_id: 'FIFS-1003', email: 'carol@student.com', full_name: 'Carol Student',
+        status: 'STEP_1_REGISTERED', internal_notes: 'Staff only: carol', qualification_score: null, is_admin: true, role: 'admin' }
     ],
     enrollments: [],
     clients: []
@@ -80,7 +83,10 @@ const mockSupabase = {
         const users = {
           'student-alice-token': { id: 'uuid-student-alice', email: 'alice@student.com', app_metadata: { role: 'student' } },
           'student-bob-token': { id: 'uuid-student-bob', email: 'bob@student.com', app_metadata: { role: 'student' } },
-          'instructor-token': { id: 'uuid-instructor', email: 'coach@example.test', app_metadata: { role: 'instructor' } }
+          'instructor-token': { id: 'uuid-instructor', email: 'coach@example.test', app_metadata: { role: 'instructor' } },
+          'staff-token': { id: 'uuid-staff', email: 'frontdesk@example.test', app_metadata: { role: 'staff' } },
+          // Spoof attempt: admin claims only in user-editable user_metadata and the students row.
+          'student-carol-token': { id: 'uuid-student-carol', email: 'carol@student.com', app_metadata: { role: 'student' }, user_metadata: { role: 'admin', is_admin: true } }
         };
         return users[token] ? { data: { user: users[token] }, error: null } : { data: { user: null }, error: { message: 'Invalid token' } };
       }
@@ -284,6 +290,82 @@ async function main() {
     assert(offenders.length === 0, 'fallback found at line(s) ' + offenders.map((o) => o.n).join(', '));
   });
 
+
+  console.log('\n[SECTION: Staff roles, spoofing, escaping, and Admin Hub entry]');
+  await test('The "staff" role (app_metadata) can read a student record, including internal notes', async () => {
+    const { status, body } = await fifs('getStudentPortalData', { identifier: 'FIFS-1002' }, 'staff-token');
+    assert(status === 200 && body.student.studentId === 'FIFS-1002' && body.student.internalNotes === 'Staff only', `got ${status}`);
+  });
+  await test('A students.is_admin flag or user_metadata.role does not grant staff access', async () => {
+    const other = await fifs('getStudentPortalData', { identifier: 'FIFS-1002' }, 'student-carol-token');
+    assert(other.status === 403, `reading another student must be refused, got ${other.status}`);
+    const own = await fifs('getStudentPortalData', {}, 'student-carol-token');
+    assert(own.status === 200 && own.body.student.studentId === 'FIFS-1003', 'own record must load');
+    assert(!('internalNotes' in own.body.student), 'spoofed admin must not receive internal notes');
+    const adminAction = await fifs('getAdminDashboardData', {}, 'student-carol-token');
+    assert(adminAction.status === 401 || adminAction.status === 403, `admin dashboard must be refused, got ${adminAction.status}`);
+  });
+
+  function allFunctionSources(name) {
+    const out = [];
+    let from = 0;
+    for (;;) {
+      const start = PUBLIC_SCRIPT.indexOf('function ' + name + '(', from);
+      if (start < 0) break;
+      let i = PUBLIC_SCRIPT.indexOf('{', start);
+      let depth = 0;
+      for (; i < PUBLIC_SCRIPT.length; i++) {
+        if (PUBLIC_SCRIPT[i] === '{') depth++;
+        else if (PUBLIC_SCRIPT[i] === '}' && --depth === 0) break;
+      }
+      out.push(PUBLIC_SCRIPT.slice(start, i + 1));
+      from = i + 1;
+    }
+    return out;
+  }
+  const HOSTILE = '<img src=x onerror=alert(1)// "\'&>';
+  await test('Every escapeHtml in the public script escapes < > & " and \'', async () => {
+    const defs = allFunctionSources('escapeHtml').concat(allFunctionSources('escapeChatHtml'));
+    assert(defs.length >= 3, 'expected escape helpers, found ' + defs.length);
+    for (const src of defs) {
+      const fn = new Function(src + '; return ' + src.match(/function (\w+)/)[1] + ';')();
+      const out = fn(HOSTILE);
+      assert(!/[<>"']/.test(out) && out.includes('&lt;img') && out.includes('&amp;'), 'unsafe escape output: ' + out);
+    }
+  });
+  await test('fifsSafeId keeps server-style IDs and blanks anything that could break an inline handler', async () => {
+    const fifsSafeId = new Function(extractFunction('fifsSafeId') + '; return fifsSafeId;')();
+    for (const ok of ['th_0123abcd', 'FIFS-1001', 'CLI-ABC123', 'GUEST-9F2A']) assert(fifsSafeId(ok) === ok, 'rejected ' + ok);
+    for (const bad of ["x');alert(1);//", 'a b', '<x>', '"q"', '', null, undefined, 'a'.repeat(200)]) assert(fifsSafeId(bad) === '', 'accepted ' + bad);
+  });
+  await test('Staff chat inbox renders a hostile visitor thread as inert text', async () => {
+    const src = ['escapeHtml', 'fifsSafeId', 'renderAdminChatConsole'].map((n) => allFunctionSources(n).pop()).join('\n');
+    const inbox = { innerHTML: '' };
+    const doc = { getElementById: (id) => (id === 'admin-chat-inbox-list' ? inbox : null) };
+    const threads = [{ id: "x');alert(1);//", senderName: HOSTILE, senderPhone: HOSTILE, lastUpdated: '9:00 AM', unread: true,
+      messages: [{ sender: 'user', text: HOSTILE }] }];
+    const run = new Function('document', 'window', 'getStoredChatThreads', 'renderActiveAdminChatMessages', src + '; renderAdminChatConsole();');
+    run(doc, {}, () => threads, () => {});
+    assert(inbox.innerHTML.length > 0, 'inbox was not rendered');
+    assert(!/<img/i.test(inbox.innerHTML), 'visitor HTML must not become a live element');
+    assert(!inbox.innerHTML.includes("alert(1);//')"), 'thread id must not reach the inline handler');
+    assert(inbox.innerHTML.includes("selectAdminChatThread('')"), 'unsafe thread id must be blanked in the handler');
+  });
+  await test('Terminal "auth" opens the Supabase staff sign-in and never accepts a passcode', async () => {
+    const at = PUBLIC_SCRIPT.indexOf("cmd === 'auth'");
+    assert(at >= 0, 'auth command not found');
+    const branch = PUBLIC_SCRIPT.slice(at, PUBLIC_SCRIPT.indexOf('} else {', at));
+    assert(/openAndSwitch\('admin'\)/.test(branch) && /adminStaffEmail/.test(branch), 'auth must open the staff sign-in form');
+    assert(!/verifyAdminAccess|callFifsBackend|fetch\(/.test(branch), 'auth must not verify a passcode client-side');
+    assert(!/isValidInstructorPin\(/.test(PUBLIC_SCRIPT), 'undefined legacy PIN check must be gone');
+  });
+  await test('The student scoresheet badge never contains an invented passing score', async () => {
+    const page = fs.readFileSync(path.resolve(__dirname, '../src/app/page.tsx'), 'utf-8');
+    const at = page.indexOf('id="dash-scoresheet-score-badge"');
+    assert(at >= 0, 'badge not found');
+    const badge = page.slice(at, page.indexOf('</span>', at));
+    assert(!/25\/25|100%|PASS/.test(badge) && /Not yet recorded/.test(badge), 'badge default must be unrecorded');
+  });
   console.log('\n================================================================');
   console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   console.log('================================================================');

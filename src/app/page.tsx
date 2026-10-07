@@ -4639,7 +4639,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
                 <div id="dash-scoresheet-badge-box">
                   <span id="dash-scoresheet-score-badge" style={{"display": "none", "fontSize": "0.85rem", "fontWeight": "800", "padding": "4px 12px", "borderRadius": "20px", "background": "rgba(16, 185, 129, 0.2)", "color": "#10b981", "border": "1px solid #10b981"}}>
-                    Score: 25/25 (100%) - PASS
+                    Score: Not yet recorded
                   </span>
                 </div>
               </div>

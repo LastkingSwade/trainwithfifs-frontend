@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { calculatePricingBreakdown, parseAttendeeCount } from '../pricing';
 import { getAuthenticatedUser, getPrivilegedClient, hasBearerToken, resolveStripeSecretKey } from './supabase-admin';
 import { sendDiscordAlert } from './discord';
-import { ConfigurationError, isProductionDeployment, resolveSiteUrl } from '../config/environment';
+import { ConfigurationError, resolveSiteUrl } from '../config/environment';
 
 export const STRIPE_API_VERSION = '2023-10-16' as any;
 const FACILITY = "Cindy's Hot Shots (115 Holsum Way, Glen Burnie, MD 21060)";
@@ -76,8 +76,9 @@ export async function createBookingCheckout(
   try {
     stripeKey = resolveStripeSecretKey();
     baseUrl = getSiteUrl();
-    // Outside Production, also confirm the database configuration up front (no network call).
-    if (!isProductionDeployment()) getPrivilegedClient();
+    // Confirm the service-role database client up front (no network call) in every environment.
+    // Checkout writes invoices only with this client; it never falls back to the public anon key.
+    getPrivilegedClient();
   } catch (err) {
     if (err instanceof ConfigurationError) {
       console.error('[Checkout] Configuration error:', err.message);
@@ -118,9 +119,9 @@ export async function createBookingCheckout(
   const invoiceId = generateInvoiceId();
   const pricing = calculatePricingBreakdown(courseSelection, attendees, isPayFull);
 
+  const stripe = new Stripe(stripeKey, { apiVersion: STRIPE_API_VERSION });
   let session: Stripe.Checkout.Session;
   try {
-    const stripe = new Stripe(stripeKey, { apiVersion: STRIPE_API_VERSION });
     session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -171,8 +172,8 @@ export async function createBookingCheckout(
     return { status: 502, body: { success: false, status: 'error', error: 'Stripe did not return a valid checkout session.' } };
   }
 
-  // Record the PENDING invoice (insert-only). Failure does not block the customer, but staff are
-  // alerted so the payment can be reconciled manually when the webhook cannot find the invoice.
+  // Record the PENDING invoice (insert-only). If it cannot be saved, the customer is not sent to
+  // payment: the Stripe session is expired and the request fails (see below).
   let invoiceRecorded = false;
   let supabase: any = null;
   try {
@@ -204,6 +205,31 @@ export async function createBookingCheckout(
     console.error('[Checkout] Pending invoice could not be recorded:', dbErr?.message);
   }
 
+  if (!invoiceRecorded) {
+    // A payment without a recorded invoice cannot be reconciled reliably, so stop here.
+    let sessionExpired = false;
+    try {
+      await stripe.checkout.sessions.expire(session.id);
+      sessionExpired = true;
+    } catch (expireErr: any) {
+      console.error('[Checkout] Could not expire Stripe session after invoice failure:', expireErr?.message);
+    }
+    await sendDiscordAlert(
+      '⚠️ Checkout blocked: invoice could not be recorded',
+      sessionExpired
+        ? 'The pending invoice could not be saved, so the Stripe session was expired and the customer was not sent to payment.'
+        : `The pending invoice could not be saved and Stripe session ${session.id} could NOT be expired. Check Stripe and reconcile manually if it is paid.`,
+      [
+        { name: 'Student Name', value: fullName, inline: true },
+        { name: 'Email', value: email, inline: true },
+        { name: 'Course Track', value: courseSelection, inline: false },
+        { name: 'Invoice', value: invoiceId, inline: true }
+      ],
+      0xEF4444
+    );
+    return { status: 503, body: { success: false, status: 'error', error: 'We could not record your booking, so payment was not started. Please try again in a few minutes or contact FIFS directly.' } };
+  }
+
   const isGuest = !linkedUserId;
   if (isGuest && supabase) {
     try {
@@ -220,9 +246,7 @@ export async function createBookingCheckout(
 
   await sendDiscordAlert(
     isGuest ? `🚨 New Guest Checkout: ${fullName}` : `🎯 New Course Enrollment Checkout: ${fullName}`,
-    invoiceRecorded
-      ? `${isGuest ? 'Guest (no linked portal account)' : 'Linked student portal account'} started checkout for ${courseSelection}.`
-      : `⚠️ Checkout started but the pending invoice could NOT be recorded. Reconcile Stripe session ${session.id} manually.`,
+    `${isGuest ? 'Guest (no linked portal account)' : 'Linked student portal account'} started checkout for ${courseSelection}.`,
     [
       { name: 'Student Name', value: fullName, inline: true },
       { name: 'Classification', value: isGuest ? 'Guest' : 'Verified Student', inline: true },
@@ -234,7 +258,7 @@ export async function createBookingCheckout(
       { name: 'Total Investment', value: '$' + pricing.grandTotal.toFixed(2), inline: true },
       { name: 'Invoice', value: invoiceId, inline: true }
     ],
-    invoiceRecorded ? (isGuest ? 0xF59E0B : 0x00E5FF) : 0xEF4444
+    isGuest ? 0xF59E0B : 0x00E5FF
   );
 
   return {

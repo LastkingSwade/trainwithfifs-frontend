@@ -545,7 +545,7 @@ async function main() {
       process.env.CHAT_HMAC_SECRET = '';
       process.env.SUPABASE_SERVICE_ROLE_KEY = '';
       const { status } = await executeAction('handleLiveChatMessage', { message: 'Testing missing secret' });
-      if (status !== 500) throw new Error(`Expected 500 when HMAC secret missing, got ${status}`);
+      if (status !== 503) throw new Error(`Expected 503 when HMAC secret missing, got ${status}`);
     } finally {
       process.env.CHAT_HMAC_SECRET = savedHmac;
       process.env.SUPABASE_SERVICE_ROLE_KEY = savedRole;

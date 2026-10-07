@@ -286,6 +286,39 @@ async function main() {
   await test('An anon key in SUPABASE_SERVICE_ROLE_KEY is refused outside Production', async () => withEnv({ ...PREVIEW_OK, SUPABASE_SERVICE_ROLE_KEY: KEYS.stagingAnon }, async () => {
     expectConfigError(() => admin.getPrivilegedClient(), 'not a service-role key');
   }));
+  console.log('\n[SECTION D2: Production refuses anon/publishable keys as the service-role key]');
+  const productionBadKeys = [
+    ['a Production anon key', 'SUPABASE_SERVICE_ROLE_KEY', KEYS.prodAnon],
+    ['a publishable key', 'SUPABASE_SERVICE_ROLE_KEY', KEYS.opaquePublishable],
+    ['an anon key via the SUPABASE_SERVICE_KEY alias', 'SUPABASE_SERVICE_KEY', KEYS.prodAnon],
+    ['a publishable key via the SUPABASE_SERVICE_KEY alias', 'SUPABASE_SERVICE_KEY', KEYS.opaquePublishable]
+  ];
+  for (const [label, varName, value] of productionBadKeys) {
+    const vars = { ...without(PRODUCTION, 'SUPABASE_SERVICE_ROLE_KEY'), [varName]: value };
+    await test(`Production refuses ${label} as the service-role key`, async () => withEnv(vars, async () => {
+      expectConfigError(() => admin.getPrivilegedClient(), 'not a service-role key');
+      assert(created.length === 0, 'no privileged client may be created with the wrong key');
+    }));
+    await test(`Production checkout with ${label} returns 503 before any Stripe call or database write`, async () => withEnv({ ...vars, STRIPE_SECRET_KEY: KEYS.stripeLive }, async () => {
+      const result = await checkout.createBookingCheckout(req(), { email: 'buyer@example.test', courseSelection: 'Maryland CCW' });
+      assert(result.status === 503 && !result.body.url && !result.body.checkoutUrl, `expected 503 without a link, got ${result.status}`);
+      assert(stripeSessions.length === 0, 'no Stripe session may be created');
+      assert(created.length === 0, 'no database client may be created (so no anon-key fallback and no write)');
+    }));
+  }
+  await test('Production accepts a valid service-role key (JWT or opaque secret) and the legacy alias', async () => {
+    for (const [varName, value] of [['SUPABASE_SERVICE_ROLE_KEY', KEYS.prodService], ['SUPABASE_SERVICE_ROLE_KEY', KEYS.opaqueSecret], ['SUPABASE_SERVICE_KEY', KEYS.prodService]]) {
+      await withEnv({ ...without(PRODUCTION, 'SUPABASE_SERVICE_ROLE_KEY'), [varName]: value }, async () => {
+        admin.getPrivilegedClient();
+        assert(created.length === 1, `a valid key in ${varName} should create the privileged client`);
+      });
+    }
+  });
+  await test('Production checkout with a valid service-role key still reaches Stripe and records the invoice client', async () => withEnv({ ...PRODUCTION, STRIPE_SECRET_KEY: KEYS.stripeLive }, async () => {
+    const result = await checkout.createBookingCheckout(req(), { email: 'buyer@example.test', courseSelection: 'Maryland CCW' });
+    assert(result.status === 200 && stripeSessions.length === 1, `expected 200 with one session, got ${result.status}`);
+    assert(created.every((c) => c.keyId === 'prodService'), 'only the service-role key may be used');
+  }));
   await test('Production site URL is refused outside Production (apex and www)', async () => {
     for (const site of ['https://trainwithfifs.com', 'https://www.trainwithfifs.com/booking']) {
       await withEnv({ ...PREVIEW_OK, NEXT_PUBLIC_SITE_URL: site }, async () => expectConfigError(() => env.resolveSiteUrl(), 'Production site'));

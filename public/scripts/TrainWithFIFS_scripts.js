@@ -8,6 +8,13 @@ function fifsSafeHttpUrl(value) {
     return '';
   }
 }
+// Identifier safe to place inside an inline handler such as onclick="fn('ID')": letters, digits,
+// underscore, and hyphen only. Anything else (quotes, brackets, spaces) returns '' so it cannot
+// break out of the attribute or the JavaScript string.
+function fifsSafeId(value) {
+  var id = String(value == null ? '' : value);
+  return /^[A-Za-z0-9_-]{1,128}$/.test(id) ? id : '';
+}
 // Calls the backend and reports only a change the server confirmed as saved. Works with both
 // callFifsBackend implementations (page.tsx and this script), which signal failure differently.
 function fifsSaveOrReport(action, payload, onSaved, onFailed) {
@@ -408,7 +415,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       if (str === null || str === undefined) return '';
       return String(str)
         .replace(/&/g, '&amp;')
-        .replace(/</g, '<')
+        .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
@@ -566,12 +573,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           app.classList.add('active-view');
         }
         rawSwitchTab(tabId);
-        if (tabId === 'admin') {
-          var savedPin = getStaffSessionToken();
-          if (savedPin && isValidInstructorPin(savedPin)) {
-            setTimeout(function() { verifyAdminAccess(savedPin); }, 50);
-          }
-        }
         try { window.scrollTo(0, 0); } catch (e) {}
         } catch (err) {
         console.error('Error in openAndSwitch:', err);
@@ -2532,7 +2533,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           <td><span style="font-size: 0.85rem; color: #cbd5e1;">${sCourse}</span></td>
           <td><span style="font-size: 0.85rem; color: var(--accent-amber); font-weight: 600;">${sDate}</span></td>
           <td>
-            <select class="form-select" onchange="updateStudentJourneyStep('${s.studentId}', this.value)" style="background: #070b10; border: 1px solid var(--accent-cyan); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 700;">
+            <select class="form-select" onchange="updateStudentJourneyStep('${fifsSafeId(s.studentId)}', this.value)" style="background: #070b10; border: 1px solid var(--accent-cyan); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 700;">
               <option value="STEP_1_REGISTRATION" ${stepNum === 1 ? 'selected' : ''}>1. Registration ✔</option>
               <option value="STEP_2_CONFIRMATION" ${stepNum === 2 ? 'selected' : ''}>2. Confirmation ✔</option>
               <option value="STEP_3_PREPARATION" ${stepNum === 3 ? 'selected' : ''}>3. Preparation ⚡</option>
@@ -2546,10 +2547,10 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           </td>
           <td><span class="meta-chip chip-status" id="chip-status-{formatStepLabel(stepNum)}</span></td>
           <td style="text-align: right; white-space: nowrap;">
-            <button type="button" class="btn-spark" onclick="openStudentPortalAsAdmin('${s.studentId}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px; border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Access Student Portal">🎓 Portal</button>
+            <button type="button" class="btn-spark" onclick="openStudentPortalAsAdmin('${fifsSafeId(s.studentId)}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px; border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Access Student Portal">🎓 Portal</button>
             <button type="button" class="btn-spark" onclick="openStudentScoresheetModal('{(s.fullName || "").replace(/'/g, "\\'")}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px; border-color: var(--accent-amber); color: var(--accent-amber);" title="MSP Form 29-14 Scoresheet">📋 Scoresheet</button>
-            <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${s.studentId}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px;" title="Edit Student Record">✏️ Edit</button>
-            <button type="button" class="btn-spark" onclick="deleteStudentFromAdmin('${s.studentId}')" style="padding: 5px 10px; font-size: 0.78rem; border-color: #ef4444; color: #ef4444;" title="Delete Student Record">🗑️</button>
+            <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${fifsSafeId(s.studentId)}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px;" title="Edit Student Record">✏️ Edit</button>
+            <button type="button" class="btn-spark" onclick="deleteStudentFromAdmin('${fifsSafeId(s.studentId)}')" style="padding: 5px 10px; font-size: 0.78rem; border-color: #ef4444; color: #ef4444;" title="Delete Student Record">🗑️</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -2800,8 +2801,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           <td>${daysBadge}</td>
           <td>${statusBadge}</td>
           <td style="text-align: right; white-space: nowrap;">
-            <button type="button" class="btn-spark" onclick="openAdminEditClientModal('${c.clientId}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px;" title="Edit Client Permit">✏️ Edit</button>
-            <button type="button" class="btn-spark" onclick="deleteClientFromAdmin('${c.clientId}')" style="padding: 5px 10px; font-size: 0.78rem; border-color: #ef4444; color: #ef4444;" title="Delete Client Record">🗑️</button>
+            <button type="button" class="btn-spark" onclick="openAdminEditClientModal('${fifsSafeId(c.clientId)}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px;" title="Edit Client Permit">✏️ Edit</button>
+            <button type="button" class="btn-spark" onclick="deleteClientFromAdmin('${fifsSafeId(c.clientId)}')" style="padding: 5px 10px; font-size: 0.78rem; border-color: #ef4444; color: #ef4444;" title="Delete Client Record">🗑️</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -2898,15 +2899,15 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 7px;background:rgba(239,68,68,0.2);border:1px solid #ef4444;border-radius:12px;font-size:0.64rem;font-weight:800;color:#fca5a5;text-transform:uppercase;"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px #ef4444;"></span>UNREAD</span>'
           : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 6px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:12px;font-size:0.62rem;font-weight:700;color:#6ee7b7;">SYNCED</span>';
         return `
-          <div onclick="selectAdminChatThread('${t.id}')" style="background: ${isSelected ? 'linear-gradient(135deg, rgba(0, 229, 255, 0.16) 0%, rgba(15, 23, 42, 0.95) 100%)' : 'linear-gradient(135deg, #0d141e 0%, #080d14 100%)'}; border: 1px solid ${isSelected ? '#00e5ff' : 'rgba(255,255,255,0.07)'}; box-shadow: ${isSelected ? '0 0 16px rgba(0,229,255,0.25), inset 0 0 12px rgba(0,229,255,0.08)' : '0 2px 6px rgba(0,0,0,0.3)'}; border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 2px;">
+          <div onclick="selectAdminChatThread('${fifsSafeId(t.id)}')" style="background: ${isSelected ? 'linear-gradient(135deg, rgba(0, 229, 255, 0.16) 0%, rgba(15, 23, 42, 0.95) 100%)' : 'linear-gradient(135deg, #0d141e 0%, #080d14 100%)'}; border: 1px solid ${isSelected ? '#00e5ff' : 'rgba(255,255,255,0.07)'}; box-shadow: ${isSelected ? '0 0 16px rgba(0,229,255,0.25), inset 0 0 12px rgba(0,229,255,0.08)' : '0 2px 6px rgba(0,0,0,0.3)'}; border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 2px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <strong style="color: #fff; font-size: 0.94rem; display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display); letter-spacing: 0.3px;">
-                <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:${isSelected ? '#070b10' : '#cbd5e1'};font-size:0.75rem;font-weight:900;">${(t.senderName || 'S').charAt(0).toUpperCase()}</span>
+                <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:${isSelected ? '#070b10' : '#cbd5e1'};font-size:0.75rem;font-weight:900;">${escapeHtml((t.senderName || 'S').charAt(0).toUpperCase())}</span>
                 ${escapeHtml(t.senderName)}
               </strong>
               <div style="display: flex; align-items: center; gap: 6px;">
                 ${unreadIndicator}
-                <button type="button" onclick="event.stopPropagation(); window.deleteAdminChatThread('${t.id}')" title="Delete thread" style="background: rgba(239, 68, 68, 0.25); border: 1px solid #ef4444; color: #fca5a5; border-radius: 6px; padding: 3px 8px; font-size: 0.80rem; cursor: pointer; z-index: 5; display: inline-flex; align-items: center; gap: 3px;" onmouseover="this.style.background='#ef4444';this.style.color='#fff'" onmouseout="this.style.background='rgba(239, 68, 68, 0.25)';this.style.color='#fca5a5'">
+                <button type="button" onclick="event.stopPropagation(); window.deleteAdminChatThread('${fifsSafeId(t.id)}')" title="Delete thread" style="background: rgba(239, 68, 68, 0.25); border: 1px solid #ef4444; color: #fca5a5; border-radius: 6px; padding: 3px 8px; font-size: 0.80rem; cursor: pointer; z-index: 5; display: inline-flex; align-items: center; gap: 3px;" onmouseover="this.style.background='#ef4444';this.style.color='#fff'" onmouseout="this.style.background='rgba(239, 68, 68, 0.25)';this.style.color='#fca5a5'">
                   🗑️ <span style="font-size:0.68rem; font-weight:800;">DEL</span>
                 </button>
               </div>
@@ -4120,7 +4121,7 @@ function loadDemoStudent() {
       if (str === null || str === undefined) return '';
       return String(str)
         .replace(/&/g, '&amp;')
-        .replace(/</g, '<')
+        .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
@@ -5079,9 +5080,9 @@ function openAdminEditStudentModal(studentId) {
           <td>
             <span class="meta-chip chip-status" id="chip-status-{formatStepLabel(stepNum)}</span>
           </td>
-          <td><a href="javascript:void(0)" onclick="openStudentDossierModal('${s.studentId}')" style="color: var(--accent-cyan); font-weight: 700;" title="View/Edit Supabase Dossier & Notes">Dossier ↗</a></td>
+          <td><a href="javascript:void(0)" onclick="openStudentDossierModal('${fifsSafeId(s.studentId)}')" style="color: var(--accent-cyan); font-weight: 700;" title="View/Edit Supabase Dossier & Notes">Dossier ↗</a></td>
           <td>
-            <select onchange="updateStudentJourneyStep('${s.studentId}', this.value)" style="padding: 6px 8px; font-size: 0.78rem; min-height: 34px; background: #070b10; color: var(--accent-cyan); border-radius: 6px; border: 1px solid var(--accent-cyan); font-weight: 700; cursor: pointer;">
+            <select onchange="updateStudentJourneyStep('${fifsSafeId(s.studentId)}', this.value)" style="padding: 6px 8px; font-size: 0.78rem; min-height: 34px; background: #070b10; color: var(--accent-cyan); border-radius: 6px; border: 1px solid var(--accent-cyan); font-weight: 700; cursor: pointer;">
               <option value="STEP_1_REGISTERED" ${stepNum === 1 ? 'selected' : ''}>1. Registration</option>
               <option value="STEP_2_CONFIRMED" ${stepNum === 2 ? 'selected' : ''}>2. Confirmation</option>
               <option value="STEP_3_PREPARATION" ${stepNum === 3 ? 'selected' : ''}>3. Preparation</option>
@@ -5095,10 +5096,10 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           <td>
             <div style="display: flex; gap: 6px; align-items: center;">
               <button type="button" class="btn-spark" onclick="openStudentScoresheetModal('{(s.fullName || "").replace(/'/g, "\\'")}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-amber); color: var(--accent-amber);" title="MSP Form 29-14 Scoresheet">📋 Scoresheet</button>
-              <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-cyan);" title="Edit student record">✏️ Edit</button>
-              <button type="button" class="btn-spark" onclick="dispatchRangeBriefing('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: #60a5fa; color: #60a5fa;" title="Send Range Day Arrival Briefing">🎯 Briefing</button>
-              <button type="button" class="btn-spark" onclick="dispatchReviewRequest('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-amber); color: var(--accent-amber);" title="Send 5-Star Google Review Request">⭐ Review</button>
-              <button type="button" class="btn-spark" onclick="deleteStudentFromRoster('${s.studentId}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-red); color: var(--accent-red);" title="Delete student">🗑️</button>
+              <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${fifsSafeId(s.studentId)}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-cyan);" title="Edit student record">✏️ Edit</button>
+              <button type="button" class="btn-spark" onclick="dispatchRangeBriefing('${fifsSafeId(s.studentId)}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: #60a5fa; color: #60a5fa;" title="Send Range Day Arrival Briefing">🎯 Briefing</button>
+              <button type="button" class="btn-spark" onclick="dispatchReviewRequest('${fifsSafeId(s.studentId)}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-amber); color: var(--accent-amber);" title="Send 5-Star Google Review Request">⭐ Review</button>
+              <button type="button" class="btn-spark" onclick="deleteStudentFromRoster('${fifsSafeId(s.studentId)}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-red); color: var(--accent-red);" title="Delete student">🗑️</button>
             </div>
           </td>
         `;
@@ -5176,8 +5177,8 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           <td><span style="font-size: 0.78rem; text-transform: uppercase; color: var(--accent-cyan); font-weight: 700;">${escapeHtml(c.status || 'ACTIVE')}</span></td>
           <td style="text-align: center;">
             <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
-              <button type="button" class="btn-spark" onclick="openAdminEditClientModal('${c.clientId}')" style="width: auto; padding: 5px 10px; font-size: 0.78rem; border-color: var(--accent-amber); color: var(--accent-amber);">✏️ Edit</button>
-              <button type="button" class="btn-spark" onclick="deleteClientFromRoster('${c.clientId}')" style="width: auto; padding: 5px 10px; font-size: 0.78rem; border-color: var(--accent-red); color: var(--accent-red);">🗑️ Delete</button>
+              <button type="button" class="btn-spark" onclick="openAdminEditClientModal('${fifsSafeId(c.clientId)}')" style="width: auto; padding: 5px 10px; font-size: 0.78rem; border-color: var(--accent-amber); color: var(--accent-amber);">✏️ Edit</button>
+              <button type="button" class="btn-spark" onclick="deleteClientFromRoster('${fifsSafeId(c.clientId)}')" style="width: auto; padding: 5px 10px; font-size: 0.78rem; border-color: var(--accent-red); color: var(--accent-red);">🗑️ Delete</button>
             </div>
           </td>
         `;
@@ -9767,10 +9768,10 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
           <button type="button" onclick="document.getElementById('fifsChatActionSheet').remove()" style="background:none; border:none; color:#94a3b8; font-size:1.4rem; cursor:pointer;">✕</button>
         </div>
         <div style="display:flex; flex-direction:column; gap:10px;">
-          <button type="button" onclick="confirmDeleteChatFromSheet('${threadId}')" style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#fca5a5; padding:12px 16px; border-radius:8px; font-weight:800; text-transform:uppercase; font-size:0.86rem; cursor:pointer; display:flex; align-items:center; gap:8px;">
+          <button type="button" onclick="confirmDeleteChatFromSheet('${fifsSafeId(threadId)}')" style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#fca5a5; padding:12px 16px; border-radius:8px; font-weight:800; text-transform:uppercase; font-size:0.86rem; cursor:pointer; display:flex; align-items:center; gap:8px;">
             <span>🗑️</span> Delete Conversation Thread (Sheet & Device)
           </button>
-          <button type="button" onclick="markChatUnreadFromSheet('${threadId}')" style="background:rgba(0,229,255,0.1); border:1px solid var(--accent-cyan); color:#fff; padding:12px 16px; border-radius:8px; font-weight:700; font-size:0.86rem; cursor:pointer; display:flex; align-items:center; gap:8px;">
+          <button type="button" onclick="markChatUnreadFromSheet('${fifsSafeId(threadId)}')" style="background:rgba(0,229,255,0.1); border:1px solid var(--accent-cyan); color:#fff; padding:12px 16px; border-radius:8px; font-weight:700; font-size:0.86rem; cursor:pointer; display:flex; align-items:center; gap:8px;">
             <span>✉️</span> Mark Thread as Unread
           </button>
           <button type="button" onclick="document.getElementById('fifsChatActionSheet').remove()" style="background:rgba(255,255,255,0.05); border:1px solid var(--border-subtle); color:#94a3b8; padding:10px 16px; border-radius:8px; font-size:0.84rem; cursor:pointer;">
@@ -12097,7 +12098,7 @@ if (typeof window !== 'undefined') {
             printLine('ACCEPTED COMMANDS:', 'terminal-amber');
             printLine('  help              - Display this command manual', 'terminal-dim');
             printLine('  status            - Ping system telemetry & gateway diagnostic', 'terminal-dim');
-            printLine('  auth <passcode>   - Verify credentials & decrypt Admin Hub', 'terminal-dim');
+            printLine('  auth              - Open the Admin Hub staff sign-in (email & password)', 'terminal-dim');
             printLine('  clear             - Reset display buffer', 'terminal-dim');
             printLine('  exit              - Terminate terminal session', 'terminal-dim');
           } else if (cmd === 'clear') {
@@ -12118,9 +12119,17 @@ if (typeof window !== 'undefined') {
             printLine('  LATENCY: ' + Math.floor(18 + Math.random() * 12) + 'ms (TLS 1.3 / AES-256-GCM)', 'terminal-dim');
             printLine('  SUPABASE STORAGE: CONNECTED (documents // 50MB max)', 'terminal-dim');
             printLine('  SYSTEM STATUS: OPERATIONAL / ZERO THREATS DETECTED', 'terminal-success');
-          } else if (cmd === 'auth') {
-            printLine('[ERR] PIN/PASSCODE AUTHENTICATION IS DEPRECATED AND DISABLED.', 'terminal-error');
-            printLine('[SYS] Please authenticate via the Admin Hub login modal using verified staff credentials.', 'terminal-dim');
+          } else if (cmd === 'auth' || cmd === 'login') {
+            // PIN/passcode sign-in stays disabled; this only opens the Supabase staff sign-in form.
+            // Access is granted solely by the server after verifying the staff role (app_metadata.role).
+            if (arg) printLine('[SYS] Passcodes are not accepted. Sign in with your staff email and password.', 'terminal-amber');
+            printLine('[SYS] OPENING ADMIN HUB STAFF SIGN-IN...', 'terminal-sys');
+            setTimeout(function() {
+              closeTerminalGateway();
+              if (typeof window.openAndSwitch === 'function') window.openAndSwitch('admin');
+              var emailField = document.getElementById('adminStaffEmail');
+              if (emailField) emailField.focus();
+            }, 300);
           } else {
             printLine("[ERR] UNRECOGNIZED COMMAND: '" + cmd + "'. Type 'help' for manual.", 'terminal-error');
           }

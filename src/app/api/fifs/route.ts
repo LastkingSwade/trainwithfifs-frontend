@@ -92,7 +92,7 @@ function getChatHmacSecret(): string {
   // Dedicated secret only; never reuse the Supabase service-role key.
   const secret = (process.env.CHAT_HMAC_SECRET || '').trim();
   if (!secret || secret.length < 32) {
-    throw new Error('Server configuration error: A dedicated CHAT_HMAC_SECRET of at least 32 characters is required.');
+    throw new ConfigurationError('A dedicated CHAT_HMAC_SECRET of at least 32 characters is required.');
   }
   return secret;
 }
@@ -112,8 +112,10 @@ function computeThreadSecret(threadId: string): string {
 
 function verifyThreadSecret(threadId: string, providedSecret?: string): boolean {
   if (!threadId || !providedSecret) return false;
+  // A missing or weak CHAT_HMAC_SECRET throws ConfigurationError here; it is never treated as a
+  // merely invalid credential, so callers report a server configuration error.
+  const expected = computeThreadSecret(threadId);
   try {
-    const expected = computeThreadSecret(threadId);
     const b1 = Buffer.from(providedSecret, 'hex');
     const b2 = Buffer.from(expected, 'hex');
     return b1.length === b2.length && crypto.timingSafeEqual(b1, b2);
@@ -1281,8 +1283,13 @@ export async function POST(req: NextRequest) {
 
      case 'check24HourReminders': {
        const cronSecret = req.headers.get('x-cron-secret');
-       // Dedicated CRON_SECRET only; the service-role key is never accepted as a cron credential.
-       const isCron = secretsMatch(cronSecret, process.env.CRON_SECRET);
+       const configuredCronSecret = (process.env.CRON_SECRET || '').trim();
+       // A cron credential was presented but the server has no dedicated CRON_SECRET: fail closed
+       // as a configuration error. The service-role key is never accepted as a cron credential.
+       if (cronSecret && !configuredCronSecret) {
+         return NextResponse.json({ success: false, error: 'Scheduled reminders are not configured: CRON_SECRET is required.' }, { status: 503 });
+       }
+       const isCron = secretsMatch(cronSecret, configuredCronSecret || undefined);
 
        if (!isCron) {
          const { user, error: authErr } = await getAuthenticatedUser(req);
@@ -1379,7 +1386,10 @@ export async function POST(req: NextRequest) {
            finalSecret = computeThreadSecret(finalThread);
          }
        } catch (err: any) {
-         return NextResponse.json({ success: false, error: 'Live chat service unavailable: Missing secure server configuration.' }, { status: 500 });
+         if (err instanceof ConfigurationError) {
+           return NextResponse.json({ success: false, error: 'Live chat service unavailable: Missing secure server configuration.' }, { status: 503 });
+         }
+         throw err;
        }
 
        // Insert into messages table
@@ -1505,7 +1515,10 @@ export async function POST(req: NextRequest) {
            return NextResponse.json({ success: false, error: 'Forbidden: Invalid thread credential.' }, { status: 403 });
          }
        } catch (err: any) {
-         return NextResponse.json({ success: false, error: 'Live chat service unavailable: Missing secure server configuration.' }, { status: 500 });
+         if (err instanceof ConfigurationError) {
+           return NextResponse.json({ success: false, error: 'Live chat service unavailable: Missing secure server configuration.' }, { status: 503 });
+         }
+         throw err;
        }
 
        // Query ONLY messages for this validated thread and select ONLY safe fields

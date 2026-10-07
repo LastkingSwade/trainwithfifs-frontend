@@ -71,7 +71,7 @@ function resetDb() {
   writes.length = 0;
 }
 
-function queryBuilder(table) {
+function queryBuilder(table, clientKey) {
   const filters = [];
   let op = 'select';
   let payload = null;
@@ -89,13 +89,13 @@ function queryBuilder(table) {
         }
       }
       rows.push(...list.map((r) => ({ ...r })));
-      writes.push({ table, op, payload });
+      writes.push({ table, op, payload, clientKey });
       return { data: returning ? list : null, error: null };
     }
     if (op === 'update') {
       const hit = rows.filter(matches);
       hit.forEach((r) => Object.assign(r, payload));
-      writes.push({ table, op, payload, count: hit.length });
+      writes.push({ table, op, payload, count: hit.length, clientKey });
       return { data: returning ? hit.map((r) => ({ ...r })) : null, error: null };
     }
     return { data: rows.filter(matches).map((r) => ({ ...r })), error: null };
@@ -119,9 +119,11 @@ function queryBuilder(table) {
   return b;
 }
 
+const createdClientKeys = [];
 const mockSupabase = {
-  createClient: () => ({
-    from: queryBuilder,
+  createClient: (url, key) => ({
+    _record: createdClientKeys.push(key),
+    from: (table) => queryBuilder(table, key),
     rpc: async () => ({ data: 'POD-TEST', error: null }),
     storage: { from: () => ({ createSignedUrl: async () => ({ data: null, error: { message: 'none' } }) }) },
     auth: {
@@ -139,6 +141,8 @@ const mockSupabase = {
 // ---- Mock Stripe ----
 let stripeSessions = {};
 let lastCreateParams = null;
+let expiredSessionIds = [];
+let failStripeExpire = false;
 class MockStripe {
   constructor() {
     this.checkout = {
@@ -156,6 +160,13 @@ class MockStripe {
         },
         retrieve: async (id) => {
           if (!stripeSessions[id]) throw new Error('No such checkout.session');
+          return stripeSessions[id];
+        },
+        expire: async (id) => {
+          expiredSessionIds.push(id);
+          if (failStripeExpire) throw new Error('Stripe expire unavailable');
+          if (!stripeSessions[id]) throw new Error('No such checkout.session');
+          stripeSessions[id].status = 'expired';
           return stripeSessions[id];
         }
       }
@@ -335,6 +346,65 @@ async function main() {
     await checkoutPost({ email: 'buyer@example.com', courseSelection: 'Maryland CCW', amount: 1, totalAmount: 1, depositAmount: 0.1 });
     assert(lastCreateParams.line_items[0].price_data.unit_amount === 7791, 'charged ' + lastCreateParams.line_items[0].price_data.unit_amount);
   });
+  await test('Invoice save failure blocks checkout: no payment link, Stripe session expired, staff alerted', async () => {
+    expiredSessionIds = [];
+    failures['invoices.insert'] = { message: 'insert failed' };
+    process.env.DISCORD_WEBHOOK_URL = 'https://alerts.example.test/hook';
+    const { status, body } = await checkoutPost({ email: 'buyer@example.com', courseSelection: 'Maryland CCW' });
+    assert(status === 503, `expected 503, got ${status}`);
+    assert(!body.url && !body.checkoutUrl && !body.sessionId, 'no payment link may be returned');
+    assert(expiredSessionIds.length === 1, 'the created Stripe session must be expired');
+    assert(stripeSessions[expiredSessionIds[0]].status === 'expired', 'session must be marked expired');
+    assert(!db.leads.length, 'no guest lead is captured for a blocked checkout');
+    assert(fetchCalls.length === 1 && /could not be recorded/.test(JSON.stringify(fetchCalls[0])), 'staff must be alerted once');
+  });
+  await test('Invoice save failure still blocks checkout when the Stripe session cannot be expired', async () => {
+    expiredSessionIds = [];
+    failStripeExpire = true;
+    failures['invoices.insert'] = { message: 'insert failed' };
+    process.env.DISCORD_WEBHOOK_URL = 'https://alerts.example.test/hook';
+    try {
+      const { status, body } = await checkoutPost({ email: 'buyer@example.com', courseSelection: 'Maryland CCW' });
+      assert(status === 503 && !body.url && !body.checkoutUrl, `expected 503 without a link, got ${status}`);
+      assert(expiredSessionIds.length === 1, 'expiry must be attempted');
+      assert(/could NOT be expired/.test(JSON.stringify(fetchCalls[0] || {})), 'staff alert must say the session is still open');
+    } finally { failStripeExpire = false; }
+  });
+  await test('/api/fifs submitBooking also refuses to proceed when the invoice cannot be saved', async () => {
+    failures['invoices.insert'] = { message: 'insert failed' };
+    const { status, body } = await fifs('submitBooking', { email: 'buyer@example.com', courseSelection: 'Maryland CCW', groupSize: '2 (Paired)' });
+    assert(status === 503 && !body.checkoutUrl && !body.podInviteCode, `expected 503 without link or pod code, got ${status}`);
+  });
+  await test('Checkout writes invoices only with the service-role client, never the anon key', async () => {
+    createdClientKeys.length = 0;
+    const { status } = await checkoutPost({ email: 'buyer@example.com', courseSelection: 'Maryland CCW' });
+    assert(status === 200, `expected 200, got ${status}`);
+    const invoiceWrites = writes.filter((w) => w.table === 'invoices');
+    assert(invoiceWrites.length === 1, 'expected one invoice insert');
+    assert(invoiceWrites.every((w) => w.clientKey === process.env.SUPABASE_SERVICE_ROLE_KEY), 'invoice must be written with the service-role key');
+    assert(!writes.some((w) => w.clientKey === process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY), 'no write may use the anon key');
+  });
+  for (const env of ['production', 'preview']) {
+    await test(`Missing service-role key fails checkout closed (503) before Stripe, without the anon key (VERCEL_ENV=${env})`, async () => {
+      const saved = { role: process.env.SUPABASE_SERVICE_ROLE_KEY, vercel: process.env.VERCEL_ENV };
+      delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+      delete process.env.SUPABASE_SERVICE_KEY;
+      process.env.VERCEL_ENV = env;
+      lastCreateParams = null;
+      createdClientKeys.length = 0;
+      try {
+        const { status, body } = await checkoutPost({ email: 'buyer@example.com', courseSelection: 'Maryland CCW' });
+        assert(status === 503 && !body.url && !body.checkoutUrl, `expected 503 without a link, got ${status}`);
+        assert(lastCreateParams === null, 'no Stripe session may be created');
+        assert(!writes.length, 'nothing may be written');
+        assert(!createdClientKeys.includes(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY), 'checkout must not create an anon-key client');
+        assert(!JSON.stringify(body).includes('service-role-test-secret'), 'no key value in the response');
+      } finally {
+        process.env.SUPABASE_SERVICE_ROLE_KEY = saved.role;
+        if (saved.vercel === undefined) delete process.env.VERCEL_ENV; else process.env.VERCEL_ENV = saved.vercel;
+      }
+    });
+  }
   await test('Missing Stripe configuration fails closed with 503', async () => {
     const saved = process.env.STRIPE_SECRET_KEY;
     delete process.env.STRIPE_SECRET_KEY;
@@ -496,12 +566,34 @@ async function main() {
 
   console.log('\n[SECTION F: Dedicated secrets & email escaping]');
   await test('Service-role key is not accepted as the cron secret', async () => {
-    const { status } = await fifs('check24HourReminders', {}, { 'x-cron-secret': process.env.SUPABASE_SERVICE_ROLE_KEY });
-    assert(status === 401, `expected 401, got ${status}`);
+    process.env.CRON_SECRET = 'cron-secret-for-tests-only-0123456789';
+    try {
+      const { status } = await fifs('check24HourReminders', {}, { 'x-cron-secret': process.env.SUPABASE_SERVICE_ROLE_KEY });
+      assert(status === 401, `expected 401, got ${status}`);
+    } finally { delete process.env.CRON_SECRET; }
   });
   await test('Cron fails closed when CRON_SECRET is unset', async () => {
     const { status } = await fifs('check24HourReminders', {}, { 'x-cron-secret': '' });
     assert(status === 401, `expected 401, got ${status}`);
+  });
+  await test('A cron credential with no CRON_SECRET configured fails closed with 503, even if it equals a service key', async () => {
+    process.env.SUPABASE_SERVICE_KEY = 'legacy-service-key-alias-32chars-long!';
+    try {
+      for (const presented of ['anything', process.env.SUPABASE_SERVICE_ROLE_KEY, process.env.SUPABASE_SERVICE_KEY]) {
+        const { status, body } = await fifs('check24HourReminders', {}, { 'x-cron-secret': presented });
+        assert(status === 503 && /CRON_SECRET/.test(body.error), `expected 503, got ${status}`);
+      }
+      assert(!writes.length, 'nothing may be written');
+    } finally { delete process.env.SUPABASE_SERVICE_KEY; }
+  });
+  await test('Cron secrets of different lengths are compared safely and refused', async () => {
+    process.env.CRON_SECRET = 'cron-secret-for-tests-only-0123456789';
+    try {
+      for (const presented of ['c', 'cron-secret-for-tests-only-012345678', 'cron-secret-for-tests-only-0123456789X', process.env.SUPABASE_SERVICE_ROLE_KEY]) {
+        const { status } = await fifs('check24HourReminders', {}, { 'x-cron-secret': presented });
+        assert(status === 401, `length ${presented.length}: expected 401, got ${status}`);
+      }
+    } finally { delete process.env.CRON_SECRET; }
   });
   await test('Correct CRON_SECRET is accepted', async () => {
     process.env.CRON_SECRET = 'cron-secret-for-tests-only-0123456789';
@@ -511,8 +603,33 @@ async function main() {
     } finally { delete process.env.CRON_SECRET; }
   });
   await test('Visitor chat does not fall back to the service-role key for thread signing', async () => {
-    const { status } = await fifs('handleLiveChatMessage', { message: 'hello' });
-    assert(status === 500 && db.messages.length === 0, `expected fail-closed 500, got ${status}`);
+    process.env.SUPABASE_SERVICE_KEY = 'legacy-service-key-alias-32chars-long!';
+    try {
+      const { status } = await fifs('handleLiveChatMessage', { message: 'hello' });
+      assert(status === 503 && db.messages.length === 0, `expected fail-closed 503, got ${status}`);
+    } finally { delete process.env.SUPABASE_SERVICE_KEY; }
+  });
+  await test('Missing CHAT_HMAC_SECRET is a server error (503), never a "wrong credential" on existing threads', async () => {
+    const cont = await fifs('handleLiveChatMessage', { message: 'again', threadId: 'th_0123456789abcdef0123456789abcdef', threadSecret: 'ab'.repeat(32) });
+    assert(cont.status === 503 && db.messages.length === 0, `continue thread: expected 503, got ${cont.status}`);
+    const read = await fifs('getVisitorChatMessages', { threadId: 'th_0123456789abcdef0123456789abcdef', threadSecret: 'ab'.repeat(32) });
+    assert(read.status === 503, `read thread: expected 503, got ${read.status}`);
+  });
+  await test('A weak (short) CHAT_HMAC_SECRET is rejected as unconfigured', async () => {
+    process.env.CHAT_HMAC_SECRET = 'too-short';
+    try {
+      const { status } = await fifs('handleLiveChatMessage', { message: 'hello' });
+      assert(status === 503 && db.messages.length === 0, `expected 503, got ${status}`);
+    } finally { delete process.env.CHAT_HMAC_SECRET; }
+  });
+  await test('Thread credentials of the wrong length are refused safely (403, no exception)', async () => {
+    process.env.CHAT_HMAC_SECRET = 'chat-hmac-secret-for-tests-only-0123456789';
+    try {
+      for (const bad of ['ab', 'ab'.repeat(40), 'not-hex-at-all']) {
+        const { status } = await fifs('getVisitorChatMessages', { threadId: 'th_0123456789abcdef0123456789abcdef', threadSecret: bad });
+        assert(status === 403, `secret ${bad.length} chars: expected 403, got ${status}`);
+      }
+    } finally { delete process.env.CHAT_HMAC_SECRET; }
   });
   await test('Staff reschedule email escapes HTML in class title and instructor note', async () => {
     process.env.RESEND_API_KEY = 're_test_dummy_key_not_real';
