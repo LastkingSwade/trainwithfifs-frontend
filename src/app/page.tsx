@@ -2496,7 +2496,7 @@ export default function TrainWithFIFS(props: any) {
           statusDiv.style.background = 'rgba(239, 68, 68, 0.15)';
           statusDiv.style.border = '1px solid #ef4444';
           statusDiv.style.color = '#ef4444';
-          statusDiv.innerHTML = '⚠️ Please enter your Account Email or Student/Client ID.';
+          statusDiv.innerHTML = '⚠️ Please enter the email address for your account.';
         }
         return;
       }
@@ -5134,12 +5134,12 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <div id="panel-client-signin">
                   <div className="form-group">
                     <label htmlFor="clientAuthInput" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.85rem"}}>
-                      Email Address or Client ID 
+                      Email Address
                       <span className="req">
                         *
                       </span>
                     </label>
-                    <input id="clientAuthInput" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupClientAccount()" placeholder="e.g., marcus@example.com" type="email" />
+                    <input id="clientAuthInput" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupClientAccount()" placeholder="e.g., client@example.com" type="email" />
                   </div>
                   <div className="form-group" style={{"marginTop": "14px"}}>
                     <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "4px"}}>

@@ -3934,7 +3934,7 @@ function loadDemoStudent() {
       var statusDiv = document.getElementById('client-login-status');
       var query = input ? input.value.trim() : '';
       if (!query) {
-        showStatus(statusDiv, 'Please enter your Email Address or Client ID.', 'error');
+        showStatus(statusDiv, 'Enter the email address linked to your account.', 'error');
         return;
       }
       showStatus(statusDiv, 'Verifying Client Portal credentials...', 'success');

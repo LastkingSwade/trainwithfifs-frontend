@@ -817,6 +817,17 @@ async function main() {
     const resetSrc = fs.readFileSync(path.resolve(__dirname, '../src/Lib/auth/password-reset.ts'), 'utf-8');
     assert(/student: \{ input: 'studentAuthInput', status: 'student-login-status', label: 'Email Address' \}/.test(resetSrc), 'Forgot-password label for students must be Email Address');
   });
+  await test('The client sign-in asks for an email address only, and no sign-in message anywhere asks for a Student or Client ID', async () => {
+    const at = PAGE_SRC.indexOf('htmlFor="clientAuthInput"');
+    assert(at > 0, 'client sign-in label not found');
+    const block = PAGE_SRC.slice(at, PAGE_SRC.indexOf('/>', PAGE_SRC.indexOf('id="clientAuthInput"', at)));
+    assert(/Email Address\s*<span/.test(block) && !/Client ID|Student ID/.test(block), 'client label still mentions an ID: ' + block.replace(/\s+/g, ' ').slice(0, 260));
+    assert(/placeholder="e\.g\., client@example\.com"/.test(block), 'client placeholder should be an email example');
+    for (const [name, text] of [['page.tsx', PAGE_SRC], ['script', PUBLIC_SCRIPT]]) {
+      const lines = text.split('\n').map((l, i) => ({ l, n: i + 1 })).filter(({ l }) => /Please enter|Enter (your|the)/.test(l) && /(Student\/Client ID|Client ID|Student ID|or ID\b)/.test(l));
+      assert(lines.length === 0, `${name} still asks for an ID in a message at line(s) ${lines.map((x) => x.n).join(', ')}`);
+    }
+  });
   await test('The Admin Hub invite result tells staff the person signs in with their email address after using the setup link', async () => {
     const at = PUBLIC_SCRIPT.indexOf("callFifsBackend('adminDirectInvite'");
     const block = PUBLIC_SCRIPT.slice(at, at + 3200);
