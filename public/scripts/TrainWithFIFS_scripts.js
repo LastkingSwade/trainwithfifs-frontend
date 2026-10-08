@@ -8718,7 +8718,7 @@ function getStepNumberFromStatus(statusStr) {
         card.innerHTML = `
           <button class="statute-head" onclick="toggleAccordion(this)">
             <div class="statute-title-wrap">
-              <span class="statute-status-pill {item.ans}</span>
+              <span class="statute-status-pill ${escapeHtml(item.badge || 'badge-info')}">${escapeHtml(item.ans || 'INFO')}</span>
               <span class="statute-question-text">${label}</span>
             </div>
             <span class="accordion-chevron">&#9660;</span>

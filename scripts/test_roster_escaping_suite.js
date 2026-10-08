@@ -316,6 +316,62 @@ async function main() {
     assert(bad.length === 0, 'damaged placeholders at line(s) ' + bad.map((x) => x.n).join(', '));
   });
 
+  console.log('\n[SECTION A5: State law accordion pills]');
+  function runStateModal(statutes) {
+    const cards = [];
+    const mkEl = () => ({ textContent: '', innerHTML: '', style: { setProperty() {} }, classList: { add() {}, remove() {} } });
+    const els = {};
+    const accordion = { set innerHTML(v) { if (v === '') cards.length = 0; }, get innerHTML() { return cards.map((c) => c.innerHTML).join(''); }, appendChild(c) { cards.push(c); } };
+    const sandbox = {
+      STATES_DATA: { MD: { name: 'Maryland', statutes, summary: 's', duty: 'd', mag_limit: '10', vehicle: 'v' } }, currentStateFocus: 'MD', window: {},
+      evaluateState: () => ({ verdictText: 'OK', canCarry: true, status: 'ok' }), switchModalTab() {},
+      document: { getElementById: (id) => (id === 'statuteAccordionList' ? accordion : (els[id] = els[id] || mkEl())), createElement: () => ({ className: '', innerHTML: '' }) }
+    };
+    vm.createContext(sandbox);
+    vm.runInContext(findFunction(SCRIPT, 'function escapeHtml(str) {') + '\n' + findFunction(SCRIPT, 'function openStateModal(') + "\nopenStateModal('MD');", sandbox);
+    return cards;
+  }
+  const pillOf = (card) => (card.innerHTML.match(/<span class="statute-status-pill ([^"]*)">([^<]*)<\/span>/) || []);
+  await test('State law accordion: each pill carries its badge class and the answer text, for YES, NO, and INFO', async () => {
+    const cards = runStateModal({
+      weapons_other: { ans: 'YES', badge: 'badge-yes', desc: 'Allowed.' }, licensure: { ans: 'NO', badge: 'badge-no', desc: 'No.' }, mag_limits: { ans: 'INFO', badge: 'badge-info', desc: 'See code.' }
+    });
+    assert(cards.length === 9, 'one card per question expected, got ' + cards.length);
+    assert(JSON.stringify(pillOf(cards[0]).slice(1)) === '["badge-yes","YES"]', 'YES pill: ' + pillOf(cards[0]));
+    assert(JSON.stringify(pillOf(cards[1]).slice(1)) === '["badge-no","NO"]', 'NO pill: ' + pillOf(cards[1]));
+    assert(JSON.stringify(pillOf(cards[2]).slice(1)) === '["badge-info","INFO"]', 'INFO pill: ' + pillOf(cards[2]));
+    assert(/WEAPONS OTHER THAN HANDGUNS ALLOWED\?/.test(cards[0].innerHTML) && /Allowed\./.test(cards[0].innerHTML), 'the question and description must still show');
+  });
+  await test('State law accordion: a missing or empty answer falls back to INFO, and hostile values are escaped', async () => {
+    const cards = runStateModal({ weapons_other: { ans: '', badge: '', desc: 'x' }, licensure: { desc: 'y' }, mag_limits: { ans: '<img src=x onerror=alert(1)>', badge: 'x" onmouseover="alert(1)', desc: 'z' } });
+    assert(JSON.stringify(pillOf(cards[0]).slice(1)) === '["badge-info","INFO"]', 'empty values: ' + pillOf(cards[0]));
+    assert(JSON.stringify(pillOf(cards[1]).slice(1)) === '["badge-info","INFO"]', 'missing values: ' + pillOf(cards[1]));
+    assert(cards[3] && JSON.stringify(pillOf(cards[3]).slice(1)) === '["badge-info","INFO"]', 'a key that is absent from the data uses the built-in fallback');
+    const evil = cards[2].innerHTML;
+    assert(!LIVE_MARKUP.test(evil) && !/class="[^"]*" onmouseover=/.test(evil), 'hostile values broke out of the markup: ' + evil.replace(/\s+/g, ' ').slice(0, 260));
+    assert(evil.includes('&lt;img src=x onerror=alert(1)&gt;') && evil.includes('x&quot; onmouseover=&quot;alert(1)'), 'hostile values must appear escaped');
+  });
+  await test('State law accordion: every card is well-formed: balanced tags and no leaked placeholder', async () => {
+    const cards = runStateModal({ weapons_other: { ans: 'YES', badge: 'badge-yes', desc: 'Allowed.' } });
+    for (const card of cards) {
+      const html = card.innerHTML;
+      for (const tag of ['button', 'div', 'span']) assert((html.match(new RegExp('<' + tag + '[\\s>]', 'g')) || []).length === (html.match(new RegExp('</' + tag + '>', 'g')) || []).length, `unbalanced <${tag}> in a card`);
+      assert(!/\$\{|(?<![\w$])\{item|\{label|undefined|\[object/.test(html), 'placeholder leaked: ' + html.replace(/\s+/g, ' ').slice(0, 200));
+      assert(/<span class="statute-status-pill [^"]+">[^<]+<\/span>/.test(html), 'the pill must be a complete element');
+    }
+  });
+  await test('State law data and styles agree: only YES/badge-yes, NO/badge-no, INFO/badge-info are used, and each class has a style', async () => {
+    const allPairs = [...SCRIPT.matchAll(/"ans": "([A-Z]+)",\s*"badge": "(badge-[a-z]+)"/g)].map((m) => m[1] + '/' + m[2]);
+    assert(allPairs.length > 400, 'expected to find the answer/badge pairs in the state data, found ' + allPairs.length);
+    const pairs = new Set(allPairs);
+    const loose = new Set([...SCRIPT.matchAll(/"ans": "([A-Z]+)"/g)].map((m) => m[1]));
+    assert(JSON.stringify([...loose].sort()) === JSON.stringify(['INFO', 'NO', 'YES']), 'unexpected answers in the data: ' + [...loose]);
+    assert(JSON.stringify([...pairs].sort()) === JSON.stringify(['INFO/badge-info', 'NO/badge-no', 'YES/badge-yes']), 'answers and badges are not paired as expected: ' + [...pairs]);
+    const css = fs.readFileSync(path.resolve(__dirname, '../src/app/globals.css'), 'utf-8');
+    for (const cls of ['badge-yes', 'badge-no', 'badge-info']) assert(new RegExp('\\.' + cls + '\\s*\\{').test(css), `${cls} has no style rule`);
+    assert(/\.statute-status-pill\s*\{/.test(css), 'the pill itself has no style rule');
+  });
+
   console.log('\n[SECTION B: page.tsx roster]');
   await test('Staff roster in page.tsx escapes text and only links http(s) dossier URLs', async () => {
     const start = PAGE.indexOf('    const escHtml = (value: unknown): string');
