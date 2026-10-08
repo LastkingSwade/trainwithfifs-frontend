@@ -2549,7 +2549,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           <td><span style="font-size: 0.85rem; color: #cbd5e1;">${sCourse}</span></td>
           <td><span style="font-size: 0.85rem; color: var(--accent-amber); font-weight: 600;">${sDate}</span></td>
           <td>
-            <select class="form-select" onchange="updateStudentJourneyStep('${fifsSafeId(s.studentId)}', this.value)" style="background: #070b10; border: 1px solid var(--accent-cyan); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 700;">
+            <select class="form-select" onchange="updateStudentJourneyStep('${fifsSafeId(s.studentId)}', this.value, this)" data-current="${escapeHtml(s.status || 'STEP_1_REGISTERED')}" style="background: #070b10; border: 1px solid var(--accent-cyan); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 700;">
               <option value="STEP_1_REGISTRATION" ${stepNum === 1 ? 'selected' : ''}>1. Registration ✔</option>
               <option value="STEP_2_CONFIRMATION" ${stepNum === 2 ? 'selected' : ''}>2. Confirmation ✔</option>
               <option value="STEP_3_PREPARATION" ${stepNum === 3 ? 'selected' : ''}>3. Preparation ⚡</option>
@@ -3395,28 +3395,6 @@ function loadDemoStudent() {
       }
     }
     window.loadDemoClient = loadDemoClient;
-    function updateStudentJourneyStep(studentId, newStepValue) {
-      var pin = getStaffSessionToken();
-      var ind = document.getElementById('save-ind-' + studentId);
-      var chip = document.getElementById('chip-status-' + studentId);
-      var stepNum = getStepNumberFromStatus(newStepValue);
-      if (chip) chip.textContent = formatStepLabel(stepNum);
-      var stu = (adminCachedStudents || []).find(s => s.studentId === studentId);
-      if (stu) {
-        stu.status = newStepValue;
-        /* cloud only: zero browser storage */
-      }
-      fifsSaveOrReport('updateStudentStatus', { studentId: studentId, status: newStepValue }, function() {
-        if (ind) {
-          ind.style.display = 'inline';
-          setTimeout(function() { ind.style.display = 'none'; }, 2000);
-        }
-      }, function(err) {
-        alert('Student status was NOT saved: ' + err.message);
-        if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
-      });
-    }
-    window.updateStudentJourneyStep = updateStudentJourneyStep;
     function openAdminEditStudentModal(studentId) {
       var modal = document.getElementById('adminEditStudentModal');
       var s = (adminCachedStudents || []).find(stu => stu.studentId === studentId);
@@ -5099,7 +5077,7 @@ function openAdminEditStudentModal(studentId) {
           </td>
           <td><a href="javascript:void(0)" onclick="openStudentDossierModal('${fifsSafeId(s.studentId)}')" style="color: var(--accent-cyan); font-weight: 700;" title="View/Edit Supabase Dossier & Notes">Dossier ↗</a></td>
           <td>
-            <select onchange="updateStudentJourneyStep('${fifsSafeId(s.studentId)}', this.value)" style="padding: 6px 8px; font-size: 0.78rem; min-height: 34px; background: #070b10; color: var(--accent-cyan); border-radius: 6px; border: 1px solid var(--accent-cyan); font-weight: 700; cursor: pointer;">
+            <select onchange="updateStudentJourneyStep('${fifsSafeId(s.studentId)}', this.value, this)" data-current="${escapeHtml(s.status || 'STEP_1_REGISTERED')}" style="padding: 6px 8px; font-size: 0.78rem; min-height: 34px; background: #070b10; color: var(--accent-cyan); border-radius: 6px; border: 1px solid var(--accent-cyan); font-weight: 700; cursor: pointer;">
               <option value="STEP_1_REGISTERED" ${stepNum === 1 ? 'selected' : ''}>1. Registration</option>
               <option value="STEP_2_CONFIRMED" ${stepNum === 2 ? 'selected' : ''}>2. Confirmation</option>
               <option value="STEP_3_PREPARATION" ${stepNum === 3 ? 'selected' : ''}>3. Preparation</option>
@@ -6346,32 +6324,60 @@ function getStepNumberFromStatus(statusStr) {
       return labels[stepNum] || "Step " + stepNum;
     }
     // Removed obsolete duplicate renderAdminTerminal
-    function updateStudentJourneyStep(studentId, newStepValue) {
-      var pin = getStaffSessionToken();
+    // Shows a short status next to the step dropdown. A failure falls back to an alert when the row
+    // has no indicator, so a failed save can never be silent.
+    function fifsRosterNotice(studentId, text, kind) {
       var ind = document.getElementById('save-ind-' + studentId);
-      var chip = document.getElementById('chip-status-' + studentId);
-      var stepNum = getStepNumberFromStatus(newStepValue);
-      if (chip) chip.textContent = formatStepLabel(stepNum);
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            if (ind) {
-              ind.style.display = 'inline';
-              setTimeout(function() { ind.style.display = 'none'; }, 2000);
-            }
-          })
-          .withFailureHandler(function(err) {
-            alert('Error updating student step: ' + err.message);
-          })
-          .handleUpdateStudentStatus(pin, studentId, { status: newStepValue });
-      } else {
-        // Local simulation / demo
-        if (ind) {
-          ind.style.display = 'inline';
-          setTimeout(function() { ind.style.display = 'none'; }, 2000);
-        }
+      if (!ind) { if (kind === 'error') alert(text); return; }
+      ind.textContent = text;
+      ind.style.color = kind === 'error' ? 'var(--accent-red, #ef4444)' : (kind === 'pending' ? 'var(--accent-amber, #f59e0b)' : 'var(--accent-green, #10b981)');
+      ind.style.display = 'inline';
+      if (ind._fifsTimer) clearTimeout(ind._fifsTimer);
+      if (kind !== 'pending') {
+        ind._fifsTimer = setTimeout(function() { ind.style.display = 'none'; }, kind === 'error' ? 8000 : 2500);
       }
     }
+    // Moves a student to a journey step. Nothing is shown as saved, and the cached student is not changed,
+    // until the server confirms; on failure the dropdown and chip go back to the previous step.
+    function updateStudentJourneyStep(studentId, newStepValue, selectEl) {
+      var steps = ['STEP_1_REGISTERED', 'STEP_2_CONFIRMED', 'STEP_3_PREPARATION', 'STEP_4_CLASSROOM', 'STEP_5_LIVE_FIRE', 'STEP_6_CERTIFIED', 'STEP_7_MSP_PORTAL', 'STEP_8_LICENSED'];
+      var cache = window.adminCachedStudents || [];
+      var stu = cache.find(function(s) { return s.studentId === studentId; });
+      var chip = document.getElementById('chip-status-' + studentId);
+      var previousStep = getStepNumberFromStatus(stu ? stu.status : (selectEl && selectEl.getAttribute ? selectEl.getAttribute('data-current') : ''));
+      var previousValue = steps[previousStep - 1];
+      function revert() {
+        if (selectEl) { selectEl.value = previousValue; selectEl.disabled = false; }
+        if (chip) {
+          chip.textContent = formatStepLabel(previousStep);
+          chip.style.removeProperty('color');
+          chip.style.removeProperty('border-color');
+          chip.removeAttribute('data-saved');
+        }
+      }
+      if (steps.indexOf(newStepValue) < 0) {
+        revert();
+        fifsRosterNotice(studentId, 'Not saved: that is not a valid journey step.', 'error');
+        return;
+      }
+      if (selectEl) selectEl.disabled = true;
+      fifsRosterNotice(studentId, 'Saving…', 'pending');
+      fifsSaveOrReport('updateStudentStatus', { studentId: studentId, status: newStepValue }, function() {
+        if (stu) stu.status = newStepValue;
+        if (selectEl) { selectEl.value = newStepValue; selectEl.disabled = false; }
+        if (chip) {
+          chip.textContent = formatStepLabel(getStepNumberFromStatus(newStepValue));
+          chip.style.setProperty('color', 'var(--accent-green, #10b981)');
+          chip.style.setProperty('border-color', 'var(--accent-green, #10b981)');
+          chip.setAttribute('data-saved', 'true');
+        }
+        fifsRosterNotice(studentId, '✓ Saved', 'success');
+      }, function(err) {
+        revert();
+        fifsRosterNotice(studentId, 'Not saved: ' + ((err && err.message) || 'the server did not confirm the change.'), 'error');
+      });
+    }
+    window.updateStudentJourneyStep = updateStudentJourneyStep;
 // Duplicate refreshAdminRoster removed
     // ==========================================================================
     // FIFS TWO-STEP INVOICE & BOOKING CONFIRMATION WORKFLOW

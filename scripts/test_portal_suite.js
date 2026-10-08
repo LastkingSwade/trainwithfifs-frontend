@@ -682,6 +682,88 @@ async function main() {
     }
   });
 
+  console.log('\n[SECTION E: Roster status dropdown (public script)]');
+  const statusSrc = ['fifsRosterNotice', 'getStepNumberFromStatus', 'formatStepLabel', 'updateStudentJourneyStep'].map(extractFunction).join('\n');
+  function loadStatusHandler(saveImpl, opts = {}) {
+    const mkEl = () => ({
+      style: { display: 'none', color: '', props: {}, setProperty(k, v) { this.props[k] = v; }, removeProperty(k) { delete this.props[k]; } },
+      textContent: '', attrs: {},
+      setAttribute(k, v) { this.attrs[k] = v; }, removeAttribute(k) { delete this.attrs[k]; }, getAttribute(k) { return this.attrs[k] === undefined ? null : this.attrs[k]; }
+    });
+    const els = { 'chip-status-FIFS-1001': mkEl() };
+    if (!opts.noIndicator) els['save-ind-FIFS-1001'] = mkEl();
+    els['chip-status-FIFS-1001'].textContent = 'before';
+    const alerts = [];
+    const ctx = { window: { adminCachedStudents: [{ studentId: 'FIFS-1001', status: 'STEP_2_CONFIRMED' }] }, document: { getElementById: (id) => els[id] || null },
+      alert: (m) => alerts.push(m), setTimeout: () => 0, clearTimeout() {}, fifsSaveOrReport: saveImpl };
+    vm.createContext(ctx);
+    vm.runInContext(statusSrc + '\nthis.fn = updateStudentJourneyStep;', ctx);
+    const select = { value: 'STEP_4_CLASSROOM', disabled: false, getAttribute: () => null };
+    return { fn: ctx.fn, cache: ctx.window.adminCachedStudents, chip: els['chip-status-FIFS-1001'], ind: els['save-ind-FIFS-1001'], select, alerts };
+  }
+  const isGreen = (chip) => /accent-green/.test(chip.style.props.color || '') && chip.attrs['data-saved'] === 'true';
+  await test('Status dropdown: sends updateStudentStatus, disables the select in flight, and shows nothing as saved yet', async () => {
+    let call = null;
+    const h = loadStatusHandler((action, payload, ok, fail) => { call = { action, payload, ok, fail }; });
+    h.fn('FIFS-1001', 'STEP_4_CLASSROOM', h.select);
+    assert(call && call.action === 'updateStudentStatus' && JSON.stringify(call.payload) === JSON.stringify({ studentId: 'FIFS-1001', status: 'STEP_4_CLASSROOM' }), 'wrong request: ' + JSON.stringify(call && call.payload));
+    assert(h.select.disabled === true, 'select must be disabled while saving');
+    assert(h.cache[0].status === 'STEP_2_CONFIRMED', 'cache must not change before the server confirms');
+    assert(!isGreen(h.chip) && h.chip.textContent === 'before', 'chip must not look saved before confirmation');
+    assert(/Saving/.test(h.ind.textContent), 'pending text expected');
+  });
+  await test('Status dropdown: on confirmed success the cache, chip, and select update and the chip turns green', async () => {
+    let cb;
+    const h = loadStatusHandler((a, p, ok) => { cb = ok; });
+    h.fn('FIFS-1001', 'STEP_4_CLASSROOM', h.select);
+    cb({ success: true, status: 'success' });
+    assert(h.cache[0].status === 'STEP_4_CLASSROOM', 'cache should update');
+    assert(h.select.disabled === false && h.select.value === 'STEP_4_CLASSROOM', 'select re-enabled at the new step');
+    assert(/Classroom/.test(h.chip.textContent) && isGreen(h.chip), 'chip should show the new step in green: ' + h.chip.textContent);
+    assert(/Saved/.test(h.ind.textContent) && /accent-green/.test(h.ind.style.color), 'saved indicator expected');
+  });
+  await test('Status dropdown: on failure the select, chip, and cache revert, nothing stays green, and an error is shown', async () => {
+    let cb;
+    const h = loadStatusHandler((a, p, ok, fail) => { cb = fail; });
+    h.fn('FIFS-1001', 'STEP_4_CLASSROOM', h.select);
+    cb(new Error('Unauthorized: Staff or administrator authentication required.'));
+    assert(h.select.value === 'STEP_2_CONFIRMED' && h.select.disabled === false, 'select must revert and re-enable, got ' + h.select.value);
+    assert(h.cache[0].status === 'STEP_2_CONFIRMED', 'cache must stay unchanged');
+    assert(/Confirmation/.test(h.chip.textContent) && !isGreen(h.chip) && !h.chip.style.props.color, 'chip must revert, got ' + h.chip.textContent);
+    assert(/^Not saved: Unauthorized/.test(h.ind.textContent) && /accent-red/.test(h.ind.style.color), 'visible red error expected, got ' + h.ind.textContent);
+  });
+  await test('Status dropdown: a failed save with no indicator on the row still alerts the user', async () => {
+    let cb;
+    const h = loadStatusHandler((a, p, ok, fail) => { cb = fail; }, { noIndicator: true });
+    h.fn('FIFS-1001', 'STEP_4_CLASSROOM', h.select);
+    cb(new Error('HTTP 501'));
+    assert(h.alerts.length === 1 && /Not saved: HTTP 501/.test(h.alerts[0]), 'expected one alert, got ' + JSON.stringify(h.alerts));
+  });
+  await test('Status dropdown: an unknown step is refused in the browser without any request', async () => {
+    let called = false;
+    for (const bad of ['STEP_9_DONE', '', 'REGISTERED', undefined, '<img>']) {
+      const h = loadStatusHandler(() => { called = true; });
+      h.fn('FIFS-1001', bad, h.select);
+      assert(h.select.value === 'STEP_2_CONFIRMED' && h.cache[0].status === 'STEP_2_CONFIRMED', 'must revert for ' + bad);
+    }
+    assert(!called, 'no request may be sent for an invalid step');
+  });
+  await test('Status dropdown: one definition only, no Google Apps Script or demo branch, and both row templates pass the select', async () => {
+    assert((PUBLIC_SCRIPT.match(/function updateStudentJourneyStep\(/g) || []).length === 1, 'duplicate definition present');
+    const body = extractFunction('updateStudentJourneyStep') + extractFunction('fifsRosterNotice');
+    assert(!/google\.script|simulation|demo/i.test(body), 'legacy branch remains');
+    assert(/fifsSaveOrReport\('updateStudentStatus'/.test(body), 'must use fifsSaveOrReport');
+    const tpl = PUBLIC_SCRIPT.match(/onchange="updateStudentJourneyStep\([^"]*"/g) || [];
+    assert(tpl.length === 2 && tpl.every((t) => /this\.value, this\)/.test(t)), 'row dropdowns must pass this: ' + tpl.join(' | '));
+  });
+  await test('Server: updateStudentStatus returns a confirmed, well-formed success and refuses bad values and non-staff', async () => {
+    const ok = await fifs('updateStudentStatus', { studentId: 'FIFS-1001', status: 'STEP_5_LIVE_FIRE' }, 'instructor-token');
+    assert(ok.status === 200 && ok.body.success === true && ok.body.status === 'success' && ok.body.studentId === 'FIFS-1001' && ok.body.newStatus === 'STEP_5_LIVE_FIRE', 'got ' + JSON.stringify(ok.body));
+    err(await fifs('updateStudentStatus', { studentId: 'FIFS-1001', status: 'STEP_9_DONE' }, 'instructor-token'), 400);
+    err(await fifs('updateStudentStatus', { studentId: 'FIFS-1001', status: 'STEP_5_LIVE_FIRE' }, 'student-alice-token'), 401);
+    err(await fifs('updateStudentStatus', { studentId: 'FIFS-1001', status: 'STEP_5_LIVE_FIRE' }, null), 401);
+  });
+
   console.log('\n================================================================');
   console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   console.log('================================================================');
