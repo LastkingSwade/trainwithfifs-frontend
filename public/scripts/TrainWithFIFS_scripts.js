@@ -4851,51 +4851,59 @@ function openAdminEditStudentModal(studentId) {
       }
     }
     window.closeAdminEditStudentModal = closeAdminEditStudentModal;
+    // Saves staff edits to a student. Only fields the staff member actually changed are sent, the email is never
+    // sent (it is the portal login), and the cached student is changed only after the server confirms.
     function handleAdminEditStudentSubmit(e) {
       e.preventDefault();
-      var pin = getStaffSessionToken();
       var studentId = document.getElementById('editStudentId').value;
-      var s = adminCachedStudents.find(item => item.studentId === studentId);
+      var s = (window.adminCachedStudents || adminCachedStudents).find(function(item) { return item.studentId === studentId; });
       if (!s) return;
-      s.fullName = document.getElementById('editFullName').value.trim();
-      s.email = document.getElementById('editEmail').value.trim();
-      s.phone = document.getElementById('editPhone').value.trim();
-      s.course = document.getElementById('editCourse').value.trim();
-      s.assignedDate = document.getElementById('editAssignedDate').value.trim();
-      s.status = document.getElementById('editJourneyStatus').value;
-      s.qualificationScore = document.getElementById('editScore').value.trim();
-      s.profileDocUrl = document.getElementById('editProfileDocUrl').value.trim() || '#';
-      s.notes = document.getElementById('editNotes').value.trim();
-      /* cloud only: zero browser storage */
       var st = document.getElementById('edit-student-status');
+      function field(id) { var el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; }
+      var steps = ['STEP_1_REGISTERED', 'STEP_2_CONFIRMED', 'STEP_3_PREPARATION', 'STEP_4_CLASSROOM', 'STEP_5_LIVE_FIRE', 'STEP_6_CERTIFIED', 'STEP_7_MSP_PORTAL', 'STEP_8_LICENSED'];
+      // What the form was filled with when it opened, so unchanged boxes (and placeholder defaults) are not sent.
+      var before = {
+        fullName: s.fullName || '', phone: s.phone || '', course: s.course || '', assignedDate: s.assignedDate || s.preferredDates || '',
+        qualificationScore: s.qualificationScore || '', profileDocUrl: (s.profileDocUrl && s.profileDocUrl !== '#') ? s.profileDocUrl : '', notes: s.notes || ''
+      };
+      var after = {
+        fullName: field('editFullName'), phone: field('editPhone'), course: field('editCourse'), assignedDate: field('editAssignedDate'),
+        qualificationScore: field('editScore'), profileDocUrl: field('editProfileDocUrl'), notes: field('editNotes')
+      };
+      var newStatus = field('editJourneyStatus');
+      var updates = {};
+      if (after.fullName !== before.fullName) updates.fullName = after.fullName;
+      if (after.phone !== before.phone) updates.phone = after.phone;
+      if (after.course !== before.course) updates.courseSelection = after.course;
+      if (after.assignedDate !== before.assignedDate) updates.assignedDate = after.assignedDate;
+      if (newStatus && steps.indexOf(newStatus) >= 0 && getStepNumberFromStatus(newStatus) !== getStepNumberFromStatus(s.status)) updates.status = newStatus;
+      if (after.qualificationScore !== before.qualificationScore) updates.qualificationScore = after.qualificationScore;
+      if (after.profileDocUrl !== before.profileDocUrl) updates.profileDocUrl = after.profileDocUrl;
+      if (after.notes !== before.notes) updates.notes = after.notes;
+      if (Object.keys(updates).length === 0) {
+        showStatus(st, 'No changes to save.', 'info');
+        return;
+      }
       showStatus(st, 'Saving…', 'info');
-      fifsSaveOrReport('adminEditStudent', {
-            
-            studentId: studentId,
-            updates: {
-              fullName: s.fullName,
-              email: s.email,
-              phone: s.phone,
-              courseSelection: s.course,
-              assignedDate: s.assignedDate,
-              classDate: s.assignedDate,
-              status: s.status,
-              qualificationScore: s.qualificationScore,
-              profileDocUrl: s.profileDocUrl,
-              dossierUrl: s.profileDocUrl,
-              notes: s.notes
-            }
-          }, function() {
-            showStatus(st, 'Changes saved successfully!', 'success');
-            setTimeout(function() {
-              closeAdminEditStudentModal();
-              renderAdminTerminal({ students: adminCachedStudents });
-            }, 500);
-          }, function(err) {
-            // Keep the modal open; reload the roster so unsaved values are not shown as current.
-            showStatus(st, 'NOT saved: ' + err.message, 'error');
-            if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
-          });
+      fifsSaveOrReport('adminEditStudent', { studentId: studentId, updates: updates }, function() {
+        // Confirmed by the server: only now does the cached student change.
+        if ('fullName' in updates) s.fullName = updates.fullName;
+        if ('phone' in updates) s.phone = updates.phone;
+        if ('courseSelection' in updates) s.course = updates.courseSelection;
+        if ('assignedDate' in updates) s.assignedDate = updates.assignedDate;
+        if ('status' in updates) s.status = updates.status;
+        if ('qualificationScore' in updates) s.qualificationScore = updates.qualificationScore;
+        if ('profileDocUrl' in updates) s.profileDocUrl = updates.profileDocUrl || '#';
+        if ('notes' in updates) s.notes = updates.notes;
+        showStatus(st, 'Changes saved successfully!', 'success');
+        setTimeout(function() {
+          closeAdminEditStudentModal();
+          renderAdminTerminal({ students: adminCachedStudents });
+        }, 500);
+      }, function(err) {
+        // The cache was never changed, so nothing unsaved is shown as current. The modal stays open.
+        showStatus(st, 'NOT saved: ' + err.message, 'error');
+      });
     }
     window.handleAdminEditStudentSubmit = handleAdminEditStudentSubmit;
     function deleteStudentFromRoster(studentId) {

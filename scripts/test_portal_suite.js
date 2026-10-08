@@ -482,10 +482,11 @@ async function main() {
     const sample = (k) => /email/i.test(k) ? 'alice@student.com' : k === 'status' ? 'STEP_3_PREPARATION' : /url/i.test(k) ? 'https://example.com/x.pdf' : 'value';
     for (const fn of ['handleAdminEditStudentSubmit', 'handleSaveStudentDossier']) {
       const src = allFunctionSources(fn).pop();
+      // Keys come from either a literal `updates: { ... }` block or `updates.key = ...` assignments.
       const block = src.match(/updates:\s*\{([\s\S]*?)\}/);
-      assert(block, 'no updates block in ' + fn);
-      const keys = [...block[1].matchAll(/(\w+)\s*:/g)].map((m) => m[1]);
-      assert(keys.length >= 5, 'too few keys found in ' + fn);
+      const keys = [...new Set([...(block ? [...block[1].matchAll(/(\w+)\s*:/g)].map((m) => m[1]) : []), ...[...src.matchAll(/updates\.(\w+)\s*=/g)].map((m) => m[1])])];
+      assert(keys.length >= 5, 'too few keys found in ' + fn + ': ' + keys.join(','));
+      assert(!keys.includes('email'), fn + ' must not send the email');
       const u = {};
       for (const k of keys) u[k] = sample(k);
       u.assignedDate = u.classDate = u.preferredDates = u.assignedDate; // aliases must agree
@@ -789,6 +790,75 @@ async function main() {
     assert(/Sign in with email: ' \+ email/.test(block) && /sign in with that email address/.test(block), 'invite result must refer to signing in with email');
     assert(!/ID: ' \+ newId \+ \(res\.tempPassword/.test(block) && !/Temp Password/.test(block), 'the temp-password display must be gone');
     assert(/Invitation sent\. The person signs in with their email address/.test(PAGE_SRC), 'result box heading must be updated');
+  });
+
+  console.log('\n[SECTION G: Edit Student form: read-only email and cache integrity]');
+  const editSrc = extractFunction('handleAdminEditStudentSubmit') + '\n' + extractFunction('getStepNumberFromStatus');
+  function loadEditHandler(formOverrides = {}, studentOverrides = {}) {
+    const student = { studentId: 'FIFS-1001', fullName: 'Alice Student', email: 'alice@student.com', phone: '410-555-0100', course: 'Firearms Training', assignedDate: 'Upcoming Cohort',
+      status: 'STEP_2_CONFIRMED', qualificationScore: '', profileDocUrl: '#', ...studentOverrides };
+    // The form as openAdminEditStudentModal fills it for this student.
+    const form = { editStudentId: 'FIFS-1001', editFullName: 'Alice Student', editEmail: 'alice@student.com', editPhone: '410-555-0100', editCourse: 'Firearms Training',
+      editAssignedDate: 'Upcoming Cohort', editJourneyStatus: 'STEP_2_CONFIRMED', editScore: '', editProfileDocUrl: '', editNotes: '', ...formOverrides };
+    const statuses = [], closed = [], saves = [];
+    const ctx = {
+      window: { adminCachedStudents: [student] }, adminCachedStudents: null,
+      document: { getElementById: (id) => (id === 'edit-student-status' ? { id } : (id in form ? { value: form[id] } : null)) },
+      showStatus: (el, text, type) => statuses.push({ text, type }), closeAdminEditStudentModal: () => closed.push(1), renderAdminTerminal() {},
+      setTimeout: (fn) => fn(), fifsSaveOrReport: (action, payload, ok, fail) => saves.push({ action, payload, ok, fail })
+    };
+    ctx.adminCachedStudents = ctx.window.adminCachedStudents;
+    vm.createContext(ctx);
+    vm.runInContext(editSrc + '\nthis.fn = handleAdminEditStudentSubmit;', ctx);
+    return { submit: () => ctx.fn({ preventDefault() {} }), student, saves, statuses, closed };
+  }
+  await test('Edit Student: a changed name is the only thing sent, and the email is never in the payload', async () => {
+    const h = loadEditHandler({ editFullName: 'Alice Q. Student' });
+    h.submit();
+    assert(h.saves.length === 1 && h.saves[0].action === 'adminEditStudent', 'expected one adminEditStudent call');
+    assert(JSON.stringify(h.saves[0].payload) === JSON.stringify({ studentId: 'FIFS-1001', updates: { fullName: 'Alice Q. Student' } }), 'payload: ' + JSON.stringify(h.saves[0].payload));
+    assert(!JSON.stringify(h.saves[0].payload).includes('email'), 'email must never be sent');
+  });
+  await test('Edit Student: even if the email box is edited (for example through developer tools) the email is not sent', async () => {
+    const h = loadEditHandler({ editEmail: 'attacker@example.com', editPhone: '410-555-0199' });
+    h.submit();
+    const body = JSON.stringify(h.saves[0].payload);
+    assert(!/email|attacker/i.test(body), 'a changed email reached the payload: ' + body);
+    assert(JSON.stringify(h.saves[0].payload.updates) === JSON.stringify({ phone: '410-555-0199' }), 'unexpected updates: ' + body);
+  });
+  await test('Edit Student: nothing is sent when nothing changed, so placeholder defaults and legacy statuses are not written back', async () => {
+    const h = loadEditHandler();
+    h.submit();
+    assert(h.saves.length === 0 && /No changes/.test(h.statuses[h.statuses.length - 1].text), 'an unchanged form must not save');
+    const legacy = loadEditHandler({ editJourneyStatus: 'STEP_2_CONFIRMED' }, { status: 'CONFIRMED' });
+    legacy.submit();
+    assert(legacy.saves.length === 0, 'a legacy status that maps to the shown step must not be rewritten');
+  });
+  await test('Edit Student: the cached student is not changed before the server confirms, and a failure leaves it untouched', async () => {
+    const h = loadEditHandler({ editFullName: 'Alice Q. Student', editJourneyStatus: 'STEP_5_LIVE_FIRE', editProfileDocUrl: 'https://example.com/d.pdf' });
+    h.submit();
+    assert(h.student.fullName === 'Alice Student' && h.student.status === 'STEP_2_CONFIRMED' && h.student.profileDocUrl === '#', 'cache changed before the server answered');
+    assert(!h.statuses.some((x) => /saved successfully/.test(x.text)), 'success shown before confirmation');
+    h.saves[0].fail(new Error('Unauthorized'));
+    assert(h.student.fullName === 'Alice Student' && h.student.status === 'STEP_2_CONFIRMED' && h.student.profileDocUrl === '#', 'cache changed after a failed save');
+    assert(/^NOT saved: Unauthorized/.test(h.statuses[h.statuses.length - 1].text) && h.closed.length === 0, 'the error must show and the modal must stay open');
+  });
+  await test('Edit Student: on confirmed success the cache takes the saved values, and cleared fields clear the cache', async () => {
+    const h = loadEditHandler({ editFullName: 'Alice Q. Student', editJourneyStatus: 'STEP_5_LIVE_FIRE', editProfileDocUrl: 'https://example.com/d.pdf', editPhone: '' });
+    h.submit();
+    h.saves[0].ok({ success: true, status: 'success' });
+    assert(h.student.fullName === 'Alice Q. Student' && h.student.status === 'STEP_5_LIVE_FIRE' && h.student.profileDocUrl === 'https://example.com/d.pdf' && h.student.phone === '', 'cache not updated: ' + JSON.stringify(h.student));
+    assert(h.student.email === 'alice@student.com', 'email in the cache must not change');
+    assert(h.statuses.some((x) => /saved successfully/.test(x.text)) && h.closed.length === 1, 'success message and close expected');
+  });
+  await test('Edit Student: the email input is read-only with the explanatory note, and the server still rejects an email change', async () => {
+    const at = PAGE_SRC.indexOf('<input id="editEmail"');
+    assert(at > 0, 'email input not found');
+    const tag = PAGE_SRC.slice(at, PAGE_SRC.indexOf('/>', at));
+    assert(/readOnly/.test(tag) && /aria-readonly="true"/.test(tag) && !/\brequired\b/.test(tag), 'the email input must be read-only: ' + tag.slice(0, 200));
+    assert(PAGE_SRC.indexOf('Email cannot be modified here to protect login credentials.') > at, 'the inline note is missing');
+    const r = await fifs('adminEditStudent', { studentId: 'FIFS-1001', updates: { email: 'other@student.com', fullName: 'Alice' } }, 'instructor-token');
+    assert(r.status === 400 && /Email addresses cannot be modified here/.test(r.body.error) && writes.length === 0, 'server defense-in-depth is gone: ' + JSON.stringify(r.body));
   });
 
   console.log('\n================================================================');

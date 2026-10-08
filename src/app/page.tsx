@@ -10563,7 +10563,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input id="editEmail" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="email" />
+                <input id="editEmail" readOnly aria-readonly="true" aria-describedby="editEmailNote" style={{"background": "#0b0f14", "border": "1px solid var(--border-subtle)", "color": "#94a3b8", "padding": "10px", "borderRadius": "8px", "width": "100%", "cursor": "not-allowed"}} type="email" />
+                <small id="editEmailNote" style={{"display": "block", "marginTop": "4px", "fontSize": "0.74rem", "color": "#94a3b8"}}>
+                  Email cannot be modified here to protect login credentials.
+                </small>
               </div>
             </div>
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
