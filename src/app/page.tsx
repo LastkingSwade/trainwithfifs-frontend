@@ -80,7 +80,7 @@ export default function TrainWithFIFS(props: any) {
       'collectorInfoModal', 'stateDossierModal', 'alumniAccessGateModal',
       'clientProfileModal', 'promiseDetailModal', 'changePasswordModal',
       'multistateMasteryModal', 'permitRenewalModal', 'futureServicesModal',
-      'multiPermitModal', 'clientFaqModal', 'adminScoresheetModal',
+      'multiPermitModal', 'clientFaqModal',
       'adminSubpanelModalOverlay'
     ];
 
@@ -10650,122 +10650,80 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <div className="status-msg" id="edit-student-status" style={{"marginTop": "10px", "display": "none"}}>
             </div>
           
-            {/* Dedicated Maryland Qualification Scoresheet (MSP Form 29-14) Control */}
-            <div style={{"background": "rgba(0, 229, 255, 0.05)", "border": "1px solid var(--accent-cyan)", "borderRadius": "8px", "padding": "14px", "marginTop": "14px", "marginBottom": "14px"}}>
-              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "8px"}}>
+            {/* Maryland Qualification Score Sheet (MSP Form 29-14): fill in, save, and optionally attach the signed document */}
+            <div id="editScoresheetCard" style={{"background": "rgba(0, 229, 255, 0.05)", "border": "1px solid var(--accent-cyan)", "borderRadius": "8px", "padding": "14px", "marginTop": "14px", "marginBottom": "14px"}}>
+              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "10px", "gap": "8px", "flexWrap": "wrap"}}>
                 <span style={{"fontWeight": "700", "fontSize": "0.86rem", "color": "var(--accent-cyan)", "letterSpacing": "0.5px"}}>
-                  🎯 MARYLAND QUALIFICATION SCORESHEET (MSP FORM 29-14)
+                  🎯 MARYLAND QUALIFICATION SCORE SHEET (MSP FORM 29-14)
                 </span>
                 <span id="editScoresheetStatusBadge" style={{"fontSize": "0.74rem", "fontWeight": "700", "padding": "2px 8px", "borderRadius": "12px", "background": "rgba(245, 158, 11, 0.2)", "color": "var(--accent-amber)"}}>
-                  Pending Upload
+                  No score sheet yet
                 </span>
               </div>
-              <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "10px", "marginBottom": "8px"}}>
+              <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(190px, 1fr))", "gap": "10px", "marginBottom": "10px"}}>
                 <div>
-                  <label htmlFor="editScoresheetScore" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Score / Qualification Status</label>
-                  <input id="editScoresheetScore" placeholder="e.g. 25/25 (100%)" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%", "fontSize": "0.82rem"}} type="text" />
+                  <label htmlFor="ssCourseOfFire" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Course of fire</label>
+                  <input id="ssCourseOfFire" maxLength={100} placeholder="e.g., Handgun qualification" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%"}} type="text" />
                 </div>
                 <div>
-                  <label htmlFor="editScoresheetFileInput" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Upload MSP 29-14 (PDF or Image)</label>
-                  <input accept=".pdf,image/*" id="editScoresheetFileInput" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "6px", "borderRadius": "6px", "width": "100%", "fontSize": "0.78rem"}} type="file" />
+                  <label htmlFor="ssTargetDistances" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Target distances</label>
+                  <input id="ssTargetDistances" maxLength={100} placeholder="e.g., 3, 5, 7 yards" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%"}} type="text" />
+                </div>
+                <div>
+                  <label htmlFor="ssRoundsFired" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Total rounds fired</label>
+                  <input id="ssRoundsFired" data-oninput="fifsScoresheetUpdatePercent()" max={500} min={1} step={1} style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%"}} type="number" />
+                </div>
+                <div>
+                  <label htmlFor="ssHitsOnTarget" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Hits on target</label>
+                  <input id="ssHitsOnTarget" data-oninput="fifsScoresheetUpdatePercent()" min={0} step={1} style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%"}} type="number" />
+                </div>
+                <div>
+                  <label htmlFor="ssFinalPercent" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Final score % (calculated)</label>
+                  <input id="ssFinalPercent" readOnly aria-readonly="true" style={{"background": "#0b0f14", "border": "1px solid var(--border-subtle)", "color": "#94a3b8", "padding": "8px", "borderRadius": "6px", "width": "100%", "cursor": "not-allowed"}} type="text" />
+                </div>
+                <div>
+                  <label htmlFor="ssQualificationDate" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Qualification date</label>
+                  <input id="ssQualificationDate" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%"}} type="date" />
+                </div>
+                <div>
+                  <label htmlFor="ssInstructorName" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Instructor name</label>
+                  <input id="ssInstructorName" maxLength={100} placeholder="Instructor name" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%"}} type="text" />
+                </div>
+                <div>
+                  <label htmlFor="ssInstructorNumber" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Instructor number</label>
+                  <input id="ssInstructorNumber" maxLength={40} placeholder="Certification / ID number" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%"}} type="text" />
+                </div>
+                <div>
+                  <label htmlFor="ssResult" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Result</label>
+                  <select id="ssResult" defaultValue="pending" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%"}}>
+                    <option value="pending">Pending</option>
+                    <option value="pass">Pass</option>
+                    <option value="fail">Fail</option>
+                  </select>
                 </div>
               </div>
-              <div id="editScoresheetActionRow" style={{"display": "flex", "gap": "8px", "alignItems": "center", "marginTop": "8px"}}>
-                <button type="button" id="btnUploadScoresheetFromEdit" data-onclick="handleUploadScoresheetFromEdit()" style={{"background": "var(--accent-cyan)", "color": "#070b10", "border": "none", "borderRadius": "6px", "padding": "6px 12px", "fontSize": "0.80rem", "fontWeight": "700", "cursor": "pointer"}}>
-                  ⚡ Upload / Update Scoresheet
+              <div style={{"marginBottom": "10px"}}>
+                <label htmlFor="ssNotes" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Score sheet notes</label>
+                <textarea id="ssNotes" maxLength={1000} rows={2} style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%"}} />
+              </div>
+              <div style={{"marginBottom": "10px"}}>
+                <label htmlFor="editScoresheetFileInput" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Signed MSP 29-14 document (optional: PDF, JPEG, PNG, or WebP, up to 3 MB)</label>
+                <input accept="application/pdf,image/jpeg,image/png,image/webp" id="editScoresheetFileInput" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "6px", "borderRadius": "6px", "width": "100%"}} type="file" />
+              </div>
+              <div id="editScoresheetActionRow" style={{"display": "flex", "gap": "8px", "alignItems": "center", "flexWrap": "wrap"}}>
+                <button type="button" id="btnSaveScoresheetFromEdit" data-onclick="handleSaveScoresheetFromEdit()" style={{"background": "var(--accent-cyan)", "color": "#070b10", "border": "none", "borderRadius": "6px", "padding": "8px 14px", "fontWeight": "700", "cursor": "pointer", "fontSize": "0.82rem"}}>
+                  💾 Save score sheet
                 </button>
                 <a id="editScoresheetViewLink" href="#" target="_blank" rel="noopener noreferrer" style={{"display": "none", "color": "var(--accent-cyan)", "fontSize": "0.80rem", "textDecoration": "underline", "fontWeight": "600"}}>
-                  👁️ View Current File ↗
+                  👁️ View signed document ↗
                 </a>
-                <button type="button" id="btnDeleteScoresheetFromEdit" data-onclick="handleDeleteScoresheetFromEdit()" style={{"display": "none", "background": "transparent", "color": "#ef4444", "border": "1px solid #ef4444", "borderRadius": "6px", "padding": "4px 8px", "fontSize": "0.76rem", "cursor": "pointer"}}>
-                  🗑️ Remove
+                <button type="button" id="btnDeleteScoresheetFromEdit" data-onclick="handleDeleteScoresheetFromEdit()" style={{"display": "none", "background": "transparent", "color": "#ef4444", "border": "1px solid #ef4444", "borderRadius": "6px", "padding": "7px 12px", "cursor": "pointer", "fontSize": "0.8rem"}}>
+                  🗑️ Remove score sheet
                 </button>
               </div>
-              <div id="editScoresheetFeedback" style={{"fontSize": "0.76rem", "marginTop": "6px", "display": "none"}}></div>
+              <div id="editScoresheetFeedback" role="status" style={{"fontSize": "0.78rem", "marginTop": "8px", "display": "none"}}></div>
             </div>
           </form>
-        </div>
-      </div>
-
-
-
-
-
-
-
-
-      {/* ================= DEDICATED ADMIN SCORESHEET MODAL ================= */}
-      <div className="goal-modal-overlay" id="adminScoresheetModal" data-onclick="if(event.target===this) closeStudentScoresheetModal()" style={{"display": "none"}}>
-        <div aria-labelledby="adminScoresheetModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "640px", "borderColor": "var(--accent-cyan)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 35px var(--accent-cyan-glow)"}}>
-          <button aria-label="Close modal" className="goal-modal-close-btn" data-onclick="closeStudentScoresheetModal()" type="button">
-            ✕
-          </button>
-          <div>
-            <span className="goal-header-badge">
-              MARYLAND STATE POLICE FORM 29-14
-            </span>
-          </div>
-          <h3 className="goal-modal-title" id="adminScoresheetModalTitle" style={{"color": "#fff", "margin": "6px 0 4px"}}>
-            Certified Live-Fire Qualification Scoresheet
-          </h3>
-          <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "marginBottom": "16px"}}>
-            Student: <strong id="scoresheetModalStudentName" style={{"color": "#fff"}}></strong> (<span id="scoresheetModalStudentId" style={{"color": "var(--accent-cyan)", "fontFamily": "var(--font-mono)"}}></span>)
-          </p>
-
-
-
-
-
-
-
-
-          <div style={{"background": "rgba(255,255,255,0.02)", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "14px", "marginBottom": "14px"}}>
-            <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
-              <div>
-                <label style={{"fontSize": "0.80rem", "color": "#cbd5e1", "display": "block", "marginBottom": "4px", "fontWeight": "600"}}>
-                  Qualification Score
-                </label>
-                <input id="scoresheetModalScoreInput" placeholder="e.g. 25/25 (100%)" style={{"background": "#0a0f16", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px 10px", "borderRadius": "6px", "width": "100%", "fontSize": "0.85rem"}} type="text" defaultValue="25/25 (100%)" />
-              </div>
-              <div>
-                <label style={{"fontSize": "0.80rem", "color": "#cbd5e1", "display": "block", "marginBottom": "4px", "fontWeight": "600"}}>
-                  Select PDF or Scan Image
-                </label>
-                <input accept=".pdf,image/*" id="scoresheetModalFileInput" style={{"background": "#0a0f16", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "6px 10px", "borderRadius": "6px", "width": "100%", "fontSize": "0.80rem"}} type="file" />
-              </div>
-            </div>
-
-
-
-
-
-
-
-
-            <div id="scoresheetModalPreviewBox" style={{"display": "none", "textAlign": "center", "padding": "12px", "background": "#05080c", "borderRadius": "6px", "marginBottom": "12px", "border": "1px dashed var(--border-subtle)"}}>
-              <span style={{"fontSize": "0.80rem", "color": "#94a3b8", "display": "block", "marginBottom": "6px"}}>Live File Preview / Current File:</span>
-              <a id="scoresheetModalCurrentLink" href="#" target="_blank" rel="noopener noreferrer" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.88rem", "textDecoration": "underline"}}>
-                📄 View Scoresheet Document ↗
-              </a>
-            </div>
-
-
-
-
-
-
-
-
-            <div style={{"display": "flex", "gap": "10px", "marginTop": "8px"}}>
-              <button id="btnSaveScoresheetModal" type="button" data-onclick="saveStudentScoresheetFromModal()" className="btn-primary" style={{"flex": "2", "padding": "10px 14px", "fontSize": "0.85rem", "fontWeight": "700"}}>
-                💾 Save & Upload to Supabase
-              </button>
-              <button id="btnDeleteScoresheetModal" type="button" data-onclick="deleteStudentScoresheetFromModal()" style={{"flex": "1", "display": "none", "background": "transparent", "color": "#ef4444", "border": "1px solid #ef4444", "borderRadius": "8px", "padding": "10px 14px", "fontSize": "0.82rem", "fontWeight": "600", "cursor": "pointer"}}>
-                🗑️ Delete
-              </button>
-            </div>
-            <div id="scoresheetModalFeedback" style={{"marginTop": "10px", "fontSize": "0.82rem", "display": "none"}}></div>
-          </div>
         </div>
       </div>
 
@@ -10837,88 +10795,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </form>
         </div>
       </div>
-      {/* ================= MODAL: ADMIN SCORESHEET MODAL ================= */}
-      <div className="goal-modal-overlay" id="adminScoresheetModal" data-onclick="if(event.target===this) closeStudentScoresheetModal()" style={{"display": "none"}}>
-        <div aria-labelledby="adminScoresheetModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "600px", "borderColor": "var(--accent-cyan)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 30px rgba(0,240,255,0.2)"}}>
-          <button aria-label="Close scoresheet modal" className="goal-modal-close-btn" data-onclick="closeStudentScoresheetModal()" type="button">
-            ✕
-          </button>
-          <div>
-            <span className="goal-header-badge" style={{"background": "rgba(0, 240, 255, 0.15)", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)"}}>
-              MARYLAND MSP 29-14
-            </span>
-          </div>
-          <h3 className="goal-modal-title" id="adminScoresheetModalTitle" style={{"color": "#fff", "margin": "6px 0 14px"}}>
-            Official Qualification Scoresheet
-          </h3>
-          <p style={{"fontSize": "0.84rem", "color": "#94a3b8", "marginBottom": "16px"}}>
-            Manage Certified Live-Fire Qualification Score Sheet for <strong id="scoresheetModalStudentName" style={{"color": "#fff"}}>Student</strong> (<span id="scoresheetModalStudentId" style={{"color": "var(--accent-cyan)"}}>ID</span>).
-          </p>
-
-
-
-
-
-
-
-
-          <div style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "14px", "marginBottom": "14px"}}>
-            <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
-              <div>
-                <label style={{"fontSize": "0.80rem", "color": "#cbd5e1", "display": "block", "marginBottom": "4px", "fontWeight": "600"}}>
-                  Qualification Score
-                </label>
-                <input id="scoresheetModalScoreInput" placeholder="e.g. 25/25 (100%)" style={{"background": "#0a0f16", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px 10px", "borderRadius": "6px", "width": "100%", "fontSize": "0.85rem"}} type="text" defaultValue="25/25 (100%)" />
-              </div>
-              <div>
-                <label style={{"fontSize": "0.80rem", "color": "#cbd5e1", "display": "block", "marginBottom": "4px", "fontWeight": "600"}}>
-                  Select PDF or Scan Image
-                </label>
-                <input accept=".pdf,image/*" id="scoresheetModalFileInput" style={{"background": "#0a0f16", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "6px 10px", "borderRadius": "6px", "width": "100%", "fontSize": "0.80rem"}} type="file" />
-              </div>
-            </div>
-
-
-
-
-
-
-
-
-            <div id="scoresheetModalPreviewBox" style={{"display": "none", "textAlign": "center", "padding": "12px", "background": "#05080c", "borderRadius": "6px", "marginBottom": "12px", "border": "1px dashed var(--border-subtle)"}}>
-              <span style={{"fontSize": "0.80rem", "color": "#94a3b8", "display": "block", "marginBottom": "6px"}}>Live File Preview / Current File:</span>
-              <a id="scoresheetModalCurrentLink" href="#" target="_blank" rel="noopener noreferrer" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.88rem", "textDecoration": "underline"}}>
-                📄 View Scoresheet Document ↗
-              </a>
-            </div>
-
-
-
-
-
-
-
-
-            <div style={{"display": "flex", "gap": "10px", "alignItems": "center", "justifyContent": "flex-end"}}>
-              <button id="btnDeleteScoresheetModal" data-onclick="deleteCurrentStudentScoresheet()" style={{"display": "none", "background": "transparent", "border": "1px solid #ef4444", "color": "#ef4444", "borderRadius": "6px", "padding": "8px 14px", "fontSize": "0.82rem", "fontWeight": "600", "cursor": "pointer"}} type="button">
-                🗑️ Remove File
-              </button>
-              <button id="btnSaveScoresheetModal" data-onclick="saveStudentScoresheetFromModal()" style={{"background": "var(--accent-cyan)", "border": "none", "color": "#070b10", "borderRadius": "6px", "padding": "8px 18px", "fontSize": "0.85rem", "fontWeight": "800", "cursor": "pointer"}} type="button">
-                💾 Upload & Save to Supabase
-              </button>
-            </div>
-            <div id="scoresheetModalFeedback" style={{"fontSize": "0.80rem", "marginTop": "8px", "textAlign": "right", "display": "none"}}></div>
-          </div>
-        </div>
-      </div>
-
-
-
-
-
-
-
-
       {/* ================= MODAL 4: ADMIN EDIT CLIENT RECORD MODAL ================= */}
       <div className="goal-modal-overlay" id="adminEditClientModal" data-onclick="if(event.target===this) closeAdminEditClientModal()" style={{"display": "none"}}>
         <div aria-labelledby="editClientModalTitle" aria-modal="true" className="goal-modal-box" data-onclick="event.stopPropagation()" role="dialog" style={{"maxWidth": "600px", "borderColor": "var(--accent-amber)", "boxShadow": "0 20px 50px rgba(0,0,0,0.92), 0 0 30px var(--accent-amber-glow)"}}>

@@ -3289,61 +3289,6 @@ function loadDemoStudent() {
       }
     }
     window.loadDemoClient = loadDemoClient;
-    function openAdminEditStudentModal(studentId) {
-      var modal = document.getElementById('adminEditStudentModal');
-      var s = (adminCachedStudents || []).find(stu => stu.studentId === studentId);
-      if (!s || !modal) return;
-      var idInput = document.getElementById('editStudentId');
-      var nameInput = document.getElementById('editFullName');
-      var emailInput = document.getElementById('editEmail');
-      var phoneInput = document.getElementById('editPhone');
-      var courseInput = document.getElementById('editCourse');
-      var dateInput = document.getElementById('editAssignedDate');
-      var statusInput = document.getElementById('editJourneyStatus');
-      var scoreInput = document.getElementById('editScore');
-      var docUrlInput = document.getElementById('editProfileDocUrl');
-      var notesInput = document.getElementById('editNotes');
-      
-      if (idInput) idInput.value = s.studentId || '';
-      if (nameInput) nameInput.value = s.fullName || '';
-      if (emailInput) emailInput.value = s.email || '';
-      if (phoneInput) phoneInput.value = s.phone || '';
-      if (courseInput) courseInput.value = s.course || s.courseSelection || '';
-      if (dateInput) dateInput.value = s.assignedDate || s.preferredDates || '';
-      if (statusInput) statusInput.value = s.status || 'STEP_1_REGISTERED';
-      if (scoreInput) scoreInput.value = s.qualificationScore || s.qualification_score || '';
-      if (docUrlInput) docUrlInput.value = s.profileDocUrl || s.dossier_url || '';
-      if (notesInput) notesInput.value = s.notes || s.comments || '';
-
-
-      // Scoresheet preview in student record
-      var scScore = document.getElementById('editScoresheetScore');
-      if (scScore) scScore.value = s.qualificationScore || s.qualification_score || '';
-      var badge = document.getElementById('editScoresheetStatusBadge');
-      var viewLink = document.getElementById('editScoresheetViewLink');
-      var delBtn = document.getElementById('btnDeleteScoresheetFromEdit');
-      var scUrl = s.scoresheet_url || s.scoresheetUrl || (s.scoresheet && (s.scoresheet.image_url || s.scoresheet.imageUrl));
-      if (scUrl) {
-        if (badge) { badge.textContent = 'Certified & Uploaded'; badge.style.background = 'rgba(16, 185, 129, 0.2)'; badge.style.color = '#10b981'; }
-        var safeScUrl = fifsSafeHttpUrl(scUrl);
-        if (viewLink) { if (safeScUrl) { viewLink.href = safeScUrl; viewLink.style.display = 'inline-block'; } else { viewLink.removeAttribute('href'); viewLink.style.display = 'none'; } }
-        if (delBtn) delBtn.style.display = 'inline-block';
-      } else {
-        if (badge) { badge.textContent = 'Pending Upload'; badge.style.background = 'rgba(245, 158, 11, 0.2)'; badge.style.color = 'var(--accent-amber)'; }
-        if (viewLink) viewLink.style.display = 'none';
-        if (delBtn) delBtn.style.display = 'none';
-      }
-
-
-      modal.classList.add('active');
-      modal.style.setProperty('display', 'flex', 'important');
-      modal.style.setProperty('opacity', '1', 'important');
-      modal.style.setProperty('visibility', 'visible', 'important');
-      modal.style.setProperty('pointer-events', 'auto', 'important');
-      document.body.classList.add('modal-open');
-      document.body.style.overflow = 'hidden';
-    }
-    window.openAdminEditStudentModal = openAdminEditStudentModal;
     function closeAdminEditStudentModal() {
       var modal = document.getElementById('adminEditStudentModal');
       if (modal) {
@@ -4794,6 +4739,7 @@ function openAdminEditStudentModal(studentId) {
       document.getElementById('editNotes').value = s.notes || '';
       var st = document.getElementById('edit-student-status');
       if (st) st.style.display = 'none';
+      if (typeof fifsLoadScoresheetForEdit === 'function') fifsLoadScoresheetForEdit(s.studentId);
       var modal = document.getElementById('adminEditStudentModal');
       if (modal) {
         modal.style.display = 'flex';
@@ -11324,296 +11270,177 @@ if (typeof window !== 'undefined') {
 
 // DEDICATED STUDENT SCORESHEET MANAGEMENT (MSP FORM 29-14)
     // ==========================================================================
-    var activeScoresheetStudentId = null;
-
-
-    function openStudentScoresheetModal(studentId) {
-      activeScoresheetStudentId = studentId;
-      var s = (adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
-      var studentName = s ? s.fullName : studentId;
-      var currentScore = (s && (s.qualificationScore || s.qualification_score || (s.scoresheet && s.scoresheet.score))) ? (s.qualificationScore || s.qualification_score || s.scoresheet.score) : '';
-      var currentUrl = (s && (s.scoresheet_url || s.scoresheetUrl || (s.scoresheet && (s.scoresheet.image_url || s.scoresheet.imageUrl)))) ? (s.scoresheet_url || s.scoresheetUrl || s.scoresheet.image_url || s.scoresheet.imageUrl) : '';
-
-
-      var modal = document.getElementById('adminScoresheetModal');
-      var nameEl = document.getElementById('scoresheetModalStudentName');
-      var idEl = document.getElementById('scoresheetModalStudentId');
-      var scoreInput = document.getElementById('scoresheetModalScoreInput');
-      var fileInput = document.getElementById('scoresheetModalFileInput');
-      var previewBox = document.getElementById('scoresheetModalPreviewBox');
-      var currentLink = document.getElementById('scoresheetModalCurrentLink');
-      var deleteBtn = document.getElementById('btnDeleteScoresheetModal');
-      var feedback = document.getElementById('scoresheetModalFeedback');
-
-
-      if (nameEl) nameEl.textContent = studentName;
-      if (idEl) idEl.textContent = studentId;
-      if (scoreInput) scoreInput.value = currentScore;
+    // ==========================================================================
+    // MSP FORM 29-14 QUALIFICATION SCORE SHEET (inside the Edit Student form)
+    // ==========================================================================
+    // Staff fill in the structured fields and may attach the signed document. Nothing is shown as saved until the
+    // server confirms; the document goes up with the save and is limited to 3 MB (the request limit).
+    var FIFS_SCORESHEET_MAX_FILE_BYTES = 3000000;
+    function fifsScoresheetValue(id) {
+      var el = document.getElementById(id);
+      return el ? String(el.value == null ? '' : el.value).trim() : '';
+    }
+    function fifsScoresheetFeedback(text, kind) {
+      var box = document.getElementById('editScoresheetFeedback');
+      if (!box) { if (kind === 'error') alert(text); return; }
+      box.textContent = text;
+      box.style.display = 'block';
+      box.style.color = kind === 'error' ? 'var(--accent-red, #ef4444)' : (kind === 'pending' ? 'var(--accent-amber, #f59e0b)' : 'var(--accent-green, #10b981)');
+    }
+    function fifsScoresheetPercentText(roundsText, hitsText) {
+      var rounds = /^\d{1,4}$/.test(roundsText) ? Number(roundsText) : NaN;
+      var hits = /^\d{1,4}$/.test(hitsText) ? Number(hitsText) : NaN;
+      if (!(rounds >= 1) || !(hits >= 0) || hits > rounds) return '';
+      return (Math.round((hits / rounds) * 1000) / 10) + '%';
+    }
+    function fifsScoresheetUpdatePercent() {
+      var out = document.getElementById('ssFinalPercent');
+      if (out) out.value = fifsScoresheetPercentText(fifsScoresheetValue('ssRoundsFired'), fifsScoresheetValue('ssHitsOnTarget'));
+    }
+    window.fifsScoresheetUpdatePercent = fifsScoresheetUpdatePercent;
+    // Reads and checks the form (the server checks again). Returns { error } or { sheet }.
+    function fifsScoresheetReadForm() {
+      var sheet = {
+        courseOfFire: fifsScoresheetValue('ssCourseOfFire'),
+        targetDistances: fifsScoresheetValue('ssTargetDistances'),
+        roundsFired: fifsScoresheetValue('ssRoundsFired'),
+        hitsOnTarget: fifsScoresheetValue('ssHitsOnTarget'),
+        qualificationDate: fifsScoresheetValue('ssQualificationDate'),
+        instructorName: fifsScoresheetValue('ssInstructorName'),
+        instructorNumber: fifsScoresheetValue('ssInstructorNumber'),
+        result: fifsScoresheetValue('ssResult') || 'pending',
+        notes: fifsScoresheetValue('ssNotes')
+      };
+      if (!sheet.courseOfFire) return { error: 'Enter the course of fire.' };
+      if (!/^\d{1,4}$/.test(sheet.roundsFired) || Number(sheet.roundsFired) < 1 || Number(sheet.roundsFired) > 500) return { error: 'Total rounds fired must be a whole number from 1 to 500.' };
+      if (!/^\d{1,4}$/.test(sheet.hitsOnTarget)) return { error: 'Hits on target must be a whole number, 0 or more.' };
+      if (Number(sheet.hitsOnTarget) > Number(sheet.roundsFired)) return { error: 'Hits on target cannot be more than the rounds fired.' };
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(sheet.qualificationDate)) return { error: 'Choose the qualification date.' };
+      if (!sheet.instructorName) return { error: 'Enter the instructor name.' };
+      if (['pending', 'pass', 'fail'].indexOf(sheet.result) < 0) return { error: 'Choose the result.' };
+      sheet.roundsFired = Number(sheet.roundsFired);
+      sheet.hitsOnTarget = Number(sheet.hitsOnTarget);
+      return { sheet: sheet };
+    }
+    function fifsScoresheetSetBadge(text, tone) {
+      var badge = document.getElementById('editScoresheetStatusBadge');
+      if (!badge) return;
+      badge.textContent = text;
+      var tones = { good: ['rgba(16, 185, 129, 0.2)', '#10b981'], bad: ['rgba(239, 68, 68, 0.2)', '#ef4444'], wait: ['rgba(245, 158, 11, 0.2)', 'var(--accent-amber)'] };
+      var t = tones[tone] || tones.wait;
+      badge.style.background = t[0];
+      badge.style.color = t[1];
+    }
+    // Puts a saved score sheet (the server's getStudentScoresheet reply) into the form, or clears the form when there is none.
+    function fifsScoresheetFillForm(data) {
+      var sheet = data && data.sheet ? data.sheet : null;
+      var set = function(id, v) { var el = document.getElementById(id); if (el) el.value = (v === undefined || v === null) ? '' : String(v); };
+      set('ssCourseOfFire', sheet && sheet.courseOfFire);
+      set('ssTargetDistances', sheet && sheet.targetDistances);
+      set('ssRoundsFired', sheet && sheet.roundsFired);
+      set('ssHitsOnTarget', sheet && sheet.hitsOnTarget);
+      set('ssQualificationDate', sheet && sheet.qualificationDate);
+      set('ssInstructorName', sheet && sheet.instructorName);
+      set('ssInstructorNumber', sheet && sheet.instructorNumber);
+      set('ssResult', (sheet && sheet.result) || 'pending');
+      set('ssNotes', sheet ? sheet.notes : (data && data.legacyNotes) || '');
+      var fileInput = document.getElementById('editScoresheetFileInput');
       if (fileInput) fileInput.value = '';
-      if (feedback) { feedback.style.display = 'none'; feedback.textContent = ''; }
-
-
-      if (currentUrl) {
-        if (previewBox) previewBox.style.display = 'block';
-        if (currentLink) { currentLink.href = fifsSafeHttpUrl(currentUrl) || '#'; currentLink.textContent = '📄 View Current Scoresheet (' + studentName + ') ↗'; }
-        if (deleteBtn) deleteBtn.style.display = 'inline-block';
-      } else {
-        if (previewBox) previewBox.style.display = 'none';
-        if (deleteBtn) deleteBtn.style.display = 'none';
+      fifsScoresheetUpdatePercent();
+      var viewLink = document.getElementById('editScoresheetViewLink');
+      var safeUrl = data && data.fileUrl ? fifsSafeHttpUrl(data.fileUrl) : '';
+      if (viewLink) {
+        if (safeUrl) { viewLink.href = safeUrl; viewLink.style.display = 'inline-block'; }
+        else { viewLink.removeAttribute('href'); viewLink.style.display = 'none'; }
       }
-
-
-      if (modal) {
-        modal.classList.add('active');
-        modal.style.setProperty('display', 'flex', 'important');
-        modal.style.setProperty('opacity', '1', 'important');
-        modal.style.setProperty('visibility', 'visible', 'important');
-        modal.style.setProperty('pointer-events', 'auto', 'important');
-        document.body.classList.add('modal-open');
-        document.body.style.overflow = 'hidden';
-      }
+      var del = document.getElementById('btnDeleteScoresheetFromEdit');
+      if (del) del.style.display = data ? 'inline-block' : 'none';
+      if (!data) { fifsScoresheetSetBadge('No score sheet yet', 'wait'); return; }
+      var result = sheet && sheet.result;
+      var label = (data.score || 'Saved') + (data.hasFile ? ' • document on file' : '');
+      if (result === 'pass') fifsScoresheetSetBadge('PASS • ' + label, 'good');
+      else if (result === 'fail') fifsScoresheetSetBadge('FAIL • ' + label, 'bad');
+      else fifsScoresheetSetBadge('Pending • ' + label, 'wait');
     }
-    window.openStudentScoresheetModal = openStudentScoresheetModal;
-
-
-    function closeStudentScoresheetModal() {
-      var modal = document.getElementById('adminScoresheetModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.style.setProperty('display', 'none', 'important');
-        modal.style.setProperty('opacity', '0', 'important');
-        modal.style.setProperty('pointer-events', 'none', 'important');
-      }
-      document.body.classList.remove('modal-open');
-      document.body.style.overflow = '';
-      activeScoresheetStudentId = null;
-    }
-    window.closeStudentScoresheetModal = closeStudentScoresheetModal;
-
-
-    function saveStudentScoresheetFromModal() {
-      var studentId = activeScoresheetStudentId;
-      if (!studentId) return;
-      var fileInput = document.getElementById('scoresheetModalFileInput');
-      var scoreInput = document.getElementById('scoresheetModalScoreInput');
-      var feedback = document.getElementById('scoresheetModalFeedback');
-      var saveBtn = document.getElementById('btnSaveScoresheetModal');
-      var scoreVal = scoreInput ? scoreInput.value.trim() : '';
-      var pin = getStaffSessionToken();
-
-
-      if (feedback) {
-        feedback.style.display = 'block';
-        feedback.style.color = 'var(--accent-cyan)';
-        feedback.textContent = '⏳ Processing and uploading to Supabase Storage...';
-      }
-      if (saveBtn) saveBtn.disabled = true;
-
-
-      function dispatchSave(payload) {
-        
-        payload.studentId = studentId;
-        payload.score = scoreVal;
-        payload.notes = 'Verified by Instructor Kai Wade (MSP Form 29-14)';
-
-
-        callFifsBackend('saveStudentScoresheet', payload, function(res) {
-          if (saveBtn) saveBtn.disabled = false;
-          if (res && res.success) {
-            if (feedback) {
-              feedback.style.color = '#10b981';
-              feedback.textContent = '✓ Official Scoresheet saved to Supabase successfully!';
-            }
-            var s = (adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
-            if (s) {
-              s.scoresheet_url = res.url || (res.scoresheet && res.scoresheet.image_url);
-              s.qualificationScore = scoreVal;
-            }
-            setTimeout(function() {
-              closeStudentScoresheetModal();
-              if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
-            }, 800);
-          } else {
-            if (feedback) {
-              feedback.style.color = '#ef4444';
-              feedback.textContent = 'Upload failed: ' + (res ? res.error : 'Unknown error');
-            }
-          }
-        }, function(err) {
-          if (saveBtn) saveBtn.disabled = false;
-          if (feedback) {
-            feedback.style.color = '#ef4444';
-            feedback.textContent = 'Network error saving scoresheet.';
-          }
-        });
-      }
-
-
-      if (fileInput && fileInput.files && fileInput.files[0]) {
-        var file = fileInput.files[0];
-        var reader = new FileReader();
-        reader.onload = function(e) {
-          dispatchSave({
-            fileBase64: e.target.result,
-            fileName: file.name,
-            fileType: file.type
-          });
-        };
-        reader.readAsDataURL(file);
-      } else {
-        var s = (adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
-        var existingUrl = s ? (s.scoresheet_url || s.scoresheetUrl) : '';
-        if (!existingUrl) {
-          if (feedback) {
-            feedback.style.color = '#ef4444';
-            feedback.textContent = 'Please select a PDF or image file first.';
-          }
-          if (saveBtn) saveBtn.disabled = false;
-          return;
-        }
-        dispatchSave({ imageUrl: existingUrl });
-      }
-    }
-    window.saveStudentScoresheetFromModal = saveStudentScoresheetFromModal;
-
-
-    function deleteCurrentStudentScoresheet() {
-      var studentId = activeScoresheetStudentId;
-      if (!studentId || !confirm('Are you sure you want to delete this student\'s Maryland qualification scoresheet?')) return;
-      var pin = getStaffSessionToken();
-      var feedback = document.getElementById('scoresheetModalFeedback');
-
-
-      callFifsBackend('deleteStudentScoresheet', { studentId: studentId }, function(res) {
-        if (res && res.success) {
-          alert('Scoresheet removed.');
-          var s = (adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
-          if (s) {
-            delete s.scoresheet_url;
-            delete s.scoresheetUrl;
-            delete s.qualificationScore;
-          }
-          closeStudentScoresheetModal();
-          if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
-        } else {
-          alert('Delete failed: ' + (res ? res.error : 'Unknown error'));
-        }
+    // Loads the student's saved score sheet when the Edit Student form opens.
+    function fifsLoadScoresheetForEdit(studentId, keepFeedback) {
+      fifsScoresheetFillForm(null);
+      var box = document.getElementById('editScoresheetFeedback');
+      if (box && !keepFeedback) { box.style.display = 'none'; box.textContent = ''; }
+      fifsSaveOrReport('getStudentScoresheet', { studentId: studentId }, function(res) {
+        if (document.getElementById('editStudentId') && document.getElementById('editStudentId').value !== studentId) return;
+        fifsScoresheetFillForm(res && res.scoresheet ? res.scoresheet : null);
       }, function(err) {
-        alert('Delete failed — the scoresheet was NOT removed: ' + err.message);
+        fifsScoresheetFeedback('Could not load the saved score sheet: ' + ((err && err.message) || 'unknown error'), 'error');
       });
     }
-    window.deleteCurrentStudentScoresheet = deleteCurrentStudentScoresheet;
-
-
-    function handleUploadScoresheetFromEdit() {
-      var studentId = document.getElementById('editStudentId') ? document.getElementById('editStudentId').value : null;
+    window.fifsLoadScoresheetForEdit = fifsLoadScoresheetForEdit;
+    function handleSaveScoresheetFromEdit() {
+      var idBox = document.getElementById('editStudentId');
+      var studentId = idBox ? idBox.value : '';
       if (!studentId) return;
+      var read = fifsScoresheetReadForm();
+      if (read.error) { fifsScoresheetFeedback(read.error, 'error'); return; }
+      var btn = document.getElementById('btnSaveScoresheetFromEdit');
       var fileInput = document.getElementById('editScoresheetFileInput');
-      var scoreInput = document.getElementById('editScoresheetScore');
-      var feedback = document.getElementById('editScoresheetFeedback');
-      var scoreVal = scoreInput ? scoreInput.value.trim() : '';
-      var pin = getStaffSessionToken();
-
-
-      if (!fileInput || !fileInput.files || !fileInput.files[0]) {
-        alert('Please choose a PDF or image file to upload.');
-        return;
-      }
-
-
-      if (feedback) {
-        feedback.style.display = 'block';
-        feedback.style.color = 'var(--accent-cyan)';
-        feedback.textContent = '⏳ Uploading scoresheet to Supabase Storage...';
-      }
-
-
-      var file = fileInput.files[0];
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        callFifsBackend('saveStudentScoresheet', {
-          
-          studentId: studentId,
-          fileBase64: e.target.result,
-          fileName: file.name,
-          fileType: file.type,
-          score: scoreVal,
-          notes: 'Verified by Instructor Kai Wade (MSP Form 29-14)'
-        }, function(res) {
-          if (res && res.success) {
-            if (feedback) {
-              feedback.style.color = '#10b981';
-              feedback.textContent = '✓ Scoresheet successfully uploaded!';
-            }
-            var s = (adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
-            if (s) {
-              s.scoresheet_url = res.url || (res.scoresheet && res.scoresheet.image_url);
-              s.qualificationScore = scoreVal;
-            }
-            var editBadge = document.getElementById('editScoresheetStatusBadge');
-            var editLink = document.getElementById('editScoresheetViewLink');
-            var editDel = document.getElementById('btnDeleteScoresheetFromEdit');
-            if (editBadge) {
-              editBadge.textContent = 'Uploaded & Verified';
-              editBadge.style.background = 'rgba(16, 185, 129, 0.2)';
-              editBadge.style.color = '#10b981';
-            }
-            if (editLink) {
-              editLink.href = fifsSafeHttpUrl(res.url || (res.scoresheet && res.scoresheet.image_url)) || '#';
-              editLink.style.display = 'inline-block';
-            }
-            if (editDel) editDel.style.display = 'inline-block';
-            if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
-          } else {
-            if (feedback) {
-              feedback.style.color = '#ef4444';
-              feedback.textContent = 'Upload failed: ' + (res ? res.error : 'Unknown error');
-            }
-          }
+      var file = fileInput && fileInput.files && fileInput.files[0];
+      function send(extra) {
+        if (btn) btn.disabled = true;
+        fifsScoresheetFeedback('Saving…', 'pending');
+        var payload = { studentId: studentId, sheet: read.sheet };
+        if (extra) { payload.fileBase64 = extra.fileBase64; payload.fileType = extra.fileType; }
+        fifsSaveOrReport('saveStudentScoresheet', payload, function(res) {
+          if (btn) btn.disabled = false;
+          var s = (window.adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
+          if (s && res && res.score) s.qualificationScore = res.score;
+          var scoreBox = document.getElementById('editScore');
+          if (scoreBox && res && res.score) scoreBox.value = res.score;
+          fifsScoresheetFeedback('✓ Score sheet saved' + (res && res.score ? ' (' + res.score + ')' : '') + '.', 'success');
+          fifsLoadScoresheetForEdit(studentId, true);
         }, function(err) {
-          if (feedback) {
-            feedback.style.color = '#ef4444';
-            feedback.textContent = 'Upload failed — the scoresheet was NOT saved: ' + err.message;
-          }
+          if (btn) btn.disabled = false;
+          fifsScoresheetFeedback('NOT saved: ' + ((err && err.message) || 'the server did not confirm the save.'), 'error');
         });
-      };
-      reader.readAsDataURL(file);
+      }
+      if (file) {
+        if (file.size > FIFS_SCORESHEET_MAX_FILE_BYTES) { fifsScoresheetFeedback('That file is too large (limit 3 MB). Use a smaller scan or photo.', 'error'); return; }
+        if (['application/pdf', 'image/jpeg', 'image/png', 'image/webp'].indexOf(file.type) < 0) { fifsScoresheetFeedback('Use a PDF, JPEG, PNG, or WebP file.', 'error'); return; }
+        var reader = new FileReader();
+        reader.onload = function(e) { send({ fileBase64: e.target.result, fileType: file.type }); };
+        reader.onerror = function() { fifsScoresheetFeedback('The file could not be read. Nothing was saved.', 'error'); };
+        reader.readAsDataURL(file);
+      } else {
+        send(null);
+      }
     }
-    window.handleUploadScoresheetFromEdit = handleUploadScoresheetFromEdit;
-
-
+    window.handleSaveScoresheetFromEdit = handleSaveScoresheetFromEdit;
     function handleDeleteScoresheetFromEdit() {
-      var studentId = document.getElementById('editStudentId') ? document.getElementById('editStudentId').value : null;
-      if (!studentId || !confirm('Are you sure you want to remove this scoresheet?')) return;
-      var pin = getStaffSessionToken();
-      callFifsBackend('deleteStudentScoresheet', { studentId: studentId }, function(res) {
-        if (res && res.success) {
-          alert('Scoresheet removed.');
-          var s = (adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
-          if (s) {
-            delete s.scoresheet_url;
-            delete s.scoresheetUrl;
-            delete s.qualificationScore;
-          }
-          var editBadge = document.getElementById('editScoresheetStatusBadge');
-          var editLink = document.getElementById('editScoresheetViewLink');
-          var editDel = document.getElementById('btnDeleteScoresheetFromEdit');
-          if (editBadge) {
-            editBadge.textContent = 'Pending Upload';
-            editBadge.style.background = 'rgba(245, 158, 11, 0.2)';
-            editBadge.style.color = 'var(--accent-amber)';
-          }
-          if (editLink) editLink.style.display = 'none';
-          if (editDel) editDel.style.display = 'none';
-          if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
-        } else {
-          alert('Failed to delete: ' + (res ? res.error : 'Unknown error'));
-        }
+      var idBox = document.getElementById('editStudentId');
+      var studentId = idBox ? idBox.value : '';
+      if (!studentId || !confirm('Remove this student\'s score sheet and its signed document? This cannot be undone.')) return;
+      var btn = document.getElementById('btnDeleteScoresheetFromEdit');
+      if (btn) btn.disabled = true;
+      fifsSaveOrReport('deleteStudentScoresheet', { studentId: studentId }, function() {
+        if (btn) btn.disabled = false;
+        var s = (window.adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
+        if (s) s.qualificationScore = '';
+        var scoreBox = document.getElementById('editScore');
+        if (scoreBox) scoreBox.value = '';
+        fifsScoresheetFillForm(null);
+        fifsScoresheetFeedback('Score sheet removed.', 'success');
       }, function(err) {
-        alert('Failed to delete — the scoresheet was NOT removed: ' + err.message);
+        if (btn) btn.disabled = false;
+        fifsScoresheetFeedback('NOT removed: ' + ((err && err.message) || 'the server did not confirm it.'), 'error');
       });
     }
     window.handleDeleteScoresheetFromEdit = handleDeleteScoresheetFromEdit;
+    // The roster's Scoresheet button: there is one place to edit a score sheet, the Edit Student form.
+    function openStudentScoresheetModal(studentId) {
+      openAdminEditStudentModal(studentId);
+      var card = document.getElementById('editScoresheetCard');
+      if (card && typeof card.scrollIntoView === 'function') card.scrollIntoView({ block: 'start' });
+    }
+    window.openStudentScoresheetModal = openStudentScoresheetModal;
 
 
     /* ==========================================================================

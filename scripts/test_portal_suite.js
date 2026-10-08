@@ -33,6 +33,8 @@ const writes = [];
 // Test controls: force a database error for an operation, or make an update match no rows.
 let failOp = null;
 let updateMatchesNothing = false;
+let storageCalls = { upload: [], remove: [], sign: [] };
+let storageFail = null;
 let authUsers = {};
 let authCalls = { createUser: [], generateLink: [], deleteUser: [] };
 let authFail = null;
@@ -49,7 +51,8 @@ function resetDb() {
         status: 'STEP_1_REGISTERED', internal_notes: 'Staff only: carol', qualification_score: null, is_admin: true, role: 'admin' }
     ],
     enrollments: [],
-    clients: []
+    clients: [],
+    student_scoresheets: []
   };
   // Roster students for the setup-link tests (no Auth account yet, no email, a staff email, mismatches).
   db.students.push(
@@ -63,6 +66,8 @@ function resetDb() {
   writes.length = 0;
   failOp = null;
   updateMatchesNothing = false;
+  storageFail = null;
+  storageCalls = { upload: [], remove: [], sign: [] };
   authFail = null;
   authCalls = { createUser: [], generateLink: [], deleteUser: [] };
   authUsers = {
@@ -76,6 +81,7 @@ function queryBuilder(table) {
   const filters = [];
   let op = 'select';
   let patch = null;
+  let conflict = null;
   const run = () => {
     if (failOp && failOp === op) return { data: null, error: { message: 'boom: internal database detail' } };
     if (op === 'update') {
@@ -83,6 +89,20 @@ function queryBuilder(table) {
       hit.forEach((r) => Object.assign(r, patch));
       writes.push({ table, op, patch, rows: hit.length });
       return { data: hit.map((r) => ({ ...r })), error: null };
+    }
+    if (op === 'upsert') {
+      const rows = (db[table] = db[table] || []);
+      const hit = rows.find((r) => conflict && r[conflict] === patch[conflict]);
+      if (hit) Object.assign(hit, patch); else rows.push({ ...patch });
+      writes.push({ table, op, patch });
+      return { data: [{ ...(hit || rows[rows.length - 1]) }], error: null };
+    }
+    if (op === 'delete') {
+      const rows = db[table] || [];
+      const gone = rows.filter((r) => filters.every((f) => f(r)));
+      db[table] = rows.filter((r) => !gone.includes(r));
+      writes.push({ table, op, rows: gone.length });
+      return { data: gone.map((r) => ({ ...r })), error: null };
     }
     if (op === 'insert') {
       (db[table] = db[table] || []).push({ ...patch });
@@ -96,7 +116,7 @@ function queryBuilder(table) {
     select: () => b,
     insert: (data) => { op = 'insert'; patch = data; return b; },
     update: (data) => { op = 'update'; patch = data; return b; },
-    upsert: () => { op = 'upsert'; return b; },
+    upsert: (data, opts) => { op = 'upsert'; patch = data; conflict = opts && opts.onConflict; return b; },
     delete: () => { op = 'delete'; return b; },
     eq: (c, v) => { filters.push((r) => r[c] === v); return b; },
     or: (expr) => {
@@ -118,7 +138,24 @@ function queryBuilder(table) {
 const mockSupabase = {
   createClient: () => ({
     from: queryBuilder,
-    storage: { from: () => ({ createSignedUrl: async () => ({ data: null, error: { message: 'none' } }) }) },
+    storage: { from: (bucket) => ({
+      createSignedUrl: async (path, ttl) => {
+        if (bucket !== 'scoresheets') return { data: null, error: { message: 'none' } };
+        storageCalls.sign.push({ path, ttl });
+        if (storageFail === 'sign') return { data: null, error: { message: 'boom: internal storage detail' } };
+        return { data: { signedUrl: 'https://files.example.test/signed/' + path + '?token=SIGNED-TOKEN' }, error: null };
+      },
+      upload: async (path, bytes, opts) => {
+        storageCalls.upload.push({ bucket, path, size: bytes.length, opts });
+        if (storageFail === 'upload') return { data: null, error: { message: 'boom: internal storage detail' } };
+        return { data: { path }, error: null };
+      },
+      remove: async (paths) => {
+        storageCalls.remove.push({ bucket, paths });
+        if (storageFail === 'remove') return { data: null, error: { message: 'boom: internal storage detail' } };
+        return { data: paths.map((name) => ({ name })), error: null };
+      }
+    }) },
     auth: {
       admin: {
         createUser: async (params) => {
@@ -221,7 +258,7 @@ async function test(name, fn) {
 function assert(cond, msg) { if (!cond) throw new Error(msg); }
 
 const NOT_IMPLEMENTED = ['adminEditClient',
-  'saveStudentScoresheet', 'deleteStudentScoresheet', 'submitStudentWaiver', 'handleLeadMagnetSubmission'];
+  'submitStudentWaiver', 'handleLeadMagnetSubmission'];
 
 async function main() {
   console.log('================================================================');
@@ -329,14 +366,14 @@ async function main() {
     assert(saved, 'expected success');
   });
   await test('Status, edit, task, and delete actions all go through fifsSaveOrReport', async () => {
-    for (const action of ['updateStudentStatus', 'adminEditStudent', 'adminEditClient', 'updateStudentTask', 'adminDeleteStudent', 'adminDeleteClient']) {
+    for (const action of ['updateStudentStatus', 'adminEditStudent', 'adminEditClient', 'updateStudentTask', 'adminDeleteStudent', 'adminDeleteClient', 'saveStudentScoresheet', 'deleteStudentScoresheet', 'getStudentScoresheet']) {
       const direct = backendCallArgs(action);
       assert(direct.length === 0, `${action} is still called directly at line(s) ${direct.map((c) => c.line).join(', ')}`);
       assert(new RegExp("fifsSaveOrReport\\(\\s*['\"]" + action + "['\"]").test(PUBLIC_SCRIPT), `${action} must use fifsSaveOrReport`);
     }
   });
-  await test('Scoresheet and waiver calls always pass an error callback', async () => {
-    for (const action of ['saveStudentScoresheet', 'deleteStudentScoresheet', 'submitStudentWaiver']) {
+  await test('Waiver calls always pass an error callback', async () => {
+    for (const action of ['submitStudentWaiver']) {
       const calls = backendCallArgs(action);
       assert(calls.length > 0, `no ${action} call found`);
       for (const c of calls) assert(c.args.length >= 4 && /^function\s*\(/.test(c.args[3]), `${action} at line ${c.line} has no error callback`);
@@ -1117,6 +1154,227 @@ async function main() {
     for (const dead of ['student-setup-password-box', 'submitNewStudentPassword', 'studentNewPasswordInput', 'Create Your Permanent Portal Password', 'Choose a password (min 4 characters)']) {
       assert(!PAGE_SRC.includes(dead) && !PUBLIC_SCRIPT.includes(dead), `dead first-time box remnant: ${dead}`);
     }
+  });
+
+  console.log('\n[SECTION J: MSP Form 29-14 qualification score sheet]');
+  const PDF = Buffer.from('%PDF-1.4\n%signed scoresheet\n');
+  const PNG = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(32, 1)]);
+  const JPG = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(32, 2)]);
+  const WEBP = Buffer.concat([Buffer.from('RIFF'), Buffer.alloc(4), Buffer.from('WEBP'), Buffer.alloc(16, 3)]);
+  const dataUrl = (mime, buf) => `data:${mime};base64,${buf.toString('base64')}`;
+  const goodSheet = (over = {}) => ({ courseOfFire: 'Handgun qualification', targetDistances: '3, 5, 7 yards', roundsFired: 50, hitsOnTarget: 48, qualificationDate: '2026-10-01',
+    instructorName: 'Kai Wade', instructorNumber: 'MSP-12345', result: 'pass', notes: 'Clean run', ...over });
+  const saveSheet = (sheet, extra = {}, token = 'instructor-token', studentId = 'FIFS-1001') => fifs('saveStudentScoresheet', { studentId, sheet, ...extra }, token);
+  const sheetRow = (id = 'FIFS-1001') => db.student_scoresheets.find((r) => r.student_id === id);
+  const noStorage = () => assert(storageCalls.upload.length === 0 && storageCalls.remove.length === 0, 'no storage action may occur: ' + JSON.stringify(storageCalls));
+
+  await test('Score sheet save: unauthenticated, student, and spoofed-admin callers are refused and nothing is written or uploaded', async () => {
+    for (const token of [null, 'bad-token', 'student-alice-token', 'student-carol-token']) {
+      err(await saveSheet(goodSheet(), { fileBase64: dataUrl('application/pdf', PDF) }, token), 401);
+    }
+    noWrites(); noStorage();
+  });
+  await test('Score sheet save: bad student IDs are 400 and an unknown student is 404, with no upload', async () => {
+    for (const bad of ['', "x'--", 'a b', null, 7]) err(await saveSheet(goodSheet(), {}, 'instructor-token', bad), 400);
+    err(await saveSheet(goodSheet(), { fileBase64: dataUrl('application/pdf', PDF) }, 'instructor-token', 'FIFS-9999'), 404);
+    noWrites(); noStorage();
+  });
+  await test('Score sheet save: invalid or incomplete fields are refused with 400 and nothing is written', async () => {
+    const bad = [
+      undefined, null, 'x', [], {}, goodSheet({ extra: 1 }), goodSheet({ finalScorePercent: 100 }), goodSheet({ user_id: 'x' }),
+      goodSheet({ courseOfFire: '' }), goodSheet({ courseOfFire: 'C'.repeat(101) }), goodSheet({ courseOfFire: 'bad\u0000' }), goodSheet({ courseOfFire: 5 }),
+      goodSheet({ roundsFired: 0 }), goodSheet({ roundsFired: 501 }), goodSheet({ roundsFired: 1.5 }), goodSheet({ roundsFired: 'abc' }), goodSheet({ roundsFired: null }), goodSheet({ roundsFired: -3 }),
+      goodSheet({ hitsOnTarget: -1 }), goodSheet({ hitsOnTarget: 51 }), goodSheet({ hitsOnTarget: 'x' }), goodSheet({ hitsOnTarget: 1.5 }), goodSheet({ hitsOnTarget: undefined }),
+      goodSheet({ qualificationDate: '' }), goodSheet({ qualificationDate: '2026-13-40' }), goodSheet({ qualificationDate: '2026-02-30' }), goodSheet({ qualificationDate: '10/01/2026' }),
+      goodSheet({ qualificationDate: '2999-01-01' }), goodSheet({ qualificationDate: '1999-12-31' }), goodSheet({ qualificationDate: 20261001 }),
+      goodSheet({ result: 'maybe' }), goodSheet({ result: '' }), goodSheet({ result: true }), goodSheet({ instructorName: '' }), goodSheet({ instructorName: 'I'.repeat(101) }),
+      goodSheet({ instructorNumber: '<script>1</script>' }), goodSheet({ instructorNumber: 'N'.repeat(41) }), goodSheet({ notes: 'N'.repeat(1001) }), goodSheet({ notes: 'bad\u0000note' }),
+      goodSheet({ targetDistances: 'D'.repeat(101) })
+    ];
+    for (const sheet of bad) err(await saveSheet(sheet), 400);
+    noWrites(); noStorage();
+  });
+  await test('Score sheet save: valid fields are stored as one row per student, the score is calculated by the server, and the student record is updated', async () => {
+    const r = await saveSheet(goodSheet({ roundsFired: '50', hitsOnTarget: '48' }));
+    assert(r.status === 200 && r.body.success === true && r.body.status === 'success' && r.body.score === '48/50 (96%)' && r.body.finalScorePercent === 96 && r.body.hasFile === false, `got ${r.status} ${JSON.stringify(r.body)}`);
+    const row = sheetRow();
+    assert(row && row.image_url === '' && row.score === '48/50 (96%)' && row.passed === true && row.is_unread_by_student === true, 'row: ' + JSON.stringify(row));
+    const notes = JSON.parse(row.notes);
+    assert(notes.v === 1 && notes.form === 'MSP-29-14' && notes.finalScorePercent === 96 && notes.courseOfFire === 'Handgun qualification' && notes.instructorName === 'Kai Wade' && notes.result === 'pass' && notes.qualificationDate === '2026-10-01', 'stored fields: ' + row.notes);
+    assert(db.students.find((x) => x.student_id === 'FIFS-1001').qualification_score === '48/50 (96%)', 'student record score not updated');
+    assert(!JSON.stringify(r.body).match(/Kai Wade|Clean run|MSP-12345/), 'staff-entered details must not be echoed');
+    noStorage();
+  });
+  await test('Score sheet save: pass, fail, and pending map to passed true, false, and null; percentages are rounded to one decimal', async () => {
+    for (const [result, passed] of [['pass', true], ['fail', false], ['pending', null]]) {
+      await saveSheet(goodSheet({ result, roundsFired: 9, hitsOnTarget: 7 }));
+      assert(sheetRow().passed === passed && sheetRow().score === '7/9 (77.8%)', `${result}: ${JSON.stringify(sheetRow())}`);
+    }
+    await saveSheet(goodSheet({ roundsFired: 50, hitsOnTarget: 0, result: 'fail' }));
+    assert(sheetRow().score === '0/50 (0%)', sheetRow().score);
+    assert(db.student_scoresheets.filter((r) => r.student_id === 'FIFS-1001').length === 1, 'a second save must update the same row, not add another');
+  });
+  await test('Score sheet save: a PDF, PNG, JPEG, or WebP is stored in the private bucket under the student\'s own folder and the client file name is never used', async () => {
+    for (const [mime, buf, ext] of [['application/pdf', PDF, 'pdf'], ['image/png', PNG, 'png'], ['image/jpeg', JPG, 'jpg'], ['image/webp', WEBP, 'webp']]) {
+      storageCalls = { upload: [], remove: [], sign: [] };
+      const r = await saveSheet(goodSheet(), { fileBase64: dataUrl(mime, buf), fileType: mime, fileName: '../../evil/../x.html' });
+      assert(r.status === 200 && r.body.hasFile === true, `${mime}: got ${r.status} ${JSON.stringify(r.body)}`);
+      assert(storageCalls.upload.length === 1, 'expected one upload');
+      const up = storageCalls.upload[0];
+      assert(up.bucket === 'scoresheets' && new RegExp('^FIFS-1001/MSP-29-14-\\d+-[0-9a-f]{8}\\.' + ext + '$').test(up.path), 'unexpected path: ' + up.path);
+      assert(up.opts.contentType === mime && up.opts.upsert === false && up.size === buf.length, 'upload options: ' + JSON.stringify(up.opts));
+      assert(sheetRow().image_url === up.path && !/evil|\.\./.test(up.path), 'row must point at the stored file');
+    }
+  });
+  await test('Score sheet save: files that are not a real PDF/JPEG/PNG/WebP, are mislabeled, empty, unreadable, or over 3 MB are refused before anything is stored', async () => {
+    const html = Buffer.from('<html><script>alert(1)</script></html>');
+    const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>');
+    const gif = Buffer.from('GIF89a' + 'x'.repeat(20));
+    const big = Buffer.concat([PDF, Buffer.alloc(3_000_001)]);
+    const cases = [
+      [dataUrl('application/pdf', html), 'application/pdf'], [dataUrl('image/svg+xml', svg), 'image/svg+xml'], [dataUrl('image/gif', gif), 'image/gif'],
+      [dataUrl('application/pdf', PNG), 'application/pdf'], [dataUrl('image/png', PDF), 'image/png'], [dataUrl('application/pdf', Buffer.alloc(0)), 'application/pdf'],
+      ['data:application/pdf;base64,!!!notbase64!!!', 'application/pdf'], ['not a data url at all', 'application/pdf'], [dataUrl('application/pdf', big), 'application/pdf'],
+      [PDF.toString('base64'), 'image/png'], [12345, 'application/pdf'], [{}, 'application/pdf']
+    ];
+    for (const [fileBase64, fileType] of cases) err(await saveSheet(goodSheet(), { fileBase64, fileType }), 400);
+    noWrites(); noStorage();
+  });
+  await test('Score sheet save: a storage failure saves nothing; a database failure after the upload removes the uploaded file', async () => {
+    storageFail = 'upload';
+    const a = await saveSheet(goodSheet(), { fileBase64: dataUrl('application/pdf', PDF) });
+    err(a, 502); noWrites();
+    storageFail = null; storageCalls = { upload: [], remove: [], sign: [] };
+    failOp = 'upsert';
+    const b = await saveSheet(goodSheet(), { fileBase64: dataUrl('application/pdf', PDF) });
+    err(b, 500);
+    assert(storageCalls.upload.length === 1 && storageCalls.remove.length === 1 && storageCalls.remove[0].paths[0] === storageCalls.upload[0].path, 'the uploaded file must be cleaned up: ' + JSON.stringify(storageCalls));
+    assert(!/boom|internal/.test(JSON.stringify([a.body, b.body])), 'internal detail leaked');
+    assert(db.student_scoresheets.length === 0 && db.students.find((x) => x.student_id === 'FIFS-1001').qualification_score === null, 'no score may be recorded after a failed save');
+  });
+  await test('Score sheet save: replacing the document removes the old file; saving without a file keeps the existing one', async () => {
+    db.student_scoresheets.push({ student_id: 'FIFS-1001', image_url: 'FIFS-1001/old-sheet.pdf', score: '1/1 (100%)', passed: true, notes: '' });
+    const keep = await saveSheet(goodSheet());
+    assert(keep.status === 200 && sheetRow().image_url === 'FIFS-1001/old-sheet.pdf' && keep.body.hasFile === true && storageCalls.remove.length === 0, 'an existing document must be kept: ' + JSON.stringify(sheetRow()));
+    const swap = await saveSheet(goodSheet(), { fileBase64: dataUrl('image/png', PNG) });
+    assert(swap.status === 200 && swap.body.fileReplaced === true && sheetRow().image_url !== 'FIFS-1001/old-sheet.pdf', 'new file expected');
+    assert(storageCalls.remove.length === 1 && storageCalls.remove[0].paths[0] === 'FIFS-1001/old-sheet.pdf', 'the replaced file must be removed: ' + JSON.stringify(storageCalls.remove));
+  });
+  await test('Score sheet save: if the student record cannot be updated the response says the sheet was saved but the record was not', async () => {
+    failOp = 'update';
+    const r = await saveSheet(goodSheet());
+    assert(r.status === 500 && r.body.success === false && r.body.sheetSaved === true && /could not be updated/.test(r.body.error) && !/boom|internal/.test(JSON.stringify(r.body)), `got ${r.status} ${JSON.stringify(r.body)}`);
+  });
+  await test('Score sheet read: only staff can read it, the document is a short-lived signed link, and the other fields come back parsed', async () => {
+    await saveSheet(goodSheet(), { fileBase64: dataUrl('application/pdf', PDF) });
+    for (const token of [null, 'bad-token', 'student-alice-token', 'student-carol-token']) err(await fifs('getStudentScoresheet', { studentId: 'FIFS-1001' }, token), 401);
+    storageCalls.sign.length = 0;
+    const r = await fifs('getStudentScoresheet', { studentId: 'FIFS-1001' }, 'staff-token');
+    assert(r.status === 200 && r.body.success === true && r.body.scoresheet.sheet.courseOfFire === 'Handgun qualification' && r.body.scoresheet.sheet.result === 'pass' && r.body.scoresheet.score === '48/50 (96%)' && r.body.scoresheet.hasFile === true, `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(/^https:\/\/files\.example\.test\/signed\/FIFS-1001\//.test(r.body.scoresheet.fileUrl) && storageCalls.sign.length === 1 && storageCalls.sign[0].ttl === 600, 'a 10-minute signed link is expected');
+    assert(!JSON.stringify(r.body).includes(sheetRow().image_url.replace(/\?.*/, '')) || /signed/.test(r.body.scoresheet.fileUrl), 'only the signed link may carry the file location');
+  });
+  await test('Score sheet read: no sheet is null, plain-text legacy notes are not parsed as a form, and a file path outside the student\'s folder is never signed', async () => {
+    const none = await fifs('getStudentScoresheet', { studentId: 'FIFS-1001' }, 'instructor-token');
+    assert(none.status === 200 && none.body.scoresheet === null, 'expected null');
+    db.student_scoresheets.push({ student_id: 'FIFS-1001', image_url: 'FIFS-1002/other-students-file.pdf', score: '', passed: null, notes: 'Verified by Instructor Kai Wade (MSP Form 29-14)' });
+    storageCalls.sign.length = 0;
+    const legacy = await fifs('getStudentScoresheet', { studentId: 'FIFS-1001' }, 'instructor-token');
+    assert(legacy.body.scoresheet.sheet === null && /Verified by Instructor/.test(legacy.body.scoresheet.legacyNotes) && legacy.body.scoresheet.hasFile === false && legacy.body.scoresheet.fileUrl === null && storageCalls.sign.length === 0, 'unexpected legacy read: ' + JSON.stringify(legacy.body));
+    err(await fifs('getStudentScoresheet', { studentId: "x'--" }, 'instructor-token'), 400);
+    failOp = 'select';
+    const down = await fifs('getStudentScoresheet', { studentId: 'FIFS-1001' }, 'instructor-token');
+    err(down, 500); assert(!/boom|internal/.test(JSON.stringify(down.body)), 'detail leaked');
+  });
+  await test('Score sheet delete: staff only; removes the file, the row, and the student\'s score; and reports failures honestly', async () => {
+    for (const token of [null, 'student-alice-token', 'student-carol-token']) err(await fifs('deleteStudentScoresheet', { studentId: 'FIFS-1001' }, token), 401);
+    err(await fifs('deleteStudentScoresheet', { studentId: 'FIFS-1001' }, 'instructor-token'), 404);
+    await saveSheet(goodSheet(), { fileBase64: dataUrl('application/pdf', PDF) });
+    const path = sheetRow().image_url; storageCalls = { upload: [], remove: [], sign: [] };
+    storageFail = 'remove';
+    const stuck = await fifs('deleteStudentScoresheet', { studentId: 'FIFS-1001' }, 'instructor-token');
+    err(stuck, 502); assert(sheetRow() && /nothing was deleted/i.test(stuck.body.error), 'a file that cannot be removed must leave the sheet in place');
+    storageFail = null; storageCalls = { upload: [], remove: [], sign: [] };
+    const ok = await fifs('deleteStudentScoresheet', { studentId: 'FIFS-1001' }, 'instructor-token');
+    assert(ok.status === 200 && ok.body.success === true && !sheetRow() && storageCalls.remove.length === 1 && storageCalls.remove[0].paths[0] === path, `got ${ok.status} ${JSON.stringify(ok.body)}`);
+    assert(db.students.find((x) => x.student_id === 'FIFS-1001').qualification_score === null, 'the student score must be cleared');
+    failOp = 'delete';
+    await saveSheet(goodSheet());
+    err(await fifs('deleteStudentScoresheet', { studentId: 'FIFS-1001' }, 'instructor-token'), 500);
+  });
+
+  // ---- browser side ----
+  const ssSrc = ['fifsScoresheetValue', 'fifsScoresheetFeedback', 'fifsScoresheetPercentText', 'fifsScoresheetUpdatePercent', 'fifsScoresheetReadForm', 'fifsScoresheetSetBadge', 'fifsScoresheetFillForm', 'fifsLoadScoresheetForEdit', 'handleSaveScoresheetFromEdit', 'handleDeleteScoresheetFromEdit', 'fifsSafeHttpUrl']
+    .map(extractFunction).join('\n') + '\nvar FIFS_SCORESHEET_MAX_FILE_BYTES = 3000000;';
+  function loadScoresheetUi(values = {}, opts = {}) {
+    const els = {};
+    const make = (id, v = '') => (els[id] = { id, value: v, style: {}, textContent: '', disabled: false, files: [], removeAttribute(k) { delete this[k]; }, setAttribute() {} });
+    for (const id of ['ssCourseOfFire', 'ssTargetDistances', 'ssRoundsFired', 'ssHitsOnTarget', 'ssFinalPercent', 'ssQualificationDate', 'ssInstructorName', 'ssInstructorNumber', 'ssResult', 'ssNotes',
+      'editScoresheetFileInput', 'editScoresheetFeedback', 'editScoresheetStatusBadge', 'editScoresheetViewLink', 'btnDeleteScoresheetFromEdit', 'btnSaveScoresheetFromEdit', 'editScore']) make(id);
+    make('editStudentId', 'FIFS-1001');
+    Object.assign(els, {});
+    const form = { ssCourseOfFire: 'Handgun qualification', ssRoundsFired: '50', ssHitsOnTarget: '48', ssQualificationDate: '2026-10-01', ssInstructorName: 'Kai Wade', ssResult: 'pass', ...values };
+    for (const [k, v] of Object.entries(form)) els[k].value = v;
+    const saves = [], alerts = [];
+    const student = { studentId: 'FIFS-1001', qualificationScore: '' };
+    class FakeReader { readAsDataURL(f) { if (opts.readerFails) this.onerror(); else this.onload({ target: { result: 'data:' + f.type + ';base64,QUJD' } }); } }
+    const ctx = { window: { adminCachedStudents: [student], location: { origin: 'https://trainwithfifs.example' } }, document: { getElementById: (id) => els[id] || null }, alert: (m) => alerts.push(m), confirm: () => true, FileReader: FakeReader, URL, String, Number, Math,
+      fifsSaveOrReport: (action, payload, ok, fail) => saves.push({ action, payload, ok, fail }) };
+    vm.createContext(ctx);
+    vm.runInContext(ssSrc + '\nthis.api = { read: fifsScoresheetReadForm, save: handleSaveScoresheetFromEdit, del: handleDeleteScoresheetFromEdit, fill: fifsScoresheetFillForm, load: fifsLoadScoresheetForEdit, pct: fifsScoresheetPercentText };', ctx);
+    return { api: ctx.api, els, saves, alerts, student };
+  }
+  await test('Score sheet form: client checks mirror the server and the percentage is calculated', async () => {
+    const ok = loadScoresheetUi().api.read();
+    assert(ok.sheet && ok.sheet.roundsFired === 50 && ok.sheet.hitsOnTarget === 48 && ok.sheet.result === 'pass' && !('finalScorePercent' in ok.sheet), 'valid form: ' + JSON.stringify(ok));
+    for (const bad of [{ ssCourseOfFire: '' }, { ssRoundsFired: '0' }, { ssRoundsFired: '501' }, { ssRoundsFired: 'x' }, { ssHitsOnTarget: '51' }, { ssHitsOnTarget: '-1' }, { ssQualificationDate: '' }, { ssInstructorName: '' }, { ssResult: 'maybe' }]) {
+      assert(loadScoresheetUi(bad).api.read().error, 'should be refused: ' + JSON.stringify(bad));
+    }
+    const p = loadScoresheetUi().api.pct;
+    assert(p('50', '48') === '96%' && p('9', '7') === '77.8%' && p('50', '0') === '0%' && p('0', '0') === '' && p('50', '51') === '' && p('', '') === '', 'percentages');
+  });
+  await test('Score sheet form: saving sends the fields only after validation, disables the button, and shows success only after the server confirms', async () => {
+    const h = loadScoresheetUi();
+    h.api.save();
+    assert(h.saves.length === 1 && h.saves[0].action === 'saveStudentScoresheet' && h.saves[0].payload.studentId === 'FIFS-1001' && h.saves[0].payload.sheet.courseOfFire === 'Handgun qualification' && !('fileBase64' in h.saves[0].payload) && !('fileName' in h.saves[0].payload), 'payload: ' + JSON.stringify(h.saves[0] && h.saves[0].payload));
+    assert(h.els.btnSaveScoresheetFromEdit.disabled === true && /Saving/.test(h.els.editScoresheetFeedback.textContent), 'must show a pending state');
+    assert(h.student.qualificationScore === '' && !/saved/i.test(h.els.editScoresheetFeedback.textContent), 'nothing may look saved before the server answers');
+    h.saves[0].ok({ success: true, status: 'success', score: '48/50 (96%)' });
+    assert(h.els.btnSaveScoresheetFromEdit.disabled === false && h.student.qualificationScore === '48/50 (96%)' && h.els.editScore.value === '48/50 (96%)', 'success should update the cached score and the Score box');
+    const f = loadScoresheetUi(); f.api.save(); f.saves[0].fail(new Error('Unauthorized'));
+    assert(f.els.btnSaveScoresheetFromEdit.disabled === false && /^NOT saved: Unauthorized/.test(f.els.editScoresheetFeedback.textContent) && f.student.qualificationScore === '', 'failure must be reported and change nothing');
+    const inv = loadScoresheetUi({ ssHitsOnTarget: '99' }); inv.api.save();
+    assert(inv.saves.length === 0 && /cannot be more/.test(inv.els.editScoresheetFeedback.textContent), 'an invalid form must not be sent');
+  });
+  await test('Score sheet form: an attached file is size- and type-checked in the browser and sent as base64 with its type, never its name', async () => {
+    const att = (h, file) => { h.els.editScoresheetFileInput.files = [file]; };
+    const ok = loadScoresheetUi(); att(ok, { size: 1000, type: 'application/pdf', name: 'C:\\fakepath\\my scan.pdf' }); ok.api.save();
+    assert(ok.saves.length === 1 && /^data:application\/pdf;base64,/.test(ok.saves[0].payload.fileBase64) && ok.saves[0].payload.fileType === 'application/pdf' && !JSON.stringify(ok.saves[0].payload).includes('fakepath'), 'file payload: ' + JSON.stringify(ok.saves[0] && Object.keys(ok.saves[0].payload)));
+    const big = loadScoresheetUi(); att(big, { size: 3000001, type: 'application/pdf' }); big.api.save();
+    assert(big.saves.length === 0 && /too large/.test(big.els.editScoresheetFeedback.textContent), 'oversize files must not be sent');
+    for (const type of ['text/html', 'image/gif', 'image/svg+xml', '']) { const w = loadScoresheetUi(); att(w, { size: 10, type }); w.api.save(); assert(w.saves.length === 0, 'type should be refused: ' + type); }
+    const rf = loadScoresheetUi({}, { readerFails: true }); att(rf, { size: 10, type: 'image/png' }); rf.api.save();
+    assert(rf.saves.length === 0 && /could not be read/.test(rf.els.editScoresheetFeedback.textContent), 'an unreadable file must not be sent');
+  });
+  await test('Score sheet form: a saved sheet fills the form and badge; the document link is shown only when it is a safe http(s) URL', async () => {
+    const h = loadScoresheetUi();
+    h.api.fill({ sheet: { courseOfFire: 'CoF', roundsFired: 50, hitsOnTarget: 40, qualificationDate: '2026-09-01', instructorName: 'I', instructorNumber: 'N1', result: 'fail', notes: 'n' }, score: '40/50 (80%)', hasFile: true, fileUrl: 'https://files.example.test/s.pdf' });
+    assert(h.els.ssCourseOfFire.value === 'CoF' && h.els.ssRoundsFired.value === '50' && h.els.ssFinalPercent.value === '80%' && h.els.ssResult.value === 'fail', 'form not filled');
+    assert(/^FAIL/.test(h.els.editScoresheetStatusBadge.textContent) && h.els.editScoresheetViewLink.href === 'https://files.example.test/s.pdf' && h.els.btnDeleteScoresheetFromEdit.style.display === 'inline-block', 'badge or link wrong');
+    for (const url of ['javascript:alert(1)', 'data:text/html,x', 'vbscript:x']) { h.api.fill({ sheet: null, score: '', hasFile: true, fileUrl: url }); assert(h.els.editScoresheetViewLink.style.display === 'none' && !h.els.editScoresheetViewLink.href, 'unsafe link shown: ' + url); }
+    h.api.fill(null);
+    assert(h.els.ssCourseOfFire.value === '' && /No score sheet/.test(h.els.editScoresheetStatusBadge.textContent) && h.els.btnDeleteScoresheetFromEdit.style.display === 'none', 'clearing failed');
+  });
+  await test('Score sheet UI wiring: the fields exist once in the Edit form, the old standalone modals and handlers are gone, and the roster button opens the Edit form', async () => {
+    for (const id of ['ssCourseOfFire', 'ssTargetDistances', 'ssRoundsFired', 'ssHitsOnTarget', 'ssFinalPercent', 'ssQualificationDate', 'ssInstructorName', 'ssInstructorNumber', 'ssResult', 'ssNotes', 'editScoresheetFileInput', 'btnSaveScoresheetFromEdit', 'editScoresheetCard']) {
+      assert((PAGE_SRC.match(new RegExp('id="' + id + '"', 'g')) || []).length === 1, `${id} should appear exactly once`);
+    }
+    assert(/id="ssFinalPercent"[^>]*readOnly/.test(PAGE_SRC), 'the calculated percentage must be read-only');
+    for (const dead of ['adminScoresheetModal', 'scoresheetModalFileInput', 'closeStudentScoresheetModal', 'saveStudentScoresheetFromModal', 'deleteCurrentStudentScoresheet', 'handleUploadScoresheetFromEdit', 'editScoresheetScore']) {
+      assert(!PAGE_SRC.includes(dead) && !PUBLIC_SCRIPT.includes(dead), `old scoresheet remnant: ${dead}`);
+    }
+    assert(/function openStudentScoresheetModal\(studentId\) \{\s*openAdminEditStudentModal\(studentId\);/.test(PUBLIC_SCRIPT), 'the roster Scoresheet button must open the Edit form');
+    assert(/fifsLoadScoresheetForEdit\(s\.studentId\)/.test(PUBLIC_SCRIPT), 'the Edit form must load the saved sheet when it opens');
   });
 
   console.log('\n================================================================');

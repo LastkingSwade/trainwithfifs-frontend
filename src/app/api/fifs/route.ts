@@ -65,8 +65,6 @@ function validateStrictPassword(password: string): { valid: boolean; error?: str
 // (501) so the UI cannot report a change as saved when nothing was stored.
 const NOT_IMPLEMENTED_ACTIONS: Record<string, string> = {
   adminEditClient: 'Saving client record edits',
-  saveStudentScoresheet: 'Saving qualification scoresheets',
-  deleteStudentScoresheet: 'Removing qualification scoresheets',
   submitStudentWaiver: 'Online waiver submission',
   handleLeadMagnetSubmission: 'Lead capture for the free guide'
 };
@@ -138,6 +136,101 @@ function checkStudentStatus(raw: unknown): FieldCheck {
     return { ok: false, error: 'Status must be one of: ' + STUDENT_STATUS_ALLOWLIST.join(', ') + '.' };
   }
   return { ok: true, value: raw.trim() };
+}
+
+// --- MSP Form 29-14 qualification score sheet ---
+// The structured fields are stored as versioned JSON in student_scoresheets.notes (the table has no columns for them
+// and the database is not changed here); score and passed are real columns, and the signed document is a file in the
+// private "scoresheets" bucket at <studentId>/<file>, the folder layout the students' read policy expects.
+const SCORESHEET_BUCKET = 'scoresheets';
+const SCORESHEET_MAX_BYTES = 3_000_000; // decoded; base64 in JSON must fit Vercel's ~4.5 MB request limit
+const SCORESHEET_RESULTS = ['pending', 'pass', 'fail'];
+const SCORESHEET_SHEET_KEYS = ['courseOfFire', 'targetDistances', 'roundsFired', 'hitsOnTarget', 'qualificationDate', 'instructorName', 'instructorNumber', 'result', 'notes'];
+
+type ScoresheetValue = {
+  courseOfFire: string; targetDistances: string; roundsFired: number; hitsOnTarget: number; finalScorePercent: number;
+  qualificationDate: string; instructorName: string; instructorNumber: string; result: string; notes: string;
+};
+
+function wholeNumber(raw: unknown): number | null {
+  if (typeof raw === 'number') return Number.isInteger(raw) ? raw : null;
+  if (typeof raw === 'string' && /^\d{1,4}$/.test(raw.trim())) return Number(raw.trim());
+  return null;
+}
+
+function validateScoresheetInput(raw: unknown): { ok: true; value: ScoresheetValue } | { ok: false; error: string } {
+  if (!isPlainObject(raw)) return { ok: false, error: 'The score sheet fields are required.' };
+  for (const key of Object.keys(raw)) {
+    if (!SCORESHEET_SHEET_KEYS.includes(key)) return { ok: false, error: `The field "${key.slice(0, 40)}" is not part of the score sheet.` };
+  }
+  const course = checkText('Course of fire', raw.courseOfFire, 100, { required: true });
+  if (!course.ok) return course;
+  const distances = checkText('Target distances', raw.targetDistances ?? '', 100);
+  if (!distances.ok) return distances;
+  const instructor = checkText('Instructor name', raw.instructorName, 100, { required: true });
+  if (!instructor.ok) return instructor;
+  const instructorNo = checkText('Instructor number', raw.instructorNumber ?? '', 40);
+  if (!instructorNo.ok) return instructorNo;
+  if (instructorNo.value && !/^[A-Za-z0-9 ._#\/-]+$/.test(instructorNo.value)) return { ok: false, error: 'Instructor number may contain only letters, numbers, spaces, and . _ # / -' };
+  const notes = checkText('Notes', raw.notes ?? '', 1000, { multiline: true });
+  if (!notes.ok) return notes;
+  const rounds = wholeNumber(raw.roundsFired);
+  if (rounds === null || rounds < 1 || rounds > 500) return { ok: false, error: 'Rounds fired must be a whole number from 1 to 500.' };
+  const hits = wholeNumber(raw.hitsOnTarget);
+  if (hits === null || hits < 0) return { ok: false, error: 'Hits on target must be a whole number, 0 or more.' };
+  if (hits > rounds) return { ok: false, error: 'Hits on target cannot be more than the rounds fired.' };
+  if (typeof raw.result !== 'string' || !SCORESHEET_RESULTS.includes(raw.result)) return { ok: false, error: 'Result must be pending, pass, or fail.' };
+  const dateText = typeof raw.qualificationDate === 'string' ? raw.qualificationDate.trim() : '';
+  const dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateText);
+  const when = dm ? Date.UTC(Number(dm[1]), Number(dm[2]) - 1, Number(dm[3])) : NaN;
+  const real = dm && !Number.isNaN(when) && new Date(when).toISOString().slice(0, 10) === dateText;
+  if (!real || Number(dm![1]) < 2000) return { ok: false, error: 'Qualification date must be a real date in YYYY-MM-DD form.' };
+  if (when > Date.now() + 36 * 3600 * 1000) return { ok: false, error: 'Qualification date cannot be in the future.' };
+  return {
+    ok: true,
+    value: {
+      courseOfFire: course.value as string, targetDistances: distances.value || '', roundsFired: rounds, hitsOnTarget: hits,
+      finalScorePercent: Math.round((hits / rounds) * 1000) / 10, qualificationDate: dateText,
+      instructorName: instructor.value as string, instructorNumber: instructorNo.value || '', result: raw.result, notes: notes.value || ''
+    }
+  };
+}
+
+function scoresheetScoreText(v: ScoresheetValue): string {
+  return `${v.hitsOnTarget}/${v.roundsFired} (${v.finalScorePercent}%)`;
+}
+
+// Reads the structured fields back out of notes; anything that is not this form's JSON is treated as plain notes.
+function parseScoresheetNotes(text: unknown): { sheet: Record<string, unknown> | null; legacyNotes: string } {
+  if (typeof text === 'string') {
+    try {
+      const parsed = JSON.parse(text);
+      if (isPlainObject(parsed) && parsed.form === 'MSP-29-14' && parsed.v === 1) return { sheet: parsed, legacyNotes: '' };
+    } catch { /* plain text notes */ }
+    return { sheet: null, legacyNotes: text };
+  }
+  return { sheet: null, legacyNotes: '' };
+}
+
+// Decodes an uploaded file and trusts only its actual bytes (not the name or the browser's claimed type).
+function inspectScoresheetFile(fileBase64: unknown, claimedType: unknown): { ok: true; bytes: Buffer; mime: string; ext: string } | { ok: false; error: string } {
+  if (typeof fileBase64 !== 'string' || !fileBase64) return { ok: false, error: 'The file could not be read.' };
+  if (fileBase64.length > Math.ceil(SCORESHEET_MAX_BYTES / 3) * 4 + 200) return { ok: false, error: 'That file is too large. The limit is 3 MB; use a smaller scan or photo.' };
+  const m = /^data:([A-Za-z0-9.+\/-]+);base64,/.exec(fileBase64);
+  const b64 = (m ? fileBase64.slice(m[0].length) : fileBase64).replace(/\s+/g, '');
+  if (!b64 || !/^[A-Za-z0-9+\/]*={0,2}$/.test(b64)) return { ok: false, error: 'The file could not be read.' };
+  const bytes = Buffer.from(b64, 'base64');
+  if (bytes.length === 0) return { ok: false, error: 'The file is empty.' };
+  if (bytes.length > SCORESHEET_MAX_BYTES) return { ok: false, error: 'That file is too large. The limit is 3 MB; use a smaller scan or photo.' };
+  let mime = '', ext = '';
+  if (bytes.subarray(0, 5).toString('latin1') === '%PDF-') { mime = 'application/pdf'; ext = 'pdf'; }
+  else if (bytes.length > 8 && bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) { mime = 'image/png'; ext = 'png'; }
+  else if (bytes.length > 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) { mime = 'image/jpeg'; ext = 'jpg'; }
+  else if (bytes.length > 12 && bytes.subarray(0, 4).toString('latin1') === 'RIFF' && bytes.subarray(8, 12).toString('latin1') === 'WEBP') { mime = 'image/webp'; ext = 'webp'; }
+  if (!mime) return { ok: false, error: 'Use a PDF, JPEG, PNG, or WebP file.' };
+  const claimed = String(m ? m[1] : claimedType || '').toLowerCase();
+  if (claimed && claimed !== mime && !(claimed === 'image/jpg' && mime === 'image/jpeg')) return { ok: false, error: 'The file does not match its type. Use a PDF, JPEG, PNG, or WebP file.' };
+  return { ok: true, bytes, mime, ext };
 }
 
 // Authorize staff solely from verified user's app_metadata.role
@@ -1671,6 +1764,144 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, status: 'error', error: 'The checklist change could not be confirmed. Nothing was saved.' }, { status: 409 });
        }
        return NextResponse.json({ success: true, status: 'success', message: 'Checklist progress saved.', prepTasks: merged });
+     }
+
+     // Staff: save a student's MSP Form 29-14 qualification score sheet (structured fields, plus an optional signed
+     // document). Nothing is reported as saved unless the database write was confirmed.
+     case 'saveStudentScoresheet': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       const studentId = typeof payload.studentId === 'string' ? payload.studentId.trim() : '';
+       if (!STUDENT_ID_PATTERN.test(studentId)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'A valid student ID is required.' }, { status: 400 });
+       }
+       const checked = validateScoresheetInput(payload.sheet);
+       if (!checked.ok) return NextResponse.json({ success: false, status: 'error', error: checked.error }, { status: 400 });
+       const sheet = checked.value;
+       const hasFile = payload.fileBase64 !== undefined && payload.fileBase64 !== null && payload.fileBase64 !== '';
+       const file = hasFile ? inspectScoresheetFile(payload.fileBase64, payload.fileType) : null;
+       if (file && !file.ok) return NextResponse.json({ success: false, status: 'error', error: file.error }, { status: 400 });
+
+       supabase = getPrivilegedClient();
+       const { data: studentRow, error: findErr } = await supabase.from('students').select('id, student_id').eq('student_id', studentId).maybeSingle();
+       if (findErr) {
+         console.error('[saveStudentScoresheet] Student lookup failed:', findErr.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not look up the student record. Nothing was saved.' }, { status: 500 });
+       }
+       if (!studentRow) return NextResponse.json({ success: false, status: 'error', error: 'Student not found. Nothing was saved.' }, { status: 404 });
+       const { data: existing, error: existingErr } = await supabase.from('student_scoresheets').select('student_id, image_url').eq('student_id', studentId).maybeSingle();
+       if (existingErr) {
+         console.error('[saveStudentScoresheet] Score sheet lookup failed:', existingErr.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not check the existing score sheet. Nothing was saved.' }, { status: 500 });
+       }
+       const previousPath = existing && typeof existing.image_url === 'string' && existing.image_url.startsWith(studentId + '/') ? existing.image_url : '';
+
+       let uploadedPath = '';
+       if (file && file.ok) {
+         uploadedPath = `${studentId}/MSP-29-14-${Date.now()}-${crypto.randomBytes(4).toString('hex')}.${file.ext}`;
+         const { error: uploadErr } = await supabase.storage.from(SCORESHEET_BUCKET).upload(uploadedPath, file.bytes, { contentType: file.mime, upsert: false });
+         if (uploadErr) {
+           console.error('[saveStudentScoresheet] Upload failed:', uploadErr.message);
+           return NextResponse.json({ success: false, status: 'error', error: 'The file could not be stored. Nothing was saved.' }, { status: 502 });
+         }
+       }
+       const imageValue = uploadedPath || (existing ? String(existing.image_url || '') : '');
+       const scoreText = scoresheetScoreText(sheet);
+       const storedNotes = JSON.stringify({ v: 1, form: 'MSP-29-14', ...sheet });
+       const { data: saved, error: saveErr } = await supabase.from('student_scoresheets').upsert({
+         student_id: studentId, image_url: imageValue, score: scoreText, passed: sheet.result === 'pass' ? true : (sheet.result === 'fail' ? false : null),
+         notes: storedNotes, is_unread_by_student: true, updated_at: new Date().toISOString()
+       }, { onConflict: 'student_id' }).select('student_id');
+       if (saveErr || !Array.isArray(saved) || saved.length !== 1) {
+         console.error('[saveStudentScoresheet] Save failed:', saveErr?.message || 'not confirmed');
+         if (uploadedPath) {
+           const { error: cleanupErr } = await supabase.storage.from(SCORESHEET_BUCKET).remove([uploadedPath]);
+           if (cleanupErr) console.error('[saveStudentScoresheet] Cleanup of the uploaded file failed:', cleanupErr.message);
+         }
+         return NextResponse.json({ success: false, status: 'error', error: 'The score sheet could not be saved. Nothing was changed.' }, { status: 500 });
+       }
+       if (uploadedPath && previousPath && previousPath !== uploadedPath) {
+         const { error: oldErr } = await supabase.storage.from(SCORESHEET_BUCKET).remove([previousPath]);
+         if (oldErr) console.error('[saveStudentScoresheet] The replaced file could not be removed:', oldErr.message);
+       }
+       const { data: scored, error: scoreErr } = await supabase.from('students')
+         .update({ qualification_score: scoreText, updated_at: new Date().toISOString() }).eq('id', studentRow.id).select('id');
+       if (scoreErr || !Array.isArray(scored) || scored.length !== 1) {
+         console.error('[saveStudentScoresheet] Student score update failed:', scoreErr?.message || 'not confirmed');
+         return NextResponse.json({ success: false, status: 'error', sheetSaved: true, error: 'The score sheet was saved, but the student\'s score on their record could not be updated. Save again to retry.' }, { status: 500 });
+       }
+       return NextResponse.json({
+         success: true, status: 'success', message: 'Score sheet saved.', studentId, score: scoreText,
+         finalScorePercent: sheet.finalScorePercent, result: sheet.result, hasFile: !!imageValue, fileReplaced: !!(uploadedPath && previousPath)
+       });
+     }
+
+     // Staff: read a student's saved score sheet. The document is returned only as a short-lived signed link.
+     case 'getStudentScoresheet': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       const studentId = typeof payload.studentId === 'string' ? payload.studentId.trim() : '';
+       if (!STUDENT_ID_PATTERN.test(studentId)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'A valid student ID is required.' }, { status: 400 });
+       }
+       supabase = getPrivilegedClient();
+       const { data: row, error: readErr } = await supabase.from('student_scoresheets').select('student_id, image_url, score, passed, notes, updated_at').eq('student_id', studentId).maybeSingle();
+       if (readErr) {
+         console.error('[getStudentScoresheet] Read failed:', readErr.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not load the score sheet.' }, { status: 500 });
+       }
+       if (!row) return NextResponse.json({ success: true, status: 'success', scoresheet: null });
+       const parsed = parseScoresheetNotes(row.notes);
+       let fileUrl: string | null = null;
+       const path = typeof row.image_url === 'string' && row.image_url.startsWith(studentId + '/') ? row.image_url : '';
+       if (path) {
+         const { data: signed, error: signErr } = await supabase.storage.from(SCORESHEET_BUCKET).createSignedUrl(path, 600);
+         if (signErr || !signed?.signedUrl) console.error('[getStudentScoresheet] Could not sign the file link:', signErr?.message || 'none returned');
+         else fileUrl = signed.signedUrl;
+       }
+       return NextResponse.json({
+         success: true, status: 'success',
+         scoresheet: { sheet: parsed.sheet, legacyNotes: parsed.legacyNotes, score: row.score || '', passed: row.passed ?? null, hasFile: !!path, fileUrl, updatedAt: row.updated_at || null }
+       });
+     }
+
+     // Staff: remove a student's score sheet and its document.
+     case 'deleteStudentScoresheet': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       const studentId = typeof payload.studentId === 'string' ? payload.studentId.trim() : '';
+       if (!STUDENT_ID_PATTERN.test(studentId)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'A valid student ID is required.' }, { status: 400 });
+       }
+       supabase = getPrivilegedClient();
+       const { data: row, error: readErr } = await supabase.from('student_scoresheets').select('student_id, image_url').eq('student_id', studentId).maybeSingle();
+       if (readErr) {
+         console.error('[deleteStudentScoresheet] Read failed:', readErr.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not look up the score sheet. Nothing was removed.' }, { status: 500 });
+       }
+       if (!row) return NextResponse.json({ success: false, status: 'error', error: 'No score sheet is on file for this student.' }, { status: 404 });
+       const path = typeof row.image_url === 'string' && row.image_url.startsWith(studentId + '/') ? row.image_url : '';
+       if (path) {
+         const { error: removeErr } = await supabase.storage.from(SCORESHEET_BUCKET).remove([path]);
+         if (removeErr) {
+           console.error('[deleteStudentScoresheet] File removal failed:', removeErr.message);
+           return NextResponse.json({ success: false, status: 'error', error: 'The document could not be removed, so nothing was deleted. Try again.' }, { status: 502 });
+         }
+       }
+       const { data: removed, error: deleteErr } = await supabase.from('student_scoresheets').delete().eq('student_id', studentId).select('student_id');
+       if (deleteErr || !Array.isArray(removed) || removed.length !== 1) {
+         console.error('[deleteStudentScoresheet] Row removal failed:', deleteErr?.message || 'not confirmed');
+         return NextResponse.json({ success: false, status: 'error', error: 'The score sheet could not be removed. Try again.' }, { status: 500 });
+       }
+       const { error: clearErr } = await supabase.from('students').update({ qualification_score: null, updated_at: new Date().toISOString() }).eq('student_id', studentId);
+       if (clearErr) console.error('[deleteStudentScoresheet] Student score was not cleared:', clearErr.message);
+       return NextResponse.json({ success: true, status: 'success', message: 'Score sheet removed.', studentId });
      }
 
      case 'getClientPortalData': {
