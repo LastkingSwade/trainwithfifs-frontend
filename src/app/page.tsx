@@ -10671,11 +10671,11 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
                 <div>
                   <label htmlFor="ssRoundsFired" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Total rounds fired</label>
-                  <input id="ssRoundsFired" data-oninput="fifsScoresheetUpdatePercent()" max={500} min={1} step={1} style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%"}} type="number" />
+                  <input id="ssRoundsFired" max={500} min={1} step={1} style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%"}} type="number" />
                 </div>
                 <div>
                   <label htmlFor="ssHitsOnTarget" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Hits on target</label>
-                  <input id="ssHitsOnTarget" data-oninput="fifsScoresheetUpdatePercent()" min={0} step={1} style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%"}} type="number" />
+                  <input id="ssHitsOnTarget" min={0} step={1} style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px", "borderRadius": "6px", "width": "100%"}} type="number" />
                 </div>
                 <div>
                   <label htmlFor="ssFinalPercent" style={{"fontSize": "0.78rem", "color": "#94a3b8", "display": "block", "marginBottom": "4px"}}>Final score % (calculated)</label>

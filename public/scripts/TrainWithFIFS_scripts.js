@@ -11287,17 +11287,39 @@ if (typeof window !== 'undefined') {
       box.style.display = 'block';
       box.style.color = kind === 'error' ? 'var(--accent-red, #ef4444)' : (kind === 'pending' ? 'var(--accent-amber, #f59e0b)' : 'var(--accent-green, #10b981)');
     }
+    // The calculated percentage shown next to the rounds and hits boxes. Blank (never NaN, Infinity, or a guess)
+    // unless both boxes hold whole numbers that the save would accept: rounds 1 to 500, hits 0 up to the rounds.
     function fifsScoresheetPercentText(roundsText, hitsText) {
-      var rounds = /^\d{1,4}$/.test(roundsText) ? Number(roundsText) : NaN;
-      var hits = /^\d{1,4}$/.test(hitsText) ? Number(hitsText) : NaN;
-      if (!(rounds >= 1) || !(hits >= 0) || hits > rounds) return '';
-      return (Math.round((hits / rounds) * 1000) / 10) + '%';
+      var r = String(roundsText == null ? '' : roundsText).trim();
+      var h = String(hitsText == null ? '' : hitsText).trim();
+      if (!/^\d{1,4}$/.test(r) || !/^\d{1,4}$/.test(h)) return '';
+      var rounds = Number(r), hits = Number(h);
+      if (rounds < 1 || rounds > 500 || hits > rounds) return '';
+      var pct = Math.round((hits / rounds) * 1000) / 10;
+      return isFinite(pct) ? pct + '%' : '';
     }
     function fifsScoresheetUpdatePercent() {
       var out = document.getElementById('ssFinalPercent');
       if (out) out.value = fifsScoresheetPercentText(fifsScoresheetValue('ssRoundsFired'), fifsScoresheetValue('ssHitsOnTarget'));
     }
     window.fifsScoresheetUpdatePercent = fifsScoresheetUpdatePercent;
+    // Recalculates as the staff member types. The page's own data-on* attributes do not cover the "input" event, so
+    // the listeners are attached here, on "input" (each keystroke) and "change" (spinner, paste, autofill). Safe to
+    // call repeatedly: each box is bound once.
+    function fifsBindScoresheetPercentListeners() {
+      ['ssRoundsFired', 'ssHitsOnTarget'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el || el.__fifsPercentBound || typeof el.addEventListener !== 'function') return;
+        el.addEventListener('input', fifsScoresheetUpdatePercent);
+        el.addEventListener('change', fifsScoresheetUpdatePercent);
+        el.__fifsPercentBound = true;
+      });
+    }
+    window.fifsBindScoresheetPercentListeners = fifsBindScoresheetPercentListeners;
+    if (typeof document !== 'undefined') {
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fifsBindScoresheetPercentListeners);
+      else fifsBindScoresheetPercentListeners();
+    }
     // Reads and checks the form (the server checks again). Returns { error } or { sheet }.
     function fifsScoresheetReadForm() {
       var sheet = {
@@ -11364,6 +11386,7 @@ if (typeof window !== 'undefined') {
     }
     // Loads the student's saved score sheet when the Edit Student form opens.
     function fifsLoadScoresheetForEdit(studentId, keepFeedback) {
+      fifsBindScoresheetPercentListeners();
       fifsScoresheetFillForm(null);
       var box = document.getElementById('editScoresheetFeedback');
       if (box && !keepFeedback) { box.style.display = 'none'; box.textContent = ''; }

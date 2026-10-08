@@ -1304,11 +1304,12 @@ async function main() {
   });
 
   // ---- browser side ----
-  const ssSrc = ['fifsScoresheetValue', 'fifsScoresheetFeedback', 'fifsScoresheetPercentText', 'fifsScoresheetUpdatePercent', 'fifsScoresheetReadForm', 'fifsScoresheetSetBadge', 'fifsScoresheetFillForm', 'fifsLoadScoresheetForEdit', 'handleSaveScoresheetFromEdit', 'handleDeleteScoresheetFromEdit', 'fifsSafeHttpUrl']
+  const ssSrc = ['fifsScoresheetValue', 'fifsScoresheetFeedback', 'fifsScoresheetPercentText', 'fifsScoresheetUpdatePercent', 'fifsBindScoresheetPercentListeners', 'fifsScoresheetReadForm', 'fifsScoresheetSetBadge', 'fifsScoresheetFillForm', 'fifsLoadScoresheetForEdit', 'handleSaveScoresheetFromEdit', 'handleDeleteScoresheetFromEdit', 'fifsSafeHttpUrl']
     .map(extractFunction).join('\n') + '\nvar FIFS_SCORESHEET_MAX_FILE_BYTES = 3000000;';
   function loadScoresheetUi(values = {}, opts = {}) {
     const els = {};
-    const make = (id, v = '') => (els[id] = { id, value: v, style: {}, textContent: '', disabled: false, files: [], removeAttribute(k) { delete this[k]; }, setAttribute() {} });
+    const make = (id, v = '') => (els[id] = { id, value: v, style: {}, textContent: '', disabled: false, files: [], listeners: {}, removeAttribute(k) { delete this[k]; }, setAttribute() {},
+      addEventListener(type, fn) { (this.listeners[type] = this.listeners[type] || []).push(fn); }, dispatch(type) { (this.listeners[type] || []).forEach((fn) => fn({ type, target: this })); } });
     for (const id of ['ssCourseOfFire', 'ssTargetDistances', 'ssRoundsFired', 'ssHitsOnTarget', 'ssFinalPercent', 'ssQualificationDate', 'ssInstructorName', 'ssInstructorNumber', 'ssResult', 'ssNotes',
       'editScoresheetFileInput', 'editScoresheetFeedback', 'editScoresheetStatusBadge', 'editScoresheetViewLink', 'btnDeleteScoresheetFromEdit', 'btnSaveScoresheetFromEdit', 'editScore']) make(id);
     make('editStudentId', 'FIFS-1001');
@@ -1321,7 +1322,7 @@ async function main() {
     const ctx = { window: { adminCachedStudents: [student], location: { origin: 'https://trainwithfifs.example' } }, document: { getElementById: (id) => els[id] || null }, alert: (m) => alerts.push(m), confirm: () => true, FileReader: FakeReader, URL, String, Number, Math,
       fifsSaveOrReport: (action, payload, ok, fail) => saves.push({ action, payload, ok, fail }) };
     vm.createContext(ctx);
-    vm.runInContext(ssSrc + '\nthis.api = { read: fifsScoresheetReadForm, save: handleSaveScoresheetFromEdit, del: handleDeleteScoresheetFromEdit, fill: fifsScoresheetFillForm, load: fifsLoadScoresheetForEdit, pct: fifsScoresheetPercentText };', ctx);
+    vm.runInContext(ssSrc + '\nthis.api = { read: fifsScoresheetReadForm, save: handleSaveScoresheetFromEdit, del: handleDeleteScoresheetFromEdit, fill: fifsScoresheetFillForm, load: fifsLoadScoresheetForEdit, pct: fifsScoresheetPercentText, bind: fifsBindScoresheetPercentListeners };', ctx);
     return { api: ctx.api, els, saves, alerts, student };
   }
   await test('Score sheet form: client checks mirror the server and the percentage is calculated', async () => {
@@ -1364,6 +1365,56 @@ async function main() {
     for (const url of ['javascript:alert(1)', 'data:text/html,x', 'vbscript:x']) { h.api.fill({ sheet: null, score: '', hasFile: true, fileUrl: url }); assert(h.els.editScoresheetViewLink.style.display === 'none' && !h.els.editScoresheetViewLink.href, 'unsafe link shown: ' + url); }
     h.api.fill(null);
     assert(h.els.ssCourseOfFire.value === '' && /No score sheet/.test(h.els.editScoresheetStatusBadge.textContent) && h.els.btnDeleteScoresheetFromEdit.style.display === 'none', 'clearing failed');
+  });
+  await test('Score sheet percentage: typing in the rounds or hits box updates the calculated percentage on input and on change', async () => {
+    const h = loadScoresheetUi({ ssRoundsFired: '', ssHitsOnTarget: '' });
+    h.api.bind();
+    const rounds = h.els.ssRoundsFired, hits = h.els.ssHitsOnTarget, out = h.els.ssFinalPercent;
+    rounds.value = '50'; rounds.dispatch('input');
+    assert(out.value === '', 'hits still blank, so the percentage must stay blank: ' + JSON.stringify(out.value));
+    hits.value = '4'; hits.dispatch('input'); assert(out.value === '8%', 'after typing 4: ' + out.value);
+    hits.value = '48'; hits.dispatch('input'); assert(out.value === '96%', 'after typing 48: ' + out.value);
+    rounds.value = '60'; rounds.dispatch('input'); assert(out.value === '80%', 'rounds edit must recalculate: ' + out.value);
+    hits.value = '45'; hits.dispatch('change'); assert(out.value === '75%', 'a change event (spinner or paste) must recalculate: ' + out.value);
+    rounds.value = '9'; hits.value = '7'; rounds.dispatch('change'); assert(out.value === '77.8%', 'rounds change event: ' + out.value);
+  });
+  await test('Score sheet percentage: blank, non-numeric, zero, negative, oversized, and hits-above-rounds inputs leave it blank, never NaN or Infinity', async () => {
+    const h = loadScoresheetUi();
+    h.api.bind();
+    const rounds = h.els.ssRoundsFired, hits = h.els.ssHitsOnTarget, out = h.els.ssFinalPercent;
+    const cases = [['', ''], ['50', ''], ['', '48'], ['abc', '5'], ['50', 'abc'], ['0', '0'], ['0', '5'], ['-5', '1'], ['50', '-1'], ['1.5', '1'], ['50', '1.5'], ['1e2', '5'], ['50', '51'], ['501', '10'], ['99999', '1'],
+      ['50', '99999'], ['  ', '  '], ['5 0', '4'], ['NaN', 'NaN'], ['Infinity', '1'], ['٣٠', '1']];
+    for (const [r, hs] of cases) {
+      out.value = 'stale'; rounds.value = r; hits.value = hs; hits.dispatch('input');
+      assert(out.value === '', `rounds=${JSON.stringify(r)} hits=${JSON.stringify(hs)} should show blank, got ${JSON.stringify(out.value)}`);
+      assert(!/NaN|Infinity/.test(out.value), 'NaN or Infinity leaked');
+    }
+    for (const [r, hs, want] of [['50', '50', '100%'], ['50', '0', '0%'], ['500', '1', '0.2%'], ['1', '1', '100%'], [' 50 ', ' 48 ', '96%'], ['3', '1', '33.3%'], ['3', '2', '66.7%']]) {
+      rounds.value = r; hits.value = hs; rounds.dispatch('input');
+      assert(out.value === want, `rounds=${JSON.stringify(r)} hits=${JSON.stringify(hs)} should be ${want}, got ${out.value}`);
+    }
+    const p = h.api.pct;
+    assert(p(undefined, undefined) === '' && p(null, null) === '' && p(50, 48) === '96%', 'null/undefined/number inputs must be handled');
+  });
+  await test('Score sheet percentage: listeners are bound once per box however often the form opens, and opening the form binds them', async () => {
+    const h = loadScoresheetUi();
+    h.api.bind(); h.api.bind(); h.api.bind();
+    for (const id of ['ssRoundsFired', 'ssHitsOnTarget']) {
+      assert((h.els[id].listeners.input || []).length === 1 && (h.els[id].listeners.change || []).length === 1, `${id} must have exactly one input and one change listener`);
+    }
+    const fresh = loadScoresheetUi();
+    assert(!(fresh.els.ssRoundsFired.listeners.input || []).length, 'precondition: nothing bound yet');
+    fresh.api.load('FIFS-1001');
+    for (const id of ['ssRoundsFired', 'ssHitsOnTarget']) assert((fresh.els[id].listeners.input || []).length === 1, `opening the form must bind ${id}`);
+    fresh.els.ssRoundsFired.value = '10'; fresh.els.ssHitsOnTarget.value = '9'; fresh.els.ssHitsOnTarget.dispatch('input');
+    assert(fresh.els.ssFinalPercent.value === '90%', 'typing after opening the form must update the percentage: ' + fresh.els.ssFinalPercent.value);
+  });
+  await test('Score sheet percentage: the script attaches real input and change listeners instead of relying on an unsupported data-oninput attribute', async () => {
+    const fn = extractFunction('fifsBindScoresheetPercentListeners');
+    assert(/addEventListener\('input', fifsScoresheetUpdatePercent\)/.test(fn) && /addEventListener\('change', fifsScoresheetUpdatePercent\)/.test(fn) && /ssRoundsFired/.test(fn) && /ssHitsOnTarget/.test(fn), 'listeners missing');
+    assert(/DOMContentLoaded', fifsBindScoresheetPercentListeners/.test(PUBLIC_SCRIPT), 'listeners should also be bound at page load');
+    const boxes = ['ssRoundsFired', 'ssHitsOnTarget'].map((id) => PAGE_SRC.slice(PAGE_SRC.indexOf('<input id="' + id + '"'), PAGE_SRC.indexOf('/>', PAGE_SRC.indexOf('<input id="' + id + '"'))));
+    assert(boxes.every((b) => b.length > 20 && !/data-oninput/.test(b)), 'the inert data-oninput attribute should be gone from the two boxes');
   });
   await test('Score sheet UI wiring: the fields exist once in the Edit form, the old standalone modals and handlers are gone, and the roster button opens the Edit form', async () => {
     for (const id of ['ssCourseOfFire', 'ssTargetDistances', 'ssRoundsFired', 'ssHitsOnTarget', 'ssFinalPercent', 'ssQualificationDate', 'ssInstructorName', 'ssInstructorNumber', 'ssResult', 'ssNotes', 'editScoresheetFileInput', 'btnSaveScoresheetFromEdit', 'editScoresheetCard']) {
