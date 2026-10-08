@@ -732,6 +732,7 @@ async function main() {
     { action: 'adminEnrollStudent', payload: { fullName: 'Test Student', email: 'test@enroll.com', courseName: 'Maryland CCW Combo', scheduledDate: '2026-11-01' } },
     { action: 'adminRescheduleEnrollment', payload: { enrollmentId: 'enr-1', newScheduledDate: '2026-11-15' } },
     { action: 'adminCancelEnrollment', payload: { enrollmentId: 'enr-1', reason: 'Schedule conflict' } },
+    { action: 'adminResendEnrollmentNotice', payload: { enrollmentId: 'enr-1', type: 'cancelled' } },
     { action: 'sendAdminLiveChatReply', payload: { threadId: 'th_alice_123', text: 'Instructor response' } },
     { action: 'getLiveChats', payload: {} },
     { action: 'getLiveChatMessages', payload: { threadId: 'th_alice_123' } },

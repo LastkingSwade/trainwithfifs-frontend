@@ -781,6 +781,172 @@ async function main() {
     } finally { delete process.env.RESEND_API_KEY; }
   });
 
+  console.log('\n[SECTION: Cancel/reschedule never claim the student was notified unless the email was sent]');
+  const ADMIN = { Authorization: 'Bearer admin-bearer-token' };
+  const NOTICE_KEY = 're_test_dummy_key_not_real';
+  const NOTICE_PROVIDER_TEXT = 'NOTICE_SENTINEL domain is not verified';
+  /** Runs one staff action with a fake Resend. outcome: 'ok' | 'fail' | 'throw'. Returns status, body, and the emails attempted. */
+  async function runNotice(action, payload, { outcome = 'ok', resendKey = NOTICE_KEY, headers = ADMIN, enrollment = {}, failUpdate = false } = {}) {
+    resetDb();
+    Object.assign(db.enrollments[0], { status: 'confirmed', ...enrollment });
+    if (failUpdate) failures['enrollments.update'] = { message: 'update failed' };
+    if (resendKey) process.env.RESEND_API_KEY = resendKey; else delete process.env.RESEND_API_KEY;
+    const emails = [];
+    const savedWarn = console.warn;
+    const warnings = [];
+    console.warn = (...a) => { warnings.push(a.join(' ')); };
+    global.fetch = async (url, init = {}) => {
+      if (String(url).includes('api.resend.com')) {
+        emails.push(JSON.parse(init.body));
+        if (outcome === 'throw') throw new Error('network down ' + NOTICE_PROVIDER_TEXT);
+        if (outcome === 'fail') return { ok: false, status: 422, text: async () => NOTICE_PROVIDER_TEXT, json: async () => ({}) };
+        return { ok: true, status: 200, text: async () => '', json: async () => ({ id: 'email_fake' }) };
+      }
+      return stubFetch(url, init);
+    };
+    try {
+      const res = await fifs(action, payload, headers);
+      return { ...res, emails, warnings, enrollment: db.enrollments[0] };
+    } finally {
+      global.fetch = stubFetch; console.warn = savedWarn; delete process.env.RESEND_API_KEY;
+    }
+  }
+  const cancel = (o) => runNotice('adminCancelEnrollment', { enrollmentId: 'enr-1', reason: 'Weather' }, o);
+  const reschedule = (o) => runNotice('adminRescheduleEnrollment', { enrollmentId: 'enr-1', newScheduledDate: '2026-11-01T14:00:00Z', reason: 'Range closed' }, o);
+  /** True if a response tells the caller the student was notified. `success: true` alone is NOT proof of that. */
+  const claimsNotified = (body) => body.notificationSent === true || /(?<!NOT )notified/i.test(String(body.message || ''));
+  const noLeaks = (body) => { const t = JSON.stringify(body); assert(!t.includes('NOTICE_SENTINEL') && !t.includes('@student.com') && !t.includes(NOTICE_KEY), 'response leaked provider text, an address, or a key'); };
+  /** Contract for "change saved, email not sent": HTTP 200, explicit flags, a message that says NOT notified, no sensitive text, no invitation to repeat the change. */
+  function assertSavedButNotNotified(r, code) {
+    const b = r.body;
+    assert(r.status === 200 && b.success === true && b.changeSaved === true && b.notificationSent === false, `bad envelope: ${r.status} ${JSON.stringify(b)}`);
+    assert(b.notificationFailure === code, `expected notificationFailure ${code}, got ${b.notificationFailure}`);
+    assert(/NOT notified/.test(b.message) && /change is saved/i.test(b.message), `message must say the change is saved and the student was NOT notified: ${b.message}`);
+    assert(!claimsNotified(b), 'response claims the student was notified');
+    assert(!('error' in b) && !('retry' in b), 'a saved change must not carry error/retry fields');
+    assert(!/again|retry|try /i.test(b.message), `message must not invite repeating the change: ${b.message}`);
+    assert(b.followUp.action === 'adminResendEnrollmentNotice' && /no enrollment change/i.test(b.followUp.note), 'follow-up must be the email-only resend');
+    noLeaks(b);
+  }
+  /** Contract for "database save failed": non-2xx, explicit false flags, and no email attempt. */
+  function assertNotSaved(r, status) {
+    assert(r.status === status && r.body.success === false && r.body.changeSaved === false && r.body.notificationSent === false, `expected ${status} not-saved envelope, got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(r.emails.length === 0, 'no email may be attempted when the change was not saved');
+    assert(!claimsNotified(r.body), 'response claims the student was notified');
+  }
+
+  await test('Cancel with a delivered email: saved, student notified, one email to the student', async () => {
+    const r = await cancel();
+    assert(r.status === 200 && r.body.success === true && r.body.changeSaved === true && r.body.notificationSent === true, JSON.stringify(r.body));
+    assert(r.body.message === 'Enrollment cancelled and student notified.', 'existing success message must be preserved');
+    assert(r.enrollment.status === 'cancelled' && r.emails.length === 1 && r.emails[0].to[0] === 'alice@student.com', 'saved + exactly one email');
+  });
+  await test('Cancel when the provider rejects the email: HTTP 200, saved, NOT notified, not rolled back', async () => {
+    const r = await cancel({ outcome: 'fail' });
+    assertSavedButNotNotified(r, 'send_failed');
+    assert(r.enrollment.status === 'cancelled', 'the cancellation must not be rolled back');
+    assert(r.body.followUp.payload.enrollmentId === 'enr-1' && r.body.followUp.payload.type === 'cancelled', 'follow-up payload');
+  });
+  await test('Cancel when the email call throws: same saved/NOT-notified result, no exception', async () => {
+    const r = await cancel({ outcome: 'throw' });
+    assertSavedButNotNotified(r, 'send_failed');
+    assert(r.enrollment.status === 'cancelled', 'not rolled back');
+  });
+  await test('Cancel with RESEND_API_KEY missing: HTTP 200, no email attempted, saved, NOT notified', async () => {
+    const r = await cancel({ resendKey: '' });
+    assertSavedButNotNotified(r, 'not_configured');
+    assert(r.emails.length === 0 && r.enrollment.status === 'cancelled', 'no email attempted, change saved');
+  });
+  await test('Cancel with no student email address: HTTP 200, no email attempted, saved, NOT notified', async () => {
+    const r = await cancel({ enrollment: { student_email: '' } });
+    assertSavedButNotNotified(r, 'missing_recipient');
+    assert(r.emails.length === 0 && r.enrollment.status === 'cancelled', 'no email attempted, change saved');
+  });
+  await test('Cancel when the database save fails: 500, changeSaved false, notificationSent false, no email', async () => {
+    const r = await cancel({ failUpdate: true });
+    assertNotSaved(r, 500);
+    assert(r.enrollment.status === 'confirmed', 'the enrollment must be unchanged');
+  });
+  await test('Cancel with an unknown enrollment or missing ID: 404/400 with not-saved flags and no email', async () => {
+    assertNotSaved(await runNotice('adminCancelEnrollment', { enrollmentId: 'does-not-exist' }), 404);
+    assertNotSaved(await runNotice('adminCancelEnrollment', {}), 400);
+  });
+
+  await test('Reschedule with a delivered email: saved, student notified, calendar file attached', async () => {
+    const r = await reschedule();
+    assert(r.status === 200 && r.body.success === true && r.body.changeSaved === true && r.body.notificationSent === true, JSON.stringify(r.body));
+    assert(r.body.message === 'Class session rescheduled successfully.', 'existing success message must be preserved');
+    assert(r.enrollment.status === 'rescheduled' && r.enrollment.scheduled_date.startsWith('2026-11-01'), 'reschedule saved');
+    assert(r.emails.length === 1 && r.emails[0].attachments?.[0]?.filename === 'Updated_Class_Schedule.ics', 'one email with the .ics attachment');
+  });
+  await test('Reschedule when the provider rejects the email: HTTP 200, saved, NOT notified, not rolled back or duplicated', async () => {
+    const r = await reschedule({ outcome: 'fail' });
+    assertSavedButNotNotified(r, 'send_failed');
+    assert(r.enrollment.status === 'rescheduled' && r.enrollment.scheduled_date.startsWith('2026-11-01') && r.enrollment.previous_dates.length === 1, 'reschedule must not be rolled back or duplicated');
+    assert(r.body.followUp.payload.type === 'rescheduled', 'follow-up payload');
+  });
+  await test('Reschedule when the email call throws: HTTP 200, saved, NOT notified', async () => {
+    const r = await reschedule({ outcome: 'throw' });
+    assertSavedButNotNotified(r, 'send_failed');
+    assert(r.enrollment.status === 'rescheduled' && r.enrollment.previous_dates.length === 1, 'saved exactly once');
+  });
+  await test('Reschedule with RESEND_API_KEY missing: HTTP 200, no email attempted, saved, NOT notified', async () => {
+    const r = await reschedule({ resendKey: '' });
+    assertSavedButNotNotified(r, 'not_configured');
+    assert(r.emails.length === 0 && r.enrollment.status === 'rescheduled', 'no email attempted, change saved');
+  });
+  await test('Reschedule with no student email address: HTTP 200, no email attempted, saved, NOT notified', async () => {
+    const r = await reschedule({ enrollment: { student_email: '' } });
+    assertSavedButNotNotified(r, 'missing_recipient');
+    assert(r.emails.length === 0 && r.enrollment.status === 'rescheduled', 'no email attempted, change saved');
+  });
+  await test('Reschedule when the database save fails: 500, changeSaved false, notificationSent false, no email', async () => {
+    const r = await reschedule({ failUpdate: true });
+    assertNotSaved(r, 500);
+    assert(r.enrollment.status === 'confirmed' && r.enrollment.previous_dates.length === 0, 'the enrollment must be unchanged');
+  });
+  await test('Reschedule with an unknown enrollment or missing fields: 404/400 with not-saved flags and no email', async () => {
+    assertNotSaved(await runNotice('adminRescheduleEnrollment', { enrollmentId: 'does-not-exist', newScheduledDate: '2026-11-01T14:00:00Z' }), 404);
+    assertNotSaved(await runNotice('adminRescheduleEnrollment', { enrollmentId: 'enr-1' }), 400);
+  });
+  await test('A partial-failure response is never mistaken for a notified student, even though success is true', async () => {
+    const r = await cancel({ outcome: 'fail' });
+    assert(r.body.success === true, 'precondition: success is true for a saved change');
+    assert(claimsNotified(r.body) === false, 'success:true alone must not count as notified');
+    assert(claimsNotified({ success: true, notificationSent: true, message: 'Enrollment cancelled and student notified.' }) === true, 'the helper must still recognise a real notification');
+  });
+
+  await test('Resend notice after a failed cancellation: sends once and writes nothing to the database', async () => {
+    const before = await cancel({ outcome: 'fail' });
+    assert(before.body.notificationSent === false, 'setup: first send should have failed');
+    const after = JSON.stringify(db.enrollments); const writesBefore = writes.length;
+    process.env.RESEND_API_KEY = NOTICE_KEY; const emails = [];
+    global.fetch = async (u, i) => { if (String(u).includes('api.resend.com')) { emails.push(JSON.parse(i.body)); return { ok: true, status: 200, text: async () => '', json: async () => ({}) }; } return stubFetch(u, i); };
+    try {
+      const res = await fifs('adminResendEnrollmentNotice', before.body.followUp.payload, ADMIN);
+      assert(res.status === 200 && res.body.success === true && res.body.notificationSent === true && emails.length === 1, JSON.stringify(res.body));
+      assert(JSON.stringify(db.enrollments) === after && writes.length === writesBefore, 'resend must not modify the database');
+    } finally { global.fetch = stubFetch; delete process.env.RESEND_API_KEY; }
+  });
+  await test('Resend notice that fails again reports NOT sent and still changes nothing', async () => {
+    const r = await runNotice('adminResendEnrollmentNotice', { enrollmentId: 'enr-1', type: 'cancelled' }, { outcome: 'fail', enrollment: { status: 'cancelled' } });
+    assert(r.status === 502 && r.body.success === false && r.body.notificationSent === false && !claimsNotified(r.body) && r.enrollment.status === 'cancelled', JSON.stringify(r.body)); noLeaks(r.body);
+    const m = await runNotice('adminResendEnrollmentNotice', { enrollmentId: 'enr-1', type: 'cancelled' }, { resendKey: '', enrollment: { status: 'cancelled' } });
+    assert(m.status === 503 && m.emails.length === 0 && m.body.notificationSent === false, JSON.stringify(m.body));
+  });
+  await test('Resend notice refuses a notice that does not match the saved status (409, no email)', async () => {
+    const r = await runNotice('adminResendEnrollmentNotice', { enrollmentId: 'enr-1', type: 'cancelled' }, { enrollment: { status: 'confirmed' } });
+    assert(r.status === 409 && r.emails.length === 0 && r.body.notificationSent === false, JSON.stringify(r.body));
+    const bad = await runNotice('adminResendEnrollmentNotice', { enrollmentId: 'enr-1', type: 'refunded' }, {});
+    assert(bad.status === 400 && bad.emails.length === 0, 'invalid type must be rejected');
+  });
+  await test('Resend notice requires staff authentication (anonymous 401, student 401, no email)', async () => {
+    for (const headers of [{}, { Authorization: 'Bearer student-alice-token' }]) {
+      const r = await runNotice('adminResendEnrollmentNotice', { enrollmentId: 'enr-1', type: 'cancelled' }, { headers, enrollment: { status: 'cancelled' } });
+      assert(r.status === 401 && r.emails.length === 0, `expected 401, got ${r.status}`);
+    }
+  });
+
   console.log('\n================================================================');
   console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   console.log('================================================================');

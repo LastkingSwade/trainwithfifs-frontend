@@ -258,6 +258,83 @@ function escapeHtml(value: unknown): string {
  }[char] as string));
 }
 
+// --- Enrollment change notices (cancellation / reschedule) ---------------------------------------
+// The enrollment change is saved first and is never rolled back because an email failed. These helpers
+// report whether the student was actually notified, using generic reason codes only (never recipient
+// addresses, provider error text, or secrets).
+
+type NoticeFailure = 'not_configured' | 'missing_recipient' | 'send_failed';
+type NoticeOutcome = { sent: true } | { sent: false; reason: NoticeFailure };
+
+async function sendEnrollmentNotice(params: { to: unknown; subject: string; html: string; attachments?: ResendAttachment[] }): Promise<NoticeOutcome> {
+  const recipient = String(params.to || '').trim();
+  if (!recipient) return { sent: false, reason: 'missing_recipient' };
+  if (!(process.env.RESEND_API_KEY || '').trim()) return { sent: false, reason: 'not_configured' };
+  try {
+    const result = await sendResendEmail({ to: recipient, subject: params.subject, html: params.html, attachments: params.attachments });
+    return result && result.success ? { sent: true } : { sent: false, reason: 'send_failed' };
+  } catch {
+    return { sent: false, reason: 'send_failed' };
+  }
+}
+
+const NOTICE_FAILURE_TEXT: Record<NoticeFailure, { status: number; why: string }> = {
+  not_configured: { status: 503, why: 'email sending is not configured on the server' },
+  missing_recipient: { status: 422, why: 'this enrollment has no student email address' },
+  send_failed: { status: 502, why: 'the email provider did not accept the message' },
+};
+
+function buildCancellationNotice(enrollment: any, reason?: string) {
+  const classTitle = enrollment.classes?.title || 'FIFS Firearms Course';
+  const dateStr = new Date(enrollment.scheduled_date).toLocaleString();
+  const html = `<p>Your session for <strong>${escapeHtml(classTitle)}</strong> scheduled for ${escapeHtml(dateStr)} has been cancelled.</p><div style="background:#fef2f2;border:1px solid #fecaca;padding:12px;border-radius:6px;margin:16px 0;"><strong>Reason:</strong> ${escapeHtml(reason || "Cancelled by instructor.")}</div>`;
+  return { subject: 'Course Confirmation & Portal Access - ' + classTitle, html };
+}
+
+function buildRescheduleNotice(enrollment: any, nextDate: Date, durationHours: number, reason?: string) {
+  const classTitle = enrollment.classes?.title || 'FIFS Firearms Course';
+  const icsContent = generateIcsCalendar({
+    title: classTitle,
+    description: 'Rescheduled session for ' + classTitle,
+    startDate: nextDate,
+    durationHours
+  });
+  const dateStr = nextDate.toLocaleString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+  const html = `<p>Your course session for <strong>${escapeHtml(classTitle)}</strong> has been rescheduled to <strong>${escapeHtml(dateStr)}</strong>.</p><p style="margin:8px 0 0 0;color:#713f12;"><strong>Instructor Note:</strong> ${escapeHtml(reason || "Schedule adjusted by instructor.")}</p>`;
+  return {
+    subject: 'Course Confirmation & Portal Access - ' + classTitle,
+    html,
+    attachments: [{ filename: 'Updated_Class_Schedule.ics', content: Buffer.from(icsContent).toString('base64') }] as ResendAttachment[]
+  };
+}
+
+/**
+ * Response for a handler whose enrollment change is already saved. The change succeeded, so this is HTTP 200
+ * in every case; `notificationSent` says whether the student was actually told. It never claims a notice
+ * that was not sent, and the follow-up only resends the email (it makes no enrollment change).
+ */
+function savedChangeResponse(kind: 'cancelled' | 'rescheduled', enrollmentId: string, outcome: NoticeOutcome) {
+  if (outcome.sent) {
+    return NextResponse.json({
+      success: true,
+      changeSaved: true,
+      notificationSent: true,
+      message: kind === 'cancelled' ? 'Enrollment cancelled and student notified.' : 'Class session rescheduled successfully.'
+    });
+  }
+  const failure = NOTICE_FAILURE_TEXT[outcome.reason];
+  return NextResponse.json({
+    success: true,
+    changeSaved: true,
+    notificationSent: false,
+    notificationFailure: outcome.reason,
+    enrollmentId,
+    message: `${kind === 'cancelled' ? 'Enrollment cancelled' : 'Class session rescheduled'}. The change is saved, but the student was NOT notified because ${failure.why}. No further enrollment change is needed; resend the notice only, or contact the student directly.`,
+    followUp: { action: 'adminResendEnrollmentNotice', payload: { enrollmentId, type: kind }, note: 'Sends the notice email only; makes no enrollment change.' }
+  });
+}
 
 // Helper to normalize student
 function normalizeStudent(s: any) {
@@ -1012,7 +1089,7 @@ export async function POST(req: NextRequest) {
        const newScheduledDate = payload.newScheduledDate || payload.newDate || payload.date;
        const { durationHours, reason } = payload;
        if (!enrollmentId || !newScheduledDate) {
-         return NextResponse.json({ success: false, error: 'Enrollment ID and new date are required.' }, { status: 400 });
+         return NextResponse.json({ success: false, changeSaved: false, notificationSent: false, error: 'Enrollment ID and new date are required.' }, { status: 400 });
        }
 
 
@@ -1024,7 +1101,7 @@ export async function POST(req: NextRequest) {
 
 
        if (findErr || !enrollment) {
-         return NextResponse.json({ success: false, error: 'Enrollment record not found.' }, { status: 404 });
+         return NextResponse.json({ success: false, changeSaved: false, notificationSent: false, error: 'Enrollment record not found.' }, { status: 404 });
        }
 
 
@@ -1055,41 +1132,20 @@ export async function POST(req: NextRequest) {
 
 
        if (updateErr) {
-         return NextResponse.json({ success: false, error: updateErr.message }, { status: 500 });
+         return NextResponse.json({ success: false, changeSaved: false, notificationSent: false, error: updateErr.message }, { status: 500 });
        }
 
 
-       // Generate updated ICS
-       const classTitle = enrollment.classes?.title || 'FIFS Firearms Course';
-       const icsContent = generateIcsCalendar({
-         title: classTitle,
-         description: 'Rescheduled session for ' + classTitle,
-         startDate: nextDate,
-         durationHours: newDuration
-       });
-       const icsBase64 = Buffer.from(icsContent).toString('base64');
-
-
-       const dateStr = nextDate.toLocaleString('en-US', {
-         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-       });
-       const oldDateStr = oldDate.toLocaleString('en-US', {
-         weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-       });
-
-
-       const html = `<p>Your course session for <strong>${escapeHtml(classTitle)}</strong> has been rescheduled to <strong>${escapeHtml(dateStr)}</strong>.</p><p style="margin:8px 0 0 0;color:#713f12;"><strong>Instructor Note:</strong> ${escapeHtml(reason || "Schedule adjusted by instructor.")}</p>`;
-
-
-       await sendResendEmail({
+       // The reschedule is saved. Notify the student and report whether that email really went out.
+       const notice = buildRescheduleNotice(enrollment, nextDate, newDuration, reason);
+       const outcome = await sendEnrollmentNotice({
          to: enrollment.student_email,
-         subject: 'Course Confirmation & Portal Access - ' + classTitle,
-         html: html,
-         attachments: [{ filename: 'Updated_Class_Schedule.ics', content: icsBase64 }]
+         subject: notice.subject,
+         html: notice.html,
+         attachments: notice.attachments
        });
-
-
-       return NextResponse.json({ success: true, message: 'Class session rescheduled successfully.' });
+       if (!outcome.sent) console.warn('[Reschedule] Change saved but the student notice was not sent - reason:', outcome.reason);
+       return savedChangeResponse('rescheduled', String(enrollmentId), outcome);
      }
 
 
@@ -1104,7 +1160,7 @@ export async function POST(req: NextRequest) {
 
        const { enrollmentId, reason } = payload;
        if (!enrollmentId) {
-         return NextResponse.json({ success: false, error: 'Enrollment ID is required.' }, { status: 400 });
+         return NextResponse.json({ success: false, changeSaved: false, notificationSent: false, error: 'Enrollment ID is required.' }, { status: 400 });
        }
 
 
@@ -1116,7 +1172,7 @@ export async function POST(req: NextRequest) {
 
 
        if (findErr || !enrollment) {
-         return NextResponse.json({ success: false, error: 'Enrollment not found.' }, { status: 404 });
+         return NextResponse.json({ success: false, changeSaved: false, notificationSent: false, error: 'Enrollment not found.' }, { status: 404 });
        }
 
 
@@ -1130,25 +1186,65 @@ export async function POST(req: NextRequest) {
 
 
        if (cancelErr) {
-         return NextResponse.json({ success: false, error: cancelErr.message }, { status: 500 });
+         return NextResponse.json({ success: false, changeSaved: false, notificationSent: false, error: cancelErr.message }, { status: 500 });
        }
 
 
-       const classTitle = enrollment.classes?.title || 'FIFS Firearms Course';
-       const dateStr = new Date(enrollment.scheduled_date).toLocaleString();
+       // The cancellation is saved. Notify the student and report whether that email really went out.
+       const notice = buildCancellationNotice(enrollment, reason);
+       const outcome = await sendEnrollmentNotice({ to: enrollment.student_email, subject: notice.subject, html: notice.html });
+       if (!outcome.sent) console.warn('[Cancel] Change saved but the student notice was not sent - reason:', outcome.reason);
+       return savedChangeResponse('cancelled', String(enrollmentId), outcome);
+     }
 
+     // 4b. Resend a cancellation/reschedule notice. Sends email only: it never writes to the database, so
+     // it can be retried safely after a failed notification without applying the change twice.
+     case 'adminResendEnrollmentNotice': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
 
-       const html = `<p>Your session for <strong>${escapeHtml(classTitle)}</strong> scheduled for ${escapeHtml(dateStr)} has been cancelled.</p><div style="background:#fef2f2;border:1px solid #fecaca;padding:12px;border-radius:6px;margin:16px 0;"><strong>Reason:</strong> ${escapeHtml(reason || "Cancelled by instructor.")}</div>`;
+       const { enrollmentId, type } = payload;
+       if (!enrollmentId || (type !== 'cancelled' && type !== 'rescheduled')) {
+         return NextResponse.json({ success: false, error: 'Enrollment ID and a notice type of "cancelled" or "rescheduled" are required.' }, { status: 400 });
+       }
 
+       const { data: enrollment, error: findErr } = await supabase
+         .from('enrollments')
+         .select('*, classes(*)')
+         .eq('id', enrollmentId)
+         .single();
+       if (findErr || !enrollment) {
+         return NextResponse.json({ success: false, error: 'Enrollment not found.' }, { status: 404 });
+       }
+       // Only resend a notice that matches what is actually saved, so a stale retry cannot misinform the student.
+       if (enrollment.status !== type) {
+         return NextResponse.json({ success: false, notificationSent: false, error: `This enrollment is not currently ${type}, so no notice was sent.` }, { status: 409 });
+       }
 
-       await sendResendEmail({
-         to: enrollment.student_email,
-         subject: 'Course Confirmation & Portal Access - ' + classTitle,
-         html: html
-       });
+       let notice: { subject: string; html: string; attachments?: ResendAttachment[] };
+       if (type === 'cancelled') {
+         notice = buildCancellationNotice(enrollment, enrollment.cancellation_reason);
+       } else {
+         const history = Array.isArray(enrollment.previous_dates) ? enrollment.previous_dates : [];
+         const savedReason = history.length ? history[history.length - 1]?.reason : undefined;
+         const note = savedReason && savedReason !== 'Admin schedule modification' ? String(savedReason) : undefined;
+         notice = buildRescheduleNotice(enrollment, new Date(enrollment.scheduled_date), Number(enrollment.duration_hours) || 8, note);
+       }
 
-
-       return NextResponse.json({ success: true, message: 'Enrollment cancelled and student notified.' });
+       const outcome = await sendEnrollmentNotice({ to: enrollment.student_email, subject: notice.subject, html: notice.html, attachments: notice.attachments });
+       if (!outcome.sent) {
+         console.warn('[ResendNotice] Notice not sent - reason:', outcome.reason);
+         return NextResponse.json({
+           success: false,
+           notificationSent: false,
+           notificationFailure: outcome.reason,
+           error: `The notice was NOT sent because ${NOTICE_FAILURE_TEXT[outcome.reason].why}. No enrollment change was made; you can try again or contact the student directly.`
+         }, { status: NOTICE_FAILURE_TEXT[outcome.reason].status });
+       }
+       return NextResponse.json({ success: true, notificationSent: true, message: type === 'cancelled' ? 'Cancellation notice sent to the student.' : 'Reschedule notice sent to the student.' });
      }
 
 
