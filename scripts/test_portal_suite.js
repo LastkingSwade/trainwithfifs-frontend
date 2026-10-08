@@ -19,6 +19,7 @@ for (const key of ['DISCORD_WEBHOOK_URL', 'RESEND_API_KEY', 'STRIPE_SECRET_KEY',
 }
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.example.test';
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+process.env.NEXT_PUBLIC_SITE_URL = 'https://preview.example.test';
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-test-secret-key-32chars!';
 const fetchCalls = installFetchStub();
 
@@ -64,12 +65,17 @@ function queryBuilder(table) {
       writes.push({ table, op, patch, rows: hit.length });
       return { data: hit.map((r) => ({ ...r })), error: null };
     }
+    if (op === 'insert') {
+      (db[table] = db[table] || []).push({ ...patch });
+      writes.push({ table, op, patch });
+      return { data: null, error: null };
+    }
     if (op !== 'select') { writes.push({ table, op }); return { data: null, error: null }; }
     return { data: (db[table] || []).filter((r) => filters.every((f) => f(r))).map((r) => ({ ...r })), error: null };
   };
   const b = {
     select: () => b,
-    insert: () => { op = 'insert'; return b; },
+    insert: (data) => { op = 'insert'; patch = data; return b; },
     update: (data) => { op = 'update'; patch = data; return b; },
     upsert: () => { op = 'upsert'; return b; },
     delete: () => { op = 'delete'; return b; },
@@ -93,6 +99,11 @@ const mockSupabase = {
     from: queryBuilder,
     storage: { from: () => ({ createSignedUrl: async () => ({ data: null, error: { message: 'none' } }) }) },
     auth: {
+      admin: {
+        createUser: async () => ({ data: { user: { id: 'uuid-new-invitee' } }, error: null }),
+        generateLink: async () => ({ data: { properties: { action_link: 'https://link.example.test/setup' } }, error: null }),
+        deleteUser: async () => ({ data: null, error: null })
+      },
       getUser: async (token) => {
         const users = {
           'student-alice-token': { id: 'uuid-student-alice', email: 'alice@student.com', app_metadata: { role: 'student' } },
@@ -555,6 +566,41 @@ async function main() {
     writes.length = 0;
     for (const bad of [{ fullName: '' }, { fullName: null }, { status: null }, { status: '' }, { prep_tasks: null }, { prepTasks: {} }]) err(await edit(bad), 400);
     noWrites();
+  });
+  await test('Admin invite messages never promise a sign-in or credentials before the student sets a password', async () => {
+    assert(!/Credentials generated|using their email\/ID|Generating credentials/.test(PUBLIC_SCRIPT), 'misleading invite wording is back');
+    const at = PUBLIC_SCRIPT.indexOf("callFifsBackend('adminDirectInvite'");
+    assert(at > 0, 'invite call not found');
+    const block = PUBLIC_SCRIPT.slice(at, at + 2500);
+    assert(/password setup link/.test(block) && /before they can sign in/.test(block) && /No password was sent/.test(block), 'success message must explain the setup link');
+  });
+  await test('adminDirectInvite: the student insert sets every NOT NULL column that has no database default', async () => {
+    // From information_schema on Production (students): NOT NULL without default.
+    const REQUIRED = ['student_id', 'full_name', 'email', 'phone', 'course_name'];
+    for (const phone of [undefined, '', '410-555-0100']) {
+      writes.length = 0;
+      await fifs('adminDirectInvite', { portalType: 'student', generatedId: 'FIFS-7777', fullName: 'Invitee Person', email: 'invitee@example.test', phone, course: 'Maryland HQL 8hr' }, 'instructor-token');
+      const ins = writes.find((w) => w.table === 'students' && w.op === 'insert');
+      assert(ins, 'no students insert was attempted');
+      for (const col of REQUIRED) assert(typeof ins.patch[col] === 'string' && (col === 'phone' || ins.patch[col].length > 0), `${col} missing or not text: ${JSON.stringify(ins.patch[col])}`);
+      assert(ins.patch.course_name === 'Maryland HQL 8hr' && ins.patch.course_selection === 'Maryland HQL 8hr', 'course must be saved to both columns');
+      assert(ins.patch.phone === (phone || ''), 'phone must be the text given, or an empty string');
+      assert(!('prep_tasks' in ins.patch) || (ins.patch.prep_tasks && Object.keys(ins.patch.prep_tasks).length > 0), 'prep_tasks must not be written as an empty value');
+      assert(ins.patch.user_id === 'uuid-new-invitee' && ins.patch.must_change_password === true, 'linked identity and first-login flag expected');
+    }
+  });
+  await test('adminEnrollStudent: a new student insert sets every NOT NULL column that has no database default', async () => {
+    const REQUIRED = ['student_id', 'full_name', 'email', 'phone', 'course_name'];
+    for (const [i, phone] of [undefined, '', '410-555-0100'].entries()) {
+      writes.length = 0;
+      const dbg = await fifs('adminEnrollStudent', { fullName: 'Enrollee Person', email: `enrollee${i}@example.test`, phone, classId: 'class-1', scheduledDate: '2027-03-01T14:00:00.000Z' }, 'instructor-token');
+      const ins = writes.find((w) => w.table === 'students' && w.op === 'insert');
+      assert(ins, 'no students insert was attempted: ' + dbg.status + ' ' + JSON.stringify(dbg.body));
+      for (const col of REQUIRED) assert(typeof ins.patch[col] === 'string' && (col === 'phone' || ins.patch[col].length > 0), `${col} missing or not text: ${JSON.stringify(ins.patch[col])}`);
+      assert(ins.patch.course_name === ins.patch.course_selection && ins.patch.course_name.length > 0, 'course must be saved to both course_name and course_selection');
+      assert(ins.patch.phone === (phone || ''), 'phone must be the text given, or an empty string');
+      assert(!('prep_tasks' in ins.patch) || (ins.patch.prep_tasks && Object.keys(ins.patch.prep_tasks).length > 0), 'prep_tasks must not be written as an empty value');
+    }
   });
   await test('adminEditStudent: unknown student is 404; database failures are 500 without leaking details', async () => {
     err(await edit({ fullName: 'Ghost' }, 'instructor-token', 'FIFS-9999'), 404);

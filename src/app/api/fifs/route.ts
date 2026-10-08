@@ -867,8 +867,10 @@ export async function POST(req: NextRequest) {
          full_name: fullName, email, phone, permit_type: courseName, permit_state: 'Maryland',
          status: 'ACTIVE_REGISTERED', created_at: now, updated_at: now
        } : {
-         user_id: authUserId, student_id: generatedId, full_name: fullName, email, phone,
-         course_selection: courseName, preferred_dates: dates, status: 'REGISTERED',
+         // students.course_name and students.phone are NOT NULL with no default, so both are always set.
+         // prep_tasks is NOT NULL but has a database default, so it is left to that default.
+         user_id: authUserId, student_id: generatedId, full_name: fullName, email, phone: phone || '',
+         course_name: courseName, course_selection: courseName, preferred_dates: dates, status: 'REGISTERED',
          must_change_password: true, temp_password_reset: true, created_at: now, updated_at: now
        };
        const { error: profileErr } = await supabase.from(profileTable).insert(profile);
@@ -1030,6 +1032,8 @@ export async function POST(req: NextRequest) {
            full_name: fullName,
            email,
            phone: phone || '',
+           // students.course_name is NOT NULL with no default; prep_tasks has a database default.
+           course_name: classTitle,
            course_selection: classTitle,
            preferred_dates: scheduledDate.toISOString(),
            status: 'STEP_1_REGISTERED',
