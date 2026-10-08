@@ -680,6 +680,22 @@ async function main() {
       assert(!('prep_tasks' in ins.patch) || (ins.patch.prep_tasks && Object.keys(ins.patch.prep_tasks).length > 0), 'prep_tasks must not be written as an empty value');
     }
   });
+  await test('adminDirectInvite: new students start at the canonical STEP_1_REGISTERED status (the same as enroll, and one updateStudentStatus accepts); clients are untouched', async () => {
+    const invite = async (portalType, email) => {
+      writes.length = 0;
+      await fifs('adminDirectInvite', { portalType, generatedId: portalType === 'client' ? 'CLI-8899' : 'FIFS-8899', fullName: 'Status Person', email, phone: '', course: 'Maryland HQL 8hr' }, 'instructor-token');
+      return writes.find((w) => w.op === 'insert' && w.table === (portalType === 'client' ? 'clients' : 'students'));
+    };
+    const student = await invite('student', 'status.student@example.test');
+    assert(student && student.patch.status === 'STEP_1_REGISTERED', 'invite status: ' + (student && student.patch.status));
+    const allow = (ROUTE_SRC.match(/const STUDENT_STATUS_ALLOWLIST = \[([\s\S]*?)\];/) || [])[1] || '';
+    assert([...allow.matchAll(/'([^']+)'/g)].some((m) => m[1] === student.patch.status), 'the invite status must be one updateStudentStatus accepts');
+    await fifs('adminEnrollStudent', { fullName: 'Enroll Person', email: 'status.enroll@example.test', phone: '', classId: 'class-1', scheduledDate: '2027-03-01T14:00:00.000Z' }, 'instructor-token');
+    const enrolled = db.students.find((x) => x.email === 'status.enroll@example.test');
+    assert(enrolled && enrolled.status === student.patch.status, 'invite and enroll must create students at the same status: ' + (enrolled && enrolled.status));
+    const client = await invite('client', 'status.client@example.test');
+    assert(client && client.patch.status === 'ACTIVE_REGISTERED', 'client status must be unchanged: ' + (client && client.patch.status));
+  });
   await test('adminEditStudent: unknown student is 404; database failures are 500 without leaking details', async () => {
     err(await edit({ fullName: 'Ghost' }, 'instructor-token', 'FIFS-9999'), 404);
     failOp = 'update';

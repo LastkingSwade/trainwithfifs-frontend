@@ -1005,7 +1005,7 @@ export async function POST(req: NextRequest) {
          // students.course_name and students.phone are NOT NULL with no default, so both are always set.
          // prep_tasks is NOT NULL but has a database default, so it is left to that default.
          user_id: authUserId, student_id: generatedId, full_name: fullName, email, phone: phone || '',
-         course_name: courseName, course_selection: courseName, preferred_dates: dates, status: 'REGISTERED',
+         course_name: courseName, course_selection: courseName, preferred_dates: dates, status: 'STEP_1_REGISTERED',
          must_change_password: true, temp_password_reset: true, created_at: now, updated_at: now
        };
        const { error: profileErr } = await supabase.from(profileTable).insert(profile);
