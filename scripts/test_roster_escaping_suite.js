@@ -221,6 +221,101 @@ async function main() {
     assert(!/<strong style="color: #fff;">\{/.test(src), 'the old broken contact cell is back');
   });
 
+  console.log('\n[SECTION A4: Empty client list, portal conflict message, and registration alert banners]');
+  function runRosterFull(extraSource, call) {
+    const b = fakeBrowser();
+    const sandbox = { window: b.window, document: b.document, console: { error() {}, warn() {}, log() {} }, Promise, Object, JSON, Array, String, Number, Math, Date, isNaN };
+    vm.createContext(sandbox);
+    vm.runInContext(state + '\n' + helpers + '\n' + extraSource + '\n' + call, sandbox);
+    return { html: b.html(), sandbox };
+  }
+  const liveClientRoster = () => findFunction(SCRIPT, 'function renderAdminClientTerminal(data) {', 'last');
+  const A = { clientId: 'CLI-1', fullName: 'Alpha Client', email: 'alpha@client.example', phone: '', permitState: 'Maryland Wear & Carry', expirationDate: '2027-01-01', status: 'ACTIVE_REGISTERED' };
+  const B = { clientId: 'CLI-2', fullName: 'Bravo Client', email: 'bravo@client.example', phone: '', permitState: 'Maryland Wear & Carry', expirationDate: '2027-02-01', status: 'ACTIVE_REGISTERED' };
+  await test('Client roster: an empty client list from the server clears the cache and shows the empty state (a deleted last client disappears)', async () => {
+    const { html, sandbox } = runRosterFull(liveClientRoster(), `renderAdminClientTerminal({ clients: ${JSON.stringify([A, B])} }); renderAdminClientTerminal({ clients: [] }); this.__cache = adminCachedClients.length; this.__win = window.adminCachedClients.length;`);
+    assert(sandbox.__cache === 0 && sandbox.__win === 0, `the cache must be empty, got ${sandbox.__cache} / ${sandbox.__win}`);
+    assert(/No client permit records found/.test(html), 'the empty state must show: ' + html.slice(0, 200));
+    assert(!/Alpha Client|Bravo Client|alpha@client|bravo@client/.test(html), 'no deleted client may remain on screen');
+    const first = runRosterFull(liveClientRoster(), 'renderAdminClientTerminal({ clients: [] }); this.__n = adminCachedClients.length;');
+    assert(first.sandbox.__n === 0 && /No client permit records found/.test(first.html), 'an empty list on first load also shows the empty state');
+  });
+  await test('Client roster: a call with no list (or a non-list) leaves the cached clients alone and still draws them', async () => {
+    const calls = ['renderAdminClientTerminal()', 'renderAdminClientTerminal({})', 'renderAdminClientTerminal({ clients: null })', "renderAdminClientTerminal({ clients: 'x' })", 'renderAdminClientTerminal({ clients: { length: 3 } })', 'renderAdminClientTerminal({ students: [] })'];
+    for (const call of calls) {
+      const { html, sandbox } = runRosterFull(liveClientRoster(), `renderAdminClientTerminal({ clients: ${JSON.stringify([A])} }); ${call}; this.__n = adminCachedClients.length;`);
+      assert(sandbox.__n === 1 && /Alpha Client/.test(html) && !/No client permit records found/.test(html), `${call} must keep the cached client: n=${sandbox.__n}`);
+    }
+  });
+  await test('Client roster: a non-empty list still replaces the old one', async () => {
+    const { html, sandbox } = runRosterFull(liveClientRoster(), `renderAdminClientTerminal({ clients: ${JSON.stringify([A, B])} }); renderAdminClientTerminal({ clients: ${JSON.stringify([B])} }); this.__n = adminCachedClients.length;`);
+    assert(sandbox.__n === 1 && /Bravo Client/.test(html) && !/Alpha Client/.test(html), 'the new list replaces the old: ' + html.slice(0, 160));
+  });
+
+  // ---- portal conflict message: both copies in the script (the later one is the live one) ----
+  const conflictCopies = [['earlier copy', findFunction(SCRIPT, 'function showPortalConflictModal(', 'first')], ['live copy', findFunction(SCRIPT, 'function showPortalConflictModal(', 'last')]];
+  function runConflict(src, direction, name, id) {
+    const el = (extra = {}) => ({ innerHTML: '', textContent: '', style: { setProperty() {} }, classList: { add() {}, remove() {} }, ...extra });
+    const els = { portalConflictModal: el(), conflictModalMessage: el(), 'btn-conflict-switch': el() };
+    const sandbox = { document: { getElementById: (i) => els[i] || null, body: { classList: { add() {}, remove() {} }, style: {} } }, logoutStudent() {}, logoutClient() {}, closePortalConflictModal() {}, openAndSwitch() {} };
+    vm.createContext(sandbox);
+    vm.runInContext(findFunction(SCRIPT, 'function escapeHtml(str) {') + '\n' + src + `\nshowPortalConflictModal(${JSON.stringify(direction)}, ${JSON.stringify(name)}, ${JSON.stringify(id)});`, sandbox);
+    return els.conflictModalMessage.innerHTML;
+  }
+  assert(SCRIPT.split('function showPortalConflictModal(').length - 1 === 2, 'the script is expected to declare showPortalConflictModal twice; update this test if one is removed');
+  for (const [label, src] of conflictCopies) {
+    await test(`Portal conflict message (${label}): shows the name and ID in bold, closes its tags, and leaks no placeholder`, async () => {
+      for (const direction of ['student_to_client', 'client_to_student']) {
+        const html = runConflict(src, direction, 'Marcus Vance', 'FIFS-1001');
+        assert(html.includes('as <strong>Marcus Vance (FIFS-1001)</strong>.<br><br>'), `${direction}: name and ID expected: ${html.replace(/\s+/g, ' ').slice(0, 260)}`);
+        assert(!/\$\{|(?<![\w$])\{\w|\)\.<br>|undefined|\[object/.test(html), `${direction}: a placeholder leaked: ${html.replace(/\s+/g, ' ')}`);
+        assert((html.match(/<strong/g) || []).length === (html.match(/<\/strong>/g) || []).length, `${direction}: unbalanced <strong> tags`);
+        const noName = runConflict(src, direction, '', 'FIFS-1001');
+        assert(noName.includes('as <strong>FIFS-1001</strong>.<br><br>') && !/\(\s*FIFS/.test(noName.split('as <strong>')[1].split('</strong>')[0]), `${direction}: without a name only the ID shows: ${noName.replace(/\s+/g, ' ').slice(0, 220)}`);
+      }
+    });
+    await test(`Portal conflict message (${label}): hostile names and IDs are escaped`, async () => {
+      const html = runConflict(src, 'student_to_client', HOSTILE.tag, HOSTILE.breakout);
+      assert(!LIVE_MARKUP.test(html) && !html.includes(HOSTILE.breakout), 'live markup or an unescaped quote reached the message: ' + html.replace(/\s+/g, ' ').slice(0, 300));
+      assert(html.includes('&lt;img src=x onerror=alert(1)&gt;'), 'the hostile name should appear escaped');
+      const apostrophe = runConflict(src, 'client_to_student', "Sean O'Connor", 'FI-CLIENT-9');
+      assert(apostrophe.includes('Sean O&#039;Connor (FI-CLIENT-9)'), 'an apostrophe must be escaped, not break the markup: ' + apostrophe.replace(/\s+/g, ' ').slice(0, 220));
+    });
+  }
+
+  // ---- registration alert banners ----
+  function runAlert(fnName, storageKey, payload) {
+    const els = { box: { style: {} }, badge: { style: {} }, desc: { innerHTML: '' } };
+    const idMap = fnName === 'checkNewClientAlert'
+      ? { 'admin-new-client-alert-box': els.box, 'admin-client-alert-pill': els.badge, 'admin-client-alert-desc': els.desc }
+      : { 'admin-new-student-alert-box': els.box, 'admin-roster-alert-pill': els.badge, 'admin-alert-desc': els.desc };
+    const sandbox = { document: { getElementById: (i) => idMap[i] || null }, _fifsMemStorage: { getItem: (k) => (k === storageKey ? payload : null) } };
+    vm.createContext(sandbox);
+    vm.runInContext(findFunction(SCRIPT, 'function escapeHtml(str) {') + '\n' + findFunction(SCRIPT, 'function ' + fnName + '(') + `\n${fnName}();`, sandbox);
+    return els;
+  }
+  for (const [fnName, key, field, fallback] of [['checkNewClientAlert', 'fifs_new_client_alert', 'permitState', 'Client Registration'], ['checkNewStudentAlert', 'fifs_new_student_alert', 'course', 'Course Registration']]) {
+    await test(`${fnName}: the banner shows "<item> at <ID>" with the ID in <code>, falls back cleanly, and is escaped`, async () => {
+      const ok = runAlert(fnName, key, JSON.stringify({ [field]: 'Maryland Wear & Carry', id: 'FI-1042' }));
+      assert(ok.desc.innerHTML === '<strong>Maryland Wear &amp; Carry</strong> at <code>FI-1042</code>' && ok.box.style.display === 'flex' && ok.badge.style.display === 'inline-block', 'banner: ' + ok.desc.innerHTML);
+      const bare = runAlert(fnName, key, JSON.stringify({}));
+      assert(bare.desc.innerHTML === `<strong>${fallback}</strong> at <code></code>`, 'fallbacks: ' + bare.desc.innerHTML);
+      const evil = runAlert(fnName, key, JSON.stringify({ [field]: HOSTILE.tag, id: HOSTILE.script }));
+      assert(!LIVE_MARKUP.test(evil.desc.innerHTML) && evil.desc.innerHTML.includes('&lt;img src=x onerror=alert(1)&gt;') && evil.desc.innerHTML.includes('&lt;script&gt;'), 'hostile values must be escaped: ' + evil.desc.innerHTML);
+      assert(!/\$\{|(?<![\w$])\{/.test(ok.desc.innerHTML + bare.desc.innerHTML), 'no placeholder may leak');
+    });
+    await test(`${fnName}: no alert, bad data, or a missing banner is ignored without errors`, async () => {
+      const none = runAlert(fnName, key, null);
+      assert(none.desc.innerHTML === '' && none.box.style.display === undefined, 'no stored alert shows nothing');
+      let threw = null; try { runAlert(fnName, key, '{not json'); } catch (e) { threw = e; }
+      assert(!threw, 'malformed stored data must not throw');
+    });
+  }
+  await test('No escape call or placeholder in the script is missing its $ on a line of markup (state law pill reported separately)', async () => {
+    const bad = SCRIPT.split('\n').map((l, i) => ({ l, n: i + 1 })).filter(({ l }) => l.includes('<') && /(^|[^\w$'"`\\])\{(escapeHtml\(|activeId\}|item\.(?!ans\}))/.test(l));
+    assert(bad.length === 0, 'damaged placeholders at line(s) ' + bad.map((x) => x.n).join(', '));
+  });
+
   console.log('\n[SECTION B: page.tsx roster]');
   await test('Staff roster in page.tsx escapes text and only links http(s) dossier URLs', async () => {
     const start = PAGE.indexOf('    const escHtml = (value: unknown): string');

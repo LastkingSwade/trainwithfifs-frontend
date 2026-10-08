@@ -2154,7 +2154,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       if (!modal || !msg || !btnSwitch) return;
       if (direction === 'student_to_client') {
         msg.innerHTML = `
-          You are currently authenticated in the <strong style="color: var(--accent-cyan);">Student Training Portal</strong> as <strong>{escapeHtml(activeId)}).<br><br>
+          You are currently authenticated in the <strong style="color: var(--accent-cyan);">Student Training Portal</strong> as <strong>${escapeHtml(activeName ? activeName + ' (' + activeId + ')' : activeId)}</strong>.<br><br>
           To maintain strict record isolation and prevent state licensing document mismatches, simultaneous portal sessions are restricted.<br><br>
           To access the <strong style="color: var(--accent-amber);">Future Initiative Client &amp; Permit Portal</strong>, please sign out of your student session first.
         `;
@@ -2166,7 +2166,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         };
       } else {
         msg.innerHTML = `
-          You are currently authenticated in the <strong style="color: var(--accent-amber);">Client &amp; Permit Portal</strong> as <strong>{escapeHtml(activeId)}).<br><br>
+          You are currently authenticated in the <strong style="color: var(--accent-amber);">Client &amp; Permit Portal</strong> as <strong>${escapeHtml(activeName ? activeName + ' (' + activeId + ')' : activeId)}</strong>.<br><br>
           To maintain strict record isolation and prevent state licensing document mismatches, simultaneous portal sessions are restricted.<br><br>
           To access the <strong style="color: var(--accent-cyan);">Student Training Portal</strong>, please sign out of your client session first.
         `;
@@ -2531,7 +2531,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         var desc = document.getElementById('admin-client-alert-desc');
         if (alertData && box) {
           var item = JSON.parse(alertData);
-          if (desc) desc.innerHTML = `<strong>{escapeHtml(item.permitState)}</strong> at {item.id}</code>`;
+          if (desc) desc.innerHTML = `<strong>${escapeHtml(item.permitState || 'Client Registration')}</strong> at <code>${escapeHtml(item.id || '')}</code>`;
           box.style.display = 'flex';
           if (badge) badge.style.display = 'inline-block';
         }
@@ -4424,7 +4424,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
       if (!modal || !msg || !btnSwitch) return;
       if (direction === 'student_to_client') {
         msg.innerHTML = `
-          You are currently signed into the <strong style="color: var(--accent-cyan);">Student Training Portal</strong> as <strong>{activeId}).<br><br>
+          You are currently signed into the <strong style="color: var(--accent-cyan);">Student Training Portal</strong> as <strong>${escapeHtml(activeName ? activeName + ' (' + activeId + ')' : activeId)}</strong>.<br><br>
           To maintain strict record isolation and prevent state licensing document mismatches, you cannot be signed into both portals simultaneously.<br><br>
           To access the <strong style="color: var(--accent-amber);">Future Initiative Client &amp; Permit Portal</strong> (for multi-state reciprocity, renewals, and travel compliance), you must first sign out of your student session.
         `;
@@ -4436,7 +4436,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
         };
       } else {
         msg.innerHTML = `
-          You are currently signed into the <strong style="color: var(--accent-amber);">Client &amp; Permit Portal</strong> as <strong>{activeId}).<br><br>
+          You are currently signed into the <strong style="color: var(--accent-amber);">Client &amp; Permit Portal</strong> as <strong>${escapeHtml(activeName ? activeName + ' (' + activeId + ')' : activeId)}</strong>.<br><br>
           To prevent data collisions between course curriculum tracking and permit renewal dates, only one active portal profile may be accessed per browser.<br><br>
           To access the <strong style="color: var(--accent-cyan);">Student Training Portal</strong> (for class preparation, range checklists, and course guides), you must first sign out of your client session.
         `;
@@ -4949,7 +4949,8 @@ function openAdminEditStudentModal(studentId) {
           /* cloud only: zero browser storage */
     window.adminCachedClients = adminCachedClients;
     function renderAdminClientTerminal(data) {
-      if (data && data.clients && data.clients.length) {
+      if (data && Array.isArray(data.clients)) {
+        // Any array replaces the list, including an empty one, so deleting the last client clears the screen.
         adminCachedClients = data.clients;
         /* cloud only: zero browser storage */
       } else {
@@ -5125,7 +5126,7 @@ function openAdminEditStudentModal(studentId) {
         var desc = document.getElementById('admin-alert-desc');
         if (alertData && box) {
           var item = JSON.parse(alertData);
-          if (desc) desc.innerHTML = `<strong>{escapeHtml(item.course)}</strong> at {item.id}</code>`;
+          if (desc) desc.innerHTML = `<strong>${escapeHtml(item.course || 'Course Registration')}</strong> at <code>${escapeHtml(item.id || '')}</code>`;
           box.style.display = 'flex';
           if (badge) badge.style.display = 'inline-block';
         }
