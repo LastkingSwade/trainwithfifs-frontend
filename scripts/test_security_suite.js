@@ -235,6 +235,7 @@ const mockSupabase = {
           error: null
         }),
         deleteUser: async (uid) => ({ data: null, error: null }),
+        getUserById: async (uid) => ({ data: { user: { id: uid, app_metadata: { role: 'student' } } }, error: null }),
         updateUserById: async (uid, params) => {
           return { data: { user: { id: uid, ...params } }, error: null };
         }
@@ -288,9 +289,13 @@ const mockSupabase = {
         },
         delete: () => {
           return {
+            // Like the real client: awaiting the delete resolves {data:null,error:null}, and .select() returns the removed rows.
             eq: (col, val) => {
+              const removed = (dbState[table] || []).filter(row => row[col] === val);
               dbState[table] = (dbState[table] || []).filter(row => row[col] !== val);
-              return { data: null, error: null };
+              return Object.assign(Promise.resolve({ data: null, error: null }), {
+                select: () => Promise.resolve({ data: removed.map(r => ({ id: r.id })), error: null })
+              });
             }
           };
         },

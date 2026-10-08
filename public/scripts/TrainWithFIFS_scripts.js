@@ -2572,6 +2572,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
       var pin = getStaffSessionToken();
       if (!pin) return;
+      window.__fifsLastRosterRefreshAt = Date.now();
       callFifsBackend('getAdminDashboardData', {}, function(res) {
         if (res && res.status === 'success') {
           renderAdminTerminal(res);
@@ -2584,6 +2585,14 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       });
     }
     window.refreshAdminRoster = refreshAdminRoster;
+    // The clients list comes from the same server call as the roster, so refreshing clients is a roster refresh.
+    // The "refresh all" buttons call refreshAdminRoster and then this; if a roster fetch has only just started it
+    // already covers the clients, so this does not fetch the dashboard a second time.
+    function refreshAdminClients() {
+      if (Date.now() - (window.__fifsLastRosterRefreshAt || 0) < 1000) return;
+      if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
+    }
+    window.refreshAdminClients = refreshAdminClients;
     function resetWebsiteTelemetry() {
       if (!confirm("Reset all website telemetry counters in Supabase and cache?")) return;
       var btn = document.getElementById('btn-reset-telemetry') || document.querySelector('button[onclick*="resetWebsiteTelemetry"]');
@@ -4566,7 +4575,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
             showStatus(st, (res && res.error) || 'Failed to dispatch invite to Supabase.', 'error');
           }
         }, function(err) {
-          showStatus(st, 'Error communicating with Supabase backend: ' + (err && err.message ? err.message : err), 'error');
+          showStatus(st, 'Error communicating with server: ' + (err && err.message ? err.message : err), 'error');
         });
       } else {
         if (urlInput) urlInput.value = magicLink;
@@ -11176,8 +11185,10 @@ function triggerCardGunRefresh(btn, type) {
   executeUniversalGunReloadAnimation(btn, function() {
     if (type === 'roster' && window.refreshAdminRoster) {
       window.refreshAdminRoster();
-    } else if (type === 'clients' && window.refreshAdminClients) {
-      window.refreshAdminClients();
+    } else if (type === 'clients') {
+      // There is no separate clients fetch: the dashboard call returns the clients too, and refreshAdminRoster
+      // fetches it from the server and redraws both rosters. (refreshAdminClients is not defined anywhere.)
+      if (window.refreshAdminRoster) window.refreshAdminRoster();
     } else if (type === 'chat' && (window.refreshAdminChat || window.refreshAdminLiveChats)) {
       (window.refreshAdminChat || window.refreshAdminLiveChats)();
     } else if (type === 'telemetry' && window.syncTelemetryMetrics) {

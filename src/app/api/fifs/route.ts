@@ -624,6 +624,51 @@ async function sendServerDiscordAlert(
   }
 }
 
+// After a student or client record is removed, remove the sign-in account that belonged to it, so the person's email
+// can be used again (an orphaned account makes a new invite fail). This is best effort: the record is already gone, so
+// a problem here is logged and reported, never turned into a failure. It refuses (returns 'skipped') whenever deleting
+// could hurt something else: the account is the signed-in staff member's own, belongs to staff, is still linked to
+// another student or client record, or cannot be checked. Returns what happened so the response can say so.
+async function removeLinkedAuthUser(supabase: any, authUserId: unknown, callerId?: string): Promise<'removed' | 'none' | 'skipped' | 'failed'> {
+  if (typeof authUserId !== 'string' || !authUserId) return 'none';
+  try {
+    if (callerId && authUserId === callerId) {
+      console.warn('[deleteLinkedAuthUser] Skipped: the linked sign-in is the signed-in staff account.');
+      return 'skipped';
+    }
+    for (const table of ['students', 'clients']) {
+      const { data, error } = await supabase.from(table).select('id').eq('user_id', authUserId).limit(1);
+      if (error) {
+        console.warn('[deleteLinkedAuthUser] Skipped: could not confirm the sign-in is unshared:', error.message);
+        return 'skipped';
+      }
+      if (Array.isArray(data) && data.length > 0) {
+        console.warn('[deleteLinkedAuthUser] Skipped: the sign-in is still linked to another record.');
+        return 'skipped';
+      }
+    }
+    const { data: found, error: lookupErr } = await supabase.auth.admin.getUserById(authUserId);
+    if (lookupErr) {
+      if ((lookupErr as any).status === 404 || /not found/i.test(String((lookupErr as any).message || ''))) return 'none';
+      console.warn('[deleteLinkedAuthUser] Skipped: could not look up the sign-in:', (lookupErr as any).message);
+      return 'skipped';
+    }
+    if (isStaffOrAdmin(found?.user)) {
+      console.warn('[deleteLinkedAuthUser] Skipped: the linked sign-in belongs to staff.');
+      return 'skipped';
+    }
+    const { error: deleteErr } = await supabase.auth.admin.deleteUser(authUserId);
+    if (deleteErr) {
+      console.warn('[deleteLinkedAuthUser] The sign-in could not be removed:', (deleteErr as any).message);
+      return 'failed';
+    }
+    return 'removed';
+  } catch (err: any) {
+    console.warn('[deleteLinkedAuthUser] The sign-in could not be removed:', err?.message);
+    return 'failed';
+  }
+}
+
 export async function POST(req: NextRequest) {
  try {
    const body = await req.json().catch(() => ({}));
@@ -731,7 +776,7 @@ export async function POST(req: NextRequest) {
        }
 
        // 1. Locate student to retrieve student_id, id, and email for cascading cleanups
-       let query = supabase.from('students').select('id, student_id, email, full_name');
+       let query = supabase.from('students').select('id, student_id, email, full_name, user_id');
        if (targetId) {
          const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetId);
          if (isUuid) {
@@ -798,18 +843,25 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, error: 'Could not resolve target student for deletion.' }, { status: 404 });
        }
 
-       const { error: delError } = await delQuery;
+       const { data: removedRows, error: delError } = await delQuery.select('id');
 
        if (delError) {
          console.error('Failed to delete student from Supabase:', delError);
          return NextResponse.json({ success: false, error: delError.message }, { status: 500 });
        }
 
+       // The record is gone; now remove its sign-in (best effort, see removeLinkedAuthUser).
+       const authCleanup = foundStudent && Array.isArray(removedRows) && removedRows.length > 0
+         ? await removeLinkedAuthUser(supabase, foundStudent.user_id, user?.id) : 'none';
+
        return NextResponse.json({
          success: true,
          status: 'success',
          deletedStudentId: resolvedStudentId || targetId,
+         authCleanup,
+         authUserRemoved: authCleanup === 'none' ? null : authCleanup === 'removed',
          message: `Student ${foundStudent?.full_name || targetId} successfully removed from Supabase.`
+           + (authCleanup === 'failed' ? ' Their sign-in account could not be removed automatically.' : '')
        });
      }
 
@@ -880,18 +932,25 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, error: 'Could not resolve target client for deletion.' }, { status: 404 });
        }
 
-       const { error: delError } = await delQuery;
+       const { data: removedRows, error: delError } = await delQuery.select('id');
 
        if (delError) {
          console.error('Failed to delete client from Supabase:', delError);
          return NextResponse.json({ success: false, error: delError.message }, { status: 500 });
        }
 
+       // The record is gone; now remove its sign-in (best effort, see removeLinkedAuthUser).
+       const authCleanup = foundClient && Array.isArray(removedRows) && removedRows.length > 0
+         ? await removeLinkedAuthUser(supabase, foundClient.user_id, user?.id) : 'none';
+
        return NextResponse.json({
          success: true,
          status: 'success',
          deletedClientId: resolvedClientId || targetId,
+         authCleanup,
+         authUserRemoved: authCleanup === 'none' ? null : authCleanup === 'removed',
          message: `Client ${foundClient?.full_name || targetId} successfully removed from Supabase.`
+           + (authCleanup === 'failed' ? ' Their sign-in account could not be removed automatically.' : '')
        });
      }
 
@@ -999,7 +1058,7 @@ export async function POST(req: NextRequest) {
        const profile = portalType === 'client' ? {
          user_id: authUserId,
          client_id: generatedId.startsWith('CLI-') ? generatedId : 'CLI-' + Math.floor(1000 + Math.random() * 9000),
-         full_name: fullName, email, phone, permit_type: courseName, permit_state: 'Maryland',
+         full_name: fullName, email, phone, permit_type: courseName, permit_state: 'Maryland Wear & Carry',
          status: 'ACTIVE_REGISTERED', created_at: now, updated_at: now
        } : {
          // students.course_name and students.phone are NOT NULL with no default, so both are always set.

@@ -33,10 +33,11 @@ const writes = [];
 // Test controls: force a database error for an operation, or make an update match no rows.
 let failOp = null;
 let updateMatchesNothing = false;
+let deleteMatchesNothing = false;
 let storageCalls = { upload: [], remove: [], sign: [] };
 let storageFail = null;
 let authUsers = {};
-let authCalls = { createUser: [], generateLink: [], deleteUser: [] };
+let authCalls = { createUser: [], generateLink: [], deleteUser: [], getUserById: [], deleteSnapshots: [] };
 let authFail = null;
 function resetDb() {
   db = {
@@ -57,6 +58,7 @@ function resetDb() {
   db.clients.push(
     { id: 'row-client-1', user_id: 'uuid-client-1', client_id: 'CLI-1001', full_name: 'Marcus Client', email: 'marcus@client.example', phone: '410-555-0111',
       permit_state: 'Maryland Wear & Carry', expiration_date: '2026-12-31', status: 'ACTIVE_REGISTERED', updated_at: '2026-01-01T00:00:00.000Z' },
+    { id: 'row-client-2', user_id: 'uuid-client-2', client_id: 'CLI-2002', full_name: 'Second Client', email: 'client2@client.example', phone: null, permit_state: 'Maryland Wear & Carry', expiration_date: null, status: 'ACTIVE_REGISTERED' },
     { id: '3f1c2b54-7d0e-4a3b-9c11-0a1b2c3d4e5f', user_id: null, client_id: null, full_name: 'No Public Id', email: 'noid@client.example', phone: null,
       permit_state: 'Maryland', expiration_date: null, status: 'ACTIVE_PERMIT_HOLDER' }
   );
@@ -67,19 +69,29 @@ function resetDb() {
     { id: 'row-staffmail', user_id: null, student_id: 'FIFS-1006', email: 'coach@example.test', full_name: 'Staff Mail', status: 'STEP_1_REGISTERED' },
     { id: 'row-mismatch', user_id: 'uuid-someone-else', student_id: 'FIFS-1007', email: 'selfsignup@example.test', full_name: 'Mismatch', status: 'STEP_1_REGISTERED' },
     { id: 'row-self', user_id: null, student_id: 'FIFS-1008', email: 'selfsignup@example.test', full_name: 'Self Signup', status: 'STEP_1_REGISTERED' },
-    { id: 'row-dupe', user_id: null, student_id: 'FIFS-1009', email: 'alice@student.com', full_name: 'Duplicate Of Alice', status: 'STEP_1_REGISTERED' }
+    { id: 'row-dupe', user_id: null, student_id: 'FIFS-1009', email: 'alice@student.com', full_name: 'Duplicate Of Alice', status: 'STEP_1_REGISTERED' },
+    { id: 'row-dana2', user_id: 'uuid-dana', student_id: 'FIFS-1013', email: 'dana.linked@example.test', full_name: 'Dana Linked', status: 'STEP_1_REGISTERED' },
+    { id: 'row-staffed', user_id: 'uuid-staff', student_id: 'FIFS-1014', email: 'frontdesk@example.test', full_name: 'Linked To Staff', status: 'STEP_1_REGISTERED' },
+    { id: 'row-self2', user_id: 'uuid-coach2', student_id: 'FIFS-1015', email: 'coach2@example.test', full_name: 'Linked To Caller', status: 'STEP_1_REGISTERED' },
+    { id: 'row-shared', user_id: 'uuid-client-1', student_id: 'FIFS-1016', email: 'marcus@client.example', full_name: 'Shared With Client', status: 'STEP_1_REGISTERED' }
   );
   writes.length = 0;
   failOp = null;
   updateMatchesNothing = false;
+  deleteMatchesNothing = false;
   storageFail = null;
   storageCalls = { upload: [], remove: [], sign: [] };
   authFail = null;
-  authCalls = { createUser: [], generateLink: [], deleteUser: [] };
+  authCalls = { createUser: [], generateLink: [], deleteUser: [], getUserById: [], deleteSnapshots: [] };
   authUsers = {
     'alice@student.com': { id: 'uuid-student-alice', email: 'alice@student.com', app_metadata: { role: 'student' } },
     'coach@example.test': { id: 'uuid-instructor', email: 'coach@example.test', app_metadata: { role: 'instructor' } },
-    'selfsignup@example.test': { id: 'uuid-self-signup', email: 'selfsignup@example.test', app_metadata: {} }
+    'selfsignup@example.test': { id: 'uuid-self-signup', email: 'selfsignup@example.test', app_metadata: {} },
+    'marcus@client.example': { id: 'uuid-client-1', email: 'marcus@client.example', app_metadata: { role: 'client' } },
+    'frontdesk@example.test': { id: 'uuid-staff', email: 'frontdesk@example.test', app_metadata: { role: 'staff' } },
+    'dana.linked@example.test': { id: 'uuid-dana', email: 'dana.linked@example.test', app_metadata: { role: 'student' } },
+    'coach2@example.test': { id: 'uuid-coach2', email: 'coach2@example.test', app_metadata: { role: 'instructor' } },
+    'client2@client.example': { id: 'uuid-client-2', email: 'client2@client.example', app_metadata: { role: 'client' } }
   };
 }
 
@@ -105,7 +117,7 @@ function queryBuilder(table) {
     }
     if (op === 'delete') {
       const rows = db[table] || [];
-      const gone = rows.filter((r) => filters.every((f) => f(r)));
+      const gone = deleteMatchesNothing ? [] : rows.filter((r) => filters.every((f) => f(r)));
       db[table] = rows.filter((r) => !gone.includes(r));
       writes.push({ table, op, rows: gone.length });
       return { data: gone.map((r) => ({ ...r })), error: null };
@@ -178,7 +190,20 @@ const mockSupabase = {
           if (!u) return { data: { properties: null, user: null }, error: { status: 404, code: 'user_not_found', message: 'User not found' } };
           return { data: { properties: { action_link: 'https://link.example.test/verify?token=SECRET-TOKEN-123&type=recovery' }, user: u }, error: null };
         },
-        deleteUser: async (id) => { authCalls.deleteUser.push(id); return { data: null, error: null }; }
+        deleteUser: async (id) => {
+          authCalls.deleteUser.push(id);
+          authCalls.deleteSnapshots.push({ students: (db.students || []).map((r) => r.student_id), clients: (db.clients || []).map((r) => r.client_id) });
+          if (authFail === 'throwDelete') throw new Error('boom: internal auth exception');
+          if (authFail === 'deleteUser') return { data: null, error: { status: 500, message: 'boom: internal auth detail' } };
+          return { data: null, error: null };
+        },
+        getUserById: async (id) => {
+          authCalls.getUserById.push(id);
+          if (authFail === 'throwGet') throw new Error('boom: internal auth exception');
+          if (authFail === 'getUserById') return { data: { user: null }, error: { status: 500, message: 'boom: internal auth detail' } };
+          const u = Object.values(authUsers).find((x) => x.id === id);
+          return u ? { data: { user: u }, error: null } : { data: { user: null }, error: { status: 404, message: 'User not found' } };
+        }
       },
       getUser: async (token) => {
         const users = {
@@ -187,6 +212,7 @@ const mockSupabase = {
           'instructor-token': { id: 'uuid-instructor', email: 'coach@example.test', app_metadata: { role: 'instructor' } },
           'staff-token': { id: 'uuid-staff', email: 'frontdesk@example.test', app_metadata: { role: 'staff' } },
           // Spoof attempt: admin claims only in user-editable user_metadata and the students row.
+          'coach2-token': { id: 'uuid-coach2', email: 'coach2@example.test', app_metadata: { role: 'instructor' } },
           'client-marcus-token': { id: 'uuid-client-1', email: 'marcus@client.example', app_metadata: { role: 'client' } },
           'student-carol-token': { id: 'uuid-student-carol', email: 'carol@student.com', app_metadata: { role: 'student' }, user_metadata: { role: 'admin', is_admin: true } }
         };
@@ -1133,7 +1159,7 @@ async function main() {
       assert(authCalls.deleteUser.includes('uuid-new-invitee'), 'the account created for this call must be removed when linking fails');
       assert(resendCalls().length === 0, 'no email may be sent after a failure');
     });
-    function resetDbKeepAuth() { delete authUsers['dana.migrated@example.test']; authCalls = { createUser: [], generateLink: [], deleteUser: [] }; fetchCalls.length = 0; }
+    function resetDbKeepAuth() { delete authUsers['dana.migrated@example.test']; authCalls = { createUser: [], generateLink: [], deleteUser: [], getUserById: [], deleteSnapshots: [] }; fetchCalls.length = 0; }
   });
   await test('adminDirectInvite: when the setup email is not delivered the response says so plainly and points to the Setup link button', async () => {
     const r = await fifs('adminDirectInvite', { portalType: 'student', generatedId: 'FIFS-7788', fullName: 'Invitee Person', email: 'invitee@example.test', phone: '', course: 'Maryland HQL 8hr' }, 'instructor-token');
@@ -1868,6 +1894,173 @@ async function main() {
       const confirmCall = src.slice(src.indexOf('confirm('), src.indexOf('{', src.indexOf('confirm(')));
       assert(!/`/.test(confirmCall) && !/\{\w+\}\)/.test(confirmCall), `${fn} still has a template-literal confirmation: ${confirmCall}`);
     }
+  });
+
+  console.log('\n[SECTION P: Sign-in cleanup on delete, canonical client permit type, Clients refresh, invite error message]');
+  const delStudent = (payload, token = 'instructor-token') => fifs('adminDeleteStudent', payload, token);
+  const delClient = (payload, token = 'instructor-token') => fifs('adminDeleteClient', payload, token);
+  const noAuthCalls = () => assert(authCalls.deleteUser.length === 0 && authCalls.getUserById.length === 0, 'no account lookup or deletion may happen: ' + JSON.stringify({ del: authCalls.deleteUser, get: authCalls.getUserById }));
+
+  await test('Delete student: after the record is removed its sign-in account is deleted too, in that order, and the response says so', async () => {
+    const r = await delStudent({ studentId: 'FIFS-1013' });
+    assert(r.status === 200 && r.body.success === true && r.body.authCleanup === 'removed' && r.body.authUserRemoved === true, `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(!db.students.some((x) => x.student_id === 'FIFS-1013'), 'the student record must be gone');
+    assert(JSON.stringify(authCalls.deleteUser) === '["uuid-dana"]', 'exactly the linked account should be deleted: ' + JSON.stringify(authCalls.deleteUser));
+    assert(!authCalls.deleteSnapshots[0].students.includes('FIFS-1013'), 'the record must already be deleted when the account is deleted');
+    assert(!JSON.stringify(r.body).includes('uuid-dana') && !/dana\.linked/.test(JSON.stringify(r.body)), 'neither the account id nor the email may be echoed');
+  });
+  await test('Delete student by email also removes the linked sign-in', async () => {
+    const r = await delStudent({ email: 'dana.linked@example.test' });
+    assert(r.status === 200 && r.body.authCleanup === 'removed' && JSON.stringify(authCalls.deleteUser) === '["uuid-dana"]', `got ${r.status} ${JSON.stringify(r.body)}`);
+  });
+  await test('Delete client: after the record is removed its sign-in account is deleted too', async () => {
+    const r = await delClient({ clientId: 'CLI-2002' });
+    assert(r.status === 200 && r.body.success === true && r.body.authCleanup === 'removed' && r.body.authUserRemoved === true, `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(!db.clients.some((x) => x.client_id === 'CLI-2002') && JSON.stringify(authCalls.deleteUser) === '["uuid-client-2"]', 'record gone and exactly its account deleted');
+    assert(!authCalls.deleteSnapshots[0].clients.includes('CLI-2002'), 'the record must already be deleted when the account is deleted');
+  });
+  await test('Delete: a record with no linked sign-in makes no account lookup or deletion', async () => {
+    const r = await delStudent({ studentId: 'FIFS-1004' });
+    assert(r.status === 200 && r.body.authCleanup === 'none' && r.body.authUserRemoved === null, `got ${r.status} ${JSON.stringify(r.body)}`);
+    noAuthCalls();
+    const missing = await delStudent({ studentId: 'FIFS-9999' });
+    assert(missing.status === 200 && missing.body.authCleanup === 'none', 'an unknown record must not trigger any account deletion');
+    noAuthCalls();
+  });
+  await test('Delete: a failure to delete the sign-in is logged and reported but never fails the delete, and leaks no detail', async () => {
+    authFail = 'deleteUser';
+    const s1 = await delStudent({ studentId: 'FIFS-1013' });
+    assert(s1.status === 200 && s1.body.success === true && s1.body.authCleanup === 'failed' && s1.body.authUserRemoved === false && /could not be removed automatically/.test(s1.body.message), `student: ${s1.status} ${JSON.stringify(s1.body)}`);
+    assert(!db.students.some((x) => x.student_id === 'FIFS-1013'), 'the record removal stands');
+    const c1 = await delClient({ clientId: 'CLI-2002' });
+    assert(c1.status === 200 && c1.body.success === true && c1.body.authCleanup === 'failed', `client: ${c1.status} ${JSON.stringify(c1.body)}`);
+    assert(!/boom|internal auth/.test(JSON.stringify([s1.body, c1.body])), 'internal detail leaked');
+  });
+  await test('Delete: if the record cannot be deleted nothing happens to the sign-in', async () => {
+    failOp = 'delete';
+    const r = await delStudent({ studentId: 'FIFS-1013' });
+    assert(r.status === 500 && r.body.success === false, `got ${r.status} ${JSON.stringify(r.body)}`);
+    noAuthCalls();
+    assert(db.students.some((x) => x.student_id === 'FIFS-1013'), 'the record must still exist');
+  });
+  await test('Delete: a sign-in that belongs to staff, to the signed-in caller, or to another record is never deleted', async () => {
+    const staffLinked = await delStudent({ studentId: 'FIFS-1014' });
+    assert(staffLinked.status === 200 && staffLinked.body.authCleanup === 'skipped' && staffLinked.body.authUserRemoved === false, 'a staff account must be skipped: ' + JSON.stringify(staffLinked.body));
+    const self = await delStudent({ studentId: 'FIFS-1015' }, 'coach2-token');
+    assert(self.status === 200 && self.body.authCleanup === 'skipped', 'the caller\'s own account must be skipped: ' + JSON.stringify(self.body));
+    const sharedStudent = await delStudent({ studentId: 'FIFS-1016' });
+    assert(sharedStudent.status === 200 && sharedStudent.body.authCleanup === 'skipped', 'an account still linked to a client record must be skipped: ' + JSON.stringify(sharedStudent.body));
+    assert(authCalls.deleteUser.length === 0, 'none of the three skipped accounts may have been deleted: ' + JSON.stringify(authCalls.deleteUser));
+    // The shared account goes only when its last record goes: the client record still existed above; now it is the last one.
+    const lastRecord = await delClient({ clientId: 'CLI-1001' });
+    assert(lastRecord.status === 200 && lastRecord.body.authCleanup === 'removed' && JSON.stringify(authCalls.deleteUser) === '["uuid-client-1"]', 'the account is removed with the last record that used it: ' + JSON.stringify([lastRecord.body, authCalls.deleteUser]));
+    assert(!authCalls.deleteSnapshots[0].students.includes('FIFS-1016') && !authCalls.deleteSnapshots[0].clients.includes('CLI-1001'), 'both records must be gone before the account is deleted');
+  });
+  await test('Delete: if the account cannot be checked it is left alone; an account that is already gone is not an error', async () => {
+    authFail = 'getUserById';
+    const unsure = await delStudent({ studentId: 'FIFS-1013' });
+    assert(unsure.status === 200 && unsure.body.authCleanup === 'skipped' && authCalls.deleteUser.length === 0, 'an unverifiable account must not be deleted: ' + JSON.stringify(unsure.body));
+    authFail = null; delete authUsers['client2@client.example'];
+    const gone = await delClient({ clientId: 'CLI-2002' });
+    assert(gone.status === 200 && gone.body.authCleanup === 'none' && authCalls.deleteUser.length === 0, 'an account that no longer exists needs no deletion: ' + JSON.stringify(gone.body));
+  });
+  await test('Delete: a thrown error from the account service is also caught, so the delete still succeeds and nothing leaks', async () => {
+    for (const mode of ['throwDelete', 'throwGet']) {
+      resetDb(); authFail = mode;
+      const s1 = await delStudent({ studentId: 'FIFS-1013' });
+      assert(s1.status === 200 && s1.body.success === true && ['failed', 'skipped'].includes(s1.body.authCleanup) && s1.body.authUserRemoved === false, `${mode}: ${s1.status} ${JSON.stringify(s1.body)}`);
+      assert(!/boom|exception/.test(JSON.stringify(s1.body)) && !db.students.some((x) => x.student_id === 'FIFS-1013'), `${mode}: the record must be deleted and nothing may leak`);
+    }
+  });
+  await test('Delete: if the delete matched no record, no sign-in is touched, even when the record had been found', async () => {
+    deleteMatchesNothing = true;
+    const s1 = await delStudent({ studentId: 'FIFS-1013' });
+    assert(s1.status === 200 && s1.body.authCleanup === 'none' && s1.body.authUserRemoved === null, `student: ${JSON.stringify(s1.body)}`);
+    const c1 = await delClient({ clientId: 'CLI-2002' });
+    assert(c1.status === 200 && c1.body.authCleanup === 'none', `client: ${JSON.stringify(c1.body)}`);
+    noAuthCalls();
+  });
+  await test('Delete: only staff can delete, and a refused caller causes no record or account change', async () => {
+    for (const token of [null, 'bad-token', 'student-alice-token', 'client-marcus-token', 'student-carol-token']) {
+      err(await delStudent({ studentId: 'FIFS-1013' }, token), 401);
+      err(await delClient({ clientId: 'CLI-2002' }, token), 401);
+    }
+    noAuthCalls(); noWrites();
+    assert(db.students.some((x) => x.student_id === 'FIFS-1013') && db.clients.some((x) => x.client_id === 'CLI-2002'), 'nothing may be deleted');
+  });
+
+  await test('Client invite: a direct client invite uses the canonical permit type, the same as the Edit Client dropdown', async () => {
+    writes.length = 0;
+    await fifs('adminDirectInvite', { portalType: 'client', generatedId: 'CLI-7001', fullName: 'Permit Person', email: 'permit.person@example.test', phone: '', course: 'Maryland Wear & Carry Permit' }, 'instructor-token');
+    const ins = writes.find((w) => w.op === 'insert' && w.table === 'clients');
+    assert(ins && ins.patch.permit_state === 'Maryland Wear & Carry', 'permit_state: ' + (ins && ins.patch.permit_state));
+    const at = PAGE_SRC.indexOf('<select id="editClientPermitState"');
+    const firstOption = (PAGE_SRC.slice(at, PAGE_SRC.indexOf('</select>', at)).match(/<option value="([^"]*)"/) || [])[1].replace(/&amp;/g, '&');
+    assert(firstOption === ins.patch.permit_state, 'must match the form\'s first option: ' + firstOption);
+    const list = (ROUTE_SRC.match(/const CLIENT_PERMIT_STATE_ALLOWLIST = \[([\s\S]*?)\];/) || [])[1] || '';
+    assert([...list.matchAll(/'([^']*)'/g)].some((m) => m[1] === ins.patch.permit_state), 'must be accepted by adminEditClient');
+  });
+
+  const refreshSrc = extractFunction('triggerCardGunRefresh');
+  function loadRefresh(win) {
+    const ctx = { window: win, executeUniversalGunReloadAnimation: (btn, cb) => cb() };
+    vm.createContext(ctx); vm.runInContext(refreshSrc + '\nthis.fn = triggerCardGunRefresh;', ctx);
+    return ctx.fn;
+  }
+  await test('Clients refresh button: it fetches from the server through refreshAdminRoster, and the other card buttons still work', async () => {
+    const calls = { roster: 0, chat: 0, telemetry: 0, clients: 0 };
+    const win = { refreshAdminRoster: () => calls.roster++, refreshAdminLiveChats: () => calls.chat++, syncTelemetryMetrics: () => calls.telemetry++ };
+    const fn = loadRefresh(win);
+    fn({}, 'clients'); assert(calls.roster === 1, 'clients must call refreshAdminRoster once, got ' + calls.roster);
+    win.refreshAdminClients = () => calls.clients++;   // even if some other script defines it, the real fetch still happens
+    fn({}, 'clients'); assert(calls.roster === 2, 'the real server fetch must still run');
+    fn({}, 'roster'); assert(calls.roster === 3, 'roster');
+    fn({}, 'chat'); assert(calls.chat === 1, 'chat'); fn({}, 'telemetry'); assert(calls.telemetry === 1, 'telemetry');
+    fn({}, 'unknown'); assert(calls.roster === 3 && calls.chat === 1 && calls.telemetry === 1, 'an unknown type does nothing');
+    let threw = null; try { loadRefresh({})({}, 'clients'); } catch (e) { threw = e; } assert(!threw, 'a missing refreshAdminRoster must not throw');
+    const refresh = extractFunction('refreshAdminRoster');
+    assert(/callFifsBackend\('getAdminDashboardData'/.test(refresh) && /renderAdminClientTerminal\(res\)/.test(refresh), 'refreshAdminRoster must really fetch the dashboard and redraw the clients');
+  });
+  await test('Invite error message no longer claims to be talking to Supabase', async () => {
+    const at = PUBLIC_SCRIPT.indexOf("callFifsBackend('adminDirectInvite'");
+    const block = PUBLIC_SCRIPT.slice(at, at + 4200);
+    assert(/showStatus\(st, 'Error communicating with server: ' \+/.test(block), 'the failure callback should say "Error communicating with server: "');
+    assert(!/communicating with Supabase/i.test(PUBLIC_SCRIPT), 'the misleading prefix is still in the script');
+  });
+
+  console.log('\n[SECTION Q: refreshAdminClients]');
+  function loadClientsRefresh(opts = {}) {
+    const calls = { roster: 0 };
+    const now = { t: 1_000_000 };
+    const ctx = { window: { __fifsLastRosterRefreshAt: opts.lastAt }, Date: { now: () => now.t } };
+    if (!opts.noRoster) ctx.refreshAdminRoster = () => { calls.roster++; ctx.window.__fifsLastRosterRefreshAt = now.t; };
+    vm.createContext(ctx);
+    vm.runInContext(extractFunction('refreshAdminClients') + '\nthis.fn = refreshAdminClients;', ctx);
+    return { fn: ctx.fn, calls, now, ctx };
+  }
+  await test('refreshAdminClients: opening the Clients tab does a real roster fetch, and is safe if the roster refresh is missing', async () => {
+    const h = loadClientsRefresh(); h.fn();
+    assert(h.calls.roster === 1, 'one real fetch expected, got ' + h.calls.roster);
+    let threw = null; try { loadClientsRefresh({ noRoster: true }).fn(); } catch (e) { threw = e; }
+    assert(!threw, 'a missing refreshAdminRoster must not throw');
+  });
+  await test('refreshAdminClients: right after a roster refresh it does not fetch a second time, and it works again a moment later', async () => {
+    const h = loadClientsRefresh({ lastAt: 1_000_000 - 200 });
+    h.fn(); assert(h.calls.roster === 0, 'a roster fetch 200 ms ago already covers the clients');
+    h.now.t += 1500; h.fn(); assert(h.calls.roster === 1, 'a later call must fetch again');
+    h.fn(); assert(h.calls.roster === 1, 'and the call right after that is covered by it');
+  });
+  await test('refreshAdminClients is exported, the roster refresh records when it fetches, and every "refresh all" caller runs the roster first', async () => {
+    assert(/window\.refreshAdminClients = refreshAdminClients;/.test(PUBLIC_SCRIPT), 'refreshAdminClients must be on window');
+    const roster = extractFunction('refreshAdminRoster');
+    assert(roster.indexOf('window.__fifsLastRosterRefreshAt = Date.now();') > roster.indexOf('if (!pin) return;') && roster.indexOf('window.__fifsLastRosterRefreshAt = Date.now();') < roster.indexOf("callFifsBackend('getAdminDashboardData'"), 'the timestamp must be recorded only when a fetch is actually issued');
+    // triggerModalAdminRefresh is declared twice in the script; the later declaration is the one that runs.
+    const lastFunction = (name) => { const start = PUBLIC_SCRIPT.lastIndexOf('function ' + name + '('); let i = PUBLIC_SCRIPT.indexOf('{', start), depth = 0; for (; i < PUBLIC_SCRIPT.length; i++) { if (PUBLIC_SCRIPT[i] === '{') depth++; else if (PUBLIC_SCRIPT[i] === '}' && --depth === 0) break; } return PUBLIC_SCRIPT.slice(start, i + 1); };
+    for (const fn of ['triggerModalAdminRefresh', 'triggerAdminRefreshAll']) {
+      const src = lastFunction(fn);
+      assert(src.indexOf('refreshAdminRoster') >= 0 && src.indexOf('refreshAdminRoster') < src.indexOf('refreshAdminClients'), `${fn} (the live definition) must refresh the roster before the clients`);
+    }
+    assert(/window\.refreshAdminRoster\) window\.refreshAdminRoster\(\);\s*\n\s*if \(window\.refreshAdminClients\)/.test(PUBLIC_SCRIPT), 'the other "refresh all" callers keep the same order');
   });
 
   console.log('\n================================================================');
