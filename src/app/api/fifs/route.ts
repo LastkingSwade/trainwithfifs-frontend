@@ -109,21 +109,26 @@ function checkText(label: string, raw: unknown, maxLength: number, opts: { requi
   return { ok: true, value };
 }
 
-// '' and '#' (the UI's "no document" placeholder) clear the link; anything else must be a plain http(s) URL.
+// '' and '#' (the UI's "no document" placeholder) clear the link. Anything else must be an https:// URL (http://
+// only under local development, where NODE_ENV is not "production"). Script-capable and file-like schemes are
+// refused by name so the reason is clear, and every other scheme fails the prefix check.
 function checkDocumentUrl(raw: unknown): FieldCheck {
   if (typeof raw !== 'string') return { ok: false, error: 'Document link must be text.' };
   const value = raw.trim();
   if (value === '' || value === '#') return { ok: true, value: null };
-  if (value.length > 2048 || /\s/.test(value) || CONTROL_CHARS.test(value) || !/^https?:\/\//i.test(value)) {
-    return { ok: false, error: 'Document link must be a valid http:// or https:// URL.' };
+  if (/^(javascript|data|vbscript|file|blob|about):/i.test(value.replace(/[\u0000-\u0020]/g, ''))) {
+    return { ok: false, error: 'That kind of link is not allowed. Use an https:// document link.' };
   }
+  const allowHttp = process.env.NODE_ENV !== 'production';
+  const invalid = { ok: false, error: allowHttp ? 'Document link must be a valid https:// (or local http://) URL.' : 'Document link must be a valid https:// URL.' } as const;
+  const prefix = allowHttp ? /^https?:\/\//i : /^https:\/\//i;
+  if (value.length > 2048 || /\s/.test(value) || CONTROL_CHARS.test(value) || !prefix.test(value)) return invalid;
   try {
     const parsed = new URL(value);
-    if ((parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || parsed.username || parsed.password || !parsed.hostname) {
-      return { ok: false, error: 'Document link must be a valid http:// or https:// URL.' };
-    }
+    const okProtocol = parsed.protocol === 'https:' || (allowHttp && parsed.protocol === 'http:');
+    if (!okProtocol || parsed.username || parsed.password || !parsed.hostname) return invalid;
   } catch {
-    return { ok: false, error: 'Document link must be a valid http:// or https:// URL.' };
+    return invalid;
   }
   return { ok: true, value };
 }

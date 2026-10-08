@@ -4662,58 +4662,26 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
     // ==========================================================================
     // SUPABASE-BACKED STUDENT DOSSIER & INSTRUCTOR NOTES ENGINE
     // ==========================================================================
+    // The Dossier button. There is no separate dossier dialog on the page, so: if the student has a valid document
+    // link, open it directly (new tab, no opener); otherwise open the Edit Student form focused on the link box.
     function openStudentDossierModal(studentId) {
       var s = (window.adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
       if (!s) {
         alert("Student record not found in active roster.");
         return;
       }
-      var modal = document.getElementById("studentDossierModal");
-      if (!modal) {
-        if (typeof openAdminEditStudentModal === "function") {
-          openAdminEditStudentModal(studentId);
-        }
+      var stored = (s.profileDocUrl && s.profileDocUrl !== "#") ? s.profileDocUrl : (s.dossier_url || s.dossierUrl || "");
+      var safeUrl = stored ? fifsSafeHttpUrl(stored) : "";
+      if (safeUrl) {
+        window.open(safeUrl, "_blank", "noopener,noreferrer");
         return;
       }
-
-
-      document.getElementById("dossierModalStudentId").value = s.studentId;
-      var badge = document.getElementById("dossierModalBadge");
-      if (badge) badge.textContent = "STUDENT DOSSIER // " + s.studentId;
-      var nameElem = document.getElementById("dossierModalStudentName");
-      if (nameElem) nameElem.textContent = s.fullName || s.studentId;
-      var courseElem = document.getElementById("dossierModalCourse");
-      if (courseElem) courseElem.textContent = s.course || s.courseSelection || "Maryland Wear & Carry / HQL";
-      var dateInput = document.getElementById("dossierModalClassDate");
-      if (dateInput) dateInput.value = s.assignedDate || s.preferredDates || "";
-      
-      var docUrl = s.profileDocUrl || s.dossier_url || s.dossierUrl || "";
-      var docInput = document.getElementById("dossierModalDocUrl");
-      if (docInput) docInput.value = (docUrl === "#" || (/^[a-z][a-z0-9+.-]*:/i.test(docUrl) && !fifsSafeHttpUrl(docUrl))) ? "" : docUrl;
-
-
-      var viewLink = document.getElementById("dossierModalViewLink");
-      if (viewLink) {
-        if (docUrl && docUrl !== "#" && fifsSafeHttpUrl(docUrl)) {
-          viewLink.href = fifsSafeHttpUrl(docUrl);
-          viewLink.style.display = "inline-flex";
-        } else {
-          viewLink.style.display = "none";
-        }
+      openAdminEditStudentModal(studentId);
+      var urlBox = document.getElementById("editProfileDocUrl");
+      if (urlBox) {
+        if (typeof urlBox.scrollIntoView === "function") urlBox.scrollIntoView({ block: "center" });
+        if (typeof urlBox.focus === "function") urlBox.focus();
       }
-
-
-      var notesInput = document.getElementById("dossierModalNotes");
-      if (notesInput) notesInput.value = s.notes || s.comments || "";
-
-
-      var statusElem = document.getElementById("dossierModalStatus");
-      if (statusElem) statusElem.style.display = "none";
-
-
-      modal.style.display = "flex";
-      modal.classList.add("active");
-      document.body.style.overflow = "hidden";
     }
     window.openStudentDossierModal = openStudentDossierModal;
 

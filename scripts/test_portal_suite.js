@@ -861,6 +861,80 @@ async function main() {
     assert(r.status === 400 && /Email addresses cannot be modified here/.test(r.body.error) && writes.length === 0, 'server defense-in-depth is gone: ' + JSON.stringify(r.body));
   });
 
+  console.log('\n[SECTION H: Dossier link validation and the Dossier button]');
+  const withNodeEnv = async (value, fn) => { const prev = process.env.NODE_ENV; process.env.NODE_ENV = value; try { await fn(); } finally { if (prev === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = prev; } };
+  await test('Server: dossier links must be https:// in production; script, data, vbscript, file, and blob schemes are refused with 400', async () => {
+    await withNodeEnv('production', async () => {
+      for (const key of ['dossier_url', 'profileDocUrl', 'profile_doc_url', 'dossierUrl']) {
+        writes.length = 0;
+        const ok = await edit({ [key]: 'https://example.com/docs/a.pdf' });
+        assert(ok.status === 200 && writes[0].patch.profile_doc_url === 'https://example.com/docs/a.pdf', `${key}: https link should save, got ${ok.status}`);
+      }
+      writes.length = 0;
+      for (const bad of ['javascript:alert(1)', 'JaVaScRiPt:alert(1)', ' javascript:alert(1)', 'java\tscript:alert(1)', 'data:text/html,<script>alert(1)</script>', 'vbscript:msgbox(1)', 'file:///etc/passwd', 'blob:https://example.com/x',
+        'about:blank', 'http://example.com/a.pdf', 'ftp://example.com/a.pdf', '//example.com/a.pdf', 'example.com/a.pdf', 'https://', 'https://user:pw@example.com/a', 'https://exa mple.com']) {
+        const r = await edit({ dossier_url: bad });
+        err(r, 400);
+      }
+      const named = await edit({ dossier_url: 'javascript:alert(1)' });
+      assert(/not allowed/i.test(named.body.error) && !named.body.error.includes('alert'), 'dangerous scheme should be refused by name without echoing it: ' + named.body.error);
+      noWrites();
+    });
+  });
+  await test('Server: http:// links are accepted only outside production (local development)', async () => {
+    await withNodeEnv('development', async () => {
+      const r = await edit({ dossier_url: 'http://localhost:3000/doc.pdf' });
+      assert(r.status === 200 && writes[0].patch.profile_doc_url === 'http://localhost:3000/doc.pdf', 'local http should be accepted, got ' + r.status);
+      err(await edit({ dossier_url: 'javascript:alert(1)' }), 400);
+    });
+    await withNodeEnv('production', async () => {
+      writes.length = 0;
+      const r = await edit({ dossier_url: 'http://localhost:3000/doc.pdf' });
+      err(r, 400);
+      assert(/https:\/\//.test(r.body.error), 'message should ask for https: ' + r.body.error);
+      noWrites();
+    });
+  });
+  await test('Server: an empty dossier link (or the "#" placeholder) clears the link', async () => {
+    for (const v of ['', '   ', '#']) {
+      writes.length = 0;
+      const r = await edit({ dossier_url: v });
+      assert(r.status === 200 && writes[0].patch.profile_doc_url === null, `"${v}" should clear the link`);
+    }
+  });
+  const dossierSrc = ['fifsSafeHttpUrl', 'fifsSafeId', 'openStudentDossierModal'].map(extractFunction).join('\n');
+  function loadDossierButton(student) {
+    const calls = { opened: [], editModal: [], alerts: [], focused: 0, scrolled: 0 };
+    const urlBox = { focus() { calls.focused++; }, scrollIntoView() { calls.scrolled++; } };
+    const ctx = { window: { adminCachedStudents: student ? [student] : [], open: (...a) => calls.opened.push(a), location: { origin: 'https://trainwithfifs.example' } },
+      document: { getElementById: (id) => (id === 'editProfileDocUrl' ? urlBox : null) }, alert: (m) => calls.alerts.push(m), openAdminEditStudentModal: (id) => calls.editModal.push(id), URL, String };
+    vm.createContext(ctx);
+    vm.runInContext(dossierSrc + '\nthis.fn = openStudentDossierModal;', ctx);
+    return { fn: ctx.fn, calls };
+  }
+  await test('Dossier button: a valid document link opens in a new tab with noopener and no form', async () => {
+    const h = loadDossierButton({ studentId: 'FIFS-1001', profileDocUrl: 'https://example.com/d.pdf' });
+    h.fn('FIFS-1001');
+    assert(h.calls.opened.length === 1 && h.calls.opened[0][0] === 'https://example.com/d.pdf' && h.calls.opened[0][2] === 'noopener,noreferrer', 'expected a noopener open: ' + JSON.stringify(h.calls.opened));
+    assert(h.calls.editModal.length === 0, 'the edit form should not open when a link exists');
+  });
+  await test('Dossier button: no link, the "#" placeholder, or an unsafe link opens the Edit form focused on the link box', async () => {
+    for (const url of [undefined, '', '#', 'javascript:alert(1)', 'data:text/html,x', 'vbscript:x']) {
+      const h = loadDossierButton({ studentId: 'FIFS-1001', profileDocUrl: url });
+      h.fn('FIFS-1001');
+      assert(h.calls.opened.length === 0, `nothing may be opened for ${url}: ${JSON.stringify(h.calls.opened)}`);
+      assert(JSON.stringify(h.calls.editModal) === '["FIFS-1001"]' && h.calls.focused === 1 && h.calls.scrolled === 1, `edit form should open focused for ${url}`);
+    }
+  });
+  await test('Dossier button: an unknown student alerts and does nothing else', async () => {
+    const h = loadDossierButton(null);
+    h.fn('FIFS-9999');
+    assert(h.calls.alerts.length === 1 && h.calls.opened.length === 0 && h.calls.editModal.length === 0, 'unexpected behavior for an unknown student');
+  });
+  await test('Dossier button: the handler no longer depends on the missing #studentDossierModal element', async () => {
+    assert(!/studentDossierModal|dossierModal/.test(extractFunction('openStudentDossierModal')), 'the dead modal lookup is still in the handler');
+  });
+
   console.log('\n================================================================');
   console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   console.log('================================================================');
