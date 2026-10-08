@@ -2559,7 +2559,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
               <option value="STEP_7_MSP_PORTAL" ${stepNum === 7 ? 'selected' : ''}>7. MSP Portal</option>
               <option value="STEP_8_LICENSED" ${stepNum === 8 ? 'selected' : ''}>8. Licensed 🛡️</option>
             </select>
-            <span class="save-indicator" id="save-ind-${s.studentId}" style="display: none; color: #10b981; font-size: 0.72rem; margin-left: 4px;">Saved</span>
+            <span class="save-indicator" id="save-ind-${escapeHtml(s.studentId)}" style="display: none; color: #10b981; font-size: 0.72rem; margin-left: 4px;">Saved</span>
           </td>
           <td><span class="meta-chip chip-status" id="chip-status-{formatStepLabel(stepNum)}</span></td>
           <td style="text-align: right; white-space: nowrap;">
@@ -2807,13 +2807,13 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           statusBadge = `<span class="meta-chip" style="color: #ef4444; border-color: #ef4444;">EXPIRED_WATCH</span>`;
         }
         tr.innerHTML = `
-          <td><strong style="color: var(--accent-amber); font-family: var(--font-display); font-size: 0.92rem;">${c.clientId || 'FI-CLIENT'}</strong></td>
+          <td><strong style="color: var(--accent-amber); font-family: var(--font-display); font-size: 0.92rem;">${escapeHtml(c.clientId || 'FI-CLIENT')}</strong></td>
           <td>
-            <div style="font-weight: 700; color: #fff;">${c.fullName || 'Valued Client'}</div>
-            <div style="font-size: 0.80rem; color: var(--text-muted);">${c.email || ''} ${c.phone ? '• ' + c.phone : ''}</div>
+            <div style="font-weight: 700; color: #fff;">${escapeHtml(c.fullName || 'Valued Client')}</div>
+            <div style="font-size: 0.80rem; color: var(--text-muted);">${escapeHtml(c.email || '')} ${c.phone ? '• ' + escapeHtml(c.phone) : ''}</div>
           </td>
-          <td><span style="font-size: 0.85rem; color: #cbd5e1;">${c.permitState || 'Maryland Wear & Carry'}</span></td>
-          <td><span style="font-size: 0.85rem; color: #cbd5e1; font-weight: 600;">${c.expirationDate || 'Not Set'}</span></td>
+          <td><span style="font-size: 0.85rem; color: #cbd5e1;">${escapeHtml(c.permitState || 'Maryland Wear & Carry')}</span></td>
+          <td><span style="font-size: 0.85rem; color: #cbd5e1; font-weight: 600;">${escapeHtml(c.expirationDate || 'Not Set')}</span></td>
           <td>${daysBadge}</td>
           <td>${statusBadge}</td>
           <td style="text-align: right; white-space: nowrap;">
@@ -3453,7 +3453,8 @@ function loadDemoStudent() {
       var scUrl = s.scoresheet_url || s.scoresheetUrl || (s.scoresheet && (s.scoresheet.image_url || s.scoresheet.imageUrl));
       if (scUrl) {
         if (badge) { badge.textContent = 'Certified & Uploaded'; badge.style.background = 'rgba(16, 185, 129, 0.2)'; badge.style.color = '#10b981'; }
-        if (viewLink) { viewLink.href = scUrl; viewLink.style.display = 'inline-block'; }
+        var safeScUrl = fifsSafeHttpUrl(scUrl);
+        if (viewLink) { if (safeScUrl) { viewLink.href = safeScUrl; viewLink.style.display = 'inline-block'; } else { viewLink.removeAttribute('href'); viewLink.style.display = 'none'; } }
         if (delBtn) delBtn.style.display = 'inline-block';
       } else {
         if (badge) { badge.textContent = 'Pending Upload'; badge.style.background = 'rgba(245, 158, 11, 0.2)'; badge.style.color = 'var(--accent-amber)'; }
@@ -4707,7 +4708,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
         showStatus(st, 'Name and email are required.', 'error');
         return;
       }
-      showStatus(st, 'Generating credentials & dispatching access invitation to Supabase...', 'success');
+      showStatus(st, 'Creating the portal profile and sending the password setup link...', 'success');
       
       var newId = (portalType === 'student' ? 'FIFS-' : 'FI-CLIENT-') + Math.floor(1000 + Math.random() * 9000);
       var origin = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : 'https://trainwithfifs.com';
@@ -4751,7 +4752,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
             var credsSummary = 'Portal URL: ' + loginPortalUrl + ' | ID: ' + newId + (res.tempPassword ? (' | Temp Password: ' + res.tempPassword) : '');
             if (urlInput) urlInput.value = credsSummary;
             if (resBox) resBox.style.display = 'block';
-            showStatus(st, 'Credentials generated and invitation dispatched! Student can sign in at ' + loginPortalUrl + ' using their email/ID.', 'success');
+            showStatus(st, 'Invitation sent. The ' + (portalType === 'student' ? 'student' : 'client') + ' must open the password setup link in their email and choose a password before they can sign in at ' + loginPortalUrl + '. No password was sent.', 'success');
           } else {
             showStatus(st, (res && res.error) || 'Failed to dispatch invite to Supabase.', 'error');
           }
@@ -4779,8 +4780,8 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
     function handleDossierClick(urlOrId) {
       if (!urlOrId || urlOrId === '#' || urlOrId === 'javascript:void(0)') {
         alert('Student dossier is managed on Supabase Storage. Click Edit or Dossier to update.');
-      } else if (typeof urlOrId === 'string' && urlOrId.indexOf('http') === 0) {
-        window.open(urlOrId, '_blank');
+      } else if (typeof urlOrId === 'string' && /^https?:\/\//i.test(urlOrId) && fifsSafeHttpUrl(urlOrId)) {
+        window.open(fifsSafeHttpUrl(urlOrId), '_blank', 'noopener,noreferrer');
       } else {
         openStudentDossierModal(urlOrId);
       }
@@ -4816,13 +4817,13 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
       
       var docUrl = s.profileDocUrl || s.dossier_url || s.dossierUrl || "";
       var docInput = document.getElementById("dossierModalDocUrl");
-      if (docInput) docInput.value = (docUrl === "#" || docUrl.indexOf("javascript") !== -1) ? "" : docUrl;
+      if (docInput) docInput.value = (docUrl === "#" || (/^[a-z][a-z0-9+.-]*:/i.test(docUrl) && !fifsSafeHttpUrl(docUrl))) ? "" : docUrl;
 
 
       var viewLink = document.getElementById("dossierModalViewLink");
       if (viewLink) {
-        if (docUrl && docUrl !== "#" && docUrl.indexOf("javascript") === -1) {
-          viewLink.href = docUrl;
+        if (docUrl && docUrl !== "#" && fifsSafeHttpUrl(docUrl)) {
+          viewLink.href = fifsSafeHttpUrl(docUrl);
           viewLink.style.display = "inline-flex";
         } else {
           viewLink.style.display = "none";
@@ -4861,8 +4862,8 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
       if (input) {
         input.value = url;
         var viewLink = document.getElementById("dossierModalViewLink");
-        if (viewLink) {
-          viewLink.href = url;
+        if (viewLink && fifsSafeHttpUrl(url)) {
+          viewLink.href = fifsSafeHttpUrl(url);
           viewLink.style.display = "inline-flex";
         }
       }
@@ -5089,7 +5090,7 @@ function openAdminEditStudentModal(studentId) {
         var tr = document.createElement('tr');
         var stepNum = getStepNumberFromStatus(s.status);
         tr.innerHTML = `
-          <td><strong style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.95rem;">${s.studentId}</strong></td>
+          <td><strong style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.95rem;">${escapeHtml(s.studentId)}</strong></td>
           <td><a href="javascript:void(0)" onclick="openAdminEditStudentModal('{escapeHtml(s.fullName)}</strong></a><br><span style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(s.email || '')}</span></td>
           <td>${escapeHtml((s.course || '').split('(')[0].trim())}</td>
           <td>${escapeHtml(s.assignedDate || s.preferredDates || 'To Be Scheduled')}</td>
@@ -5185,7 +5186,7 @@ IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
           daysBadge = `<span class="meta-chip chip-status">${c.daysLeft} Days (Window)</span>`;
         }
         tr.innerHTML = `
-          <td><strong style="color: var(--accent-amber); font-family: var(--font-display); font-size: 0.95rem;">${c.clientId}</strong></td>
+          <td><strong style="color: var(--accent-amber); font-family: var(--font-display); font-size: 0.95rem;">${escapeHtml(c.clientId)}</strong></td>
           <td><strong style="color: #fff;">{escapeHtml(c.email || '')}</span></td>
           <td>${escapeHtml(c.permitState || 'Maryland')}</td>
           <td>${escapeHtml(c.expirationDate || 'Not set')}</td>
@@ -10787,8 +10788,8 @@ window.renderLiveVisitorRoster = renderLiveVisitorRoster;
 
   function openOfficialMspScoreSheet() {
     // 1. If student has a personal certified completed score sheet on file, open their personal copy
-    if (window.activeStudentCustomScoreSheetUrl && window.activeStudentCustomScoreSheetUrl.indexOf("http") === 0) {
-      window.open(window.activeStudentCustomScoreSheetUrl, '_blank');
+    if (window.activeStudentCustomScoreSheetUrl && /^https?:\/\//i.test(window.activeStudentCustomScoreSheetUrl) && fifsSafeHttpUrl(window.activeStudentCustomScoreSheetUrl)) {
+      window.open(fifsSafeHttpUrl(window.activeStudentCustomScoreSheetUrl), '_blank', 'noopener,noreferrer');
       return;
     }
     
@@ -11465,7 +11466,7 @@ if (typeof window !== 'undefined') {
 
       if (currentUrl) {
         if (previewBox) previewBox.style.display = 'block';
-        if (currentLink) { currentLink.href = currentUrl; currentLink.textContent = '📄 View Current Scoresheet (' + studentName + ') ↗'; }
+        if (currentLink) { currentLink.href = fifsSafeHttpUrl(currentUrl) || '#'; currentLink.textContent = '📄 View Current Scoresheet (' + studentName + ') ↗'; }
         if (deleteBtn) deleteBtn.style.display = 'inline-block';
       } else {
         if (previewBox) previewBox.style.display = 'none';
@@ -11669,7 +11670,7 @@ if (typeof window !== 'undefined') {
               editBadge.style.color = '#10b981';
             }
             if (editLink) {
-              editLink.href = res.url || (res.scoresheet && res.scoresheet.image_url);
+              editLink.href = fifsSafeHttpUrl(res.url || (res.scoresheet && res.scoresheet.image_url)) || '#';
               editLink.style.display = 'inline-block';
             }
             if (editDel) editDel.style.display = 'inline-block';
