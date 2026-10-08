@@ -5005,7 +5005,10 @@ function openAdminEditStudentModal(studentId) {
         }
         tr.innerHTML = `
           <td><strong style="color: var(--accent-amber); font-family: var(--font-display); font-size: 0.95rem;">${escapeHtml(c.clientId)}</strong></td>
-          <td><strong style="color: #fff;">{escapeHtml(c.email || '')}</span></td>
+          <td>
+            <div style="font-weight: 700; color: #fff;">${escapeHtml(c.fullName || 'Valued Client')}</div>
+            <div style="font-size: 0.80rem; color: var(--text-muted);">${escapeHtml(c.email || '')} ${c.phone ? '• ' + escapeHtml(c.phone) : ''}</div>
+          </td>
           <td>${escapeHtml(c.permitState || 'Maryland')}</td>
           <td>${escapeHtml(c.expirationDate || 'Not set')}</td>
           <td>${daysBadge}</td>

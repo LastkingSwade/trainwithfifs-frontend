@@ -177,6 +177,50 @@ async function main() {
     assert(asked.length === 1 && asked[0].includes("Sean O'Connor") && asked[0].includes('FIFS-1001') && !/[{}]/.test(asked[0]), 'confirmation text: ' + asked[0]);
   });
 
+  console.log('\n[SECTION A3: Client roster contact cell]');
+  const clientRows = (clients) => {
+    const src = findFunction(SCRIPT, 'function renderAdminClientTerminal(data) {', 'last');
+    return runRoster(src, `renderAdminClientTerminal({ clients: ${JSON.stringify(clients)} });`);
+  };
+  const rowCells = (html) => [...html.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((m) => m[1]);
+  const textOf = (cellHtml) => cellHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  await test('Client roster: each row shows the client\'s full name, then the email and phone, in the contact cell', async () => {
+    const html = clientRows([{ clientId: 'CLI-1001', fullName: 'Marcus Client', email: 'marcus@client.example', phone: '(410) 555-0111', permitState: 'Maryland Wear & Carry', expirationDate: '2027-03-15', status: 'ACTIVE_REGISTERED' }]);
+    const cells = rowCells(html);
+    assert(cells.length === 7, 'expected 7 cells per row, found ' + cells.length);
+    const contact = cells[1];
+    assert(/<div style="font-weight: 700; color: #fff;">Marcus Client<\/div>/.test(contact), 'the full name must be shown in bold: ' + contact);
+    assert(textOf(contact) === 'Marcus Client marcus@client.example • (410) 555-0111', 'contact cell text: ' + textOf(contact));
+    assert(textOf(cells[0]) === 'CLI-1001' && /Maryland Wear & Carry|Maryland Wear &amp; Carry/.test(cells[2]) && textOf(cells[3]) === '2027-03-15', 'the other cells must be intact');
+  });
+  await test('Client roster: no raw template syntax or stray closing tag leaks into any row, and the markup is balanced', async () => {
+    const html = clientRows([{ clientId: 'CLI-1001', fullName: 'Marcus Client', email: 'marcus@client.example', phone: '410-555-0111', permitState: 'Maryland Wear & Carry', expirationDate: '2027-03-15', status: 'ACTIVE_REGISTERED' }]);
+    assert(!/\$\{|(?<![\w$])\{escape|\{c\.|undefined|\[object/.test(html), 'a template placeholder or undefined leaked: ' + (html.match(/.{20}(\$\{|\{escape|\{c\.|undefined|\[object).{20}/) || [''])[0]);
+    const count = (re) => (html.match(re) || []).length;
+    for (const tag of ['td', 'div', 'span', 'strong', 'button']) assert(count(new RegExp('<' + tag + '[\\s>]', 'g')) === count(new RegExp('</' + tag + '>', 'g')), `unbalanced <${tag}> tags`);
+  });
+  await test('Client roster: a missing phone shows no bullet, a missing name shows the fallback, and a missing email shows nothing odd', async () => {
+    const noPhone = rowCells(clientRows([{ clientId: 'CLI-2', fullName: 'No Phone', email: 'np@client.example', permitState: 'Maryland Wear & Carry', status: 'ACTIVE_REGISTERED' }]))[1];
+    assert(textOf(noPhone) === 'No Phone np@client.example' && !/•/.test(noPhone), 'no phone, no bullet: ' + textOf(noPhone));
+    const noName = rowCells(clientRows([{ clientId: 'CLI-3', email: 'nn@client.example', status: 'ACTIVE_REGISTERED' }]))[1];
+    assert(/Valued Client/.test(noName) && /nn@client\.example/.test(noName), 'the name fallback must show: ' + textOf(noName));
+    const noEmail = rowCells(clientRows([{ clientId: 'CLI-4', fullName: 'No Email', status: 'ACTIVE_REGISTERED' }]))[1];
+    assert(/No Email/.test(noEmail) && !/undefined|null/.test(noEmail), 'a missing email must not print undefined: ' + textOf(noEmail));
+  });
+  await test('Client roster: hostile names, emails, and phones are escaped in the contact cell', async () => {
+    const html = clientRows([{ clientId: 'CLI-9', fullName: HOSTILE.tag, email: HOSTILE.svg, phone: HOSTILE.script, permitState: 'Maryland Wear & Carry', status: 'ACTIVE_REGISTERED' }]);
+    const contact = rowCells(html)[1];
+    assert(!LIVE_MARKUP.test(contact), 'live markup reached the contact cell: ' + contact);
+    assert(contact.includes('&lt;img src=x onerror=alert(1)&gt;') && contact.includes('&lt;script&gt;alert(1)&lt;/script&gt;') && contact.includes('&quot;&gt;&lt;svg onload=alert(1)&gt;'), 'expected escaped name, phone, and email: ' + contact);
+    const apostrophe = rowCells(clientRows([{ clientId: 'CLI-8', fullName: "Sean O'Connor", email: 'sean@client.example', status: 'ACTIVE_REGISTERED' }]))[1];
+    assert(textOf(apostrophe).startsWith('Sean O&#039;Connor') || textOf(apostrophe).startsWith("Sean O'Connor"), 'an apostrophe must survive: ' + textOf(apostrophe));
+  });
+  await test('The live client roster has no escape call that is missing its $, and no stray closing tag in the contact cell', async () => {
+    const src = findFunction(SCRIPT, 'function renderAdminClientTerminal(data) {', 'last');
+    assert(!/(?<![\w$])\{escapeHtml\(/.test(src), 'a {escapeHtml(...)} without a $ remains in the client roster');
+    assert(!/<strong style="color: #fff;">\{/.test(src), 'the old broken contact cell is back');
+  });
+
   console.log('\n[SECTION B: page.tsx roster]');
   await test('Staff roster in page.tsx escapes text and only links http(s) dossier URLs', async () => {
     const start = PAGE.indexOf('    const escHtml = (value: unknown): string');
