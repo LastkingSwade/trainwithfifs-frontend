@@ -187,3 +187,61 @@ export async function requestPasswordReset(client: AuthClient, email: string, or
   }
   return { ok: true, message: GENERIC_RESET_MESSAGE, cooldown: true };
 }
+
+// --- Reading the email from a portal's login form ----------------------------------------------------
+// The "Forgot password?" link next to each login reads that login's own email box. These helpers keep that
+// step testable and make the error name the box, so a person can tell which field was empty.
+
+export const PORTAL_RESET_FIELDS: Record<PortalKey, { input: string; status: string; label: string }> = {
+  student: { input: 'studentAuthInput', status: 'student-login-status', label: 'Email Address or Student ID' },
+  client: { input: 'clientAuthInput', status: 'client-login-status', label: 'Email Address' },
+  staff: { input: 'adminStaffEmail', status: 'admin-auth-status', label: 'Staff Account Email' },
+};
+
+// Structural stand-in for `document` (tests pass a fake). Elements are read only for their `.value`.
+type FieldReader = { getElementById(id: string): any };
+
+/** Returns the trimmed email from the portal's own box, or an error that names that box. Never touches Supabase. */
+export function readResetEmail(doc: FieldReader, portal: PortalKey): { email: string } | { error: string } {
+  const field = PORTAL_RESET_FIELDS[portal];
+  const element = doc.getElementById(field.input);
+  if (!element) return { error: `The "${field.label}" box was not found on this page. Reload the page and try again.` };
+  const value = String(element.value ?? '').trim();
+  if (!value) return { error: `Enter your email address in the "${field.label}" box, then tap Forgot password again.` };
+  // isPlausibleEmail is a type guard; checking an `unknown` copy keeps `value` typed as a string below.
+  const candidate: unknown = value;
+  if (!isPlausibleEmail(candidate)) {
+    return {
+      error: value.includes('@')
+        ? `The "${field.label}" box does not contain a valid email address. Check it and try again.`
+        : `Password reset needs your email address. Type it in the "${field.label}" box, then tap Forgot password again.`
+    };
+  }
+  return { email: value };
+}
+
+export type PortalResetResult = RequestResult & { requested: boolean };
+
+/**
+ * Full "Forgot password?" step for one portal: read that portal's email box, validate it, and only then
+ * create a client and ask Supabase. An empty or malformed box never reaches Supabase.
+ */
+export async function requestPortalPasswordReset(opts: {
+  portal: unknown;
+  doc: FieldReader;
+  createClient: () => AuthClient;
+  origin: string;
+}): Promise<PortalResetResult> {
+  if (!isPortalKey(opts.portal)) return { ok: false, requested: false, cooldown: false, message: 'Password reset is not available for this form.' };
+  const read = readResetEmail(opts.doc, opts.portal);
+  if ('error' in read) return { ok: false, requested: false, cooldown: false, message: read.error };
+  let client: AuthClient;
+  try {
+    client = opts.createClient();
+  } catch {
+    return { ok: false, requested: false, cooldown: false, message: 'Password reset is not available right now. Please contact FIFS directly.' };
+  }
+  const result = await requestPasswordReset(client, read.email, opts.origin);
+  return { ...result, requested: true };
+}
+

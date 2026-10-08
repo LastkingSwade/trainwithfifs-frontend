@@ -7,6 +7,8 @@
  */
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
+const ts = require('typescript');
 const { installFetchStub } = require('./lib/ts-loader');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -212,6 +214,133 @@ async function main() {
     eq(run('/reset-password', '?code=abc', ''), null, 'no redirect loop on the reset page');
     eq(run('/', '', ''), null, 'plain home page');
   });
+
+  console.log('\n[SECTION H: Forgot password reads the right email box and says which one is empty]');
+  /** Fake `document`: records which element ids were read. Elements have only a value. */
+  function fakeDoc(values) {
+    const reads = [];
+    return { reads, getElementById: (id) => { reads.push(id); return id in values ? { value: values[id] } : null; } };
+  }
+  function runReset(portal, values) {
+    const doc = fakeDoc(values);
+    const client = mockClient();
+    let created = 0;
+    const promise = pr.requestPortalPasswordReset({ portal, doc, createClient: () => { created += 1; return client; }, origin: 'https://trainwithfifs.com' });
+    return promise.then((result) => ({ result, doc, client, created }));
+  }
+  await test('Staff Forgot password passes the entered staff email (trimmed) to the reset call', async () => {
+    const { result, client, doc } = await runReset('staff', { adminStaffEmail: '  info@trainwithfifs.com  ', studentAuthInput: 'someone@else.test', clientAuthInput: 'other@else.test' });
+    eq(client.calls.find((c) => c.name === 'resetPasswordForEmail').args, ['info@trainwithfifs.com', { redirectTo: 'https://trainwithfifs.com/reset-password' }], 'reset arguments');
+    assert(result.requested && result.ok && result.message === pr.GENERIC_RESET_MESSAGE, JSON.stringify(result));
+    eq(doc.reads, ['adminStaffEmail'], 'the staff link must read only the staff email box');
+  });
+  await test('Student and client links read only their own boxes', async () => {
+    const stu = await runReset('student', { studentAuthInput: 'stu@example.test', adminStaffEmail: 'staff@example.test' });
+    eq(stu.client.calls.find((c) => c.name === 'resetPasswordForEmail').args[0], 'stu@example.test', 'student email'); eq(stu.doc.reads, ['studentAuthInput'], 'student reads');
+    const cli = await runReset('client', { clientAuthInput: 'cli@example.test', adminStaffEmail: 'staff@example.test' });
+    eq(cli.client.calls.find((c) => c.name === 'resetPasswordForEmail').args[0], 'cli@example.test', 'client email'); eq(cli.doc.reads, ['clientAuthInput'], 'client reads');
+  });
+  await test('An empty or whitespace-only email is rejected, names the box, and never creates a client or calls Supabase', async () => {
+    for (const value of ['', '   ', undefined]) {
+      const { result, client, created } = await runReset('staff', { adminStaffEmail: value });
+      assert(!result.requested && !result.ok && !result.cooldown, 'must not count as a request');
+      assert(/Staff Account Email/.test(result.message) && /Enter your email address/.test(result.message), `message must name the box: ${result.message}`);
+      eq(created, 0, 'client creations'); eq(client.called('resetPasswordForEmail'), 0, 'Supabase reset calls');
+    }
+  });
+  await test('A malformed email or a Student ID is rejected with a clear message and no Supabase call', async () => {
+    const bad = await runReset('staff', { adminStaffEmail: 'info@trainwithfifs' });
+    assert(/does not contain a valid email address/.test(bad.result.message) && bad.created === 0 && bad.client.called('resetPasswordForEmail') === 0, bad.result.message);
+    const id = await runReset('student', { studentAuthInput: 'FIFS-4081' });
+    assert(/needs your email address/.test(id.result.message) && /Email Address or Student ID/.test(id.result.message) && id.created === 0, id.result.message);
+  });
+  await test('A missing form box is reported without contacting Supabase', async () => {
+    const { result, created } = await runReset('client', {});
+    assert(/was not found on this page/.test(result.message) && created === 0 && !result.requested, result.message);
+  });
+  await test('A client that cannot be created is reported safely, and unknown portals do nothing', async () => {
+    const r = await pr.requestPortalPasswordReset({ portal: 'staff', doc: fakeDoc({ adminStaffEmail: 'a@b.co' }), createClient: () => { throw new Error('config'); }, origin: 'https://x.test' });
+    assert(!r.requested && /not available right now/.test(r.message), r.message);
+    const u = await pr.requestPortalPasswordReset({ portal: 'admin', doc: fakeDoc({}), createClient: () => { throw new Error('must not be called'); }, origin: 'https://x.test' });
+    assert(!u.requested && !u.ok, 'unknown portal must be refused');
+  });
+  await test('The page handler delegates to requestPortalPasswordReset and disables the link only after a real request', async () => {
+    assert(/requestPortalPasswordReset\(/.test(mainSrc) && !/const targets = \{\s*student: \{ input/.test(mainSrc), 'handler must use the tested helper');
+    assert(/if \(result\.requested\) pauseMs/.test(mainSrc), 'the link may only be paused after a request was made');
+  });
+
+  console.log('\n[SECTION I: Passwords are used exactly as typed]');
+  await test('The new-password form accepts and sends leading/trailing spaces unchanged', async () => {
+    const spaced = '  keep my spaces 9  ';
+    eq(pr.validateNewPassword(spaced, spaced), null, 'validation');
+    const c = mockClient({ session: { user: {} } });
+    eq(await pr.submitNewPassword(c, spaced, spaced), { ok: true }, 'submit');
+    eq(c.calls.find((x) => x.name === 'updateUser').args[0], { password: spaced }, 'updateUser must receive the exact password');
+  });
+  await test('No sign-in, booking or change-password code trims a password', async () => {
+    const scriptSrc = read('public/scripts/TrainWithFIFS_scripts.js');
+    const offenders = [];
+    for (const [name, text] of [['page.tsx', mainSrc], ['TrainWithFIFS_scripts.js', scriptSrc]]) {
+      text.split('\n').forEach((line, i) => { if (/(passInput|passField|currInput|newInput|confirmInput|portalPasswordInput)[^;]*\.trim\(\)/.test(line)) offenders.push(`${name}:${i + 1}`); });
+    }
+    eq(offenders, [], 'password reads that still trim');
+  });
+
+  /** Runs a staff sign-in handler against fake inputs and a fake Supabase client; returns what signInWithPassword received. */
+  async function runStaffSignIn(handlerSource, { email, password }) {
+    const attempts = [];
+    const status = { style: {}, className: '', textContent: '' };
+    const inputs = { adminStaffEmail: { value: email }, adminStaffPassword: { value: password }, 'admin-auth-status': status };
+    const client = { auth: { signInWithPassword: async (creds) => { attempts.push(creds); return { data: null, error: { message: 'Invalid login credentials' } }; } } };
+    const sandbox = {
+      window: { supabaseClient: client }, document: { getElementById: (id) => inputs[id] || null },
+      console: { error() {}, warn() {}, log() {} }, Promise, Object, JSON,
+      fetch: async () => { throw new Error('no network is allowed in this test'); }
+    };
+    vm.createContext(sandbox);
+    vm.runInContext(handlerSource, sandbox);
+    await sandbox.window.verifyAdminAccess();
+    return { attempts, status };
+  }
+  const SPACED_PASSWORD = '  Pass word 1  ';
+  await test('Script staff sign-in sends the password exactly as typed and trims only the email', async () => {
+    const scriptSrc = read('public/scripts/TrainWithFIFS_scripts.js');
+    const a = scriptSrc.indexOf('function verifyAdminAccess() {');
+    const b = scriptSrc.indexOf('window.verifyAdminAccess = verifyAdminAccess;', a);
+    assert(a > 0 && b > a, 'could not find the script handler');
+    const { attempts, status } = await runStaffSignIn(scriptSrc.slice(a, b) + '\nwindow.verifyAdminAccess = verifyAdminAccess;', { email: '  Info@TrainWithFIFS.com ', password: SPACED_PASSWORD });
+    await new Promise((r) => setImmediate(r));
+    eq(attempts.length, 1, 'sign-in attempts');
+    eq(attempts[0].password, SPACED_PASSWORD, 'the password must reach Supabase unchanged');
+    eq(attempts[0].email, 'Info@TrainWithFIFS.com', 'the email is trimmed');
+  });
+  await test('Page staff sign-in sends the password exactly as typed and trims only the email', async () => {
+    const marker = '(window as any).verifyAdminAccess = async function() {';
+    const a = mainSrc.indexOf(marker);
+    assert(a > 0, 'could not find the page handler');
+    let depth = 0, i = mainSrc.indexOf('{', a + marker.length - 1), end = -1, quote = null;
+    for (; i < mainSrc.length; i++) {
+      const ch = mainSrc[i];
+      if (quote) { if (ch === '\\') i++; else if (ch === quote) quote = null; continue; }
+      if (ch === "'" || ch === '"' || ch === '`') { quote = ch; continue; }
+      if (ch === '{') depth++;
+      else if (ch === '}') { depth--; if (depth === 0) { end = i; break; } }
+    }
+    assert(end > 0, 'could not match the handler braces');
+    const js = ts.transpileModule(mainSrc.slice(a, end + 1) + ';', { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+    const { attempts } = await runStaffSignIn(js, { email: '  Info@TrainWithFIFS.com ', password: SPACED_PASSWORD });
+    eq(attempts.length, 1, 'sign-in attempts');
+    eq(attempts[0].password, SPACED_PASSWORD, 'the password must reach Supabase unchanged');
+    eq(attempts[0].email, 'Info@TrainWithFIFS.com', 'the email is trimmed');
+  });
+  await test('An empty password is still refused before any Supabase call', async () => {
+    const scriptSrc = read('public/scripts/TrainWithFIFS_scripts.js');
+    const a = scriptSrc.indexOf('function verifyAdminAccess() {');
+    const b = scriptSrc.indexOf('window.verifyAdminAccess = verifyAdminAccess;', a);
+    const { attempts, status } = await runStaffSignIn(scriptSrc.slice(a, b) + '\nwindow.verifyAdminAccess = verifyAdminAccess;', { email: 'info@trainwithfifs.com', password: '' });
+    eq(attempts.length, 0, 'sign-in attempts'); assert(/required/.test(status.textContent), status.textContent);
+  });
+
   await test('No outbound network calls were attempted', async () => { eq(fetchCalls.length, 0, 'fetch calls'); });
 
   console.log('\n================================================================');

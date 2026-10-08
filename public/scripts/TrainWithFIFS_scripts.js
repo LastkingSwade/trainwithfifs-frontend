@@ -2377,7 +2377,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       var emailInput = document.getElementById('adminStaffEmail');
       var passInput = document.getElementById('adminStaffPassword');
       var email = (emailInput ? emailInput.value : '').trim();
-      var password = (passInput ? passInput.value : '').trim();
+      var password = passInput ? passInput.value : ''; // passwords are used exactly as typed
       var statusDiv = document.getElementById('admin-auth-status');
 
       if (!email || !password) {
@@ -4001,7 +4001,7 @@ function loadDemoStudent() {
       var setupBox = document.getElementById('student-setup-password-box');
       var statusDiv = document.getElementById('student-login-status');
       var query = input ? input.value.trim() : '';
-      var password = passInput ? passInput.value.trim() : '';
+      var password = passInput ? passInput.value : ''; // passwords are used exactly as typed
 
 
       if (!query) {
@@ -6395,7 +6395,7 @@ function getStepNumberFromStatus(statusStr) {
       var groupSize = form.groupSize ? form.groupSize.value : '1 (Private One-on-One)';
       var comments = form.comments ? form.comments.value.trim() : '';
       var portalPasswordInput = document.getElementById('bookingPortalPassword') || document.getElementById('studentPassword') || document.getElementById('portalPassword');
-      var portalPassword = portalPasswordInput ? portalPasswordInput.value.trim() : '';
+      var portalPassword = portalPasswordInput ? portalPasswordInput.value : ''; // passwords are used exactly as typed
       [fullNameInput, emailInput, phoneInput].forEach(function(inp) {
         if (inp) {
           inp.style.borderColor = 'var(--border-subtle)';

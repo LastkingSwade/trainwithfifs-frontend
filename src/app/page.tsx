@@ -13,11 +13,12 @@ import Head from "next/head";
 import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
 import { createRecoveryClient } from "@/Lib/supabase/recovery-client";
 import {
+  PORTAL_RESET_FIELDS,
   RESET_COOLDOWN_MS,
   RESET_PORTAL_HINT_KEY,
   isPortalKey,
   portalTab,
-  requestPasswordReset,
+  requestPortalPasswordReset,
 } from "@/Lib/auth/password-reset";
 
 
@@ -1426,13 +1427,7 @@ export default function TrainWithFIFS(props: any) {
     // whether or not the address has an account, and pauses the link briefly after each use.
     (window as any).fifsRequestPasswordReset = async (portal: string, trigger?: HTMLElement | null) => {
       if (!isPortalKey(portal)) return;
-      const targets = {
-        student: { input: 'studentAuthInput', status: 'student-login-status' },
-        client: { input: 'clientAuthInput', status: 'client-login-status' },
-        staff: { input: 'adminStaffEmail', status: 'admin-auth-status' },
-      }[portal];
-      const emailInput = document.getElementById(targets.input) as HTMLInputElement | null;
-      const statusDiv = document.getElementById(targets.status);
+      const statusDiv = document.getElementById(PORTAL_RESET_FIELDS[portal].status);
       const show = (message: string) => {
         if (statusDiv) {
           statusDiv.textContent = message;
@@ -1442,17 +1437,23 @@ export default function TrainWithFIFS(props: any) {
       const button = trigger as HTMLButtonElement | null | undefined;
       if (button && button.disabled) return;
       if (button) button.disabled = true;
-      let pauseMs = 5000;
+      // A missing or malformed email is reported without contacting Supabase, so the link is not paused.
+      let pauseMs = 0;
       try {
-        const client = createRecoveryClient();
-        const result = await requestPasswordReset(client, emailInput ? emailInput.value : '', window.location.origin);
+        const result = await requestPortalPasswordReset({
+          portal,
+          doc: document,
+          createClient: createRecoveryClient,
+          origin: window.location.origin,
+        });
         show(result.message);
-        if (result.cooldown) pauseMs = RESET_COOLDOWN_MS;
+        if (result.requested) pauseMs = result.cooldown ? RESET_COOLDOWN_MS : 5000;
         if (result.ok) {
           try { window.localStorage.setItem(RESET_PORTAL_HINT_KEY, portal); } catch { /* storage unavailable */ }
         }
       } catch {
         show('Password reset is not available right now. Please contact FIFS directly.');
+        pauseMs = 5000;
       }
       window.setTimeout(() => { if (button) button.disabled = false; }, pauseMs);
     };
@@ -1488,7 +1489,7 @@ export default function TrainWithFIFS(props: any) {
       const setupBox = document.getElementById('student-setup-password-box');
       const statusDiv = document.getElementById('student-login-status');
       const query = input ? input.value.trim() : '';
-      const password = passInput ? passInput.value.trim() : '';
+      const password = passInput ? passInput.value : ''; // passwords are used exactly as typed
 
       if (!query) {
         if (statusDiv) {
@@ -2484,9 +2485,9 @@ export default function TrainWithFIFS(props: any) {
 
 
       const userIdentifier = emailInput ? emailInput.value.trim() : '';
-      const currentPassword = currInput ? currInput.value.trim() : '';
-      const newPassword = newInput ? newInput.value.trim() : '';
-      const confirmPassword = confirmInput ? confirmInput.value.trim() : '';
+      const currentPassword = currInput ? currInput.value : '';
+      const newPassword = newInput ? newInput.value : '';
+      const confirmPassword = confirmInput ? confirmInput.value : '';
 
 
 
@@ -2792,7 +2793,7 @@ export default function TrainWithFIFS(props: any) {
       const emailInput = document.getElementById('adminStaffEmail') as HTMLInputElement | null;
       const passInput = document.getElementById('adminStaffPassword') as HTMLInputElement | null;
       const email = (emailInput?.value || '').trim();
-      const password = (passInput?.value || '').trim();
+      const password = passInput?.value || ''; // passwords are used exactly as typed
       const statusDiv = document.getElementById('admin-auth-status');
 
       if (!email || !password) {
