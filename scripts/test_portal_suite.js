@@ -29,11 +29,15 @@ const mockNextServer = {
 
 let db;
 const writes = [];
+// Test controls: force a database error for an operation, or make an update match no rows.
+let failOp = null;
+let updateMatchesNothing = false;
 function resetDb() {
   db = {
     students: [
       { id: 'row-alice', user_id: 'uuid-student-alice', student_id: 'FIFS-1001', email: 'alice@student.com', full_name: 'Alice Student',
-        status: 'STEP_2_CONFIRMED', internal_notes: 'Staff only: payment plan discussed', qualification_score: null },
+        status: 'STEP_2_CONFIRMED', internal_notes: 'Staff only: payment plan discussed', qualification_score: null,
+        prep_tasks: { transport_law: true, ammo_acquired: false, custom_extra: 'keep' } },
       { id: 'row-bob', user_id: 'uuid-student-bob', student_id: 'FIFS-1002', email: 'bob@student.com', full_name: 'Bob Student',
         status: 'STEP_6_QUALIFIED', internal_notes: 'Staff only', qualification_score: '24/25 (96%)' },
       // A student-editable is_admin flag must never grant staff access.
@@ -44,19 +48,29 @@ function resetDb() {
     clients: []
   };
   writes.length = 0;
+  failOp = null;
+  updateMatchesNothing = false;
 }
 
 function queryBuilder(table) {
   const filters = [];
   let op = 'select';
+  let patch = null;
   const run = () => {
+    if (failOp && failOp === op) return { data: null, error: { message: 'boom: internal database detail' } };
+    if (op === 'update') {
+      const hit = updateMatchesNothing ? [] : (db[table] || []).filter((r) => filters.every((f) => f(r)));
+      hit.forEach((r) => Object.assign(r, patch));
+      writes.push({ table, op, patch, rows: hit.length });
+      return { data: hit.map((r) => ({ ...r })), error: null };
+    }
     if (op !== 'select') { writes.push({ table, op }); return { data: null, error: null }; }
     return { data: (db[table] || []).filter((r) => filters.every((f) => f(r))).map((r) => ({ ...r })), error: null };
   };
   const b = {
     select: () => b,
     insert: () => { op = 'insert'; return b; },
-    update: () => { op = 'update'; return b; },
+    update: (data) => { op = 'update'; patch = data; return b; },
     upsert: () => { op = 'upsert'; return b; },
     delete: () => { op = 'delete'; return b; },
     eq: (c, v) => { filters.push((r) => r[c] === v); return b; },
@@ -162,7 +176,7 @@ async function test(name, fn) {
 }
 function assert(cond, msg) { if (!cond) throw new Error(msg); }
 
-const NOT_IMPLEMENTED = ['updateStudentStatus', 'adminEditStudent', 'adminEditClient', 'updateStudentTask',
+const NOT_IMPLEMENTED = ['adminEditClient',
   'saveStudentScoresheet', 'deleteStudentScoresheet', 'submitStudentWaiver', 'handleLeadMagnetSubmission'];
 
 async function main() {
@@ -175,6 +189,14 @@ async function main() {
     const { status, body } = await fifs('getStudentPortalData', {}, 'student-alice-token');
     assert(status === 200, `expected 200, got ${status}`);
     assert(!('internalNotes' in body.student) && !JSON.stringify(body).includes('Staff only'), 'internal notes leaked to student');
+  });
+  await test('The student view is an allow-list: no internal-notes, account, or admin fields at any level', async () => {
+    const { body } = await fifs('getStudentPortalData', {}, 'student-alice-token');
+    const allowed = ['assignedDate', 'course', 'email', 'enrollments', 'fullName', 'mustChangePassword', 'phone', 'prepTasks', 'profileDocUrl', 'qualificationScore', 'status', 'studentId', 'track'];
+    assert(JSON.stringify(Object.keys(body.student).sort()) === JSON.stringify(allowed), `unexpected student fields: ${Object.keys(body.student).sort().join(',')}`);
+    const text = JSON.stringify(body);
+    assert(!/internal|Staff only|is_admin|user_id/i.test(text), 'a staff-only or account field reached the student response');
+    for (const e of body.student.enrollments) assert(!Object.keys(e).some((k) => /internal|note/i.test(k) && k !== 'required_gear_notes'), `enrollment exposes a notes field: ${Object.keys(e).join(',')}`);
   });
   await test('Staff still see internal notes for a student', async () => {
     const { body } = await fifs('getStudentPortalData', { identifier: 'FIFS-1001' }, 'instructor-token');
@@ -367,6 +389,253 @@ async function main() {
     const badge = page.slice(at, page.indexOf('</span>', at));
     assert(!/25\/25|100%|PASS/.test(badge) && /Not yet recorded/.test(badge), 'badge default must be unrecorded');
   });
+  console.log('\n[SECTION D: updateStudentStatus, adminEditStudent, updateStudentTask]');
+  const STEPS = ['STEP_1_REGISTERED', 'STEP_2_CONFIRMED', 'STEP_3_PREPARATION', 'STEP_4_CLASSROOM', 'STEP_5_LIVE_FIRE', 'STEP_6_CERTIFIED', 'STEP_7_MSP_PORTAL', 'STEP_8_LICENSED'];
+  const row = (id) => db.students.find((r) => r.student_id === id);
+  const noWrites = () => assert(writes.length === 0, 'no database write may occur, saw ' + JSON.stringify(writes));
+  const err = (r, status) => assert(r.status === status && r.body.success === false && typeof r.body.error === 'string', `expected ${status} failure, got ${r.status} ${JSON.stringify(r.body)}`);
+  const patchColumns = () => Object.keys(writes[0].patch).sort();
+
+  // ---- updateStudentStatus ----
+  await test('updateStudentStatus: unauthenticated, student, and spoofed-admin callers are refused and nothing is written', async () => {
+    for (const token of [undefined, 'bad-token', 'student-alice-token', 'student-carol-token']) {
+      err(await fifs('updateStudentStatus', { studentId: 'FIFS-1001', status: 'STEP_8_LICENSED' }, token), 401);
+    }
+    noWrites();
+    assert(row('FIFS-1001').status === 'STEP_2_CONFIRMED', 'status must be unchanged');
+  });
+  await test('updateStudentStatus: instructor and staff roles can set every allow-listed step; only status and updated_at change', async () => {
+    for (const [i, step] of STEPS.entries()) {
+      const r = await fifs('updateStudentStatus', { studentId: 'FIFS-1001', status: step }, i % 2 ? 'staff-token' : 'instructor-token');
+      assert(r.status === 200 && r.body.success === true && r.body.status === 'success', `step ${step}: ${r.status} ${JSON.stringify(r.body)}`);
+      assert(row('FIFS-1001').status === step, `row not updated to ${step}`);
+    }
+    assert(writes.length === STEPS.length && writes.every((w) => w.table === 'students' && w.rows === 1 && JSON.stringify(Object.keys(w.patch).sort()) === '["status","updated_at"]'), 'unexpected writes: ' + JSON.stringify(writes));
+    assert(row('FIFS-1002').status === 'STEP_6_QUALIFIED', 'another student must not change');
+  });
+  await test('updateStudentStatus: unknown, legacy, empty, and non-string statuses are rejected with 400', async () => {
+    for (const bad of ['STEP_9_DONE', 'STEP_6_QUALIFIED', 'CONFIRMED', 'step_1_registered ', '', '   ', null, 3, ['STEP_1_REGISTERED'], { a: 1 }, true]) {
+      err(await fifs('updateStudentStatus', { studentId: 'FIFS-1001', status: bad }, 'instructor-token'), 400);
+    }
+    err(await fifs('updateStudentStatus', { studentId: 'FIFS-1001' }, 'instructor-token'), 400);
+    noWrites();
+  });
+  await test('updateStudentStatus: malformed or unknown student IDs are rejected; unknown IDs are 404', async () => {
+    for (const bad of ['', '   ', "x'; drop table students;--", 'a b', 'A'.repeat(65), null, 7, ['FIFS-1001'], undefined]) {
+      err(await fifs('updateStudentStatus', { studentId: bad, status: 'STEP_3_PREPARATION' }, 'instructor-token'), 400);
+    }
+    err(await fifs('updateStudentStatus', { studentId: 'FIFS-9999', status: 'STEP_3_PREPARATION' }, 'instructor-token'), 404);
+    noWrites();
+  });
+  await test('updateStudentStatus: database failures are reported as failures without leaking details', async () => {
+    failOp = 'update';
+    const a = await fifs('updateStudentStatus', { studentId: 'FIFS-1001', status: 'STEP_3_PREPARATION' }, 'instructor-token');
+    err(a, 500);
+    failOp = 'select';
+    const b = await fifs('updateStudentStatus', { studentId: 'FIFS-1001', status: 'STEP_3_PREPARATION' }, 'instructor-token');
+    err(b, 500);
+    assert(!/boom|internal database/.test(JSON.stringify([a.body, b.body])), 'database error text leaked');
+    failOp = null; updateMatchesNothing = true;
+    err(await fifs('updateStudentStatus', { studentId: 'FIFS-1001', status: 'STEP_3_PREPARATION' }, 'instructor-token'), 409);
+  });
+
+  // ---- adminEditStudent ----
+  const editPayload = () => ({
+    fullName: 'Alice Q. Student', email: 'ALICE@student.com', phone: '410-555-0100', courseSelection: 'Maryland HQL 8hr',
+    assignedDate: 'Nov 3, 2026', classDate: 'Nov 3, 2026', status: 'STEP_4_CLASSROOM', qualificationScore: '24/25 (96%)',
+    profileDocUrl: 'https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/a.pdf',
+    dossierUrl: 'https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/a.pdf', notes: 'Bring range bag'
+  });
+  const edit = (updates, token = 'instructor-token', studentId = 'FIFS-1001') => fifs('adminEditStudent', { studentId, updates }, token);
+  await test('adminEditStudent: unauthenticated, student, and spoofed-admin callers are refused and nothing is written', async () => {
+    for (const token of [null, 'bad-token', 'student-alice-token', 'student-carol-token']) err(await edit(editPayload(), token), 401);
+    noWrites();
+  });
+  await test('adminEditStudent: the edit-modal payload saves exactly the allow-listed columns', async () => {
+    const r = await edit(editPayload());
+    assert(r.status === 200 && r.body.success === true && r.body.status === 'success', `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(writes.length === 1 && writes[0].rows === 1, 'expected a single one-row update');
+    assert(JSON.stringify(patchColumns()) === JSON.stringify(['assigned_date', 'course_selection', 'full_name', 'internal_notes', 'phone', 'profile_doc_url', 'qualification_score', 'status', 'updated_at']), 'columns: ' + patchColumns());
+    const a = row('FIFS-1001');
+    assert(a.full_name === 'Alice Q. Student' && a.status === 'STEP_4_CLASSROOM' && a.internal_notes === 'Bring range bag' && a.assigned_date === 'Nov 3, 2026', 'values not saved');
+    assert(a.email === 'alice@student.com' && a.user_id === 'uuid-student-alice' && a.student_id === 'FIFS-1001', 'identity columns must not change');
+    assert(JSON.stringify(r.body).indexOf('Bring range bag') < 0, 'notes must not be echoed');
+  });
+  await test('adminEditStudent: the dossier-modal payload (document link, class date, notes) saves', async () => {
+    const u = { profileDocUrl: 'https://example.com/d.pdf', dossier_url: 'https://example.com/d.pdf', assignedDate: 'Dec 1', preferredDates: 'Dec 1', notes: 'n' };
+    const r = await edit(u);
+    assert(r.status === 200, `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(JSON.stringify(patchColumns()) === JSON.stringify(['assigned_date', 'internal_notes', 'profile_doc_url', 'updated_at']), 'columns: ' + patchColumns());
+  });
+  await test('adminEditStudent: every key the UI sends is accepted (contract matches public script)', async () => {
+    const sample = (k) => /email/i.test(k) ? 'alice@student.com' : k === 'status' ? 'STEP_3_PREPARATION' : /url/i.test(k) ? 'https://example.com/x.pdf' : 'value';
+    for (const fn of ['handleAdminEditStudentSubmit', 'handleSaveStudentDossier']) {
+      const src = allFunctionSources(fn).pop();
+      const block = src.match(/updates:\s*\{([\s\S]*?)\}/);
+      assert(block, 'no updates block in ' + fn);
+      const keys = [...block[1].matchAll(/(\w+)\s*:/g)].map((m) => m[1]);
+      assert(keys.length >= 5, 'too few keys found in ' + fn);
+      const u = {};
+      for (const k of keys) u[k] = sample(k);
+      u.assignedDate = u.classDate = u.preferredDates = u.assignedDate; // aliases must agree
+      for (const k of keys) if (!(k in u)) delete u[k];
+      const r = await edit(u);
+      assert(r.status === 200, `${fn}: keys ${keys.join(',')} -> ${r.status} ${JSON.stringify(r.body)}`);
+    }
+  });
+  await test('adminEditStudent: a changed email is rejected with the exact message and nothing is written', async () => {
+    const r = await edit({ fullName: 'Alice', email: 'other@student.com' });
+    err(r, 400);
+    assert(r.body.error === 'Email addresses cannot be modified here to avoid desyncing portal login credentials.', r.body.error);
+    for (const bad of ['', null, 5, ['alice@student.com']]) err(await edit({ fullName: 'Alice', email: bad }), 400);
+    err(await edit({ email: 'other@student.com' }), 400);
+    noWrites();
+  });
+  await test('adminEditStudent: identity, role, password, and token fields are rejected and nothing is written', async () => {
+    const forbidden = ['user_id', 'userId', 'student_id', 'is_admin', 'isAdmin', 'role', 'id', 'portal_password', 'portalPassword', 'password', 'newPassword',
+      'must_change_password', 'temp_password_reset', 'password_expires_at', 'last_password_change', 'token', 'access_token', 'created_at', 'updated_at', 'constructor', 'toString'];
+    for (const k of forbidden) err(await edit({ fullName: 'Alice', [k]: 'x' }), 400);
+    err(await edit(JSON.parse('{"fullName":"Alice","__proto__":{"is_admin":true}}')), 400);
+    noWrites();
+    assert(row('FIFS-1001').is_admin === undefined, 'is_admin must not be written');
+  });
+  await test('adminEditStudent: document links are normalised or must be plain http(s) URLs', async () => {
+    for (const empty of ['', '#', '  #  ']) {
+      writes.length = 0;
+      const r = await edit({ profileDocUrl: empty });
+      assert(r.status === 200 && writes[0].patch.profile_doc_url === null, `"${empty}" should clear the link`);
+    }
+    for (const ok of ['https://example.com/a.pdf', 'HTTP://example.com/a', ' https://example.com/a ']) {
+      const r = await edit({ profileDocUrl: ok });
+      assert(r.status === 200, `rejected ${ok}`);
+    }
+    writes.length = 0;
+    for (const bad of ['javascript:alert(1)', 'data:text/html,<script>1</script>', 'ftp://example.com/a', '//evil.example/a', 'example.com/a.pdf', 'https://', 'https://user:pw@example.com/a',
+      'https://exa mple.com', 'https://example.com/\u0000', 'vbscript:x', 'https:/example.com', 'https://' + 'a'.repeat(2100), 5, null, {}]) {
+      err(await edit({ profileDocUrl: bad }), 400);
+    }
+    noWrites();
+  });
+  await test('adminEditStudent: bad values for text, status, and notes are rejected', async () => {
+    const cases = [{ fullName: '' }, { fullName: '   ' }, { fullName: 42 }, { fullName: 'A'.repeat(121) }, { fullName: 'Al\u0000ice' }, { phone: {} }, { phone: '1'.repeat(41) },
+      { courseSelection: 'C'.repeat(201) }, { assignedDate: 'D'.repeat(101) }, { qualificationScore: 'Q'.repeat(51) }, { status: 'STEP_9' }, { status: '' }, { status: 4 },
+      { notes: 5 }, { notes: 'N'.repeat(5001) }, { notes: 'bad\u0000note' }];
+    for (const c of cases) err(await edit(c), 400);
+    noWrites();
+  });
+  await test('adminEditStudent: conflicting alias values and empty requests are rejected', async () => {
+    err(await edit({ assignedDate: 'Nov 3', classDate: 'Nov 4' }), 400);
+    err(await edit({ profileDocUrl: 'https://example.com/a', dossierUrl: 'https://example.com/b' }), 400);
+    err(await edit({}), 400);
+    err(await edit({ notes: '   ' }), 400);
+    for (const u of [undefined, null, 'x', ['a'], 7]) err(await fifs('adminEditStudent', { studentId: 'FIFS-1001', updates: u }, 'instructor-token'), 400);
+    for (const id of ['', "x'--", 'a b', null]) err(await edit({ fullName: 'A' }, 'instructor-token', id), 400);
+    noWrites();
+  });
+  await test('adminEditStudent: empty notes never clear saved internal notes; blank optional text fields store null, but phone stores an empty string', async () => {
+    const r = await edit({ notes: '', phone: '', qualificationScore: '' });
+    assert(r.status === 200, `got ${r.status}`);
+    const a = row('FIFS-1001');
+    assert(a.internal_notes === 'Staff only: payment plan discussed', 'internal notes were wiped');
+    assert(a.phone === '' && a.qualification_score === null, 'blank phone must be "" (NOT NULL column) and blank score null');
+    assert(!('internal_notes' in writes[0].patch), 'internal_notes must not be in the update');
+  });
+  await test('adminEditStudent: never writes null to the NOT NULL columns phone, status, full_name, or prep_tasks', async () => {
+    for (const phone of ['', '   ', '410-555-0100']) {
+      const r = await edit({ phone, fullName: 'Alice', status: 'STEP_3_PREPARATION' });
+      assert(r.status === 200, `got ${r.status}`);
+    }
+    for (const w of writes) {
+      for (const col of ['phone', 'status', 'full_name', 'prep_tasks', 'updated_at']) {
+        if (col in w.patch) assert(w.patch[col] !== null && w.patch[col] !== undefined, `${col} was written as ${w.patch[col]}`);
+      }
+      assert(!('prep_tasks' in w.patch), 'adminEditStudent must not touch prep_tasks');
+    }
+    assert(writes[0].patch.phone === '' && writes[1].patch.phone === '' && writes[2].patch.phone === '410-555-0100', 'blank phone should be ""');
+    writes.length = 0;
+    for (const bad of [{ fullName: '' }, { fullName: null }, { status: null }, { status: '' }, { prep_tasks: null }, { prepTasks: {} }]) err(await edit(bad), 400);
+    noWrites();
+  });
+  await test('adminEditStudent: unknown student is 404; database failures are 500 without leaking details', async () => {
+    err(await edit({ fullName: 'Ghost' }, 'instructor-token', 'FIFS-9999'), 404);
+    failOp = 'update';
+    const a = await edit({ fullName: 'Alice' });
+    err(a, 500);
+    failOp = 'select';
+    const b = await edit({ fullName: 'Alice' });
+    err(b, 500);
+    assert(!/boom|internal database/.test(JSON.stringify([a.body, b.body])), 'database error text leaked');
+    failOp = null; updateMatchesNothing = true;
+    err(await edit({ fullName: 'Alice' }), 409);
+  });
+
+  // ---- updateStudentTask ----
+  const task = (payload, token = 'student-alice-token') => fifs('updateStudentTask', payload, token);
+  await test('updateStudentTask: a missing or invalid token is refused and nothing is written', async () => {
+    for (const token of [null, 'bad-token']) err(await task({ taskId: 'ammo_acquired', isChecked: true }, token), 401);
+    noWrites();
+  });
+  await test('updateStudentTask: merges into the caller\'s own prep_tasks and keeps other keys', async () => {
+    const r = await task({ studentId: 'FIFS-1001', email: 'alice@student.com', taskId: 'ammo_acquired', isChecked: true });
+    assert(r.status === 200 && r.body.success === true && r.body.status === 'success', `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(JSON.stringify(row('FIFS-1001').prep_tasks) === JSON.stringify({ transport_law: true, ammo_acquired: true, eye_ear_pro: false, id_ready: false, custom_extra: 'keep' }),
+      'merged value: ' + JSON.stringify(row('FIFS-1001').prep_tasks));
+    assert(writes.length === 1 && JSON.stringify(patchColumns()) === '["prep_tasks","updated_at"]', 'only prep_tasks and updated_at may change');
+    const off = await task({ taskId: 'transport_law', isChecked: false });
+    assert(off.status === 200 && row('FIFS-1001').prep_tasks.transport_law === false, 'unchecking must save');
+  });
+  await test('updateStudentTask: studentId and email in the request cannot redirect the write to another student', async () => {
+    const before = JSON.stringify(row('FIFS-1002'));
+    const r = await task({ studentId: 'FIFS-1002', email: 'bob@student.com', identifier: 'FIFS-1002', user_id: 'uuid-student-bob', taskId: 'id_ready', isChecked: true });
+    assert(r.status === 200, `got ${r.status}`);
+    assert(JSON.stringify(row('FIFS-1002')) === before, 'another student was modified');
+    assert(row('FIFS-1001').prep_tasks.id_ready === true, 'the caller\'s own row should change');
+  });
+  await test('updateStudentTask: accepts a tasks object, applying nothing if any entry is invalid', async () => {
+    const ok = await task({ tasks: { eye_ear_pro: true, id_ready: true } });
+    assert(ok.status === 200 && row('FIFS-1001').prep_tasks.eye_ear_pro === true && row('FIFS-1001').prep_tasks.id_ready === true, 'tasks object should save');
+    writes.length = 0;
+    err(await task({ tasks: { eye_ear_pro: false, is_admin: true } }), 400);
+    noWrites();
+  });
+  await test('updateStudentTask: unknown task keys and non-boolean values are rejected', async () => {
+    for (const k of ['is_admin', 'status', 'constructor', '__proto__', 'transport_law ', '', 7, null, undefined]) err(await task({ taskId: k, isChecked: true }), 400);
+    for (const v of ['true', 'false', 1, 0, null, undefined, {}, []]) err(await task({ taskId: 'ammo_acquired', isChecked: v }), 400);
+    for (const t of [null, [], 'x', 5]) err(await task({ tasks: t }), 400);
+    err(await task({ tasks: {} }), 400);
+    err(await task(JSON.parse('{"tasks":{"__proto__":true}}')), 400);
+    noWrites();
+  });
+  await test('updateStudentTask: a signed-in user with no student record gets 404; null prep_tasks starts from defaults', async () => {
+    err(await task({ taskId: 'ammo_acquired', isChecked: true }, 'instructor-token'), 404);
+    noWrites();
+    const r = await task({ taskId: 'id_ready', isChecked: true }, 'student-bob-token');
+    assert(r.status === 200 && JSON.stringify(row('FIFS-1002').prep_tasks) === JSON.stringify({ transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: true }), 'defaults: ' + JSON.stringify(row('FIFS-1002').prep_tasks));
+  });
+  await test('updateStudentTask: database failures are reported as failures without leaking details', async () => {
+    failOp = 'update';
+    const a = await task({ taskId: 'ammo_acquired', isChecked: true });
+    err(a, 500);
+    failOp = 'select';
+    const b = await task({ taskId: 'ammo_acquired', isChecked: true });
+    err(b, 500);
+    assert(!/boom|internal database/.test(JSON.stringify([a.body, b.body])), 'database error text leaked');
+    failOp = null; updateMatchesNothing = true;
+    err(await task({ taskId: 'ammo_acquired', isChecked: true }), 409);
+  });
+  await test('The three actions are implemented: no longer in the 501 list, and the route never uses a user-scoped client for them', async () => {
+    const src = fs.readFileSync(path.join(ROOT, 'src/app/api/fifs/route.ts'), 'utf-8');
+    const list = src.slice(src.indexOf('const NOT_IMPLEMENTED_ACTIONS'), src.indexOf('};', src.indexOf('const NOT_IMPLEMENTED_ACTIONS')));
+    for (const a of ['updateStudentStatus', 'adminEditStudent', 'updateStudentTask']) {
+      assert(!list.includes(a + ':'), a + ' is still listed as not implemented');
+      const at = src.indexOf("case '" + a + "':");
+      assert(at > 0, 'no case for ' + a);
+      const body = src.slice(at, src.indexOf('\n     case ', at + 10));
+      assert(body.indexOf('getAuthenticatedUser') >= 0 && body.indexOf('getAuthenticatedUser') < body.indexOf('getPrivilegedClient'), a + ' must authenticate before creating the privileged client');
+      assert(!/getPublicClient/.test(body), a + ' must not use the public client');
+    }
+  });
+
   console.log('\n================================================================');
   console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   console.log('================================================================');

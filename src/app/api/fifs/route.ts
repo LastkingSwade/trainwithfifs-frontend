@@ -64,15 +64,76 @@ function validateStrictPassword(password: string): { valid: boolean; error?: str
 // Actions the portal UI calls that have no server-side persistence yet. They fail explicitly
 // (501) so the UI cannot report a change as saved when nothing was stored.
 const NOT_IMPLEMENTED_ACTIONS: Record<string, string> = {
-  updateStudentStatus: 'Saving a student journey status',
-  adminEditStudent: 'Saving student record edits',
   adminEditClient: 'Saving client record edits',
-  updateStudentTask: 'Saving prep checklist progress',
   saveStudentScoresheet: 'Saving qualification scoresheets',
   deleteStudentScoresheet: 'Removing qualification scoresheets',
   submitStudentWaiver: 'Online waiver submission',
   handleLeadMagnetSubmission: 'Lead capture for the free guide'
 };
+
+// --- Student record edit validation (adminEditStudent, updateStudentStatus, updateStudentTask) ---
+const STUDENT_STATUS_ALLOWLIST = [
+  'STEP_1_REGISTERED', 'STEP_2_CONFIRMED', 'STEP_3_PREPARATION', 'STEP_4_CLASSROOM',
+  'STEP_5_LIVE_FIRE', 'STEP_6_CERTIFIED', 'STEP_7_MSP_PORTAL', 'STEP_8_LICENSED'
+];
+const PREP_TASK_KEYS = ['transport_law', 'ammo_acquired', 'eye_ear_pro', 'id_ready'];
+const STUDENT_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+const CONTROL_CHARS = /[\u0000-\u001f\u007f]/;
+
+// Every key adminEditStudent understands, mapped to the column it may change. Anything else is rejected,
+// so identity, role, and credential columns can never be written through this action.
+const ADMIN_EDIT_STUDENT_FIELDS: Record<string, string> = {
+  fullName: 'full_name', full_name: 'full_name',
+  phone: 'phone',
+  courseSelection: 'course_selection', course_selection: 'course_selection',
+  assignedDate: 'assigned_date', assigned_date: 'assigned_date', classDate: 'assigned_date', preferredDates: 'assigned_date',
+  status: 'status',
+  qualificationScore: 'qualification_score', qualification_score: 'qualification_score',
+  profileDocUrl: 'profile_doc_url', profile_doc_url: 'profile_doc_url', dossierUrl: 'profile_doc_url', dossier_url: 'profile_doc_url',
+  notes: 'internal_notes'
+};
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+type FieldCheck = { ok: true; value: string | null } | { ok: false; error: string };
+
+function checkText(label: string, raw: unknown, maxLength: number, opts: { required?: boolean; multiline?: boolean } = {}): FieldCheck {
+  if (typeof raw !== 'string') return { ok: false, error: `${label} must be text.` };
+  const value = raw.trim();
+  if (!value) return opts.required ? { ok: false, error: `${label} cannot be empty.` } : { ok: true, value: null };
+  if (value.length > maxLength) return { ok: false, error: `${label} must be ${maxLength} characters or fewer.` };
+  const probe = opts.multiline ? value.replace(/[\n\r\t]/g, ' ') : value;
+  if (CONTROL_CHARS.test(probe)) return { ok: false, error: `${label} contains characters that are not allowed.` };
+  return { ok: true, value };
+}
+
+// '' and '#' (the UI's "no document" placeholder) clear the link; anything else must be a plain http(s) URL.
+function checkDocumentUrl(raw: unknown): FieldCheck {
+  if (typeof raw !== 'string') return { ok: false, error: 'Document link must be text.' };
+  const value = raw.trim();
+  if (value === '' || value === '#') return { ok: true, value: null };
+  if (value.length > 2048 || /\s/.test(value) || CONTROL_CHARS.test(value) || !/^https?:\/\//i.test(value)) {
+    return { ok: false, error: 'Document link must be a valid http:// or https:// URL.' };
+  }
+  try {
+    const parsed = new URL(value);
+    if ((parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || parsed.username || parsed.password || !parsed.hostname) {
+      return { ok: false, error: 'Document link must be a valid http:// or https:// URL.' };
+    }
+  } catch {
+    return { ok: false, error: 'Document link must be a valid http:// or https:// URL.' };
+  }
+  return { ok: true, value };
+}
+
+function checkStudentStatus(raw: unknown): FieldCheck {
+  if (typeof raw !== 'string' || !STUDENT_STATUS_ALLOWLIST.includes(raw.trim())) {
+    return { ok: false, error: 'Status must be one of: ' + STUDENT_STATUS_ALLOWLIST.join(', ') + '.' };
+  }
+  return { ok: true, value: raw.trim() };
+}
 
 // Authorize staff solely from verified user's app_metadata.role
 function isStaffOrAdmin(user: any): boolean {
@@ -336,10 +397,11 @@ function savedChangeResponse(kind: 'cancelled' | 'rescheduled', enrollmentId: st
   });
 }
 
-// Helper to normalize student
-function normalizeStudent(s: any) {
+// Helper to normalize student. Staff-only internal notes are included only when the caller asks for them
+// (staff views); the default view a student receives is built without them, so they cannot leak by omission.
+function normalizeStudent(s: any, opts: { includeInternalNotes?: boolean } = {}) {
   if (!s) return null;
-  return {
+  const view: any = {
     studentId: s.student_id || s.id,
     fullName: s.full_name || s.name || 'Student',
     email: s.email,
@@ -352,9 +414,10 @@ function normalizeStudent(s: any) {
     qualificationScore: s.qualification_score || null,
     profileDocUrl: s.profile_doc_url || s.scoresheet_url || s.msp_score_sheet_url || '#',
     prepTasks: s.prep_tasks || { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false },
-    mustChangePassword: Boolean(s.must_change_password),
-    internalNotes: s.internal_notes || ''
+    mustChangePassword: Boolean(s.must_change_password)
   };
+  if (opts.includeInternalNotes) view.internalNotes = s.internal_notes || '';
+  return view;
 }
 
 function normalizeClient(c: any) {
@@ -966,7 +1029,7 @@ export async function POST(req: NextRequest) {
            student_id: studentId,
            full_name: fullName,
            email,
-           phone: phone || null,
+           phone: phone || '',
            course_selection: classTitle,
            preferred_dates: scheduledDate.toISOString(),
            status: 'STEP_1_REGISTERED',
@@ -1317,6 +1380,176 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ success: true, status: 'success', message: 'Password updated successfully.' });
      }
 
+     // Staff: move a student to a journey step. Only the status allow-list is accepted.
+     case 'updateStudentStatus': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       const studentId = typeof payload.studentId === 'string' ? payload.studentId.trim() : '';
+       if (!STUDENT_ID_PATTERN.test(studentId)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'A valid student ID is required.' }, { status: 400 });
+       }
+       const statusCheck = checkStudentStatus(payload.status);
+       if (!statusCheck.ok) return NextResponse.json({ success: false, status: 'error', error: statusCheck.error }, { status: 400 });
+
+       supabase = getPrivilegedClient();
+       const { data: existing, error: findErr } = await supabase.from('students').select('id, student_id').eq('student_id', studentId).maybeSingle();
+       if (findErr) {
+         console.error('[updateStudentStatus] Student lookup failed:', findErr.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not look up the student record. Nothing was saved.' }, { status: 500 });
+       }
+       if (!existing) return NextResponse.json({ success: false, status: 'error', error: 'Student not found. Nothing was saved.' }, { status: 404 });
+
+       const { data: updated, error: updateErr } = await supabase.from('students')
+         .update({ status: statusCheck.value, updated_at: new Date().toISOString() })
+         .eq('student_id', studentId).eq('id', existing.id).select('student_id');
+       if (updateErr) {
+         console.error('[updateStudentStatus] Update failed:', updateErr.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'The status could not be saved.' }, { status: 500 });
+       }
+       if (!Array.isArray(updated) || updated.length !== 1) {
+         return NextResponse.json({ success: false, status: 'error', error: 'The status change could not be confirmed. Nothing was saved.' }, { status: 409 });
+       }
+       return NextResponse.json({ success: true, status: 'success', message: 'Student status updated.', studentId, newStatus: statusCheck.value });
+     }
+
+     // Staff: edit a student record. Only the columns named in ADMIN_EDIT_STUDENT_FIELDS can change; the portal
+     // login (email, user_id, student_id, role/is_admin, password and token columns) is never writable here.
+     case 'adminEditStudent': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       const studentId = typeof payload.studentId === 'string' ? payload.studentId.trim() : '';
+       if (!STUDENT_ID_PATTERN.test(studentId)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'A valid student ID is required.' }, { status: 400 });
+       }
+       const updates = payload.updates;
+       if (!isPlainObject(updates)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'An updates object is required.' }, { status: 400 });
+       }
+
+       const row: Record<string, string | null> = {};
+       let hasEmail = false;
+       let requestedEmail: unknown = undefined;
+       for (const [key, raw] of Object.entries(updates)) {
+         if (key === 'email') { hasEmail = true; requestedEmail = raw; continue; }
+         if (!Object.prototype.hasOwnProperty.call(ADMIN_EDIT_STUDENT_FIELDS, key)) {
+           return NextResponse.json({ success: false, status: 'error', error: `The field "${key.slice(0, 40)}" cannot be changed here.` }, { status: 400 });
+         }
+         const column = ADMIN_EDIT_STUDENT_FIELDS[key];
+         let check: FieldCheck;
+         switch (column) {
+           case 'full_name': check = checkText('Full name', raw, 120, { required: true }); break;
+           case 'phone':
+             // students.phone is NOT NULL, so a blank phone is stored as an empty string, never null.
+             check = checkText('Phone', raw, 40);
+             if (check.ok && check.value === null) check = { ok: true, value: '' };
+             break;
+           case 'course_selection': check = checkText('Course', raw, 200); break;
+           case 'assigned_date': check = checkText('Class date', raw, 100); break;
+           case 'qualification_score': check = checkText('Qualification score', raw, 50); break;
+           case 'status': check = checkStudentStatus(raw); break;
+           case 'profile_doc_url': check = checkDocumentUrl(raw); break;
+           default: check = checkText('Notes', raw, 5000, { multiline: true }); break;
+         }
+         if (!check.ok) return NextResponse.json({ success: false, status: 'error', error: check.error }, { status: 400 });
+         // The roster does not send stored internal notes back to the browser, so an empty Notes box means
+         // "not shown", not "clear". Empty notes therefore never overwrite what staff already saved.
+         if (column === 'internal_notes' && check.value === null) continue;
+         if (Object.prototype.hasOwnProperty.call(row, column) && row[column] !== check.value) {
+           return NextResponse.json({ success: false, status: 'error', error: `Conflicting values were supplied for ${column}.` }, { status: 400 });
+         }
+         row[column] = check.value;
+       }
+       if (Object.keys(row).length === 0 && !hasEmail) {
+         return NextResponse.json({ success: false, status: 'error', error: 'No editable changes were supplied.' }, { status: 400 });
+       }
+
+       supabase = getPrivilegedClient();
+       const { data: existing, error: findErr } = await supabase.from('students').select('id, student_id, email').eq('student_id', studentId).maybeSingle();
+       if (findErr) {
+         console.error('[adminEditStudent] Student lookup failed:', findErr.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not look up the student record. Nothing was saved.' }, { status: 500 });
+       }
+       if (!existing) return NextResponse.json({ success: false, status: 'error', error: 'Student not found. Nothing was saved.' }, { status: 404 });
+
+       if (hasEmail) {
+         const requested = typeof requestedEmail === 'string' ? requestedEmail.trim().toLowerCase() : null;
+         if (requested === null || requested !== String(existing.email || '').trim().toLowerCase()) {
+           return NextResponse.json({ success: false, status: 'error', error: 'Email addresses cannot be modified here to avoid desyncing portal login credentials.' }, { status: 400 });
+         }
+       }
+       if (Object.keys(row).length === 0) {
+         return NextResponse.json({ success: false, status: 'error', error: 'No editable changes were supplied.' }, { status: 400 });
+       }
+
+       const { data: updated, error: updateErr } = await supabase.from('students')
+         .update({ ...row, updated_at: new Date().toISOString() })
+         .eq('student_id', studentId).eq('id', existing.id).select('student_id');
+       if (updateErr) {
+         console.error('[adminEditStudent] Update failed:', updateErr.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'The student record could not be saved.' }, { status: 500 });
+       }
+       if (!Array.isArray(updated) || updated.length !== 1) {
+         return NextResponse.json({ success: false, status: 'error', error: 'The student edit could not be confirmed. Nothing was saved.' }, { status: 409 });
+       }
+       return NextResponse.json({ success: true, status: 'success', message: 'Student record updated.', studentId, updatedFields: Object.keys(row) });
+     }
+
+     // Student: tick a prep checklist item. The row is found only from the verified token's user id; any
+     // studentId or email in the request is ignored.
+     case 'updateStudentTask': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required.' }, { status: 401 });
+       }
+       let entries: Array<[unknown, unknown]>;
+       if (payload.tasks !== undefined) {
+         if (!isPlainObject(payload.tasks)) {
+           return NextResponse.json({ success: false, status: 'error', error: 'Tasks must be an object of task names and true/false values.' }, { status: 400 });
+         }
+         entries = Object.entries(payload.tasks);
+       } else {
+         entries = [[payload.taskId, payload.isChecked]];
+       }
+       const requested: Record<string, boolean> = {};
+       for (const [key, value] of entries) {
+         if (typeof key !== 'string' || !PREP_TASK_KEYS.includes(key) || typeof value !== 'boolean') {
+           return NextResponse.json({ success: false, status: 'error', error: 'Unknown checklist item or value. Allowed items: ' + PREP_TASK_KEYS.join(', ') + ', each set to true or false.' }, { status: 400 });
+         }
+         requested[key] = value;
+       }
+       if (Object.keys(requested).length === 0) {
+         return NextResponse.json({ success: false, status: 'error', error: 'No checklist change was supplied.' }, { status: 400 });
+       }
+
+       supabase = getPrivilegedClient();
+       const { data: row, error: findErr } = await supabase.from('students').select('id, user_id, prep_tasks').eq('user_id', user.id).maybeSingle();
+       if (findErr) {
+         console.error('[updateStudentTask] Student lookup failed:', findErr.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not look up your record. Nothing was saved.' }, { status: 500 });
+       }
+       if (!row || row.user_id !== user.id) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Linked student record not found.' }, { status: 404 });
+       }
+       const current = isPlainObject(row.prep_tasks) ? row.prep_tasks : {};
+       const merged = { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false, ...current, ...requested };
+
+       const { data: updated, error: updateErr } = await supabase.from('students')
+         .update({ prep_tasks: merged, updated_at: new Date().toISOString() })
+         .eq('user_id', user.id).eq('id', row.id).select('id');
+       if (updateErr) {
+         console.error('[updateStudentTask] Update failed:', updateErr.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'Checklist progress could not be saved.' }, { status: 500 });
+       }
+       if (!Array.isArray(updated) || updated.length !== 1) {
+         return NextResponse.json({ success: false, status: 'error', error: 'The checklist change could not be confirmed. Nothing was saved.' }, { status: 409 });
+       }
+       return NextResponse.json({ success: true, status: 'success', message: 'Checklist progress saved.', prepTasks: merged });
+     }
+
      case 'getClientPortalData': {
        const { user, error: authErr } = await getAuthenticatedUser(req);
        if (authErr || !user) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required.' }, { status: 401 });
@@ -1369,9 +1602,8 @@ export async function POST(req: NextRequest) {
          ...enrollment,
          materialsUrl: enrollment.classes?.materials_path ? await getSignedDocumentUrl(supabase, enrollment.classes.materials_path) : null
        })));
-       const studentView: any = normalizeStudent(student);
-       // Staff-only notes are never returned to the student themself.
-       if (!isStaffOrAdmin(user)) delete studentView.internalNotes;
+       // Staff-only notes are never part of the view a student receives (see normalizeStudent).
+       const studentView: any = normalizeStudent(student, { includeInternalNotes: isStaffOrAdmin(user) });
        return NextResponse.json({ success: true, status: 'success', student: {
          ...studentView, enrollments: enrollmentsWithUrls, mustChangePassword: Boolean(student.must_change_password)
        }});
