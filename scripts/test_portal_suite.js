@@ -1428,6 +1428,104 @@ async function main() {
     assert(/fifsLoadScoresheetForEdit\(s\.studentId\)/.test(PUBLIC_SCRIPT), 'the Edit form must load the saved sheet when it opens');
   });
 
+  console.log('\n[SECTION K: Global data-oninput delegation]');
+  const tsLib = require('typescript');
+  const blockFrom = (marker) => {
+    const a = PAGE_SRC.indexOf(marker);
+    assert(a > 0, 'could not find in page.tsx: ' + marker);
+    const end = '\n    };\n';
+    return PAGE_SRC.slice(a, PAGE_SRC.indexOf(end, a) + end.length);
+  };
+  const delegatorJs = tsLib.transpileModule(blockFrom('    const decodeEntities = ') + '\n' + blockFrom('    const handleDelegatedInput = '), { compilerOptions: { target: tsLib.ScriptTarget.ES2022 } }).outputText;
+  // A minimal element tree: closest('[attr]') walks up the parents like the browser does.
+  const node = (attrs = {}, parent = null, value = '') => ({
+    attrs, parent, value, getAttribute(n) { return Object.prototype.hasOwnProperty.call(this.attrs, n) ? this.attrs[n] : null; },
+    closest(sel) { const name = sel.slice(1, -1); for (let n = this; n; n = n.parent) if (Object.prototype.hasOwnProperty.call(n.attrs, name)) return n; return null; }
+  });
+  function loadDelegator() {
+    const log = { search: [], contacts: 0, resize: [], errors: [], events: [], thisIs: [] };
+    const ctx = {
+      console: { error: (...a) => log.errors.push(a.map(String).join(' ')), log() {}, warn() {} },
+      handleSearch: (v) => log.search.push(v), filterContacts: () => { log.contacts++; }, autoResizeInput: (el) => log.resize.push(el),
+      record: function (ev) { log.events.push(ev && ev.type); log.thisIs.push(this); }
+    };
+    vm.createContext(ctx);
+    vm.runInContext(delegatorJs + '\nthis.run = handleDelegatedInput;', ctx);
+    return { run: ctx.run, log };
+  }
+  const inputEvent = (target) => ({ type: 'input', target });
+
+  await test('Delegated input: typing in the state search box runs handleSearch with the typed text', async () => {
+    const d = loadDelegator();
+    const box = node({ 'data-oninput': 'handleSearch(this.value)' }, null, 'Virg');
+    d.run(inputEvent(box));
+    box.value = 'Virginia'; d.run(inputEvent(box));
+    assert(JSON.stringify(d.log.search) === '["Virg","Virginia"]', 'each keystroke should run the handler with the current value: ' + JSON.stringify(d.log.search));
+  });
+  await test('Delegated input: the contact search and the chat box handlers run, and the chat box gets itself as the argument', async () => {
+    const d = loadDelegator();
+    d.run(inputEvent(node({ 'data-oninput': 'filterContacts()' })));
+    const chat = node({ 'data-oninput': 'autoResizeInput(this)', 'data-onkeydown': 'handleInputKey(event)' });
+    d.run(inputEvent(chat));
+    assert(d.log.contacts === 1 && d.log.resize.length === 1 && d.log.resize[0] === chat, 'contacts: ' + d.log.contacts + ', resize target ok: ' + (d.log.resize[0] === chat));
+  });
+  await test('Delegated input: events bubble from a child to the nearest ancestor with data-oninput, and handlers receive the event', async () => {
+    const d = loadDelegator();
+    const outer = node({ 'data-oninput': 'record(event)' });
+    const inner = node({ 'data-oninput': 'record(event)' }, outer);
+    const leaf = node({}, inner);
+    d.run(inputEvent(leaf));
+    assert(d.log.events.length === 1 && d.log.events[0] === 'input', 'exactly one handler should run, with the event: ' + JSON.stringify(d.log.events));
+    const viaThis = loadDelegator();
+    const holder = node({ 'data-oninput': 'handleSearch(this.getAttribute("data-oninput").length)' }); const child = node({}, holder);
+    viaThis.run(inputEvent(child));
+    assert(viaThis.log.search.length === 1 && typeof viaThis.log.search[0] === 'number', '`this` must be the element carrying the attribute');
+  });
+  await test('Delegated input: the handler runs synchronously, so any debounce a handler does itself is unaffected', async () => {
+    const d = loadDelegator();
+    d.run(inputEvent(node({ 'data-oninput': 'handleSearch(1); handleSearch(2)' })));
+    assert(JSON.stringify(d.log.search) === '[1,2]', 'the whole handler must have run before run() returned');
+  });
+  await test('Delegated input: HTML-escaped attribute text is decoded like the other delegators', async () => {
+    const d = loadDelegator();
+    d.run(inputEvent(node({ 'data-oninput': 'handleSearch(&quot;a&quot;)' })));
+    d.run(inputEvent(node({ 'data-oninput': 'handleSearch(&#x27;b&#x27;)' })));
+    assert(JSON.stringify(d.log.search) === '["a","b"]', 'decoded attributes: ' + JSON.stringify(d.log.search) + ' errors ' + JSON.stringify(d.log.errors));
+  });
+  await test('Delegated input: elements without data-oninput, empty attributes, and non-element targets are ignored without errors', async () => {
+    const d = loadDelegator();
+    const cases = [inputEvent(node({})), inputEvent(node({ 'data-oninput': '' })), inputEvent(node({}, node({ 'data-onclick': 'x()' }))), inputEvent(null), inputEvent(undefined), inputEvent({}), inputEvent('text'), inputEvent(42), { type: 'input' }];
+    for (const ev of cases) { let threw = null; try { d.run(ev); } catch (e) { threw = e; } assert(!threw, 'threw: ' + (threw && threw.message)); }
+    assert(d.log.search.length === 0 && d.log.contacts === 0 && d.log.errors.length === 0, 'nothing should have run or been logged');
+  });
+  await test('Delegated input: a handler that is broken, throws, or names a missing function is logged and never thrown to the page', async () => {
+    const d = loadDelegator();
+    for (const bad of ['handleSearch(', 'noSuchFunction(this.value)', 'throw new Error("boom")', '}{', 'handleSearch(undefinedVariable)']) {
+      let threw = null; try { d.run(inputEvent(node({ 'data-oninput': bad }))); } catch (e) { threw = e; }
+      assert(!threw, `"${bad}" threw out of the delegator`);
+    }
+    assert(d.log.errors.length === 5 && d.log.errors.every((m) => /Error executing data-oninput handler/.test(m)), 'each failure should be logged once: ' + JSON.stringify(d.log.errors));
+    d.run(inputEvent(node({ 'data-oninput': 'handleSearch("still works")' })));
+    assert(d.log.search[0] === 'still works', 'a later good handler must still run');
+  });
+  await test('Delegated input: the page registers one document-level input listener and removes it on cleanup', async () => {
+    assert((PAGE_SRC.match(/document\.addEventListener\('input', handleDelegatedInput\)/g) || []).length === 1, 'exactly one registration expected');
+    assert((PAGE_SRC.match(/document\.removeEventListener\('input', handleDelegatedInput\)/g) || []).length === 1, 'the listener must be removed on cleanup');
+    assert(!/e\.preventDefault\(\)/.test(blockFrom('    const handleDelegatedInput = ')), 'typing must not be cancelled');
+  });
+  await test('Every data-oninput in the page calls a function the page actually defines (state search, contact search, chat box)', async () => {
+    const used = [...PAGE_SRC.matchAll(/data-oninput="([^"]*)"/g)].map((m) => m[1]);
+    assert(used.length === 3, 'expected the three known data-oninput elements, found ' + used.length + ': ' + used.join(' | '));
+    for (const attr of used) {
+      const fn = (attr.match(/^(\w+)\(/) || [])[1];
+      assert(fn, 'handler is not a simple call: ' + attr);
+      const defined = new RegExp('function ' + fn + '\\s*\\(').test(PUBLIC_SCRIPT) || new RegExp('window\\.' + fn + '\\s*=').test(PUBLIC_SCRIPT);
+      assert(defined, `${fn} (used by data-oninput) is not defined by the script`);
+    }
+    assert(/window\.handleSearch = handleSearch;/.test(PUBLIC_SCRIPT), 'handleSearch must be exported to window to be reachable from the delegator');
+    assert(!/\bonInput=/.test(PAGE_SRC.slice(PAGE_SRC.indexOf('id="stateSearchInput"') - 200, PAGE_SRC.indexOf('id="stateSearchInput"') + 400)), 'a React onInput on the same box would fire the handler twice');
+  });
+
   console.log('\n================================================================');
   console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   console.log('================================================================');

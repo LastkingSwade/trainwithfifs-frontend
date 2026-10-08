@@ -1935,6 +1935,27 @@ export default function TrainWithFIFS(props: any) {
       }
     };
 
+    // data-oninput: the delegator for typing. The "input" event fires on every keystroke, paste, cut, and
+    // autofill and it bubbles, so this one document-level listener serves every element with a data-oninput
+    // attribute, including ones added later. Like the other delegators it runs the handler synchronously with
+    // `this` set to the element and `event` available (any debounce is the handler's own business). A target that
+    // is not an element, or a missing, empty, or broken handler, is logged or ignored and never thrown.
+    const handleDelegatedInput = (e: Event) => {
+      const source = e.target as Element | null;
+      if (!source || typeof source.closest !== 'function') return;
+      const target = source.closest('[data-oninput]') as HTMLElement | null;
+      if (!target) return;
+      let handlerStr = target.getAttribute('data-oninput');
+      if (!handlerStr) return;
+      handlerStr = decodeEntities(handlerStr).replace(/\\(['"])/g, "$1");
+      try {
+        const fn = new Function('event', handlerStr);
+        fn.call(target, e);
+      } catch (err) {
+        console.error('Error executing data-oninput handler: "' + handlerStr + '"', err);
+      }
+    };
+
 
 
 
@@ -3930,6 +3951,7 @@ export default function TrainWithFIFS(props: any) {
     document.addEventListener('click', handleDelegatedClick);
     document.addEventListener('change', handleDelegatedChange);
     document.addEventListener('keydown', handleDelegatedKeyDown as any);
+    document.addEventListener('input', handleDelegatedInput);
     
     // Ensure live chat opens the real 2-way chat console with background polling
     (window as any).handleLiveChatSubmit = function(e: any) {
@@ -4043,6 +4065,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       window.removeEventListener('keydown', handleModalEscapeKey);
       document.removeEventListener('click', handleDelegatedClick);
       document.removeEventListener('change', handleDelegatedChange);
+      document.removeEventListener('input', handleDelegatedInput);
       document.removeEventListener('submit', handleDelegatedSubmit);
     };
   }, []);
