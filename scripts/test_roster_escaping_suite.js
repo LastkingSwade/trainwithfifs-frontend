@@ -85,9 +85,14 @@ async function main() {
   const hostileClient = { clientId: HOSTILE.breakout, fullName: HOSTILE.tag, email: HOSTILE.svg, phone: HOSTILE.script, permitState: HOSTILE.iframe, expirationDate: '2099-01-01', status: 'ACTIVE' };
 
   console.log('\n[SECTION A: Script rosters (both copies of each render function)]');
+  const rowFn = () => findFunction(SCRIPT, 'function fifsRosterRowHtml(s) {');
+  await test('There is exactly one student roster renderer and one row builder', async () => {
+    assert((SCRIPT.match(/function renderAdminTerminal\(/g) || []).length === 1, 'duplicate renderAdminTerminal');
+    assert((SCRIPT.match(/function fifsRosterRowHtml\(/g) || []).length === 1, 'expected one row builder');
+  });
   for (const which of ['first', 'last']) {
     await test(`Student roster (${which} copy): hostile text is escaped and attributes cannot be broken out of`, async () => {
-      const src = findFunction(SCRIPT, 'function renderAdminTerminal(data) {', which) + '\n' + findFunction(SCRIPT, 'function renderAdminClientTerminal(data) {', which);
+      const src = rowFn() + '\n' + findFunction(SCRIPT, 'function renderAdminTerminal(data) {', 'last') + '\n' + findFunction(SCRIPT, 'function renderAdminClientTerminal(data) {', which);
       const html = runRoster(src, `renderAdminTerminal({ students: [${JSON.stringify(hostileStudent)}], clients: [${JSON.stringify(hostileClient)}] });`);
       assert(html.length > 200, 'the roster rendered nothing');
       assert(!LIVE_MARKUP.test(html), `live markup reached the roster: ${html.match(LIVE_MARKUP)}`);
@@ -106,6 +111,71 @@ async function main() {
       if (which === 'first') assert(html.includes('&lt;img src=x onerror=alert(1)&gt;') && html.includes('&lt;script&gt;alert(1)&lt;/script&gt;'), 'expected escaped client name and phone');
     });
   }
+
+  console.log('\n[SECTION A2: Student roster row structure and modal triggers]');
+  const NAMES = ["Sean O'Connor", 'Mary-Ann "Mac" Quinn', "D'Angelo <b>Smith</b>", 'A&B Tactical', "x');alert(1);//", '\\\\', 'Zoë Núñez'];
+  const renderRows = (students) => runRoster(rowFn() + '\n' + findFunction(SCRIPT, 'function renderAdminTerminal(data) {', 'last'), `renderAdminTerminal({ students: ${JSON.stringify(students)} });`);
+  await test('Each row shows the full name with the email directly beneath it, escaped', async () => {
+    for (const name of NAMES) {
+      const html = renderRows([{ studentId: 'FIFS-1001', fullName: name, email: 'kai+test@example.com', course: 'HQL (8 hr)', status: 'STEP_2_CONFIRMED' }]);
+      const esc = name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+      const cell = html.match(/<td><a[^>]*openAdminEditStudentModal[^>]*><strong>([\s\S]*?)<\/strong><\/a><br><span[^>]*>([\s\S]*?)<\/span><\/td>/);
+      assert(cell, 'name cell is malformed for ' + name + ': ' + html.slice(0, 400));
+      assert(cell[1] === esc && cell[2] === 'kai+test@example.com', `name/email not shown correctly for ${name}: ${cell[1]} / ${cell[2]}`);
+    }
+  });
+  await test('No inline handler ever contains a name: every row action passes only the student ID', async () => {
+    for (const name of NAMES) {
+      const html = renderRows([{ studentId: 'FIFS-1001', fullName: name, email: 'a@example.com', course: 'c', status: 'STEP_1_REGISTERED' }]);
+      const handlers = [...html.matchAll(/on(?:click|change)="([^"]*)"/g)].map((m) => m[1]);
+      assert(handlers.length >= 7, 'expected the row handlers, found ' + handlers.length);
+      for (const h of handlers) assert(!h.includes('O&#039;Connor') && !/Connor|Quinn|Tactical|alert\(1\)|Núñez/.test(h), 'a name reached an inline handler: ' + h);
+      const calls = handlers.map((h) => h.match(/^(\w+)\('([^']*)'/));
+      assert(calls.every(Boolean), 'a handler is not a simple call: ' + handlers.join(' | '));
+      assert(calls.every((c) => c[2] === 'FIFS-1001'), 'a handler does not pass the student ID: ' + calls.map((c) => c[0]).join(' | '));
+    }
+    const html = renderRows([{ studentId: 'FIFS-1001', fullName: "Sean O'Connor", status: 'STEP_1_REGISTERED' }]);
+    for (const fn of ['openStudentScoresheetModal', 'openAdminEditStudentModal', 'dispatchRangeBriefing', 'dispatchReviewRequest', 'deleteStudentFromRoster', 'openStudentDossierModal', 'updateStudentJourneyStep']) {
+      assert(html.includes(`${fn}('FIFS-1001'`), `${fn} is not wired to the student ID`);
+    }
+  });
+  await test('The step dropdown has all eight intact options with the right one selected, plus a status chip and save indicator', async () => {
+    const want = ['STEP_1_REGISTERED', 'STEP_2_CONFIRMED', 'STEP_3_PREPARATION', 'STEP_4_CLASSROOM', 'STEP_5_LIVE_FIRE', 'STEP_6_CERTIFIED', 'STEP_7_MSP_PORTAL', 'STEP_8_LICENSED'];
+    want.forEach((value, i) => {
+      const html = renderRows([{ studentId: 'FIFS-1001', fullName: 'A', status: value }]);
+      const opts = [...html.matchAll(/<option value="([^"]*)"( selected)?>([^<]*)<\/option>/g)];
+      assert(JSON.stringify(opts.map((o) => o[1])) === JSON.stringify(want), 'options are damaged: ' + opts.map((o) => JSON.stringify(o[1])).join(','));
+      assert(opts.filter((o) => o[2]).length === 1 && opts[i][2], `exactly option ${i + 1} should be selected for ${value}`);
+      assert(opts.every((o) => /^\d\. \S/.test(o[3])), 'an option label is missing: ' + opts.map((o) => o[3]).join('|'));
+      assert(html.includes('id="chip-status-FIFS-1001"') && html.includes('id="save-ind-FIFS-1001"'), 'chip or save indicator id missing');
+      assert(/<\/select>/.test(html) && !/\bL\s+<\/select>/.test(html), 'dropdown is truncated');
+    });
+  });
+  await test('The roster markup is well-formed: no leftover template placeholders or stray braces', async () => {
+    const html = renderRows([{ studentId: 'FIFS-1001', fullName: 'Tanae Test', email: 'qa.test.student@example.com', course: 'HQL', status: 'STEP_3_PREPARATION' }]);
+    assert(!/\$\{|(?<![\w$])\{[a-zA-Z(]/.test(html.replace(/style="[^"]*"/g, '')), 'a template placeholder leaked into the page: ' + (html.match(/.{20}\$\{.{20}|.{20}(?<![\w$])\{[a-zA-Z(].{20}/) || [''])[0]);
+    const count = (re) => (html.match(re) || []).length;
+    for (const tag of ['td', 'select', 'a', 'div']) assert(count(new RegExp('<' + tag + '[\\s>]', 'g')) === count(new RegExp('</' + tag + '>', 'g')), `unbalanced <${tag}> tags`);
+    assert(count(/<td[\s>]/g) === 8, 'expected 8 cells, found ' + count(/<td[\s>]/g));
+  });
+  await test('No row or modal trigger in the script builds an onclick from a name', async () => {
+    const offenders = [];
+    SCRIPT.split('\n').forEach((line, i) => {
+      if (/onclick="[^"]*\(\s*'?\$\{[^}]*(fullName|\.name\b)/.test(line) || /onclick="[^"]*\('\{\(/.test(line) || /onclick="[^"]*\('\{[a-z]/i.test(line)) offenders.push(i + 1);
+    });
+    assert(offenders.length === 0, 'name or damaged placeholder in an inline handler at lines ' + offenders.join(', '));
+  });
+
+  await test('The delete confirmation names the student and ID instead of printing a broken placeholder', async () => {
+    const src = findFunction(SCRIPT, 'function deleteStudentFromRoster(');
+    assert(!/\{studentId\}\)/.test(src) && /' \(' \+ studentId \+ '\)/.test(src), 'delete confirmation text is damaged');
+    const asked = [];
+    const sandbox = { adminCachedStudents: [{ studentId: 'FIFS-1001', fullName: "Sean O'Connor" }], confirm: (m) => { asked.push(m); return false; }, getStaffSessionToken() {}, fifsSaveOrReport() { throw new Error('must not delete when cancelled'); }, renderAdminTerminal() {} };
+    vm.createContext(sandbox);
+    vm.runInContext(src + '\nthis.fn = deleteStudentFromRoster;', sandbox);
+    sandbox.fn('FIFS-1001');
+    assert(asked.length === 1 && asked[0].includes("Sean O'Connor") && asked[0].includes('FIFS-1001') && !/[{}]/.test(asked[0]), 'confirmation text: ' + asked[0]);
+  });
 
   console.log('\n[SECTION B: page.tsx roster]');
   await test('Staff roster in page.tsx escapes text and only links http(s) dossier URLs', async () => {

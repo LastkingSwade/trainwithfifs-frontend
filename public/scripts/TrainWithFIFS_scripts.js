@@ -2467,112 +2467,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         });
     }
     window.verifyAdminAccess = verifyAdminAccess;
-    function renderAdminTerminal(data) {
-      if (data && data.liveChats && Array.isArray(data.liveChats)) {
-        if (typeof saveChatThreads === 'function') saveChatThreads(data.liveChats);
-        if (typeof renderAdminChatConsole === 'function') renderAdminChatConsole();
-        if (typeof updateAdminChatBadgeCount === 'function') updateAdminChatBadgeCount();
-      }
-      if (typeof checkNewStudentAlert === "function") checkNewStudentAlert();
-      if (typeof checkNewClientAlert === "function") checkNewClientAlert();
-      var authBox = document.getElementById('admin-auth-box');
-      var dashBox = document.getElementById('admin-command-dashboard');
-      if (authBox) {
-        authBox.classList.add('hidden');
-        authBox.style.setProperty('display', 'none', 'important');
-      }
-      if (dashBox) {
-        dashBox.classList.remove('hidden');
-        dashBox.style.setProperty('display', 'block', 'important');
-      }
-      // Load cached/persisted real student data if available
-      if (data && data.students && data.students.length) {
-        adminCachedStudents = data.students;
-        window.adminCachedStudents = adminCachedStudents;
-        /* cloud only: zero browser storage */
-      } else {
-        var savedRoster = _fifsMemStorage.getItem('fifs_roster_students');
-        if (savedRoster) {
-          try {
-            adminCachedStudents = JSON.parse(savedRoster);
-            window.adminCachedStudents = adminCachedStudents;
-          } catch (e) {}
-        }
-      }
-      var totalCount = adminCachedStudents.length;
-      var pendingCount = 0;
-      var upcomingCount = 0;
-      var completedCount = 0;
-      adminCachedStudents.forEach(s => {
-        var stepNum = getStepNumberFromStatus(s.status);
-        if (stepNum <= 3) pendingCount++;
-        else if (stepNum <= 5) upcomingCount++;
-        else completedCount++;
-      });
-      var elTot = document.getElementById('metric-total');
-      var elPen = document.getElementById('metric-pending');
-      var elUpc = document.getElementById('metric-upcoming');
-      var elCom = document.getElementById('metric-completed');
-      if (elTot) elTot.textContent = totalCount;
-      if (elPen) elPen.textContent = pendingCount;
-      if (elUpc) elUpc.textContent = upcomingCount;
-      if (elCom) elCom.textContent = completedCount;
-      if (data && data.clients && typeof renderAdminClientTerminal === 'function') {
-        renderAdminClientTerminal(data);
-      }
-      if (typeof renderAdminAnalyticsDashboard === 'function') {
-        renderAdminAnalyticsDashboard(data);
-      }
-      var tbody = document.getElementById('admin-roster-tbody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-      if (adminCachedStudents.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No student bookings recorded yet. Use "SEND PORTAL INVITE" to add someone.</td></tr>';
-        return;
-      }
-      adminCachedStudents.forEach(s => {
-        if (!s) return;
-        var sId = escapeHtml(s.studentId || (s.id ? 'FIFS-' + s.id : 'N/A'));
-        var sName = escapeHtml(s.fullName || s.name || 'Unknown Student');
-        var sEmail = escapeHtml(s.email || 'No email');
-        var sPhone = escapeHtml(s.phone || 'No phone');
-        var sCourse = escapeHtml(s.course || s.courseSelection || s.course_selection || 'Maryland CCW & HQL Combo');
-        var sDate = escapeHtml(s.assignedDate || s.preferredDates || 'TBD');
-        var tr = document.createElement('tr');
-        var stepNum = getStepNumberFromStatus(s.status);
-        tr.innerHTML = `
-          <td><strong style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.95rem;">${sId}</strong></td>
-          <td>
-            <div style="font-weight: 700; color: #fff; cursor: pointer; text-decoration: underline; text-decoration-color: var(--accent-cyan);" onclick="openStudentPortalAsAdmin('{sName} <span style="font-size: 0.75rem; color: var(--accent-cyan);">&#8599;</span></div>
-            <div style="font-size: 0.80rem; color: var(--text-muted);">${sEmail} • ${sPhone}</div>
-          </td>
-          <td><span style="font-size: 0.85rem; color: #cbd5e1;">${sCourse}</span></td>
-          <td><span style="font-size: 0.85rem; color: var(--accent-amber); font-weight: 600;">${sDate}</span></td>
-          <td>
-            <select class="form-select" onchange="updateStudentJourneyStep('${fifsSafeId(s.studentId)}', this.value, this)" data-current="${escapeHtml(s.status || 'STEP_1_REGISTERED')}" style="background: #070b10; border: 1px solid var(--accent-cyan); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 700;">
-              <option value="STEP_1_REGISTRATION" ${stepNum === 1 ? 'selected' : ''}>1. Registration ✔</option>
-              <option value="STEP_2_CONFIRMATION" ${stepNum === 2 ? 'selected' : ''}>2. Confirmation ✔</option>
-              <option value="STEP_3_PREPARATION" ${stepNum === 3 ? 'selected' : ''}>3. Preparation ⚡</option>
-              <option value="STEP_4_CLASSROOM" ${stepNum === 4 ? 'selected' : ''}>4. Classroom</option>
-              <option value="STEP_5_LIVE_FIRE" ${stepNum === 5 ? 'selected' : ''}>5. Live-Fire</option>
-              <option value="STEP_6_CERTIFIED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
-              <option value="STEP_7_MSP_PORTAL" ${stepNum === 7 ? 'selected' : ''}>7. MSP Portal</option>
-              <option value="STEP_8_LICENSED" ${stepNum === 8 ? 'selected' : ''}>8. Licensed 🛡️</option>
-            </select>
-            <span class="save-indicator" id="save-ind-${escapeHtml(s.studentId)}" style="display: none; color: #10b981; font-size: 0.72rem; margin-left: 4px;">Saved</span>
-          </td>
-          <td><span class="meta-chip chip-status" id="chip-status-{formatStepLabel(stepNum)}</span></td>
-          <td style="text-align: right; white-space: nowrap;">
-            <button type="button" class="btn-spark" onclick="openStudentPortalAsAdmin('${fifsSafeId(s.studentId)}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px; border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Access Student Portal">🎓 Portal</button>
-            <button type="button" class="btn-spark" onclick="openStudentScoresheetModal('{(s.fullName || "").replace(/'/g, "\\'")}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px; border-color: var(--accent-amber); color: var(--accent-amber);" title="MSP Form 29-14 Scoresheet">📋 Scoresheet</button>
-            <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${fifsSafeId(s.studentId)}')" style="padding: 5px 10px; font-size: 0.78rem; margin-right: 4px;" title="Edit Student Record">✏️ Edit</button>
-            <button type="button" class="btn-spark" onclick="deleteStudentFromAdmin('${fifsSafeId(s.studentId)}')" style="padding: 5px 10px; font-size: 0.78rem; border-color: #ef4444; color: #ef4444;" title="Delete Student Record">🗑️</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-    window.renderAdminTerminal = renderAdminTerminal;
     function getStepNumberFromStatus(statusStr) {
       var s = (statusStr || '').toUpperCase();
       if (s.includes('STEP_8') || s.includes('LICENSED') || (s.includes('COMPLETED') && !s.includes('PREP'))) return 8;
@@ -5007,7 +4901,7 @@ function openAdminEditStudentModal(studentId) {
     function deleteStudentFromRoster(studentId) {
       var s = adminCachedStudents.find(item => item.studentId === studentId);
       var name = s ? s.fullName : studentId;
-      if (!confirm(`Are you sure you want to permanently delete student "{studentId}) from the training ledger?`)) {
+      if (!confirm('Permanently delete ' + name + ' (' + studentId + ') from the training ledger? This cannot be undone.')) {
         return;
       }
       adminCachedStudents = adminCachedStudents.filter(item => item.studentId !== studentId);
@@ -5021,6 +4915,42 @@ function openAdminEditStudentModal(studentId) {
     }
     window.deleteStudentFromRoster = deleteStudentFromRoster;
     // Redefined renderAdminTerminal with 100% Real Numbers & Action Buttons
+    // One roster row. Every student-controlled value is escaped, and the row's buttons pass only the student
+    // ID (never a name), so a name with quotes or markup cannot break out of an inline handler.
+    function fifsRosterRowHtml(s) {
+      var stepNum = getStepNumberFromStatus(s.status);
+      var id = fifsSafeId(s.studentId);
+      var steps = [['STEP_1_REGISTERED', '1. Registration'], ['STEP_2_CONFIRMED', '2. Confirmation'], ['STEP_3_PREPARATION', '3. Preparation'], ['STEP_4_CLASSROOM', '4. Classroom'],
+        ['STEP_5_LIVE_FIRE', '5. Live-Fire'], ['STEP_6_CERTIFIED', '6. Certified'], ['STEP_7_MSP_PORTAL', '7. MSP Portal'], ['STEP_8_LICENSED', '8. Licensed']];
+      var options = steps.map(function(st, i) {
+        return '<option value="' + st[0] + '"' + (stepNum === i + 1 ? ' selected' : '') + '>' + st[1] + '</option>';
+      }).join('');
+      return `
+          <td><strong style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.95rem;">${escapeHtml(s.studentId)}</strong></td>
+          <td><a href="javascript:void(0)" onclick="openAdminEditStudentModal('${id}')" style="color: var(--accent-cyan); font-weight: 700; text-decoration: none;" title="Edit student record"><strong>${escapeHtml(s.fullName)}</strong></a><br><span style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(s.email || '')}</span></td>
+          <td>${escapeHtml((s.course || '').split('(')[0].trim())}</td>
+          <td>${escapeHtml(s.assignedDate || s.preferredDates || 'To Be Scheduled')}</td>
+          <td>
+            <span class="meta-chip chip-status" id="chip-status-${escapeHtml(s.studentId)}">${escapeHtml(formatStepLabel(stepNum))}</span>
+          </td>
+          <td><a href="javascript:void(0)" onclick="openStudentDossierModal('${id}')" style="color: var(--accent-cyan); font-weight: 700;" title="View/Edit Supabase Dossier & Notes">Dossier ↗</a></td>
+          <td>
+            <select onchange="updateStudentJourneyStep('${id}', this.value, this)" data-current="${escapeHtml(s.status || 'STEP_1_REGISTERED')}" style="padding: 6px 8px; font-size: 0.78rem; min-height: 34px; background: #070b10; color: var(--accent-cyan); border-radius: 6px; border: 1px solid var(--accent-cyan); font-weight: 700; cursor: pointer;">
+              ${options}
+            </select>
+            <span class="save-indicator" id="save-ind-${escapeHtml(s.studentId)}" style="display: none; font-size: 0.72rem; margin-left: 4px;" role="status"></span>
+          </td>
+          <td>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <button type="button" class="btn-spark" onclick="openStudentScoresheetModal('${id}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-amber); color: var(--accent-amber);" title="MSP Form 29-14 Scoresheet">📋 Scoresheet</button>
+              <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${id}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-cyan);" title="Edit student record">✏️ Edit</button>
+              <button type="button" class="btn-spark" onclick="dispatchRangeBriefing('${id}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: #60a5fa; color: #60a5fa;" title="Send Range Day Arrival Briefing">🎯 Briefing</button>
+              <button type="button" class="btn-spark" onclick="dispatchReviewRequest('${id}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-amber); color: var(--accent-amber);" title="Send 5-Star Google Review Request">⭐ Review</button>
+              <button type="button" class="btn-spark" onclick="deleteStudentFromRoster('${id}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-red); color: var(--accent-red);" title="Delete student">🗑️</button>
+            </div>
+          </td>
+        `;
+    }
     function renderAdminTerminal(data) {
       if (typeof checkNewStudentAlert === "function") checkNewStudentAlert();
       if (typeof checkNewClientAlert === "function") checkNewClientAlert();
@@ -5066,38 +4996,7 @@ function openAdminEditStudentModal(studentId) {
       }
       adminCachedStudents.forEach(s => {
         var tr = document.createElement('tr');
-        var stepNum = getStepNumberFromStatus(s.status);
-        tr.innerHTML = `
-          <td><strong style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.95rem;">${escapeHtml(s.studentId)}</strong></td>
-          <td><a href="javascript:void(0)" onclick="openAdminEditStudentModal('{escapeHtml(s.fullName)}</strong></a><br><span style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(s.email || '')}</span></td>
-          <td>${escapeHtml((s.course || '').split('(')[0].trim())}</td>
-          <td>${escapeHtml(s.assignedDate || s.preferredDates || 'To Be Scheduled')}</td>
-          <td>
-            <span class="meta-chip chip-status" id="chip-status-{formatStepLabel(stepNum)}</span>
-          </td>
-          <td><a href="javascript:void(0)" onclick="openStudentDossierModal('${fifsSafeId(s.studentId)}')" style="color: var(--accent-cyan); font-weight: 700;" title="View/Edit Supabase Dossier & Notes">Dossier ↗</a></td>
-          <td>
-            <select onchange="updateStudentJourneyStep('${fifsSafeId(s.studentId)}', this.value, this)" data-current="${escapeHtml(s.status || 'STEP_1_REGISTERED')}" style="padding: 6px 8px; font-size: 0.78rem; min-height: 34px; background: #070b10; color: var(--accent-cyan); border-radius: 6px; border: 1px solid var(--accent-cyan); font-weight: 700; cursor: pointer;">
-              <option value="STEP_1_REGISTERED" ${stepNum === 1 ? 'selected' : ''}>1. Registration</option>
-              <option value="STEP_2_CONFIRMED" ${stepNum === 2 ? 'selected' : ''}>2. Confirmation</option>
-              <option value="STEP_3_PREPARATION" ${stepNum === 3 ? 'selected' : ''}>3. Preparation</option>
-              <option value="STEP_4_CLASSROOM" ${stepNum === 4 ? 'selected' : ''}>4. Classroom</option>
-              <option value="STEP_5_LIVE_FIRE" ${stepNum === 5 ? 'selected' : ''}>5. Live-Fire</option>
-              <option value="STEP_6_CERTIF
-IED" ${stepNum === 6 ? 'selected' : ''}>6. Certified</option>
-              <option value="STEP_7_MSP_PORTAL" ${stepNum === 7 ? 'selected' : ''}>7. MSP Portal</option>
-              <option value="STEP_8_LICENSED" ${stepNum === 8 ? 'selected' : ''}>8. L            </select>
-          </td>
-          <td>
-            <div style="display: flex; gap: 6px; align-items: center;">
-              <button type="button" class="btn-spark" onclick="openStudentScoresheetModal('{(s.fullName || "").replace(/'/g, "\\'")}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-amber); color: var(--accent-amber);" title="MSP Form 29-14 Scoresheet">📋 Scoresheet</button>
-              <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${fifsSafeId(s.studentId)}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-cyan);" title="Edit student record">✏️ Edit</button>
-              <button type="button" class="btn-spark" onclick="dispatchRangeBriefing('${fifsSafeId(s.studentId)}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: #60a5fa; color: #60a5fa;" title="Send Range Day Arrival Briefing">🎯 Briefing</button>
-              <button type="button" class="btn-spark" onclick="dispatchReviewRequest('${fifsSafeId(s.studentId)}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-amber); color: var(--accent-amber);" title="Send 5-Star Google Review Request">⭐ Review</button>
-              <button type="button" class="btn-spark" onclick="deleteStudentFromRoster('${fifsSafeId(s.studentId)}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-red); color: var(--accent-red);" title="Delete student">🗑️</button>
-            </div>
-          </td>
-        `;
+        tr.innerHTML = fifsRosterRowHtml(s);
         tbody.appendChild(tr);
       });
     }

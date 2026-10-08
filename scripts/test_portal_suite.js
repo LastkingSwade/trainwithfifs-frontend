@@ -748,13 +748,13 @@ async function main() {
     }
     assert(!called, 'no request may be sent for an invalid step');
   });
-  await test('Status dropdown: one definition only, no Google Apps Script or demo branch, and both row templates pass the select', async () => {
+  await test('Status dropdown: one definition only, no Google Apps Script or demo branch, and the row passes the select', async () => {
     assert((PUBLIC_SCRIPT.match(/function updateStudentJourneyStep\(/g) || []).length === 1, 'duplicate definition present');
     const body = extractFunction('updateStudentJourneyStep') + extractFunction('fifsRosterNotice');
     assert(!/google\.script|simulation|demo/i.test(body), 'legacy branch remains');
     assert(/fifsSaveOrReport\('updateStudentStatus'/.test(body), 'must use fifsSaveOrReport');
     const tpl = PUBLIC_SCRIPT.match(/onchange="updateStudentJourneyStep\([^"]*"/g) || [];
-    assert(tpl.length === 2 && tpl.every((t) => /this\.value, this\)/.test(t)), 'row dropdowns must pass this: ' + tpl.join(' | '));
+    assert(tpl.length === 1 && tpl.every((t) => /this\.value, this\)/.test(t)), 'the row dropdown must pass this: ' + tpl.join(' | '));
   });
   await test('Server: updateStudentStatus returns a confirmed, well-formed success and refuses bad values and non-staff', async () => {
     const ok = await fifs('updateStudentStatus', { studentId: 'FIFS-1001', status: 'STEP_5_LIVE_FIRE' }, 'instructor-token');
