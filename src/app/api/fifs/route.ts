@@ -669,6 +669,31 @@ async function removeLinkedAuthUser(supabase: any, authUserId: unknown, callerId
   }
 }
 
+// Escapes the characters LIKE treats as patterns, so an email is matched as plain text (underscores are common in emails).
+function likeEscape(value: string): string {
+  return value.replace(/[\\%_]/g, (ch) => '\\' + ch);
+}
+
+// Finds a student or client row with this email, ignoring case. `excludeId` leaves one row out (the row being deleted).
+// A failed lookup is reported as an error so callers can fail closed instead of assuming "no other record".
+async function findRecordByEmail(supabase: any, table: 'students' | 'clients', email: string, excludeId?: string): Promise<{ found: { id: string; publicId: string | null } | null; error: boolean }> {
+  const publicColumn = table === 'students' ? 'student_id' : 'client_id';
+  try {
+    let query = supabase.from(table).select('id, ' + publicColumn).ilike('email', likeEscape(email.trim())).limit(1);
+    if (excludeId) query = query.neq('id', excludeId);
+    const { data, error } = await query;
+    if (error) {
+      console.warn('[findRecordByEmail] Lookup failed:', error.message);
+      return { found: null, error: true };
+    }
+    const row = Array.isArray(data) ? data[0] : null;
+    return { found: row ? { id: String(row.id), publicId: row[publicColumn] ? String(row[publicColumn]) : null } : null, error: false };
+  } catch (err: any) {
+    console.warn('[findRecordByEmail] Lookup failed:', err?.message);
+    return { found: null, error: true };
+  }
+}
+
 export async function POST(req: NextRequest) {
  try {
    const body = await req.json().catch(() => ({}));
@@ -813,7 +838,15 @@ export async function POST(req: NextRequest) {
          }
        }
 
+       // The three cleanups below are keyed on the email, so they would also remove the records of any other student
+       // who shares it. They run only when no other student row has this email; a failed check counts as "shared".
+       let emailCleanupSkipped = false;
        if (resolvedEmail) {
+         const sharing = await findRecordByEmail(supabase, 'students', resolvedEmail, foundStudent?.id);
+         emailCleanupSkipped = sharing.error || !!sharing.found;
+         if (emailCleanupSkipped) console.warn('[adminDeleteStudent] Email-keyed cleanup skipped: another student record shares this email (or the check failed).');
+       }
+       if (resolvedEmail && !emailCleanupSkipped) {
          try {
            await supabase.from('enrollments').delete().eq('student_email', resolvedEmail);
          } catch (enrEmailErr) {
@@ -858,6 +891,7 @@ export async function POST(req: NextRequest) {
          success: true,
          status: 'success',
          deletedStudentId: resolvedStudentId || targetId,
+         emailCleanupSkipped,
          authCleanup,
          authUserRemoved: authCleanup === 'none' ? null : authCleanup === 'removed',
          message: `Student ${foundStudent?.full_name || targetId} successfully removed from Supabase.`
@@ -907,7 +941,15 @@ export async function POST(req: NextRequest) {
          }
        }
 
+       // The cleanups below are keyed on the email, so they would also remove the records of any other client who shares
+       // it. They run only when no other client row has this email; a failed check counts as "shared".
+       let emailCleanupSkipped = false;
        if (resolvedEmail) {
+         const sharing = await findRecordByEmail(supabase, 'clients', resolvedEmail, foundClient?.id);
+         emailCleanupSkipped = sharing.error || !!sharing.found;
+         if (emailCleanupSkipped) console.warn('[adminDeleteClient] Email-keyed cleanup skipped: another client record shares this email (or the check failed).');
+       }
+       if (resolvedEmail && !emailCleanupSkipped) {
          try {
            await supabase.from('user_permits').delete().eq('email', resolvedEmail);
          } catch (pEmailErr) {
@@ -947,6 +989,7 @@ export async function POST(req: NextRequest) {
          success: true,
          status: 'success',
          deletedClientId: resolvedClientId || targetId,
+         emailCleanupSkipped,
          authCleanup,
          authUserRemoved: authCleanup === 'none' ? null : authCleanup === 'removed',
          message: `Client ${foundClient?.full_name || targetId} successfully removed from Supabase.`
@@ -1038,6 +1081,23 @@ export async function POST(req: NextRequest) {
        }
        if (portalType !== 'student' && portalType !== 'client') {
          return NextResponse.json({ success: false, error: 'Portal type must be student or client.' }, { status: 400 });
+       }
+
+       // Refuse before anything is created if a record with this email already exists. Creating a second sign-in and
+       // record for the same person leaves two rows for one email (the database trigger that links students to new
+       // accounts only links when exactly one unlinked row matches).
+       const duplicate = await findRecordByEmail(supabase, portalType === 'client' ? 'clients' : 'students', email);
+       if (duplicate.error) {
+         return NextResponse.json({ success: false, error: 'Could not check for an existing record with this email. Nothing was created.' }, { status: 500 });
+       }
+       if (duplicate.found) {
+         const existingId = duplicate.found.publicId || 'no ID';
+         return NextResponse.json({
+           success: false,
+           error: portalType === 'client'
+             ? `A client record with this email already exists (${existingId}). Ask the client to use "Forgot password" on the client sign-in, or edit that record.`
+             : `A student record with this email already exists (${existingId}). Use Setup link on that record.`
+         }, { status: 409 });
        }
 
        // A random password is used only to initialize the Auth identity. It is never emailed or returned.

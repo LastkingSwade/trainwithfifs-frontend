@@ -27,6 +27,19 @@ process.env.NEXT_PUBLIC_SITE_URL = 'https://trainwithfifs.example';
 const { installFetchStub } = require('./lib/ts-loader');
 const fetchCalls = installFetchStub();
 
+// Postgres LIKE/ILIKE semantics for the test doubles: % and _ are wildcards, a backslash escapes the next character.
+function likeToRegExp(pattern, caseInsensitive) {
+  let out = '';
+  for (let i = 0; i < pattern.length; i++) {
+    const c = pattern[i];
+    if (c === '\\' && i + 1 < pattern.length) { out += pattern[++i].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); continue; }
+    if (c === '%') out += '.*';
+    else if (c === '_') out += '.';
+    else out += c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+  return new RegExp('^' + out + '$', caseInsensitive ? 'i' : '');
+}
+
 // Mock Next Server
 const mockNextServer = {
   NextResponse: {
@@ -251,6 +264,11 @@ const mockSupabase = {
         },
         neq: (col, val) => {
           filtered = filtered.filter(row => row[col] !== val);
+          return builder;
+        },
+        ilike: (col, pattern) => {
+          const re = likeToRegExp(String(pattern), true);
+          filtered = filtered.filter(row => re.test(String(row[col] == null ? '' : row[col])));
           return builder;
         },
         or: (condition) => builder,
@@ -796,7 +814,9 @@ async function main() {
 
     // 9. Verified Admin Bearer token authorized
     await runTest(`${action}: Verified Admin Bearer token (app_metadata.role) authorized`, async () => {
-      const { status } = await executeAction(action, payload, { authorization: 'Bearer admin-bearer-token' });
+      // The instructor test above already invited this address, and a second invite for the same email is now (correctly) refused.
+      const adminPayload = action === 'adminDirectInvite' ? { ...payload, email: 'admin-' + payload.email } : payload;
+      const { status } = await executeAction(action, adminPayload, { authorization: 'Bearer admin-bearer-token' });
       if (status !== 200) throw new Error(`Expected 200 for admin on ${action}, got ${status}`);
     });
   }

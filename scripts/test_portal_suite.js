@@ -100,6 +100,19 @@ function resetDb() {
   };
 }
 
+// Postgres LIKE/ILIKE semantics for the test doubles: % and _ are wildcards, a backslash escapes the next character.
+function likeToRegExp(pattern, caseInsensitive) {
+  let out = '';
+  for (let i = 0; i < pattern.length; i++) {
+    const c = pattern[i];
+    if (c === '\\' && i + 1 < pattern.length) { out += pattern[++i].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); continue; }
+    if (c === '%') out += '.*';
+    else if (c === '_') out += '.';
+    else out += c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+  return new RegExp('^' + out + '$', caseInsensitive ? 'i' : '');
+}
+
 function queryBuilder(table) {
   const filters = [];
   let op = 'select';
@@ -149,6 +162,7 @@ function queryBuilder(table) {
       return b;
     },
     neq: (c, v) => { filters.push((r) => r[c] !== v); return b; },
+    ilike: (c, pattern) => { const re = likeToRegExp(String(pattern), true); filters.push((r) => re.test(String(r[c] == null ? '' : r[c]))); return b; },
     is: (c, v) => { filters.push((r) => (r[c] === undefined ? null : r[c]) === v); return b; },
     limit: () => b,
     order: () => b,
@@ -695,9 +709,9 @@ async function main() {
   await test('adminDirectInvite: the student insert sets every NOT NULL column that has no database default', async () => {
     // From information_schema on Production (students): NOT NULL without default.
     const REQUIRED = ['student_id', 'full_name', 'email', 'phone', 'course_name'];
-    for (const phone of [undefined, '', '410-555-0100']) {
+    for (const [n, phone] of [undefined, '', '410-555-0100'].entries()) {
       writes.length = 0;
-      await fifs('adminDirectInvite', { portalType: 'student', generatedId: 'FIFS-7777', fullName: 'Invitee Person', email: 'invitee@example.test', phone, course: 'Maryland HQL 8hr' }, 'instructor-token');
+      await fifs('adminDirectInvite', { portalType: 'student', generatedId: 'FIFS-7777', fullName: 'Invitee Person', email: `invitee${n}@example.test`, phone, course: 'Maryland HQL 8hr' }, 'instructor-token');
       const ins = writes.find((w) => w.table === 'students' && w.op === 'insert');
       assert(ins, 'no students insert was attempted');
       for (const col of REQUIRED) assert(typeof ins.patch[col] === 'string' && (col === 'phone' || ins.patch[col].length > 0), `${col} missing or not text: ${JSON.stringify(ins.patch[col])}`);
@@ -2150,6 +2164,174 @@ async function main() {
     assert(/\.eq\('user_id', authId\)\.neq\('id', row\.id\)/.test(block), 'the "taken" check must exclude the student\'s own row');
     assert(/select\('user_id'\)\.eq\('id', row\.id\)\.maybeSingle\(\)/.test(block), 'the row must be re-read before linking');
     assert(/handle_student_auth_user_link/.test(block), 'the comment should name the trigger so the reason is not lost');
+  });
+
+  console.log('\n[SECTION V: Duplicate invites and email-keyed delete cleanup]');
+  const invite = (extra, token = 'instructor-token') => fifs('adminDirectInvite', { generatedId: 'FIFS-8800', fullName: 'Duplicate Check', phone: '', course: 'Maryland HQL 8hr', ...extra }, token);
+  const nothingCreated = () => assert(authCalls.createUser.length === 0 && authCalls.generateLink.length === 0 && writes.length === 0 && resendCalls().length === 0, 'nothing may be created: ' + JSON.stringify({ users: authCalls.createUser.length, links: authCalls.generateLink.length, writes, mails: resendCalls().length }));
+
+  await test('Student invite: an email that already has a student record is refused with a 409 naming that record, before anything is created', async () => {
+    await withResend(async () => {
+      for (const email of ['dana.migrated@example.test', 'DANA.Migrated@Example.TEST', '  dana.migrated@example.test  ']) {
+        const r = await invite({ portalType: 'student', email });
+        err(r, 409);
+        assert(r.body.error === 'A student record with this email already exists (FIFS-1004). Use Setup link on that record.', `${email}: ${r.body.error}`);
+        nothingCreated();
+      }
+    });
+  });
+  await test('Student invite: an existing UNLINKED record is refused, so the database trigger never gets to link it to a second account', async () => {
+    await withResend(async () => {
+      authTrigger = 'own';
+      const r = await invite({ portalType: 'student', email: 'dana.migrated@example.test' });
+      err(r, 409); nothingCreated();
+      assert(db.students.find((x) => x.student_id === 'FIFS-1004').user_id === null, 'the existing record must stay as it was');
+      assert(db.students.filter((x) => x.email === 'dana.migrated@example.test').length === 1, 'no second record may appear');
+    });
+  });
+  await test('Client invite: an email that already has a client record is refused with a 409 naming that record, before anything is created', async () => {
+    await withResend(async () => {
+      for (const email of ['marcus@client.example', 'MARCUS@Client.Example']) {
+        const r = await invite({ portalType: 'client', generatedId: 'CLI-8800', email });
+        err(r, 409);
+        assert(/A client record with this email already exists \(CLI-1001\)\./.test(r.body.error) && /Forgot password/.test(r.body.error), `${email}: ${r.body.error}`);
+        nothingCreated();
+      }
+    });
+  });
+  await test('Invite: a new email still goes through, and a student and a client can each be invited at an address the other table has', async () => {
+    await withResend(async () => {
+      const s1 = await invite({ portalType: 'student', email: 'brand.new.student@example.test' });
+      assert(s1.status === 200 && s1.body.success === true && authCalls.createUser.length === 1 && writes.some((w) => w.table === 'students' && w.op === 'insert'), `new student: ${s1.status} ${JSON.stringify(s1.body)}`);
+      writes.length = 0; authCalls.createUser.length = 0;
+      const c1 = await invite({ portalType: 'client', generatedId: 'CLI-8801', email: 'brand.new.client@example.test' });
+      assert(c1.status === 200 && writes.some((w) => w.table === 'clients' && w.op === 'insert'), `new client: ${c1.status} ${JSON.stringify(c1.body)}`);
+    });
+  });
+  await test('Invite: the email is matched as plain text, so underscores and percent signs in an address never match a different address', async () => {
+    await withResend(async () => {
+      db.students.push({ id: 'row-axb', user_id: null, student_id: 'FIFS-1201', email: 'axb@example.test', full_name: 'Plain', status: 'STEP_1_REGISTERED' },
+        { id: 'row-a-us-b', user_id: null, student_id: 'FIFS-1202', email: 'a_b@example.test', full_name: 'Underscore', status: 'STEP_1_REGISTERED' });
+      const wild = await invite({ portalType: 'student', email: 'a%b@example.test' });
+      assert(wild.status === 200, 'a%b must not match axb or a_b: ' + JSON.stringify(wild.body));
+      const same = await invite({ portalType: 'student', email: 'a_b@example.test' });
+      err(same, 409); assert(/FIFS-1202/.test(same.body.error) && !/FIFS-1201/.test(same.body.error), 'a_b matches only itself: ' + same.body.error);
+      const other = await invite({ portalType: 'student', email: 'axb@example.test' });
+      err(other, 409); assert(/FIFS-1201/.test(other.body.error), 'axb matches only itself: ' + other.body.error);
+    });
+  });
+  await test('Invite: if the existing-record check cannot be made the invite fails closed, a record without an ID reads cleanly, and only staff can invite', async () => {
+    await withResend(async () => {
+      failOp = 'select';
+      const down = await invite({ portalType: 'student', email: 'checks.fail@example.test' });
+      err(down, 500); assert(/Could not check for an existing record/.test(down.body.error) && !/boom|internal/.test(JSON.stringify(down.body)), JSON.stringify(down.body));
+      nothingCreated();
+      failOp = null;
+      db.students.push({ id: 'row-noid', user_id: null, student_id: null, email: 'no.id@example.test', full_name: 'No Id', status: 'STEP_1_REGISTERED' });
+      const noId = await invite({ portalType: 'student', email: 'no.id@example.test' });
+      err(noId, 409); assert(/\(no ID\)/.test(noId.body.error), noId.body.error);
+      for (const token of [null, 'student-alice-token', 'client-marcus-token']) err(await invite({ portalType: 'student', email: 'dana.migrated@example.test' }, token), 401);
+    });
+  });
+
+  // ---- delete: email-keyed cleanup ----
+  const seedDana = () => {
+    db.enrollments.push({ id: 'enr-by-email', student_email: 'dana.linked@example.test' }, { id: 'enr-other', student_email: 'someone.else@example.test' });
+    db.invoices = [{ id: 'inv-by-email', email: 'dana.linked@example.test' }, { id: 'inv-by-id', student_id: 'FIFS-1013', email: 'billing@example.test' }, { id: 'inv-other', email: 'someone.else@example.test' }];
+    db.profiles = [{ id: 'prof-by-email', email: 'dana.linked@example.test' }, { id: 'prof-other', email: 'someone.else@example.test' }];
+  };
+  const left = (table) => (db[table] || []).map((r) => r.id).sort().join(',');
+  await test('Delete student (one record with that email): the email-keyed enrollments, invoices, and profiles are removed as before', async () => {
+    seedDana();
+    const r = await delStudent({ studentId: 'FIFS-1013' });
+    assert(r.status === 200 && r.body.success === true && r.body.emailCleanupSkipped === false, `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(left('enrollments') === 'enr-other' && left('invoices') === 'inv-other' && left('profiles') === 'prof-other', `email-keyed records should be gone and others kept: ${left('enrollments')} | ${left('invoices')} | ${left('profiles')}`);
+  });
+  await test('Delete student (another student shares the email, in any letter case): the shared email-keyed history is preserved, this student\'s own records are still removed', async () => {
+    seedDana();
+    db.students.push({ id: 'row-dana-twin2', user_id: null, student_id: 'FIFS-1097', email: 'Dana.Linked@Example.Test', full_name: 'Dana Twin', status: 'STEP_1_REGISTERED' });
+    const r = await delStudent({ studentId: 'FIFS-1013' });
+    assert(r.status === 200 && r.body.success === true && r.body.emailCleanupSkipped === true, `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(!db.students.some((x) => x.student_id === 'FIFS-1013') && db.students.some((x) => x.student_id === 'FIFS-1097'), 'only the chosen student is removed');
+    assert(left('enrollments') === 'enr-by-email,enr-other' && left('profiles') === 'prof-by-email,prof-other', `shared enrollments and profile must survive: ${left('enrollments')} | ${left('profiles')}`);
+    assert(left('invoices') === 'inv-by-email,inv-other', `the shared invoice survives and the one keyed to FIFS-1013's own ID is removed: ${left('invoices')}`);
+    assert(authCalls.deleteUser.length === 1, 'the deleted student\'s own sign-in cleanup is unaffected');
+  });
+  await test('Delete student: once the last record with that email is deleted, the email-keyed cleanup runs', async () => {
+    seedDana();
+    db.students.push({ id: 'row-dana-twin2', user_id: null, student_id: 'FIFS-1097', email: 'dana.linked@example.test', full_name: 'Dana Twin', status: 'STEP_1_REGISTERED' });
+    const first = await delStudent({ studentId: 'FIFS-1013' });
+    assert(first.body.emailCleanupSkipped === true && left('enrollments') === 'enr-by-email,enr-other', 'the first delete keeps the shared history');
+    const last = await delStudent({ studentId: 'FIFS-1097' });
+    assert(last.status === 200 && last.body.emailCleanupSkipped === false && left('enrollments') === 'enr-other' && left('profiles') === 'prof-other', `the last record cleans up: ${JSON.stringify(last.body)} ${left('enrollments')} ${left('profiles')}`);
+  });
+  await test('Delete student: if the shared-email check cannot be made the email-keyed cleanup is skipped (fails safe)', async () => {
+    seedDana();
+    failOp = 'select';
+    const r = await delStudent({ email: 'dana.linked@example.test' });
+    assert(r.status === 200 && r.body.emailCleanupSkipped === true, `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(left('enrollments') === 'enr-by-email,enr-other' && left('profiles') === 'prof-by-email,prof-other', 'nothing keyed on the email may be removed when the check failed');
+  });
+  await test('Delete student: deleting by email with a shared address, or a student with no email, behaves safely', async () => {
+    seedDana();
+    db.students.push({ id: 'row-dana-twin3', user_id: null, student_id: 'FIFS-1096', email: 'dana.linked@example.test', full_name: 'Dana Twin', status: 'STEP_1_REGISTERED' });
+    const byEmail = await delStudent({ email: 'dana.linked@example.test' });
+    assert(byEmail.status === 200 && byEmail.body.emailCleanupSkipped === true && left('profiles') === 'prof-by-email,prof-other', 'a shared address skips the cleanup even when the delete is requested by email');
+    const noEmail = await delStudent({ studentId: 'FIFS-1005' });
+    assert(noEmail.status === 200 && noEmail.body.emailCleanupSkipped === false, 'a student with an empty email has nothing to clean up by email: ' + JSON.stringify(noEmail.body));
+    assert(left('enrollments').includes('enr-other') && left('invoices').includes('inv-other'), 'unrelated records are never touched');
+  });
+  await test('The delete cleanup and invite check use the shared plain-text, case-insensitive lookup and fail closed', async () => {
+    assert(/\.ilike\('email', likeEscape\(email\.trim\(\)\)\)/.test(ROUTE_SRC) && /\[\\\\%_\]/.test(ROUTE_SRC), 'the lookup must escape LIKE patterns');
+    const del = ROUTE_SRC.slice(ROUTE_SRC.indexOf("case 'adminDeleteStudent'"), ROUTE_SRC.indexOf("case 'adminDeleteClient'"));
+    assert(/emailCleanupSkipped = sharing\.error \|\| !!sharing\.found/.test(del) && /if \(resolvedEmail && !emailCleanupSkipped\)/.test(del), 'the cleanup must be skipped when the check fails or finds a sharer');
+    const inv = ROUTE_SRC.slice(ROUTE_SRC.indexOf("case 'adminDirectInvite'"), ROUTE_SRC.indexOf('createUser', ROUTE_SRC.indexOf("case 'adminDirectInvite'")));
+    assert(/findRecordByEmail\(supabase, portalType === 'client' \? 'clients' : 'students', email\)/.test(inv), 'the duplicate check must come before the account is created');
+  });
+
+  const seedClient2 = () => {
+    db.user_permits = [{ id: 'perm-by-id', client_id: 'CLI-2002' }, { id: 'perm-by-email', email: 'client2@client.example' }, { id: 'perm-other', email: 'someone.else@example.test' }];
+    db.profiles = [{ id: 'cprof-by-email', email: 'client2@client.example' }, { id: 'cprof-other', email: 'someone.else@example.test' }];
+  };
+  await test('Delete client (one record with that email): the email-keyed permits and profile are removed as before', async () => {
+    seedClient2();
+    const r = await delClient({ clientId: 'CLI-2002' });
+    assert(r.status === 200 && r.body.success === true && r.body.emailCleanupSkipped === false, `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(left('user_permits') === 'perm-other' && left('profiles') === 'cprof-other', `email-keyed records should be gone and others kept: ${left('user_permits')} | ${left('profiles')}`);
+    assert(!db.clients.some((x) => x.client_id === 'CLI-2002'), 'the client record is removed');
+  });
+  await test('Delete client (another client shares the email, in any letter case): the shared permits and profile are preserved, this client\'s own permits are still removed', async () => {
+    seedClient2();
+    db.clients.push({ id: 'row-client2-twin', user_id: null, client_id: 'CLI-2099', email: 'Client2@Client.Example', full_name: 'Second Client Twin', status: 'ACTIVE_REGISTERED' });
+    const r = await delClient({ clientId: 'CLI-2002' });
+    assert(r.status === 200 && r.body.success === true && r.body.emailCleanupSkipped === true, `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(!db.clients.some((x) => x.client_id === 'CLI-2002') && db.clients.some((x) => x.client_id === 'CLI-2099'), 'only the chosen client is removed');
+    assert(left('user_permits') === 'perm-by-email,perm-other' && left('profiles') === 'cprof-by-email,cprof-other', `shared records must survive, the permit keyed to CLI-2002 is removed: ${left('user_permits')} | ${left('profiles')}`);
+    assert(authCalls.deleteUser.length === 1, 'the deleted client\'s own sign-in cleanup is unaffected');
+  });
+  await test('Delete client: once the last record with that email is deleted, the email-keyed cleanup runs', async () => {
+    seedClient2();
+    db.clients.push({ id: 'row-client2-twin', user_id: null, client_id: 'CLI-2099', email: 'client2@client.example', full_name: 'Second Client Twin', status: 'ACTIVE_REGISTERED' });
+    const first = await delClient({ clientId: 'CLI-2002' });
+    assert(first.body.emailCleanupSkipped === true && left('profiles') === 'cprof-by-email,cprof-other', 'the first delete keeps the shared history');
+    const last = await delClient({ clientId: 'CLI-2099' });
+    assert(last.status === 200 && last.body.emailCleanupSkipped === false && left('user_permits') === 'perm-other' && left('profiles') === 'cprof-other', `the last record cleans up: ${JSON.stringify(last.body)} ${left('user_permits')} ${left('profiles')}`);
+  });
+  await test('Delete client: if the shared-email check cannot be made the email-keyed cleanup is skipped, and deleting by a shared email skips it too', async () => {
+    seedClient2();
+    failOp = 'select';
+    const down = await delClient({ email: 'client2@client.example' });
+    assert(down.status === 200 && down.body.emailCleanupSkipped === true && left('user_permits') === 'perm-by-email,perm-by-id,perm-other' && left('profiles') === 'cprof-by-email,cprof-other', `a failed check keeps everything keyed on the email: ${JSON.stringify(down.body)} ${left('user_permits')}`);
+    resetDb(); seedClient2(); failOp = null;
+    db.clients.push({ id: 'row-client2-twin', user_id: null, client_id: 'CLI-2099', email: 'client2@client.example', full_name: 'Second Client Twin', status: 'ACTIVE_REGISTERED' });
+    const shared = await delClient({ email: 'client2@client.example' });
+    assert(shared.status === 200 && shared.body.emailCleanupSkipped === true && left('profiles') === 'cprof-by-email,cprof-other', 'a shared address skips the cleanup even when the delete is requested by email');
+  });
+  await test('The client delete cleanup uses the same shared lookup and fails closed', async () => {
+    const del = ROUTE_SRC.slice(ROUTE_SRC.indexOf("case 'adminDeleteClient'"), ROUTE_SRC.indexOf("case 'deletePermit'"));
+    assert(/findRecordByEmail\(supabase, 'clients', resolvedEmail, foundClient\?\.id\)/.test(del), 'it must look for another client with this email, leaving the deleted one out');
+    assert(/emailCleanupSkipped = sharing\.error \|\| !!sharing\.found/.test(del) && /if \(resolvedEmail && !emailCleanupSkipped\)/.test(del), 'the cleanup must be skipped when the check fails or finds a sharer');
+    assert(/emailCleanupSkipped,/.test(del), 'the response must report it');
   });
 
   console.log('\n================================================================');
