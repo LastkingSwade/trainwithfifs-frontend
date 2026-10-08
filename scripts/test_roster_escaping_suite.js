@@ -128,14 +128,14 @@ async function main() {
     for (const name of NAMES) {
       const html = renderRows([{ studentId: 'FIFS-1001', fullName: name, email: 'a@example.com', course: 'c', status: 'STEP_1_REGISTERED' }]);
       const handlers = [...html.matchAll(/on(?:click|change)="([^"]*)"/g)].map((m) => m[1]);
-      assert(handlers.length >= 7, 'expected the row handlers, found ' + handlers.length);
+      assert(handlers.length >= 8, 'expected the row handlers, found ' + handlers.length);
       for (const h of handlers) assert(!h.includes('O&#039;Connor') && !/Connor|Quinn|Tactical|alert\(1\)|Núñez/.test(h), 'a name reached an inline handler: ' + h);
       const calls = handlers.map((h) => h.match(/^(\w+)\('([^']*)'/));
       assert(calls.every(Boolean), 'a handler is not a simple call: ' + handlers.join(' | '));
       assert(calls.every((c) => c[2] === 'FIFS-1001'), 'a handler does not pass the student ID: ' + calls.map((c) => c[0]).join(' | '));
     }
     const html = renderRows([{ studentId: 'FIFS-1001', fullName: "Sean O'Connor", status: 'STEP_1_REGISTERED' }]);
-    for (const fn of ['openStudentScoresheetModal', 'openAdminEditStudentModal', 'dispatchRangeBriefing', 'dispatchReviewRequest', 'deleteStudentFromRoster', 'openStudentDossierModal', 'updateStudentJourneyStep']) {
+    for (const fn of ['openStudentScoresheetModal', 'openAdminEditStudentModal', 'dispatchRangeBriefing', 'dispatchReviewRequest', 'deleteStudentFromRoster', 'openStudentDossierModal', 'updateStudentJourneyStep', 'resendStudentSetupLink']) {
       assert(html.includes(`${fn}('FIFS-1001'`), `${fn} is not wired to the student ID`);
     }
   });

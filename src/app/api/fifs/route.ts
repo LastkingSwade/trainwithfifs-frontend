@@ -933,7 +933,10 @@ export async function POST(req: NextRequest) {
            recordCreated: true,
            emailDispatched: false,
            studentId: generatedId,
-           error: 'The linked portal profile was created, but the secure password setup email was not delivered. Do not retry the invite; use the account recovery/resend process for this address.'
+           resendAvailable: portalType === 'student',
+           error: portalType === 'student'
+             ? 'The student profile was created, but the password setup email was NOT delivered, so the student cannot sign in yet. Do not send the invite again. Refresh the roster and use the "Setup link" button on this student to send it.'
+             : 'The client profile was created, but the password setup email was NOT delivered, so the client cannot sign in yet. Do not send the invite again; ask the client to use "Forgot password" on the client sign-in.'
          }, { status: 502 });
        }
 
@@ -944,6 +947,117 @@ export async function POST(req: NextRequest) {
          studentId: generatedId,
          emailDispatched: true
        });
+     }
+
+     // Staff: send (or re-send) a password setup link to an existing student, including roster students who were
+     // migrated without a sign-in. Only the student ID is accepted: the destination is the email on that student's
+     // record, never one supplied by the browser, and the link itself is emailed and never returned.
+     case 'adminResendSetupLink': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       const studentId = typeof payload.studentId === 'string' ? payload.studentId.trim() : '';
+       if (!STUDENT_ID_PATTERN.test(studentId)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'A valid student ID is required.' }, { status: 400 });
+       }
+       // Resolved before any account is created so a configuration error leaves nothing behind.
+       const siteUrl = resolveSiteUrl();
+       supabase = getPrivilegedClient();
+
+       const { data: row, error: findErr } = await supabase.from('students').select('id, student_id, user_id, email, full_name').eq('student_id', studentId).maybeSingle();
+       if (findErr) {
+         console.error('[adminResendSetupLink] Student lookup failed:', findErr.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not look up the student record. Nothing was sent.' }, { status: 500 });
+       }
+       if (!row) return NextResponse.json({ success: false, status: 'error', error: 'Student not found. Nothing was sent.' }, { status: 404 });
+       const email = String(row.email || '').trim().toLowerCase();
+       if (!email || !email.includes('@')) {
+         return NextResponse.json({ success: false, status: 'error', error: 'This student has no email address on file. Add one first; nothing was sent.' }, { status: 422 });
+       }
+
+       const redirectTo = new URL('/reset-password', siteUrl).toString();
+       const requestLink = () => supabase.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo } });
+       let accountCreated = false;
+       let linkRes = await requestLink();
+       if (linkRes.error || !linkRes.data?.user?.id) {
+         const e: any = linkRes.error;
+         const noAccount = !!e && (e.status === 404 || /user_not_found|not found|no user/i.test(String(e.code || '') + ' ' + String(e.message || '')));
+         if (!noAccount) {
+           console.error('[adminResendSetupLink] Link generation failed:', e?.message || 'no user returned');
+           return NextResponse.json({ success: false, status: 'error', error: 'Could not prepare the setup link. Nothing was sent; try again shortly.' }, { status: 502 });
+         }
+         // No sign-in exists for this email yet: create one with no password, so the person sets their own from the link.
+         const { error: createErr } = await supabase.auth.admin.createUser({
+           email, email_confirm: true, app_metadata: { role: 'student' }, user_metadata: { full_name: row.full_name || '' }
+         });
+         if (createErr) {
+           console.error('[adminResendSetupLink] Account creation failed:', createErr.message);
+           return NextResponse.json({ success: false, status: 'error', error: 'Could not create the sign-in account. Nothing was sent.' }, { status: 502 });
+         }
+         accountCreated = true;
+         linkRes = await requestLink();
+       }
+       const authUser: any = linkRes.data?.user;
+       const actionLink = linkRes.data?.properties?.action_link;
+       const authId = authUser?.id;
+       const undoCreated = async () => {
+         if (accountCreated && authId) {
+           const { error: delErr } = await supabase.auth.admin.deleteUser(authId);
+           if (delErr) console.error('[adminResendSetupLink] Cleanup of the new account failed:', delErr.message);
+         }
+       };
+       if (linkRes.error || !authId || !actionLink) {
+         await undoCreated();
+         console.error('[adminResendSetupLink] No setup link returned:', linkRes.error?.message || 'missing link');
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not prepare the setup link. Nothing was sent; try again shortly.' }, { status: 502 });
+       }
+       // Never send a student setup link for a staff account, and never attach someone else's account to this student.
+       if (isStaffOrAdmin(authUser)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'This email belongs to a staff account, so no student setup link was sent.' }, { status: 409 });
+       }
+       let accountLinked = false;
+       if (row.user_id && row.user_id !== authId) {
+         await undoCreated();
+         return NextResponse.json({ success: false, status: 'error', error: 'This student is linked to a different sign-in than the one for this email. Nothing was sent; contact support to resolve it.' }, { status: 409 });
+       }
+       if (!row.user_id) {
+         const { data: taken, error: takenErr } = await supabase.from('students').select('id').eq('user_id', authId).limit(1);
+         if (takenErr || (Array.isArray(taken) && taken.length > 0)) {
+           await undoCreated();
+           return NextResponse.json({ success: false, status: 'error', error: takenErr ? 'Could not verify the sign-in link. Nothing was sent.' : 'That sign-in is already linked to another student. Nothing was sent.' }, { status: takenErr ? 500 : 409 });
+         }
+         const { data: linked, error: linkUpdateErr } = await supabase.from('students')
+           .update({ user_id: authId, updated_at: new Date().toISOString() }).eq('id', row.id).is('user_id', null).select('id');
+         if (linkUpdateErr || !Array.isArray(linked) || linked.length !== 1) {
+           await undoCreated();
+           console.error('[adminResendSetupLink] Linking the account failed:', linkUpdateErr?.message || 'not confirmed');
+           return NextResponse.json({ success: false, status: 'error', error: 'Could not link the sign-in to this student. Nothing was sent.' }, { status: 500 });
+         }
+         accountLinked = true;
+       }
+
+       const emailResult = await sendResendEmail({
+         to: email,
+         subject: 'Set up your Train With FIFS portal password',
+         html: `
+           <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#0b0f14;color:#fff;padding:24px;border-radius:8px;">
+             <h2 style="color:#ffb703;">Set up your portal password</h2>
+             <p>Dear ${escapeHtml(row.full_name || 'Student')},</p>
+             <p>Use the secure link below to choose your password and sign in to your Train With FIFS student portal with this email address. The link is time-limited and works once.</p>
+             <p><a href="${escapeHtml(actionLink)}" style="display:inline-block;background:#ffb703;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;border-radius:4px;">Set up my password</a></p>
+             <p style="color:#aaa;font-size:12px;">If you did not expect this email, you can ignore it. Do not share this link.</p>
+             <p style="color:#888;font-size:12px;margin-top:24px;">Future Initiative Firearm Services • Maryland State Police Certified Training</p>
+           </div>`
+       });
+       if (!emailResult.success) {
+         console.error('[adminResendSetupLink] Setup email not delivered:', String(emailResult.error || 'unknown').slice(0, 200));
+         return NextResponse.json({
+           success: false, status: 'error', emailDispatched: false, accountCreated, accountLinked,
+           error: 'The setup email was NOT delivered, so the student cannot sign in yet. ' + (accountCreated || accountLinked ? 'The sign-in account is ready; ' : '') + 'press "Setup link" again to retry.'
+         }, { status: 502 });
+       }
+       return NextResponse.json({ success: true, status: 'success', message: 'Password setup link sent to student.', studentId, emailDispatched: true, accountCreated, accountLinked });
      }
 
      case 'adminEnrollStudent': {

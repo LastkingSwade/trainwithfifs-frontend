@@ -33,6 +33,9 @@ const writes = [];
 // Test controls: force a database error for an operation, or make an update match no rows.
 let failOp = null;
 let updateMatchesNothing = false;
+let authUsers = {};
+let authCalls = { createUser: [], generateLink: [], deleteUser: [] };
+let authFail = null;
 function resetDb() {
   db = {
     students: [
@@ -48,9 +51,25 @@ function resetDb() {
     enrollments: [],
     clients: []
   };
+  // Roster students for the setup-link tests (no Auth account yet, no email, a staff email, mismatches).
+  db.students.push(
+    { id: 'row-dana', user_id: null, student_id: 'FIFS-1004', email: 'dana.migrated@example.test', full_name: 'Dana Migrated', status: 'STEP_1_REGISTERED' },
+    { id: 'row-noemail', user_id: null, student_id: 'FIFS-1005', email: '', full_name: 'No Email', status: 'STEP_1_REGISTERED' },
+    { id: 'row-staffmail', user_id: null, student_id: 'FIFS-1006', email: 'coach@example.test', full_name: 'Staff Mail', status: 'STEP_1_REGISTERED' },
+    { id: 'row-mismatch', user_id: 'uuid-someone-else', student_id: 'FIFS-1007', email: 'selfsignup@example.test', full_name: 'Mismatch', status: 'STEP_1_REGISTERED' },
+    { id: 'row-self', user_id: null, student_id: 'FIFS-1008', email: 'selfsignup@example.test', full_name: 'Self Signup', status: 'STEP_1_REGISTERED' },
+    { id: 'row-dupe', user_id: null, student_id: 'FIFS-1009', email: 'alice@student.com', full_name: 'Duplicate Of Alice', status: 'STEP_1_REGISTERED' }
+  );
   writes.length = 0;
   failOp = null;
   updateMatchesNothing = false;
+  authFail = null;
+  authCalls = { createUser: [], generateLink: [], deleteUser: [] };
+  authUsers = {
+    'alice@student.com': { id: 'uuid-student-alice', email: 'alice@student.com', app_metadata: { role: 'student' } },
+    'coach@example.test': { id: 'uuid-instructor', email: 'coach@example.test', app_metadata: { role: 'instructor' } },
+    'selfsignup@example.test': { id: 'uuid-self-signup', email: 'selfsignup@example.test', app_metadata: {} }
+  };
 }
 
 function queryBuilder(table) {
@@ -86,6 +105,8 @@ function queryBuilder(table) {
       filters.push((r) => parts.some(([col, val]) => String(r[col] || '').toLowerCase() === String(val || '').toLowerCase()));
       return b;
     },
+    is: (c, v) => { filters.push((r) => (r[c] === undefined ? null : r[c]) === v); return b; },
+    limit: () => b,
     order: () => b,
     maybeSingle: async () => { const r = run(); return { data: (r.data || [])[0] || null, error: r.error }; },
     single: async () => { const r = run(); return { data: (r.data || [])[0] || null, error: r.error }; },
@@ -100,9 +121,21 @@ const mockSupabase = {
     storage: { from: () => ({ createSignedUrl: async () => ({ data: null, error: { message: 'none' } }) }) },
     auth: {
       admin: {
-        createUser: async () => ({ data: { user: { id: 'uuid-new-invitee' } }, error: null }),
-        generateLink: async () => ({ data: { properties: { action_link: 'https://link.example.test/setup' } }, error: null }),
-        deleteUser: async () => ({ data: null, error: null })
+        createUser: async (params) => {
+          authCalls.createUser.push(params);
+          if (authFail === 'createUser') return { data: { user: null }, error: { status: 500, message: 'boom: internal auth detail' } };
+          const email = String(params.email).toLowerCase();
+          authUsers[email] = authUsers[email] || { id: 'uuid-new-invitee', email, app_metadata: params.app_metadata || {} };
+          return { data: { user: authUsers[email] }, error: null };
+        },
+        generateLink: async (params) => {
+          authCalls.generateLink.push(params);
+          if (authFail === 'generateLink') return { data: { properties: null, user: null }, error: { status: 500, message: 'boom: internal auth detail' } };
+          const u = authUsers[String(params.email).toLowerCase()];
+          if (!u) return { data: { properties: null, user: null }, error: { status: 404, code: 'user_not_found', message: 'User not found' } };
+          return { data: { properties: { action_link: 'https://link.example.test/verify?token=SECRET-TOKEN-123&type=recovery' }, user: u }, error: null };
+        },
+        deleteUser: async (id) => { authCalls.deleteUser.push(id); return { data: null, error: null }; }
       },
       getUser: async (token) => {
         const users = {
@@ -933,6 +966,146 @@ async function main() {
   });
   await test('Dossier button: the handler no longer depends on the missing #studentDossierModal element', async () => {
     assert(!/studentDossierModal|dossierModal/.test(extractFunction('openStudentDossierModal')), 'the dead modal lookup is still in the handler');
+  });
+
+  console.log('\n[SECTION I: adminResendSetupLink and the setup-link UI]');
+  const KEY = 're_test_key_0000000000000000';
+  const resendCalls = () => fetchCalls.filter((c) => /api\.resend\.com/.test(c.url)).map((c) => ({ ...JSON.parse(c.init.body) }));
+  async function withResend(fn, opts = {}) {
+    const prevKey = process.env.RESEND_API_KEY, prevFetch = global.fetch;
+    process.env.RESEND_API_KEY = KEY;
+    if (opts.failEmail) global.fetch = async (url, init = {}) => { fetchCalls.push({ url: String(url), init }); return { ok: false, status: 422, statusText: 'x', json: async () => ({}), text: async () => 'provider rejected the message' }; };
+    try { await fn(); } finally { if (prevKey === undefined) delete process.env.RESEND_API_KEY; else process.env.RESEND_API_KEY = prevKey; global.fetch = prevFetch; }
+  }
+  const resend = (studentId, extra = {}, token = 'instructor-token') => fifs('adminResendSetupLink', { studentId, ...extra }, token);
+  const noEmailSent = () => assert(resendCalls().length === 0 && authCalls.generateLink.length === 0 && authCalls.createUser.length === 0, 'no email or account action may happen');
+
+  await test('adminResendSetupLink: unauthenticated, student, and spoofed-admin callers are refused and nothing happens', async () => {
+    await withResend(async () => {
+      for (const token of [null, 'bad-token', 'student-alice-token', 'student-carol-token']) err(await resend('FIFS-1001', {}, token), 401);
+      noEmailSent(); noWrites();
+    });
+  });
+  await test('adminResendSetupLink: bad or unknown student IDs are refused before any account action', async () => {
+    await withResend(async () => {
+      for (const bad of ['', "x'; drop--", 'a b', null, ['FIFS-1001'], 5]) err(await resend(bad), 400);
+      err(await resend('FIFS-9999'), 404);
+      noEmailSent(); noWrites();
+    });
+  });
+  await test('adminResendSetupLink: an existing student gets a link at the email on file; a browser-supplied email is ignored and the link is never returned', async () => {
+    await withResend(async () => {
+      const r = await resend('FIFS-1001', { email: 'attacker@example.com', to: 'attacker@example.com', identifier: 'attacker@example.com' });
+      assert(r.status === 200 && r.body.success === true && r.body.status === 'success' && r.body.message === 'Password setup link sent to student.', `got ${r.status} ${JSON.stringify(r.body)}`);
+      const mails = resendCalls();
+      assert(mails.length === 1 && JSON.stringify(mails[0].to) === '["alice@student.com"]', 'must email only the record email: ' + JSON.stringify(mails.map((m) => m.to)));
+      assert(mails[0].html.includes('SECRET-TOKEN-123') && !JSON.stringify(r.body).match(/SECRET-TOKEN|link\.example|alice@student|attacker/), 'the link must be in the email only, never in the response');
+      assert(authCalls.generateLink.length === 1 && authCalls.generateLink[0].type === 'recovery' && authCalls.generateLink[0].email === 'alice@student.com' && /\/reset-password$/.test(authCalls.generateLink[0].options.redirectTo), 'recovery link to /reset-password expected: ' + JSON.stringify(authCalls.generateLink));
+      assert(authCalls.createUser.length === 0 && r.body.accountCreated === false && r.body.accountLinked === false && writes.length === 0, 'nothing should be created or changed for a linked student');
+    });
+  });
+  await test('adminResendSetupLink: a roster student with no sign-in gets one created without a password, linked to their record, and a link emailed', async () => {
+    await withResend(async () => {
+      const r = await resend('FIFS-1004');
+      assert(r.status === 200 && r.body.accountCreated === true && r.body.accountLinked === true, `got ${r.status} ${JSON.stringify(r.body)}`);
+      assert(authCalls.createUser.length === 1 && authCalls.createUser[0].email === 'dana.migrated@example.test' && !('password' in authCalls.createUser[0]) && authCalls.createUser[0].app_metadata.role === 'student' && authCalls.createUser[0].email_confirm === true, 'account must be created without a password: ' + JSON.stringify(authCalls.createUser));
+      assert(db.students.find((x) => x.student_id === 'FIFS-1004').user_id === 'uuid-new-invitee', 'the student record must be linked to the new account');
+      assert(writes.length === 1 && JSON.stringify(Object.keys(writes[0].patch).sort()) === '["updated_at","user_id"]', 'only user_id and updated_at may change: ' + JSON.stringify(writes));
+      assert(resendCalls().length === 1 && JSON.stringify(resendCalls()[0].to) === '["dana.migrated@example.test"]', 'link must go to the record email');
+    });
+  });
+  await test('adminResendSetupLink: an existing Auth account for the email is linked rather than duplicated', async () => {
+    await withResend(async () => {
+      const r = await resend('FIFS-1008');
+      assert(r.status === 200 && r.body.accountCreated === false && r.body.accountLinked === true, `got ${r.status} ${JSON.stringify(r.body)}`);
+      assert(authCalls.createUser.length === 0 && db.students.find((x) => x.student_id === 'FIFS-1008').user_id === 'uuid-self-signup', 'must link to the existing account without creating another');
+    });
+  });
+  await test('adminResendSetupLink: a staff email, a different linked account, or an account already used by another student is refused with nothing sent', async () => {
+    await withResend(async () => {
+      for (const id of ['FIFS-1006', 'FIFS-1007', 'FIFS-1009']) { const r = await resend(id); err(r, 409); }
+      assert(resendCalls().length === 0, 'no email may be sent');
+      assert(db.students.find((x) => x.student_id === 'FIFS-1006').user_id === null && db.students.find((x) => x.student_id === 'FIFS-1009').user_id === null && db.students.find((x) => x.student_id === 'FIFS-1007').user_id === 'uuid-someone-else', 'no record may be re-linked');
+      assert(writes.length === 0 && authCalls.deleteUser.length === 0 && authCalls.createUser.length === 0, 'no writes and no account changes');
+    });
+  });
+  await test('adminResendSetupLink: a student with no email on file is refused (422)', async () => {
+    await withResend(async () => { err(await resend('FIFS-1005'), 422); noEmailSent(); noWrites(); });
+  });
+  await test('adminResendSetupLink: an email provider failure is reported honestly, and the ready account is kept for a retry', async () => {
+    await withResend(async () => {
+      const r = await resend('FIFS-1004');
+      assert(r.status === 502 && r.body.success === false && r.body.emailDispatched === false && /NOT delivered/.test(r.body.error), `got ${r.status} ${JSON.stringify(r.body)}`);
+      assert(r.body.accountCreated === true && r.body.accountLinked === true && !/provider rejected/.test(JSON.stringify(r.body)), 'provider detail must not leak');
+      const retry = await resend('FIFS-1004');
+      assert(retry.status === 502 && authCalls.createUser.length === 1, 'a retry must reuse the account, not create another');
+    }, { failEmail: true });
+    await withResend(async () => {
+      const ok = await resend('FIFS-1004');
+      assert(ok.status === 200 && ok.body.accountCreated === false && ok.body.accountLinked === false, 'a later retry succeeds without creating or re-linking');
+    });
+  });
+  await test('adminResendSetupLink: missing email configuration reports failure, never success', async () => {
+    const r = await resend('FIFS-1001');
+    assert(r.status === 502 && r.body.success === false && /NOT delivered/.test(r.body.error), `got ${r.status} ${JSON.stringify(r.body)}`);
+  });
+  await test('adminResendSetupLink: auth failures send nothing and leak no detail; a link that cannot be saved removes the account it created', async () => {
+    await withResend(async () => {
+      authFail = 'generateLink';
+      const a = await resend('FIFS-1001'); err(a, 502);
+      authFail = 'createUser';
+      const b = await resend('FIFS-1004'); err(b, 502);
+      assert(!/boom|internal auth/.test(JSON.stringify([a.body, b.body])), 'internal detail leaked');
+      authFail = null; resetDbKeepAuth();
+      updateMatchesNothing = true;
+      const c = await resend('FIFS-1004'); err(c, 500);
+      assert(authCalls.deleteUser.includes('uuid-new-invitee'), 'the account created for this call must be removed when linking fails');
+      assert(resendCalls().length === 0, 'no email may be sent after a failure');
+    });
+    function resetDbKeepAuth() { delete authUsers['dana.migrated@example.test']; authCalls = { createUser: [], generateLink: [], deleteUser: [] }; fetchCalls.length = 0; }
+  });
+  await test('adminDirectInvite: when the setup email is not delivered the response says so plainly and points to the Setup link button', async () => {
+    const r = await fifs('adminDirectInvite', { portalType: 'student', generatedId: 'FIFS-7788', fullName: 'Invitee Person', email: 'invitee@example.test', phone: '', course: 'Maryland HQL 8hr' }, 'instructor-token');
+    assert(r.status === 502 && r.body.success === false && r.body.recordCreated === true && r.body.resendAvailable === true && /NOT delivered/.test(r.body.error) && /Setup link/.test(r.body.error) && /cannot sign in yet/.test(r.body.error), `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(!/account recovery\/resend/.test(r.body.error), 'old vague instruction is back');
+  });
+
+  const setupFn = extractFunction('resendStudentSetupLink');
+  function loadSetupButton(student, confirmAnswer = true) {
+    const calls = { alerts: [], confirms: [], saves: [] };
+    const ctx = { window: { adminCachedStudents: student ? [student] : [] }, alert: (m) => calls.alerts.push(m), confirm: (m) => { calls.confirms.push(m); return confirmAnswer; },
+      fifsSaveOrReport: (action, payload, ok, fail) => calls.saves.push({ action, payload, ok, fail }) };
+    vm.createContext(ctx);
+    vm.runInContext(setupFn + '\nthis.fn = resendStudentSetupLink;', ctx);
+    return { fn: ctx.fn, calls };
+  }
+  await test('Setup link button: confirms first, sends only the student ID, disables itself while sending, and reports the server result', async () => {
+    const h = loadSetupButton({ studentId: 'FIFS-1004', fullName: "Dana O'Migrated", email: 'dana.migrated@example.test' });
+    const btn = { disabled: false };
+    h.fn('FIFS-1004', btn);
+    assert(h.calls.confirms.length === 1 && h.calls.confirms[0].includes('dana.migrated@example.test'), 'a confirmation naming the email is expected');
+    assert(h.calls.saves.length === 1 && h.calls.saves[0].action === 'adminResendSetupLink' && JSON.stringify(h.calls.saves[0].payload) === '{"studentId":"FIFS-1004"}', 'only the student ID may be sent: ' + JSON.stringify(h.calls.saves[0]));
+    assert(btn.disabled === true, 'button must be disabled in flight');
+    h.calls.saves[0].ok({ success: true, message: 'Password setup link sent to student.' });
+    assert(btn.disabled === false && h.calls.alerts[0] === 'Password setup link sent to student.', 'success should re-enable and report: ' + h.calls.alerts);
+    const f = loadSetupButton({ studentId: 'FIFS-1004', fullName: 'D', email: 'd@example.test' });
+    const b2 = { disabled: false }; f.fn('FIFS-1004', b2); f.calls.saves[0].fail(new Error('The setup email was NOT delivered'));
+    assert(b2.disabled === false && /was NOT sent: The setup email was NOT delivered/.test(f.calls.alerts[0]), 'failure must be reported: ' + f.calls.alerts);
+  });
+  await test('Setup link button: nothing is sent when the admin cancels, the student is unknown, or there is no email', async () => {
+    const cancel = loadSetupButton({ studentId: 'FIFS-1004', fullName: 'D', email: 'd@example.test' }, false); cancel.fn('FIFS-1004', {});
+    assert(cancel.calls.saves.length === 0, 'cancel must not send');
+    const unknown = loadSetupButton(null); unknown.fn('FIFS-9999', {});
+    assert(unknown.calls.saves.length === 0 && unknown.calls.alerts.length === 1, 'unknown student must alert only');
+    const noMail = loadSetupButton({ studentId: 'FIFS-1005', fullName: 'N', email: '' }); noMail.fn('FIFS-1005', {});
+    assert(noMail.calls.saves.length === 0 && /no email address/.test(noMail.calls.alerts[0]), 'no email must alert only');
+  });
+  await test('The roster row and Edit form offer the Setup link button; the dead first-time password box is gone', async () => {
+    assert(/onclick="resendStudentSetupLink\('\$\{id\}', this\)"/.test(PUBLIC_SCRIPT), 'roster row button missing');
+    assert(/data-onclick="resendStudentSetupLink\(document\.getElementById\('editStudentId'\)\.value, this\)"/.test(PAGE_SRC), 'Edit form button missing');
+    for (const dead of ['student-setup-password-box', 'submitNewStudentPassword', 'studentNewPasswordInput', 'Create Your Permanent Portal Password', 'Choose a password (min 4 characters)']) {
+      assert(!PAGE_SRC.includes(dead) && !PUBLIC_SCRIPT.includes(dead), `dead first-time box remnant: ${dead}`);
+    }
   });
 
   console.log('\n================================================================');

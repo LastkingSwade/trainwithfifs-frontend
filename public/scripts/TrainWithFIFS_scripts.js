@@ -3871,7 +3871,6 @@ function loadDemoStudent() {
     function lookupStudentAccount() {
       var input = document.getElementById('studentAuthInput');
       var passInput = document.getElementById('studentAuthPassword');
-      var setupBox = document.getElementById('student-setup-password-box');
       var statusDiv = document.getElementById('student-login-status');
       var query = input ? input.value.trim() : '';
       var password = passInput ? passInput.value : ''; // passwords are used exactly as typed
@@ -3897,8 +3896,7 @@ function loadDemoStudent() {
 
 
         if (res.status === 'needs_password_setup') {
-          if (setupBox) setupBox.style.display = 'block';
-          showStatus(statusDiv, res.message || 'First-time login: create your portal password below.', 'info');
+          showStatus(statusDiv, 'This account does not have a password yet. Use "Forgot password?" below to set one, or ask FIFS to send you a setup link.', 'info');
           return;
         }
 
@@ -3930,12 +3928,6 @@ function loadDemoStudent() {
     }
 
 
-    function submitNewStudentPassword() {
-      var statusDiv = document.getElementById('student-login-status');
-      showStatus(statusDiv, 'Password setup requires an authenticated account. Please sign in or contact FIFS for secure account setup.', 'error');
-      return false;
-    }
-    window.submitNewStudentPassword = submitNewStudentPassword;
     window.lookupStudentAccount = lookupStudentAccount;
     function lookupClientAccount() {
       var input = document.getElementById('clientAuthInput');
@@ -4874,6 +4866,23 @@ function openAdminEditStudentModal(studentId) {
       });
     }
     window.handleAdminEditStudentSubmit = handleAdminEditStudentSubmit;
+    // Emails the student a password setup link. The server uses the email on the student's own record (only the ID is
+    // sent), creates or links the sign-in if the student never had one, and reports honestly whether the email went out.
+    function resendStudentSetupLink(studentId, btnEl) {
+      var s = (window.adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
+      if (!s) { alert('Student record not found in the active roster.'); return; }
+      if (!s.email) { alert('This student has no email address on file. Add one before sending a setup link.'); return; }
+      if (!confirm('Email a password setup link to ' + (s.fullName || studentId) + ' at ' + s.email + '?')) return;
+      if (btnEl) btnEl.disabled = true;
+      fifsSaveOrReport('adminResendSetupLink', { studentId: studentId }, function(res) {
+        if (btnEl) btnEl.disabled = false;
+        alert((res && res.message) || 'Password setup link sent to student.');
+      }, function(err) {
+        if (btnEl) btnEl.disabled = false;
+        alert('Setup link was NOT sent: ' + ((err && err.message) || 'the server did not confirm it.'));
+      });
+    }
+    window.resendStudentSetupLink = resendStudentSetupLink;
     function deleteStudentFromRoster(studentId) {
       var s = adminCachedStudents.find(item => item.studentId === studentId);
       var name = s ? s.fullName : studentId;
@@ -4922,6 +4931,7 @@ function openAdminEditStudentModal(studentId) {
               <button type="button" class="btn-spark" onclick="openAdminEditStudentModal('${id}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-cyan);" title="Edit student record">✏️ Edit</button>
               <button type="button" class="btn-spark" onclick="dispatchRangeBriefing('${id}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: #60a5fa; color: #60a5fa;" title="Send Range Day Arrival Briefing">🎯 Briefing</button>
               <button type="button" class="btn-spark" onclick="dispatchReviewRequest('${id}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-amber); color: var(--accent-amber);" title="Send 5-Star Google Review Request">⭐ Review</button>
+              <button type="button" class="btn-spark" onclick="resendStudentSetupLink('${id}', this)" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Email this student a password setup link">🔑 Setup link</button>
               <button type="button" class="btn-spark" onclick="deleteStudentFromRoster('${id}')" style="width: auto; padding: 5px 8px; font-size: 0.76rem; border-color: var(--accent-red); color: var(--accent-red);" title="Delete student">🗑️</button>
             </div>
           </td>
@@ -6001,7 +6011,6 @@ function openAdminEditStudentModal(studentId) {
     async function lookupStudentAccount() {
       var input = document.getElementById('studentAuthInput');
       var passInput = document.getElementById('studentAuthPassword');
-      var setupBox = document.getElementById('student-setup-password-box');
       var statusDiv = document.getElementById('student-login-status');
       var email = input ? input.value.trim().toLowerCase() : '';
       var password = passInput ? passInput.value : '';
@@ -6017,7 +6026,6 @@ function openAdminEditStudentModal(studentId) {
         var response = await fetch('/api/fifs', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authResult.data.session.access_token }, body: JSON.stringify({ action: 'getStudentPortalData' }) });
         var result = await response.json();
         if (!response.ok || !result.success || !result.student) {
-          if (setupBox) setupBox.style.display = 'none';
           throw new Error(result.error || 'A linked student profile was not found. Contact FIFS for account setup.');
         }
         fifsSetStudentSession(result.student);

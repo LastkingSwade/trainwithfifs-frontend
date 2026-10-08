@@ -1486,7 +1486,6 @@ export default function TrainWithFIFS(props: any) {
     (window as any).lookupStudentAccount = async () => {
       const input = document.getElementById('studentAuthInput') as HTMLInputElement | null;
       const passInput = document.getElementById('studentAuthPassword') as HTMLInputElement | null;
-      const setupBox = document.getElementById('student-setup-password-box');
       const statusDiv = document.getElementById('student-login-status');
       const query = input ? input.value.trim() : '';
       const password = passInput ? passInput.value : ''; // passwords are used exactly as typed
@@ -1552,9 +1551,8 @@ export default function TrainWithFIFS(props: any) {
           (window as any).__fifsStudentPortalRecord = data.student;
           (window as any).renderStudentDashboard(data.student);
         } else if (data && data.status === 'needs_password_setup') {
-          if (setupBox) setupBox.style.display = 'block';
           if (statusDiv) {
-            statusDiv.textContent = data.message || 'First-time login: create your portal password below.';
+            statusDiv.textContent = 'This account does not have a password yet. Use "Forgot password?" below to set one, or ask FIFS to send you a setup link.';
             statusDiv.style.display = 'block';
           }
         } else {
@@ -4607,15 +4605,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     Forgot password?
                   </button>
                 </div>
-              </div>
-              <div id="student-setup-password-box" style={{"display": "none", "marginTop": "14px", "padding": "14px", "background": "rgba(0, 229, 255, 0.08)", "borderRadius": "8px", "border": "1px solid var(--accent-cyan)"}}>
-                <p style={{"fontSize": "0.85rem", "color": "#fff", "marginBottom": "8px", "fontWeight": "700"}}>
-                  First-Time Access: Create Your Permanent Portal Password
-                </p>
-                <input id="studentNewPasswordInput" placeholder="Choose a password (min 4 characters)" style={{"marginBottom": "10px"}} type="password" />
-                <button className="btn-primary" data-onclick="submitNewStudentPassword()" style={{"width": "100%", "padding": "10px"}} type="button">
-                  Save Password & Access Portal →
-                </button>
               </div>
               <button className="btn-primary" data-onclick="lookupStudentAccount()" style={{"marginTop": "14px"}} type="button">
                 
@@ -10567,6 +10556,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <small id="editEmailNote" style={{"display": "block", "marginTop": "4px", "fontSize": "0.74rem", "color": "#94a3b8"}}>
                   Email cannot be modified here to protect login credentials.
                 </small>
+                <button type="button" className="btn-spark" data-onclick="resendStudentSetupLink(document.getElementById('editStudentId').value, this)" style={{"width": "auto", "marginTop": "8px", "padding": "6px 12px", "fontSize": "0.8rem", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)"}}>
+                  🔑 Send setup link
+                </button>
               </div>
             </div>
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "12px"}}>
