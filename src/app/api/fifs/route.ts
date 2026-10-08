@@ -1295,19 +1295,37 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, status: 'error', error: 'This student is linked to a different sign-in than the one for this email. Nothing was sent; contact support to resolve it.' }, { status: 409 });
        }
        if (!row.user_id) {
-         const { data: taken, error: takenErr } = await supabase.from('students').select('id').eq('user_id', authId).limit(1);
+         // The database trigger handle_student_auth_user_link links an unlinked student to a newly created, confirmed
+         // account with the same email (when exactly one student matches). That can happen during this very request,
+         // after the row was read above, so this student's own row is excluded from the "already taken" check and the
+         // row is read again before deciding what is left to do.
+         const { data: taken, error: takenErr } = await supabase.from('students').select('id').eq('user_id', authId).neq('id', row.id).limit(1);
          if (takenErr || (Array.isArray(taken) && taken.length > 0)) {
            await undoCreated();
            return NextResponse.json({ success: false, status: 'error', error: takenErr ? 'Could not verify the sign-in link. Nothing was sent.' : 'That sign-in is already linked to another student. Nothing was sent.' }, { status: takenErr ? 500 : 409 });
          }
-         const { data: linked, error: linkUpdateErr } = await supabase.from('students')
-           .update({ user_id: authId, updated_at: new Date().toISOString() }).eq('id', row.id).is('user_id', null).select('id');
-         if (linkUpdateErr || !Array.isArray(linked) || linked.length !== 1) {
+         const { data: current, error: currentErr } = await supabase.from('students').select('user_id').eq('id', row.id).maybeSingle();
+         if (currentErr || !current) {
            await undoCreated();
-           console.error('[adminResendSetupLink] Linking the account failed:', linkUpdateErr?.message || 'not confirmed');
-           return NextResponse.json({ success: false, status: 'error', error: 'Could not link the sign-in to this student. Nothing was sent.' }, { status: 500 });
+           console.error('[adminResendSetupLink] Could not re-read the student before linking:', currentErr?.message || 'row missing');
+           return NextResponse.json({ success: false, status: 'error', error: 'Could not verify the sign-in link. Nothing was sent.' }, { status: 500 });
          }
-         accountLinked = true;
+         if (current.user_id === authId) {
+           // Already linked to this very account (by the database trigger): nothing more to write.
+           accountLinked = true;
+         } else if (current.user_id) {
+           await undoCreated();
+           return NextResponse.json({ success: false, status: 'error', error: 'This student is linked to a different sign-in than the one for this email. Nothing was sent; contact support to resolve it.' }, { status: 409 });
+         } else {
+           const { data: linked, error: linkUpdateErr } = await supabase.from('students')
+             .update({ user_id: authId, updated_at: new Date().toISOString() }).eq('id', row.id).is('user_id', null).select('id');
+           if (linkUpdateErr || !Array.isArray(linked) || linked.length !== 1) {
+             await undoCreated();
+             console.error('[adminResendSetupLink] Linking the account failed:', linkUpdateErr?.message || 'not confirmed');
+             return NextResponse.json({ success: false, status: 'error', error: 'Could not link the sign-in to this student. Nothing was sent.' }, { status: 500 });
+           }
+           accountLinked = true;
+         }
        }
 
        const emailResult = await sendResendEmail({

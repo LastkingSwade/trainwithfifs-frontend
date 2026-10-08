@@ -39,6 +39,10 @@ let storageFail = null;
 let authUsers = {};
 let authCalls = { createUser: [], generateLink: [], deleteUser: [], getUserById: [], deleteSnapshots: [] };
 let authFail = null;
+// Simulates the database trigger handle_student_auth_user_link: when a confirmed account is created and exactly one
+// unlinked student has that email, that student is linked to it. Modes: 'own' (normal), 'other' (links to a different
+// account), 'vanish' (the student row is deleted mid-request). false = no trigger.
+let authTrigger = false;
 function resetDb() {
   db = {
     students: [
@@ -82,6 +86,7 @@ function resetDb() {
   storageFail = null;
   storageCalls = { upload: [], remove: [], sign: [] };
   authFail = null;
+  authTrigger = false;
   authCalls = { createUser: [], generateLink: [], deleteUser: [], getUserById: [], deleteSnapshots: [] };
   authUsers = {
     'alice@student.com': { id: 'uuid-student-alice', email: 'alice@student.com', app_metadata: { role: 'student' } },
@@ -143,6 +148,7 @@ function queryBuilder(table) {
       filters.push((r) => parts.some(([col, val]) => String(r[col] || '').toLowerCase() === String(val || '').toLowerCase()));
       return b;
     },
+    neq: (c, v) => { filters.push((r) => r[c] !== v); return b; },
     is: (c, v) => { filters.push((r) => (r[c] === undefined ? null : r[c]) === v); return b; },
     limit: () => b,
     order: () => b,
@@ -181,6 +187,14 @@ const mockSupabase = {
           if (authFail === 'createUser') return { data: { user: null }, error: { status: 500, message: 'boom: internal auth detail' } };
           const email = String(params.email).toLowerCase();
           authUsers[email] = authUsers[email] || { id: 'uuid-new-invitee', email, app_metadata: params.app_metadata || {} };
+          if (authTrigger && params.email_confirm) {
+            const matches = (db.students || []).filter((r) => (r.user_id === null || r.user_id === undefined) && String(r.email || '').trim().toLowerCase() === email.trim().toLowerCase());
+            if (matches.length === 1) {
+              if (authTrigger === 'own') matches[0].user_id = authUsers[email].id;
+              else if (authTrigger === 'other') matches[0].user_id = 'uuid-some-other-account';
+              else if (authTrigger === 'vanish') db.students = db.students.filter((r) => r !== matches[0]);
+            }
+          }
           return { data: { user: authUsers[email] }, error: null };
         },
         generateLink: async (params) => {
@@ -2061,6 +2075,81 @@ async function main() {
       assert(src.indexOf('refreshAdminRoster') >= 0 && src.indexOf('refreshAdminRoster') < src.indexOf('refreshAdminClients'), `${fn} (the live definition) must refresh the roster before the clients`);
     }
     assert(/window\.refreshAdminRoster\) window\.refreshAdminRoster\(\);\s*\n\s*if \(window\.refreshAdminClients\)/.test(PUBLIC_SCRIPT), 'the other "refresh all" callers keep the same order');
+  });
+
+  console.log('\n[SECTION U: Setup link when the database trigger links the student during the request]');
+  const dbWritesTo = (table, op) => writes.filter((w) => w.table === table && w.op === op);
+  await test('Setup link: when the trigger links the student\'s own row to the account created in this request, it succeeds and writes no redundant link', async () => {
+    await withResend(async () => {
+      authTrigger = 'own';
+      const r = await resend('FIFS-1004');
+      assert(r.status === 200 && r.body.success === true && r.body.accountCreated === true && r.body.accountLinked === true, `got ${r.status} ${JSON.stringify(r.body)}`);
+      assert(db.students.find((x) => x.student_id === 'FIFS-1004').user_id === 'uuid-new-invitee', 'the row stays linked to the new account');
+      assert(dbWritesTo('students', 'update').length === 0, 'the trigger already linked it, so the redundant link update must be skipped: ' + JSON.stringify(writes));
+      assert(authCalls.deleteUser.length === 0, 'the new account must not be deleted');
+      const mails = resendCalls();
+      assert(mails.length === 1 && JSON.stringify(mails[0].to) === '["dana.migrated@example.test"]', 'the setup email is sent to the record email');
+    });
+  });
+  await test('Setup link: a second press after the trigger linked the row sends again without creating or linking anything', async () => {
+    await withResend(async () => {
+      authTrigger = 'own';
+      await resend('FIFS-1004');
+      fetchCalls.length = 0; authCalls = { createUser: [], generateLink: [], deleteUser: [], getUserById: [], deleteSnapshots: [] }; writes.length = 0;
+      const again = await resend('FIFS-1004');
+      assert(again.status === 200 && again.body.accountCreated === false && again.body.accountLinked === false && authCalls.createUser.length === 0 && writes.length === 0 && resendCalls().length === 1, `got ${again.status} ${JSON.stringify(again.body)}`);
+    });
+  });
+  await test('Setup link: a DIFFERENT student row holding the account is still refused with 409, and the account created for this call is removed', async () => {
+    await withResend(async () => {
+      authTrigger = 'own';
+      db.students.push({ id: 'row-other-holder', user_id: 'uuid-new-invitee', student_id: 'FIFS-1099', email: 'someone.else@example.test', full_name: 'Other Holder', status: 'STEP_1_REGISTERED' });
+      const r = await resend('FIFS-1004');
+      err(r, 409);
+      assert(/already linked to another student/.test(r.body.error), r.body.error);
+      assert(resendCalls().length === 0 && authCalls.deleteUser.includes('uuid-new-invitee'), 'nothing is sent and the account created for this call is removed');
+      assert(db.students.find((x) => x.student_id === 'FIFS-1099').user_id === 'uuid-new-invitee', 'the other student\'s link is untouched');
+    });
+  });
+  await test('Setup link: an existing account already held by another student is refused whether or not the trigger exists', async () => {
+    await withResend(async () => {
+      for (const mode of [false, 'own']) {
+        resetDb(); authTrigger = mode; fetchCalls.length = 0;
+        const r = await resend('FIFS-1009');
+        err(r, 409);
+        assert(/already linked to another student/.test(r.body.error) && resendCalls().length === 0 && db.students.find((x) => x.student_id === 'FIFS-1009').user_id === null, `trigger=${mode}: ${JSON.stringify(r.body)}`);
+      }
+    });
+  });
+  await test('Setup link: if the row ends up linked to some other account, or disappears mid-request, it is refused and the new account is removed', async () => {
+    await withResend(async () => {
+      authTrigger = 'other';
+      const other = await resend('FIFS-1004');
+      err(other, 409);
+      assert(/different sign-in/.test(other.body.error) && resendCalls().length === 0 && authCalls.deleteUser.includes('uuid-new-invitee'), 'a row linked elsewhere: ' + JSON.stringify(other.body));
+      resetDb(); authTrigger = 'vanish'; fetchCalls.length = 0;
+      const gone = await resend('FIFS-1004');
+      err(gone, 500);
+      assert(/Could not verify the sign-in link/.test(gone.body.error) && resendCalls().length === 0 && authCalls.deleteUser.includes('uuid-new-invitee'), 'a vanished row: ' + JSON.stringify(gone.body));
+    });
+  });
+  await test('Setup link: when the trigger does not link (two unlinked students share the email) the guarded link update still runs', async () => {
+    await withResend(async () => {
+      authTrigger = 'own';
+      db.students.push({ id: 'row-dana-twin', user_id: null, student_id: 'FIFS-1098', email: 'dana.migrated@example.test', full_name: 'Dana Twin', status: 'STEP_1_REGISTERED' });
+      const r = await resend('FIFS-1004');
+      assert(r.status === 200 && r.body.accountCreated === true && r.body.accountLinked === true, `got ${r.status} ${JSON.stringify(r.body)}`);
+      const updates = dbWritesTo('students', 'update');
+      assert(updates.length === 1 && Object.keys(updates[0].patch).sort().join() === 'updated_at,user_id', 'one guarded link update expected: ' + JSON.stringify(writes));
+      assert(db.students.find((x) => x.student_id === 'FIFS-1004').user_id === 'uuid-new-invitee' && db.students.find((x) => x.student_id === 'FIFS-1098').user_id === null, 'only the clicked student is linked');
+    });
+  });
+  await test('Setup link: the conflict check excludes the student\'s own row and the row is re-read before linking', async () => {
+    const at = ROUTE_SRC.indexOf("case 'adminResendSetupLink'");
+    const block = ROUTE_SRC.slice(at, ROUTE_SRC.indexOf("case 'adminEnrollStudent'", at));
+    assert(/\.eq\('user_id', authId\)\.neq\('id', row\.id\)/.test(block), 'the "taken" check must exclude the student\'s own row');
+    assert(/select\('user_id'\)\.eq\('id', row\.id\)\.maybeSingle\(\)/.test(block), 'the row must be re-read before linking');
+    assert(/handle_student_auth_user_link/.test(block), 'the comment should name the trigger so the reason is not lost');
   });
 
   console.log('\n================================================================');
