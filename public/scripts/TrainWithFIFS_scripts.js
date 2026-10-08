@@ -3878,7 +3878,7 @@ function loadDemoStudent() {
 
 
       if (!query) {
-        showStatus(statusDiv, 'Please enter your Email Address or Student ID.', 'error');
+        showStatus(statusDiv, 'Enter the email address linked to your student account.', 'error');
         return;
       }
       
@@ -4621,10 +4621,10 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
                 refreshAdminRosterTable();
               }
             }
-            var credsSummary = 'Portal URL: ' + loginPortalUrl + ' | ID: ' + newId + (res.tempPassword ? (' | Temp Password: ' + res.tempPassword) : '');
+            var credsSummary = 'Portal URL: ' + loginPortalUrl + ' | Sign in with email: ' + email + ' (after setting a password from the emailed link; ID ' + newId + ' is for records only)';
             if (urlInput) urlInput.value = credsSummary;
             if (resBox) resBox.style.display = 'block';
-            showStatus(st, 'Invitation sent. The ' + (portalType === 'student' ? 'student' : 'client') + ' must open the password setup link in their email and choose a password before they can sign in at ' + loginPortalUrl + '. No password was sent.', 'success');
+            showStatus(st, 'Invitation sent. The ' + (portalType === 'student' ? 'student' : 'client') + ' must open the password setup link in their email and choose a password before they can sign in with that email address at ' + loginPortalUrl + '. No password was sent.', 'success');
           } else {
             showStatus(st, (res && res.error) || 'Failed to dispatch invite to Supabase.', 'error');
           }

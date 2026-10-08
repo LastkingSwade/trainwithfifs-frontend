@@ -764,6 +764,33 @@ async function main() {
     err(await fifs('updateStudentStatus', { studentId: 'FIFS-1001', status: 'STEP_5_LIVE_FIRE' }, null), 401);
   });
 
+  console.log('\n[SECTION F: Student sign-in is email only]');
+  const PAGE_SRC = fs.readFileSync(path.resolve(__dirname, '../src/app/page.tsx'), 'utf-8');
+  await test('The student sign-in form asks for an email address only: no Student ID in label, placeholder, or helper text', async () => {
+    const at = PAGE_SRC.indexOf('htmlFor="studentAuthInput"');
+    assert(at > 0, 'student sign-in label not found');
+    const block = PAGE_SRC.slice(PAGE_SRC.lastIndexOf('<p>', at), PAGE_SRC.indexOf('studentAuthPassword', at));
+    assert(/Email Address\s*<span/.test(block) && !/Student ID|student ID|FIFS-\d/.test(block), 'label/placeholder/helper still mention a Student ID: ' + block.replace(/\s+/g, ' ').slice(0, 300));
+    assert(/placeholder="e\.g\., student@example\.com"/.test(block), 'placeholder should be an email example');
+    assert(/email address linked to your student account/i.test(block), 'helper text should name the linked email address');
+  });
+  await test('Sign-in handlers, the change-password modal, and the Forgot-password label never ask for a Student ID', async () => {
+    const pageLookup = PAGE_SRC.slice(PAGE_SRC.indexOf('(window as any).lookupStudentAccount = async'), PAGE_SRC.indexOf('(window as any).lookupStudentAccount = async') + 900);
+    assert(!/Student ID/.test(pageLookup) && /includes\('@'\)/.test(pageLookup), 'page handler must require an email and not mention an ID');
+    for (const src of [extractFunction('lookupStudentAccount')]) assert(!/Student ID/.test(src), 'script handler mentions a Student ID');
+    const cp = PAGE_SRC.slice(PAGE_SRC.indexOf('htmlFor="cpUserEmail"'), PAGE_SRC.indexOf('htmlFor="cpCurrentPassword"'));
+    assert(!/Student ID|FIFS-\d|or ID/.test(cp) && /Email Address/.test(cp), 'change-password modal still asks for an ID');
+    const resetSrc = fs.readFileSync(path.resolve(__dirname, '../src/Lib/auth/password-reset.ts'), 'utf-8');
+    assert(/student: \{ input: 'studentAuthInput', status: 'student-login-status', label: 'Email Address' \}/.test(resetSrc), 'Forgot-password label for students must be Email Address');
+  });
+  await test('The Admin Hub invite result tells staff the person signs in with their email address after using the setup link', async () => {
+    const at = PUBLIC_SCRIPT.indexOf("callFifsBackend('adminDirectInvite'");
+    const block = PUBLIC_SCRIPT.slice(at, at + 3200);
+    assert(/Sign in with email: ' \+ email/.test(block) && /sign in with that email address/.test(block), 'invite result must refer to signing in with email');
+    assert(!/ID: ' \+ newId \+ \(res\.tempPassword/.test(block) && !/Temp Password/.test(block), 'the temp-password display must be gone');
+    assert(/Invitation sent\. The person signs in with their email address/.test(PAGE_SRC), 'result box heading must be updated');
+  });
+
   console.log('\n================================================================');
   console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   console.log('================================================================');

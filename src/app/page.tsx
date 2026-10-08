@@ -1491,9 +1491,9 @@ export default function TrainWithFIFS(props: any) {
       const query = input ? input.value.trim() : '';
       const password = passInput ? passInput.value : ''; // passwords are used exactly as typed
 
-      if (!query) {
+      if (!query || !query.includes('@')) {
         if (statusDiv) {
-          statusDiv.textContent = 'Please enter your Email Address or Student ID.';
+          statusDiv.textContent = 'Please enter the email address linked to your student account.';
           statusDiv.style.display = 'block';
         }
         return;
@@ -4581,18 +4581,18 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Future Initiative Firearm Services Student Sign-In
               </h3>
               <p>
-                Enter your email address or student ID to access your training dossier, preparation checklist, and course resources.
+                Sign in with the email address linked to your student account to access your training dossier, preparation checklist, and course resources.
               </p>
             </div>
             <div style={{"background": "#0d121a", "border": "1px solid rgba(0, 229, 255, 0.25)", "borderRadius": "12px", "padding": "22px", "maxWidth": "500px", "margin": "0 auto"}}>
               <div className="form-group">
                 <label htmlFor="studentAuthInput">
-                  Email Address or Student ID 
+                  Email Address
                   <span className="req">
                     *
                   </span>
                 </label>
-                <input id="studentAuthInput" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupStudentAccount()" placeholder="e.g., student@example.com or FIFS-4081" type="text" />
+                <input id="studentAuthInput" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupStudentAccount()" placeholder="e.g., student@example.com" type="text" />
               </div>
               <div className="form-group" style={{"marginTop": "14px"}}>
                 <label htmlFor="studentAuthPassword" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.85rem", "margin": "0 0 4px 0", "display": "block"}}>
@@ -10517,7 +10517,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           {/* Invite Generated Link Box */}
           <div id="inv-result-box" style={{"display": "none", "background": "#070b10", "border": "1px solid rgba(0, 229, 255, 0.3)", "borderRadius": "10px", "padding": "14px", "marginTop": "16px"}}>
             <strong style={{"color": "var(--accent-cyan)", "fontSize": "0.88rem", "display": "block", "marginBottom": "4px"}}>
-              Direct Portal Access Link Generated:
+              Invitation sent. The person signs in with their email address:
             </strong>
             <div style={{"display": "flex", "gap": "8px", "alignItems": "center", "marginTop": "6px"}}>
               <input id="invGeneratedUrl" readOnly style={{"background": "#10161f", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "8px 12px", "borderRadius": "6px", "fontSize": "0.85rem", "flex": "1"}} type="text" />
@@ -13164,9 +13164,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
           <form id="changePasswordForm" data-onsubmit="submitChangePassword(event)" onSubmit={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).submitChangePassword) (window as any).submitChangePassword(e); }}>
             <div className="form-group" style={{"marginBottom": "14px"}}>
               <label htmlFor="cpUserEmail" style={{"color": "#cbd5e1", "fontSize": "0.85rem", "fontWeight": "600", "display": "block", "marginBottom": "6px"}}>
-                Account Email or Student ID <span className="req">*</span>
+                Account Email Address <span className="req">*</span>
               </label>
-              <input id="cpUserEmail" placeholder="Enter student email or ID (e.g., FIFS-8172)" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px 12px", "borderRadius": "6px", "width": "100%", "fontSize": "0.88rem"}} type="text" />
+              <input id="cpUserEmail" placeholder="Enter the email address for your account" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px 12px", "borderRadius": "6px", "width": "100%", "fontSize": "0.88rem"}} type="text" />
             </div>
             <div className="form-group" style={{"marginBottom": "14px"}}>
               <label htmlFor="cpCurrentPassword" style={{"color": "#cbd5e1", "fontSize": "0.85rem", "fontWeight": "600", "display": "block", "marginBottom": "6px"}}>

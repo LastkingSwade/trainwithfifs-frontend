@@ -252,7 +252,7 @@ async function main() {
     const bad = await runReset('staff', { adminStaffEmail: 'info@trainwithfifs' });
     assert(/does not contain a valid email address/.test(bad.result.message) && bad.created === 0 && bad.client.called('resetPasswordForEmail') === 0, bad.result.message);
     const id = await runReset('student', { studentAuthInput: 'FIFS-4081' });
-    assert(/needs your email address/.test(id.result.message) && /Email Address or Student ID/.test(id.result.message) && id.created === 0, id.result.message);
+    assert(/needs your email address/.test(id.result.message) && /"Email Address" box/.test(id.result.message) && !/Student ID/.test(id.result.message) && id.created === 0, id.result.message);
   });
   await test('A missing form box is reported without contacting Supabase', async () => {
     const { result, created } = await runReset('client', {});

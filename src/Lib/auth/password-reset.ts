@@ -193,7 +193,7 @@ export async function requestPasswordReset(client: AuthClient, email: string, or
 // step testable and make the error name the box, so a person can tell which field was empty.
 
 export const PORTAL_RESET_FIELDS: Record<PortalKey, { input: string; status: string; label: string }> = {
-  student: { input: 'studentAuthInput', status: 'student-login-status', label: 'Email Address or Student ID' },
+  student: { input: 'studentAuthInput', status: 'student-login-status', label: 'Email Address' },
   client: { input: 'clientAuthInput', status: 'client-login-status', label: 'Email Address' },
   staff: { input: 'adminStaffEmail', status: 'admin-auth-status', label: 'Staff Account Email' },
 };
