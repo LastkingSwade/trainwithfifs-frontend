@@ -1520,9 +1520,9 @@ async function main() {
     assert((PAGE_SRC.match(/document\.removeEventListener\('input', handleDelegatedInput\)/g) || []).length === 1, 'the listener must be removed on cleanup');
     assert(!/e\.preventDefault\(\)/.test(blockFrom('    const handleDelegatedInput = ')), 'typing must not be cancelled');
   });
-  await test('Every data-oninput in the page calls a function the page actually defines (state search, contact search, chat box)', async () => {
+  await test('Every data-oninput in the page calls a function the page actually defines (state search, contact search, admin chat box, visitor chat box)', async () => {
     const used = [...PAGE_SRC.matchAll(/data-oninput="([^"]*)"/g)].map((m) => m[1]);
-    assert(used.length === 3, 'expected the three known data-oninput elements, found ' + used.length + ': ' + used.join(' | '));
+    assert(used.length === 4, 'expected the four known data-oninput elements, found ' + used.length + ': ' + used.join(' | '));
     for (const attr of used) {
       const fn = (attr.match(/^(\w+)\(/) || [])[1];
       assert(fn, 'handler is not a simple call: ' + attr);
@@ -1778,6 +1778,40 @@ async function main() {
     assert(cards(h).length === 0 && emptyState(h).length === 1, 'a redraw with an active query must stay filtered');
     h.search.value = ''; h.api.render();
     assert(cards(h).length === 1, 'a redraw with no query shows the card');
+  });
+
+  console.log('\n[SECTION N: Visitor chat intake box auto-resize]');
+  const chatTag = (() => { const at = PAGE_SRC.indexOf('<textarea id="chatMessageText"'); return PAGE_SRC.slice(at, PAGE_SRC.indexOf('>', PAGE_SRC.indexOf('style={{', at)) + 1); })();
+  await test('The visitor chat message box carries the auto-resize attribute, a 120 px cap, and scrolls beyond it', async () => {
+    assert(/data-oninput="autoResizeInput\(this\)"/.test(chatTag), 'data-oninput="autoResizeInput(this)" missing on #chatMessageText: ' + chatTag.slice(0, 200));
+    assert(/"maxHeight": "120px"/.test(chatTag) && /"overflowY": "auto"/.test(chatTag), 'the box needs a 120 px cap with scrolling: ' + chatTag.slice(-260));
+    assert((PAGE_SRC.match(/id="chatMessageText"/g) || []).length === 1 && !/onInput=/.test(chatTag), 'one box, and no React onInput that would resize twice');
+  });
+  await test('Auto-resize: the box grows to fit its content and stops cleanly at 120 px, like the admin chat box', async () => {
+    const ctx = {}; vm.createContext(ctx);
+    vm.runInContext(extractFunction('autoResizeInput') + '\nthis.fn = autoResizeInput;', ctx);
+    const sizes = [[40, '40px'], [85, '85px'], [119, '119px'], [120, '120px'], [121, '120px'], [300, '120px'], [5000, '120px']];
+    for (const [scrollHeight, want] of sizes) {
+      const el = { style: { height: '999px' }, scrollHeight };
+      ctx.fn(el);
+      assert(el.style.height === want, `scrollHeight ${scrollHeight} should give ${want}, got ${el.style.height}`);
+    }
+    const heights = []; const el = { style: {}, get scrollHeight() { heights.push(this.style.height); return 200; } };
+    ctx.fn(el);
+    assert(heights[0] === 'auto', 'the height must be reset to auto before measuring so the box can also shrink: ' + heights[0]);
+    assert(ctx.fn(null) === undefined && ctx.fn(undefined) === undefined, 'a missing element must be ignored');
+  });
+  await test('Typing in the visitor chat box (a real input event through the page delegator) resizes it, using the attribute that is actually in the page', async () => {
+    const attr = (chatTag.match(/data-oninput="([^"]*)"/) || [])[1];
+    assert(attr, 'attribute not found');
+    const el = { style: { height: 'auto' }, scrollHeight: 300, attrs: { 'data-oninput': attr }, getAttribute(n) { return this.attrs[n] === undefined ? null : this.attrs[n]; }, closest(sel) { return this.attrs[sel.slice(1, -1)] !== undefined ? this : null; } };
+    const ctx = { console: { error() {}, log() {}, warn() {} } };
+    vm.createContext(ctx);
+    vm.runInContext(delegatorJs + '\n' + extractFunction('autoResizeInput') + '\nthis.run = handleDelegatedInput;', ctx);
+    ctx.run({ type: 'input', target: el });
+    assert(el.style.height === '120px', 'typing should resize the box, got ' + el.style.height);
+    el.scrollHeight = 60; ctx.run({ type: 'input', target: el });
+    assert(el.style.height === '60px', 'deleting text should shrink it again, got ' + el.style.height);
   });
 
   console.log('\n================================================================');
