@@ -208,7 +208,8 @@ async function main() {
   });
 
   console.log('\n[SECTION C: Frontend save reporting (public script)]');
-  const wrapperSrc = extractFunction('callFifsBackend');
+  // The dispatcher resolves its bearer token through fifsResolveBearerToken, so load both together.
+  const wrapperSrc = extractFunction('fifsResolveBearerToken') + '\n' + extractFunction('callFifsBackend');
   const helperSrc = extractFunction('fifsSaveOrReport');
   function loadWrapper(response) {
     const ctx = {

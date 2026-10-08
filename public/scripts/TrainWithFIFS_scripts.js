@@ -345,47 +345,63 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     }
     window.getStaffSessionToken = getStaffSessionToken;
 
+    /**
+     * Bearer token for /api/fifs. The staff, student and client sessions kept on `window` are snapshots taken at
+     * sign-in; Supabase access tokens expire after about an hour and are refreshed inside the shared client, so
+     * a snapshot goes stale while the page stays open and the server then (correctly) answers 401. Ask the
+     * shared client for its current session and use it when it belongs to the same user as the snapshot.
+     * The server still validates whatever token is sent; nothing here decides who is authorized.
+     * Never rejects: on any problem it falls back to the snapshot (or an empty token).
+     */
+    function fifsResolveBearerToken(explicitToken) {
+      if (explicitToken) return Promise.resolve(explicitToken);
+      var client = window.supabaseClient;
+      var live = Promise.resolve(null);
+      try {
+        if (client && client.auth && typeof client.auth.getSession === 'function') {
+          live = Promise.resolve(client.auth.getSession())
+            .then(function(r) { return (r && r.data && r.data.session) || null; })
+            .catch(function() { return null; });
+        }
+      } catch (e) {}
+      return live.then(function(session) {
+        var staff = window.__fifsStaffSession;
+        if (staff && staff.access_token) {
+          if (session && session.access_token && session.user && staff.user && session.user.id === staff.user.id) {
+            window.__fifsStaffSession = session;
+            return session.access_token;
+          }
+          return staff.access_token;
+        }
+        if (window.__fifsStudentSession && window.__fifsStudentSession.access_token) return window.__fifsStudentSession.access_token;
+        if (window.__fifsClientSession && window.__fifsClientSession.access_token) return window.__fifsClientSession.access_token;
+        return (session && session.access_token) || '';
+      }).catch(function() { return ''; });
+    }
+    window.fifsResolveBearerToken = fifsResolveBearerToken;
+
     function callFifsBackend(action, payload, onSuccess, onError) {
       var bodyData = Object.assign({ action: action }, payload || {});
       delete bodyData.pin;
       delete bodyData.passcode;
 
-      var token = '';
-      try {
-        if (typeof getStaffSessionToken === 'function') {
-          token = getStaffSessionToken();
-        }
-        if (!token && window.__fifsStudentSession && window.__fifsStudentSession.access_token) {
-          token = window.__fifsStudentSession.access_token;
-        }
-        if (!token && window.__fifsClientSession && window.__fifsClientSession.access_token) {
-          token = window.__fifsClientSession.access_token;
-        }
-        if (!token && window.supabaseClient && window.supabaseClient.auth) {
-          if (typeof window.supabaseClient.auth.getSession === 'function') {
-            var s = window.supabaseClient.auth.getSession();
-            if (s && s.data && s.data.session) token = s.data.session.access_token;
-          } else if (typeof window.supabaseClient.auth.session === 'function') {
-            var sOld = window.supabaseClient.auth.session();
-            if (sOld && sOld.access_token) token = sOld.access_token;
-          }
-        }
-      } catch(e) {}
-
+      var explicitToken = '';
       if (payload && payload.accessToken) {
-        token = payload.accessToken;
+        explicitToken = payload.accessToken;
         delete bodyData.accessToken;
       }
 
-      var headers = { "Content-Type": "application/json" };
-      if (token) {
-        headers["Authorization"] = "Bearer " + token;
-      }
-
-      return fetch("/api/fifs", {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(bodyData)
+      return fifsResolveBearerToken(explicitToken)
+      .then(function(token) {
+        var headers = { "Content-Type": "application/json" };
+        if (token) {
+          headers["Authorization"] = "Bearer " + token;
+        }
+        return fetch("/api/fifs", {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(bodyData)
+        });
       })
       .then(function(res) {
         if (!res.ok) {
