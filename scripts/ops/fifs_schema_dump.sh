@@ -13,8 +13,9 @@
 #   ~/Desktop/fifs-production-storage-schema-review.sql  OPTIONAL storage schema dump (storage.objects policies).
 #                                                        Whether the pinned CLI accepts --schema storage is UNVERIFIED;
 #                                                        if it fails the script says so and you use the SQL editor
-#                                                        queries in docs/supabase/storage-and-privilege-evidence-queries.sql.
-# See docs/supabase/schema-dump-runbook.md.
+#                                                        queries for storage.objects policies (kept in the owner's
+#                                                        private notes, not in this repository).
+# The owner's private runbook (not in this repository) covers running this script and its limits.
 
 set -euo pipefail
 set +x
@@ -151,7 +152,7 @@ fifs_main() {
     echo "Done: $OUT_STORAGE ($(wc -c < "$OUT_STORAGE" | tr -d ' ') bytes, $(grep -c '^CREATE POLICY' "$OUT_STORAGE" || true) CREATE POLICY lines). Contents not displayed."
   else
     [ -e "$tmp_storage" ] && rm -f -- "$tmp_storage"
-    echo "The optional storage schema dump did not complete. Use the SQL editor queries in docs/supabase/storage-and-privilege-evidence-queries.sql for storage.objects policies." >&2
+    echo "The optional storage schema dump did not complete. Use the Supabase SQL editor to list the storage.objects policies instead." >&2
   fi
 }
 
