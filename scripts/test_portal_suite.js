@@ -54,6 +54,12 @@ function resetDb() {
     clients: [],
     student_scoresheets: []
   };
+  db.clients.push(
+    { id: 'row-client-1', user_id: 'uuid-client-1', client_id: 'CLI-1001', full_name: 'Marcus Client', email: 'marcus@client.example', phone: '410-555-0111',
+      permit_state: 'Maryland Wear & Carry', expiration_date: '2026-12-31', status: 'ACTIVE_REGISTERED', updated_at: '2026-01-01T00:00:00.000Z' },
+    { id: '3f1c2b54-7d0e-4a3b-9c11-0a1b2c3d4e5f', user_id: null, client_id: null, full_name: 'No Public Id', email: 'noid@client.example', phone: null,
+      permit_state: 'Maryland', expiration_date: null, status: 'ACTIVE_PERMIT_HOLDER' }
+  );
   // Roster students for the setup-link tests (no Auth account yet, no email, a staff email, mismatches).
   db.students.push(
     { id: 'row-dana', user_id: null, student_id: 'FIFS-1004', email: 'dana.migrated@example.test', full_name: 'Dana Migrated', status: 'STEP_1_REGISTERED' },
@@ -181,6 +187,7 @@ const mockSupabase = {
           'instructor-token': { id: 'uuid-instructor', email: 'coach@example.test', app_metadata: { role: 'instructor' } },
           'staff-token': { id: 'uuid-staff', email: 'frontdesk@example.test', app_metadata: { role: 'staff' } },
           // Spoof attempt: admin claims only in user-editable user_metadata and the students row.
+          'client-marcus-token': { id: 'uuid-client-1', email: 'marcus@client.example', app_metadata: { role: 'client' } },
           'student-carol-token': { id: 'uuid-student-carol', email: 'carol@student.com', app_metadata: { role: 'student' }, user_metadata: { role: 'admin', is_admin: true } }
         };
         return users[token] ? { data: { user: users[token] }, error: null } : { data: { user: null }, error: { message: 'Invalid token' } };
@@ -200,6 +207,7 @@ Module.prototype.require = function (id) {
 const ROOT = path.resolve(__dirname, '..');
 const fifsRoute = require(path.join(ROOT, 'src/app/api/fifs/route.ts'));
 const PUBLIC_SCRIPT = fs.readFileSync(path.join(ROOT, 'public/scripts/TrainWithFIFS_scripts.js'), 'utf-8');
+const ROUTE_SRC = fs.readFileSync(path.join(ROOT, 'src/app/api/fifs/route.ts'), 'utf-8');
 
 function makeRequest(body, headers = {}) {
   const lower = Object.fromEntries(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]));
@@ -257,8 +265,7 @@ async function test(name, fn) {
 }
 function assert(cond, msg) { if (!cond) throw new Error(msg); }
 
-const NOT_IMPLEMENTED = ['adminEditClient',
-  'submitStudentWaiver', 'handleLeadMagnetSubmission'];
+const NOT_IMPLEMENTED = ['submitStudentWaiver', 'handleLeadMagnetSubmission'];
 
 async function main() {
   console.log('================================================================');
@@ -1524,6 +1531,175 @@ async function main() {
     }
     assert(/window\.handleSearch = handleSearch;/.test(PUBLIC_SCRIPT), 'handleSearch must be exported to window to be reachable from the delegator');
     assert(!/\bonInput=/.test(PAGE_SRC.slice(PAGE_SRC.indexOf('id="stateSearchInput"') - 200, PAGE_SRC.indexOf('id="stateSearchInput"') + 400)), 'a React onInput on the same box would fire the handler twice');
+  });
+
+  console.log('\n[SECTION L: adminEditClient and the keydown unmount cleanup]');
+  // ---- keydown cleanup: run the page's real registration and cleanup lines against a fake document and window ----
+  const HANDLERS = ['handleDelegatedClick', 'handleDelegatedChange', 'handleDelegatedKeyDown', 'handleDelegatedInput', 'handleDelegatedSubmit', 'handleModalEscapeKey'];
+  const addLines = [...PAGE_SRC.matchAll(/^\s*(document|window)\.addEventListener\('(\w+)', (\w+)( as any)?\);/gm)].filter((m) => HANDLERS.includes(m[3])).map((m) => m[0].trim().replace(' as any', ''));
+  const cleanupStart = PAGE_SRC.indexOf("window.removeEventListener('keydown', handleModalEscapeKey);");
+  const cleanupBlock = PAGE_SRC.slice(PAGE_SRC.lastIndexOf('return () => {', cleanupStart), PAGE_SRC.indexOf('\n    };', cleanupStart));
+  const removeLines = [...cleanupBlock.matchAll(/^\s*(document|window)\.removeEventListener\('(\w+)', (\w+)( as any)?\);/gm)].map((m) => m[0].trim().replace(' as any', ''));
+  function mountAndUnmount() {
+    const registry = [];
+    const target = (name) => ({
+      addEventListener: (type, fn) => { if (!registry.some((r) => r.name === name && r.type === type && r.fn === fn)) registry.push({ name, type, fn }); },
+      removeEventListener: (type, fn) => { const i = registry.findIndex((r) => r.name === name && r.type === type && r.fn === fn); if (i >= 0) registry.splice(i, 1); }
+    });
+    const ctx = { document: target('document'), window: target('window') };
+    for (const h of HANDLERS) ctx[h] = function () {};
+    vm.createContext(ctx);
+    return { registry, mount: () => addLines.forEach((l) => vm.runInContext(l, ctx)), unmount: () => removeLines.forEach((l) => vm.runInContext(l, ctx)) };
+  }
+  await test('Unmount cleanup removes every delegated listener, including keydown, and a remount does not stack duplicates', async () => {
+    assert(addLines.length === 6, `expected the 6 delegator registrations in page.tsx, found ${addLines.length}: ${addLines.join(' | ')}`);
+    assert(removeLines.length === 6, `expected 6 removals in the cleanup, found ${removeLines.length}: ${removeLines.join(' | ')}`);
+    const types = (list) => list.map((l) => l.match(/^(document|window)\.\w+\('(\w+)', (\w+)/).slice(1).join(':')).sort();
+    assert(JSON.stringify(types(addLines)) === JSON.stringify(types(removeLines)), 'every registration needs a matching removal.\nadds: ' + types(addLines) + '\nremoves: ' + types(removeLines));
+    assert(removeLines.some((l) => /document\.removeEventListener\('keydown', handleDelegatedKeyDown\)/.test(l)), 'the document keydown delegator must be removed on cleanup');
+    const m = mountAndUnmount();
+    m.mount();
+    assert(m.registry.length === 6, 'six listeners expected after mount, got ' + m.registry.length);
+    m.unmount();
+    assert(m.registry.length === 0, 'listeners left registered after unmount: ' + m.registry.map((r) => r.name + ':' + r.type).join(', '));
+    m.mount(); m.unmount(); m.mount();
+    const perType = {}; m.registry.forEach((r) => { const k = r.name + ':' + r.type; perType[k] = (perType[k] || 0) + 1; });
+    assert(m.registry.length === 6 && Object.values(perType).every((n) => n === 1), 'a remount must leave exactly one of each listener: ' + JSON.stringify(perType));
+    m.unmount();
+    assert(m.registry.length === 0, 'listeners left after the final unmount');
+  });
+
+  // ---- adminEditClient (server) ----
+  const clientRow = (id = 'CLI-1001') => db.clients.find((r) => r.client_id === id);
+  const editClient = (updates, token = 'instructor-token', clientId = 'CLI-1001') => fifs('adminEditClient', { clientId, updates }, token);
+  const validClient = () => ({ fullName: 'Marcus A. Client', phone: '(410) 555-0199', permitState: 'Virginia Concealed Handgun', expirationDate: '2027-03-15', status: 'RENEWAL_PENDING' });
+  await test('adminEditClient: unauthenticated, client, student, and spoofed-admin callers are refused and nothing is written', async () => {
+    for (const token of [null, 'bad-token', 'client-marcus-token', 'student-alice-token', 'student-carol-token']) err(await editClient(validClient(), token), 401);
+    noWrites();
+  });
+  await test('adminEditClient: instructor, staff, and admin-role staff can save, and an unknown client is 404', async () => {
+    for (const token of ['instructor-token', 'staff-token']) { const r = await editClient({ phone: '410-555-0123' }, token); assert(r.status === 200 && r.body.success === true && r.body.status === 'success', `${token}: ${r.status} ${JSON.stringify(r.body)}`); }
+    writes.length = 0;
+    err(await editClient({ phone: '410-555-0123' }, 'instructor-token', 'CLI-9999'), 404);
+    noWrites();
+  });
+  await test('adminEditClient: bad client IDs and bad payload shapes are refused with 400', async () => {
+    for (const id of ['', '   ', "x'; drop--", 'a b', null, 7, ['CLI-1001'], 'C'.repeat(65)]) err(await editClient({ phone: '410-555-0123' }, 'instructor-token', id), 400);
+    for (const u of [undefined, null, 'x', ['a'], 7]) err(await fifs('adminEditClient', { clientId: 'CLI-1001', updates: u }, 'instructor-token'), 400);
+    err(await fifs('adminEditClient', { clientId: 'CLI-1001', client: validClient() }, 'instructor-token'), 400);
+    err(await editClient({}), 400);
+    noWrites();
+  });
+  await test('adminEditClient: a changed email is rejected with the exact message; an unchanged email is accepted and ignored', async () => {
+    const r = await editClient({ fullName: 'Marcus', email: 'other@client.example' });
+    err(r, 400);
+    assert(r.body.error === 'Email addresses cannot be modified here to avoid desyncing portal login credentials.', r.body.error);
+    for (const bad of ['', null, 5, ['marcus@client.example'], 'MARCUS@client.example.evil']) err(await editClient({ fullName: 'Marcus', email: bad }), 400);
+    err(await editClient({ email: 'other@client.example' }), 400);
+    err(await editClient({ email: 'marcus@client.example' }), 400);
+    noWrites();
+    const same = await editClient({ email: ' MARCUS@Client.Example ', phone: '410-555-0124' });
+    assert(same.status === 200 && writes.length === 1 && !('email' in writes[0].patch) && clientRow().email === 'marcus@client.example', 'an unchanged email must never be written: ' + JSON.stringify(writes));
+  });
+  await test('adminEditClient: identity, login, SMS, and password fields are rejected and nothing is written', async () => {
+    const forbidden = ['user_id', 'userId', 'client_id', 'clientId', 'id', 'role', 'is_admin', 'password', 'newPassword', 'temp_password_reset', 'password_expires_at', 'last_password_change',
+      'sms_alert_phone', 'sms_carrier', 'sms_milestones', 'opt_in_reminder', 'permit_type', 'created_at', 'updated_at', 'token', 'internal_notes', 'dossier_url', 'constructor', 'toString'];
+    for (const k of forbidden) err(await editClient({ fullName: 'Marcus', [k]: 'x' }), 400);
+    err(await editClient(JSON.parse('{"fullName":"Marcus","__proto__":{"is_admin":true}}')), 400);
+    noWrites();
+  });
+  await test('adminEditClient: whitelisted fields save to exactly their columns with an updated timestamp, and identity columns stay put', async () => {
+    const r = await editClient(validClient());
+    assert(r.status === 200 && r.body.success === true && r.body.status === 'success' && r.body.message === 'Client record updated.' && r.body.clientId === 'CLI-1001', `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(writes.length === 1 && writes[0].table === 'clients' && writes[0].rows === 1, 'expected one single-row update');
+    assert(JSON.stringify(Object.keys(writes[0].patch).sort()) === JSON.stringify(['expiration_date', 'full_name', 'permit_state', 'phone', 'status', 'updated_at']), 'columns: ' + Object.keys(writes[0].patch));
+    const c = clientRow();
+    assert(c.full_name === 'Marcus A. Client' && c.phone === '(410) 555-0199' && c.permit_state === 'Virginia Concealed Handgun' && c.expiration_date === '2027-03-15' && c.status === 'RENEWAL_PENDING', 'values not saved: ' + JSON.stringify(c));
+    assert(c.email === 'marcus@client.example' && c.user_id === 'uuid-client-1' && c.client_id === 'CLI-1001', 'identity columns must not change');
+    assert(c.updated_at !== '2026-01-01T00:00:00.000Z' && !isNaN(Date.parse(c.updated_at)), 'updated_at must be refreshed');
+    assert(!JSON.stringify(r.body).match(/Virginia|555|2027/), 'saved values must not be echoed');
+  });
+  await test('adminEditClient: aliases (snake_case and camelCase) work; a client with no public ID can be edited by its row ID', async () => {
+    const a = await editClient({ full_name: 'Snake Case', permit_state: 'Pennsylvania LTCF', expiration_date: '2027-01-01', phone: '410-555-0188' });
+    assert(a.status === 200 && clientRow().full_name === 'Snake Case', `got ${a.status} ${JSON.stringify(a.body)}`);
+    const uuid = '3f1c2b54-7d0e-4a3b-9c11-0a1b2c3d4e5f'; writes.length = 0;
+    const b = await editClient({ status: 'RENEWED' }, 'instructor-token', uuid);
+    assert(b.status === 200 && db.clients.find((r) => r.id === uuid).status === 'RENEWED' && writes[0].patch.status === 'RENEWED', `got ${b.status} ${JSON.stringify(b.body)}`);
+    err(await editClient({ fullName: 'A', full_name: 'B' }), 400);
+  });
+  await test('adminEditClient: phone, date, permit type, status, and name are validated; blank phone and date are stored as null', async () => {
+    for (const good of ['410-555-0100', '(410) 555-0100', '+1 410.555.0100', '4105550100', ' 410 555 0100 ']) { writes.length = 0; const r = await editClient({ phone: good }); assert(r.status === 200, `phone ${good}: ${r.status} ${JSON.stringify(r.body)}`); }
+    for (const bad of ['abc', '555', '1'.repeat(16), '410-555-0100 ext 5', '410/555/0100', '<script>1</script>', 'bad\u0000phone', '1'.repeat(40), 5, {}, ['410']]) err(await editClient({ phone: bad }), 400);
+    for (const bad of ['2026-13-40', '2026-02-30', '10/01/2026', '1999-12-31', '2101-01-01', 'tomorrow', 20261001, null]) err(await editClient({ expirationDate: bad }), 400);
+    for (const bad of ['Texas LTC', '', 'maryland wear & carry', 5, null]) err(await editClient({ permitState: bad }), 400);
+    for (const bad of ['EXPIRED', 'active_registered', '', 5, null, 'ACTIVE_PERMIT_HOLDER']) err(await editClient({ status: bad }), 400);
+    for (const bad of ['', '   ', 'N'.repeat(121), 'bad\u0000name', 5, null]) err(await editClient({ fullName: bad }), 400);
+    writes.length = 0;
+    const blank = await editClient({ phone: '   ', expirationDate: '' });
+    assert(blank.status === 200 && writes[0].patch.phone === null && writes[0].patch.expiration_date === null, 'blank phone and date should be stored as null (both columns are nullable)');
+    const past = await editClient({ expirationDate: '2020-05-01' });
+    assert(past.status === 200, 'a past expiration date (an expired permit) must be allowed');
+  });
+  await test('adminEditClient: database failures are reported without leaking detail, and an unconfirmed update is 409', async () => {
+    failOp = 'update'; const a = await editClient({ phone: '410-555-0100' }); err(a, 500);
+    failOp = 'select'; const b = await editClient({ phone: '410-555-0100' }); err(b, 500);
+    assert(!/boom|internal/.test(JSON.stringify([a.body, b.body])), 'internal detail leaked');
+    failOp = null; updateMatchesNothing = true; err(await editClient({ phone: '410-555-0100' }), 409);
+  });
+  await test('adminEditClient: the editable-column allowlist is exactly full_name, phone, permit_state, expiration_date, and status', async () => {
+    const m = ROUTE_SRC.match(/const ADMIN_EDIT_CLIENT_FIELDS: Record<string, string> = \{([\s\S]*?)\n\};/);
+    assert(m, 'the allowlist map was not found in route.ts');
+    const pairs = [...m[1].matchAll(/(\w+):\s*'(\w+)'/g)].map((x) => [x[1], x[2]]);
+    const columns = [...new Set(pairs.map((pair) => pair[1]))].sort();
+    assert(JSON.stringify(columns) === JSON.stringify(['expiration_date', 'full_name', 'permit_state', 'phone', 'status']), 'editable columns changed: ' + columns.join(','));
+    for (const [key] of pairs) assert(!/^(email|user_?id|client_?id|id|password|token|role|sms|opt_|temp_|last_|created|updated)/i.test(key), 'a protected field is in the allowlist: ' + key);
+  });
+  await test('adminEditClient: the permit-type and status allowlists match the options in the edit form', async () => {
+    const options = (id) => { const at = PAGE_SRC.indexOf('<select id="' + id + '"'); const block = PAGE_SRC.slice(at, PAGE_SRC.indexOf('</select>', at)); return [...block.matchAll(/<option value="([^"]*)"/g)].map((m) => m[1].replace(/&amp;/g, '&')); };
+    const list = (name) => { const m = ROUTE_SRC.match(new RegExp('const ' + name + ' = \\[([\\s\\S]*?)\\];')); assert(m, name + ' not found in route.ts'); return [...m[1].matchAll(/'([^']*)'/g)].map((x) => x[1]); };
+    assert(JSON.stringify(options('editClientPermitState')) === JSON.stringify(list('CLIENT_PERMIT_STATE_ALLOWLIST')), 'permit types differ from the form: ' + options('editClientPermitState') + ' vs ' + list('CLIENT_PERMIT_STATE_ALLOWLIST'));
+    assert(JSON.stringify(options('editClientStatus')) === JSON.stringify(list('CLIENT_STATUS_ALLOWLIST')), 'statuses differ from the form: ' + options('editClientStatus') + ' vs ' + list('CLIENT_STATUS_ALLOWLIST'));
+    assert(!/adminEditClient:/.test(ROUTE_SRC.slice(ROUTE_SRC.indexOf('const NOT_IMPLEMENTED_ACTIONS'), ROUTE_SRC.indexOf('};', ROUTE_SRC.indexOf('const NOT_IMPLEMENTED_ACTIONS')))), 'adminEditClient is still listed as not implemented');
+  });
+
+  // ---- client edit form (browser) ----
+  const clientFormSrc = extractFunction('handleAdminEditClientSubmit');
+  function loadClientForm(formOver = {}, clientOver = {}) {
+    const client = { clientId: 'CLI-1001', fullName: 'Marcus Client', email: 'marcus@client.example', phone: '410-555-0111', permitState: 'Maryland Wear & Carry', expirationDate: '2026-12-31', status: 'ACTIVE_REGISTERED', ...clientOver };
+    const form = { editClientId: 'CLI-1001', editClientFullName: 'Marcus Client', editClientEmail: 'marcus@client.example', editClientPhone: '410-555-0111', editClientPermitState: 'Maryland Wear & Carry',
+      editClientExpDate: '2026-12-31', editClientStatus: 'ACTIVE_REGISTERED', ...formOver };
+    const statuses = [], saves = [], closed = [];
+    const ctx = { window: { adminCachedClients: [client] }, adminCachedClients: null, document: { getElementById: (id) => (id === 'edit-client-status' ? { id } : (id in form ? { value: form[id] } : null)) },
+      showStatus: (el, text, type) => statuses.push({ text, type }), closeAdminEditClientModal: () => closed.push(1), renderAdminClientTerminal() {}, setTimeout: (fn) => fn(),
+      fifsSaveOrReport: (action, payload, ok, fail) => saves.push({ action, payload, ok, fail }) };
+    ctx.adminCachedClients = ctx.window.adminCachedClients;
+    vm.createContext(ctx); vm.runInContext(clientFormSrc + '\nthis.fn = handleAdminEditClientSubmit;', ctx);
+    return { submit: () => ctx.fn({ preventDefault() {} }), client, saves, statuses, closed };
+  }
+  await test('Edit Client form: only changed fields are sent, the email never is (even if the box is edited), and nothing is sent when nothing changed', async () => {
+    const h = loadClientForm({ editClientPhone: '410-555-0199', editClientEmail: 'attacker@example.com' });
+    h.submit();
+    assert(h.saves.length === 1 && h.saves[0].action === 'adminEditClient' && JSON.stringify(h.saves[0].payload) === JSON.stringify({ clientId: 'CLI-1001', updates: { phone: '410-555-0199' } }), 'payload: ' + JSON.stringify(h.saves[0] && h.saves[0].payload));
+    assert(!/email|attacker/i.test(JSON.stringify(h.saves[0].payload)), 'the email must never be sent');
+    const none = loadClientForm(); none.submit();
+    assert(none.saves.length === 0 && /No changes/.test(none.statuses[none.statuses.length - 1].text), 'an unchanged form must not save');
+    const legacy = loadClientForm({ editClientPermitState: '', editClientStatus: '' }, { permitState: 'Maryland', status: 'ACTIVE_PERMIT_HOLDER' }); legacy.submit();
+    assert(legacy.saves.length === 0, 'dropdowns that show nothing (saved values the list does not offer) must not be sent');
+  });
+  await test('Edit Client form: the cache changes only after the server confirms, and a failure leaves it untouched with the modal open', async () => {
+    const h = loadClientForm({ editClientFullName: 'Marcus A. Client', editClientStatus: 'RENEWED', editClientExpDate: '2027-05-05' });
+    h.submit();
+    assert(h.client.fullName === 'Marcus Client' && h.client.status === 'ACTIVE_REGISTERED' && !h.statuses.some((x) => /updated/i.test(x.text)), 'nothing may change or look saved before the server answers');
+    h.saves[0].fail(new Error('Unauthorized'));
+    assert(h.client.fullName === 'Marcus Client' && h.client.status === 'ACTIVE_REGISTERED' && /^NOT saved: Unauthorized/.test(h.statuses[h.statuses.length - 1].text) && h.closed.length === 0, 'failure must change nothing');
+    const ok = loadClientForm({ editClientFullName: 'Marcus A. Client', editClientStatus: 'RENEWED', editClientExpDate: '2027-05-05' }); ok.submit(); ok.saves[0].ok({ success: true });
+    assert(ok.client.fullName === 'Marcus A. Client' && ok.client.status === 'RENEWED' && ok.client.expirationDate === '2027-05-05' && ok.client.email === 'marcus@client.example' && ok.closed.length === 1, 'success should update the cache: ' + JSON.stringify(ok.client));
+  });
+  await test('Edit Client form: the email input is read-only with the explanatory note', async () => {
+    const at = PAGE_SRC.indexOf('<input id="editClientEmail"');
+    const tag = PAGE_SRC.slice(at, PAGE_SRC.indexOf('/>', at));
+    assert(at > 0 && /readOnly/.test(tag) && /aria-readonly="true"/.test(tag) && !/\brequired\b/.test(tag), 'the client email input must be read-only: ' + tag.slice(0, 160));
+    assert(PAGE_SRC.indexOf('Email cannot be modified here to protect login credentials.', at) > at, 'the note is missing');
   });
 
   console.log('\n================================================================');

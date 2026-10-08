@@ -64,7 +64,6 @@ function validateStrictPassword(password: string): { valid: boolean; error?: str
 // Actions the portal UI calls that have no server-side persistence yet. They fail explicitly
 // (501) so the UI cannot report a change as saved when nothing was stored.
 const NOT_IMPLEMENTED_ACTIONS: Record<string, string> = {
-  adminEditClient: 'Saving client record edits',
   submitStudentWaiver: 'Online waiver submission',
   handleLeadMagnetSubmission: 'Lead capture for the free guide'
 };
@@ -136,6 +135,44 @@ function checkStudentStatus(raw: unknown): FieldCheck {
     return { ok: false, error: 'Status must be one of: ' + STUDENT_STATUS_ALLOWLIST.join(', ') + '.' };
   }
   return { ok: true, value: raw.trim() };
+}
+
+// --- Client record edits (adminEditClient) ---
+// Only these columns can change here; the email is the portal login and is never writable from this action.
+const CLIENT_STATUS_ALLOWLIST = ['ACTIVE_REGISTERED', 'RENEWAL_PENDING', 'REMINDER_SENT', 'RENEWED'];
+const CLIENT_PERMIT_STATE_ALLOWLIST = [
+  'Maryland Wear & Carry', 'Virginia Concealed Handgun', 'Pennsylvania LTCF', 'Florida Non-Resident', 'Utah Non-Resident', 'Multi-State (MD+UT/FL)'
+];
+const ADMIN_EDIT_CLIENT_FIELDS: Record<string, string> = {
+  fullName: 'full_name', full_name: 'full_name',
+  phone: 'phone',
+  permitState: 'permit_state', permit_state: 'permit_state',
+  expirationDate: 'expiration_date', expiration_date: 'expiration_date',
+  status: 'status'
+};
+
+// clients.phone is nullable, so a blank phone clears it; otherwise 7 to 15 digits with ordinary separators only.
+function checkClientPhone(raw: unknown): FieldCheck {
+  if (typeof raw !== 'string') return { ok: false, error: 'Phone must be text.' };
+  const value = raw.trim();
+  if (!value) return { ok: true, value: null };
+  const digits = (value.match(/\d/g) || []).length;
+  if (value.length > 30 || CONTROL_CHARS.test(value) || !/^[0-9+().\-\s]+$/.test(value) || digits < 7 || digits > 15) {
+    return { ok: false, error: 'Phone must have 7 to 15 digits, using only digits, spaces, and + ( ) . -' };
+  }
+  return { ok: true, value };
+}
+
+// clients.expiration_date is a nullable date; a blank value clears it. Past dates are allowed (expired permits).
+function checkClientDate(raw: unknown): FieldCheck {
+  if (typeof raw !== 'string') return { ok: false, error: 'Expiration date must be text.' };
+  const value = raw.trim();
+  if (!value) return { ok: true, value: null };
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  const when = m ? Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : NaN;
+  const real = m && !Number.isNaN(when) && new Date(when).toISOString().slice(0, 10) === value;
+  if (!real || Number(m![1]) < 2000 || Number(m![1]) > 2100) return { ok: false, error: 'Expiration date must be a real date in YYYY-MM-DD form.' };
+  return { ok: true, value };
 }
 
 // --- MSP Form 29-14 qualification score sheet ---
@@ -1040,6 +1077,90 @@ export async function POST(req: NextRequest) {
          studentId: generatedId,
          emailDispatched: true
        });
+     }
+
+     // Staff: edit a client record. Mirrors adminEditStudent: staff only, a column allowlist, and the email (the portal
+     // login) is never writable here.
+     case 'adminEditClient': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       const clientId = typeof payload.clientId === 'string' ? payload.clientId.trim() : '';
+       if (!STUDENT_ID_PATTERN.test(clientId)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'A valid client ID is required.' }, { status: 400 });
+       }
+       const updates = payload.updates;
+       if (!isPlainObject(updates)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'An updates object is required.' }, { status: 400 });
+       }
+
+       const row: Record<string, string | null> = {};
+       let hasEmail = false;
+       let requestedEmail: unknown = undefined;
+       for (const [key, raw] of Object.entries(updates)) {
+         if (key === 'email') { hasEmail = true; requestedEmail = raw; continue; }
+         if (!Object.prototype.hasOwnProperty.call(ADMIN_EDIT_CLIENT_FIELDS, key)) {
+           return NextResponse.json({ success: false, status: 'error', error: `The field "${key.slice(0, 40)}" cannot be changed here.` }, { status: 400 });
+         }
+         const column = ADMIN_EDIT_CLIENT_FIELDS[key];
+         let check: FieldCheck;
+         switch (column) {
+           case 'full_name': check = checkText('Full name', raw, 120, { required: true }); break;
+           case 'phone': check = checkClientPhone(raw); break;
+           case 'permit_state':
+             check = typeof raw === 'string' && CLIENT_PERMIT_STATE_ALLOWLIST.includes(raw.trim())
+               ? { ok: true, value: raw.trim() } : { ok: false, error: 'Permit type must be one of: ' + CLIENT_PERMIT_STATE_ALLOWLIST.join(', ') + '.' };
+             break;
+           case 'expiration_date': check = checkClientDate(raw); break;
+           default:
+             check = typeof raw === 'string' && CLIENT_STATUS_ALLOWLIST.includes(raw.trim())
+               ? { ok: true, value: raw.trim() } : { ok: false, error: 'Status must be one of: ' + CLIENT_STATUS_ALLOWLIST.join(', ') + '.' };
+             break;
+         }
+         if (!check.ok) return NextResponse.json({ success: false, status: 'error', error: check.error }, { status: 400 });
+         if (Object.prototype.hasOwnProperty.call(row, column) && row[column] !== check.value) {
+           return NextResponse.json({ success: false, status: 'error', error: `Conflicting values were supplied for ${column}.` }, { status: 400 });
+         }
+         row[column] = check.value;
+       }
+       if (Object.keys(row).length === 0 && !hasEmail) {
+         return NextResponse.json({ success: false, status: 'error', error: 'No editable changes were supplied.' }, { status: 400 });
+       }
+
+       supabase = getPrivilegedClient();
+       // Clients are shown by client_id, falling back to the row id for any row that has none.
+       let found: any = await supabase.from('clients').select('id, client_id, email').eq('client_id', clientId).maybeSingle();
+       if (!found.error && !found.data && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clientId)) {
+         found = await supabase.from('clients').select('id, client_id, email').eq('id', clientId).maybeSingle();
+       }
+       if (found.error) {
+         console.error('[adminEditClient] Client lookup failed:', found.error.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not look up the client record. Nothing was saved.' }, { status: 500 });
+       }
+       const existing = found.data;
+       if (!existing) return NextResponse.json({ success: false, status: 'error', error: 'Client not found. Nothing was saved.' }, { status: 404 });
+
+       if (hasEmail) {
+         const requested = typeof requestedEmail === 'string' ? requestedEmail.trim().toLowerCase() : null;
+         if (requested === null || requested !== String(existing.email || '').trim().toLowerCase()) {
+           return NextResponse.json({ success: false, status: 'error', error: 'Email addresses cannot be modified here to avoid desyncing portal login credentials.' }, { status: 400 });
+         }
+       }
+       if (Object.keys(row).length === 0) {
+         return NextResponse.json({ success: false, status: 'error', error: 'No editable changes were supplied.' }, { status: 400 });
+       }
+
+       const { data: updated, error: updateErr } = await supabase.from('clients')
+         .update({ ...row, updated_at: new Date().toISOString() }).eq('id', existing.id).select('id');
+       if (updateErr) {
+         console.error('[adminEditClient] Update failed:', updateErr.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'The client record could not be saved.' }, { status: 500 });
+       }
+       if (!Array.isArray(updated) || updated.length !== 1) {
+         return NextResponse.json({ success: false, status: 'error', error: 'The client edit could not be confirmed. Nothing was saved.' }, { status: 409 });
+       }
+       return NextResponse.json({ success: true, status: 'success', message: 'Client record updated.', clientId, updatedFields: Object.keys(row) });
      }
 
      // Staff: send (or re-send) a password setup link to an existing student, including roster students who were

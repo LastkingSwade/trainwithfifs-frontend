@@ -5041,30 +5041,45 @@ function openAdminEditStudentModal(studentId) {
       }
     }
     window.closeAdminEditClientModal = closeAdminEditClientModal;
+    // Saves staff edits to a client. Only fields the staff member actually changed are sent, the email is never
+    // sent (it is the portal login), and the cached client changes only after the server confirms.
     function handleAdminEditClientSubmit(e) {
       e.preventDefault();
-      var pin = getStaffSessionToken();
       var clientId = document.getElementById('editClientId').value;
-      var c = adminCachedClients.find(item => item.clientId === clientId);
+      var c = (window.adminCachedClients || adminCachedClients).find(function(item) { return item.clientId === clientId; });
       if (!c) return;
-      c.fullName = document.getElementById('editClientFullName').value.trim();
-      c.email = document.getElementById('editClientEmail').value.trim();
-      c.phone = document.getElementById('editClientPhone').value.trim();
-      c.permitState = document.getElementById('editClientPermitState').value;
-      c.expirationDate = document.getElementById('editClientExpDate').value;
-      c.status = document.getElementById('editClientStatus').value;
-      /* cloud only: zero browser storage */
       var st = document.getElementById('edit-client-status');
+      function field(id) { var el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; }
+      // What the form was filled with when it opened, so untouched boxes (and placeholder defaults) are not sent.
+      var before = { fullName: c.fullName || '', phone: c.phone || '', permitState: c.permitState || 'Maryland Wear & Carry', expirationDate: c.expirationDate || '', status: c.status || 'ACTIVE_REGISTERED' };
+      var after = { fullName: field('editClientFullName'), phone: field('editClientPhone'), permitState: field('editClientPermitState'), expirationDate: field('editClientExpDate'), status: field('editClientStatus') };
+      var updates = {};
+      if (after.fullName !== before.fullName) updates.fullName = after.fullName;
+      if (after.phone !== before.phone) updates.phone = after.phone;
+      // A dropdown that shows nothing (a saved value the list does not offer) means "not changed".
+      if (after.permitState && after.permitState !== before.permitState) updates.permitState = after.permitState;
+      if (after.expirationDate !== before.expirationDate) updates.expirationDate = after.expirationDate;
+      if (after.status && after.status !== before.status) updates.status = after.status;
+      if (Object.keys(updates).length === 0) {
+        showStatus(st, 'No changes to save.', 'info');
+        return;
+      }
       showStatus(st, 'Saving…', 'info');
-      fifsSaveOrReport('adminEditClient', { clientId: clientId, client: c }, function() {
+      fifsSaveOrReport('adminEditClient', { clientId: clientId, updates: updates }, function() {
+        // Confirmed by the server: only now does the cached client change.
+        if ('fullName' in updates) c.fullName = updates.fullName;
+        if ('phone' in updates) c.phone = updates.phone;
+        if ('permitState' in updates) c.permitState = updates.permitState;
+        if ('expirationDate' in updates) c.expirationDate = updates.expirationDate;
+        if ('status' in updates) c.status = updates.status;
         showStatus(st, 'Client permit record updated!', 'success');
         setTimeout(function() {
           closeAdminEditClientModal();
           renderAdminClientTerminal();
         }, 500);
       }, function(err) {
+        // The cache was never changed, so nothing unsaved is shown as current. The modal stays open.
         showStatus(st, 'NOT saved: ' + err.message, 'error');
-        if (typeof refreshAdminRoster === 'function') refreshAdminRoster();
       });
     }
     window.handleAdminEditClientSubmit = handleAdminEditClientSubmit;
