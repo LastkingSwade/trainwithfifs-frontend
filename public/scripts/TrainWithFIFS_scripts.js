@@ -5086,7 +5086,7 @@ function openAdminEditStudentModal(studentId) {
     function deleteClientFromRoster(clientId) {
       var c = adminCachedClients.find(item => item.clientId === clientId);
       var name = c ? c.fullName : clientId;
-      if (!confirm(`Are you sure you want to permanently delete client "{clientId}) from the permit ledger?`)) {
+      if (!confirm('Permanently delete ' + name + ' (' + clientId + ') from the permit ledger? This cannot be undone.')) {
         return;
       }
       adminCachedClients = adminCachedClients.filter(item => item.clientId !== clientId);

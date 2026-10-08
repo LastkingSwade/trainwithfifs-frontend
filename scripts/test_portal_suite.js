@@ -1814,6 +1814,46 @@ async function main() {
     assert(el.style.height === '60px', 'deleting text should shrink it again, got ' + el.style.height);
   });
 
+  console.log('\n[SECTION O: Client delete confirmation]');
+  function loadClientDelete(confirmAnswer, clients) {
+    const calls = { confirms: [], saves: [], alerts: [], renders: 0 };
+    const ctx = { adminCachedClients: clients, confirm: (m) => { calls.confirms.push(m); return confirmAnswer; }, alert: (m) => calls.alerts.push(m), getStaffSessionToken() {},
+      fifsSaveOrReport: (action, payload, ok, fail) => calls.saves.push({ action, payload, ok, fail }), renderAdminClientTerminal: () => { calls.renders++; }, refreshAdminRoster() {} };
+    vm.createContext(ctx);
+    vm.runInContext(extractFunction('deleteClientFromRoster') + '\nthis.fn = deleteClientFromRoster;', ctx);
+    return { fn: ctx.fn, calls, ctx };
+  }
+  await test('Client delete confirmation names the client and ID and contains no raw template syntax, whatever the name holds', async () => {
+    for (const name of ['Marcus Client', "Sean O'Connor", 'Mary-Ann "Mac" Quinn', 'A&B Tactical <b>Co</b>', '$' + '{evil}', 'back`tick']) {
+      const h = loadClientDelete(false, [{ clientId: 'CLI-1001', fullName: name }]);
+      h.fn('CLI-1001');
+      assert(h.calls.confirms.length === 1, 'one confirmation expected');
+      const msg = h.calls.confirms[0];
+      assert(msg.includes(name) && msg.includes('CLI-1001'), `the prompt should name the client and ID: ${msg}`);
+      const withoutName = msg.replace(name, '');
+      assert(!/[{}$`]/.test(withoutName), `raw template syntax leaked into the prompt: ${msg}`);
+      assert(/permanently delete/i.test(msg) && /cannot be undone/i.test(msg), 'the prompt should warn that deletion is permanent: ' + msg);
+    }
+    const unknown = loadClientDelete(false, []); unknown.fn('CLI-9999');
+    assert(unknown.calls.confirms[0].includes('CLI-9999') && !/[{}$`]/.test(unknown.calls.confirms[0]), 'an ID with no cached client still reads cleanly: ' + unknown.calls.confirms[0]);
+  });
+  await test('Client delete: cancelling deletes nothing; confirming sends only the client ID, and a failure is reported', async () => {
+    const no = loadClientDelete(false, [{ clientId: 'CLI-1001', fullName: 'Marcus' }]); no.fn('CLI-1001');
+    assert(no.calls.saves.length === 0 && no.ctx.adminCachedClients.length === 1 && no.calls.renders === 0, 'cancel must not delete or redraw');
+    const yes = loadClientDelete(true, [{ clientId: 'CLI-1001', fullName: 'Marcus' }, { clientId: 'CLI-1002', fullName: 'Other' }]); yes.fn('CLI-1001');
+    assert(yes.calls.saves.length === 1 && yes.calls.saves[0].action === 'adminDeleteClient' && JSON.stringify(yes.calls.saves[0].payload) === '{"clientId":"CLI-1001"}', 'payload: ' + JSON.stringify(yes.calls.saves[0] && yes.calls.saves[0].payload));
+    assert(yes.ctx.adminCachedClients.length === 1 && yes.ctx.adminCachedClients[0].clientId === 'CLI-1002', 'only the confirmed client is removed from the list');
+    yes.calls.saves[0].fail(new Error('Unauthorized'));
+    assert(/was NOT deleted: Unauthorized/.test(yes.calls.alerts[0]), 'a failed delete must be reported: ' + yes.calls.alerts);
+  });
+  await test('Neither roster delete confirmation (student or client) has a damaged placeholder left in the script', async () => {
+    for (const fn of ['deleteStudentFromRoster', 'deleteClientFromRoster']) {
+      const src = extractFunction(fn);
+      const confirmCall = src.slice(src.indexOf('confirm('), src.indexOf('{', src.indexOf('confirm(')));
+      assert(!/`/.test(confirmCall) && !/\{\w+\}\)/.test(confirmCall), `${fn} still has a template-literal confirmation: ${confirmCall}`);
+    }
+  });
+
   console.log('\n================================================================');
   console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   console.log('================================================================');
