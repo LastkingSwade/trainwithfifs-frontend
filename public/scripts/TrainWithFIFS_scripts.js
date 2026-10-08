@@ -10313,11 +10313,40 @@ function escapeChatHtml(str) {
 }
 
 
+// The text typed in the Comms HUD contact search box: trimmed, lowercased, spaces collapsed. Blank means "show everything".
+function getContactSearchQuery() {
+  var box = document.getElementById('contactSearchInput');
+  return box ? String(box.value == null ? '' : box.value).trim().toLowerCase().replace(/\s+/g, ' ') : '';
+}
+
+
+// Every word typed must appear somewhere in the card's visible text (name, session ID, session labels). The query
+// is only ever compared as plain text, never used as a pattern.
+function contactMatchesQuery(query, parts) {
+  if (!query) return true;
+  var haystack = parts.join(' ').toLowerCase();
+  return query.split(' ').every(function(word) { return haystack.indexOf(word) >= 0; });
+}
+
+
 function renderLiveVisitorRoster() {
   var container = document.getElementById('contactRosterContainer');
   if (!container) return;
   container.innerHTML = '';
-  var name = (window.__activeChatSession && window.__activeChatSession.name) || (window.__currentChatSession && window.__currentChatSession.name) || 'Valued Visitor';
+  var session = window.__activeChatSession || window.__currentChatSession || {};
+  var name = session.name || 'Valued Visitor';
+  var sessionId = session.threadId || '';
+  var metaLabel = 'Direct Peer-to-Instructor Comm Link';
+  var badges = ['SEC-NET v2.4', 'CHIEF DESK'];
+  if (!contactMatchesQuery(getContactSearchQuery(), [name, sessionId, 'LIVE', metaLabel].concat(badges))) {
+    var empty = document.createElement('div');
+    empty.className = 'contact-empty';
+    empty.setAttribute('role', 'status');
+    empty.style.cssText = 'padding:16px;text-align:center;color:var(--text-muted);font-size:0.85rem;';
+    empty.textContent = 'No matching contacts';
+    container.appendChild(empty);
+    return;
+  }
   var card = document.createElement('div');
   card.className = 'contact-card active';
   card.innerHTML =
@@ -10327,10 +10356,10 @@ function renderLiveVisitorRoster() {
         '<span class="contact-name">' + escapeChatHtml(name) + '</span>' +
         '<span class="contact-time">LIVE</span>' +
       '</div>' +
-      '<div class="contact-meta">Direct Peer-to-Instructor Comm Link</div>' +
+      '<div class="contact-meta">' + metaLabel + '</div>' +
       '<div class="contact-badges">' +
-        '<span class="tag-badge">SEC-NET v2.4</span>' +
-        '<span class="tag-badge" style="color:var(--accent-cyan);">CHIEF DESK</span>' +
+        '<span class="tag-badge">' + badges[0] + '</span>' +
+        '<span class="tag-badge" style="color:var(--accent-cyan);">' + badges[1] + '</span>' +
       '</div>' +
     '</div>';
   container.appendChild(card);

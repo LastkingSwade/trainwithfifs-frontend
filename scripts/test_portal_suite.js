@@ -1702,6 +1702,84 @@ async function main() {
     assert(PAGE_SRC.indexOf('Email cannot be modified here to protect login credentials.', at) > at, 'the note is missing');
   });
 
+  console.log('\n[SECTION M: Comms HUD contact search]');
+  const hudSrc = ['escapeChatHtml', 'getContactSearchQuery', 'contactMatchesQuery', 'renderLiveVisitorRoster', 'filterContacts'].map(extractFunction).join('\n');
+  function loadHud(session = { name: 'Marcus Visitor', phone: '4105550100', threadId: 'thread_4105550100' }, query = '') {
+    const search = { id: 'contactSearchInput', value: query, attrs: { 'data-oninput': 'filterContacts()' }, parent: null,
+      getAttribute(n) { return Object.prototype.hasOwnProperty.call(this.attrs, n) ? this.attrs[n] : null; },
+      closest(sel) { const name = sel.slice(1, -1); for (let n = this; n; n = n.parent) if (Object.prototype.hasOwnProperty.call(n.attrs, name)) return n; return null; } };
+    const children = [];
+    const container = { id: 'contactRosterContainer', set innerHTML(v) { if (v === '') children.length = 0; }, get innerHTML() { return children.map((c) => c.innerHTML || c.textContent || '').join(''); }, appendChild(c) { children.push(c); } };
+    const ctx = { window: { __activeChatSession: session }, console: { error() {}, log() {}, warn() {} },
+      document: { getElementById: (id) => (id === 'contactRosterContainer' ? container : (id === 'contactSearchInput' ? search : null)),
+        createElement: () => ({ className: '', innerHTML: '', textContent: '', style: {}, attrs: {}, setAttribute(k, v) { this.attrs[k] = v; } }) } };
+    vm.createContext(ctx);
+    vm.runInContext(hudSrc + '\nthis.api = { render: renderLiveVisitorRoster, filter: filterContacts };', ctx);
+    const typed = (text) => { search.value = text; ctx.api.filter(); };
+    return { api: ctx.api, search, children, typed, ctx, delegate: () => {
+      // The real page delegator, so a real input event reaches filterContacts() the way it does in the browser.
+      const dctx = Object.assign(ctx, { decodedFrom: null });
+      vm.runInContext(delegatorJs + '\nthis.runInput = handleDelegatedInput;', dctx);
+      return (text) => { search.value = text; dctx.runInput({ type: 'input', target: search }); };
+    } };
+  }
+  const cards = (h) => h.children.filter((c) => /contact-card/.test(c.className));
+  const emptyState = (h) => h.children.filter((c) => /contact-empty/.test(c.className));
+
+  await test('Comms HUD search: a blank search shows the contact card, and a whitespace-only search still shows it', async () => {
+    const h = loadHud();
+    h.api.render();
+    assert(cards(h).length === 1 && emptyState(h).length === 0 && /Marcus Visitor/.test(cards(h)[0].innerHTML), 'the card should show with no query');
+    h.typed('   '); assert(cards(h).length === 1 && emptyState(h).length === 0, 'a whitespace-only query shows everything');
+  });
+  await test('Comms HUD search: typing filters case-insensitively by visitor name, session ID, or session label', async () => {
+    const h = loadHud();
+    for (const q of ['marcus', 'MARCUS', 'Marcus Vis', 'visitor', 'thread_4105550100', 'THREAD_410', '4105550100', 'peer-to-instructor', 'comm link', 'peer link', 'chief desk', 'sec-net', 'live', 'marcus thread_4105']) {
+      h.typed(q);
+      assert(cards(h).length === 1 && emptyState(h).length === 0, `"${q}" should match the card`);
+    }
+  });
+  await test('Comms HUD search: a query that matches nothing hides the card and shows a clean empty state; clearing the box restores it', async () => {
+    const h = loadHud();
+    for (const q of ['zzz', 'marcus zzz', 'dana', 'thread_999', 'x']) {
+      h.typed(q);
+      assert(cards(h).length === 0 && emptyState(h).length === 1 && emptyState(h)[0].textContent === 'No matching contacts' && emptyState(h)[0].attrs.role === 'status', `"${q}" should show the empty state, found ${cards(h).length} cards`);
+    }
+    h.typed(''); assert(cards(h).length === 1 && emptyState(h).length === 0, 'clearing the box must restore the card');
+    h.typed('nomatch'); h.typed('marcus'); assert(cards(h).length === 1 && emptyState(h).length === 0, 'refining back to a match must restore the card');
+  });
+  await test('Comms HUD search: the query is plain text, so pattern characters and markup match nothing and never throw', async () => {
+    const h = loadHud();
+    for (const q of ['.*', '(', '[a-z]+', '\\', '<img src=x onerror=alert(1)>', '%', '$^', '"; drop table', '\u0000']) {
+      let threw = null; try { h.typed(q); } catch (e) { threw = e; }
+      assert(!threw, `"${q}" threw: ${threw && threw.message}`);
+      assert(cards(h).length === 0 && emptyState(h).length === 1, `"${q}" should match nothing`);
+    }
+  });
+  await test('Comms HUD search: a hostile visitor name is still escaped in the card and can be searched for', async () => {
+    const h = loadHud({ name: '<img src=x onerror=alert(1)>', threadId: 'thread_1' });
+    h.api.render();
+    assert(cards(h).length === 1 && !/<img/i.test(cards(h)[0].innerHTML) && /&lt;img/.test(cards(h)[0].innerHTML), 'name must be escaped: ' + cards(h)[0].innerHTML.slice(0, 120));
+    h.typed('onerror'); assert(cards(h).length === 1, 'the name text is searchable');
+  });
+  await test('Comms HUD search: a real input event on the search box (through the page delegator) filters the roster as the user types', async () => {
+    const h = loadHud();
+    const type = h.delegate();
+    h.api.render();
+    type('m'); assert(cards(h).length === 1, 'm matches');
+    type('mx'); assert(cards(h).length === 0 && emptyState(h).length === 1, 'mx matches nothing');
+    type('mar'); assert(cards(h).length === 1, 'mar matches again');
+    type(''); assert(cards(h).length === 1 && emptyState(h).length === 0, 'cleared');
+    assert(/data-oninput="filterContacts\(\)"/.test(PAGE_SRC.slice(PAGE_SRC.indexOf('id="contactSearchInput"') - 300, PAGE_SRC.indexOf('id="contactSearchInput"') + 400)), 'the search box must call filterContacts() on input');
+  });
+  await test('Comms HUD search: other callers that redraw the roster (such as starting a chat) also respect the current search', async () => {
+    const h = loadHud(undefined, 'zzz');
+    h.api.render();
+    assert(cards(h).length === 0 && emptyState(h).length === 1, 'a redraw with an active query must stay filtered');
+    h.search.value = ''; h.api.render();
+    assert(cards(h).length === 1, 'a redraw with no query shows the card');
+  });
+
   console.log('\n================================================================');
   console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   console.log('================================================================');
