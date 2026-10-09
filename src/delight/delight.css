@@ -162,3 +162,9 @@
   .btn-vip-side { transition: transform 90ms ease-out; }
   .btn-vip-side:active { transform: scale(0.97); }
 }
+
+/* D028 press feedback on btn-base-side */
+@media (prefers-reduced-motion: no-preference) {
+  .btn-base-side { transition: transform 90ms ease-out; }
+  .btn-base-side:active { transform: scale(0.97); }
+}
