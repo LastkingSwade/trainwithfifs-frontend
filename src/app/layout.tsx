@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
+import "../delight/delight.css";
 
 export const metadata: Metadata = {
   title: "Train With FIFS | Maryland Firearms Training & Concealed Carry Courses",
