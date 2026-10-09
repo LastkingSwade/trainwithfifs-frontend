@@ -431,3 +431,9 @@
   .goal-modal-close-btn { transition: transform 200ms ease-out; }
   .goal-modal-close-btn:hover { transform: rotate(90deg); }
 }
+
+/* D074 back-to-home nudges left on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .btn-return-home { transition: transform 160ms ease-out; }
+  .btn-return-home:hover { transform: translateX(-3px); }
+}
