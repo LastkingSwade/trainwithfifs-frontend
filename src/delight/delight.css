@@ -419,3 +419,9 @@
   .state-code-text { transition: text-shadow 140ms ease-out; }
   .state-code-text:hover { text-shadow: 0 0 8px rgba(0, 229, 255, 0.6); }
 }
+
+/* D072 map status dot softens on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .state-status-indicator { transition: opacity 140ms ease-out; }
+  .state-status-indicator:hover { opacity: 0.8; }
+}
