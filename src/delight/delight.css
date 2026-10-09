@@ -461,3 +461,9 @@
   .status-constitutional { transition: filter 160ms ease-out; }
   .status-constitutional:hover { filter: brightness(1.15); }
 }
+
+/* D079 fi badges lift on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .fi-badge { transition: transform 160ms ease-out; }
+  .fi-badge:hover { transform: translateY(-1px); }
+}
