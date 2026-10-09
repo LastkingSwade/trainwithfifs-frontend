@@ -60,3 +60,9 @@
   .meta-chip { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
   .meta-chip:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 229, 255, 0.16); }
 }
+
+/* D011 hover glow on button btn-primary */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .btn-primary { transition: filter 160ms ease-out, box-shadow 160ms ease-out; }
+  .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 0 14px rgba(0, 229, 255, 0.3); }
+}
