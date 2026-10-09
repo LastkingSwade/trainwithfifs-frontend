@@ -66,3 +66,9 @@
   .btn-primary { transition: filter 160ms ease-out, box-shadow 160ms ease-out; }
   .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 0 14px rgba(0, 229, 255, 0.3); }
 }
+
+/* D012 hover glow on button btn-spark */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .btn-spark { transition: filter 160ms ease-out, box-shadow 160ms ease-out; }
+  .btn-spark:hover { filter: brightness(1.1); box-shadow: 0 0 14px rgba(0, 229, 255, 0.3); }
+}
