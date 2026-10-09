@@ -413,3 +413,9 @@
   .state-bg-rect { transition: filter 140ms ease-out; }
   .state-bg-rect:hover { filter: brightness(1.35); }
 }
+
+/* D071 map state code glows on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .state-code-text { transition: text-shadow 140ms ease-out; }
+  .state-code-text:hover { text-shadow: 0 0 8px rgba(0, 229, 255, 0.6); }
+}
