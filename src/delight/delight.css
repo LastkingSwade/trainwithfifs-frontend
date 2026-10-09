@@ -264,3 +264,9 @@
   .target-card-student { transition: border-color 180ms ease-out; }
   .target-card-student:hover { border-color: rgba(0, 229, 255, 0.55); }
 }
+
+/* D045 border brightens on hover for faq-item */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .faq-item { transition: border-color 180ms ease-out; }
+  .faq-item:hover { border-color: rgba(0, 229, 255, 0.55); }
+}
