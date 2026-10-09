@@ -42,3 +42,9 @@
   .vip-perk-item { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
   .vip-perk-item:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 229, 255, 0.16); }
 }
+
+/* D008 hover lift on faq-item */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .faq-item { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
+  .faq-item:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 229, 255, 0.16); }
+}
