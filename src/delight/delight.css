@@ -84,3 +84,9 @@
   .btn-secondary-modal { transition: filter 160ms ease-out, box-shadow 160ms ease-out; }
   .btn-secondary-modal:hover { filter: brightness(1.1); box-shadow: 0 0 14px rgba(0, 229, 255, 0.3); }
 }
+
+/* D015 hover glow on button btn-return-home */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .btn-return-home { transition: filter 160ms ease-out, box-shadow 160ms ease-out; }
+  .btn-return-home:hover { filter: brightness(1.1); box-shadow: 0 0 14px rgba(0, 229, 255, 0.3); }
+}
