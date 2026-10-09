@@ -65,8 +65,7 @@ function validateStrictPassword(password: string): { valid: boolean; error?: str
 // Actions the portal UI calls that have no server-side persistence yet. They fail explicitly
 // (501) so the UI cannot report a change as saved when nothing was stored.
 const NOT_IMPLEMENTED_ACTIONS: Record<string, string> = {
-  submitStudentWaiver: 'Online waiver submission',
-  handleLeadMagnetSubmission: 'Lead capture for the free guide'
+  submitStudentWaiver: 'Online waiver submission'
 };
 
 // --- Student record edit validation (adminEditStudent, updateStudentStatus, updateStudentTask) ---
@@ -864,10 +863,13 @@ export async function POST(req: NextRequest) {
          } catch (invErr) {
            console.warn('Invoices deletion note:', invErr);
          }
-         try {
-           await supabase.from('enrollments').delete().eq('student_id', resolvedStudentId);
-         } catch (enrErr) {
-           console.warn('Enrollments deletion note:', enrErr);
+         // enrollments has no student_id column (it links by user_id and student_email), so match on the linked sign-in id.
+         if (foundStudent?.user_id) {
+           try {
+             await supabase.from('enrollments').delete().eq('user_id', foundStudent.user_id);
+           } catch (enrErr) {
+             console.warn('Enrollments deletion note:', enrErr);
+           }
          }
          try {
            await supabase.from('messages').delete().eq('student_id', resolvedStudentId);
@@ -2823,6 +2825,48 @@ export async function POST(req: NextRequest) {
      case 'trackSiteVisit': {
        const rawPath = String(payload.path || body.path || '/').slice(0, 255);
        return NextResponse.json({ success: true, tracked: true });
+     }
+
+     case 'handleLeadMagnetSubmission': {
+       // Public form (free 50-state reciprocity guide). The visitor gets the download either way, so a storage problem is
+       // logged and flagged in the staff alert but never shown as an error.
+       supabase = getPrivilegedClient();
+       const leadName = String(payload.fullName || payload.name || '').trim().replace(/\s+/g, ' ').slice(0, 100);
+       const leadEmail = String(payload.email || '').trim().toLowerCase().slice(0, 150);
+       const guideName = String(payload.source || '50-State Reciprocity Guide').replace(/[^\w &.,'()-]/g, '').trim().slice(0, 60) || '50-State Reciprocity Guide';
+       if (!leadName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(leadEmail)) {
+         return NextResponse.json({ success: false, error: 'A name and a valid email address are required.' }, { status: 400 });
+       }
+       const leadSource = 'Free Guide: ' + guideName;
+       let leadSaved = false;
+       let leadIsNew = true;
+       try {
+         const { data: existing, error: lookupErr } = await supabase.from('leads').select('id').eq('email', leadEmail).eq('source', leadSource).limit(1);
+         if (lookupErr) throw lookupErr;
+         if (Array.isArray(existing) && existing.length > 0) {
+           leadSaved = true;
+           leadIsNew = false;
+         } else {
+           const { error: insertLeadErr } = await supabase.from('leads').insert([{ full_name: leadName, email: leadEmail, source: leadSource }]);
+           if (insertLeadErr) throw insertLeadErr;
+           leadSaved = true;
+         }
+       } catch (leadErr: any) {
+         console.warn('[FIFS] Guide lead not stored:', leadErr?.code || 'no code', leadErr?.message || leadErr);
+       }
+       if (leadIsNew) {
+         await sendServerDiscordAlert(
+           "📥 New Free Guide Lead: " + leadName,
+           "A visitor downloaded the " + guideName + ".",
+           [
+             { name: "Name", value: leadName, inline: true },
+             { name: "Email", value: leadEmail, inline: true },
+             { name: "Saved to leads table", value: leadSaved ? "Yes" : "No - this alert is the only record", inline: true }
+           ],
+           0x00E5FF
+         );
+       }
+       return NextResponse.json({ success: true, status: 'success', message: 'Thank you. Your download is ready.' });
      }
 
      case 'submitContactInquiry': {

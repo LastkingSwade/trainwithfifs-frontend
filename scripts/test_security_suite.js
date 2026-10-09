@@ -276,7 +276,7 @@ const mockSupabase = {
         lte: (col, val) => builder,
         upsert: (rows) => builder.insert(rows),
         order: (col, opts) => builder,
-        limit: (n) => builder,
+        limit: (n) => (table === 'leads' ? Promise.resolve({ data: filtered.slice(0, n), error: null }) : builder),
         single: async () => ({ data: filtered[0] || null, error: filtered[0] ? null : { message: 'Not found' } }),
         maybeSingle: async () => ({ data: filtered[0] || null, error: null }),
         insert: (rows) => {
@@ -284,6 +284,7 @@ const mockSupabase = {
           if (table === 'leads') {
             // Mirrors Production's public.leads: id, full_name, email (NOT NULL), source, captured_at. Unknown columns are rejected
             // like PostgREST does (PGRST204); a missing email violates NOT NULL (23502). Nothing is stored on error.
+            if (global.__failLeadInsert) return { data: null, error: { code: '57014', message: 'simulated database failure' } };
             const allowed = ['id', 'full_name', 'email', 'source', 'captured_at'].concat(global.__leadsExtraColumns || []);
             for (const r of rArray) {
               const unknown = Object.keys(r).find((k) => !allowed.includes(k));
@@ -462,6 +463,44 @@ async function main() {
     const { status, body } = await executeAction('submitContactInquiry', { name: 'X', email: 'x@example.com', message: 'hello' });
     delete global.__leadsExtraColumns;
     if (status !== 200 || !body.success) throw new Error(`Expected 200, got ${status}`);
+  });
+
+  await runTest('handleLeadMagnetSubmission: the free-guide lead is stored once per email, with the guide as its source', async () => {
+    dbState.leads = [];
+    const first = await executeAction('handleLeadMagnetSubmission', { fullName: '  Gail   Guide ', email: 'Gail.Guide@Example.com', source: '50-State Reciprocity Guide' });
+    if (first.status !== 200 || !first.body.success) throw new Error(`Expected 200, got ${first.status} ${JSON.stringify(first.body)}`);
+    const again = await executeAction('handleLeadMagnetSubmission', { fullName: 'Gail Guide', email: 'gail.guide@example.com', source: '50-State Reciprocity Guide' });
+    if (again.status !== 200) throw new Error('a repeat download must still succeed');
+    const rows = dbState.leads.filter((l) => l.email === 'gail.guide@example.com');
+    if (rows.length !== 1) throw new Error('expected exactly one stored lead, found ' + rows.length + ': ' + JSON.stringify(dbState.leads));
+    if (rows[0].full_name !== 'Gail Guide' || rows[0].source !== 'Free Guide: 50-State Reciprocity Guide') throw new Error('stored lead is wrong: ' + JSON.stringify(rows[0]));
+  });
+
+  await runTest('handleLeadMagnetSubmission: a missing name or invalid email is rejected with 400 and stores nothing', async () => {
+    dbState.leads = [];
+    for (const bad of [{ email: 'a@example.com' }, { fullName: 'No Email' }, { fullName: 'Bad Email', email: 'not-an-email' }, { fullName: 'Bad Email', email: 'a@b' }]) {
+      const { status } = await executeAction('handleLeadMagnetSubmission', bad);
+      if (status !== 400) throw new Error(`Expected 400 for ${JSON.stringify(bad)}, got ${status}`);
+    }
+    if (dbState.leads.length !== 0) throw new Error('nothing may be stored for invalid input: ' + JSON.stringify(dbState.leads));
+  });
+
+  await runTest('handleLeadMagnetSubmission: a hostile source label is cleaned before it is stored', async () => {
+    dbState.leads = [];
+    const { status } = await executeAction('handleLeadMagnetSubmission', { fullName: 'Eve', email: 'eve@example.com', source: '<script>alert(1)</script>Guide' });
+    if (status !== 200) throw new Error('status ' + status);
+    const src = (dbState.leads[0] || {}).source || '';
+    if (/[<>]/.test(src) || !src.startsWith('Free Guide: ')) throw new Error('unsafe source stored: ' + src);
+  });
+
+  await runTest('handleLeadMagnetSubmission: a database failure never blocks the visitor\'s download', async () => {
+    dbState.leads = [];
+    global.__failLeadInsert = true;
+    const warns = []; const origWarn = console.warn; console.warn = (...a) => warns.push(a.join(' '));
+    let res; try { res = await executeAction('handleLeadMagnetSubmission', { fullName: 'Dan Down', email: 'dan@example.com' }); } finally { console.warn = origWarn; delete global.__failLeadInsert; }
+    if (res.status !== 200 || !res.body.success) throw new Error(`Expected 200 success, got ${res.status} ${JSON.stringify(res.body)}`);
+    if (!warns.some((w) => /Guide lead not stored/.test(w))) throw new Error('the failure must be logged: ' + warns.join(' | '));
+    if (JSON.stringify(res.body).includes('57014')) throw new Error('the database error must not be shown to the visitor');
   });
 
   await runTest('submitContactInquiry: Empty inquiry rejected with 400', async () => {

@@ -153,6 +153,15 @@ test('Every VIP range-fee perk quotes the same $45 as the Base fee (no "$25-$35"
   assert(perks.filter((p) => /\$\d/.test(p)).every((p) => /\$45\b/.test(p)), 'a range fee perk quotes a price other than $45: ' + perks.join(' | '));
 });
 
+test('The free-guide form posts its name and email to handleLeadMagnetSubmission, which the server now implements', () => {
+  const at = SCRIPT.indexOf('function handleLeadMagnetSubmit(');
+  const fn = SCRIPT.slice(at, at + 1400);
+  assert(/callFifsBackend\('handleLeadMagnetSubmission', \{ fullName: name, email: email,/.test(fn), 'the form no longer sends fullName and email to handleLeadMagnetSubmission');
+  const route = fs.readFileSync(path.join(ROOT, 'src/app/api/fifs/route.ts'), 'utf-8');
+  const notImplemented = route.slice(route.indexOf('const NOT_IMPLEMENTED_ACTIONS'), route.indexOf('};', route.indexOf('const NOT_IMPLEMENTED_ACTIONS')));
+  assert(!/handleLeadMagnetSubmission/.test(notImplemented) && /case 'handleLeadMagnetSubmission'/.test(route), 'the server action must exist and not be listed as not implemented');
+});
+
 (async () => {
   for (const item of queue) {
     if (item.title) { console.log(item.title); continue; }

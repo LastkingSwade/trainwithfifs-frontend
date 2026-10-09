@@ -126,13 +126,20 @@ function likeToRegExp(pattern, caseInsensitive) {
   return new RegExp('^' + out + '$', caseInsensitive ? 'i' : '');
 }
 
+// Columns of the Production tables whose real shape matters to a test (from the read-only catalog review). A filter on any other
+// column fails like Postgres does (42703, "undefined column") and is recorded, so a query on a column that does not exist cannot hide.
+const TABLE_COLUMNS = { enrollments: ['id', 'user_id', 'student_email', 'student_name', 'class_id', 'scheduled_date', 'duration_hours', 'reminder_sent', 'status', 'cancellation_reason', 'previous_dates', 'internal_notes', 'created_at'] };
+const badColumnCalls = [];
 function queryBuilder(table, clientKey) {
   clientCalls.push({ key: clientKey, table });
   const filters = [];
+  const usedColumns = [];
   let op = 'select';
   let patch = null;
   let conflict = null;
   const run = () => {
+    const unknownColumn = TABLE_COLUMNS[table] && usedColumns.find((c) => !TABLE_COLUMNS[table].includes(c));
+    if (unknownColumn) { badColumnCalls.push({ table, op, column: unknownColumn }); return { data: null, error: { code: '42703', message: `column ${table}.${unknownColumn} does not exist` } }; }
     if (failOp && failOp === op && (!failTable || failTable === table)) return { data: null, error: { message: 'boom: internal database detail' } };
     if (op === 'update') {
       const hit = updateMatchesNothing ? [] : (db[table] || []).filter((r) => filters.every((f) => f(r)));
@@ -169,7 +176,7 @@ function queryBuilder(table, clientKey) {
     update: (data) => { op = 'update'; patch = data; return b; },
     upsert: (data, opts) => { op = 'upsert'; patch = data; conflict = opts && opts.onConflict; return b; },
     delete: () => { op = 'delete'; return b; },
-    eq: (c, v) => { filters.push((r) => r[c] === v); return b; },
+    eq: (c, v) => { usedColumns.push(c); filters.push((r) => r[c] === v); return b; },
     or: (expr) => {
       // Supports the staff lookup form: student_id.eq.X,email.eq.Y
       const parts = String(expr).split(',').map((p) => p.split('.eq.'));
@@ -340,7 +347,7 @@ async function test(name, fn) {
 }
 function assert(cond, msg) { if (!cond) throw new Error(msg); }
 
-const NOT_IMPLEMENTED = ['submitStudentWaiver', 'handleLeadMagnetSubmission'];
+const NOT_IMPLEMENTED = ['submitStudentWaiver'];
 
 async function main() {
   console.log('================================================================');
@@ -1957,6 +1964,15 @@ async function main() {
     assert(JSON.stringify(authCalls.deleteUser) === '["uuid-dana"]', 'exactly the linked account should be deleted: ' + JSON.stringify(authCalls.deleteUser));
     assert(!authCalls.deleteSnapshots[0].students.includes('FIFS-1013'), 'the record must already be deleted when the account is deleted');
     assert(!JSON.stringify(r.body).includes('uuid-dana') && !/dana\.linked/.test(JSON.stringify(r.body)), 'neither the account id nor the email may be echoed');
+  });
+  await test('Delete student: enrollments are removed through columns that exist (user_id), with no query on a missing column', async () => {
+    badColumnCalls.length = 0;
+    db.enrollments = (db.enrollments || []).concat([{ id: 'enr-dana', user_id: 'uuid-dana', student_email: 'someone.else@example.test', class_id: 'c1', status: 'confirmed' }, { id: 'enr-other', user_id: 'uuid-someone-else', student_email: 'keep@example.test', class_id: 'c1', status: 'confirmed' }]);
+    const r = await delStudent({ studentId: 'FIFS-1013' });
+    assert(r.status === 200 && r.body.success === true, `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(badColumnCalls.length === 0, 'a query used a column that does not exist: ' + JSON.stringify(badColumnCalls));
+    assert(!db.enrollments.some((e) => e.id === 'enr-dana'), "the student's enrollment (matched by user_id) must be deleted");
+    assert(db.enrollments.some((e) => e.id === 'enr-other'), "another person's enrollment must be left alone");
   });
   await test('Delete student by email also removes the linked sign-in', async () => {
     const r = await delStudent({ email: 'dana.linked@example.test' });
