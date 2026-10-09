@@ -497,3 +497,9 @@
   .fi-check-label { transition: color 140ms ease-out; }
   .fi-check-label:hover { color: #ffffff; }
 }
+
+/* D085 review quotes brighten on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .review-quote-text { transition: color 140ms ease-out; }
+  .review-quote-text:hover { color: #ffffff; }
+}
