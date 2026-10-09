@@ -252,3 +252,9 @@
   .tuition-card { transition: border-color 180ms ease-out; }
   .tuition-card:hover { border-color: rgba(0, 229, 255, 0.55); }
 }
+
+/* D043 border brightens on hover for metric-card */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .metric-card { transition: border-color 180ms ease-out; }
+  .metric-card:hover { border-color: rgba(0, 229, 255, 0.55); }
+}
