@@ -6,3 +6,9 @@
   .tuition-card { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
   .tuition-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 229, 255, 0.16); }
 }
+
+/* D002 hover lift on metric-card */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .metric-card { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
+  .metric-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 229, 255, 0.16); }
+}
