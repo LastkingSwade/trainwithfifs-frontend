@@ -404,3 +404,6 @@
 
 /* D068 cyan text selection */
 ::selection { background-color: rgba(0, 229, 255, 0.35); color: #ffffff; }
+
+/* D069 no grey tap flash on buttons */
+.btn-spark, .btn-primary, .btn-secondary { -webkit-tap-highlight-color: transparent; }
