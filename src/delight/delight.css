@@ -455,3 +455,9 @@
   .target-img-frame { transition: transform 240ms ease-out; }
   .target-img-frame:hover { transform: scale(1.02); }
 }
+
+/* D078 status badges brighten on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .status-constitutional { transition: filter 160ms ease-out; }
+  .status-constitutional:hover { filter: brightness(1.15); }
+}
