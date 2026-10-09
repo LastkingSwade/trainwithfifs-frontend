@@ -425,3 +425,9 @@
   .state-status-indicator { transition: opacity 140ms ease-out; }
   .state-status-indicator:hover { opacity: 0.8; }
 }
+
+/* D073 close button turns a quarter on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .goal-modal-close-btn { transition: transform 200ms ease-out; }
+  .goal-modal-close-btn:hover { transform: rotate(90deg); }
+}
