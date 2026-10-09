@@ -348,3 +348,9 @@
   @keyframes d058 { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   .tuition-card { animation: d058 320ms ease-out 0ms both; }
 }
+
+/* D059 entrance fade-up on metric-card */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes d059 { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .metric-card { animation: d059 320ms ease-out 0ms both; }
+}
