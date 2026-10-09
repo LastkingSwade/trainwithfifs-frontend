@@ -228,3 +228,9 @@
   .badge-score { transition: text-shadow 200ms ease-out; }
   .badge-score:hover { text-shadow: 0 0 10px rgba(0, 229, 255, 0.45); }
 }
+
+/* D039 soft cyan text glow on hover for badge-course */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .badge-course { transition: text-shadow 200ms ease-out; }
+  .badge-course:hover { text-shadow: 0 0 10px rgba(0, 229, 255, 0.45); }
+}
