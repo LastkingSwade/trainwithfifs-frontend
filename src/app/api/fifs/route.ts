@@ -2,7 +2,7 @@
 import crypto from 'node:crypto';
 import { getAuthenticatedUser, getPrivilegedClient, getPublicClient } from '@/Lib/server/supabase-admin';
 import { isLiveChatHours } from '@/Lib/server/chat-hours';
-import { createBookingCheckout, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord } from '@/Lib/server/booking-checkout';
+import { createBookingCheckout, createPodInviteCode, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord } from '@/Lib/server/booking-checkout';
 import { ConfigurationError, resolveSiteUrl } from '@/Lib/config/environment';
 
 
@@ -692,6 +692,38 @@ async function findRecordByEmail(supabase: any, table: 'students' | 'clients', e
   } catch (err: any) {
     console.warn('[findRecordByEmail] Lookup failed:', err?.message);
     return { found: null, error: true };
+  }
+}
+
+// Stores a contact-form inquiry in public.leads. Production's leads table has only full_name, email (NOT NULL), source and
+// captured_at, so the phone and message cannot be saved there yet: try the full row first (works once phone/notes columns exist),
+// then fall back to the columns that do exist. Returns whether a row was stored. Never throws; failures are logged without PII.
+async function storeContactLead(client: any, lead: { fullName: string; email: string | null; phone: string; message: string }): Promise<boolean> {
+  const source = 'Contact Inquiry Form';
+  const MISSING_COLUMN_CODES = ['42703', 'PGRST204'];
+  try {
+    let { error } = await client.from('leads').insert([{
+      full_name: lead.fullName,
+      email: lead.email,
+      phone: lead.phone || null,
+      notes: lead.message,
+      source
+    }]);
+    if (error && MISSING_COLUMN_CODES.includes(error.code)) {
+      if (!lead.email) {
+        console.warn('[FIFS] Contact lead not stored: the leads table requires an email and this inquiry has none.');
+        return false;
+      }
+      ({ error } = await client.from('leads').insert([{ full_name: lead.fullName, email: lead.email, source }]));
+    }
+    if (error) {
+      console.warn('[FIFS] Contact lead not stored:', error.code || 'no code', error.message);
+      return false;
+    }
+    return true;
+  } catch (err: any) {
+    console.warn('[FIFS] Contact lead not stored:', err?.message || err);
+    return false;
   }
 }
 
@@ -2783,30 +2815,7 @@ export async function POST(req: NextRequest) {
        }
 
        // If group booking (more than 1 person), generate private pod invite code
-       let podInviteCode = null;
-       if (result.body.attendees > 1) {
-         try {
-           const pricingCourse = String(payload.courseSelection || 'Maryland Firearms Training Course').trim().slice(0, 200);
-           const { data: codeData, error: podRpcErr } = await getPrivilegedClient().rpc('create_booking_group', {
-             p_leader_name: String(payload.fullName || 'FIFS Training Student').trim().slice(0, 100),
-             p_leader_email: String(payload.email).trim().toLowerCase(),
-             p_leader_phone: String(payload.phone || '').trim().slice(0, 30) || null,
-             p_course: pricingCourse,
-             p_track: result.body.isVip ? 'VIP' : 'Base',
-             p_preferred_dates: String(payload.preferredDates || 'Coordinated with Lead Instructor Kai Wade').trim().slice(0, 200),
-             p_max_seats: result.body.attendees
-           });
-           if (podRpcErr) {
-             // The booking and payment already succeeded; a missing pod code must not break them. Log it clearly.
-             console.warn('[FIFS] Pod invite code was not created:', podRpcErr.code || 'no code', podRpcErr.message);
-             podInviteCode = null;
-           } else {
-             podInviteCode = codeData ?? null;
-           }
-         } catch (podErr) {
-           console.warn('[FIFS] Pod generation note:', podErr);
-         }
-       }
+       const podInviteCode = await createPodInviteCode(payload, result.body);
 
        return NextResponse.json({ ...result.body, podInviteCode });
      }
@@ -2817,7 +2826,7 @@ export async function POST(req: NextRequest) {
      }
 
      case 'submitContactInquiry': {
-       supabase = getPublicClient();
+       supabase = getPrivilegedClient();
        const fullName = String(payload.fullName || payload.name || body.fullName || 'Inquiry Visitor').trim().slice(0, 100);
        const phone = String(payload.phone || body.phone || '').trim().slice(0, 30);
        const message = String(payload.message || body.message || '').trim().slice(0, 2000);
@@ -2828,15 +2837,7 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, error: 'A message or phone number is required.' }, { status: 400 });
        }
 
-       try {
-         await supabase.from('leads').insert([{
-           full_name: fullName,
-           phone: phone || null,
-           email: email || null,
-           notes: message,
-           source: 'Contact Inquiry Form'
-         }]);
-       } catch (_e) {}
+       const leadStored = await storeContactLead(supabase, { fullName, email, phone, message });
 
        await sendServerDiscordAlert(
          "📩 New Contact Form Inquiry: " + fullName,
@@ -2845,7 +2846,8 @@ export async function POST(req: NextRequest) {
            { name: "Name", value: fullName, inline: true },
            { name: "Phone", value: phone || "Not provided", inline: true },
            { name: "Email", value: email || "Not provided", inline: true },
-           { name: "Message", value: message || "No message content", inline: false }
+           { name: "Message", value: message || "No message content", inline: false },
+           { name: "Saved to leads table", value: leadStored ? "Yes" : "No - this alert is the only record", inline: true }
          ],
          0xF59E0B
        );

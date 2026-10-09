@@ -281,6 +281,16 @@ const mockSupabase = {
         maybeSingle: async () => ({ data: filtered[0] || null, error: null }),
         insert: (rows) => {
           const rArray = Array.isArray(rows) ? rows : [rows];
+          if (table === 'leads') {
+            // Mirrors Production's public.leads: id, full_name, email (NOT NULL), source, captured_at. Unknown columns are rejected
+            // like PostgREST does (PGRST204); a missing email violates NOT NULL (23502). Nothing is stored on error.
+            const allowed = ['id', 'full_name', 'email', 'source', 'captured_at'].concat(global.__leadsExtraColumns || []);
+            for (const r of rArray) {
+              const unknown = Object.keys(r).find((k) => !allowed.includes(k));
+              if (unknown) return { select: () => ({ single: async () => ({ data: null, error: { code: 'PGRST204', message: `Could not find the '${unknown}' column of 'leads' in the schema cache` } }) }), data: null, error: { code: 'PGRST204', message: `Could not find the '${unknown}' column of 'leads' in the schema cache` } };
+              if (!r.email) return { data: null, error: { code: '23502', message: 'null value in column "email" of relation "leads" violates not-null constraint' } };
+            }
+          }
           const inserted = rArray.map((r, i) => ({ id: 'new-' + Date.now() + '-' + i, ...r }));
           dbState[table] = (dbState[table] || []).concat(inserted);
           return {
@@ -415,6 +425,42 @@ async function main() {
       phone: '410-555-1234',
       message: 'Need CCW class details'
     });
+    if (status !== 200 || !body.success) throw new Error(`Expected 200, got ${status}`);
+  });
+
+  await runTest('submitContactInquiry: the lead is really stored in the leads table (name, email, source), even though phone/notes columns do not exist', async () => {
+    dbState.leads = [];
+    const { status, body } = await executeAction('submitContactInquiry', { name: 'Lead Prospect', email: 'Lead.Prospect@Example.com', phone: '410-555-7777', message: 'Please call me about CCW' });
+    if (status !== 200 || !body.success) throw new Error(`Expected 200, got ${status}`);
+    const row = dbState.leads.find((l) => l.email === 'lead.prospect@example.com');
+    if (!row) throw new Error('the inquiry was not stored in leads: ' + JSON.stringify(dbState.leads));
+    if (row.full_name !== 'Lead Prospect' || row.source !== 'Contact Inquiry Form') throw new Error('stored lead is wrong: ' + JSON.stringify(row));
+    if ('phone' in row || 'notes' in row) throw new Error('the fallback must not send columns that do not exist');
+  });
+
+  await runTest('submitContactInquiry: once phone and notes columns exist the full inquiry is stored', async () => {
+    dbState.leads = [];
+    global.__leadsExtraColumns = ['phone', 'notes'];
+    try {
+      const { status } = await executeAction('submitContactInquiry', { name: 'Full Lead', email: 'full@example.com', phone: '410-555-8888', message: 'Group of four' });
+      if (status !== 200) throw new Error('status ' + status);
+      const row = dbState.leads.find((l) => l.email === 'full@example.com');
+      if (!row || row.phone !== '410-555-8888' || row.notes !== 'Group of four' || dbState.leads.length !== 1) throw new Error('full lead not stored once: ' + JSON.stringify(dbState.leads));
+    } finally { delete global.__leadsExtraColumns; }
+  });
+
+  await runTest('submitContactInquiry: a phone-only inquiry (no email) still succeeds and never crashes or stores a broken row', async () => {
+    dbState.leads = [];
+    const { status, body } = await executeAction('submitContactInquiry', { name: 'Phone Only', phone: '410-555-9999' });
+    if (status !== 200 || !body.success) throw new Error(`Expected 200, got ${status}`);
+    if (dbState.leads.length !== 0) throw new Error('a lead without an email must not be stored: ' + JSON.stringify(dbState.leads));
+  });
+
+  await runTest('submitContactInquiry: a failing database never turns a visitor inquiry into an error', async () => {
+    dbState.leads = [];
+    global.__leadsExtraColumns = [];
+    const { status, body } = await executeAction('submitContactInquiry', { name: 'X', email: 'x@example.com', message: 'hello' });
+    delete global.__leadsExtraColumns;
     if (status !== 200 || !body.success) throw new Error(`Expected 200, got ${status}`);
   });
 

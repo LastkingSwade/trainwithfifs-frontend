@@ -353,3 +353,33 @@ export async function createBookingCheckout(
     }
   };
 }
+
+
+/**
+ * Creates the private pod invite code (FIFS-POD-XXXX) for a booking of two or more people, with the server key.
+ * Never throws: the booking and payment link already exist, so a missing pod code is logged and returned as null.
+ * Used by both booking entry points (/api/checkout, which the website calls, and the /api/fifs submitBooking action).
+ */
+export async function createPodInviteCode(payload: any, result: { attendees?: number; isVip?: boolean }): Promise<string | null> {
+  if (!result || !(Number(result.attendees) > 1)) return null;
+  try {
+    const pricingCourse = String(payload?.courseSelection || 'Maryland Firearms Training Course').trim().slice(0, 200);
+    const { data: codeData, error: podRpcErr } = await getPrivilegedClient().rpc('create_booking_group', {
+      p_leader_name: String(payload?.fullName || 'FIFS Training Student').trim().slice(0, 100),
+      p_leader_email: String(payload?.email || '').trim().toLowerCase(),
+      p_leader_phone: String(payload?.phone || '').trim().slice(0, 30) || null,
+      p_course: pricingCourse,
+      p_track: result.isVip ? 'VIP' : 'Base',
+      p_preferred_dates: String(payload?.preferredDates || 'Coordinated with Lead Instructor Kai Wade').trim().slice(0, 200),
+      p_max_seats: result.attendees
+    });
+    if (podRpcErr) {
+      console.warn('[FIFS] Pod invite code was not created:', podRpcErr.code || 'no code', podRpcErr.message);
+      return null;
+    }
+    return codeData ?? null;
+  } catch (podErr) {
+    console.warn('[FIFS] Pod generation note:', podErr);
+    return null;
+  }
+}

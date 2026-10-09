@@ -2777,7 +2777,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       // Dispatch notification to Discord
       sendClientDiscordAlert(
         "💬 Instructor Reply Sent: Coach Kai Wade",
-        `Coach Kai Wade dispatched a live reply to student **{thread.senderPhone}).`,
+        `Coach Kai Wade dispatched a live reply to student **${thread.senderName}** (${thread.senderPhone}).`,
         [
           { name: "Student Name", value: thread.senderName, inline: true },
           { name: "Phone / SMS Callback", value: thread.senderPhone, inline: true },
@@ -5516,7 +5516,7 @@ function openAdminEditStudentModal(studentId) {
             <span style="font-size: 0.70rem; color: var(--text-muted);">${timeStr}</span>
           </div>
           <div style="background: #10161f; border: 1.5px solid rgba(255, 255, 255, 0.12); border-left: 3px solid var(--accent-cyan); border-radius: 14px 14px 14px 2px; padding: 12px 16px; color: #e2e8f0; font-size: 0.90rem; line-height: 1.55; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);">
-            ${text}
+            ${escapeHtml(text)}
           </div>
         `;
       }
@@ -10345,15 +10345,19 @@ function submitCurrentMessage(presetText) {
   
   var session = window.__activeChatSession || window.__currentChatSession || { name: 'Valued Visitor', phone: '' };
   var cleanPhone = (session.phone || '').replace(/\D/g, '');
-  var threadId = session.threadId || (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
+  // Thread ids and their credentials are issued by the server on the first message. Never invent an id here: the server
+  // rejects any thread id that does not come with its secret. Send the id and secret only when the server already issued them.
+  var known = window.__currentChatSession || {};
+  var threadId = session.threadId || known.threadId || '';
+  var threadSecret = session.threadSecret || known.threadSecret || '';
   
   var payload = {
     senderName: session.name || 'Valued Visitor',
     senderPhone: cleanPhone,
     senderEmail: session.email || '',
-    message: text,
-    threadId: threadId
+    message: text
   };
+  if (threadId && threadSecret) { payload.threadId = threadId; payload.threadSecret = threadSecret; }
   
   if (typeof callFifsBackend === 'function') {
     callFifsBackend('handleLiveChatMessage', payload, function(res) {
@@ -10361,6 +10365,10 @@ function submitCurrentMessage(presetText) {
             if (!window.__currentChatSession) window.__currentChatSession = {};
             window.__currentChatSession.threadId = res.threadId;
             if (res.threadSecret) window.__currentChatSession.threadSecret = res.threadSecret;
+            if (window.__activeChatSession) {
+              window.__activeChatSession.threadId = res.threadId;
+              if (res.threadSecret) window.__activeChatSession.threadSecret = res.threadSecret;
+            }
           }
       if (res && res.status === 'success' && Array.isArray(res.messages)) {
         renderLiveVisitorStream(res.messages);
@@ -10444,6 +10452,12 @@ function openP2pCommsHud(name, phone, initialMsg) {
       name: name || 'Valued Visitor',
       phone: phone || ''
     };
+    // Keep a thread the server already issued (id + secret) when this is the same visitor; never carry it over to a different phone.
+    var prevSession = window.__currentChatSession || {};
+    if (prevSession.threadId && prevSession.threadSecret && String(prevSession.phone || '').replace(/\D/g, '') === String(sessionData.phone).replace(/\D/g, '')) {
+      sessionData.threadId = prevSession.threadId;
+      sessionData.threadSecret = prevSession.threadSecret;
+    }
     try {
       sessionStorage.setItem('fifs_visitor_session', JSON.stringify(sessionData));
     } catch(e) {}
@@ -10452,18 +10466,19 @@ function openP2pCommsHud(name, phone, initialMsg) {
   
   var visitorPhone = phone || (window.__currentChatSession && window.__currentChatSession.phone) || '';
   var cleanPhone = visitorPhone.replace(/\D/g, '');
-  var threadId = cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now());
+  // Reuse a thread the server already issued (it comes with a secret); otherwise start with none and let the first message create it.
+  var existing = window.__currentChatSession || {};
+  var threadId = (existing.threadId && existing.threadSecret) ? existing.threadId : '';
+  var threadSecret = threadId ? existing.threadSecret : '';
   var visitorName = name || (window.__currentChatSession && window.__currentChatSession.name) || 'Valued Visitor';
   
   window.__activeChatSession = {
     name: visitorName,
     phone: cleanPhone,
     threadId: threadId,
+    threadSecret: threadSecret,
     messages: []
   };
-  if (window.__currentChatSession) {
-    window.__currentChatSession.threadId = threadId;
-  }
 
 
   // Update header metadata
@@ -10492,12 +10507,18 @@ function openP2pCommsHud(name, phone, initialMsg) {
   if (initialMsg) {
     appendOutgoingVisitorBubble(initialMsg);
     if (typeof callFifsBackend === 'function') {
-      callFifsBackend('handleLiveChatMessage', {
-        senderName: visitorName,
-        senderPhone: cleanPhone,
-        message: initialMsg,
-        threadId: threadId
-      }, function(res) {
+      var firstPayload = { senderName: visitorName, senderPhone: cleanPhone, message: initialMsg };
+      if (threadId && threadSecret) { firstPayload.threadId = threadId; firstPayload.threadSecret = threadSecret; }
+      callFifsBackend('handleLiveChatMessage', firstPayload, function(res) {
+        if (res && res.threadId) {
+          if (!window.__currentChatSession) window.__currentChatSession = {};
+          window.__currentChatSession.threadId = res.threadId;
+          if (res.threadSecret) window.__currentChatSession.threadSecret = res.threadSecret;
+          if (window.__activeChatSession) {
+            window.__activeChatSession.threadId = res.threadId;
+            if (res.threadSecret) window.__activeChatSession.threadSecret = res.threadSecret;
+          }
+        }
         if (res && res.status === 'success' && Array.isArray(res.messages)) {
           renderLiveVisitorStream(res.messages);
         }

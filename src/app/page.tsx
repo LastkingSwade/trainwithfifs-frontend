@@ -51,6 +51,36 @@ export default function TrainWithFIFS(props: any) {
       return null;
     }
   };
+  // After Stripe returns to /?booking_confirmed=true, show the group leader their private pod invite code (if the booking made one).
+  useEffect(() => {
+    let code = '';
+    try {
+      if (new URLSearchParams(window.location.search).get('booking_confirmed') !== 'true') return;
+      code = sessionStorage.getItem('fifs_pod_invite_code') || '';
+      if (!/^FIFS-POD-[A-Z0-9]{4}$/.test(code)) return;
+      sessionStorage.removeItem('fifs_pod_invite_code');
+    } catch (_storageErr) { return; }
+    const box = document.createElement('div');
+    box.id = 'pod-code-banner';
+    box.setAttribute('role', 'status');
+    box.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:2147483000;max-width:92vw;width:460px;padding:16px 18px;border-radius:12px;background:#0d141e;border:1.5px solid #00e5ff;color:#e2e8f0;font-size:0.92rem;line-height:1.5;box-shadow:0 10px 40px rgba(0,0,0,0.6);text-align:center;';
+    const title = document.createElement('div');
+    title.style.cssText = 'font-weight:800;color:#00e5ff;margin-bottom:6px;';
+    title.textContent = 'Payment received. Your private pod invite code:';
+    const codeEl = document.createElement('div');
+    codeEl.style.cssText = 'font-family:monospace;font-size:1.5rem;font-weight:800;letter-spacing:2px;margin:6px 0;color:#fff;';
+    codeEl.textContent = code;
+    const hint = document.createElement('div');
+    hint.style.cssText = 'font-size:0.82rem;color:#94a3b8;';
+    hint.textContent = 'Save this code and share it with the people joining your class.';
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = 'Got it';
+    close.style.cssText = 'margin-top:10px;padding:6px 16px;border-radius:8px;border:1px solid #00e5ff;background:transparent;color:#00e5ff;font-weight:700;cursor:pointer;';
+    close.addEventListener('click', () => box.remove());
+    box.append(title, codeEl, hint, close);
+    document.body.appendChild(box);
+  }, []);
   // Deep links such as /#enrollment (the /register redirect target): the booking panel starts hidden, so a plain browser
   // hash scroll cannot reach it. Open the panel, then scroll to the matching section.
   useEffect(() => {
@@ -1739,6 +1769,10 @@ export default function TrainWithFIFS(props: any) {
           const data = await res.json();
           if (!res.ok || data.error) {
             throw new Error(data.error || 'Failed to create Stripe checkout session');
+          }
+          // Group bookings get a private pod code; remember it across the Stripe redirect so it can be shown on return.
+          if (data.podInviteCode) {
+            try { sessionStorage.setItem('fifs_pod_invite_code', String(data.podInviteCode)); } catch (_storageErr) {}
           }
           if (data.url) {
             window.location.href = data.url;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createBookingCheckout, STRIPE_API_VERSION } from '@/Lib/server/booking-checkout';
+import { createBookingCheckout, createPodInviteCode, STRIPE_API_VERSION } from '@/Lib/server/booking-checkout';
 import { getPrivilegedClient, resolveStripeSecretKey } from '@/Lib/server/supabase-admin';
 import { ConfigurationError } from '@/Lib/config/environment';
 
@@ -21,6 +21,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const result = await createBookingCheckout(req, body);
+    if (result.status === 200) {
+      // Two or more attendees: the leader also gets a private pod invite code (null for one seat or if it could not be created).
+      const podInviteCode = await createPodInviteCode(body, result.body);
+      return NextResponse.json({ ...result.body, podInviteCode }, { status: result.status });
+    }
     return NextResponse.json(result.body, { status: result.status });
   } catch (error: any) {
     console.error('Unhandled error in Stripe checkout route:', error?.message);

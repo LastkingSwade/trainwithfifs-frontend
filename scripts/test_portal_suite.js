@@ -2513,11 +2513,17 @@ async function main() {
     const chatSend = ROUTE_SRC.slice(ROUTE_SRC.indexOf("case 'handleLiveChatMessage'"), ROUTE_SRC.indexOf("case 'getVisitorChatMessages'"));
     const chatRead = ROUTE_SRC.slice(ROUTE_SRC.indexOf("case 'getVisitorChatMessages'"), ROUTE_SRC.indexOf("case 'getLiveChats'"));
     const booking = ROUTE_SRC.slice(ROUTE_SRC.indexOf("case 'submitBooking'"), ROUTE_SRC.indexOf("case 'trackSiteVisit'"));
-    for (const [name, body] of [['handleLiveChatMessage', chatSend], ['getVisitorChatMessages', chatRead], ['submitBooking', booking]]) {
+    for (const [name, body] of [['handleLiveChatMessage', chatSend], ['getVisitorChatMessages', chatRead]]) {
       assert(body.length > 200, name + ' section not found');
       assert(!/getPublicClient/.test(body), name + ' must not use the public client');
       assert(/getPrivilegedClient\(\)/.test(body), name + ' must use the server client');
     }
+    // submitBooking creates the pod code through the shared helper; the helper (not the route) must hold the server-key rpc.
+    assert(booking.length > 200 && !/getPublicClient/.test(booking), 'submitBooking section not found or uses the public client');
+    assert(/await createPodInviteCode\(payload, result\.body\)/.test(booking), 'submitBooking must create the pod code through createPodInviteCode');
+    const helperSrc = fs.readFileSync(path.join(ROOT, 'src/Lib/server/booking-checkout.ts'), 'utf-8');
+    const helper = helperSrc.slice(helperSrc.indexOf('export async function createPodInviteCode'));
+    assert(/getPrivilegedClient\(\)\.rpc\('create_booking_group'/.test(helper) && !/getPublicClient/.test(helper), 'the pod rpc must run with the server client');
     assert(/verifyThreadSecret\(incomingThread, incomingSecret\)/.test(chatSend) && /verifyThreadSecret\(tId, tSecret\)/.test(chatRead), 'the credential checks must stay');
   });
 

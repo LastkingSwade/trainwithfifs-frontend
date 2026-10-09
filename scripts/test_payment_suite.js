@@ -752,6 +752,23 @@ async function main() {
     assert(db.invoices.some((i) => i.invoice_number === body.invoiceId), 'the invoice is still recorded');
     assert(!JSON.stringify(body).includes('42501'), 'the pod database error is not shown to the customer');
   });
+  await test('/api/checkout (the route the website calls) also creates the pod code for 2+ attendees, with the service-role key', async () => {
+    rpcCalls.length = 0;
+    const { status, body } = await checkoutPost({ email: 'Site.Lead@Example.com', fullName: 'Site Lead', phone: '410-555-0123', courseSelection: 'Maryland CCW — VIP Turnkey', groupSize: '3', preferredDates: 'Oct 25' });
+    assert(status === 200 && body.url && body.podInviteCode === 'POD-TEST' && body.attendees === 3, `got ${status} ${JSON.stringify(body)}`);
+    assert(rpcCalls.length === 1 && rpcCalls[0].fn === 'create_booking_group' && rpcCalls[0].key === process.env.SUPABASE_SERVICE_ROLE_KEY, 'one rpc call with the server key');
+    assert(rpcCalls[0].args.p_leader_email === 'site.lead@example.com' && rpcCalls[0].args.p_max_seats === 3 && rpcCalls[0].args.p_track === 'VIP', 'rpc arguments: ' + JSON.stringify(rpcCalls[0].args));
+  });
+  await test('/api/checkout: one attendee creates no pod; a failing pod rpc never breaks the payment link', async () => {
+    rpcCalls.length = 0;
+    const solo = await checkoutPost({ email: 'solo2@example.com', courseSelection: 'Maryland CCW', groupSize: '1' });
+    assert(solo.status === 200 && solo.body.podInviteCode === null && rpcCalls.length === 0, 'no pod for one seat');
+    failures['rpc.create_booking_group'] = { code: '42501', message: 'permission denied for function create_booking_group' };
+    const warns = []; const origWarn = console.warn; console.warn = (...a) => warns.push(a.join(' '));
+    let r; try { r = await checkoutPost({ email: 'lead3@example.com', courseSelection: 'Maryland CCW', groupSize: '2' }); } finally { console.warn = origWarn; delete failures['rpc.create_booking_group']; }
+    assert(r.status === 200 && r.body.url && r.body.podInviteCode === null, `payment link must survive a pod failure: ${r.status} ${JSON.stringify(r.body)}`);
+    assert(!JSON.stringify(r.body).includes('42501'), 'the pod database error is not shown to the customer');
+  });
   await test('Source checks: the invoice insert uses the FK-safe id and the roster/delete guards use the shared helper', async () => {
     const ck = fs.readFileSync(path.join(SRC, 'Lib/server/booking-checkout.ts'), 'utf-8');
     assert(/student_id: invoiceStudentId,/.test(ck) && !/student_id: studentId,/.test(ck), 'the invoice insert must use invoiceStudentId');
