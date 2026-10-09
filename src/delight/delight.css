@@ -18,3 +18,9 @@
   .target-card-student { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
   .target-card-student:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 229, 255, 0.16); }
 }
+
+/* D004 hover lift on corridor-route-card */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .corridor-route-card { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
+  .corridor-route-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 229, 255, 0.16); }
+}
