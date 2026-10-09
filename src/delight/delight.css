@@ -294,3 +294,9 @@
   .fi-select-card { transition: border-color 180ms ease-out; }
   .fi-select-card:hover { border-color: rgba(0, 229, 255, 0.55); }
 }
+
+/* D050 clear cyan focus ring on btn-spark */
+@media (prefers-reduced-motion: no-preference) {
+  .btn-spark { transition: outline-offset 120ms ease-out; }
+  .btn-spark:focus-visible { outline: 2px solid rgba(0, 229, 255, 0.85); outline-offset: 3px; }
+}
