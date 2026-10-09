@@ -12,3 +12,9 @@
   .metric-card { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
   .metric-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 229, 255, 0.16); }
 }
+
+/* D003 hover lift on target-card-student */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .target-card-student { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
+  .target-card-student:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 229, 255, 0.16); }
+}
