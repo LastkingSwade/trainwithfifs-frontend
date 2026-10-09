@@ -192,3 +192,9 @@
   .price-val { transition: text-shadow 200ms ease-out; }
   .price-val:hover { text-shadow: 0 0 10px rgba(0, 229, 255, 0.45); }
 }
+
+/* D033 soft cyan text glow on hover for tuition-price */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .tuition-price { transition: text-shadow 200ms ease-out; }
+  .tuition-price:hover { text-shadow: 0 0 10px rgba(0, 229, 255, 0.45); }
+}
