@@ -533,3 +533,9 @@
   .tier-sliding-switch { transition: transform 90ms ease-out; }
   .tier-sliding-switch:active { transform: scale(0.985); }
 }
+
+/* D091 metric name brightens on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .metric-name { transition: color 140ms ease-out; }
+  .metric-name:hover { color: #ffffff; }
+}
