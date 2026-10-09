@@ -1,6 +1,7 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import { getAuthenticatedUser, getPrivilegedClient, getPublicClient } from '@/Lib/server/supabase-admin';
+import { isLiveChatHours } from '@/Lib/server/chat-hours';
 import { createBookingCheckout } from '@/Lib/server/booking-checkout';
 import { ConfigurationError, resolveSiteUrl } from '@/Lib/config/environment';
 
@@ -2586,8 +2587,14 @@ export async function POST(req: NextRequest) {
              lastUpdated: m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '',
              lastTimestamp: new Date(m.sent_at || 0).getTime(),
              unread: m.status === 'UNREAD' && m.sender !== 'instructor',
+             afterHours: false,
              messages: []
            };
+         }
+         if (m.sender !== 'instructor' && threadMap[key].firstVisitorAt === undefined) {
+           // A thread is "after hours" when its first visitor message came outside live chat hours (Mon-Fri 9-5 ET).
+           threadMap[key].firstVisitorAt = m.sent_at || null;
+           threadMap[key].afterHours = m.sent_at ? !isLiveChatHours(new Date(m.sent_at)) : false;
          }
          if (m.sender !== 'instructor') {
            if (m.sender_name || m.name) threadMap[key].senderName = m.sender_name || m.name;
@@ -2604,6 +2611,7 @@ export async function POST(req: NextRequest) {
          threadMap[key].lastUpdated = m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
        });
 
+       Object.values(threadMap).forEach((t: any) => { delete t.firstVisitorAt; });
        const liveChats = Object.values(threadMap).sort((a: any, b: any) => {
          if (a.unread && !b.unread) return -1;
          if (!a.unread && b.unread) return 1;

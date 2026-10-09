@@ -2582,6 +2582,23 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       } catch(e) {}
     }
     window.saveChatThreads = saveChatThreads;
+    // After-hours threads: the visitor's chat is locked, so a reply typed here is only seen if their window is still open.
+    function fifsAdminPhoneDigits(phone) {
+      var d = String(phone == null ? '' : phone).replace(/\D/g, '');
+      return d.length >= 7 ? d : '';
+    }
+    function fifsAdminAfterHoursBadgeHtml(thread) {
+      if (!thread || thread.afterHours !== true) return '';
+      return '<span class="fifs-after-hours-badge" title="Sent outside live chat hours (Mon\u2013Fri, 9 AM \u2013 5 PM ET)" style="display:inline-flex;align-items:center;gap:4px;padding:2px 7px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.5);border-radius:12px;font-size:0.62rem;font-weight:800;color:#fcd34d;text-transform:uppercase;letter-spacing:0.4px;">\uD83C\uDF19 After hours</span>';
+    }
+    function fifsAdminAfterHoursBannerHtml(thread) {
+      if (!thread || thread.afterHours !== true) return '';
+      var digits = fifsAdminPhoneDigits(thread.senderPhone);
+      var links = digits
+        ? ' <a class="fifs-after-hours-call" href="tel:' + digits + '" style="color:#34d399;font-weight:800;text-decoration:underline;">Call</a> \u00B7 <a class="fifs-after-hours-text" href="sms:' + digits + '" style="color:#38bdf8;font-weight:800;text-decoration:underline;">Text</a> ' + escapeHtml(thread.senderPhone)
+        : ' (no phone number was left)';
+      return '<div class="fifs-after-hours-banner" style="margin-bottom:12px;padding:10px 12px;border-radius:8px;border:1px solid rgba(245,158,11,0.45);background:rgba(245,158,11,0.10);color:#fcd34d;font-size:0.80rem;line-height:1.5;">\uD83C\uDF19 <strong>After hours.</strong> This visitor\u2019s chat is locked to one message. They will only see a reply here if they still have the chat window open. To be sure they get it:' + links + '</div>';
+    }
     function renderAdminChatConsole() {
       const inboxList = document.getElementById('admin-chat-inbox-list');
       const countBadge = document.getElementById('admin-chat-count-badge');
@@ -2613,6 +2630,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
                 ${escapeHtml(t.senderName)}
               </strong>
               <div style="display: flex; align-items: center; gap: 6px;">
+                ${fifsAdminAfterHoursBadgeHtml(t)}
                 ${unreadIndicator}
                 <button type="button" onclick="event.stopPropagation(); window.deleteAdminChatThread('${fifsSafeId(t.id)}')" title="Delete thread" style="background: rgba(239, 68, 68, 0.25); border: 1px solid #ef4444; color: #fca5a5; border-radius: 6px; padding: 3px 8px; font-size: 0.80rem; cursor: pointer; z-index: 5; display: inline-flex; align-items: center; gap: 3px;" onmouseover="this.style.background='#ef4444';this.style.color='#fff'" onmouseout="this.style.background='rgba(239, 68, 68, 0.25)';this.style.color='#fca5a5'">
                   🗑️ <span style="font-size:0.68rem; font-weight:800;">DEL</span>
@@ -2656,6 +2674,12 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       if (nameEl) nameEl.textContent = thread.senderName;
       if (phoneEl) phoneEl.textContent = `📞 ${thread.senderPhone}`;
       if (callBtn) callBtn.href = `tel:${thread.senderPhone.replace(/\D/g, '')}`;
+      const textBtn = document.getElementById('admin-active-chat-text-btn');
+      if (textBtn) {
+        const textDigits = fifsAdminPhoneDigits(thread.senderPhone);
+        textBtn.href = textDigits ? `sms:${textDigits}` : '#';
+        textBtn.style.display = textDigits ? 'inline-flex' : 'none';
+      }
       if (actionsBox) actionsBox.style.display = 'flex';
       renderAdminChatConsole();
       renderActiveAdminChatMessages(thread);
@@ -2665,10 +2689,10 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       const stream = document.getElementById('admin-active-chat-stream');
       if (!stream) return;
       if (!thread.messages || thread.messages.length === 0) {
-        stream.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 30px;">No messages in this inquiry thread yet.</div>';
+        stream.innerHTML = fifsAdminAfterHoursBannerHtml(thread) + '<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 30px;">No messages in this inquiry thread yet.</div>';
         return;
       }
-      stream.innerHTML = thread.messages.map(m => {
+      stream.innerHTML = fifsAdminAfterHoursBannerHtml(thread) + thread.messages.map(m => {
         const isAdmin = m.sender === 'instructor' || m.sender === 'admin';
         return `
           <div style="display: flex; flex-direction: column; align-items: ${isAdmin ? 'flex-end' : 'flex-start'}; margin-bottom: 8px;">
@@ -5276,9 +5300,10 @@ function openAdminEditStudentModal(studentId) {
     // VISITOR LIVE CHAT WIDGET (single authoritative implementation)
     // - The first message carries NO thread id; the server creates the thread and returns threadId + threadSecret.
     // - "Delivered" is shown only after the server confirms (success, threadId and threadSecret).
-    // - Live chat hours are Mon-Fri 9 AM - 5 PM US Eastern. Outside them the visitor sends one message, then the chat locks.
+    // - Live chat hours are Mon-Fri 9 AM - 5 PM US Eastern. Outside them the visitor sends one message, then the reply box locks (replies still show while the window is open).
     // ==========================================================================
     var FIFS_CHAT_CONNECT_ERROR = 'Unable to connect to live chat. Please call or text (443) 990-1304 directly.';
+    var FIFS_CHAT_AFTER_HOURS_HINT = 'Keep this window open if you would like to see a reply here.';
     var FIFS_CHAT_AFTER_HOURS_NOTICE = 'Your message was delivered to Coach Kai. Our live chat hours are Mon–Fri, 9 AM – 5 PM ET. We will follow up via phone/email, or you can call/text (443) 990-1304.';
     function fifsChatSetInputLocked(locked) {
       var form = document.getElementById('twoWayChatInputForm');
@@ -5426,6 +5451,11 @@ function openAdminEditStudentModal(studentId) {
           notice.style.cssText = 'text-align:center;margin:10px 4px;padding:12px 14px;border-radius:12px;border:1px solid rgba(245,158,11,0.45);background:rgba(245,158,11,0.10);color:#fcd34d;font-size:0.86rem;line-height:1.5;';
           notice.textContent = FIFS_CHAT_AFTER_HOURS_NOTICE;
           stream.appendChild(notice);
+          var hint = document.createElement('div');
+          hint.id = 'fifs-chat-after-hours-hint';
+          hint.style.cssText = 'text-align:center;margin:0 4px 10px;font-size:0.76rem;color:#94a3b8;';
+          hint.textContent = FIFS_CHAT_AFTER_HOURS_HINT;
+          stream.appendChild(hint);
         } else if (confirmed) {
           // 2. Automated greeting, exactly once
           window.__fifsGreetingTimer = setTimeout(function() {
@@ -5436,9 +5466,8 @@ function openAdminEditStudentModal(studentId) {
         }
       }
       fifsChatSetInputLocked(locked);
-      if (locked) {
-        if (typeof stopVisitorChatPolling === 'function') stopVisitorChatPolling();
-      } else if (confirmed && typeof startVisitorChatPolling === 'function') {
+      // After hours the visitor cannot send more, but the open window still listens so a reply from Coach Kai appears.
+      if (confirmed && typeof startVisitorChatPolling === 'function') {
         startVisitorChatPolling(prev.threadId);
       }
       if (modal) {

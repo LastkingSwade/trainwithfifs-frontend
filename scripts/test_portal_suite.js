@@ -521,7 +521,7 @@ async function main() {
     for (const bad of ["x');alert(1);//", 'a b', '<x>', '"q"', '', null, undefined, 'a'.repeat(200)]) assert(fifsSafeId(bad) === '', 'accepted ' + bad);
   });
   await test('Staff chat inbox renders a hostile visitor thread as inert text', async () => {
-    const src = ['escapeHtml', 'fifsSafeId', 'renderAdminChatConsole'].map((n) => allFunctionSources(n).pop()).join('\n');
+    const src = ['escapeHtml', 'fifsSafeId', 'fifsAdminAfterHoursBadgeHtml', 'renderAdminChatConsole'].map((n) => allFunctionSources(n).pop()).join('\n');
     const inbox = { innerHTML: '' };
     const doc = { getElementById: (id) => (id === 'admin-chat-inbox-list' ? inbox : null) };
     const threads = [{ id: "x');alert(1);//", senderName: HOSTILE, senderPhone: HOSTILE, lastUpdated: '9:00 AM', unread: true,
@@ -2730,7 +2730,7 @@ async function main() {
   });
 
   for (const [label, iso] of [['Saturday', SAT_11AM], ['Sunday', '2026-03-08T16:00:00Z'], ['Friday at 5 PM', '2026-03-06T22:00:00Z'], ['Monday before 9 AM', '2026-03-02T13:59:00Z']]) {
-    await test(`After hours (${label}): one message is stored, then the chat locks with the notice and no polling`, async () => {
+    await test(`After hours (${label}): one message is stored, then the reply box locks with the notice and the window keeps listening for replies`, async () => {
       await withChatSecret(async () => {
         const w = loadWidget(iso);
         w.fill('Vera Visitor', '(410) 555-0101', 'Question for the morning');
@@ -2744,11 +2744,18 @@ async function main() {
         assert(w.streamText().includes(AFTER_HOURS_NOTICE), 'the after-hours notice is shown');
         assert(/Delivered to Coach Kai/.test(w.streamText()), 'the message shows as delivered');
         assert(w.count('personal chat assistant') === 0, 'no automatic live greeting after hours');
-        assert(w.activeIntervals() === 0 && !w.sent.some((b) => b.action === 'getVisitorChatMessages'), 'polling must not start');
+        assert(w.streamText().includes('Keep this window open'), 'the visitor is told a reply shows here while the window is open');
+        // Receive-only: the open window still listens, with the issued credential, so a reply from Coach Kai can appear.
+        assert(w.activeIntervals() === 1, 'the locked chat keeps listening for replies');
+        db.messages.push({ id: 'm-late-reply', thread_id: s.threadId, sender: 'instructor', sender_name: 'x', message: 'Call you at 9 tomorrow', sent_at: '2026-03-08T01:00:00.000Z' });
+        await w.tickPolling();
+        const polls = w.sent.filter((b) => b.action === 'getVisitorChatMessages');
+        assert(polls.length === 1 && polls[0].threadId === s.threadId && polls[0].threadSecret === s.threadSecret, 'polling carries the issued id and secret');
+        assert(/Call you at 9 tomorrow/.test(w.streamText()), 'an instructor reply appears in the locked chat');
         w.els.twoWayMessageInput.value = 'second message';
         w.ctx.handleTwoWayChatSend({ preventDefault() {} });
         await w.settle();
-        assert(handshakeSends(w).length === 1 && db.messages.length === 1, 'a second message cannot be sent');
+        assert(handshakeSends(w).length === 1 && db.messages.filter((m) => m.sender === 'visitor').length === 1, 'a second message cannot be sent');
         w.ctx.closeTwoWayChat();
         assert(w.els.twoWayChatInputForm.style.display === 'flex', 'closing restores the reply box for the next in-hours chat');
       });
@@ -2761,6 +2768,97 @@ async function main() {
     w.ctx.handleLiveChatSubmit({ preventDefault() {} });
     await w.settle();
     assert(w.els['chat-dispatch-status'].textContent === CONNECT_ERROR && w.els.twoWayChatInputForm.style.display === 'flex' && w.ctx.window.__currentChatSession == null, 'no lock and no fake delivery without a saved message');
+  });
+
+  console.log('\n[SECTION Z: After-hours threads in the admin console]');
+  const MESSAGE_ROWS = (rows) => { db.messages = rows; };
+  const staffChats = async () => (await fifs('getLiveChats', {}, 'instructor-token')).body;
+  await test('getLiveChats flags a thread as after hours from its first visitor message (Mon-Fri 9-5 ET)', async () => {
+    MESSAGE_ROWS([
+      { id: 'a1', thread_id: 'th_sat', sender: 'visitor', sender_name: 'Sat Visitor', sender_phone: '410-555-0111', message: 'weekend', sent_at: '2026-03-07T16:00:00.000Z', status: 'UNREAD' },
+      { id: 'a2', thread_id: 'th_mon', sender: 'visitor', sender_name: 'Mon Visitor', sender_phone: '410-555-0112', message: 'weekday', sent_at: '2026-03-02T15:00:00.000Z', status: 'UNREAD' },
+      { id: 'a3', thread_id: 'th_eve', sender: 'visitor', sender_name: 'Eve Visitor', sender_phone: '410-555-0113', message: 'evening', sent_at: '2026-03-02T22:30:00.000Z', status: 'UNREAD' },
+      { id: 'a4', thread_id: 'th_open_late', sender: 'visitor', sender_name: 'Late Reply', sender_phone: '410-555-0114', message: 'in hours', sent_at: '2026-03-02T16:00:00.000Z', status: 'READ' },
+      { id: 'a5', thread_id: 'th_open_late', sender: 'instructor', sender_name: 'Coach', message: 'reply after 5', sent_at: '2026-03-02T23:30:00.000Z', status: 'READ' }
+    ]);
+    const body = await staffChats();
+    assert(body.success === true && Array.isArray(body.liveChats) && body.liveChats.length === 4, 'four threads: ' + JSON.stringify(body).slice(0, 200));
+    const by = Object.fromEntries(body.liveChats.map((t) => [t.id, t]));
+    assert(by.th_sat.afterHours === true && by.th_eve.afterHours === true, 'weekend and evening threads are after hours');
+    assert(by.th_mon.afterHours === false, 'a weekday 10 AM thread is not');
+    assert(by.th_open_late.afterHours === false, 'a staff reply sent after 5 PM does not turn an in-hours thread into an after-hours one');
+    assert(body.threads.every((t) => !('firstVisitorAt' in t)), 'no internal helper field leaks');
+    assert(by.th_sat.senderPhone === '410-555-0111' && by.th_sat.messages.length === 1, 'the rest of the thread shape is unchanged');
+  });
+  await test('The server and the widget agree on live chat hours', async () => {
+    const { isLiveChatHours } = require(path.join(ROOT, 'src/Lib/server/chat-hours.ts'));
+    const w = loadWidget(MON_10AM);
+    const probes = ['2026-03-02T15:00:00Z', '2026-03-02T13:59:00Z', '2026-03-02T14:00:00Z', '2026-03-06T21:59:00Z', '2026-03-06T22:00:00Z', '2026-03-07T16:00:00Z',
+      '2026-03-08T16:00:00Z', '2026-03-02T05:30:00Z', '2026-03-02T04:30:00Z', '2026-07-06T20:30:00Z', '2026-07-06T21:00:00Z', '2026-11-02T14:00:00Z', '2026-11-02T13:59:00Z'];
+    for (const iso of probes) assert(isLiveChatHours(new Date(iso)) === w.ctx.isLiveChatActiveNow(new Date(iso)), 'server and widget disagree at ' + iso);
+  });
+
+  // Admin console rendering, using the real functions from the script.
+  const ADMIN_FUNCTIONS = ['escapeHtml', 'fifsSafeId', 'fifsAdminPhoneDigits', 'fifsAdminAfterHoursBadgeHtml', 'fifsAdminAfterHoursBannerHtml',
+    'renderAdminChatConsole', 'renderActiveAdminChatMessages', 'selectAdminChatThread'];
+  function loadAdminConsole(threads) {
+    const els = {};
+    ['admin-chat-inbox-list', 'admin-chat-count-badge', 'admin-active-chat-stream', 'admin-active-chat-name', 'admin-active-chat-phone',
+      'admin-active-chat-call-btn', 'admin-active-chat-text-btn', 'admin-active-chat-actions'].forEach((id) => { els[id] = makeEl(id); });
+    const ctx = {
+      console: { error() {}, log() {}, warn() {} }, Object, JSON, Array, String,
+      document: { getElementById: (id) => els[id] || null },
+      getStoredChatThreads: () => threads, saveChatThreads: () => {}, updateAdminChatBadgeCount: () => {}
+    };
+    ctx.window = ctx;
+    vm.createContext(ctx);
+    vm.runInContext(ADMIN_FUNCTIONS.map(extractFunction).join('\n'), ctx);
+    return { ctx, els };
+  }
+  const thread = (over) => Object.assign({ id: 'th_x', senderName: 'Vera', senderPhone: '(410) 555-0111', unread: false, afterHours: false, lastUpdated: '8:52 PM',
+    messages: [{ sender: 'user', senderName: 'Vera', text: 'hello', time: '8:52 PM' }] }, over || {});
+  await test('Admin console: after-hours threads get a badge in the list and a banner with call and text links', async () => {
+    const t1 = thread({ id: 'th_after', afterHours: true });
+    const t2 = thread({ id: 'th_open', senderName: 'Open', afterHours: false });
+    const { ctx, els } = loadAdminConsole([t1, t2]);
+    ctx.renderAdminChatConsole();
+    const list = els['admin-chat-inbox-list'].innerHTML;
+    assert(list.split('fifs-after-hours-badge').length - 1 === 1, 'exactly one thread shows the badge');
+    assert(/After hours/.test(list), 'the badge says After hours');
+    ctx.renderActiveAdminChatMessages(t1);
+    const open = els['admin-active-chat-stream'].innerHTML;
+    assert(/fifs-after-hours-banner/.test(open) && /href="tel:4105550111"/.test(open) && /href="sms:4105550111"/.test(open), 'the banner has tap-to-call and tap-to-text links: ' + open.slice(0, 300));
+    assert(/still have the chat window open/.test(open) && /hello/.test(open), 'the banner explains the limit and the conversation is still shown');
+    ctx.renderActiveAdminChatMessages(t2);
+    assert(!/fifs-after-hours-banner/.test(els['admin-active-chat-stream'].innerHTML), 'in-hours threads get no banner');
+    ctx.renderActiveAdminChatMessages(thread({ afterHours: true, messages: [] }));
+    assert(/fifs-after-hours-banner/.test(els['admin-active-chat-stream'].innerHTML), 'the banner shows even before any message is listed');
+  });
+  await test('Admin console: the phone link is digits only, injected text is escaped, and a missing number shows no links', async () => {
+    const evil = thread({ afterHours: true, senderPhone: '"><img src=x onerror=alert>410-555-0199' });
+    const { ctx, els } = loadAdminConsole([evil]);
+    ctx.renderActiveAdminChatMessages(evil);
+    const html = els['admin-active-chat-stream'].innerHTML;
+    assert(/href="tel:4105550199"/.test(html) && /href="sms:4105550199"/.test(html), 'only digits reach the links');
+    assert(!/<img/i.test(html) && /&lt;img/.test(html), 'the displayed number is escaped');
+    const none = thread({ afterHours: true, senderPhone: 'Live Visitor' });
+    ctx.renderActiveAdminChatMessages(none);
+    const h2 = els['admin-active-chat-stream'].innerHTML;
+    assert(!/href="(tel|sms):/.test(h2) && /no phone number was left/.test(h2), 'no links without a usable number');
+  });
+  await test('Admin console: selecting a thread sets the call and text buttons (text hidden without a number)', async () => {
+    const t = thread({ id: 'th_pick', afterHours: true });
+    const { ctx, els } = loadAdminConsole([t]);
+    ctx.selectAdminChatThread('th_pick');
+    assert(els['admin-active-chat-call-btn'].href === 'tel:4105550111' && els['admin-active-chat-text-btn'].href === 'sms:4105550111' && els['admin-active-chat-text-btn'].style.display === 'inline-flex', 'both buttons point at the visitor');
+    const t2 = thread({ id: 'th_np', senderPhone: 'Live Visitor' });
+    const b = loadAdminConsole([t2]);
+    b.ctx.selectAdminChatThread('th_np');
+    assert(b.els['admin-active-chat-text-btn'].style.display === 'none', 'the text button is hidden without a number');
+  });
+  await test('The text button exists in the admin chat header', async () => {
+    const page = fs.readFileSync(path.join(ROOT, 'src/app/page.tsx'), 'utf-8');
+    assert(/id="admin-active-chat-text-btn"/.test(page), 'page.tsx must define the text button');
   });
 
   console.log('\n================================================================');

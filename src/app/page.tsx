@@ -6401,6 +6401,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
               📞 Call Student
             
                       </a>
+                      <a id="admin-active-chat-text-btn" href="#" className="btn-spark" style={{"padding": "7px 16px", "fontSize": "0.82rem", "fontWeight": "800", "textDecoration": "none", "border": "1px solid #38bdf8", "background": "rgba(56, 189, 248, 0.12)", "color": "#38bdf8", "borderRadius": "6px", "display": "none", "alignItems": "center", "gap": "6px"}}>
+                        💬 Text Student
+                      </a>
                     </div>
                   </div>
                   {/* Thread Messages Stream */}
