@@ -12,6 +12,8 @@ export const HUD = {
   chatPulse: true,
   parallax: true,
   retireLogoLoops: true,
+  // Computer-glitch layer: harder intro tearing, a short authored burst every few seconds, hover glitch, faint scanlines.
+  glitch: true,
 } as const;
 
 export type HudEffect = Exclude<keyof typeof HUD, 'enabled' | 'intro'>;

@@ -103,7 +103,7 @@ html[data-hud-state="done"] .hud-dot, html[data-hud-state="static"] .hud-dot { o
 html[data-hud-state="done"] .hud-bloom, html[data-hud-state="static"] .hud-bloom { opacity: 0.3; }
 /* ring ticks turn one notch at a time, like a dial: 4 notches a second, one full turn per minute */
 html[data-hud~="ring"][data-hud-state="done"] .hud-ticks { animation: hudTickSpin 60s steps(240, end) infinite; }
-html[data-hud-paused] .hud-layer *, html[data-hud-paused] .hud-layer, html[data-hud-paused] .hud-chat::after { animation-play-state: paused !important; }
+html[data-hud-paused] .hud-layer *, html[data-hud-paused] .hud-layer, html[data-hud-paused] .hud-chat::after, html[data-hud-paused] .hud-decode-target { animation-play-state: paused !important; }
 .hud-scan.is-sweeping { animation: hudSweep 1800ms var(--hud-ease-mechanical) forwards; }
 
 /* the CHAT control: one slow ring now and then, only once the intro is over */
@@ -141,6 +141,27 @@ html[data-hud~="chatPulse"][data-hud-state="done"] .hud-chat::after { content: '
 @keyframes hudQuickIn { from { opacity: 0; } to { opacity: var(--to, 0.5); } }
 @keyframes hudSweep { 0% { opacity: 0; transform: translateY(-110%); } 12% { opacity: 1; } 88% { opacity: 1; } 100% { opacity: 0; transform: translateY(780%); } }
 @keyframes hudChatIdle { 0%, 62% { opacity: 0; transform: scale(1); } 70% { opacity: 0.5; transform: scale(1); } 100% { opacity: 0; transform: scale(1.14); } }
+
+
+/* ======================= GLITCH LAYER (hand-authored, identical every time, small areas only) =======================
+   Intro: the photo tears sideways in stepped jumps and the ring and card take hard RGB splits. Resting: a short burst on the ring
+   and another on the motto every few seconds (different periods so they never line up), hover glitch on the hero controls, and a
+   faint scanline texture. Nothing flashes the full screen and no burst repeats more than twice a second. */
+html[data-hud~="glitch"][data-hud-state="intro"] .hero-bg-layer > .hero-bg-artwork { animation: hudTear 1500ms steps(1, end) 60ms both; }
+html[data-hud~="glitch"][data-hud-state="intro"] .hud-svg { animation: hudRingJolt 1300ms steps(1, end) 900ms both; }
+html[data-hud~="glitch"][data-hud-state="intro"] .hud-gold-card { animation: hudCardBorder 2600ms steps(1, end) both, hudCardSplit 900ms steps(1, end) 1500ms both; }
+html[data-hud~="glitch"][data-hud-state="done"] .hud-svg { animation: hudRingBurst 7300ms steps(1, end) 2200ms infinite; }
+html[data-hud~="glitch"][data-hud-state="done"] .hud-decode-target { animation: hudMottoBurst 9100ms steps(1, end) 4100ms infinite; }
+html[data-hud~="glitch"][data-hud-state="done"] .hud-layer::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(0, 229, 255, 0.035) 3px 4px); }
+@media (hover: hover) and (pointer: fine) {
+  html[data-hud~="glitch"] #hero-landing :is(#btn-hero-booking, #btn-hero-portal, #btn-hero-about, #btn-hero-targets, #btn-hero-faq, #btn-hero-contact, #wrap-neon-guide):hover { animation: hudHoverGlitch 280ms steps(1, end) 1; }
+}
+@keyframes hudTear { 0% { transform: translateX(0); } 6% { transform: translateX(-9px); } 11% { transform: translateX(7px); } 16% { transform: translateX(0); } 31% { transform: translateX(12px); } 35% { transform: translateX(-5px); } 39% { transform: translateX(0); } 58% { transform: translateX(-7px); } 62% { transform: translateX(0); } 83% { transform: translateX(5px); } 86% { transform: translateX(0); } 100% { transform: translateX(0); } }
+@keyframes hudRingJolt { 0% { transform: translateX(0); } 8% { transform: translateX(-4px); } 14% { transform: translateX(5px); } 20% { transform: translateX(0); } 52% { transform: translateX(3px); } 58% { transform: translateX(-3px); } 64% { transform: translateX(0); } 100% { transform: translateX(0); } }
+@keyframes hudRingBurst { 0% { transform: translateX(0); } 0.7% { transform: translateX(-3px); } 1.4% { transform: translateX(4px); } 2.1% { transform: translateX(-1px); } 2.8% { transform: translateX(0); } 100% { transform: translateX(0); } }
+@keyframes hudMottoBurst { 0% { text-shadow: none; transform: translateX(0); } 0.6% { text-shadow: -2px 0 var(--hud-misreg), 2px 0 var(--hud-line); transform: translateX(-2px); } 1.2% { text-shadow: 2px 0 var(--hud-misreg), -2px 0 var(--hud-line); transform: translateX(2px); } 1.8% { text-shadow: -1px 0 var(--hud-misreg), 1px 0 var(--hud-line); transform: translateX(0); } 2.4% { text-shadow: none; transform: translateX(0); } 100% { text-shadow: none; transform: translateX(0); } }
+@keyframes hudCardSplit { 0% { text-shadow: none; transform: translateX(0); } 12% { transform: translateX(-3px); } 24% { transform: translateX(3px); } 36% { transform: translateX(0); } 70% { transform: translateX(-2px); } 78% { transform: translateX(0); } 100% { transform: translateX(0); } }
+@keyframes hudHoverGlitch { 0% { transform: translateX(0); text-shadow: none; } 18% { transform: translateX(-3px); text-shadow: -2px 0 var(--hud-misreg), 2px 0 var(--hud-line); } 36% { transform: translateX(3px); text-shadow: 2px 0 var(--hud-misreg), -2px 0 var(--hud-line); } 54% { transform: translateX(-1px); text-shadow: -1px 0 var(--hud-misreg), 1px 0 var(--hud-line); } 72% { transform: translateX(0); text-shadow: none; } 100% { transform: translateX(0); text-shadow: none; } }
 
 /* ======================= REDUCED MOTION =======================
    New effects: no intro, no sweep, no parallax; the ring shows static (see the resting state above).

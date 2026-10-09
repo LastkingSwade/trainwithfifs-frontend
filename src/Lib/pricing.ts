@@ -34,19 +34,30 @@ export function parseAttendeeCount(groupSize: unknown): number | null {
   return count;
 }
 
+/** Which course a booking's course text means. The order matters and is shared by pricing and the alumni rule. */
+export function courseKeyFor(courseSelection: string): string | null {
+  const clean = String(courseSelection || '').toLowerCase();
+  if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) return 'mastery';
+  if (clean.includes('renewal')) return 'renewal';
+  if (clean.includes('combo')) return 'combo';
+  if (clean.includes('hql')) return 'hql';
+  if (clean.includes('ccw') || clean.includes('wear & carry')) return 'ccw';
+  if (clean.includes('coaching')) return 'coaching';
+  if (clean.includes('cleaning')) return 'cleaning';
+  if (clean.includes('children')) return 'children';
+  if (clean.includes('alumni')) return 'alumni';
+  return null;
+}
+
+/** The FIFS Graduate Alumni Marksmanship Clinic is reserved for signed-in Client Portal members. */
+export function isAlumniCourse(courseSelection: string): boolean {
+  return courseKeyFor(courseSelection) === 'alumni';
+}
+
 function baseTuitionFor(courseSelection: string, isVip: boolean): number {
-  const clean = courseSelection.toLowerCase();
-  const pick = (key: string) => (isVip ? COURSE_PRICING[key].vip : COURSE_PRICING[key].base);
-  if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) return pick('mastery');
-  if (clean.includes('renewal')) return pick('renewal');
-  if (clean.includes('combo')) return pick('combo');
-  if (clean.includes('hql')) return pick('hql');
-  if (clean.includes('ccw') || clean.includes('wear & carry')) return pick('ccw');
-  if (clean.includes('coaching')) return pick('coaching');
-  if (clean.includes('cleaning')) return pick('cleaning');
-  if (clean.includes('children')) return pick('children');
-  if (clean.includes('alumni')) return pick('alumni');
-  return DEFAULT_TUITION_PER_PERSON;
+  const key = courseKeyFor(courseSelection);
+  if (!key) return DEFAULT_TUITION_PER_PERSON;
+  return isVip ? COURSE_PRICING[key].vip : COURSE_PRICING[key].base;
 }
 
 const toCents = (dollars: number) => Math.round(dollars * 100);

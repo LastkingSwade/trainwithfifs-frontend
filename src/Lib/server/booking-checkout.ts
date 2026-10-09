@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import Stripe from 'stripe';
-import { calculatePricingBreakdown, parseAttendeeCount } from '../pricing';
+import { calculatePricingBreakdown, isAlumniCourse, parseAttendeeCount } from '../pricing';
 import { getAuthenticatedUser, getPrivilegedClient, hasBearerToken, resolveStripeSecretKey } from './supabase-admin';
 import { sendDiscordAlert } from './discord';
 import { ConfigurationError, resolveSiteUrl } from '../config/environment';
@@ -79,6 +79,9 @@ const text = (value: unknown, fallback: string, max: number) => {
   return (s || fallback).slice(0, max);
 };
 
+// Roles allowed to reserve the alumni clinic: Client Portal members, and staff booking for them.
+const ALUMNI_BOOKING_ROLES = ['client', 'admin', 'instructor', 'staff'];
+
 export interface BookingCheckoutResult {
   status: number;
   body: Record<string, any>;
@@ -130,6 +133,16 @@ export async function createBookingCheckout(
     groupSize = '1 (Private One-on-One)';
     if (podMember.course) courseSelection = podMember.course.slice(0, 200);
     if (podMember.preferredDates) preferredDates = podMember.preferredDates.slice(0, 200);
+  }
+
+  // The alumni clinic is for signed-in Client Portal members (staff may book on a member's behalf). The website shows a sign-in
+  // pop-up; this is the server's own check, made before any invoice or Stripe session exists, so the pop-up cannot be bypassed.
+  if (isAlumniCourse(courseSelection)) {
+    const alumniUser = hasBearerToken(req) ? (await getAuthenticatedUser(req)).user : null;
+    const alumniRole = String(alumniUser?.app_metadata?.role || '').toLowerCase();
+    if (!alumniUser?.id || !ALUMNI_BOOKING_ROLES.includes(alumniRole)) {
+      return { status: 401, body: { success: false, status: 'error', requiresClientLogin: true, error: 'You need to be logged in to the Future Initiative Client Portal to reserve the FIFS Graduate Alumni clinic.' } };
+    }
   }
 
   // Validate environment configuration before any Stripe session or database write.

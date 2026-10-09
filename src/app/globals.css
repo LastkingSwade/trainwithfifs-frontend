@@ -5932,3 +5932,32 @@ button:focus-visible,
   width: 100% !important;
   box-sizing: border-box !important;
 }
+
+
+/* ==========================================================================
+   HOME HERO LAYOUT: the gold 1-on-1 callout rests just below the "Firearm Services" words of the photo
+   The photo's "Firearm Services" line ends at about 31.6% of the hero height (about 505 of 1600 photo units). The card starts a few
+   pixels below it, centred, so it no longer covers the logo ring or the title; the buttons follow it. --hero-hud-bottom is where the
+   motto pill ends (taller on narrow phones, where the motto wraps to two lines). The hero is a plain stacked block that grows when
+   its content is taller than the screen, and the photo grows with it, so short phones use a fixed spacer worked out for that case.
+   ========================================================================== */
+#hero-landing { --hero-hud-bottom: 52px; --hero-title-bottom: 31.6vh; }
+@supports (height: 1dvh) { #hero-landing { --hero-title-bottom: 31.6dvh; } }
+@media (max-width: 429px) { #hero-landing { --hero-hud-bottom: 72px; } }
+#hero-landing .hero-logo-spacer { height: calc(var(--hero-title-bottom) + 8px - var(--hero-hud-bottom) - 10px); min-height: 0; }
+#hero-landing .hero-intro-card { width: 100%; max-width: 540px; margin: 0 auto; position: relative; z-index: 50; }
+#hero-landing .hero-command-dock { padding-top: 0 !important; }
+@media (max-width: 480px) {
+  #hero-landing { padding-bottom: 10px; }
+  #hero-landing .hero-intro-card .hud-gold-card { padding: 8px 12px !important; margin-bottom: 10px !important; }
+  #hero-landing .hero-intro-card .hud-gold-card > span:first-of-type { font-size: 0.84rem !important; }
+  #hero-landing .hero-intro-card .hud-gold-card > span:nth-of-type(2) { font-size: 0.76rem !important; line-height: 1.32 !important; margin-top: 2px !important; }
+  #hero-landing .hero-command-dock { gap: 5px !important; }
+  #hero-landing .hero-reviews-docked { margin-top: 4px !important; }
+  #hero-landing .hero-mid-spacer { height: 0 !important; min-height: 0 !important; }
+  #hero-landing .hero-logo-spacer { height: calc(var(--hero-title-bottom) + 8px - var(--hero-hud-bottom)); }
+  #hero-landing .hero-bottom-strip { padding-top: 5px !important; }
+}
+@media (max-width: 480px) and (max-height: 790px) {
+  #hero-landing .hero-logo-spacer { height: 226px; }
+}

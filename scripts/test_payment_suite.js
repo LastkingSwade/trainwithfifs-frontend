@@ -152,7 +152,9 @@ const mockSupabase = {
       getUser: async (token) => {
         const users = {
           'student-alice-token': { id: 'uuid-student-alice', email: 'alice@student.com', app_metadata: { role: 'student' } },
-          'admin-bearer-token': { id: 'uuid-admin', email: 'admin@example.test', app_metadata: { role: 'admin' } }
+          'admin-bearer-token': { id: 'uuid-admin', email: 'admin@example.test', app_metadata: { role: 'admin' } },
+          'client-token': { id: 'uuid-client-9', email: 'client9@example.test', app_metadata: { role: 'client' } },
+          'nobody-role-token': { id: 'uuid-norole', email: 'norole@example.test', app_metadata: {} }
         };
         return users[token] ? { data: { user: users[token] }, error: null } : { data: { user: null }, error: { message: 'Invalid token' } };
       }
@@ -872,6 +874,41 @@ async function main() {
     for (let i = 0; i < 21; i++) last = await fifs('validatePodCode', { code: 'FIFS-POD-ZZZZ' }, { 'x-forwarded-for': '198.51.100.9' });
     assert(last.status === 429, 'expected 429 on the 21st attempt, got ' + last.status);
     assert((await fifs('validatePodCode', { code: 'FIFS-POD-AB12' }, { 'x-forwarded-for': '198.51.100.10' })).status === 200, 'another caller is unaffected');
+  });
+  console.log('\n[SECTION H3: the Alumni clinic needs a signed-in Client Portal account]');
+  const ALUMNI_BASE = 'FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)';
+  const ALUMNI_VIP = 'FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($91.00)';
+  const sessionsBefore = () => Object.keys(stripeSessions).length;
+  await test('A signed-out visitor is refused for the Alumni clinic (Base and VIP) before any invoice or Stripe session exists', async () => {
+    for (const course of [ALUMNI_BASE, ALUMNI_VIP]) {
+      const invoicesBefore = db.invoices.length, sessions = sessionsBefore();
+      const r = await checkoutPost({ email: 'guest@example.com', fullName: 'Guest', courseSelection: course, groupSize: '1' });
+      assert(r.status === 401 && r.body.requiresClientLogin === true && /Client Portal/.test(r.body.error), `${course}: got ${r.status} ${JSON.stringify(r.body)}`);
+      assert(db.invoices.length === invoicesBefore && sessionsBefore() === sessions, 'nothing may be created for a refused booking');
+    }
+  });
+  await test('A student, a token with no role, and an invalid token are refused too; only a client (or staff) account may book it', async () => {
+    for (const token of ['student-alice-token', 'nobody-role-token', 'not-a-real-token']) {
+      const r = await checkoutPost({ email: 'someone@example.com', courseSelection: ALUMNI_BASE, groupSize: '1' }, { authorization: 'Bearer ' + token });
+      assert(r.status === 401, `${token}: expected 401, got ${r.status} ${JSON.stringify(r.body)}`);
+    }
+    for (const token of ['client-token', 'admin-bearer-token']) {
+      const r = await checkoutPost({ email: 'client9@example.test', courseSelection: ALUMNI_BASE, groupSize: '1' }, { authorization: 'Bearer ' + token });
+      assert(r.status === 200 && r.body.url && r.body.attendees === 1, `${token}: expected 200 with a payment link, got ${r.status} ${JSON.stringify(r.body)}`);
+    }
+  });
+  await test('The alumni price is still charged server-side ($65.00 base) once a client is allowed through', async () => {
+    const expected = pricing.calculatePricingBreakdown(ALUMNI_BASE, 1, false);
+    const r = await checkoutPost({ email: 'client9@example.test', courseSelection: ALUMNI_BASE, groupSize: '1', totalAmount: '1.00' }, { authorization: 'Bearer client-token' });
+    assert(r.status === 200 && lastCreateParams.line_items[0].price_data.unit_amount === expected.chargeCents, `charged ${lastCreateParams.line_items[0].price_data.unit_amount}, expected ${expected.chargeCents}`);
+  });
+  await test('Other courses are unaffected: a signed-out visitor can still book the CCW class', async () => {
+    const r = await checkoutPost({ email: 'guest2@example.com', courseSelection: 'Maryland Wear & Carry (CCW) — Base Track ($199.99)', groupSize: '1' });
+    assert(r.status === 200 && r.body.url, `got ${r.status} ${JSON.stringify(r.body)}`);
+  });
+  await test('The course matcher agrees with pricing: alumni is recognised only for the alumni clinic', async () => {
+    assert(pricing.isAlumniCourse(ALUMNI_BASE) && pricing.isAlumniCourse(ALUMNI_VIP), 'alumni course not recognised');
+    for (const other of ['Maryland HQL (Purchase License) — Base Track ($100.00)', 'Maryland CCW & HQL Combo — VIP Turnkey ($349.99)', "Children's Safety Class — Base Track ($199.99)", 'Mid-Atlantic Multi-State Mastery — Base Track ($424.99)', '']) assert(!pricing.isAlumniCourse(other), 'wrongly treated as alumni: ' + other);
   });
   await test('Source checks: the invoice insert uses the FK-safe id and the roster/delete guards use the shared helper', async () => {
     const ck = fs.readFileSync(path.join(SRC, 'Lib/server/booking-checkout.ts'), 'utf-8');

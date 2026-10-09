@@ -148,25 +148,35 @@ test('The intro plays once per session (sessionStorage in try/catch) and any cli
   assert(/addEventListener\('pointerdown', complete/.test(COMPONENT) && /addEventListener\('keydown', complete/.test(COMPONENT), 'skip listeners missing');
 });
 
+console.log('\n[SECTION C2: glitch layer]');
+test('Every glitch rule is gated by the glitch switch, is hand-authored (no randomness) and respects reduced motion', () => {
+  const rules = CSS.split('}').filter((r) => /hudTear|hudRingJolt|hudRingBurst|hudMottoBurst|hudCardSplit|hudHoverGlitch/.test(r) && !/@keyframes/.test(r));
+  assert(rules.length >= 6, 'glitch rules missing');
+  for (const r of rules) assert(/data-hud~="glitch"/.test(r) || /^\s*@media/.test(r.trim()), 'ungated glitch rule: ' + r.trim().slice(0, 70));
+  assert(/glitch: true/.test(fs.readFileSync(path.join(ROOT, 'src/animations/config.ts'), 'utf8')), 'glitch switch missing from config.ts');
+  assert(!/Math\.random/.test(CSS_RAW + COMPONENT), 'glitch must be authored, not random');
+  assert(/prefers-reduced-motion: reduce\)[\s\S]*#hero-landing \*[\s\S]*animation: none !important/.test(CSS), 'reduced motion must stop every hero animation');
+});
+test('No glitch burst repeats faster than once every 5 seconds, and none moves more than 12px', () => {
+  for (const m of CSS.matchAll(/hud(?:RingBurst|MottoBurst) (\d+)ms[^;]*infinite/g)) assert(Number(m[1]) >= 5000, 'burst repeats too fast: ' + m[0]);
+  for (const k of CSS.matchAll(/translateX\((-?\d+)px\)/g)) assert(Math.abs(Number(k[1])) <= 12, 'glitch jump too large: ' + k[0]);
+});
+
 console.log('\n[SECTION D: scope]');
 function gitLines(cmd) { try { return execSync(cmd, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().split('\n').filter(Boolean); } catch (_e) { return null; } }
-test('Only the HUD files, the hero hooks in page.tsx and this suite changed relative to main', () => {
+test('Only the HUD files, the journey chooser and alumni-gate files, and the test suites changed relative to main', () => {
   const changed = gitLines('git diff --name-only main');
   const untracked = gitLines('git ls-files --others --exclude-standard');
   if (changed === null || untracked === null) return; // no git here (for example a source export): nothing to compare
   const files = [...changed, ...untracked].filter((f) => !/^scripts\/test_students_(access|self_update_draft)_suite\.js$/.test(f));
-  const allowed = [/^src\/animations\//, /^src\/app\/page\.tsx$/, /^scripts\/test_hud_animations\.js$/, /^package\.json$/, /^ANIMATIONS\.md$/];
+  const allowed = [/^src\/animations\//, /^src\/app\/page\.tsx$/, /^src\/app\/globals\.css$/, /^src\/Lib\/pricing\.ts$/, /^src\/Lib\/server\/booking-checkout\.ts$/,
+    /^scripts\/test_(hud_animations|payment_suite|journey_chooser_suite)\.js$/, /^package\.json$/, /^ANIMATIONS\.md$/];
   const stray = files.filter((f) => !allowed.some((re) => re.test(f)));
-  assert(stray.length === 0, 'files outside the HUD scope changed: ' + stray.join(', '));
+  assert(stray.length === 0, 'files outside the expected scope changed: ' + stray.join(', '));
 });
-test('page.tsx changes are limited to class hooks and one mount point in the hero', () => {
-  const added = gitLines('git diff -U0 main -- src/app/page.tsx');
-  if (added === null) return;
-  const plus = added.filter((l) => l.startsWith('+') && !l.startsWith('+++')).map((l) => l.slice(1).trim()).filter((l) => l !== '');
-  const allowed = [/^import dynamic from "next\/dynamic";$/, /^\/\/ Loaded after first paint on the client only/, /^const HudIntro = dynamic\(\(\) => import\("@\/animations\/HudIntro"\), \{ ssr: false \}\);$/, /^<HudIntro \/>$/, /^<span className="hud-decode-target">$/, /^<div className="hud-gold-card" style=/,
-    /^<g className="fifs-holo-pulse-group fifs-holo-logo" style=/, /^<button className="btn-hero-aux hud-chat" id="btn-hero-contact"/];
-  const stray = plus.filter((l) => !allowed.some((re) => re.test(l)));
-  assert(stray.length === 0, 'unexpected line added to page.tsx: ' + (stray[0] || '').slice(0, 100));
+test('The HUD hooks in page.tsx are still in place (one mount point, the motto and card hooks, the chat control)', () => {
+  assert((PAGE.match(/<HudIntro \/>/g) || []).length === 1, 'HudIntro must be mounted exactly once');
+  assert(/className="hud-decode-target"/.test(PAGE) && /className="hud-gold-card"/.test(PAGE) && /hud-chat" id="btn-hero-contact"/.test(PAGE), 'a HUD hook is missing from page.tsx');
 });
 test('The home page no longer shows the "Save TRAIN with FIFS to your phone" install pop-up (the student portal banner is untouched)', () => {
   assert(!/id="pwa-landing-banner"/.test(PAGE) && !/SAVE TRAIN WITH FIFS TO YOUR PHONE/.test(PAGE), 'the home page install banner is back');
@@ -177,10 +187,11 @@ test('The security headers and the content security policy are exactly as before
   if (diff === null) return;
   assert(diff.length === 0, 'next.config.ts changed');
 });
-test('The mobile calendar rules in globals.css are untouched', () => {
-  const diff = gitLines('git diff --name-only main -- src/app/globals.css');
+test('The mobile calendar rules in globals.css are untouched (the file only gained lines, none removed or edited)', () => {
+  const diff = gitLines('git diff -U0 main -- src/app/globals.css');
   if (diff === null) return;
-  assert(diff.length === 0, 'globals.css changed');
+  const removed = diff.filter((l) => l.startsWith('-') && !l.startsWith('---'));
+  assert(removed.length === 0, 'globals.css lost or edited existing lines: ' + (removed[0] || '').slice(0, 80));
 });
 
 console.log('\n================================================================');

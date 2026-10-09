@@ -182,6 +182,9 @@ export default function TrainWithFIFS(props: any) {
         document.body.style.overflow = 'hidden';
       }
     };
+    // The course picker opens the alumni sign-in pop-up through window.openModal; without this export that call silently did nothing.
+    (window as any).openModal = openModal;
+    (window as any).openJourneySelectionModal = () => openModal('journeySelectionModal');
 
 
 
@@ -202,6 +205,8 @@ export default function TrainWithFIFS(props: any) {
 
 
 
+
+    (window as any).closeJourneySelectionModal = () => closeModal('journeySelectionModal');
 
     // 1. DATA: Goals
     const GOAL_SYNOPSIS_DATA: Record<string, any> = {
@@ -4105,7 +4110,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -4223,8 +4228,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
         {/* Spacer: Clears the tablet and firearm on the workbench */}
         <div className="hero-mid-spacer">
         </div>
-        {/* Command Dock Launcher */}
-        <div className="hero-command-dock">
+        {/* The gold 1-on-1 callout sits in its own row just below the "Firearm Services" words of the photo, centred under them. */}
+        <div className="hero-intro-card">
           {/* SPECIALIZED 1-ON-1 INSTRUCTION CALLOUT BANNER */}
           <div className="hud-gold-card" style={{"background": "rgba(255, 183, 3, 0.08)", "border": "1px solid var(--accent-amber)", "borderRadius": "12px", "padding": "12px 18px", "marginBottom": "14px", "maxWidth": "540px", "margin": "0 auto 14px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.18)", "textAlign": "center"}}>
             <span style={{"color": "var(--accent-amber)", "fontWeight": "800", "fontSize": "0.95rem", "display": "block", "fontFamily": "var(--font-display)", "letterSpacing": "0.5px"}}>
@@ -4234,8 +4239,11 @@ document.addEventListener('submit', handleDelegatedSubmit);
               Never sit around a room of strangers. Learn at your own pace with Lead Instructor Kai Wade in an exclusive, judgment-free, private range environment.
             </span>
           </div>
+        </div>
+        {/* Command Dock Launcher */}
+        <div className="hero-command-dock">
           {/* Semi-Transparent Neon Arrow Guide (Colors of the business logo: #00e5ff) */}
-          <div className="neon-arrow-guide-wrap" id="wrap-neon-guide" data-onclick="openAndSwitch('booking')" role="button" tabIndex={0} title="New to firearms? Click here to start">
+          <div className="neon-arrow-guide-wrap" id="wrap-neon-guide" data-onclick="openAndSwitch('start')" role="button" tabIndex={0} title="New to firearms? Click here to start">
             <div className="neon-arrow-badge neon-mode-cyan" id="neon-start-guide" title="Future Initiative Operations Active • Click to Start Training">
               <span className="neon-arrow-text">
                 New To Firearms? Start Here
@@ -4245,7 +4253,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </span>
             </div>
           </div>
-          <button className="btn-hero-booking-prime start-journey-btn" id="btn-hero-booking" data-onclick="openAndSwitch('booking')" type="button">
+          <button aria-haspopup="dialog" className="btn-hero-booking-prime start-journey-btn" id="btn-hero-booking" data-onclick="openJourneySelectionModal()" type="button">
             <span className="prime-label">
               🎯 START YOUR JOURNEY
             </span>
@@ -6568,437 +6576,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
             Maryland firearms training designed to build knowledge, safety, and confidence without intimidation.
           </p>
         </div>
-        {/* Core Zero-Intimidation Promise */}
-        <div style={{"background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "border": "1.5px solid rgba(0, 229, 255, 0.45)", "borderRadius": "16px", "padding": "24px 26px", "marginBottom": "28px", "boxShadow": "0 8px 30px rgba(0, 229, 255, 0.12)"}}>
-          <div style={{"display": "flex", "alignItems": "center", "justifyContent": "space-between", "flexWrap": "wrap", "gap": "10px", "marginBottom": "12px", "borderBottom": "1px solid rgba(0, 229, 255, 0.2)", "paddingBottom": "10px"}}>
-            <div style={{"display": "flex", "alignItems": "center", "gap": "10px"}}>
-              <span style={{"fontSize": "1.8rem"}}>
-                🛡️
-              </span>
-              <div>
-                <span style={{"fontSize": "0.74rem", "fontWeight": "800", "color": "var(--accent-cyan)", "letterSpacing": "0.1em", "textTransform": "uppercase"}}>
-                  Uncompromising Excellence
-                </span>
-                <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "margin": "0", "textTransform": "uppercase", "letterSpacing": "0.5px"}}>
-                  The Future Initiative Firearm Services Promise
-                </h3>
-              </div>
-            </div>
-            <span style={{"background": "rgba(16, 185, 129, 0.15)", "border": "1px solid #10b981", "color": "#10b981", "fontSize": "0.75rem", "fontWeight": "800", "padding": "4px 10px", "borderRadius": "6px", "textTransform": "uppercase", "letterSpacing": "0.05em"}}>
-              100% Student-First Mentorship
-            </span>
-          </div>
-          <p style={{"fontSize": "0.98rem", "color": "#f1f5f9", "lineHeight": "1.7", "marginBottom": "18px", "fontWeight": "400"}}>
-            
-    We don't merely train you to discharge a firearm; we mentor you into a safe, decisively knowledgeable, thoroughly confident, and legally accountable protector. At Future Initiative Firearm Services, you never need prior shooting experience to step through our doors, you will never experience intimidation or ego on our firing line, and you do not need to have everything figured out before you arrive. Instructor Kai Wade meets every student exactly where they are.
-  
-          </p>
-          <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(230px, 1fr))", "gap": "14px", "marginTop": "16px"}}>
-            <div
-              className="interactive-promise-card"
-              data-onclick="openPromiseDetailModal('zero_intimidation')"
-              onClick={() => { if (typeof window !== 'undefined' && (window as any).openPromiseDetailModal) (window as any).openPromiseDetailModal('zero_intimidation'); }}
-              role="button"
-              tabIndex={0}
-              style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1.5px solid rgba(0, 229, 255, 0.35)", "borderLeft": "4px solid var(--accent-cyan)", "borderRadius": "12px", "padding": "16px 18px", "cursor": "pointer", "transition": "all 0.25s ease"}}
-            >
-              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.96rem", "fontWeight": "700", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "justifyContent": "space-between"}}>
-                <div style={{"display": "flex", "alignItems": "center", "gap": "6px"}}>
-                  <span>🎯</span> Zero-Intimidation Mentorship
-                </div>
-                <span style={{"fontSize": "0.76rem", "color": "var(--accent-cyan)", "fontWeight": "800"}}>EXPLORE ↗</span>
-              </div>
-              <p style={{"fontSize": "0.82rem", "color": "#cbd5e1", "lineHeight": "1.5", "margin": "0"}}>
-                From brand-new beginners holding a handgun for the first time to experienced shooters refining draw mechanics, every evolution is taught with patience, precision, and respect.
-              </p>
-              <div style={{"marginTop": "10px", "fontSize": "0.75rem", "color": "var(--accent-cyan)", "fontWeight": "700", "display": "flex", "alignItems": "center", "gap": "4px"}}>
-                <span>Tap for detailed breakdown</span> <span>&rarr;</span>
-              </div>
-            </div>
-
-
-
-
-            <div
-              className="interactive-promise-card"
-              data-onclick="openPromiseDetailModal('maryland_law')"
-              onClick={() => { if (typeof window !== 'undefined' && (window as any).openPromiseDetailModal) (window as any).openPromiseDetailModal('maryland_law'); }}
-              role="button"
-              tabIndex={0}
-              style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1.5px solid rgba(245, 158, 11, 0.35)", "borderLeft": "4px solid var(--accent-amber)", "borderRadius": "12px", "padding": "16px 18px", "cursor": "pointer", "transition": "all 0.25s ease"}}
-            >
-              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.96rem", "fontWeight": "700", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "justifyContent": "space-between"}}>
-                <div style={{"display": "flex", "alignItems": "center", "gap": "6px"}}>
-                  <span>⚖️</span> Maryland Law &amp; Reality Mastery
-                </div>
-                <span style={{"fontSize": "0.76rem", "color": "var(--accent-amber)", "fontWeight": "800"}}>EXPLORE ↗</span>
-              </div>
-              <p style={{"fontSize": "0.82rem", "color": "#cbd5e1", "lineHeight": "1.5", "margin": "0"}}>
-                Deep, street-level mastery of Maryland self-defense law, permissible concealed transport protocols, Castle Doctrine boundaries, and lawful shoot/no-shoot decision making.
-              </p>
-              <div style={{"marginTop": "10px", "fontSize": "0.75rem", "color": "var(--accent-amber)", "fontWeight": "700", "display": "flex", "alignItems": "center", "gap": "4px"}}>
-                <span>Tap for detailed breakdown</span> <span>&rarr;</span>
-              </div>
-            </div>
-
-
-
-
-            <div
-              className="interactive-promise-card"
-              data-onclick="openPromiseDetailModal('cindys_live_fire')"
-              onClick={() => { if (typeof window !== 'undefined' && (window as any).openPromiseDetailModal) (window as any).openPromiseDetailModal('cindys_live_fire'); }}
-              role="button"
-              tabIndex={0}
-              style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1.5px solid rgba(16, 185, 129, 0.35)", "borderLeft": "4px solid #10b981", "borderRadius": "12px", "padding": "16px 18px", "cursor": "pointer", "transition": "all 0.25s ease"}}
-            >
-              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.96rem", "fontWeight": "700", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "justifyContent": "space-between"}}>
-                <div style={{"display": "flex", "alignItems": "center", "gap": "6px"}}>
-                  <span>💥</span> Live-Fire Qualification Ascendancy
-                </div>
-                <span style={{"fontSize": "0.76rem", "color": "#34d399", "fontWeight": "800"}}>EXPLORE ↗</span>
-              </div>
-              <p style={{"fontSize": "0.82rem", "color": "#cbd5e1", "lineHeight": "1.5", "margin": "0"}}>
-                Hands-on live-fire training downrange at Cindy's Hot Shots in Glen Burnie. Real trigger time, recoil management, and practical Maryland State Police course-of-fire passing standards.
-              </p>
-              <div style={{"marginTop": "10px", "fontSize": "0.75rem", "color": "#34d399", "fontWeight": "700", "display": "flex", "alignItems": "center", "gap": "4px"}}>
-                <span>Tap for detailed breakdown</span> <span>&rarr;</span>
-              </div>
-            </div>
-
-
-
-
-            <div
-              className="interactive-promise-card"
-              data-onclick="openPromiseDetailModal('lifelong_access')"
-              onClick={() => { if (typeof window !== 'undefined' && (window as any).openPromiseDetailModal) (window as any).openPromiseDetailModal('lifelong_access'); }}
-              role="button"
-              tabIndex={0}
-              style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1.5px solid rgba(168, 85, 247, 0.35)", "borderLeft": "4px solid #a855f7", "borderRadius": "12px", "padding": "16px 18px", "cursor": "pointer", "transition": "all 0.25s ease"}}
-            >
-              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.96rem", "fontWeight": "700", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "justifyContent": "space-between"}}>
-                <div style={{"display": "flex", "alignItems": "center", "gap": "6px"}}>
-                  <span>🤝</span> Lifelong Instructor Access
-                </div>
-                <span style={{"fontSize": "0.76rem", "color": "#c084fc", "fontWeight": "800"}}>EXPLORE ↗</span>
-              </div>
-              <p style={{"fontSize": "0.82rem", "color": "#cbd5e1", "lineHeight": "1.5", "margin": "0"}}>
-                Graduation is just the start. You retain direct access to Instructor Kai Wade for firearm purchasing guidance, holster selection, permit renewal, and ongoing defensive training.
-              </p>
-              <div style={{"marginTop": "10px", "fontSize": "0.75rem", "color": "#c084fc", "fontWeight": "700", "display": "flex", "alignItems": "center", "gap": "4px"}}>
-                <span>Tap for detailed breakdown</span> <span>&rarr;</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* Training Pathways Selector */}
-        <div className="pathway-selector-box">
-          <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.25rem", "color": "#fff", "textAlign": "center"}}>
-            Not sure where to begin? Choose your goal!
-          </h4>
-          <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "textAlign": "center", "marginTop": "4px", "marginBottom": "16px"}}>
-            
-          Click any goal below to open an interactive breakdown and find the right path for your needs:
-        
-          </p>
-          <div className="pathway-grid">
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('new_to_firearms', this)" title="Learn more about starting with HQL" type="button">
-              <div className="pathway-intent">
-                Brand New to Firearms
-              </div>
-              <div className="pathway-rec">
-                Start Here: Information
-              </div>
-              <div className="pathway-cta">
-                Learn More & Free 50-Q Guide →
-              </div>
-            </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_purchase', this)" title="Learn more about buying a handgun" type="button">
-              <div className="pathway-intent">
-                Looking to Buy a Pistol
-              </div>
-              <div className="pathway-rec">
-                Maryland HQL (Purchase License)
-              </div>
-              <div className="pathway-cta">
-                Learn More →
-              </div>
-            </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_carry', this)" title="Learn more about concealed carry" type="button">
-              <div className="pathway-intent">
-                I Want to Carry in Public
-              </div>
-              <div className="pathway-rec">
-                Wear & Carry (CCW Permit)
-              </div>
-              <div className="pathway-cta">
-                Learn More →
-              </div>
-            </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_both', this)" title="Learn more about CCW &amp; HQL combo" type="button">
-              <div className="pathway-intent">
-                I Want Both: Buy & Carry
-              </div>
-              <div className="pathway-rec">
-                CCW & HQL Combo (Best Value)
-              </div>
-              <div className="pathway-cta">
-                Learn More & Compare →
-              </div>
-            </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('personalized_focus', this)" title="Learn more about 1-on-1 private coaching" type="button">
-              <div className="pathway-intent">
-                Personalized / Anxiety Relief
-              </div>
-              <div className="pathway-rec">
-                Private 1-on-1 Coaching
-              </div>
-              <div className="pathway-cta">
-                Learn More →
-              </div>
-            </button>
-            <button className="pathway-pill" data-onclick="openMultistateMasteryModal()" onClick={() => { if (typeof window !== "undefined" && (window as any).openMultistateMasteryModal) (window as any).openMultistateMasteryModal(); }} title="Learn more about multi-state carry" type="button">
-              <div className="pathway-intent" style={{"color": "var(--accent-amber)"}}>
-                Do I Need a Multi-State Permit?
-              </div>
-              <div className="pathway-rec">
-                Mid-Atlantic Mastery (MD+VA+FL+AZ+PA)
-              </div>
-              <div className="pathway-cta">
-                Learn More & Reciprocity Guide →
-              </div>
-            </button>
-          </div>
-        </div>
-        {/* The 8-Step FIFS Journey */}
-        <div style={{"marginBottom": "32px"}}>
-          <div className="panel-header">
-            <h3>
-              Your 8-Step FIFS Journey <span className="neon-arrow-badge neon-mode-cyan" style={{"display": "inline-flex", "alignItems": "center", "gap": "6px", "padding": "4px 14px", "fontSize": "0.78rem", "fontWeight": "800", "letterSpacing": "1px", "textTransform": "uppercase", "verticalAlign": "middle", "marginLeft": "10px", "borderRadius": "50px", "background": "rgba(0, 229, 255, 0.14)", "border": "1px solid var(--accent-cyan)", "color": "#00e5ff", "boxShadow": "0 0 18px rgba(0, 229, 255, 0.45), inset 0 0 10px rgba(0, 229, 255, 0.2)", "cursor": "pointer"}} data-onclick="openStepDetailModal(1)" title="Click to explore the interactive 8-step journey"><span style={{"width": "7px", "height": "7px", "borderRadius": "50%", "background": "#00e5ff", "boxShadow": "0 0 8px #00e5ff"}}></span>Interactive</span>
-            </h3>
-            <p>
-              From registration through state licensing, know exactly where you are in the process:
-            </p>
-          </div>
-          <div className="journey-grid">
-            <div className="j-card" data-onclick="openStepDetailModal(1)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 1 Infographic Breakdown">
-              <div className="j-num">
-                01
-              </div>
-              <div className="j-title">
-                Register
-              </div>
-              <div className="j-desc">
-                Initialize your online student dossier and obtain your Student ID.
-              </div>
-            </div>
-            <div className="j-card" data-onclick="openStepDetailModal(2)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 2 Infographic Breakdown">
-              <div className="j-num">
-                02
-              </div>
-              <div className="j-title">
-                Confirm
-              </div>
-              <div className="j-desc">
-                Lock in your scheduled qualification shots at Cindy's Hot Shots.
-              </div>
-            </div>
-            <div className="j-card" data-onclick="openStepDetailModal(3)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 3 Infographic Breakdown">
-              <div className="j-num">
-                03
-              </div>
-              <div className="j-title">
-                Prepare
-              </div>
-              <div className="j-desc">
-                Complete your readiness checklist inside your personal Student Portal.
-              </div>
-            </div>
-            <div className="j-card" data-onclick="openStepDetailModal(4)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 4 Infographic Breakdown">
-              <div className="j-num">
-                04
-              </div>
-              <div className="j-title">
-                Classroom
-              </div>
-              <div className="j-desc">
-                Master Maryland self-defense law, safe storage, and firearm handling.
-              </div>
-            </div>
-            <div className="j-card" data-onclick="openStepDetailModal(5)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 5 Infographic Breakdown">
-              <div className="j-num">
-                05
-              </div>
-              <div className="j-title">
-                Live-Fire
-              </div>
-              <div className="j-desc">
-                Diagnostic shooting drills and the official 25-round live-fire qualification.
-              </div>
-            </div>
-            <div className="j-card" data-onclick="openStepDetailModal(6)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 6 Infographic Breakdown">
-              <div className="j-num">
-                06
-              </div>
-              <div className="j-title">
-                Certificate
-              </div>
-              <div className="j-desc">
-                Receive your official signed Maryland State Police Training Certificate.
-              </div>
-            </div>
-            <div className="j-card" data-onclick="openStepDetailModal(7)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 7 Infographic Breakdown">
-              <div className="j-num">
-                07
-              </div>
-              <div className="j-title">
-                MSP Portal
-              </div>
-              <div className="j-desc">
-                Submit your state application with LiveScan fingerprints with zero errors.
-              </div>
-            </div>
-            <div className="j-card" data-onclick="openStepDetailModal(8)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 8 Infographic Breakdown">
-              <div className="j-num">
-                08
-              </div>
-              <div className="j-title">
-                Licensed
-              </div>
-              <div className="j-desc">
-                Permit in hand! Continue your training with biennial renewals and clinics.
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* What to Bring & What to Expect Section */}
-        <section style={{"marginBottom": "30px"}}>
-          <div className="panel-header">
-            <h3>
-              What to Bring & What to Expect
-            </h3>
-            <p>
-              Important guidelines to ensure your class day is smooth, safe, and stress-free. Click any section for detailed equipment standards and rental procedures.
-            </p>
-          </div>
-          <div className="checklist-grid">
-            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("handgun");  } }} data-onclick="openExpectationModal('handgun')" role="button" tabIndex={0} title="Click to view detailed handgun &amp; equipment breakdown">
-              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
-                <h4 style={{"margin": "0"}}>
-                  🔫 Handgun & Equipment
-                </h4>
-                <span className="expect-learn-tag">
-                  Inspect Standards ↗
-                </span>
-              </div>
-              <ul>
-                <li>
-                  <strong>
-                    Do I need my own handgun?
-                  </strong>
-                   No! Rentals can be coordinated directly at Cindy's Hot Shots.
-                </li>
-                <li>
-                  <strong>
-                    Bringing your own firearm?
-                  </strong>
-                   Must be unloaded and secured in a locked case or trunk during transit.
-                </li>
-                <li>
-                  <strong>
-                    Holster (Wear & Carry):
-                  </strong>
-                   Rigid molded Kydex/leather holster covering trigger guard.
-                </li>
-              </ul>
-              <div className="expect-click-cta">
-                Click for Handgun, Holster & Rental Protocols →
-              </div>
-            </div>
-            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("ammunition"); } }} data-onclick="openExpectationModal('ammunition')" role="button" tabIndex={0} title="Click to view ammunition rules &amp; zero-tolerance safety protocol">
-              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
-                <h4 style={{"margin": "0"}}>
-                  📦 Ammunition Protocol
-                </h4>
-                <span className="expect-learn-tag" style={{"color": "var(--accent-red)", "borderColor": "var(--accent-red)", "background": "rgba(239,68,68,0.12)"}}>
-                  Safety Rule ↗
-                </span>
-              </div>
-              <ul>
-                <li>
-                  <strong>
-                    Quantity:
-                  </strong>
-                   50 to 100 rounds of factory brass target ammunition.
-                </li>
-                <li>
-                  <strong>
-                    STRICT ZERO-AMMUNITION CLASSROOM MANDATE:
-                  </strong>
-                   Absolutely zero live ammunition is permitted in the classroom. Ammunition must remain locked in your vehicle trunk until live-fire.
-                </li>
-              </ul>
-              <div className="expect-click-cta" style={{"color": "var(--accent-amber)"}}>
-                Click for Zero-Live-Ammo Policy & Caliber Guide →
-              </div>
-            </div>
-            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("protection"); } }} data-onclick="openExpectationModal('protection')" role="button" tabIndex={0} title="Click to view eye and hearing protection standards">
-              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
-                <h4 style={{"margin": "0"}}>
-                  👓 Eye & Ear Protection
-                </h4>
-                <span className="expect-learn-tag">
-                  Safety Gear ↗
-                </span>
-              </div>
-              <ul>
-                <li>
-                  <strong>
-                    Wrap-Around Glasses:
-                  </strong>
-                   ANSI Z87.1 certified eye protection with side deflection guards.
-                </li>
-                <li>
-                  <strong>
-                    Hearing Protection:
-                  </strong>
-                   Earmuffs or foam plugs (electronic noise-canceling earmuffs recommended).
-                </li>
-              </ul>
-              <div className="expect-click-cta">
-                Click for ANSI Z87.1 & Electronic Earmuff Specs →
-              </div>
-            </div>
-            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("attire");  } }} data-onclick="openExpectationModal('attire')" role="button" tabIndex={0} title="Click to view dress code &amp; government identification requirements">
-              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
-                <h4 style={{"margin": "0"}}>
-                  👕 Attire & Documentation
-                </h4>
-                <span className="expect-learn-tag">
-                  Dress Code & ID ↗
-                </span>
-              </div>
-              <ul>
-                <li>
-                  <strong>
-                    Clothing:
-                  </strong>
-                   Closed-toe shoes (no sandals), crew-neck high shirt, and sturdy 1.5" belt.
-                </li>
-                <li>
-                  <strong>
-                    ID:
-                  </strong>
-                   Government-issued photo ID (Driver's license or Military ID).
-                </li>
-              </ul>
-              <div className="expect-click-cta">
-                Click for Hot-Brass Safety & State ID Requirements →
-              </div>
-            </div>
-          </div>
-        </section>
         {/* Course Catalog & Transparent Pricing Section */}
         <div id="course-catalog-section" style={{"textAlign": "center", "margin": "36px 0 20px"}}>
           <span style={{"fontFamily": "var(--font-display)", "fontSize": "0.88rem", "fontWeight": "800", "color": "var(--accent-cyan)", "textTransform": "uppercase", "letterSpacing": "1.5px"}}>
@@ -7745,6 +7322,453 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </main>
+      {/* VIEW: NEW TO FIREARMS - START YOUR JOURNEY (basic information for first-time visitors; opened from the Start Your Journey chooser) */}
+      <section className="panel hidden" id="view-start" role="tabpanel">
+        <div className="panel-header">
+          <h3>
+            New To Firearms? Start Your Journey
+          </h3>
+          <p>
+            Maryland firearms training designed to build knowledge, safety, and confidence without intimidation.
+          </p>
+        </div>
+        {/* Core Zero-Intimidation Promise */}
+        <div style={{"background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "border": "1.5px solid rgba(0, 229, 255, 0.45)", "borderRadius": "16px", "padding": "24px 26px", "marginBottom": "28px", "boxShadow": "0 8px 30px rgba(0, 229, 255, 0.12)"}}>
+          <div style={{"display": "flex", "alignItems": "center", "justifyContent": "space-between", "flexWrap": "wrap", "gap": "10px", "marginBottom": "12px", "borderBottom": "1px solid rgba(0, 229, 255, 0.2)", "paddingBottom": "10px"}}>
+            <div style={{"display": "flex", "alignItems": "center", "gap": "10px"}}>
+              <span style={{"fontSize": "1.8rem"}}>
+                🛡️
+              </span>
+              <div>
+                <span style={{"fontSize": "0.74rem", "fontWeight": "800", "color": "var(--accent-cyan)", "letterSpacing": "0.1em", "textTransform": "uppercase"}}>
+                  Uncompromising Excellence
+                </span>
+                <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "margin": "0", "textTransform": "uppercase", "letterSpacing": "0.5px"}}>
+                  The Future Initiative Firearm Services Promise
+                </h3>
+              </div>
+            </div>
+            <span style={{"background": "rgba(16, 185, 129, 0.15)", "border": "1px solid #10b981", "color": "#10b981", "fontSize": "0.75rem", "fontWeight": "800", "padding": "4px 10px", "borderRadius": "6px", "textTransform": "uppercase", "letterSpacing": "0.05em"}}>
+              100% Student-First Mentorship
+            </span>
+          </div>
+          <p style={{"fontSize": "0.98rem", "color": "#f1f5f9", "lineHeight": "1.7", "marginBottom": "18px", "fontWeight": "400"}}>
+            
+    We don't merely train you to discharge a firearm; we mentor you into a safe, decisively knowledgeable, thoroughly confident, and legally accountable protector. At Future Initiative Firearm Services, you never need prior shooting experience to step through our doors, you will never experience intimidation or ego on our firing line, and you do not need to have everything figured out before you arrive. Instructor Kai Wade meets every student exactly where they are.
+  
+          </p>
+          <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(230px, 1fr))", "gap": "14px", "marginTop": "16px"}}>
+            <div
+              className="interactive-promise-card"
+              data-onclick="openPromiseDetailModal('zero_intimidation')"
+              onClick={() => { if (typeof window !== 'undefined' && (window as any).openPromiseDetailModal) (window as any).openPromiseDetailModal('zero_intimidation'); }}
+              role="button"
+              tabIndex={0}
+              style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1.5px solid rgba(0, 229, 255, 0.35)", "borderLeft": "4px solid var(--accent-cyan)", "borderRadius": "12px", "padding": "16px 18px", "cursor": "pointer", "transition": "all 0.25s ease"}}
+            >
+              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.96rem", "fontWeight": "700", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "justifyContent": "space-between"}}>
+                <div style={{"display": "flex", "alignItems": "center", "gap": "6px"}}>
+                  <span>🎯</span> Zero-Intimidation Mentorship
+                </div>
+                <span style={{"fontSize": "0.76rem", "color": "var(--accent-cyan)", "fontWeight": "800"}}>EXPLORE ↗</span>
+              </div>
+              <p style={{"fontSize": "0.82rem", "color": "#cbd5e1", "lineHeight": "1.5", "margin": "0"}}>
+                From brand-new beginners holding a handgun for the first time to experienced shooters refining draw mechanics, every evolution is taught with patience, precision, and respect.
+              </p>
+              <div style={{"marginTop": "10px", "fontSize": "0.75rem", "color": "var(--accent-cyan)", "fontWeight": "700", "display": "flex", "alignItems": "center", "gap": "4px"}}>
+                <span>Tap for detailed breakdown</span> <span>&rarr;</span>
+              </div>
+            </div>
+
+
+
+
+            <div
+              className="interactive-promise-card"
+              data-onclick="openPromiseDetailModal('maryland_law')"
+              onClick={() => { if (typeof window !== 'undefined' && (window as any).openPromiseDetailModal) (window as any).openPromiseDetailModal('maryland_law'); }}
+              role="button"
+              tabIndex={0}
+              style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1.5px solid rgba(245, 158, 11, 0.35)", "borderLeft": "4px solid var(--accent-amber)", "borderRadius": "12px", "padding": "16px 18px", "cursor": "pointer", "transition": "all 0.25s ease"}}
+            >
+              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.96rem", "fontWeight": "700", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "justifyContent": "space-between"}}>
+                <div style={{"display": "flex", "alignItems": "center", "gap": "6px"}}>
+                  <span>⚖️</span> Maryland Law &amp; Reality Mastery
+                </div>
+                <span style={{"fontSize": "0.76rem", "color": "var(--accent-amber)", "fontWeight": "800"}}>EXPLORE ↗</span>
+              </div>
+              <p style={{"fontSize": "0.82rem", "color": "#cbd5e1", "lineHeight": "1.5", "margin": "0"}}>
+                Deep, street-level mastery of Maryland self-defense law, permissible concealed transport protocols, Castle Doctrine boundaries, and lawful shoot/no-shoot decision making.
+              </p>
+              <div style={{"marginTop": "10px", "fontSize": "0.75rem", "color": "var(--accent-amber)", "fontWeight": "700", "display": "flex", "alignItems": "center", "gap": "4px"}}>
+                <span>Tap for detailed breakdown</span> <span>&rarr;</span>
+              </div>
+            </div>
+
+
+
+
+            <div
+              className="interactive-promise-card"
+              data-onclick="openPromiseDetailModal('cindys_live_fire')"
+              onClick={() => { if (typeof window !== 'undefined' && (window as any).openPromiseDetailModal) (window as any).openPromiseDetailModal('cindys_live_fire'); }}
+              role="button"
+              tabIndex={0}
+              style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1.5px solid rgba(16, 185, 129, 0.35)", "borderLeft": "4px solid #10b981", "borderRadius": "12px", "padding": "16px 18px", "cursor": "pointer", "transition": "all 0.25s ease"}}
+            >
+              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.96rem", "fontWeight": "700", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "justifyContent": "space-between"}}>
+                <div style={{"display": "flex", "alignItems": "center", "gap": "6px"}}>
+                  <span>💥</span> Live-Fire Qualification Ascendancy
+                </div>
+                <span style={{"fontSize": "0.76rem", "color": "#34d399", "fontWeight": "800"}}>EXPLORE ↗</span>
+              </div>
+              <p style={{"fontSize": "0.82rem", "color": "#cbd5e1", "lineHeight": "1.5", "margin": "0"}}>
+                Hands-on live-fire training downrange at Cindy's Hot Shots in Glen Burnie. Real trigger time, recoil management, and practical Maryland State Police course-of-fire passing standards.
+              </p>
+              <div style={{"marginTop": "10px", "fontSize": "0.75rem", "color": "#34d399", "fontWeight": "700", "display": "flex", "alignItems": "center", "gap": "4px"}}>
+                <span>Tap for detailed breakdown</span> <span>&rarr;</span>
+              </div>
+            </div>
+
+
+
+
+            <div
+              className="interactive-promise-card"
+              data-onclick="openPromiseDetailModal('lifelong_access')"
+              onClick={() => { if (typeof window !== 'undefined' && (window as any).openPromiseDetailModal) (window as any).openPromiseDetailModal('lifelong_access'); }}
+              role="button"
+              tabIndex={0}
+              style={{"background": "rgba(7, 11, 16, 0.85)", "border": "1.5px solid rgba(168, 85, 247, 0.35)", "borderLeft": "4px solid #a855f7", "borderRadius": "12px", "padding": "16px 18px", "cursor": "pointer", "transition": "all 0.25s ease"}}
+            >
+              <div style={{"fontFamily": "var(--font-display)", "fontSize": "0.96rem", "fontWeight": "700", "color": "#fff", "marginBottom": "6px", "display": "flex", "alignItems": "center", "justifyContent": "space-between"}}>
+                <div style={{"display": "flex", "alignItems": "center", "gap": "6px"}}>
+                  <span>🤝</span> Lifelong Instructor Access
+                </div>
+                <span style={{"fontSize": "0.76rem", "color": "#c084fc", "fontWeight": "800"}}>EXPLORE ↗</span>
+              </div>
+              <p style={{"fontSize": "0.82rem", "color": "#cbd5e1", "lineHeight": "1.5", "margin": "0"}}>
+                Graduation is just the start. You retain direct access to Instructor Kai Wade for firearm purchasing guidance, holster selection, permit renewal, and ongoing defensive training.
+              </p>
+              <div style={{"marginTop": "10px", "fontSize": "0.75rem", "color": "#c084fc", "fontWeight": "700", "display": "flex", "alignItems": "center", "gap": "4px"}}>
+                <span>Tap for detailed breakdown</span> <span>&rarr;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Training Pathways Selector */}
+        <div className="pathway-selector-box">
+          <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.25rem", "color": "#fff", "textAlign": "center"}}>
+            Not sure where to begin? Choose your goal!
+          </h4>
+          <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "textAlign": "center", "marginTop": "4px", "marginBottom": "16px"}}>
+            
+          Click any goal below to open an interactive breakdown and find the right path for your needs:
+        
+          </p>
+          <div className="pathway-grid">
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('new_to_firearms', this)" title="Learn more about starting with HQL" type="button">
+              <div className="pathway-intent">
+                Brand New to Firearms
+              </div>
+              <div className="pathway-rec">
+                Start Here: Information
+              </div>
+              <div className="pathway-cta">
+                Learn More & Free 50-Q Guide →
+              </div>
+            </button>
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_purchase', this)" title="Learn more about buying a handgun" type="button">
+              <div className="pathway-intent">
+                Looking to Buy a Pistol
+              </div>
+              <div className="pathway-rec">
+                Maryland HQL (Purchase License)
+              </div>
+              <div className="pathway-cta">
+                Learn More →
+              </div>
+            </button>
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_carry', this)" title="Learn more about concealed carry" type="button">
+              <div className="pathway-intent">
+                I Want to Carry in Public
+              </div>
+              <div className="pathway-rec">
+                Wear & Carry (CCW Permit)
+              </div>
+              <div className="pathway-cta">
+                Learn More →
+              </div>
+            </button>
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_both', this)" title="Learn more about CCW &amp; HQL combo" type="button">
+              <div className="pathway-intent">
+                I Want Both: Buy & Carry
+              </div>
+              <div className="pathway-rec">
+                CCW & HQL Combo (Best Value)
+              </div>
+              <div className="pathway-cta">
+                Learn More & Compare →
+              </div>
+            </button>
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('personalized_focus', this)" title="Learn more about 1-on-1 private coaching" type="button">
+              <div className="pathway-intent">
+                Personalized / Anxiety Relief
+              </div>
+              <div className="pathway-rec">
+                Private 1-on-1 Coaching
+              </div>
+              <div className="pathway-cta">
+                Learn More →
+              </div>
+            </button>
+            <button className="pathway-pill" data-onclick="openMultistateMasteryModal()" onClick={() => { if (typeof window !== "undefined" && (window as any).openMultistateMasteryModal) (window as any).openMultistateMasteryModal(); }} title="Learn more about multi-state carry" type="button">
+              <div className="pathway-intent" style={{"color": "var(--accent-amber)"}}>
+                Do I Need a Multi-State Permit?
+              </div>
+              <div className="pathway-rec">
+                Mid-Atlantic Mastery (MD+VA+FL+AZ+PA)
+              </div>
+              <div className="pathway-cta">
+                Learn More & Reciprocity Guide →
+              </div>
+            </button>
+          </div>
+        </div>
+        {/* The 8-Step FIFS Journey */}
+        <div style={{"marginBottom": "32px"}}>
+          <div className="panel-header">
+            <h3>
+              Your 8-Step FIFS Journey <span className="neon-arrow-badge neon-mode-cyan" style={{"display": "inline-flex", "alignItems": "center", "gap": "6px", "padding": "4px 14px", "fontSize": "0.78rem", "fontWeight": "800", "letterSpacing": "1px", "textTransform": "uppercase", "verticalAlign": "middle", "marginLeft": "10px", "borderRadius": "50px", "background": "rgba(0, 229, 255, 0.14)", "border": "1px solid var(--accent-cyan)", "color": "#00e5ff", "boxShadow": "0 0 18px rgba(0, 229, 255, 0.45), inset 0 0 10px rgba(0, 229, 255, 0.2)", "cursor": "pointer"}} data-onclick="openStepDetailModal(1)" title="Click to explore the interactive 8-step journey"><span style={{"width": "7px", "height": "7px", "borderRadius": "50%", "background": "#00e5ff", "boxShadow": "0 0 8px #00e5ff"}}></span>Interactive</span>
+            </h3>
+            <p>
+              From registration through state licensing, know exactly where you are in the process:
+            </p>
+          </div>
+          <div className="journey-grid">
+            <div className="j-card" data-onclick="openStepDetailModal(1)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 1 Infographic Breakdown">
+              <div className="j-num">
+                01
+              </div>
+              <div className="j-title">
+                Register
+              </div>
+              <div className="j-desc">
+                Initialize your online student dossier and obtain your Student ID.
+              </div>
+            </div>
+            <div className="j-card" data-onclick="openStepDetailModal(2)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 2 Infographic Breakdown">
+              <div className="j-num">
+                02
+              </div>
+              <div className="j-title">
+                Confirm
+              </div>
+              <div className="j-desc">
+                Lock in your scheduled qualification shots at Cindy's Hot Shots.
+              </div>
+            </div>
+            <div className="j-card" data-onclick="openStepDetailModal(3)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 3 Infographic Breakdown">
+              <div className="j-num">
+                03
+              </div>
+              <div className="j-title">
+                Prepare
+              </div>
+              <div className="j-desc">
+                Complete your readiness checklist inside your personal Student Portal.
+              </div>
+            </div>
+            <div className="j-card" data-onclick="openStepDetailModal(4)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 4 Infographic Breakdown">
+              <div className="j-num">
+                04
+              </div>
+              <div className="j-title">
+                Classroom
+              </div>
+              <div className="j-desc">
+                Master Maryland self-defense law, safe storage, and firearm handling.
+              </div>
+            </div>
+            <div className="j-card" data-onclick="openStepDetailModal(5)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 5 Infographic Breakdown">
+              <div className="j-num">
+                05
+              </div>
+              <div className="j-title">
+                Live-Fire
+              </div>
+              <div className="j-desc">
+                Diagnostic shooting drills and the official 25-round live-fire qualification.
+              </div>
+            </div>
+            <div className="j-card" data-onclick="openStepDetailModal(6)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 6 Infographic Breakdown">
+              <div className="j-num">
+                06
+              </div>
+              <div className="j-title">
+                Certificate
+              </div>
+              <div className="j-desc">
+                Receive your official signed Maryland State Police Training Certificate.
+              </div>
+            </div>
+            <div className="j-card" data-onclick="openStepDetailModal(7)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 7 Infographic Breakdown">
+              <div className="j-num">
+                07
+              </div>
+              <div className="j-title">
+                MSP Portal
+              </div>
+              <div className="j-desc">
+                Submit your state application with LiveScan fingerprints with zero errors.
+              </div>
+            </div>
+            <div className="j-card" data-onclick="openStepDetailModal(8)" style={{"cursor": "pointer", "transition": "all 0.25s ease"}} title="Click for Step 8 Infographic Breakdown">
+              <div className="j-num">
+                08
+              </div>
+              <div className="j-title">
+                Licensed
+              </div>
+              <div className="j-desc">
+                Permit in hand! Continue your training with biennial renewals and clinics.
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* What to Bring & What to Expect Section */}
+        <section style={{"marginBottom": "30px"}}>
+          <div className="panel-header">
+            <h3>
+              What to Bring & What to Expect
+            </h3>
+            <p>
+              Important guidelines to ensure your class day is smooth, safe, and stress-free. Click any section for detailed equipment standards and rental procedures.
+            </p>
+          </div>
+          <div className="checklist-grid">
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("handgun");  } }} data-onclick="openExpectationModal('handgun')" role="button" tabIndex={0} title="Click to view detailed handgun &amp; equipment breakdown">
+              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
+                <h4 style={{"margin": "0"}}>
+                  🔫 Handgun & Equipment
+                </h4>
+                <span className="expect-learn-tag">
+                  Inspect Standards ↗
+                </span>
+              </div>
+              <ul>
+                <li>
+                  <strong>
+                    Do I need my own handgun?
+                  </strong>
+                   No! Rentals can be coordinated directly at Cindy's Hot Shots.
+                </li>
+                <li>
+                  <strong>
+                    Bringing your own firearm?
+                  </strong>
+                   Must be unloaded and secured in a locked case or trunk during transit.
+                </li>
+                <li>
+                  <strong>
+                    Holster (Wear & Carry):
+                  </strong>
+                   Rigid molded Kydex/leather holster covering trigger guard.
+                </li>
+              </ul>
+              <div className="expect-click-cta">
+                Click for Handgun, Holster & Rental Protocols →
+              </div>
+            </div>
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("ammunition"); } }} data-onclick="openExpectationModal('ammunition')" role="button" tabIndex={0} title="Click to view ammunition rules &amp; zero-tolerance safety protocol">
+              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
+                <h4 style={{"margin": "0"}}>
+                  📦 Ammunition Protocol
+                </h4>
+                <span className="expect-learn-tag" style={{"color": "var(--accent-red)", "borderColor": "var(--accent-red)", "background": "rgba(239,68,68,0.12)"}}>
+                  Safety Rule ↗
+                </span>
+              </div>
+              <ul>
+                <li>
+                  <strong>
+                    Quantity:
+                  </strong>
+                   50 to 100 rounds of factory brass target ammunition.
+                </li>
+                <li>
+                  <strong>
+                    STRICT ZERO-AMMUNITION CLASSROOM MANDATE:
+                  </strong>
+                   Absolutely zero live ammunition is permitted in the classroom. Ammunition must remain locked in your vehicle trunk until live-fire.
+                </li>
+              </ul>
+              <div className="expect-click-cta" style={{"color": "var(--accent-amber)"}}>
+                Click for Zero-Live-Ammo Policy & Caliber Guide →
+              </div>
+            </div>
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined" && (window as any).openExpectationModal) { (window as any).openExpectationModal("protection"); } }} data-onclick="openExpectationModal('protection')" role="button" tabIndex={0} title="Click to view eye and hearing protection standards">
+              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
+                <h4 style={{"margin": "0"}}>
+                  👓 Eye & Ear Protection
+                </h4>
+                <span className="expect-learn-tag">
+                  Safety Gear ↗
+                </span>
+              </div>
+              <ul>
+                <li>
+                  <strong>
+                    Wrap-Around Glasses:
+                  </strong>
+                   ANSI Z87.1 certified eye protection with side deflection guards.
+                </li>
+                <li>
+                  <strong>
+                    Hearing Protection:
+                  </strong>
+                   Earmuffs or foam plugs (electronic noise-canceling earmuffs recommended).
+                </li>
+              </ul>
+              <div className="expect-click-cta">
+                Click for ANSI Z87.1 & Electronic Earmuff Specs →
+              </div>
+            </div>
+            <div className="checklist-box interactive-expect-card" onClick={() => { if (typeof window !== "undefined") { (window as any).openExpectationModal?.("attire");  } }} data-onclick="openExpectationModal('attire')" role="button" tabIndex={0} title="Click to view dress code &amp; government identification requirements">
+              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "marginBottom": "8px"}}>
+                <h4 style={{"margin": "0"}}>
+                  👕 Attire & Documentation
+                </h4>
+                <span className="expect-learn-tag">
+                  Dress Code & ID ↗
+                </span>
+              </div>
+              <ul>
+                <li>
+                  <strong>
+                    Clothing:
+                  </strong>
+                   Closed-toe shoes (no sandals), crew-neck high shirt, and sturdy 1.5" belt.
+                </li>
+                <li>
+                  <strong>
+                    ID:
+                  </strong>
+                   Government-issued photo ID (Driver's license or Military ID).
+                </li>
+              </ul>
+              <div className="expect-click-cta">
+                Click for Hot-Brass Safety & State ID Requirements →
+              </div>
+            </div>
+          </div>
+        </section>
+        <div style={{"textAlign": "center", "margin": "28px 0 8px"}}>
+          <button className="btn-spark" data-onclick="openAndSwitch('booking')" style={{"padding": "13px 26px", "fontWeight": "800", "fontSize": "1rem"}} type="button">
+            Ready to book? Book Now →
+          </button>
+        </div>
+      </section>
       {/* (Reservation form modalized into #courseBookingModal) */}
       {/* VIEW 4: ABOUT INSTRUCTOR KAI WADE */}
       <section className="panel hidden" id="view-about" role="tabpanel">
@@ -10143,6 +10167,122 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </div>
+      {/* ================= START YOUR JOURNEY CHOOSER ================= */}
+      <div className="fi-portal-modal-overlay" id="journeySelectionModal" data-onclick="if(event.target===this) closeJourneySelectionModal()" style={{"display": "none"}}>
+        <div aria-labelledby="journeySelectTitle" aria-modal="true" className="fi-portal-modal-card" data-onclick="event.stopPropagation()" role="dialog">
+          <button aria-label="Close Start Your Journey" className="goal-modal-close-btn" data-onclick="closeJourneySelectionModal()" type="button">
+            ✕
+          </button>
+          <div style={{"textAlign": "center", "marginBottom": "20px"}}>
+            <h2 id="journeySelectTitle" style={{"fontFamily": "var(--font-display)", "fontSize": "2.2rem", "letterSpacing": "2px", "textTransform": "uppercase", "color": "#fff", "marginBottom": "4px"}}>
+              Start Your Journey
+            </h2>
+            <p style={{"color": "var(--accent-cyan)", "fontFamily": "var(--font-display)", "fontSize": "1.15rem", "letterSpacing": "1.5px", "textTransform": "uppercase", "fontWeight": "700"}}>
+              Choose Where To Begin
+            </p>
+          </div>
+          <div className="fi-select-grid">
+            {/* OPTION 1: BOOK NOW */}
+            <div className="fi-select-card highlight">
+              <div>
+                <span className="fi-card-badge fi-card-badge-amber">
+                  Ready To Reserve
+                </span>
+                <h3 className="fi-card-title">
+                  Book Now
+                </h3>
+                <p className="fi-card-desc">
+                  Choose your class, pick your date, and reserve your seat
+                </p>
+                <ul className="fi-card-list">
+                  <li>
+                    <span>
+                      📚
+                    </span>
+                     Wear & Carry, HQL & Combo Courses
+                  </li>
+                  <li>
+                    <span>
+                      💲
+                    </span>
+                     Transparent Pricing, No Hidden Fees
+                  </li>
+                  <li>
+                    <span>
+                      👥
+                    </span>
+                     Group Discounts Up To 15%
+                  </li>
+                  <li>
+                    <span>
+                      👑
+                    </span>
+                     Standard Base Or VIP Turnkey Track
+                  </li>
+                  <li>
+                    <span>
+                      📅
+                    </span>
+                     Live Calendar & 30% Deposit To Reserve
+                  </li>
+                </ul>
+              </div>
+              <button className="btn-spark" data-onclick="closeJourneySelectionModal(); openAndSwitch('booking');" style={{"width": "100%", "padding": "13px"}} type="button">
+                Book Now →
+              </button>
+            </div>
+            {/* OPTION 2: NEW TO FIREARMS */}
+            <div className="fi-select-card">
+              <div>
+                <span className="fi-card-badge fi-card-badge-cyan">
+                  First-Time Shooters
+                </span>
+                <h3 className="fi-card-title">
+                  New To Firearms? Start Your Journey
+                </h3>
+                <p className="fi-card-desc">
+                  Everything to know before your first class
+                </p>
+                <ul className="fi-card-list">
+                  <li>
+                    <span>
+                      🤝
+                    </span>
+                     Zero-Intimidation, Judgment-Free Mentorship
+                  </li>
+                  <li>
+                    <span>
+                      🗺️
+                    </span>
+                     Your 8-Step FIFS Journey
+                  </li>
+                  <li>
+                    <span>
+                      🎒
+                    </span>
+                     What To Bring & What To Expect
+                  </li>
+                  <li>
+                    <span>
+                      🧭
+                    </span>
+                     Choose Your Goal & See The Right Class
+                  </li>
+                  <li>
+                    <span>
+                      ⚖️
+                    </span>
+                     Maryland Law & Reality Mastery
+                  </li>
+                </ul>
+              </div>
+              <button className="btn-primary" data-onclick="closeJourneySelectionModal(); openAndSwitch('start');" style={{"width": "100%", "padding": "13px"}} type="button">
+                Start Your Journey →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       {/* ================= STEP 12: PORTAL SELECTION SPLASH MODAL ================= */}
       {/* ================= STEP 12: PORTAL SELECTION SPLASH MODAL ================= */}
       <div className="fi-portal-modal-overlay" id="fiPortalSelectionModal" data-onclick="if(event.target===this) closePortalSelectionModal()" style={{"display": "none"}}>
@@ -12239,19 +12379,19 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </h3>
           <div className="goal-synopsis-card" style={{"borderLeftColor": "#38bdf8", "background": "#070b10", "fontSize": "0.90rem", "color": "#cbd5e1", "lineHeight": "1.6", "marginBottom": "16px"}}>
             
-        The 
+        The{" "}
             <strong>
               FIFS Graduate Alumni Marksmanship Clinic ($65.00)
             </strong>
-             is an exclusive 2-hour diagnostic workshop reserved for verified FIFS graduates and active carry permit holders.
+            {" "}is an exclusive 2-hour diagnostic workshop reserved for verified FIFS graduates and active carry permit holders.
             <br />
             <br />
             
-        To reserve a seat in an upcoming alumni clinic cohort, please sign in to your 
+        You need to be logged in to the{" "}
             <strong>
-              Client Portal
+              Future Initiative Client Portal
             </strong>
-             (or create your free verified profile). Once verified, you will immediately be redirected to complete your reservation.
+            {" "}to reserve a seat in the alumni clinic. Sign in (or create your free verified profile), then come back and select the clinic again.
       
           </div>
           <div className="goal-modal-actions" style={{"display": "flex", "flexDirection": "column", "gap": "10px"}}>
