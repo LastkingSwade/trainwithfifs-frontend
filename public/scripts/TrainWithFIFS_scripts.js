@@ -5119,16 +5119,13 @@ function openAdminEditStudentModal(studentId) {
       var st = document.getElementById('lead-status');
       if (!name || !email) return;
       showStatus(st, 'Preparing your download link...', 'success');
-      try {
-        var leads = JSON.parse(_fifsMemStorage.getItem('fifs_reciprocity_leads') || '[]');
-        leads.unshift({ name: name, email: email, time: new Date().toISOString() });
-        /* cloud only: zero browser storage */
-      } catch (err) {}
-      if (typeof callFifsBackend === 'function') { callFifsBackend('handleLeadMagnetSubmission', { fullName: name, email: email, source: '50-State Reciprocity Guide' }).catch(function() {}); }
-      setTimeout(function() {
+      if (typeof callFifsBackend !== 'function') { showStatus(st, 'Something went wrong. Please try again.', 'error'); return; }
+      callFifsBackend('handleLeadMagnetSubmission', { fullName: name, email: email, source: '50-State Reciprocity Guide' }).then(function() {
         showStatus(st, 'Success! Download starting. Thank you for training with Future Initiative.', 'success');
         window.open('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/top-50-questions-new-gun-owners.pdf', '_blank');
-      }, 400);
+      }).catch(function() {
+        showStatus(st, 'We could not save your request. Please try again or call us.', 'error');
+      });
     }
     window.handleLeadMagnetSubmit = handleLeadMagnetSubmit;
     function dispatchRangeBriefing(studentId) {

@@ -65,8 +65,7 @@ function validateStrictPassword(password: string): { valid: boolean; error?: str
 // Actions the portal UI calls that have no server-side persistence yet. They fail explicitly
 // (501) so the UI cannot report a change as saved when nothing was stored.
 const NOT_IMPLEMENTED_ACTIONS: Record<string, string> = {
-  submitStudentWaiver: 'Online waiver submission',
-  handleLeadMagnetSubmission: 'Lead capture for the free guide'
+  submitStudentWaiver: 'Online waiver submission'
 };
 
 // --- Student record edit validation (adminEditStudent, updateStudentStatus, updateStudentTask) ---
@@ -2814,6 +2813,46 @@ export async function POST(req: NextRequest) {
      case 'trackSiteVisit': {
        const rawPath = String(payload.path || body.path || '/').slice(0, 255);
        return NextResponse.json({ success: true, tracked: true });
+     }
+
+     case 'handleLeadMagnetSubmission': {
+       supabase = getPublicClient();
+       const leadName = String(payload.fullName || payload.name || body.fullName || '').trim().slice(0, 100);
+       const leadEmail = String(payload.email || body.email || '').trim().toLowerCase().slice(0, 150);
+       if (!leadName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(leadEmail) || CONTROL_CHARS.test(leadName)) {
+         return NextResponse.json({ success: false, error: 'A full name and valid email address are required.' }, { status: 400 });
+       }
+       const leadSource = 'Free Guide: ' + (String(payload.source || body.source || '50-State Reciprocity Guide').trim().slice(0, 80) || '50-State Reciprocity Guide');
+
+       let savedToLeads = false;
+       try {
+         const { error: leadErr } = await supabase.from('leads').insert([{
+           full_name: leadName,
+           email: leadEmail,
+           source: leadSource
+         }]);
+         if (leadErr) console.error('[FIFS] Free guide lead insert failed:', leadErr.message);
+         else savedToLeads = true;
+       } catch (leadEx: any) {
+         console.error('[FIFS] Free guide lead insert exception:', leadEx?.message);
+       }
+
+       await sendServerDiscordAlert(
+         "New Free Guide Lead",
+         "A visitor requested the free guide.",
+         [
+           { name: "Name", value: leadName, inline: true },
+           { name: "Email", value: leadEmail, inline: true },
+           { name: "Source", value: leadSource, inline: false },
+           { name: "Saved to leads table", value: savedToLeads ? "Yes" : "No", inline: false }
+         ],
+         savedToLeads ? 0x22C55E : 0xF59E0B
+       );
+
+       if (!savedToLeads) {
+         return NextResponse.json({ success: false, error: 'We could not save your request. Please try again.' }, { status: 500 });
+       }
+       return NextResponse.json({ success: true, message: 'Lead captured.' });
      }
 
      case 'submitContactInquiry': {

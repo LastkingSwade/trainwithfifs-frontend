@@ -340,7 +340,7 @@ async function test(name, fn) {
 }
 function assert(cond, msg) { if (!cond) throw new Error(msg); }
 
-const NOT_IMPLEMENTED = ['submitStudentWaiver', 'handleLeadMagnetSubmission'];
+const NOT_IMPLEMENTED = ['submitStudentWaiver'];
 
 async function main() {
   console.log('================================================================');
@@ -387,6 +387,23 @@ async function main() {
       assert(writes.length === 0, 'no database write may occur');
     });
   }
+  await test('handleLeadMagnetSubmission: saves a Free Guide lead to the leads table', async () => {
+    writes.length = 0;
+    const { status, body } = await fifs('handleLeadMagnetSubmission', { fullName: 'Claude QA Test', email: 'QA@Example.com', source: '50-State Reciprocity Guide' });
+    assert(status === 200 && body.success === true, `got ${status} ${JSON.stringify(body)}`);
+    const w = writes.find((x) => x.table === 'leads' && x.op === 'insert');
+    assert(w, 'no leads insert');
+    const row = Array.isArray(w.patch) ? w.patch[0] : w.patch;
+    assert(row.full_name === 'Claude QA Test' && row.email === 'qa@example.com' && row.source === 'Free Guide: 50-State Reciprocity Guide', 'wrong row ' + JSON.stringify(row));
+  });
+  await test('handleLeadMagnetSubmission: rejects a missing name or malformed email without writing', async () => {
+    writes.length = 0;
+    for (const p of [{ fullName: '', email: 'a@b.co' }, { fullName: 'X', email: 'not-an-email' }]) {
+      const { status } = await fifs('handleLeadMagnetSubmission', p);
+      assert(status === 400, `expected 400, got ${status}`);
+    }
+    assert(writes.length === 0, 'no database write may occur');
+  });
   await test('Unknown actions are still rejected with 400', async () => {
     const { status } = await fifs('definitelyNotAnAction');
     assert(status === 400, `expected 400, got ${status}`);
