@@ -300,3 +300,9 @@
   .btn-spark { transition: outline-offset 120ms ease-out; }
   .btn-spark:focus-visible { outline: 2px solid rgba(0, 229, 255, 0.85); outline-offset: 3px; }
 }
+
+/* D051 clear cyan focus ring on btn-primary */
+@media (prefers-reduced-motion: no-preference) {
+  .btn-primary { transition: outline-offset 120ms ease-out; }
+  .btn-primary:focus-visible { outline: 2px solid rgba(0, 229, 255, 0.85); outline-offset: 3px; }
+}
