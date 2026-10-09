@@ -846,6 +846,14 @@ export async function POST(req: NextRequest) {
          emailCleanupSkipped = sharing.error || !!sharing.found;
          if (emailCleanupSkipped) console.warn('[adminDeleteStudent] Email-keyed cleanup skipped: another student record shares this email (or the check failed).');
        }
+       // profiles rows are shared by email between students and clients, so the profile is removed only when no client
+       // record has this email either; a failed check counts as "shared". (The same-kind check above already ran.)
+       let profileCleanupSkipped = emailCleanupSkipped;
+       if (resolvedEmail && !emailCleanupSkipped) {
+         const otherKind = await findRecordByEmail(supabase, 'clients', resolvedEmail);
+         profileCleanupSkipped = otherKind.error || !!otherKind.found;
+         if (profileCleanupSkipped) console.warn('[adminDeleteStudent] Profile cleanup skipped: a client record shares this email (or the check failed).');
+       }
        if (resolvedEmail && !emailCleanupSkipped) {
          try {
            await supabase.from('enrollments').delete().eq('student_email', resolvedEmail);
@@ -857,10 +865,12 @@ export async function POST(req: NextRequest) {
          } catch (invEmailErr) {
            console.warn('Invoices email deletion note:', invEmailErr);
          }
-         try {
-           await supabase.from('profiles').delete().eq('email', resolvedEmail);
-         } catch (profErr) {
-           console.warn('Profiles email deletion note:', profErr);
+         if (!profileCleanupSkipped) {
+           try {
+             await supabase.from('profiles').delete().eq('email', resolvedEmail);
+           } catch (profErr) {
+             console.warn('Profiles email deletion note:', profErr);
+           }
          }
        }
 
@@ -892,6 +902,7 @@ export async function POST(req: NextRequest) {
          status: 'success',
          deletedStudentId: resolvedStudentId || targetId,
          emailCleanupSkipped,
+         profileCleanupSkipped,
          authCleanup,
          authUserRemoved: authCleanup === 'none' ? null : authCleanup === 'removed',
          message: `Student ${foundStudent?.full_name || targetId} successfully removed from Supabase.`
@@ -949,16 +960,26 @@ export async function POST(req: NextRequest) {
          emailCleanupSkipped = sharing.error || !!sharing.found;
          if (emailCleanupSkipped) console.warn('[adminDeleteClient] Email-keyed cleanup skipped: another client record shares this email (or the check failed).');
        }
+       // profiles rows are shared by email between students and clients, so the profile is removed only when no student
+       // record has this email either; a failed check counts as "shared". (The same-kind check above already ran.)
+       let profileCleanupSkipped = emailCleanupSkipped;
+       if (resolvedEmail && !emailCleanupSkipped) {
+         const otherKind = await findRecordByEmail(supabase, 'students', resolvedEmail);
+         profileCleanupSkipped = otherKind.error || !!otherKind.found;
+         if (profileCleanupSkipped) console.warn('[adminDeleteClient] Profile cleanup skipped: a student record shares this email (or the check failed).');
+       }
        if (resolvedEmail && !emailCleanupSkipped) {
          try {
            await supabase.from('user_permits').delete().eq('email', resolvedEmail);
          } catch (pEmailErr) {
            console.warn('user_permits email deletion note:', pEmailErr);
          }
-         try {
-           await supabase.from('profiles').delete().eq('email', resolvedEmail);
-         } catch (profErr) {
-           console.warn('profiles email deletion note:', profErr);
+         if (!profileCleanupSkipped) {
+           try {
+             await supabase.from('profiles').delete().eq('email', resolvedEmail);
+           } catch (profErr) {
+             console.warn('profiles email deletion note:', profErr);
+           }
          }
        }
 
@@ -990,6 +1011,7 @@ export async function POST(req: NextRequest) {
          status: 'success',
          deletedClientId: resolvedClientId || targetId,
          emailCleanupSkipped,
+         profileCleanupSkipped,
          authCleanup,
          authUserRemoved: authCleanup === 'none' ? null : authCleanup === 'removed',
          message: `Client ${foundClient?.full_name || targetId} successfully removed from Supabase.`

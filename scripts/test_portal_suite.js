@@ -34,6 +34,7 @@ const writes = [];
 let failOp = null;
 let updateMatchesNothing = false;
 let deleteMatchesNothing = false;
+let failTable = null;   // with failOp: fail only operations on this table
 let storageCalls = { upload: [], remove: [], sign: [] };
 let storageFail = null;
 let authUsers = {};
@@ -83,6 +84,7 @@ function resetDb() {
   failOp = null;
   updateMatchesNothing = false;
   deleteMatchesNothing = false;
+  failTable = null;
   storageFail = null;
   storageCalls = { upload: [], remove: [], sign: [] };
   authFail = null;
@@ -119,7 +121,7 @@ function queryBuilder(table) {
   let patch = null;
   let conflict = null;
   const run = () => {
-    if (failOp && failOp === op) return { data: null, error: { message: 'boom: internal database detail' } };
+    if (failOp && failOp === op && (!failTable || failTable === table)) return { data: null, error: { message: 'boom: internal database detail' } };
     if (op === 'update') {
       const hit = updateMatchesNothing ? [] : (db[table] || []).filter((r) => filters.every((f) => f(r)));
       hit.forEach((r) => Object.assign(r, patch));
@@ -2332,6 +2334,71 @@ async function main() {
     assert(/findRecordByEmail\(supabase, 'clients', resolvedEmail, foundClient\?\.id\)/.test(del), 'it must look for another client with this email, leaving the deleted one out');
     assert(/emailCleanupSkipped = sharing\.error \|\| !!sharing\.found/.test(del) && /if \(resolvedEmail && !emailCleanupSkipped\)/.test(del), 'the cleanup must be skipped when the check fails or finds a sharer');
     assert(/emailCleanupSkipped,/.test(del), 'the response must report it');
+  });
+
+  console.log('\n[SECTION X: Shared profile between a student and a client with the same email]');
+  // The record being deleted keeps the usual lowercase email; the OTHER record can be stored in any letter case.
+  const seedBoth = (clientEmail = 'both@example.test', studentEmail = 'both@example.test') => {
+    db.students.push({ id: 'row-both-student', user_id: null, student_id: 'FIFS-1301', email: studentEmail, full_name: 'Both Person', status: 'STEP_1_REGISTERED' });
+    db.clients.push({ id: 'row-both-client', user_id: null, client_id: 'CLI-1301', email: clientEmail, full_name: 'Both Person', status: 'ACTIVE_REGISTERED' });
+    db.enrollments.push({ id: 'enr-both', student_email: 'both@example.test' });
+    db.invoices = [{ id: 'inv-both', email: 'both@example.test' }, { id: 'inv-unrelated', email: 'unrelated@example.test' }];
+    db.user_permits = [{ id: 'perm-both', email: 'both@example.test' }, { id: 'perm-unrelated', email: 'unrelated@example.test' }];
+    db.profiles = [{ id: 'profile-both', email: 'both@example.test' }, { id: 'profile-unrelated', email: 'unrelated@example.test' }];
+  };
+  await test('Delete student who is also a client (same email, client stored in another letter case): the student history goes, the shared profile stays for the client', async () => {
+    seedBoth('BOTH@Example.test');   // the client's address is stored in a different letter case
+    const r = await delStudent({ studentId: 'FIFS-1301' });
+    assert(r.status === 200 && r.body.success === true && r.body.emailCleanupSkipped === false && r.body.profileCleanupSkipped === true, `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(left('enrollments') === 'enr-other' || !left('enrollments').includes('enr-both'), 'the student\'s email-keyed enrollments are still removed');
+    assert(!left('invoices').includes('inv-both') && left('invoices').includes('inv-unrelated'), 'the student\'s email-keyed invoices are still removed: ' + left('invoices'));
+    assert(left('profiles') === 'profile-both,profile-unrelated', 'the shared profile must survive for the client: ' + left('profiles'));
+    assert(db.clients.some((x) => x.client_id === 'CLI-1301') && left('user_permits') === 'perm-both,perm-unrelated', 'the client record and its permits are untouched');
+  });
+  await test('Delete client who is also a student (same email, student stored in another letter case): the client permits go, the shared profile stays for the student', async () => {
+    seedBoth('both@example.test', 'Both@Example.Test');   // the student's address is stored in a different letter case
+    const r = await delClient({ clientId: 'CLI-1301' });
+    assert(r.status === 200 && r.body.success === true && r.body.emailCleanupSkipped === false && r.body.profileCleanupSkipped === true, `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(left('user_permits') === 'perm-unrelated', 'the client\'s email-keyed permits are still removed: ' + left('user_permits'));
+    assert(left('profiles') === 'profile-both,profile-unrelated', 'the shared profile must survive for the student: ' + left('profiles'));
+    assert(db.students.some((x) => x.student_id === 'FIFS-1301') && left('invoices').includes('inv-both'), 'the student record and its invoices are untouched');
+  });
+  await test('The shared profile is removed with the last record that uses the email, whichever kind is deleted first', async () => {
+    seedBoth();
+    const s1 = await delStudent({ studentId: 'FIFS-1301' });
+    assert(s1.body.profileCleanupSkipped === true && left('profiles').includes('profile-both'), 'student first: profile kept');
+    const c1 = await delClient({ clientId: 'CLI-1301' });
+    assert(c1.status === 200 && c1.body.profileCleanupSkipped === false && left('profiles') === 'profile-unrelated' && left('user_permits') === 'perm-unrelated', `client last removes the profile: ${JSON.stringify(c1.body)} ${left('profiles')}`);
+    resetDb(); seedBoth();
+    const c2 = await delClient({ clientId: 'CLI-1301' });
+    assert(c2.body.profileCleanupSkipped === true && left('profiles').includes('profile-both'), 'client first: profile kept');
+    const s2 = await delStudent({ studentId: 'FIFS-1301' });
+    assert(s2.status === 200 && s2.body.profileCleanupSkipped === false && left('profiles') === 'profile-unrelated', `student last removes the profile: ${JSON.stringify(s2.body)} ${left('profiles')}`);
+  });
+  await test('Delete: a student or client with no other record of either kind still has the profile removed', async () => {
+    seedBoth();
+    db.students = db.students.filter((x) => x.student_id !== 'FIFS-1301');
+    db.clients = db.clients.filter((x) => x.client_id !== 'CLI-1301');
+    db.students.push({ id: 'row-solo-s', user_id: null, student_id: 'FIFS-1302', email: 'both@example.test', full_name: 'Solo', status: 'STEP_1_REGISTERED' });
+    const solo = await delStudent({ studentId: 'FIFS-1302' });
+    assert(solo.status === 200 && solo.body.profileCleanupSkipped === false && left('profiles') === 'profile-unrelated', `${JSON.stringify(solo.body)} ${left('profiles')}`);
+  });
+  await test('Delete: if the other table cannot be checked the profile is kept, while the same-kind cleanup still runs', async () => {
+    seedBoth();
+    failOp = 'select'; failTable = 'clients';
+    const s = await delStudent({ studentId: 'FIFS-1301' });
+    assert(s.status === 200 && s.body.emailCleanupSkipped === false && s.body.profileCleanupSkipped === true, `student: ${JSON.stringify(s.body)}`);
+    assert(left('profiles') === 'profile-both,profile-unrelated' && !left('invoices').includes('inv-both'), 'profile kept, student invoices still removed: ' + left('profiles') + ' | ' + left('invoices'));
+    resetDb(); seedBoth();
+    failOp = 'select'; failTable = 'students';
+    const c = await delClient({ clientId: 'CLI-1301' });
+    assert(c.status === 200 && c.body.profileCleanupSkipped === true && left('profiles') === 'profile-both,profile-unrelated', `client: ${JSON.stringify(c.body)} ${left('profiles')}`);
+  });
+  await test('The profile guard checks the OTHER table in each delete handler and is reported in the response', async () => {
+    const stu = ROUTE_SRC.slice(ROUTE_SRC.indexOf("case 'adminDeleteStudent'"), ROUTE_SRC.indexOf("case 'adminDeleteClient'"));
+    const cli = ROUTE_SRC.slice(ROUTE_SRC.indexOf("case 'adminDeleteClient'"), ROUTE_SRC.indexOf("case 'deletePermit'"));
+    assert(/findRecordByEmail\(supabase, 'clients', resolvedEmail\)/.test(stu) && /if \(!profileCleanupSkipped\) \{\s*try \{\s*await supabase\.from\('profiles'\)/.test(stu) && /profileCleanupSkipped,/.test(stu), 'the student delete must check clients before removing the profile');
+    assert(/findRecordByEmail\(supabase, 'students', resolvedEmail\)/.test(cli) && /if \(!profileCleanupSkipped\) \{\s*try \{\s*await supabase\.from\('profiles'\)/.test(cli) && /profileCleanupSkipped,/.test(cli), 'the client delete must check students before removing the profile');
   });
 
   console.log('\n================================================================');
