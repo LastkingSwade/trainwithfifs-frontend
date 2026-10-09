@@ -437,3 +437,9 @@
   .btn-return-home { transition: transform 160ms ease-out; }
   .btn-return-home:hover { transform: translateX(-3px); }
 }
+
+/* D075 perk rows slide on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .vip-perk-item { transition: transform 160ms ease-out; }
+  .vip-perk-item:hover { transform: translateX(3px); }
+}
