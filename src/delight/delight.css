@@ -1,2 +1,8 @@
 /* Small delight moments. Each block is one experiment (D###), pure CSS, motion only when the visitor has not asked for reduced motion,
    hover effects only on pointer devices, and only cheap properties (see scripts/test_delight.js for the enforced rules). */
+
+/* D001 hover lift on tuition-card */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .tuition-card { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
+  .tuition-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 229, 255, 0.16); }
+}
