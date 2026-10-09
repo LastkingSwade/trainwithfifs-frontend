@@ -132,3 +132,9 @@
   .btn-spark { transition: transform 90ms ease-out; }
   .btn-spark:active { transform: scale(0.97); }
 }
+
+/* D023 press feedback on btn-secondary */
+@media (prefers-reduced-motion: no-preference) {
+  .btn-secondary { transition: transform 90ms ease-out; }
+  .btn-secondary:active { transform: scale(0.97); }
+}
