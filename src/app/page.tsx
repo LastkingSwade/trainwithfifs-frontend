@@ -1576,7 +1576,6 @@ export default function TrainWithFIFS(props: any) {
     // 10. Chat & Contact Modals
     (window as any).openContactWidgetModal = () => { openModal('contactInstructorModal'); };
     (window as any).closeContactWidgetModal = () => { closeModal('contactInstructorModal'); };
-    (window as any).closeTwoWayChat = () => { closeModal('twoWayChatModal'); };
     (window as any).dismissFloatingChat = (e?: Event) => {
       if (e && e.stopPropagation) e.stopPropagation();
       try { localStorage.setItem('fifs_chat_bubble_dismissed', '1'); } catch(err) {}
@@ -1587,64 +1586,6 @@ export default function TrainWithFIFS(props: any) {
 
 
 
-    (window as any).handleLiveChatSubmit = (e: Event) => {
-      if (e && e.preventDefault) e.preventDefault();
-      const nameEl = document.getElementById('chatSenderName') as HTMLInputElement | null;
-      const phoneEl = document.getElementById('chatSenderPhone') as HTMLInputElement | null;
-      const msgEl = document.getElementById('chatMessageText') as HTMLTextAreaElement | null;
-      const statusDiv = document.getElementById('chat-widget-status');
-      const name = nameEl ? nameEl.value.trim() : '';
-      const phone = phoneEl ? phoneEl.value.trim() : '';
-      const message = msgEl ? msgEl.value.trim() : '';
-
-
-
-
-      if (!name || !message) {
-        if (statusDiv) {
-          statusDiv.textContent = 'Please enter your Name and Message to connect with Instructor Kai Wade.';
-          statusDiv.style.display = 'block';
-        }
-        return;
-      }
-
-
-
-
-      if (statusDiv) {
-        statusDiv.textContent = 'Connecting to Lead Instructor Kai Wade...';
-        statusDiv.style.display = 'block';
-      }
-
-
-
-
-      fetch('/api/fifs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'submitContactInquiry',
-          fullName: name,
-          phone: phone,
-          message: message
-        })
-      })
-      .then((res) => res.json())
-      .then((data) => {
-        if (statusDiv) {
-          statusDiv.textContent = '✔ Inquiry received! Lead Instructor Kai Wade will contact you directly.';
-          statusDiv.style.display = 'block';
-        }
-        setTimeout(() => { (window as any).closeContactWidgetModal(); }, 2000);
-      })
-      .catch(() => {
-        if (statusDiv) {
-          statusDiv.textContent = '✔ Message queued! Instructor Kai Wade has been alerted.';
-          statusDiv.style.display = 'block';
-        }
-        setTimeout(() => { (window as any).closeContactWidgetModal(); }, 2000);
-      });
-    };
 
 
 
@@ -3954,70 +3895,6 @@ export default function TrainWithFIFS(props: any) {
     document.addEventListener('input', handleDelegatedInput);
     
     // Ensure live chat opens the real 2-way chat console with background polling
-    (window as any).handleLiveChatSubmit = function(e: any) {
-      if (e && e.preventDefault) e.preventDefault();
-      const nameEl = document.getElementById('chatSenderName') as HTMLInputElement | null;
-      const phoneEl = document.getElementById('chatSenderPhone') as HTMLInputElement | null;
-      const msgEl = document.getElementById('chatMessageText') as HTMLTextAreaElement | null;
-      const btn = document.getElementById('btn-send-chat') as HTMLButtonElement | null;
-      const name = nameEl ? nameEl.value.trim() : '';
-      const phone = phoneEl ? phoneEl.value.trim() : '';
-      const msg = msgEl ? msgEl.value.trim() : '';
-      if (!name || !phone || !msg) {
-        alert('Please fill out your Name, Phone, and Question to open live chat.');
-        return;
-      }
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Opening Live Chat Window...';
-      }
-      if (typeof (window as any).sendClientDiscordAlert === 'function') {
-        try {
-          (window as any).sendClientDiscordAlert(
-            "💬 Incoming Live Chat: " + name,
-            "A visitor initiated a conversation via the website live chat widget.",
-            [
-              { name: "Sender Name", value: name, inline: true },
-              { name: "Phone / SMS Callback", value: phone, inline: true },
-              { name: "Operating Window", value: typeof (window as any).isLiveChatActiveNow === 'function' && (window as any).isLiveChatActiveNow() ? "ONLINE NOW (9 AM – 5 PM EST)" : "AFTER HOURS", inline: true },
-              { name: "Initial Message Content", value: msg, inline: false }
-            ],
-            0x00E5FF
-          );
-        } catch(err) {}
-      }
-      if (typeof (window as any).closeContactWidgetModal === 'function') {
-        (window as any).closeContactWidgetModal();
-      }
-      if (typeof (window as any).openTwoWayChat === 'function') {
-        (window as any).openTwoWayChat(name, phone, msg);
-      } else if (typeof (window as any).openP2pCommsHud === 'function') {
-        (window as any).openP2pCommsHud(name, phone, msg);
-      }
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = '💬 Send Message & Open Live Chat →';
-      }
-      const cleanPhone = phone.replace(/\D/g, '');
-      const threadId = cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now());
-      if ((window as any).__currentChatSession) {
-        (window as any).__currentChatSession.threadId = threadId;
-      }
-      const payload = {
-        senderName: name,
-        senderPhone: phone,
-        senderEmail: '',
-        message: msg,
-        threadId: threadId
-      };
-      if (typeof (window as any).callFifsBackend === 'function') {
-        (window as any).callFifsBackend('handleLiveChatMessage', payload, function(res: any) {
-          console.log('Message logged in Google Sheets Live_Chats tab:', res);
-        }, function(err: any) {
-          console.error('Failed to log message in Google Sheets:', err);
-        });
-      }
-    };
 
 
 
@@ -12106,14 +11983,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
           Direct dispatch to Coach Kai Wade. Messages submitted during business hours trigger instant priority notification.
         
             </p>
-            <form id="liveChatDispatchForm" data-onsubmit="handleLiveChatSubmit(event)" onSubmit={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleLiveChatSubmit) (window as any).handleLiveChatSubmit(e); }}>
+            <form id="liveChatDispatchForm" onSubmit={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleLiveChatSubmit) (window as any).handleLiveChatSubmit(e); }}>
               <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "10px", "marginBottom": "10px"}}>
                 <input id="chatSenderName" placeholder="Your Name" required={true} style={{"background": "#10161f", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "fontSize": "0.88rem"}} type="text" />
                 <input id="chatSenderPhone" placeholder="Mobile Phone (SMS Callback)" required={true} style={{"background": "#10161f", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "fontSize": "0.88rem"}} type="tel" />
               </div>
               <textarea id="chatMessageText" placeholder="How can Coach Wade assist you today? (Course dates, equipment questions, etc.)" required={true} rows={2} data-oninput="autoResizeInput(this)" style={{"background": "#10161f", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%", "fontFamily": "inherit", "fontSize": "0.88rem", "marginBottom": "10px", "maxHeight": "120px", "overflowY": "auto"}}>
               </textarea>
-              <button className="btn-primary" id="btn-send-chat" data-onclick="handleLiveChatSubmit(event)" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleLiveChatSubmit) (window as any).handleLiveChatSubmit(e); }} style={{"width": "100%", "padding": "11px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px"}} type="submit">
+              <button className="btn-primary" id="btn-send-chat" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleLiveChatSubmit) (window as any).handleLiveChatSubmit(e); }} style={{"width": "100%", "padding": "11px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px"}} type="submit">
                 
             🚀 Dispatch Live Chat Message →
           
@@ -12184,7 +12061,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
     
           </div>
           {/* Input Dock with Send & Close Actions */}
-          <form id="twoWayChatInputForm" data-onsubmit="handleTwoWayChatSend(event)" onSubmit={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleTwoWayChatSend) (window as any).handleTwoWayChatSend(e); }} style={{"padding": "12px 18px", "background": "#0d131b", "borderTop": "1px solid var(--border-subtle)", "display": "flex", "gap": "10px", "alignItems": "center"}}>
+          <form id="twoWayChatInputForm" onSubmit={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleTwoWayChatSend) (window as any).handleTwoWayChatSend(e); }} style={{"padding": "12px 18px", "background": "#0d131b", "borderTop": "1px solid var(--border-subtle)", "display": "flex", "gap": "10px", "alignItems": "center"}}>
             <input type="text" id="twoWayMessageInput" placeholder="Type a message to Coach Wade..." autoComplete="off" required={true} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleTwoWayChatSend) (window as any).handleTwoWayChatSend(e); } }} style={{"flex": "1", "background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "24px", "padding": "12px 18px", "color": "#fff", "fontFamily": "var(--font-body)", "fontSize": "0.92rem", "outline": "none", "transition": "border-color 0.2s"}} />
             <button type="submit" id="btnTwoWaySend" className="btn-primary" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).handleTwoWayChatSend) (window as any).handleTwoWayChatSend(e); }} style={{"width": "auto", "padding": "10px 22px", "borderRadius": "24px", "fontSize": "0.95rem", "fontWeight": "800", "display": "inline-flex", "alignItems": "center", "gap": "6px", "textTransform": "uppercase", "minHeight": "44px"}}>
               <span>
@@ -12194,7 +12071,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 ➤
               </span>
             </button>
-            <button type="button" data-onclick="closeTwoWayChat()" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).closeTwoWayChat) (window as any).closeTwoWayChat(); }} title="Close chat and clear message" style={{"background": "rgba(255,255,255,0.06)", "border": "1px solid rgba(255,255,255,0.15)", "color": "var(--text-muted)", "padding": "8px 14px", "borderRadius": "20px", "fontSize": "0.80rem", "fontWeight": "700", "cursor": "pointer", "textTransform": "uppercase", "minHeight": "44px"}}>
+            <button type="button" onClick={(e) => { e.preventDefault(); if (typeof window !== 'undefined' && (window as any).closeTwoWayChat) (window as any).closeTwoWayChat(); }} title="Close chat and clear message" style={{"background": "rgba(255,255,255,0.06)", "border": "1px solid rgba(255,255,255,0.15)", "color": "var(--text-muted)", "padding": "8px 14px", "borderRadius": "20px", "fontSize": "0.80rem", "fontWeight": "700", "cursor": "pointer", "textTransform": "uppercase", "minHeight": "44px"}}>
               
         Close Chat
       

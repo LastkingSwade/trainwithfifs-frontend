@@ -1110,19 +1110,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
     }
     window.sendClientDiscordAlert = sendClientDiscordAlert;
-    function isLiveChatActiveNow() {
-      try {
-        var formatter = new Intl.DateTimeFormat('en-US', {
-          timeZone: 'America/New_York',
-          hour: 'numeric',
-          hour12: false
-        });
-        var currentHour = parseInt(formatter.format(new Date()), 10);
-        return (currentHour >= 9 && currentHour < 17);
-      } catch (e) {
-        return true;
-      }
-    }
     window.isLiveChatActiveNow = isLiveChatActiveNow;
     function showStatus(elem, text, type) {
       if (!elem) return;
@@ -1519,81 +1506,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     // ==========================================================================
     // 2-WAY LIVE CHAT MODAL ENGINE (REAL-TIME COMMUNICATION WINDOW)
     // ==========================================================================
-    function openTwoWayChat(name, phone, initialMsg) {
-      var rawPhone = phone || '';
-      var cleanPhone = rawPhone.replace(/\D/g, '');
-      var storedThreadId = sessionStorage.getItem('fifs_active_thread_id');
-      var activeThreadId = storedThreadId || (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
-      sessionStorage.setItem('fifs_active_thread_id', activeThreadId);
-
-
-      window.__currentChatSession = {
-        name: name || 'Valued Student',
-        phone: rawPhone || 'Not provided',
-        threadId: activeThreadId
-      };
-      var modal = document.getElementById('twoWayChatModal');
-      var stream = document.getElementById('twoWayChatStream');
-      var headerTitle = document.getElementById('twoWayChatHeaderTitle');
-      if (headerTitle) headerTitle.textContent = "Coach Kai Wade";
-      if (stream) {
-        stream.innerHTML = '';
-        var channelBanner = document.createElement('div');
-        channelBanner.style.textAlign = 'center';
-        channelBanner.style.margin = '4px 0 10px';
-        channelBanner.innerHTML = '<span style="font-size: 0.72rem; color: var(--accent-cyan); background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.25); padding: 4px 12px; border-radius: 20px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">🔒 Direct 2-Way Channel Established with Lead Instructor Kai Wade</span>';
-        stream.appendChild(channelBanner);
-        var now = new Date();
-        var timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-
-        // Restore chat message history from Supabase if thread exists
-        if (typeof callFifsBackend === 'function') {
-          callFifsBackend('getLiveChatMessages', { threadId: activeThreadId }, function(res) {
-            if (res && res.status === 'success' && Array.isArray(res.messages) && res.messages.length > 0) {
-              stream.innerHTML = '';
-              stream.appendChild(channelBanner);
-              var renderedHistory = {};
-              res.messages.forEach(function(m) {
-                var isInst = (m.sender === 'instructor' || m.sender === 'admin');
-                var sType = isInst ? 'instructor' : 'user';
-                var sName = isInst ? 'Coach Kai Wade' : (m.sender_name || m.name || name || 'You');
-                var t = m.sent_at ? new Date(m.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : timeStr;
-                renderedHistory[m.sent_at + '_' + m.message] = true;
-                appendTwoWayBubble(sType, sName, m.message, t);
-              });
-              if (window.__currentChatSession) {
-                window.__currentChatSession.renderedMessages = renderedHistory;
-              }
-            } else if (initialMsg) {
-              appendTwoWayBubble('user', name, initialMsg, timeStr);
-              setTimeout(function() {
-                var welcomeReply = "Hello, this is Instructor Wade's personal chat assistant. How can I help you today? Please note, if this message was sent between the hours of 9 AM to 5 PM, there is a great chance of him responding within the next five minutes. So please leave this window open.";
-                appendTwoWayBubble('instructor', 'Coach Kai Wade', welcomeReply, timeStr);
-              }, 400);
-            }
-          }, function() {
-            if (initialMsg) {
-              appendTwoWayBubble('user', name, initialMsg, timeStr);
-            }
-          });
-        } else if (initialMsg) {
-          appendTwoWayBubble('user', name, initialMsg, timeStr);
-        }
-      }
-      if (modal) {
-        modal.classList.add('active');
-        modal.style.setProperty('display', 'flex', 'important');
-        modal.style.setProperty('opacity', '1', 'important');
-        modal.style.setProperty('visibility', 'visible', 'important');
-        modal.style.setProperty('pointer-events', 'auto', 'important');
-        document.body.classList.add('modal-open');
-        document.body.style.overflow = 'hidden';
-      }
-      setTimeout(function() {
-        var input = document.getElementById('twoWayMessageInput');
-        if (input) input.focus();
-      }, 300);
-    }
     window.openTwoWayChat = openTwoWayChat;
     // Visitor 2-Way Chat Real-Time Poller
     window.__visitorChatPollInterval = null;
@@ -1630,31 +1542,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     }
     window.startVisitorChatPolling = startVisitorChatPolling;
     window.stopVisitorChatPolling = stopVisitorChatPolling;
-    function closeTwoWayChat() {
-      stopVisitorChatPolling();
-      var modal = document.getElementById('twoWayChatModal');
-      var stream = document.getElementById('twoWayChatStream');
-      var input = document.getElementById('twoWayMessageInput');
-      var dispatchForm = document.getElementById('liveChatDispatchForm');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.style.setProperty('display', 'none', 'important');
-        modal.style.setProperty('opacity', '0', 'important');
-        modal.style.setProperty('pointer-events', 'none', 'important');
-      }
-      if (stream) stream.innerHTML = '';
-      if (input) input.value = '';
-      if (dispatchForm) dispatchForm.reset();
-      window.__currentChatSession = null;
-      try {
-        sessionStorage.removeItem('fifs_live_chat_transcript');
-        _fifsMemStorage.removeItem('fifs_live_chat_transcript');
-      } catch (e) {}
-      if (document.body) {
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-      }
-    }
     window.closeTwoWayChat = closeTwoWayChat;
     function showChatTypingIndicator() {
       var stream = document.getElementById('twoWayChatStream');
@@ -1673,106 +1560,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       if (ind && ind.parentNode) ind.parentNode.removeChild(ind);
     }
     /* Legacy head handleLiveChatSubmit replaced by authoritative body handler */
-    function appendTwoWayBubble(senderType, senderName, text, timeStr) {
-      var stream = document.getElementById('twoWayChatStream');
-      if (!stream) return;
-      var bubble = document.createElement('div');
-      bubble.style.marginBottom = '12px';
-      bubble.style.display = 'flex';
-      bubble.style.flexDirection = 'column';
-      if (senderType === 'user') {
-        bubble.style.alignItems = 'flex-end';
-        bubble.innerHTML = `
-          <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 2px;">${escapeHtml(senderName)} • ${timeStr}</div>
-          <div style="background: var(--accent-cyan); color: #070b10; padding: 10px 14px; border-radius: 14px 14px 2px 14px; max-width: 85%; font-size: 0.90rem; font-weight: 600; line-height: 1.45; box-shadow: 0 4px 14px rgba(0, 229, 255, 0.25);">
-            ${escapeHtml(text)}
-          </div>
-          <div style="font-size: 0.65rem; color: #10b981; margin-top: 2px; font-weight: 700;">✓ Sent to Coach Wade</div>
-        `;
-      } else {
-        bubble.style.alignItems = 'flex-start';
-        bubble.innerHTML = `
-          <div style="font-size: 0.72rem; color: var(--accent-cyan); margin-bottom: 2px; font-weight: 700;">${escapeHtml(senderName)} (Lead Instructor) • ${timeStr}</div>
-          <div style="background: #141c26; border: 1px solid rgba(0, 229, 255, 0.35); color: #e2e8f0; padding: 10px 14px; border-radius: 14px 14px 14px 2px; max-width: 85%; font-size: 0.90rem; line-height: 1.45; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);">
-            ${escapeHtml(text)}
-          </div>
-        `;
-      }
-      stream.appendChild(bubble);
-      stream.scrollTop = stream.scrollHeight;
-    }
     window.appendTwoWayBubble = appendTwoWayBubble;
-    function handleTwoWayChatSend(e) {
-      if (e && e.preventDefault) e.preventDefault();
-      var input = document.getElementById('twoWayMessageInput');
-      if (!input) return;
-      var text = input.value.trim();
-      if (!text) return;
-      input.value = '';
-
-
-      var session = window.__currentChatSession || { name: 'Visitor', phone: 'Direct Line' };
-      var cleanPhone = (session.phone || '').replace(/\D/g, '');
-      var threadId = session.threadId || (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
-      session.threadId = threadId;
-
-
-      var now = new Date();
-      var timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-      appendTwoWayBubble('user', session.name, text, timeStr);
-
-
-      // Discord webhook for follow-up message
-      if (typeof sendClientDiscordAlert === 'function') {
-        sendClientDiscordAlert(
-          "💬 Live Chat Follow-Up: " + session.name,
-          "Student sent a message during active live chat.",
-          [
-            { name: "Sender Name", value: session.name, inline: true },
-            { name: "Phone / SMS Callback", value: session.phone, inline: true },
-            { name: "Thread ID", value: threadId, inline: true },
-            { name: "Message Content", value: text, inline: false }
-          ],
-          0x00E5FF
-        );
-      }
-
-
-      // Persist to Supabase via Next.js backend API
-      var payload = {
-        name: session.name || 'Visitor',
-        fullName: session.name || 'Visitor',
-        senderName: session.name || 'Visitor',
-        phone: session.phone || '',
-        senderPhone: session.phone || '',
-        senderEmail: session.email || '',
-        message: text,
-        text: text,
-        threadId: threadId,
-        thread_id: threadId,
-        urgency: 'HIGH'
-      };
-
-
-      if (typeof callFifsBackend === 'function') {
-        callFifsBackend('handleLiveChatMessage', payload, function(res) {
-          if (res && res.threadId) {
-            if (!window.__currentChatSession) window.__currentChatSession = {};
-            window.__currentChatSession.threadId = res.threadId;
-            if (res.threadSecret) window.__currentChatSession.threadSecret = res.threadSecret;
-          }
-          console.log('[FIFS] Visitor reply persisted to Supabase:', res);
-        }, function(err) {
-          console.error('[FIFS] Visitor reply failed to persist:', err);
-        });
-      }
-
-
-      // Keep live instructor polling active
-      if (typeof startVisitorChatPolling === 'function') {
-        startVisitorChatPolling(threadId);
-      }
-    }
     window.handleTwoWayChatSend = handleTwoWayChatSend;
     function generateCoachWadeReply(msg) {
       var m = msg.toLowerCase();
@@ -5451,18 +5239,22 @@ function openAdminEditStudentModal(studentId) {
       }
     }
     window.closeContactWidgetModal = closeContactWidgetModal;
-    function isLiveChatActiveNow() {
+    // Live chat hours: Monday-Friday, 9:00 AM to 5:00 PM US Eastern. `now` is optional (used by tests).
+    function isLiveChatActiveNow(now) {
       try {
-        var formatter = new Intl.DateTimeFormat('en-US', {
-          timeZone: 'America/New_York',
-          hour: 'numeric',
-          hour12: false
+        var when = (now && typeof now.getTime === 'function') ? now : new Date();
+        var parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', hour12: false }).formatToParts(when);
+        var weekday = '';
+        var hour = NaN;
+        parts.forEach(function(p) {
+          if (p.type === 'weekday') weekday = p.value;
+          if (p.type === 'hour') hour = parseInt(p.value, 10);
         });
-        var hour = parseInt(formatter.format(new Date()), 10);
-        return (hour >= 9 && hour < 17);
+        if (hour === 24) hour = 0;
+        if (!weekday || isNaN(hour)) return true;
+        return weekday !== 'Sat' && weekday !== 'Sun' && hour >= 9 && hour < 17;
       } catch (err) {
-        var h = new Date().getHours();
-        return (h >= 9 && h < 17);
+        return true;
       }
     }
     function updateLiveChatStatusUI() {
@@ -5471,43 +5263,84 @@ function openAdminEditStudentModal(studentId) {
       var desc = document.getElementById('liveChatStatusDescription');
       var active = isLiveChatActiveNow();
       if (active) {
-        if (tag) { tag.textContent = '🟢 ONLINE NOW (9 AM – 5 PM EST)'; tag.style.color = '#10b981'; }
+        if (tag) { tag.textContent = '🟢 ONLINE NOW (Mon–Fri, 9 AM – 5 PM ET)'; tag.style.color = '#10b981'; }
         if (dot) dot.style.background = '#10b981';
         if (desc) desc.textContent = 'Direct live dispatch to Coach Kai Wade. Messages submitted right now trigger immediate priority notification.';
       } else {
-        if (tag) { tag.textContent = '🔴 AFTER HOURS (ACTIVE 9 AM – 5 PM EST)'; tag.style.color = 'var(--accent-amber)'; }
+        if (tag) { tag.textContent = '🔴 AFTER HOURS (LIVE CHAT MON–FRI, 9 AM – 5 PM ET)'; tag.style.color = 'var(--accent-amber)'; }
         if (dot) dot.style.background = 'var(--accent-amber)';
         if (desc) desc.textContent = 'Coach Wade is currently off the line. Leave your message below and it will be dispatched immediately for first-priority morning review.';
       }
     }
+    // ==========================================================================
+    // VISITOR LIVE CHAT WIDGET (single authoritative implementation)
+    // - The first message carries NO thread id; the server creates the thread and returns threadId + threadSecret.
+    // - "Delivered" is shown only after the server confirms (success, threadId and threadSecret).
+    // - Live chat hours are Mon-Fri 9 AM - 5 PM US Eastern. Outside them the visitor sends one message, then the chat locks.
+    // ==========================================================================
+    var FIFS_CHAT_CONNECT_ERROR = 'Unable to connect to live chat. Please call or text (443) 990-1304 directly.';
+    var FIFS_CHAT_AFTER_HOURS_NOTICE = 'Your message was delivered to Coach Kai. Our live chat hours are Mon–Fri, 9 AM – 5 PM ET. We will follow up via phone/email, or you can call/text (443) 990-1304.';
+    function fifsChatSetInputLocked(locked) {
+      var form = document.getElementById('twoWayChatInputForm');
+      if (!form) return;
+      if (locked) {
+        if (form.getAttribute('data-orig-display') === null) form.setAttribute('data-orig-display', form.style.display || '');
+        form.style.display = 'none';
+      } else {
+        var orig = form.getAttribute('data-orig-display');
+        if (orig !== null) { form.style.display = orig; form.removeAttribute('data-orig-display'); }
+      }
+    }
+    function fifsChatShowFormError(message) {
+      var st = document.getElementById('chat-dispatch-status');
+      if (!st) { try { alert(message); } catch (e) {} return; }
+      st.textContent = message;
+      st.style.display = 'block';
+      st.style.color = '#ef4444';
+      st.style.border = '1px solid #ef4444';
+      st.style.background = 'rgba(239, 68, 68, 0.12)';
+      st.style.padding = '10px';
+      st.style.borderRadius = '8px';
+    }
+    function fifsChatReleaseSubmitGuard(btn) {
+      window.__fifsChatSubmitting = false;
+      if (window.__fifsChatSubmitTimer) { clearTimeout(window.__fifsChatSubmitTimer); window.__fifsChatSubmitTimer = null; }
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '🚀 Dispatch Live Chat Message →';
+      }
+    }
+    function fifsChatConfirmed(res) {
+      return !!(res && res.success === true && typeof res.threadId === 'string' && res.threadId && typeof res.threadSecret === 'string' && res.threadSecret);
+    }
     function handleLiveChatSubmit(e) {
       if (e && e.preventDefault) e.preventDefault();
+      // One submission at a time: duplicate event wiring or a double tap must not send twice.
+      if (window.__fifsChatSubmitting) return;
       var nameEl = document.getElementById('chatSenderName');
       var phoneEl = document.getElementById('chatSenderPhone');
       var msgEl = document.getElementById('chatMessageText');
       var btn = document.getElementById('btn-send-chat');
-      var modal = document.getElementById('liveChatDispatchModal') || document.getElementById('contactWidgetModal');
       var name = nameEl ? nameEl.value.trim() : '';
       var phone = phoneEl ? phoneEl.value.trim() : '';
       var msg = msgEl ? msgEl.value.trim() : '';
-
 
       if (!name || !phone || !msg) {
         alert('Please fill out your Name, Phone Number, and Message to start two-way live chat.');
         return;
       }
 
-
+      window.__fifsChatSubmitting = true;
+      // Never leave the form stuck if the network hangs.
+      window.__fifsChatSubmitTimer = setTimeout(function() { window.__fifsChatSubmitting = false; }, 20000);
+      var st = document.getElementById('chat-dispatch-status');
+      if (st) st.style.display = 'none';
       if (btn) {
         btn.disabled = true;
-        btn.textContent = '⏳ Initializing Live Channel...';
+        btn.textContent = '⏳ Sending...';
       }
 
-
-      var cleanPhone = phone.replace(/[^0-9]/g, '');
-      var threadId = cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now());
-
-
+      // No threadId here: the server creates the thread and returns its id and secret.
       var payload = {
         name: name,
         fullName: name,
@@ -5517,45 +5350,36 @@ function openAdminEditStudentModal(studentId) {
         senderEmail: '',
         message: msg,
         text: msg,
-        threadId: threadId,
-        thread_id: threadId,
         urgency: 'HIGH'
       };
 
-
-      if (typeof callFifsBackend === 'function') {
-        callFifsBackend('handleLiveChatMessage', payload, function(res) {
-          if (res && res.threadId) {
-            if (!window.__currentChatSession) window.__currentChatSession = {};
-            window.__currentChatSession.threadId = res.threadId;
-            if (res.threadSecret) window.__currentChatSession.threadSecret = res.threadSecret;
-          }
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = '🚀 Start Live Chat →';
-          }
-          if (modal) {
-            modal.style.setProperty('display', 'none', 'important');
-            modal.classList.remove('active');
-          }
-          if (typeof openTwoWayChat === 'function') {
-            openTwoWayChat(name, phone, msg);
-          }
-        }, function(err) {
-          console.error('Error starting live chat:', err);
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = '🚀 Start Live Chat →';
-          }
-          if (modal) {
-            modal.style.setProperty('display', 'none', 'important');
-            modal.classList.remove('active');
-          }
-          if (typeof openTwoWayChat === 'function') {
-            openTwoWayChat(name, phone, msg);
-          }
-        });
+      if (typeof callFifsBackend !== 'function') {
+        fifsChatReleaseSubmitGuard(btn);
+        fifsChatShowFormError(FIFS_CHAT_CONNECT_ERROR);
+        return;
       }
+      callFifsBackend('handleLiveChatMessage', payload, function(res) {
+        fifsChatReleaseSubmitGuard(btn);
+        if (!fifsChatConfirmed(res)) {
+          fifsChatShowFormError(FIFS_CHAT_CONNECT_ERROR);
+          return;
+        }
+        window.__currentChatSession = {
+          name: name,
+          phone: phone,
+          email: '',
+          threadId: res.threadId,
+          threadSecret: res.threadSecret,
+          renderedMessages: {},
+          locked: !isLiveChatActiveNow()
+        };
+        if (typeof closeContactWidgetModal === 'function') closeContactWidgetModal();
+        openTwoWayChat(name, phone, msg);
+      }, function(err) {
+        console.error('Error starting live chat:', err);
+        fifsChatReleaseSubmitGuard(btn);
+        fifsChatShowFormError(FIFS_CHAT_CONNECT_ERROR);
+      });
     }
     window.handleLiveChatSubmit = handleLiveChatSubmit;
     // ==========================================================================
@@ -5563,16 +5387,20 @@ function openAdminEditStudentModal(studentId) {
     // ==========================================================================
     window.__currentChatSession = null;
     function openTwoWayChat(name, phone, initialMsg) {
-      var cleanPhone = (phone || '').replace(/\D/g, '');
-      var threadId = cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now());
+      // The thread id and secret come from the server (set by handleLiveChatSubmit); they are never invented here.
+      var prev = window.__currentChatSession || {};
+      var confirmed = !!(prev.threadId && prev.threadSecret);
+      var locked = !!prev.locked;
       window.__currentChatSession = {
         name: name || 'Valued Student',
         phone: phone || 'Not provided',
         email: '',
-        threadId: threadId,
-        renderedCount: 0
+        threadId: prev.threadId || null,
+        threadSecret: prev.threadSecret || null,
+        renderedMessages: {},
+        locked: locked
       };
-      startVisitorChatPolling(threadId);
+      if (window.__fifsGreetingTimer) { clearTimeout(window.__fifsGreetingTimer); window.__fifsGreetingTimer = null; }
       var modal = document.getElementById('twoWayChatModal');
       var stream = document.getElementById('twoWayChatStream');
       var headerTitle = document.getElementById('twoWayChatHeaderTitle');
@@ -5585,17 +5413,33 @@ function openAdminEditStudentModal(studentId) {
         var channelBanner = document.createElement('div');
         channelBanner.style.textAlign = 'center';
         channelBanner.style.margin = '4px 0 10px';
-        channelBanner.innerHTML = '<span style="font-size: 0.72rem; color: var(--accent-cyan); background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.25); padding: 4px 12px; border-radius: 20px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">🔒 Direct 2-Way Channel Established with Lead Instructor Kai Wade</span>';
+        channelBanner.innerHTML = '<span style="font-size: 0.72rem; color: var(--accent-cyan); background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.25); padding: 4px 12px; border-radius: 12px; font-weight: 700;">Secure live channel</span>';
         stream.appendChild(channelBanner);
         var now = new Date();
         var timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-        // 1. Append user initial outgoing message
-        appendTwoWayBubble('user', name, initialMsg, timeStr);
-        // 2. Append Coach Wade automated greeting
-        setTimeout(function() {
-          var welcomeReply = "Hello, this is Instructor Wade's personal chat assistant. How can I help you today? Please note, if this message was sent between the hours of 9 AM to 5 PM, there is a great chance of him responding within the next five minutes. So please leave this window open.";
-          appendTwoWayBubble('instructor', 'Coach Kai Wade', welcomeReply, timeStr);
-        }, 500);
+        // 1. The visitor's own message, marked delivered only when the server confirmed it
+        if (initialMsg) appendTwoWayBubble('user', name, initialMsg, timeStr, confirmed ? 'delivered' : 'failed');
+        if (locked) {
+          // After hours: one message only. No greeting, no polling, no reply box.
+          var notice = document.createElement('div');
+          notice.id = 'fifs-chat-after-hours-notice';
+          notice.style.cssText = 'text-align:center;margin:10px 4px;padding:12px 14px;border-radius:12px;border:1px solid rgba(245,158,11,0.45);background:rgba(245,158,11,0.10);color:#fcd34d;font-size:0.86rem;line-height:1.5;';
+          notice.textContent = FIFS_CHAT_AFTER_HOURS_NOTICE;
+          stream.appendChild(notice);
+        } else if (confirmed) {
+          // 2. Automated greeting, exactly once
+          window.__fifsGreetingTimer = setTimeout(function() {
+            window.__fifsGreetingTimer = null;
+            var welcomeReply = "Hello, this is Instructor Wade's personal chat assistant. How can I help you today? Please note, if this message was sent between the hours of 9 AM to 5 PM, there is a great chance of him responding within the next five minutes. So please leave this window open.";
+            appendTwoWayBubble('instructor', 'Coach Kai Wade', welcomeReply, timeStr);
+          }, 500);
+        }
+      }
+      fifsChatSetInputLocked(locked);
+      if (locked) {
+        if (typeof stopVisitorChatPolling === 'function') stopVisitorChatPolling();
+      } else if (confirmed && typeof startVisitorChatPolling === 'function') {
+        startVisitorChatPolling(prev.threadId);
       }
       if (modal) {
         modal.style.setProperty('display', 'flex', 'important');
@@ -5607,13 +5451,13 @@ function openAdminEditStudentModal(studentId) {
       }
       setTimeout(function() {
         var input = document.getElementById('twoWayMessageInput');
-        if (input) input.focus();
+        if (input && !locked) input.focus();
       }, 300);
     }
     window.openTwoWayChat = openTwoWayChat;
-    function appendTwoWayBubble(sender, senderName, text, time) {
+    function appendTwoWayBubble(sender, senderName, text, time, state) {
       var stream = document.getElementById('twoWayChatStream');
-      if (!stream) return;
+      if (!stream) return null;
       var timeStr = time || (new Date()).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
       var row = document.createElement('div');
       if (sender === 'user') {
@@ -5622,11 +5466,12 @@ function openAdminEditStudentModal(studentId) {
         row.style.textAlign = 'right';
         row.innerHTML = `
           <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px;">You (${escapeHtml(senderName)}) • ${timeStr}</div>
-          <div style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.22) 0%, rgba(0, 153, 204, 0.35) 100%); border: 1.5px solid var(--accent-cyan); border-radius: 14px 14px 2px 14px; padding: 10px 14px; color: #fff; font-size: 0.90rem; ght: 1.5; text-align: left; box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);">
+          <div style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.22) 0%, rgba(0, 153, 204, 0.35) 100%); border: 1.5px solid var(--accent-cyan); border-radius: 14px 14px 2px 14px; padding: 10px 14px; color: #fff; font-size: 0.90rem; line-height: 1.5; text-align: left; box-shadow: 0 4px 12px rgba(0, 229, 255, 0.15);">
             ${escapeHtml(text)}
           </div>
-          <div style="font-size: 0.68rem; color: var(--accent-cyan); margin-top: 2px;">✔ Delivered to Instructor (Line & Discord)</div>
+          <div class="fifs-chat-delivery" style="font-size: 0.68rem; margin-top: 2px;"></div>
         `;
+        fifsChatSetBubbleState(row, state || 'pending');
       } else {
         row.style.alignSelf = 'flex-start';
         row.style.maxWidth = '84%';
@@ -5637,50 +5482,49 @@ function openAdminEditStudentModal(studentId) {
             <span style="font-size: 0.68rem; background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); padding: 1px 6px; border-radius: 4px; font-weight: 700;">INSTRUCTOR</span>
             <span style="font-size: 0.70rem; color: var(--text-muted);">${timeStr}</span>
           </div>
-          <div style="background: #10161f; border: 1.5px solid rgba(255, 255, 255, 0.12); border-left: 3px solid var(--accent-cyan); border-radius: 14px 14px 14px 2px; padding: 12px 16px; color: #e2e8f0; font-size: 0.90rem; line-height: 1.55; box-shadow: 0 6px 18px rgba(0,0,0,0.6);">
+          <div style="background: #10161f; border: 1.5px solid rgba(255, 255, 255, 0.12); border-left: 3px solid var(--accent-cyan); border-radius: 14px 14px 14px 2px; padding: 12px 16px; color: #e2e8f0; font-size: 0.90rem; line-height: 1.55; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);">
             ${text}
           </div>
         `;
       }
       stream.appendChild(row);
       stream.scrollTop = stream.scrollHeight;
+      return row;
+    }
+    function fifsChatSetBubbleState(row, state) {
+      if (!row) return;
+      var label = row.querySelector ? row.querySelector('.fifs-chat-delivery') : null;
+      if (!label) return;
+      if (state === 'delivered') {
+        label.textContent = '✔ Delivered to Coach Kai';
+        label.style.color = 'var(--accent-cyan)';
+      } else if (state === 'failed') {
+        label.textContent = '⚠ Not delivered. Please call or text (443) 990-1304 directly.';
+        label.style.color = '#ef4444';
+      } else {
+        label.textContent = '⏳ Sending...';
+        label.style.color = 'var(--text-muted)';
+      }
     }
     function handleTwoWayChatSend(e) {
       if (e && e.preventDefault) e.preventDefault();
       var input = document.getElementById('twoWayMessageInput');
       var text = input ? input.value.trim() : '';
       if (!text) return;
+      var session = window.__currentChatSession;
+      // After hours the chat is one message only.
+      if (!session || session.locked) return;
       input.value = '';
-
-
-      var session = window.__currentChatSession || { name: 'Visitor', phone: 'Direct Line' };
-      var cleanPhone = (session.phone || '').replace(/\D/g, '');
-      var threadId = session.threadId || (cleanPhone ? ('thread_' + cleanPhone) : ('thread_' + Date.now()));
-      session.threadId = threadId;
-
 
       var now = new Date();
       var timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-      appendTwoWayBubble('user', session.name, text, timeStr);
-
-
-      // Alert Discord of live reply
-      if (typeof sendClientDiscordAlert === 'function') {
-        sendClientDiscordAlert(
-          "💬 Live Chat Reply from " + session.name,
-          "Follow-up message in active 2-way chat on **trainwithfifs.com**.",
-          [
-            { name: "Sender Name", value: session.name, inline: true },
-            { name: "Phone / SMS Callback", value: session.phone, inline: true },
-            { name: "Thread ID", value: threadId, inline: true },
-            { name: "Message Content", value: text, inline: false }
-          ],
-          0x00E5FF
-        );
+      var bubble = appendTwoWayBubble('user', session.name, text, timeStr, 'pending');
+      if (!session.threadId || !session.threadSecret || typeof callFifsBackend !== 'function') {
+        fifsChatSetBubbleState(bubble, 'failed');
+        return;
       }
 
-
-      // Send structured payload to Supabase backend
+      // Follow-ups always carry the credential the server issued for this thread.
       var payload = {
         name: session.name || 'Visitor',
         fullName: session.name || 'Visitor',
@@ -5690,30 +5534,16 @@ function openAdminEditStudentModal(studentId) {
         senderEmail: session.email || '',
         message: text,
         text: text,
-        threadId: threadId,
-        thread_id: threadId,
+        threadId: session.threadId,
+        threadSecret: session.threadSecret,
         urgency: 'HIGH'
       };
-
-
-      if (typeof callFifsBackend === 'function') {
-        callFifsBackend('handleLiveChatMessage', payload, function(res) {
-          if (res && res.threadId) {
-            if (!window.__currentChatSession) window.__currentChatSession = {};
-            window.__currentChatSession.threadId = res.threadId;
-            if (res.threadSecret) window.__currentChatSession.threadSecret = res.threadSecret;
-          }
-          console.log('[FIFS] Follow-up message logged to Supabase:', res);
-        }, function(err) {
-          console.error('[FIFS] Failed to log follow-up to Supabase:', err);
-        });
-      }
-
-
-      // Ensure live instructor polling is active so Coach Wade replies appear in real-time
-      if (typeof startVisitorChatPolling === 'function') {
-        startVisitorChatPolling(threadId);
-      }
+      callFifsBackend('handleLiveChatMessage', payload, function(res) {
+        fifsChatSetBubbleState(bubble, (res && res.success === true && res.threadId === session.threadId) ? 'delivered' : 'failed');
+      }, function(err) {
+        console.error('[FIFS] Failed to send follow-up message:', err);
+        fifsChatSetBubbleState(bubble, 'failed');
+      });
     }
     window.handleTwoWayChatSend = handleTwoWayChatSend;
     function generateCoachWadeReply(name, msg) {
@@ -5740,6 +5570,9 @@ function openAdminEditStudentModal(studentId) {
      * and guarantees zero data retention in browser fields or local storage.
      */
     function closeTwoWayChat() {
+      if (typeof stopVisitorChatPolling === 'function') stopVisitorChatPolling();
+      if (window.__fifsGreetingTimer) { clearTimeout(window.__fifsGreetingTimer); window.__fifsGreetingTimer = null; }
+      fifsChatSetInputLocked(false);
       var modal = document.getElementById('twoWayChatModal');
       if (modal) {
         modal.style.setProperty('display', 'none', 'important');

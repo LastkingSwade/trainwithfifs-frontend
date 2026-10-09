@@ -2517,6 +2517,252 @@ async function main() {
     assert(/verifyThreadSecret\(incomingThread, incomingSecret\)/.test(chatSend) && /verifyThreadSecret\(tId, tSecret\)/.test(chatRead), 'the credential checks must stay');
   });
 
+  console.log('\n[SECTION Y: Website live chat widget (real script functions, real route, mock database)]');
+  // The widget functions come straight from the public script and run in a sandbox with a small DOM stub. Their
+  // callFifsBackend is the real one, and its fetch goes to the real /api/fifs route over the mock database.
+  const WIDGET_FUNCTIONS = ['escapeHtml', 'isLiveChatActiveNow', 'fifsChatSetInputLocked', 'fifsChatShowFormError', 'fifsChatReleaseSubmitGuard',
+    'fifsChatConfirmed', 'handleLiveChatSubmit', 'openTwoWayChat', 'appendTwoWayBubble', 'fifsChatSetBubbleState', 'handleTwoWayChatSend',
+    'closeTwoWayChat', 'startVisitorChatPolling', 'stopVisitorChatPolling', 'fifsResolveBearerToken', 'callFifsBackend'];
+  const WIDGET_SRC = PUBLIC_SCRIPT.match(/^    var FIFS_CHAT_[A-Z_]+ = .*;$/gm).join('\n') + '\n' + WIDGET_FUNCTIONS.map(extractFunction).join('\n');
+  const CONNECT_ERROR = 'Unable to connect to live chat. Please call or text (443) 990-1304 directly.';
+  const AFTER_HOURS_NOTICE = 'Your message was delivered to Coach Kai. Our live chat hours are Mon\u2013Fri, 9 AM \u2013 5 PM ET. We will follow up via phone/email, or you can call/text (443) 990-1304.';
+  const MON_10AM = '2026-03-02T15:00:00Z';   // Monday 10:00 ET
+  const SAT_11AM = '2026-03-07T16:00:00Z';   // Saturday 11:00 ET
+
+  function makeEl(id) {
+    const el = {
+      id, children: [], disabled: false, value: '', textContent: '', scrollTop: 0, scrollHeight: 0, _attrs: {}, _html: '',
+      style: { setProperty(k, v) { this[k] = v; } },
+      classList: { add() {}, remove() {} },
+      appendChild(c) { this.children.push(c); return c; },
+      setAttribute(k, v) { this._attrs[k] = String(v); },
+      getAttribute(k) { return k in this._attrs ? this._attrs[k] : null; },
+      removeAttribute(k) { delete this._attrs[k]; },
+      reset() {}, focus() {},
+      querySelector() { return this._html.includes('fifs-chat-delivery') ? (this._label || (this._label = { textContent: '', style: {} })) : null; }
+    };
+    Object.defineProperty(el, 'innerHTML', { get() { return this._html; }, set(v) { this._html = v; if (v === '') this.children = []; } });
+    return el;
+  }
+  function loadWidget(nowIso) {
+    const t = new Date(nowIso).getTime();
+    const FakeDate = class extends Date { constructor(...a) { if (a.length) super(...a); else super(t); } static now() { return t; } };
+    const els = {};
+    ['chatSenderName', 'chatSenderPhone', 'chatMessageText', 'btn-send-chat', 'chat-dispatch-status', 'twoWayChatModal', 'twoWayChatStream',
+      'twoWayChatHeaderTitle', 'twoWayChatInputForm', 'twoWayMessageInput', 'liveChatDispatchForm'].forEach((id) => { els[id] = makeEl(id); });
+    els.twoWayChatInputForm.style.display = 'flex';
+    els['btn-send-chat'].textContent = 'Dispatch';
+    els['chat-dispatch-status'].style.display = 'none';
+    els.twoWayChatModal.style.display = 'none';
+    const w = { els, sent: [], timers: [], intervals: [], alerts: [], closedWidget: 0, failFetch: false };
+    const ctx = {
+      console: { error() {}, log() {}, warn() {} },
+      Intl, Date: FakeDate, Object, JSON, Error, Promise, parseInt, isNaN, Array, String,
+      alert: (m) => w.alerts.push(m),
+      closeContactWidgetModal: () => { w.closedWidget++; },
+      document: { getElementById: (id) => els[id] || null, createElement: (tag) => makeEl(tag), body: { classList: { add() {}, remove() {} }, style: {} } },
+      setTimeout: (fn, ms) => { const x = { fn, ms, cleared: false }; w.timers.push(x); return x; },
+      clearTimeout: (x) => { if (x) x.cleared = true; },
+      setInterval: (fn, ms) => { const x = { fn, ms, cleared: false }; w.intervals.push(x); return x; },
+      clearInterval: (x) => { if (x) x.cleared = true; },
+      addEventListener() {},
+      fetch: async (url, init) => {
+        const body = JSON.parse(init.body);
+        w.sent.push(body);
+        if (w.failFetch) throw new Error('network down');
+        const res = await fifsRoute.POST(makeRequest(body, init.headers || {}));
+        return { ok: res.status >= 200 && res.status < 300, status: res.status, json: async () => res._body };
+      }
+    };
+    ctx.window = ctx;
+    vm.createContext(ctx);
+    vm.runInContext(WIDGET_SRC, ctx);
+    w.ctx = ctx;
+    w.fill = (name, phone, msg) => { els.chatSenderName.value = name; els.chatSenderPhone.value = phone; els.chatMessageText.value = msg; };
+    w.settle = async () => { for (let i = 0; i < 25; i++) await new Promise((r) => setImmediate(r)); };
+    w.runTimers = () => { for (let i = 0; i < w.timers.length; i++) { const x = w.timers[i]; if (!x.cleared) { x.cleared = true; x.fn(); } } };
+    w.tickPolling = async () => { w.intervals.filter((x) => !x.cleared).forEach((x) => x.fn()); await w.settle(); };
+    w.activeIntervals = () => w.intervals.filter((x) => !x.cleared).length;
+    w.streamText = () => els.twoWayChatStream.children.map((c) => (c.innerHTML || '') + (c.textContent || '') + (c._label ? c._label.textContent : '')).join('\n');
+    w.count = (needle) => w.streamText().split(needle).length - 1;
+    return w;
+  }
+  const handshakeSends = (w) => w.sent.filter((b) => b.action === 'handleLiveChatMessage');
+
+  await test('Widget hours are Monday to Friday, 9 AM to 5 PM US Eastern', async () => {
+    const w = loadWidget(MON_10AM);
+    const at = (iso) => w.ctx.isLiveChatActiveNow(new Date(iso));
+    const cases = [
+      ['2026-03-02T15:00:00Z', true, 'Monday 10:00'], ['2026-03-02T13:59:00Z', false, 'Monday 08:59'], ['2026-03-02T14:00:00Z', true, 'Monday 09:00'],
+      ['2026-03-06T21:59:00Z', true, 'Friday 16:59'], ['2026-03-06T22:00:00Z', false, 'Friday 17:00'], ['2026-03-07T16:00:00Z', false, 'Saturday 11:00'],
+      ['2026-03-08T16:00:00Z', false, 'Sunday 12:00'], ['2026-03-02T05:30:00Z', false, 'Monday 00:30 (midnight hour)'],
+      ['2026-07-06T20:30:00Z', true, 'Monday 16:30 daylight time'], ['2026-07-06T21:00:00Z', false, 'Monday 17:00 daylight time']
+    ];
+    for (const [iso, expected, label] of cases) assert(at(iso) === expected, `${label} should be ${expected ? 'open' : 'closed'}`);
+  });
+
+  await test('The first message omits any thread id and the server returns threadId and threadSecret', async () => {
+    await withChatSecret(async () => {
+      const w = loadWidget(MON_10AM);
+      w.fill('Vera Visitor', '(410) 555-0101', 'Is there a class Saturday?');
+      w.ctx.handleLiveChatSubmit({ preventDefault() {} });
+      await w.settle();
+      const sends = handshakeSends(w);
+      assert(sends.length === 1, 'exactly one request, got ' + sends.length);
+      const keys = Object.keys(sends[0]);
+      assert(!keys.some((k) => /thread/i.test(k)), 'the first message must carry no thread id or secret: ' + keys.join());
+      const s = w.ctx.window.__currentChatSession;
+      assert(s && /^th_[0-9a-f]{32}$/.test(s.threadId) && s.threadSecret === threadSecretFor(s.threadId), 'the session keeps the server-issued id and credential: ' + JSON.stringify(s));
+      assert(db.messages.length === 1 && db.messages[0].thread_id === s.threadId && db.messages[0].message === 'Is there a class Saturday?', 'the message is stored under that thread');
+      assert(w.els.twoWayChatModal.style.display === 'flex' && w.closedWidget === 1, 'the chat opens and the widget form closes');
+      assert(/Delivered to Coach Kai/.test(w.streamText()) && !/Not delivered/.test(w.streamText()), 'the bubble shows Delivered after confirmation');
+      assert(w.els['chat-dispatch-status'].style.display === 'none', 'no error is shown');
+    });
+  });
+
+  await test('A follow-up carries the received secret, and polling uses it', async () => {
+    await withChatSecret(async () => {
+      const w = loadWidget(MON_10AM);
+      w.fill('Vera Visitor', '(410) 555-0101', 'Hello');
+      w.ctx.handleLiveChatSubmit({ preventDefault() {} });
+      await w.settle();
+      const s = w.ctx.window.__currentChatSession;
+      w.els.twoWayMessageInput.value = 'What should I bring?';
+      w.ctx.handleTwoWayChatSend({ preventDefault() {} });
+      await w.settle();
+      const sends = handshakeSends(w);
+      assert(sends.length === 2 && sends[1].threadId === s.threadId && sends[1].threadSecret === s.threadSecret && sends[1].message === 'What should I bring?', 'the follow-up must carry the issued id and secret: ' + JSON.stringify(sends[1]));
+      assert(db.messages.length === 2 && db.messages.every((m) => m.thread_id === s.threadId), 'both messages are in the same thread');
+      assert(w.els.twoWayMessageInput.value === '', 'the input is cleared');
+      assert(w.count('Delivered to Coach Kai') === 2, 'both bubbles are delivered');
+      assert(w.activeIntervals() === 1, 'polling starts for in-hours chats');
+      db.messages.push({ id: 'm-reply', thread_id: s.threadId, sender: 'instructor', sender_name: 'x', message: 'Bring ID and ammo', sent_at: '2026-03-02T15:05:00.000Z' });
+      await w.tickPolling();
+      const polls = w.sent.filter((b) => b.action === 'getVisitorChatMessages');
+      assert(polls.length === 1 && polls[0].threadId === s.threadId && polls[0].threadSecret === s.threadSecret, 'polling passes the received secret');
+      assert(/Bring ID and ammo/.test(w.streamText()), 'the instructor reply appears');
+    });
+  });
+
+  await test('A rejected or unconfirmed send shows the phone fallback, never Delivered, and can be retried', async () => {
+    const attempts = [
+      ['server refuses (chat secret not configured)', (w) => {}, true],
+      ['network failure', (w) => { w.failFetch = true; }, false],
+      ['200 without a thread id', (w) => { w.ctx.callFifsBackend = (a, p, ok) => { w.sent.push({ action: a, ...p }); ok({ success: true }); }; }, false],
+      ['200 with a thread id but no secret', (w) => { w.ctx.callFifsBackend = (a, p, ok) => { w.sent.push({ action: a, ...p }); ok({ success: true, threadId: 'th_x' }); }; }, false],
+      ['200 with success false', (w) => { w.ctx.callFifsBackend = (a, p, ok) => { w.sent.push({ action: a, ...p }); ok({ success: false, threadId: 'th_x', threadSecret: 'abc' }); }; }, false]
+    ];
+    for (const [label, setup, noSecret] of attempts) {
+      const run = async () => {
+        const w = loadWidget(MON_10AM);
+        setup(w);
+        w.fill('Vera Visitor', '(410) 555-0101', 'Hello');
+        w.ctx.handleLiveChatSubmit({ preventDefault() {} });
+        await w.settle();
+        const st = w.els['chat-dispatch-status'];
+        assert(st.textContent === CONNECT_ERROR && st.style.display === 'block', `${label}: the inline fallback message must show, got "${st.textContent}"`);
+        assert(w.els.twoWayChatModal.style.display === 'none' && w.ctx.window.__currentChatSession == null, `${label}: no chat may open`);
+        assert(!/Delivered/.test(w.streamText()), `${label}: it must not claim delivery`);
+        assert(w.els['btn-send-chat'].disabled === false && w.ctx.window.__fifsChatSubmitting === false, `${label}: the form must be usable again`);
+        assert(w.closedWidget === 0, `${label}: the form must stay open`);
+        return w;
+      };
+      if (noSecret) {
+        const w = await run();
+        // The same form can be retried once the server answers properly.
+        await withChatSecret(async () => {
+          w.ctx.handleLiveChatSubmit({ preventDefault() {} });
+          await w.settle();
+          assert(w.ctx.window.__currentChatSession && w.ctx.window.__currentChatSession.threadId, 'the retry succeeds');
+        });
+      } else {
+        await withChatSecret(async () => { await run(); });
+      }
+    }
+  });
+
+  await test('A failed follow-up is marked not delivered with the phone number', async () => {
+    await withChatSecret(async () => {
+      const w = loadWidget(MON_10AM);
+      w.fill('Vera Visitor', '(410) 555-0101', 'Hello');
+      w.ctx.handleLiveChatSubmit({ preventDefault() {} });
+      await w.settle();
+      w.failFetch = true;
+      w.els.twoWayMessageInput.value = 'Anyone there?';
+      w.ctx.handleTwoWayChatSend({ preventDefault() {} });
+      await w.settle();
+      assert(/Not delivered\. Please call or text \(443\) 990-1304 directly\./.test(w.streamText()), 'the failed bubble tells the visitor to call or text');
+      assert(w.count('Delivered to Coach Kai') === 1, 'only the confirmed message says Delivered');
+    });
+  });
+
+  await test('One tap sends once and the greeting posts once (duplicate event wiring cannot double-fire)', async () => {
+    await withChatSecret(async () => {
+      const w = loadWidget(MON_10AM);
+      w.fill('Vera Visitor', '(410) 555-0101', 'Hello');
+      const e = { preventDefault() {} };
+      w.ctx.handleLiveChatSubmit(e);
+      w.ctx.handleLiveChatSubmit(e);   // what the React handler plus the global delegator used to do
+      await w.settle();
+      w.runTimers();
+      assert(handshakeSends(w).length === 1 && db.messages.length === 1, `one request and one stored message, got ${handshakeSends(w).length}/${db.messages.length}`);
+      assert(w.count('personal chat assistant') === 1, 'the greeting appears exactly once, got ' + w.count('personal chat assistant'));
+      assert(w.count('Delivered to Coach Kai') === 1, 'one visitor bubble');
+      assert(w.activeIntervals() === 1, 'one polling timer');
+    });
+  });
+
+  await test('Live chat widget markup has no duplicate wiring and the page no longer overrides the script handlers', async () => {
+    const page = fs.readFileSync(path.join(ROOT, 'src/app/page.tsx'), 'utf-8');
+    for (const [needle, what] of [
+      [/id="liveChatDispatchForm"[^>]*data-onsubmit=/, 'the dispatch form'], [/id="btn-send-chat"[^>]*data-onclick=/, 'the dispatch button'],
+      [/id="twoWayChatInputForm"[^>]*data-onsubmit=/, 'the reply form']
+    ]) assert(!needle.test(page), what + ' must not carry both a React handler and a data-on* handler');
+    assert(!/\(window as any\)\.handleLiveChatSubmit\s*=/.test(page), 'page.tsx must not redefine handleLiveChatSubmit');
+    assert(!/\(window as any\)\.closeTwoWayChat\s*=/.test(page), 'page.tsx must not redefine closeTwoWayChat');
+    for (const name of ['handleLiveChatSubmit', 'openTwoWayChat', 'appendTwoWayBubble', 'handleTwoWayChatSend', 'closeTwoWayChat', 'isLiveChatActiveNow']) {
+      const count = PUBLIC_SCRIPT.split('function ' + name + '(').length - 1;
+      assert(count === 1, `${name} must be defined exactly once in the script, found ${count}`);
+    }
+    for (const name of ['handleLiveChatSubmit', 'openTwoWayChat', 'handleTwoWayChatSend']) {
+      assert(!/'thread_'/.test(extractFunction(name)), name + ' must not invent a client-side thread id');
+    }
+  });
+
+  for (const [label, iso] of [['Saturday', SAT_11AM], ['Sunday', '2026-03-08T16:00:00Z'], ['Friday at 5 PM', '2026-03-06T22:00:00Z'], ['Monday before 9 AM', '2026-03-02T13:59:00Z']]) {
+    await test(`After hours (${label}): one message is stored, then the chat locks with the notice and no polling`, async () => {
+      await withChatSecret(async () => {
+        const w = loadWidget(iso);
+        w.fill('Vera Visitor', '(410) 555-0101', 'Question for the morning');
+        w.ctx.handleLiveChatSubmit({ preventDefault() {} });
+        await w.settle();
+        w.runTimers();
+        assert(db.messages.length === 1 && db.messages[0].message === 'Question for the morning', 'the one message is stored on the server');
+        const s = w.ctx.window.__currentChatSession;
+        assert(s && s.locked === true && s.threadId && s.threadSecret, 'the session is locked and keeps the server credential');
+        assert(w.els.twoWayChatInputForm.style.display === 'none', 'the reply box is hidden');
+        assert(w.streamText().includes(AFTER_HOURS_NOTICE), 'the after-hours notice is shown');
+        assert(/Delivered to Coach Kai/.test(w.streamText()), 'the message shows as delivered');
+        assert(w.count('personal chat assistant') === 0, 'no automatic live greeting after hours');
+        assert(w.activeIntervals() === 0 && !w.sent.some((b) => b.action === 'getVisitorChatMessages'), 'polling must not start');
+        w.els.twoWayMessageInput.value = 'second message';
+        w.ctx.handleTwoWayChatSend({ preventDefault() {} });
+        await w.settle();
+        assert(handshakeSends(w).length === 1 && db.messages.length === 1, 'a second message cannot be sent');
+        w.ctx.closeTwoWayChat();
+        assert(w.els.twoWayChatInputForm.style.display === 'flex', 'closing restores the reply box for the next in-hours chat');
+      });
+    });
+  }
+
+  await test('After hours, a failed send keeps the form open with the phone fallback and does not lock anything', async () => {
+    const w = loadWidget(SAT_11AM);
+    w.fill('Vera Visitor', '(410) 555-0101', 'Hello');
+    w.ctx.handleLiveChatSubmit({ preventDefault() {} });
+    await w.settle();
+    assert(w.els['chat-dispatch-status'].textContent === CONNECT_ERROR && w.els.twoWayChatInputForm.style.display === 'flex' && w.ctx.window.__currentChatSession == null, 'no lock and no fake delivery without a saved message');
+  });
+
   console.log('\n================================================================');
   console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   console.log('================================================================');
