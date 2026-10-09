@@ -443,3 +443,9 @@
   .vip-perk-item { transition: transform 160ms ease-out; }
   .vip-perk-item:hover { transform: translateX(3px); }
 }
+
+/* D076 star cluster pops on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .gold-stars-cluster { transition: transform 200ms ease-out; }
+  .gold-stars-cluster:hover { transform: scale(1.05); }
+}
