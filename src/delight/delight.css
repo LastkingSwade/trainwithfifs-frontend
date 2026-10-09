@@ -258,3 +258,9 @@
   .metric-card { transition: border-color 180ms ease-out; }
   .metric-card:hover { border-color: rgba(0, 229, 255, 0.55); }
 }
+
+/* D044 border brightens on hover for target-card-student */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .target-card-student { transition: border-color 180ms ease-out; }
+  .target-card-student:hover { border-color: rgba(0, 229, 255, 0.55); }
+}
