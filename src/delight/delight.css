@@ -138,3 +138,9 @@
   .btn-secondary { transition: transform 90ms ease-out; }
   .btn-secondary:active { transform: scale(0.97); }
 }
+
+/* D024 press feedback on btn-secondary-modal */
+@media (prefers-reduced-motion: no-preference) {
+  .btn-secondary-modal { transition: transform 90ms ease-out; }
+  .btn-secondary-modal:active { transform: scale(0.97); }
+}
