@@ -180,3 +180,9 @@
   .fi-subnav-btn { transition: transform 90ms ease-out; }
   .fi-subnav-btn:active { transform: scale(0.97); }
 }
+
+/* D031 press feedback on goal-modal-close-btn */
+@media (prefers-reduced-motion: no-preference) {
+  .goal-modal-close-btn { transition: transform 90ms ease-out; }
+  .goal-modal-close-btn:active { transform: scale(0.97); }
+}
