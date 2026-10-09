@@ -509,3 +509,9 @@
   .review-author-tag { transition: text-shadow 160ms ease-out; }
   .review-author-tag:hover { text-shadow: 0 0 8px rgba(0, 229, 255, 0.4); }
 }
+
+/* D087 tuition bullets brighten on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .tuition-bullets { transition: filter 160ms ease-out; }
+  .tuition-bullets:hover { filter: brightness(1.12); }
+}
