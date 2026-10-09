@@ -551,3 +551,9 @@
   .goal-header-badge { transition: box-shadow 180ms ease-out; }
   .goal-header-badge:hover { box-shadow: 0 0 12px rgba(0, 229, 255, 0.3); }
 }
+
+/* D094 feature title nudges on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .portal-feature-title { transition: transform 160ms ease-out; }
+  .portal-feature-title:hover { transform: translateX(2px); }
+}
