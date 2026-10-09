@@ -1,0 +1,152 @@
+/* Range HUD. Everything here is gated by the attributes HudIntro sets on <html>:
+     data-hud="ring pistolScan ..."   which effects are enabled (config.ts)
+     data-hud-state="intro|quick|done|static"
+   Without them (HUD disabled, or before the page script has run) none of these rules match and the page is untouched.
+
+   Named curves and what they are for:
+     snap        brackets, tick marks, crosshair arms: arrives fast and locks
+     settle      large or heavy things: ring draw, light bloom, card trace, text tracking
+     mechanical  hard-in hard-out slides: the scan sweep
+     recoil      the one place overshoot is allowed: the button press kick (phase 2)
+   Mechanical and CRT-like moves use steps() instead of a curve. */
+:root {
+  --hud-ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+  --hud-ease-settle: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --hud-ease-mechanical: cubic-bezier(0.8, 0, 0.2, 1);
+  --hud-ease-recoil: cubic-bezier(0.34, 1.4, 0.64, 1);
+  /* Aliases of existing brand tokens, no new colours: --accent-cyan #00e5ff, --accent-cyan-glow, --accent-red #ef4444 */
+  --hud-line: rgba(0, 229, 255, 0.55);
+  --hud-dim: rgba(0, 229, 255, 0.18);
+  --hud-glow: rgba(0, 229, 255, 0.35);
+  --hud-misreg: #ef4444;
+}
+
+/* ---- layer (sits between the photo and its vignette inside .hero-bg-layer) ---- */
+.hud-layer { position: absolute; inset: 0; pointer-events: none; contain: layout paint; }
+.hud-cover { position: absolute; inset: 0; background: #070b10; opacity: 0; }
+.hud-svg { position: absolute; overflow: hidden; }
+.hud-flicker { position: absolute; inset: 0; opacity: 0; background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 229, 255, 0.07) 2px 3px); }
+.hud-scan { position: absolute; left: 0; right: 0; top: 0; height: 14%; opacity: 0; transform: translateY(-110%);
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 229, 255, 0.14) 72%, rgba(0, 229, 255, 0.3) 97%, transparent 100%); }
+
+.hud-bloom, .hud-ring-line, .hud-ticks, .hud-arm, .hud-dot, .hud-strip, .hud-ghost { opacity: 0; }
+.hud-ring-line { fill: none; stroke: #00e5ff; stroke-width: 2.2; stroke-dasharray: 1; stroke-dashoffset: 1; filter: drop-shadow(0 0 4px var(--hud-glow)); }
+.hud-tick { stroke: #00e5ff; stroke-width: 1.4; }
+.hud-tick-long { stroke-width: 2.2; }
+.hud-ticks { transform-origin: 446px 226px; }
+.hud-arm { stroke: #00e5ff; stroke-width: 2.6; }
+.hud-arm-n { --ay: -36px; --ax: 0px; } .hud-arm-s { --ay: 36px; --ax: 0px; }
+.hud-arm-e { --ax: 36px; --ay: 0px; } .hud-arm-w { --ax: -36px; --ay: 0px; }
+.hud-dot { fill: #00e5ff; filter: drop-shadow(0 0 5px var(--hud-glow)); }
+.hud-pistol { position: absolute; pointer-events: none; }
+.hud-pistol-box { position: absolute; -webkit-mask-image: radial-gradient(ellipse 72% 78% at 50% 50%, #000 58%, transparent 100%); mask-image: radial-gradient(ellipse 72% 78% at 50% 50%, #000 58%, transparent 100%); }
+.hud-pistol canvas { position: absolute; display: block; }
+.hud-ghost-red { transform: translateX(-2px); } .hud-ghost-cyan { transform: translateX(2px); }
+
+/* ---- acquisition bracket (above the controls, never intercepts input). It does not travel: it appears on the new control and locks in. ---- */
+.hud-bracket { position: fixed; left: 0; top: 0; width: 0; height: 0; z-index: 30; pointer-events: none; opacity: 0; transition: opacity 90ms steps(2); }
+.hud-bracket.is-on { opacity: 1; }
+.hud-bracket::before { content: ''; position: absolute; inset: 0;
+  background:
+    linear-gradient(var(--hud-line), var(--hud-line)) left top / 12px 1.5px no-repeat, linear-gradient(var(--hud-line), var(--hud-line)) left top / 1.5px 12px no-repeat,
+    linear-gradient(var(--hud-line), var(--hud-line)) right top / 12px 1.5px no-repeat, linear-gradient(var(--hud-line), var(--hud-line)) right top / 1.5px 12px no-repeat,
+    linear-gradient(var(--hud-line), var(--hud-line)) left bottom / 12px 1.5px no-repeat, linear-gradient(var(--hud-line), var(--hud-line)) left bottom / 1.5px 12px no-repeat,
+    linear-gradient(var(--hud-line), var(--hud-line)) right bottom / 12px 1.5px no-repeat, linear-gradient(var(--hud-line), var(--hud-line)) right bottom / 1.5px 12px no-repeat; }
+.hud-bracket.is-locking::before { animation: hudLock 170ms var(--hud-ease-snap) both; }
+html[data-hud~="acquire"] .hud-lit { outline: 1px solid var(--hud-line); outline-offset: 3px; }
+
+/* ---- gold card trace ---- */
+html[data-hud] .hud-gold-card { position: relative; }
+.hud-trace { position: absolute; left: -1px; top: -1px; pointer-events: none; overflow: visible; }
+.hud-trace rect { fill: none; stroke: var(--accent-amber); stroke-width: 2; stroke-dasharray: 1; stroke-dashoffset: 1; }
+
+/* ---- retire the old halo/beam loops that sat on the logo (the new ring replaces them) ---- */
+html[data-hud~="retireLogoLoops"] .fifs-holo-logo { animation: none !important; opacity: 0; }
+
+/* ======================= INTRO (once per session, about 2.9s) ======================= */
+html[data-hud-state="intro"] .hud-cover { animation: hudCoverIn 140ms steps(3, end) both, hudCoverOut 640ms var(--hud-ease-settle) 1250ms forwards; }
+html[data-hud-state="intro"] .hud-flicker { animation: hudFlickerA 340ms steps(1, end) 70ms both, hudFlickerB 200ms steps(1, end) 1180ms both; }
+html[data-hud-state="intro"] .hud-dot { animation: hudOn 1ms steps(1, end) 140ms both; }
+html[data-hud~="ring"][data-hud-state="intro"] .hud-ring-line { animation: hudDraw 880ms var(--hud-ease-settle) 240ms both, hudOn 1ms steps(1, end) 240ms both; }
+html[data-hud~="ring"][data-hud-state="intro"] .hud-ticks { animation: hudTickIn 620ms var(--hud-ease-snap) 540ms both; }
+html[data-hud~="ring"][data-hud-state="intro"] .hud-arm-n { animation: hudArmLock 190ms var(--hud-ease-snap) 1000ms both; }
+html[data-hud~="ring"][data-hud-state="intro"] .hud-arm-e { animation: hudArmLock 170ms var(--hud-ease-snap) 1070ms both; }
+html[data-hud~="ring"][data-hud-state="intro"] .hud-arm-s { animation: hudArmLock 180ms var(--hud-ease-snap) 1115ms both; }
+html[data-hud~="ring"][data-hud-state="intro"] .hud-arm-w { animation: hudArmLock 200ms var(--hud-ease-snap) 1190ms both; }
+html[data-hud~="ring"][data-hud-state="intro"] .hud-bloom { animation: hudBloomIn 700ms var(--hud-ease-settle) 1180ms both; }
+html[data-hud~="pistolScan"][data-hud-state="intro"] .hud-strip { animation: hudOn 1ms steps(1, end) var(--d) both, hudOff 1ms steps(1, end) 1900ms forwards; }
+.hud-strip-0 { --d: 1000ms; } .hud-strip-1 { --d: 1070ms; } .hud-strip-2 { --d: 1140ms; } .hud-strip-3 { --d: 1230ms; }
+.hud-strip-4 { --d: 1300ms; } .hud-strip-5 { --d: 1420ms; } .hud-strip-6 { --d: 1470ms; }
+html[data-hud~="pistolScan"][data-hud-state="intro"] .hud-ghost-red { animation: hudGhostRed 520ms steps(1, end) 1180ms both; }
+html[data-hud~="pistolScan"][data-hud-state="intro"] .hud-ghost-cyan { animation: hudGhostCyan 520ms steps(1, end) 1210ms both; }
+html[data-hud~="cardTrace"][data-hud-state="intro"] .hud-gold-card { animation: hudCardBorder 2600ms steps(1, end) both; }
+html[data-hud~="cardTrace"][data-hud-state="intro"] .hud-trace rect { animation: hudTrace 1100ms var(--hud-ease-settle) 1500ms forwards; }
+html[data-hud~="cardTrace"][data-hud-state="intro"] .hud-trace { animation: hudFade 280ms steps(3, end) 2600ms forwards; }
+
+/* motto decode (the only scramble on the site): the overlay draws the scramble, the real text stays in place */
+html[data-hud] .hud-decode-target { position: relative; }
+.hud-decode-target[data-hud-decoding] { color: transparent !important; }
+.hud-decode-overlay { position: absolute; left: 0; top: 0; width: 100%; text-align: center; font: inherit; white-space: pre;
+  overflow: hidden; animation: hudMisreg 640ms steps(4, end) both; }
+
+/* ======================= QUICK (repeat visit in the same session): 300ms ======================= */
+html[data-hud-state="quick"] .hud-ring-line { stroke-dashoffset: 0; --to: 0.5; animation: hudQuickIn 300ms var(--hud-ease-settle) both; }
+html[data-hud-state="quick"] .hud-ticks { --to: 0.45; animation: hudQuickIn 300ms var(--hud-ease-settle) both; }
+html[data-hud-state="quick"] .hud-arm { --to: 0.5; animation: hudQuickIn 300ms var(--hud-ease-settle) both; }
+html[data-hud-state="quick"] .hud-dot { --to: 0.7; animation: hudQuickIn 300ms var(--hud-ease-settle) both; }
+
+/* ======================= RESTING STATE (done, and the static version for reduced motion) ======================= */
+html[data-hud-state="done"] .hud-ring-line, html[data-hud-state="static"] .hud-ring-line { stroke-dashoffset: 0; opacity: 0.5; }
+html[data-hud-state="done"] .hud-ticks, html[data-hud-state="static"] .hud-ticks { opacity: 0.45; }
+html[data-hud-state="done"] .hud-arm, html[data-hud-state="static"] .hud-arm { opacity: 0.5; }
+html[data-hud-state="done"] .hud-dot, html[data-hud-state="static"] .hud-dot { opacity: 0.7; }
+html[data-hud-state="done"] .hud-bloom, html[data-hud-state="static"] .hud-bloom { opacity: 0.3; }
+/* ring ticks turn one notch at a time, like a dial: 4 notches a second, one full turn per minute */
+html[data-hud~="ring"][data-hud-state="done"] .hud-ticks { animation: hudTickSpin 60s steps(240, end) infinite; }
+html[data-hud-paused] .hud-layer *, html[data-hud-paused] .hud-layer, html[data-hud-paused] .hud-chat::after { animation-play-state: paused !important; }
+.hud-scan.is-sweeping { animation: hudSweep 1800ms var(--hud-ease-mechanical) forwards; }
+
+/* the CHAT control: one slow ring now and then, only once the intro is over */
+html[data-hud] .hud-chat { position: relative; }
+html[data-hud~="chatPulse"][data-hud-state="done"] .hud-chat::after { content: ''; position: absolute; inset: -3px; border: 1px solid var(--hud-line); border-radius: 8px;
+  opacity: 0; pointer-events: none; animation: hudChatIdle 5600ms var(--hud-ease-settle) infinite; }
+
+/* photo parallax: pointer devices only */
+@media (hover: hover) and (pointer: fine) {
+  html[data-hud~="parallax"][data-hud-state="done"] .hero-bg-layer > .hero-bg-artwork,
+  html[data-hud~="parallax"][data-hud-state="done"] .hero-bg-layer > .hero-holo-overlay-svg,
+  html[data-hud~="parallax"][data-hud-state="done"] .hero-bg-layer > .hud-layer {
+    transform: translate3d(var(--hud-px, 0px), var(--hud-py, 0px), 0) scale(1.012); transition: transform 240ms var(--hud-ease-settle); }
+}
+
+/* ======================= KEYFRAMES ======================= */
+@keyframes hudLock { from { opacity: 0.2; transform: scale(1.22); } to { opacity: 1; transform: scale(1); } }
+@keyframes hudCoverIn { from { opacity: 0; } to { opacity: 0.96; } }
+@keyframes hudCoverOut { from { opacity: 0.96; } to { opacity: 0; } }
+@keyframes hudFlickerA { 0% { opacity: 0; } 9% { opacity: 0.9; } 15% { opacity: 0.15; } 31% { opacity: 0.7; } 38% { opacity: 0; } 62% { opacity: 0.5; } 70% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes hudFlickerB { 0% { opacity: 0.6; } 22% { opacity: 0; } 55% { opacity: 0.3; } 78% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes hudOn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hudOff { from { opacity: 1; } to { opacity: 0; } }
+@keyframes hudFade { from { opacity: 1; } to { opacity: 0; } }
+@keyframes hudDraw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes hudTickIn { from { opacity: 0; transform: rotate(-38deg); } to { opacity: 0.45; transform: rotate(0deg); } }
+@keyframes hudTickSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes hudArmLock { from { opacity: 0; transform: translate(var(--ax), var(--ay)); } 60% { opacity: 1; } to { opacity: 0.5; transform: translate(0, 0); } }
+@keyframes hudBloomIn { 0% { opacity: 0; } 55% { opacity: 1; } 100% { opacity: 0.3; } }
+@keyframes hudGhostRed { 0% { opacity: 0; transform: translateX(-2px); } 20% { opacity: 0.24; transform: translateX(-2px); } 55% { opacity: 0.15; transform: translateX(-1px); } 100% { opacity: 0; transform: translateX(0); } }
+@keyframes hudGhostCyan { 0% { opacity: 0; transform: translateX(2px); } 25% { opacity: 0.22; transform: translateX(2px); } 60% { opacity: 0.13; transform: translateX(1px); } 100% { opacity: 0; transform: translateX(0); } }
+@keyframes hudTrace { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes hudCardBorder { 0% { border-color: rgba(255, 183, 3, 0.22); } 56% { border-color: rgba(255, 183, 3, 0.22); } 100% { border-color: rgba(255, 183, 3, 1); } }
+@keyframes hudMisreg { 0% { text-shadow: -1.6px 0 var(--hud-misreg), 1.6px 0 var(--hud-line); } 50% { text-shadow: -0.8px 0 var(--hud-misreg), 0.8px 0 var(--hud-line); } 100% { text-shadow: none; } }
+@keyframes hudQuickIn { from { opacity: 0; } to { opacity: var(--to, 0.5); } }
+@keyframes hudSweep { 0% { opacity: 0; transform: translateY(-110%); } 12% { opacity: 1; } 88% { opacity: 1; } 100% { opacity: 0; transform: translateY(780%); } }
+@keyframes hudChatIdle { 0%, 62% { opacity: 0; transform: scale(1); } 70% { opacity: 0.5; transform: scale(1); } 100% { opacity: 0; transform: scale(1.14); } }
+
+/* ======================= REDUCED MOTION =======================
+   New effects: no intro, no sweep, no parallax; the ring shows static (see the resting state above).
+   Existing hero loops (the holographic overlay, guide arrow pulses, live dot, review ticker) stop as well; the ticker becomes
+   scrollable by hand so every review stays reachable. */
+@media (prefers-reduced-motion: reduce) {
+  #hero-landing *, #hero-landing *::before, #hero-landing *::after { animation: none !important; transition: none !important; }
+  #hero-landing .reviews-marquee-box { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}

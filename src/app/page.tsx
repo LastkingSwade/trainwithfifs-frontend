@@ -9,6 +9,7 @@
 
 import React, { useEffect } from "react";
 import Script from "next/script";
+import dynamic from "next/dynamic";
 import Head from "next/head";
 import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
 import { createRecoveryClient } from "@/Lib/supabase/recovery-client";
@@ -20,6 +21,9 @@ import {
   portalTab,
   requestPortalPasswordReset,
 } from "@/Lib/auth/password-reset";
+
+// Loaded after first paint on the client only, so the HUD adds no render-blocking stylesheet or script to the page.
+const HudIntro = dynamic(() => import("@/animations/HudIntro"), { ssr: false });
 
 
 
@@ -4153,7 +4157,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <circle cx="446" cy="376" r="8" fill="#ffffff" filter="url(#fifsCyanGlow)" opacity="0.9" />
               <circle cx="446" cy="376" r="22" fill="#00e5ff" filter="url(#fifsCyanGlow)" opacity="0.35" />
             </g>
-            <g className="fifs-holo-pulse-group" style={{"transformOrigin": "446px 320px"}}>
+            <g className="fifs-holo-pulse-group fifs-holo-logo" style={{"transformOrigin": "446px 320px"}}>
               {/* Future Initiative Logo subtle cyber halo */}
               <circle cx="446" cy="300" r="64" fill="none" stroke="#00e5ff" strokeWidth="2" strokeDasharray="12 8" opacity="0.6" filter="url(#fifsCyanGlow)" />
               <circle cx="446" cy="300" r="76" fill="none" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="6 14" opacity="0.4" />
@@ -4199,6 +4203,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </g>
           </svg>
           <img alt="Future Initiative Firearms Training Background" className="hero-bg-artwork" data-onerror="this.src=&#x27;https://drive.google.com/thumbnail?id=1lG_LMJ9gBJ3e_DZAkuivaEp-sKH2c0wW&amp;sz=w1920&#x27;" src="https://lh3.googleusercontent.com/d/1lG_LMJ9gBJ3e_DZAkuivaEp-sKH2c0wW" />
+          <HudIntro />
           <div className="hero-bg-vignette">
           </div>
         </div>
@@ -4207,7 +4212,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           <div className="range-live-ticker">
             <span className="pulse-dot" id="live-status-dot" title="Live Training &amp; Student Operations Status">
             </span>
-            <span>
+            <span className="hud-decode-target">
               THE FUTURE IS NOW, TAKE THE INITIATIVE!
             </span>
           </div>
@@ -4221,7 +4226,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         {/* Command Dock Launcher */}
         <div className="hero-command-dock">
           {/* SPECIALIZED 1-ON-1 INSTRUCTION CALLOUT BANNER */}
-          <div style={{"background": "rgba(255, 183, 3, 0.08)", "border": "1px solid var(--accent-amber)", "borderRadius": "12px", "padding": "12px 18px", "marginBottom": "14px", "maxWidth": "540px", "margin": "0 auto 14px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.18)", "textAlign": "center"}}>
+          <div className="hud-gold-card" style={{"background": "rgba(255, 183, 3, 0.08)", "border": "1px solid var(--accent-amber)", "borderRadius": "12px", "padding": "12px 18px", "marginBottom": "14px", "maxWidth": "540px", "margin": "0 auto 14px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.18)", "textAlign": "center"}}>
             <span style={{"color": "var(--accent-amber)", "fontWeight": "800", "fontSize": "0.95rem", "display": "block", "fontFamily": "var(--font-display)", "letterSpacing": "0.5px"}}>
               🛡️ DEDICATED PRIVATE 1-ON-1 SPECIALIZATION
             </span>
@@ -4279,7 +4284,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <span style={{"color": "var(--border-subtle)"}}>
               •
             </span>
-            <button className="btn-hero-aux" id="btn-hero-contact" data-onclick="openContactWidgetModal()" type="button" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "cursor": "pointer"}}>
+            <button className="btn-hero-aux hud-chat" id="btn-hero-contact" data-onclick="openContactWidgetModal()" type="button" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "cursor": "pointer"}}>
               💬 Chat
             </button>
           </div>
@@ -12456,30 +12461,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
               Enter Command Console →
             </button>
           </div>
-        </div>
-      </div>
-      {/* PWA LANDING PAGE INSTALL BANNER */}
-      <div id="pwa-landing-banner">
-        <div style={{"display": "flex", "alignItems": "center", "gap": "14px"}}>
-          <div style={{"fontSize": "2rem", "background": "rgba(0, 229, 255, 0.1)", "borderRadius": "10px", "width": "44px", "height": "44px", "display": "flex", "alignItems": "center", "justifyContent": "center", "border": "1px solid #00e5ff"}}>
-            📱
-          </div>
-          <div>
-            <div style={{"fontWeight": "800", "fontSize": "0.95rem", "color": "#fff", "fontFamily": "var(--font-display)"}}>
-              SAVE TRAIN WITH FIFS TO YOUR PHONE
-            </div>
-            <div style={{"fontSize": "0.80rem", "color": "var(--text-muted)", "marginTop": "2px"}}>
-              Install as a web app for instant offline access & training dossier
-            </div>
-          </div>
-        </div>
-        <div style={{"display": "flex", "alignItems": "center", "gap": "8px"}}>
-          <button type="button" data-onclick="promptPwaInstallInstructions()" className="btn-spark" style={{"padding": "8px 14px", "fontSize": "0.80rem", "fontWeight": "800", "textTransform": "uppercase"}}>
-            Install
-          </button>
-          <button type="button" data-onclick="dismissPwaLandingBanner()" style={{"background": "none", "border": "none", "color": "var(--text-muted)", "cursor": "pointer", "fontSize": "1.2rem", "padding": "4px"}}>
-            ✕
-          </button>
         </div>
       </div>
       {/* DIGITAL 2022 FIFS WAIVER & LIABILITY MODAL */}
