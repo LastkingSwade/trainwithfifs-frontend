@@ -48,3 +48,9 @@
   .faq-item { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
   .faq-item:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 229, 255, 0.16); }
 }
+
+/* D009 hover lift on review-item-pill */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .review-item-pill { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
+  .review-item-pill:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 229, 255, 0.16); }
+}
