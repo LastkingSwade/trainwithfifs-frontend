@@ -155,6 +155,61 @@ test('No banner without booking_confirmed, with no stored code, or with anything
   assert(runBanner('?booking_confirmed=true', '<img src=x onerror=alert(1)>').appended.length === 0, 'a hostile value was displayed');
 });
 
+section('\n[SECTION D: the booking form\'s pod code box]');
+function podBoxEnv(backend) {
+  const at = PAGE.indexOf('// ---- Private pod code (group member joining a leader');
+  const end = PAGE.indexOf('(window as any).confirmAndFinalizeBooking = function', at);
+  assert(at > 0 && end > at, 'pod code functions not found');
+  const mk = (extra = {}) => ({ style: {}, value: '', disabled: false, textContent: '', selectedIndex: 3, options: [], ...extra });
+  const els = {
+    podCodeInput: mk({ value: ' fifs-pod-ab12 ' }),
+    podCodeStatus: mk(), btnClearPodCode: mk(),
+    courseSelection: mk({ options: [{ value: 'Maryland HQL (Purchase License) — Base Track ($100.00)' }, { value: 'Maryland Wear & Carry (CCW) — Base Track ($199.99)' }] }),
+    groupSize: mk(),
+  };
+  const priceUpdates = [];
+  const win = { callFifsBackend: backend, updateFormPriceDisplay: () => priceUpdates.push(1) };
+  const js = ts.transpileModule(`(function(){ ${PAGE.slice(at, end)} })()`, { compilerOptions: { target: 'ES2020' } }).outputText;
+  vm.runInNewContext(js, { window: win, document: { getElementById: (id) => els[id] || null }, Array, String, Error });
+  return { els, win, priceUpdates };
+}
+test('A valid code selects the pod\'s course, locks the course and group size, shows the seats left and offers Remove', async () => {
+  const e = podBoxEnv(async (action, payload) => { assert(action === 'validatePodCode' && payload.code === 'FIFS-POD-AB12', 'wrong call: ' + JSON.stringify([action, payload])); return { valid: true, course: 'Maryland Wear & Carry (CCW) — Base Track ($199.99)', seatsLeft: 2 }; });
+  await e.win.applyPodCode();
+  assert(e.els.courseSelection.value === 'Maryland Wear & Carry (CCW) — Base Track ($199.99)' && e.els.courseSelection.disabled === true, 'course not selected/locked');
+  assert(e.els.groupSize.disabled === true && e.els.groupSize.selectedIndex === 0, 'group size must be reset to 1 person and locked');
+  assert(e.win.__fifsPodCode === 'FIFS-POD-AB12' && e.els.podCodeInput.disabled === true && e.els.btnClearPodCode.style.display === 'inline-block', 'code not applied');
+  assert(/2 seat\(s\) left/.test(e.els.podCodeStatus.textContent) && /normal single-person price/.test(e.els.podCodeStatus.textContent), e.els.podCodeStatus.textContent);
+  assert(e.priceUpdates.length >= 1, 'the price display must refresh');
+});
+test('A bad code shows the server\'s message and leaves the form untouched', async () => {
+  const e = podBoxEnv(async () => { throw new Error('That pod code was not found.'); });
+  await e.win.applyPodCode();
+  assert(e.win.__fifsPodCode === '' && e.els.courseSelection.disabled === false && e.els.groupSize.disabled === false, 'form must stay editable');
+  assert(e.els.podCodeStatus.textContent === 'That pod code was not found.' && e.els.podCodeStatus.style.color === '#f87171', e.els.podCodeStatus.textContent);
+});
+test('A pod for a course the form does not list is refused (never half-applied)', async () => {
+  const e = podBoxEnv(async () => ({ valid: true, course: 'Some Unlisted Course', seatsLeft: 1 }));
+  await e.win.applyPodCode();
+  assert(e.win.__fifsPodCode === '' && e.els.courseSelection.disabled === false && /not available to book online/.test(e.els.podCodeStatus.textContent), e.els.podCodeStatus.textContent);
+});
+test('Remove puts the form back, and an empty box applies nothing', async () => {
+  const e = podBoxEnv(async () => ({ valid: true, course: 'Maryland HQL (Purchase License) — Base Track ($100.00)', seatsLeft: 1 }));
+  await e.win.applyPodCode();
+  e.win.clearPodCode();
+  assert(e.win.__fifsPodCode === '' && e.els.courseSelection.disabled === false && e.els.groupSize.disabled === false && e.els.podCodeInput.disabled === false && e.els.podCodeInput.value === '' && e.els.btnClearPodCode.style.display === 'none', 'form not restored');
+  let called = false;
+  const blank = podBoxEnv(async () => { called = true; return {}; });
+  blank.els.podCodeInput.value = '   ';
+  await blank.win.applyPodCode();
+  assert(!called, 'an empty code must not call the server');
+});
+test('The code travels with the booking: form box exists, and both payloads carry podCode', () => {
+  assert(/id="podCodeInput"/.test(PAGE) && /data-onclick="applyPodCode\(\)"/.test(PAGE) && /data-onclick="clearPodCode\(\)"/.test(PAGE), 'the form box is missing');
+  assert(/podCode: \(window as any\)\.__fifsPodCode \|\| ''/.test(PAGE), 'the invoice step does not record the code');
+  assert(/podCode: p\.podCode \|\| ''/.test(PAGE), 'the checkout request does not send the code');
+});
+
 (async () => {
   for (const item of queue) {
     if (item.title) { console.log(item.title); continue; }

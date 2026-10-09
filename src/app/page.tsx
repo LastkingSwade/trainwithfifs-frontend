@@ -3634,6 +3634,7 @@ export default function TrainWithFIFS(props: any) {
         preferredDates: 'Coordinated with Lead Instructor Kai Wade',
         groupSize,
         comments,
+        podCode: (window as any).__fifsPodCode || '',
         pricing,
         isVipCourse,
         dateIssued: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
@@ -3776,6 +3777,57 @@ export default function TrainWithFIFS(props: any) {
 
 
 
+    // ---- Private pod code (group member joining a leader's pod) ----
+    // The pod decides the course and date; a member books one seat at the normal single-person price. The server re-checks
+    // everything, so these controls only guide the form.
+    const setPodStatus = (message: string, kind: 'info' | 'ok' | 'error') => {
+      const el = document.getElementById('podCodeStatus');
+      if (!el) return;
+      el.style.display = message ? 'block' : 'none';
+      el.style.color = kind === 'ok' ? '#34d399' : kind === 'error' ? '#f87171' : 'var(--text-muted)';
+      el.textContent = message;
+    };
+    (window as any).clearPodCode = function() {
+      (window as any).__fifsPodCode = '';
+      const input = document.getElementById('podCodeInput') as HTMLInputElement | null;
+      const course = document.getElementById('courseSelection') as HTMLSelectElement | null;
+      const group = document.getElementById('groupSize') as HTMLSelectElement | null;
+      const clearBtn = document.getElementById('btnClearPodCode');
+      if (input) { input.value = ''; input.disabled = false; }
+      if (course) course.disabled = false;
+      if (group) group.disabled = false;
+      if (clearBtn) clearBtn.style.display = 'none';
+      setPodStatus('', 'info');
+      if (typeof (window as any).updateFormPriceDisplay === 'function') (window as any).updateFormPriceDisplay();
+    };
+    (window as any).applyPodCode = async function() {
+      const input = document.getElementById('podCodeInput') as HTMLInputElement | null;
+      const code = (input?.value || '').trim().toUpperCase();
+      if (!code) { (window as any).clearPodCode(); return; }
+      setPodStatus('Checking your pod code...', 'info');
+      try {
+        const res = await (window as any).callFifsBackend('validatePodCode', { code });
+        if (!res || res.valid !== true) throw new Error((res && res.error) || 'That pod code could not be used.');
+        const course = document.getElementById('courseSelection') as HTMLSelectElement | null;
+        const group = document.getElementById('groupSize') as HTMLSelectElement | null;
+        const option = course ? Array.from(course.options).find((o) => o.value === res.course) : undefined;
+        if (!course || !group || !option) throw new Error("This pod's course is not available to book online. Please contact FIFS.");
+        course.value = option.value;
+        course.disabled = true;
+        group.selectedIndex = 0;
+        group.disabled = true;
+        (window as any).__fifsPodCode = code;
+        if (input) { input.value = code; input.disabled = true; }
+        const clearBtn = document.getElementById('btnClearPodCode');
+        if (clearBtn) clearBtn.style.display = 'inline-block';
+        if (typeof (window as any).updateFormPriceDisplay === 'function') (window as any).updateFormPriceDisplay();
+        setPodStatus('Joined private pod: ' + res.course + ' — ' + res.seatsLeft + ' seat(s) left. You book one seat at the normal single-person price.', 'ok');
+      } catch (err: any) {
+        (window as any).__fifsPodCode = '';
+        setPodStatus(String((err && err.message) || 'That pod code could not be used.'), 'error');
+      }
+    };
+
     (window as any).confirmAndFinalizeBooking = function(payInFull: boolean = false) {
       const p = __fifsCurrentBookingPayload;
       if (!p) return;
@@ -3817,6 +3869,7 @@ export default function TrainWithFIFS(props: any) {
         preferredDates: p.preferredDates,
         groupSize: p.groupSize,
         comments: p.comments,
+        podCode: p.podCode || '',
         amount: payInFull ? p.pricing.grandTotal : p.pricing.depositDueNow,
         depositAmount: p.pricing.depositDueNow,
         totalAmount: p.pricing.grandTotal,
@@ -11071,6 +11124,18 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </option>
                 </select>
               </div>
+            </div>
+            <div className="form-group" id="podCodeBox" style={{"marginBottom": "14px"}}>
+              <label htmlFor="podCodeInput" style={{"fontSize": "0.84rem", "color": "#cbd5e1", "fontWeight": "700", "display": "flex", "justifyContent": "space-between", "marginBottom": "6px"}}>
+                <span>Private Pod Code</span>
+                <span style={{"fontSize": "0.74rem", "color": "var(--text-muted)", "fontWeight": "400"}}>(Optional — only if a group leader gave you one)</span>
+              </label>
+              <div style={{"display": "flex", "gap": "8px"}}>
+                <input id="podCodeInput" name="podCodeInput" placeholder="FIFS-POD-XXXX" autoComplete="off" maxLength={13} style={{"flex": "1", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "textTransform": "uppercase"}} type="text" />
+                <button type="button" id="btnApplyPodCode" className="btn-secondary-modal" data-onclick="applyPodCode()" style={{"padding": "10px 16px", "fontWeight": "700"}}>Apply</button>
+                <button type="button" id="btnClearPodCode" className="btn-secondary-modal" data-onclick="clearPodCode()" style={{"padding": "10px 14px", "display": "none"}}>Remove</button>
+              </div>
+              <div id="podCodeStatus" role="status" style={{"marginTop": "6px", "fontSize": "0.8rem", "color": "var(--text-muted)", "display": "none"}}></div>
             </div>
             <div className="form-group" style={{"marginBottom": "14px"}}>
               <label htmlFor="bookingPortalPassword" style={{"fontSize": "0.84rem", "color": "#cbd5e1", "fontWeight": "700", "display": "flex", "justifyContent": "space-between", "alignItems": "center"}}>

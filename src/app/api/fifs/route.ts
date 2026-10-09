@@ -2,7 +2,7 @@
 import crypto from 'node:crypto';
 import { getAuthenticatedUser, getPrivilegedClient, getPublicClient } from '@/Lib/server/supabase-admin';
 import { isLiveChatHours } from '@/Lib/server/chat-hours';
-import { createBookingCheckout, createPodInviteCode, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord } from '@/Lib/server/booking-checkout';
+import { createBookingCheckout, createPodInviteCode, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord, lookupPod } from '@/Lib/server/booking-checkout';
 import { ConfigurationError, resolveSiteUrl } from '@/Lib/config/environment';
 
 
@@ -692,6 +692,20 @@ async function findRecordByEmail(supabase: any, table: 'students' | 'clients', e
     console.warn('[findRecordByEmail] Lookup failed:', err?.message);
     return { found: null, error: true };
   }
+}
+
+// Small per-instance throttle for pod code checks (20 attempts per 10 minutes per caller). Serverless instances do not share
+// memory, so this slows casual guessing rather than stopping a determined attacker; a wrong code reveals nothing and a claimed
+// seat is released within about 30 minutes if it is never paid.
+const podCodeAttempts = new Map<string, number[]>();
+function allowPodCodeAttempt(key: string): boolean {
+  const now = Date.now();
+  const recent = (podCodeAttempts.get(key) || []).filter((t) => now - t < 10 * 60 * 1000);
+  if (recent.length >= 20) { podCodeAttempts.set(key, recent); return false; }
+  recent.push(now);
+  podCodeAttempts.set(key, recent);
+  if (podCodeAttempts.size > 5000) podCodeAttempts.clear();
+  return true;
 }
 
 // Stores a contact-form inquiry in public.leads. Production's leads table has only full_name, email (NOT NULL), source and
@@ -2825,6 +2839,25 @@ export async function POST(req: NextRequest) {
      case 'trackSiteVisit': {
        const rawPath = String(payload.path || body.path || '/').slice(0, 255);
        return NextResponse.json({ success: true, tracked: true });
+     }
+
+     case 'validatePodCode': {
+       // Public: lets a visitor check a private pod code before booking. Returns only what the booking form needs (never the
+       // leader's name, email or phone). Throttled per caller because the code space is small.
+       const callerKey = (req.headers.get('x-forwarded-for') || 'unknown').split(',')[0].trim().slice(0, 64);
+       if (!allowPodCodeAttempt(callerKey)) {
+         return NextResponse.json({ success: false, error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 });
+       }
+       const found = await lookupPod(payload.code || payload.podCode);
+       if (!found.ok) return NextResponse.json({ success: false, valid: false, error: found.message }, { status: found.status });
+       return NextResponse.json({
+         success: true,
+         valid: true,
+         course: found.pod.course,
+         track: found.pod.track,
+         preferredDates: found.pod.preferredDates,
+         seatsLeft: found.pod.maxSeats - found.pod.claimedSeats
+       });
      }
 
      case 'handleLeadMagnetSubmission': {

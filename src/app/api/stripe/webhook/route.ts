@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { getPrivilegedClient } from '@/Lib/server/supabase-admin';
 import { sendDiscordAlert } from '@/Lib/server/discord';
+import { cancelUnpaidLeaderPod, releasePodSeat } from '@/Lib/server/booking-checkout';
 
 // Signature verification is local (HMAC); this key is never used for API calls in this route.
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_build_placeholder', {
@@ -151,6 +152,14 @@ async function handleExpiredSession(supabase: any, session: Stripe.Checkout.Sess
     .select('invoice_number');
   if (error) throw new RetryableWebhookError('Invoice expiry update failed: ' + (error.message || 'unknown error'));
   if (!Array.isArray(updated) || updated.length === 0) return;
+
+  // The invoice went PENDING -> ABANDONED just now (never paid), so this runs once. Give back a pod member's seat, or cancel a
+  // pod whose leader never paid and nobody joined. Best effort: these helpers never throw and never change payment state.
+  const podCode = session.metadata?.podCode;
+  if (podCode) {
+    if (session.metadata?.podRole === 'member') await releasePodSeat(podCode);
+    else if (session.metadata?.podRole === 'leader') await cancelUnpaidLeaderPod(podCode);
+  }
 
   await sendDiscordAlert(
     '⚠️ Checkout Session Abandoned / Expired',

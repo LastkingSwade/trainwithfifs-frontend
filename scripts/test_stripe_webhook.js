@@ -13,6 +13,7 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null })
   let eventToReturn = event;
   const tables = { invoices: structuredClone(invoices), students: structuredClone(students) };
   const alerts = [];
+  const podCalls = [];
   const mockRequire = (id) => {
     if (id === 'next/server') return { NextResponse: { json: (body, init = {}) => ({ status: init.status || 200, body }) } };
     if (id === 'stripe') return { __esModule: true, default: class Stripe { constructor() { this.webhooks = { constructEvent: () => eventToReturn }; } } };
@@ -20,6 +21,8 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null })
     // Shared server modules used by the webhook: service-role client and Discord alerts (recorded, never sent).
     if (id === '@/Lib/server/supabase-admin') return { getPrivilegedClient: () => ({ from: (table) => makeQuery(table) }) };
     if (id === '@/Lib/server/discord') return { sendDiscordAlert: async (title) => { alerts.push(title); return true; } };
+    // Pod seat helpers (recorded, never run): the webhook calls them only when an unpaid member/leader checkout expires.
+    if (id === '@/Lib/server/booking-checkout') return { releasePodSeat: async (code) => { podCalls.push(['release', code]); return true; }, cancelUnpaidLeaderPod: async (code) => { podCalls.push(['cancelLeader', code]); return true; } };
     return require(id);
   };
 
@@ -55,6 +58,7 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null })
   return {
     tables,
     alerts,
+    podCalls,
     async post() {
       return sandbox.exports.POST({ text: async () => 'signed raw payload', headers: { get: (key) => key === 'stripe-signature' ? 'valid-signature' : null } });
     },
@@ -91,6 +95,27 @@ function sessionEvent(type, overrides = {}) {
     const h = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [] });
     assert.equal((await h.post()).status, 500, 'missing invoice must not be acknowledged as success');
     assert.ok(h.alerts.some((t) => /manual reconciliation/i.test(t)), 'missing invoice must alert staff');
+  }
+  {
+    // Pod cleanup on expiry: only when the invoice really goes PENDING -> ABANDONED, and by role.
+    const member = { metadata: { invoiceId: 'INV-1', podCode: 'FIFS-POD-AB12', podRole: 'member' } };
+    const leader = { metadata: { invoiceId: 'INV-1', podCode: 'FIFS-POD-AB12', podRole: 'leader' } };
+    const ev = (extra) => sessionEvent('checkout.session.expired', extra);
+    const m = makeHarness({ event: ev(member), invoices: [invoiceRow()] });
+    assert.equal((await m.post()).status, 200);
+    assert.deepEqual(m.podCalls, [['release', 'FIFS-POD-AB12']], 'an unpaid member checkout gives its seat back');
+    const l = makeHarness({ event: ev(leader), invoices: [invoiceRow()] });
+    await l.post();
+    assert.deepEqual(l.podCalls, [['cancelLeader', 'FIFS-POD-AB12']], 'an unpaid leader checkout cancels the pod');
+    const paid = makeHarness({ event: ev(member), invoices: [invoiceRow({ status: 'PAID' })] });
+    await paid.post();
+    assert.deepEqual(paid.podCalls, [], 'a paid invoice never releases a seat');
+    const replay = makeHarness({ event: ev(member), invoices: [invoiceRow({ status: 'ABANDONED' })] });
+    await replay.post();
+    assert.deepEqual(replay.podCalls, [], 'a replayed expiry event never releases twice');
+    const plain = makeHarness({ event: sessionEvent('checkout.session.expired'), invoices: [invoiceRow()] });
+    await plain.post();
+    assert.deepEqual(plain.podCalls, [], 'a booking without a pod touches no pod');
   }
   {
     const h = makeHarness({ event: sessionEvent('checkout.session.expired'), invoices: [invoiceRow({ status: 'PAID' })] });

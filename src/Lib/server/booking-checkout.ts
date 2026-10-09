@@ -103,19 +103,34 @@ export async function createBookingCheckout(
     return { status: 400, body: { success: false, status: 'error', error: 'Valid student email address is required to initiate Stripe checkout.' } };
   }
 
-  const attendees = parseAttendeeCount(input.groupSize);
+  let attendees = parseAttendeeCount(input.groupSize);
   if (attendees === null) {
     return { status: 400, body: { success: false, status: 'error', error: 'Group size must be a whole number of attendees from 1 to 5.' } };
   }
 
   const fullName = text(input.fullName, 'FIFS Training Student', 100);
   const phone = text(input.phone, '', 30);
-  const courseSelection = text(input.courseSelection, 'Maryland Firearms Training Course', 200);
-  const preferredDates = text(input.preferredDates, 'Coordinated with Lead Instructor Kai Wade', 200);
-  const groupSize = text(input.groupSize, '1', 60);
+  let courseSelection = text(input.courseSelection, 'Maryland Firearms Training Course', 200);
+  let preferredDates = text(input.preferredDates, 'Coordinated with Lead Instructor Kai Wade', 200);
+  let groupSize = text(input.groupSize, '1', 60);
   const comments = text(input.comments, '', 400);
   const classId = text(input.classId, '', 64);
   const isPayFull = Boolean(input.payInFull || input.pay_in_full);
+
+  // Joining a leader's private pod: the pod decides the course, track and dates; the member books ONE seat at the normal
+  // single-person price (no group discount), whatever group size or course the browser sent. The seat is claimed just before
+  // payment starts (below) and given back if checkout cannot start or the unpaid session expires.
+  const podCodeInput = normalizePodCode(input.podCode);
+  let podMember: PodInfo | null = null;
+  if (podCodeInput) {
+    const found = await lookupPod(podCodeInput);
+    if (!found.ok) return { status: found.status, body: { success: false, status: 'error', error: found.message } };
+    podMember = found.pod;
+    attendees = 1;
+    groupSize = '1 (Private One-on-One)';
+    if (podMember.course) courseSelection = podMember.course.slice(0, 200);
+    if (podMember.preferredDates) preferredDates = podMember.preferredDates.slice(0, 200);
+  }
 
   // Validate environment configuration before any Stripe session or database write.
   let stripeKey: string | null;
@@ -188,6 +203,16 @@ export async function createBookingCheckout(
   const invoiceId = generateInvoiceId();
   const pricing = calculatePricingBreakdown(courseSelection, attendees, isPayFull);
 
+  let podSeatClaimed = false;
+  if (podMember) {
+    const claim = await claimPodSeat(podMember.code);
+    if (!claim.ok) return { status: claim.status, body: { success: false, status: 'error', error: claim.message } };
+    podSeatClaimed = true;
+  }
+  const releaseClaimedPodSeat = async () => {
+    if (podMember && podSeatClaimed) { podSeatClaimed = false; await releasePodSeat(podMember.code); }
+  };
+
   const stripe = new Stripe(stripeKey, { apiVersion: STRIPE_API_VERSION });
   let session: Stripe.Checkout.Session;
   try {
@@ -215,7 +240,8 @@ export async function createBookingCheckout(
         grandTotal: pricing.grandTotal.toFixed(2),
         depositDueNow: pricing.depositDueNow.toFixed(2),
         balanceDueClass: pricing.balanceDueClass.toFixed(2),
-        isDepositPayment: String(!isPayFull)
+        isDepositPayment: String(!isPayFull),
+        ...(podMember ? { podCode: podMember.code, podRole: 'member' } : {})
       },
       line_items: [
         {
@@ -230,15 +256,18 @@ export async function createBookingCheckout(
           quantity: 1,
         },
       ],
+      ...(podMember ? { expires_at: Math.floor(Date.now() / 1000) + POD_MEMBER_SESSION_MINUTES * 60 } : {}),
       success_url: `${baseUrl}/?session_id={CHECKOUT_SESSION_ID}&booking_confirmed=true&invoice=${encodeURIComponent(invoiceId)}`,
       cancel_url: `${baseUrl}/?booking_cancelled=true&session_id={CHECKOUT_SESSION_ID}&invoice=${encodeURIComponent(invoiceId)}`,
     });
   } catch (stripeErr: any) {
     console.error('[Checkout] Stripe session creation failed:', stripeErr?.message);
+    await releaseClaimedPodSeat();
     return { status: 502, body: { success: false, status: 'error', error: 'Failed to create secure checkout session. Please try again or contact FIFS.' } };
   }
 
   if (!session?.url || !session.id) {
+    await releaseClaimedPodSeat();
     return { status: 502, body: { success: false, status: 'error', error: 'Stripe did not return a valid checkout session.' } };
   }
 
@@ -282,6 +311,7 @@ export async function createBookingCheckout(
 
   if (!invoiceRecorded) {
     // A payment without a recorded invoice cannot be reconciled reliably, so stop here.
+    await releaseClaimedPodSeat();
     let sessionExpired = false;
     try {
       await stripe.checkout.sessions.expire(session.id);
@@ -360,7 +390,7 @@ export async function createBookingCheckout(
  * Never throws: the booking and payment link already exist, so a missing pod code is logged and returned as null.
  * Used by both booking entry points (/api/checkout, which the website calls, and the /api/fifs submitBooking action).
  */
-export async function createPodInviteCode(payload: any, result: { attendees?: number; isVip?: boolean }): Promise<string | null> {
+export async function createPodInviteCode(payload: any, result: { attendees?: number; isVip?: boolean; sessionId?: string }): Promise<string | null> {
   if (!result || !(Number(result.attendees) > 1)) return null;
   try {
     const pricingCourse = String(payload?.courseSelection || 'Maryland Firearms Training Course').trim().slice(0, 200);
@@ -377,9 +407,143 @@ export async function createPodInviteCode(payload: any, result: { attendees?: nu
       console.warn('[FIFS] Pod invite code was not created:', podRpcErr.code || 'no code', podRpcErr.message);
       return null;
     }
-    return codeData ?? null;
+    const podCode: string | null = codeData ?? null;
+    // Tag the leader's open Stripe session with the pod, so the checkout.session.expired webhook can cancel a pod whose
+    // leader never paid. Best effort: the booking and payment link already exist.
+    if (podCode && typeof result.sessionId === 'string' && result.sessionId) {
+      try {
+        const stripeKey = resolveStripeSecretKey();
+        if (stripeKey) {
+          await new Stripe(stripeKey, { apiVersion: STRIPE_API_VERSION }).checkout.sessions.update(result.sessionId, { metadata: { podCode, podRole: 'leader' } });
+        }
+      } catch (tagErr: any) {
+        console.warn('[FIFS] Pod code could not be attached to the Stripe session:', tagErr?.message);
+      }
+    }
+    return podCode;
   } catch (podErr) {
     console.warn('[FIFS] Pod generation note:', podErr);
     return null;
+  }
+}
+
+
+// ---- Private pod codes: members join a leader's pod (they pay the normal single-person price) ----
+export const POD_CODE_PATTERN = /^FIFS-POD-[A-Z0-9]{4}$/;
+// A member's checkout session expires 30 minutes after it starts (Stripe's minimum), so a seat claimed by a checkout that is
+// never paid is released soon after by the checkout.session.expired webhook.
+export const POD_MEMBER_SESSION_MINUTES = 31;
+
+export function normalizePodCode(value: unknown): string {
+  return String(value ?? '').trim().toUpperCase();
+}
+
+export interface PodInfo {
+  code: string;
+  course: string;
+  track: string;
+  preferredDates: string;
+  maxSeats: number;
+  claimedSeats: number;
+}
+export type PodLookup = { ok: true; pod: PodInfo } | { ok: false; status: number; message: string };
+
+/** Read-only check that a pod code exists, is ACTIVE and has a free seat. Uses the server key; never throws. */
+export async function lookupPod(rawCode: unknown): Promise<PodLookup> {
+  const code = normalizePodCode(rawCode);
+  if (!POD_CODE_PATTERN.test(code)) return { ok: false, status: 400, message: 'That pod code is not valid.' };
+  try {
+    const { data, error } = await getPrivilegedClient()
+      .from('booking_groups')
+      .select('invite_code, course, track, preferred_dates, max_seats, claimed_seats, status')
+      .eq('invite_code', code)
+      .maybeSingle();
+    if (error) {
+      console.warn('[Pod] Lookup failed:', error.code || 'no code', error.message);
+      return { ok: false, status: 503, message: 'Pod codes are temporarily unavailable. Please try again in a few minutes.' };
+    }
+    if (!data) return { ok: false, status: 404, message: 'That pod code was not found.' };
+    if (data.status !== 'ACTIVE') return { ok: false, status: 409, message: 'This private pod is no longer active.' };
+    const maxSeats = Number(data.max_seats) || 0;
+    const claimedSeats = Number(data.claimed_seats) || 0;
+    if (claimedSeats >= maxSeats) return { ok: false, status: 409, message: 'This private pod is already full.' };
+    return { ok: true, pod: { code, course: String(data.course || ''), track: String(data.track || ''), preferredDates: String(data.preferred_dates || ''), maxSeats, claimedSeats } };
+  } catch (err: any) {
+    console.warn('[Pod] Lookup unavailable:', err?.message);
+    return { ok: false, status: 503, message: 'Pod codes are temporarily unavailable. Please try again in a few minutes.' };
+  }
+}
+
+/** Claims one seat atomically: the update only matches if claimed_seats is still the value just read, so two members cannot take the last seat. */
+export async function claimPodSeat(rawCode: unknown): Promise<PodLookup> {
+  const code = normalizePodCode(rawCode);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const found = await lookupPod(code);
+    if (!found.ok) return found;
+    try {
+      const { data, error } = await getPrivilegedClient()
+        .from('booking_groups')
+        .update({ claimed_seats: found.pod.claimedSeats + 1, updated_at: new Date().toISOString() })
+        .eq('invite_code', code)
+        .eq('status', 'ACTIVE')
+        .eq('claimed_seats', found.pod.claimedSeats)
+        .select('invite_code');
+      if (error) {
+        console.warn('[Pod] Seat claim failed:', error.code || 'no code', error.message);
+        return { ok: false, status: 503, message: 'Pod codes are temporarily unavailable. Please try again in a few minutes.' };
+      }
+      if (Array.isArray(data) && data.length === 1) return { ok: true, pod: { ...found.pod, claimedSeats: found.pod.claimedSeats + 1 } };
+    } catch (err: any) {
+      console.warn('[Pod] Seat claim unavailable:', err?.message);
+      return { ok: false, status: 503, message: 'Pod codes are temporarily unavailable. Please try again in a few minutes.' };
+    }
+  }
+  return { ok: false, status: 409, message: 'That seat was just taken. Please try again.' };
+}
+
+/** Gives a claimed seat back (never below the leader's own seat). Best effort: logs and returns false instead of throwing. */
+export async function releasePodSeat(rawCode: unknown): Promise<boolean> {
+  const code = normalizePodCode(rawCode);
+  if (!POD_CODE_PATTERN.test(code)) return false;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const client = getPrivilegedClient();
+      const { data, error } = await client.from('booking_groups').select('claimed_seats').eq('invite_code', code).maybeSingle();
+      if (error || !data) return false;
+      const claimed = Number(data.claimed_seats) || 0;
+      if (claimed <= 1) return true;
+      const { data: updated, error: updateErr } = await client
+        .from('booking_groups')
+        .update({ claimed_seats: claimed - 1, updated_at: new Date().toISOString() })
+        .eq('invite_code', code)
+        .eq('claimed_seats', claimed)
+        .select('invite_code');
+      if (updateErr) { console.warn('[Pod] Seat release failed:', updateErr.code || 'no code', updateErr.message); return false; }
+      if (Array.isArray(updated) && updated.length === 1) return true;
+    } catch (err: any) {
+      console.warn('[Pod] Seat release unavailable:', err?.message);
+      return false;
+    }
+  }
+  return false;
+}
+
+/** Marks a leader's pod CANCELLED when their checkout expired unpaid and nobody else has joined. Best effort; never throws. */
+export async function cancelUnpaidLeaderPod(rawCode: unknown): Promise<boolean> {
+  const code = normalizePodCode(rawCode);
+  if (!POD_CODE_PATTERN.test(code)) return false;
+  try {
+    const { data, error } = await getPrivilegedClient()
+      .from('booking_groups')
+      .update({ status: 'CANCELLED', updated_at: new Date().toISOString() })
+      .eq('invite_code', code)
+      .eq('status', 'ACTIVE')
+      .lte('claimed_seats', 1)
+      .select('invite_code');
+    if (error) { console.warn('[Pod] Leader pod cancel failed:', error.code || 'no code', error.message); return false; }
+    return Array.isArray(data) && data.length === 1;
+  } catch (err: any) {
+    console.warn('[Pod] Leader pod cancel unavailable:', err?.message);
+    return false;
   }
 }

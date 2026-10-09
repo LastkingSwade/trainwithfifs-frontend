@@ -66,7 +66,12 @@ function resetDb() {
     enrollments: [
       { id: 'enr-1', student_email: 'alice@student.com', scheduled_date: '2026-10-25T14:00:00Z', duration_hours: 8, previous_dates: [], classes: { title: 'Maryland Wear & Carry (CCW)' } }
     ],
-    messages: []
+    messages: [],
+    booking_groups: [
+      { invite_code: 'FIFS-POD-AB12', leader_name: 'Pat Leader', leader_email: 'pat.leader@example.com', leader_phone: '4105550100', course: 'Maryland Wear & Carry (CCW) — Base Track ($199.99)', track: 'Base', preferred_dates: 'Coordinated with Lead Instructor Kai Wade', max_seats: 3, claimed_seats: 1, status: 'ACTIVE' },
+      { invite_code: 'FIFS-POD-FULL', leader_name: 'Full Leader', leader_email: 'full@example.com', course: 'Maryland HQL (Purchase License) — Base Track ($100.00)', track: 'Base', preferred_dates: 'x', max_seats: 2, claimed_seats: 2, status: 'ACTIVE' },
+      { invite_code: 'FIFS-POD-DEAD', leader_name: 'Dead Leader', leader_email: 'dead@example.com', course: 'Maryland HQL (Purchase License) — Base Track ($100.00)', track: 'Base', preferred_dates: 'x', max_seats: 3, claimed_seats: 1, status: 'CANCELLED' }
+    ]
   };
   failures = {};
   writes.length = 0;
@@ -120,6 +125,8 @@ function queryBuilder(table, clientKey) {
     in: (col, vals) => { filters.push((r) => vals.includes(r[col])); return b; },
     gte: (col, val) => { filters.push((r) => r[col] >= val); return b; },
     lte: (col, val) => { filters.push((r) => r[col] <= val); return b; },
+    lt: (col, val) => { filters.push((r) => r[col] < val); return b; },
+    limit: () => b,
     or: () => b,
     order: () => b,
     maybeSingle: async () => { const r = run(); return { data: r.error ? null : (r.data || [])[0] || null, error: r.error }; },
@@ -158,11 +165,13 @@ let stripeSessions = {};
 let lastCreateParams = null;
 let expiredSessionIds = [];
 let failStripeExpire = false;
+let failStripeCreate = false;
 class MockStripe {
   constructor() {
     this.checkout = {
       sessions: {
         create: async (params) => {
+          if (failStripeCreate) throw new Error('Stripe create unavailable');
           lastCreateParams = params;
           const id = 'cs_test_' + Math.random().toString(36).slice(2, 10);
           const session = {
@@ -172,6 +181,11 @@ class MockStripe {
           };
           stripeSessions[id] = session;
           return session;
+        },
+        update: async (id, params) => {
+          if (!stripeSessions[id]) throw new Error('No such checkout.session');
+          stripeSessions[id].metadata = { ...(stripeSessions[id].metadata || {}), ...(params.metadata || {}) };
+          return stripeSessions[id];
         },
         retrieve: async (id) => {
           if (!stripeSessions[id]) throw new Error('No such checkout.session');
@@ -768,6 +782,96 @@ async function main() {
     let r; try { r = await checkoutPost({ email: 'lead3@example.com', courseSelection: 'Maryland CCW', groupSize: '2' }); } finally { console.warn = origWarn; delete failures['rpc.create_booking_group']; }
     assert(r.status === 200 && r.body.url && r.body.podInviteCode === null, `payment link must survive a pod failure: ${r.status} ${JSON.stringify(r.body)}`);
     assert(!JSON.stringify(r.body).includes('42501'), 'the pod database error is not shown to the customer');
+  });
+  console.log('\n[SECTION H2: Private pod codes - members join a leader\'s pod at the normal price]');
+  const podRow = (code) => db.booking_groups.find((g) => g.invite_code === code);
+  const POD_COURSE = 'Maryland Wear & Carry (CCW) — Base Track ($199.99)';
+  await test('/api/checkout tags the leader\'s Stripe session with the pod code (so an unpaid leader pod can be cleaned up)', async () => {
+    const { status, body } = await checkoutPost({ email: 'tag.lead@example.com', fullName: 'Tag Lead', courseSelection: 'Maryland CCW', groupSize: '3' });
+    assert(status === 200 && body.podInviteCode === 'POD-TEST', `got ${status} ${JSON.stringify(body)}`);
+    const meta = stripeSessions[body.sessionId].metadata;
+    assert(meta.podCode === 'POD-TEST' && meta.podRole === 'leader', 'session metadata: ' + JSON.stringify(meta));
+  });
+  await test('A member with a valid code books ONE seat at the normal single-person price, for the pod\'s course, whatever the browser sent', async () => {
+    rpcCalls.length = 0;
+    const expected = pricing.calculatePricingBreakdown(POD_COURSE, 1, false);
+    const nowSec = Math.floor(Date.now() / 1000);
+    const { status, body } = await checkoutPost({ email: 'Member@Example.com', fullName: 'Mia Member', courseSelection: 'Mid-Atlantic Multi-State Mastery — VIP Turnkey ($594.99)', groupSize: '5+ (Private Class Cohort — 15% Discount)', preferredDates: 'my own date', podCode: ' fifs-pod-ab12 ' });
+    assert(status === 200 && body.url && body.attendees === 1 && body.isVip === false, `got ${status} ${JSON.stringify(body)}`);
+    assert(lastCreateParams.line_items[0].price_data.unit_amount === expected.chargeCents, `charged ${lastCreateParams.line_items[0].price_data.unit_amount}, expected ${expected.chargeCents} (single-person price, no group discount)`);
+    assert(lastCreateParams.metadata.courseSelection === POD_COURSE && lastCreateParams.metadata.podCode === 'FIFS-POD-AB12' && lastCreateParams.metadata.podRole === 'member' && lastCreateParams.metadata.attendees === '1', 'metadata: ' + JSON.stringify(lastCreateParams.metadata));
+    assert(lastCreateParams.expires_at >= nowSec + 30 * 60 && lastCreateParams.expires_at <= nowSec + 33 * 60, 'member sessions must expire in about 30 minutes: ' + lastCreateParams.expires_at);
+    assert(podRow('FIFS-POD-AB12').claimed_seats === 2, 'one seat claimed: ' + podRow('FIFS-POD-AB12').claimed_seats);
+    assert(rpcCalls.length === 0, 'a member must not create a new pod');
+    assert(db.invoices.find((i) => i.invoice_number === body.invoiceId).course === POD_COURSE, 'the invoice uses the pod course');
+  });
+  await test('A full, cancelled, unknown or malformed pod code is refused and starts no payment', async () => {
+    const cases = [['FIFS-POD-FULL', 409, /full/i], ['FIFS-POD-DEAD', 409, /no longer active/i], ['FIFS-POD-ZZZZ', 404, /not found/i], ['not a code', 400, /not valid/i]];
+    for (const [code, expectedStatus, pattern] of cases) {
+      lastCreateParams = null; const invoicesBefore = db.invoices.length;
+      const r = await checkoutPost({ email: 'nope@example.com', courseSelection: 'Maryland CCW', groupSize: '1', podCode: code });
+      assert(r.status === expectedStatus && pattern.test(r.body.error || ''), `${code}: got ${r.status} ${JSON.stringify(r.body)}`);
+      assert(lastCreateParams === null && db.invoices.length === invoicesBefore, `${code}: no Stripe session and no invoice may be created`);
+    }
+    assert(podRow('FIFS-POD-FULL').claimed_seats === 2 && podRow('FIFS-POD-AB12').claimed_seats === 1, 'no seat count changed');
+  });
+  await test('The last seat goes to exactly one member: the second member is told the pod is full', async () => {
+    podRow('FIFS-POD-AB12').max_seats = 2;
+    const first = await checkoutPost({ email: 'm1@example.com', courseSelection: 'x', groupSize: '1', podCode: 'FIFS-POD-AB12' });
+    const second = await checkoutPost({ email: 'm2@example.com', courseSelection: 'x', groupSize: '1', podCode: 'FIFS-POD-AB12' });
+    assert(first.status === 200 && second.status === 409 && /full/i.test(second.body.error), `got ${first.status} / ${second.status}`);
+    assert(podRow('FIFS-POD-AB12').claimed_seats === 2, 'never above max_seats');
+  });
+  await test('If payment cannot start (Stripe down, or the invoice cannot be saved) the claimed seat is given back', async () => {
+    failStripeCreate = true;
+    const a = await checkoutPost({ email: 'm3@example.com', courseSelection: 'x', groupSize: '1', podCode: 'FIFS-POD-AB12' });
+    failStripeCreate = false;
+    assert(a.status === 502 && podRow('FIFS-POD-AB12').claimed_seats === 1, `Stripe failure: ${a.status}, seats ${podRow('FIFS-POD-AB12').claimed_seats}`);
+    failures['invoices.insert'] = { code: '57014', message: 'simulated' };
+    const b = await checkoutPost({ email: 'm4@example.com', courseSelection: 'x', groupSize: '1', podCode: 'FIFS-POD-AB12' });
+    delete failures['invoices.insert'];
+    assert(b.status === 503 && podRow('FIFS-POD-AB12').claimed_seats === 1, `invoice failure: ${b.status}, seats ${podRow('FIFS-POD-AB12').claimed_seats}`);
+  });
+  await test('An unpaid member checkout that expires gives its seat back exactly once (webhook retries do not release twice)', async () => {
+    const r = await checkoutPost({ email: 'm5@example.com', courseSelection: 'x', groupSize: '1', podCode: 'FIFS-POD-AB12' });
+    assert(r.status === 200 && podRow('FIFS-POD-AB12').claimed_seats === 2, 'seat claimed');
+    const sess = stripeSessions[r.body.sessionId];
+    const ev = { id: 'evt_pod_exp', type: 'checkout.session.expired', data: { object: { id: sess.id, customer_email: 'm5@example.com', metadata: sess.metadata } } };
+    assert((await webhook(ev)).status === 200 && podRow('FIFS-POD-AB12').claimed_seats === 1, 'seat released on expiry');
+    assert(db.invoices.find((i) => i.invoice_number === r.body.invoiceId).status === 'ABANDONED', 'invoice abandoned');
+    podRow('FIFS-POD-AB12').claimed_seats = 2; // another member joined meanwhile
+    assert((await webhook(ev)).status === 200 && podRow('FIFS-POD-AB12').claimed_seats === 2, 'a replayed expiry event must not release again');
+  });
+  await test('A PAID member checkout keeps its seat (the expiry cleanup only runs for unpaid invoices)', async () => {
+    const r = await checkoutPost({ email: 'm6@example.com', courseSelection: 'x', groupSize: '1', podCode: 'FIFS-POD-AB12' });
+    db.invoices.find((i) => i.invoice_number === r.body.invoiceId).status = 'DEPOSIT_PAID';
+    const sess = stripeSessions[r.body.sessionId];
+    await webhook({ id: 'evt_pod_exp2', type: 'checkout.session.expired', data: { object: { id: sess.id, metadata: sess.metadata } } });
+    assert(podRow('FIFS-POD-AB12').claimed_seats === 2, 'a paid member keeps the seat');
+  });
+  await test('A leader whose checkout expires unpaid cancels an empty pod, but not one that members already joined', async () => {
+    db.booking_groups.push({ invite_code: 'FIFS-POD-LEAD', leader_name: 'L', leader_email: 'l@example.com', course: 'c', track: 'Base', preferred_dates: 'x', max_seats: 3, claimed_seats: 1, status: 'ACTIVE' });
+    db.booking_groups.push({ invite_code: 'FIFS-POD-JOIN', leader_name: 'L', leader_email: 'l2@example.com', course: 'c', track: 'Base', preferred_dates: 'x', max_seats: 3, claimed_seats: 2, status: 'ACTIVE' });
+    for (const [code, n] of [['FIFS-POD-LEAD', 1], ['FIFS-POD-JOIN', 2]]) {
+      const inv = pendingInvoice({ invoice_number: 'INV-FI-2026-LEAD000' + n, stripe_session_id: 'cs_test_lead' + n });
+      await webhook({ id: 'evt_lead' + n, type: 'checkout.session.expired', data: { object: { id: inv.stripe_session_id, metadata: { invoiceId: inv.invoice_number, podCode: code, podRole: 'leader' } } } });
+    }
+    assert(podRow('FIFS-POD-LEAD').status === 'CANCELLED', 'an empty leader pod is cancelled');
+    assert(podRow('FIFS-POD-JOIN').status === 'ACTIVE', 'a pod members already joined stays ACTIVE');
+  });
+  await test('/api/fifs validatePodCode shows the form only what it needs (no leader name, email or phone) and refuses bad codes', async () => {
+    const ok = await fifs('validatePodCode', { code: 'fifs-pod-ab12' }, { 'x-forwarded-for': '203.0.113.7' });
+    assert(ok.status === 200 && ok.body.valid === true && ok.body.course === POD_COURSE && ok.body.seatsLeft === 2, `got ${ok.status} ${JSON.stringify(ok.body)}`);
+    const text = JSON.stringify(ok.body);
+    assert(!/Pat Leader|pat\.leader|4105550100/.test(text) && !('leader_name' in ok.body) && !('leaderName' in ok.body), 'leader details must not be exposed: ' + text);
+    assert((await fifs('validatePodCode', { code: 'FIFS-POD-ZZZZ' }, { 'x-forwarded-for': '203.0.113.7' })).status === 404, 'unknown code');
+    assert((await fifs('validatePodCode', { code: 'FIFS-POD-FULL' }, { 'x-forwarded-for': '203.0.113.7' })).status === 409, 'full pod');
+  });
+  await test('/api/fifs validatePodCode is throttled per caller (21st attempt in 10 minutes gets 429) without affecting other callers', async () => {
+    let last;
+    for (let i = 0; i < 21; i++) last = await fifs('validatePodCode', { code: 'FIFS-POD-ZZZZ' }, { 'x-forwarded-for': '198.51.100.9' });
+    assert(last.status === 429, 'expected 429 on the 21st attempt, got ' + last.status);
+    assert((await fifs('validatePodCode', { code: 'FIFS-POD-AB12' }, { 'x-forwarded-for': '198.51.100.10' })).status === 200, 'another caller is unaffected');
   });
   await test('Source checks: the invoice insert uses the FK-safe id and the roster/delete guards use the shared helper', async () => {
     const ck = fs.readFileSync(path.join(SRC, 'Lib/server/booking-checkout.ts'), 'utf-8');
