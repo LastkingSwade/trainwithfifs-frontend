@@ -216,3 +216,9 @@
   .portal-feature-title { transition: text-shadow 200ms ease-out; }
   .portal-feature-title:hover { text-shadow: 0 0 10px rgba(0, 229, 255, 0.45); }
 }
+
+/* D037 soft cyan text glow on hover for metric-name */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .metric-name { transition: text-shadow 200ms ease-out; }
+  .metric-name:hover { text-shadow: 0 0 10px rgba(0, 229, 255, 0.45); }
+}
