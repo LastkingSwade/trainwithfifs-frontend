@@ -485,3 +485,9 @@
   .img-fallback-badge { transition: opacity 160ms ease-out; }
   .img-fallback-badge:hover { opacity: 0.85; }
 }
+
+/* D083 check items tint on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .fi-check-item { transition: background-color 160ms ease-out; }
+  .fi-check-item:hover { background-color: rgba(0, 229, 255, 0.06); }
+}
