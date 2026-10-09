@@ -407,3 +407,9 @@
 
 /* D069 no grey tap flash on buttons */
 .btn-spark, .btn-primary, .btn-secondary { -webkit-tap-highlight-color: transparent; }
+
+/* D070 map state hover brightens */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .state-bg-rect { transition: filter 140ms ease-out; }
+  .state-bg-rect:hover { filter: brightness(1.35); }
+}
