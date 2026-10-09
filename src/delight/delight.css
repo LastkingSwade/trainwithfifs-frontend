@@ -282,3 +282,9 @@
   .corridor-route-card { transition: border-color 180ms ease-out; }
   .corridor-route-card:hover { border-color: rgba(0, 229, 255, 0.55); }
 }
+
+/* D048 border brightens on hover for vip-perks-box */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .vip-perks-box { transition: border-color 180ms ease-out; }
+  .vip-perks-box:hover { border-color: rgba(0, 229, 255, 0.55); }
+}
