@@ -575,3 +575,9 @@
   .tuition-card { transition: transform 90ms ease-out; }
   .tuition-card:active { transform: scale(0.985); }
 }
+
+/* D098 press feedback on metric-card */
+@media (prefers-reduced-motion: no-preference) {
+  .metric-card { transition: transform 90ms ease-out; }
+  .metric-card:active { transform: scale(0.985); }
+}
