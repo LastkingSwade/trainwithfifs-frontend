@@ -396,3 +396,8 @@
   @keyframes d066 { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
   .vip-perks-box .vip-perk-item:nth-child(5) { animation: d066 260ms ease-out 350ms both; }
 }
+
+/* D067 smooth in-page scrolling */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
