@@ -521,3 +521,9 @@
   .tuition-desc { transition: color 140ms ease-out; }
   .tuition-desc:hover { color: #ffffff; }
 }
+
+/* D089 VIP box glows on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .vip-perks-box { transition: box-shadow 200ms ease-out; }
+  .vip-perks-box:hover { box-shadow: 0 0 18px rgba(255, 183, 3, 0.18); }
+}
