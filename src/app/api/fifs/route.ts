@@ -2,7 +2,7 @@
 import crypto from 'node:crypto';
 import { getAuthenticatedUser, getPrivilegedClient, getPublicClient } from '@/Lib/server/supabase-admin';
 import { isLiveChatHours } from '@/Lib/server/chat-hours';
-import { createBookingCheckout } from '@/Lib/server/booking-checkout';
+import { createBookingCheckout, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord } from '@/Lib/server/booking-checkout';
 import { ConfigurationError, resolveSiteUrl } from '@/Lib/config/environment';
 
 
@@ -819,6 +819,11 @@ export async function POST(req: NextRequest) {
        const resolvedStudentId = foundStudent?.student_id || (targetId.startsWith('FIFS-') ? targetId : null);
        const resolvedEmail = foundStudent?.email || (targetEmail.includes('@') ? targetEmail : null);
        const resolvedUuid = foundStudent?.id || (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetId) ? targetId : null);
+
+       // The guest-checkout record owns every guest invoice (ON DELETE CASCADE): deleting it would erase them.
+       if (isGuestCheckoutRecord(resolvedStudentId, resolvedEmail) || isGuestCheckoutRecord(targetId, targetEmail)) {
+         return NextResponse.json({ success: false, error: 'This is the system record that holds guest checkout invoices. It cannot be deleted.' }, { status: 400 });
+       }
 
        // 2. Cascade delete dependent child records first to satisfy foreign key constraints
        if (resolvedStudentId) {
@@ -2696,9 +2701,11 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        }
        supabase = getPrivilegedClient();
+        // The guest-checkout system record (it holds guest invoices) is not a real student: keep it off the roster.
         const { data: students } = await supabase
           .from('students')
           .select('*')
+          .neq('student_id', GUEST_CHECKOUT_STUDENT_ID)
           .order('created_at', { ascending: false });
 
         const { data: enrollments } = await supabase
@@ -2780,7 +2787,7 @@ export async function POST(req: NextRequest) {
        if (result.body.attendees > 1) {
          try {
            const pricingCourse = String(payload.courseSelection || 'Maryland Firearms Training Course').trim().slice(0, 200);
-           const { data: codeData } = await getPrivilegedClient().rpc('create_booking_group', {
+           const { data: codeData, error: podRpcErr } = await getPrivilegedClient().rpc('create_booking_group', {
              p_leader_name: String(payload.fullName || 'FIFS Training Student').trim().slice(0, 100),
              p_leader_email: String(payload.email).trim().toLowerCase(),
              p_leader_phone: String(payload.phone || '').trim().slice(0, 30) || null,
@@ -2789,7 +2796,13 @@ export async function POST(req: NextRequest) {
              p_preferred_dates: String(payload.preferredDates || 'Coordinated with Lead Instructor Kai Wade').trim().slice(0, 200),
              p_max_seats: result.body.attendees
            });
-           podInviteCode = codeData;
+           if (podRpcErr) {
+             // The booking and payment already succeeded; a missing pod code must not break them. Log it clearly.
+             console.warn('[FIFS] Pod invite code was not created:', podRpcErr.code || 'no code', podRpcErr.message);
+             podInviteCode = null;
+           } else {
+             podInviteCode = codeData ?? null;
+           }
          } catch (podErr) {
            console.warn('[FIFS] Pod generation note:', podErr);
          }

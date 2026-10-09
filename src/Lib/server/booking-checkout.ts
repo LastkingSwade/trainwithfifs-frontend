@@ -27,6 +27,53 @@ function generateGuestStudentId(): string {
   return `GUEST-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 }
 
+/**
+ * invoices.student_id is NOT NULL and has a foreign key to students(student_id), so an invoice cannot point at a
+ * per-visitor GUEST-XXXXXXXX id that has no students row. Guest invoices therefore all reference ONE fixed system
+ * record, created on first use by the service-role client. It holds no personal data: the guest's own details stay on
+ * the invoice (email), in the Stripe session metadata (the GUEST-XXXXXXXX reference) and in the Discord alert.
+ * Creating a students row per visitor was rejected on purpose: it would let anyone add rows to the roster and pre-seed
+ * a row with someone else's email for the sign-up linking trigger to attach later.
+ * Deleting this record would delete every guest invoice (ON DELETE CASCADE), so the delete handler refuses it and the
+ * admin roster hides it.
+ */
+export const GUEST_CHECKOUT_STUDENT_ID = 'GUEST-CHECKOUT';
+export const GUEST_CHECKOUT_STUDENT_EMAIL = 'guest-checkout@fifs.invalid';
+
+export function isGuestCheckoutRecord(studentId?: unknown, email?: unknown): boolean {
+  return String(studentId ?? '').trim().toUpperCase() === GUEST_CHECKOUT_STUDENT_ID
+    || String(email ?? '').trim().toLowerCase() === GUEST_CHECKOUT_STUDENT_EMAIL;
+}
+
+/** Makes sure the guest-checkout system record exists. Fails closed: callers must not start payment if this is false. */
+async function ensureGuestCheckoutStudent(): Promise<{ ok: boolean; detail?: string }> {
+  try {
+    const supabase = getPrivilegedClient();
+    const existing = await supabase.from('students').select('student_id').eq('student_id', GUEST_CHECKOUT_STUDENT_ID).maybeSingle();
+    if (existing.error) return { ok: false, detail: `lookup failed (${existing.error.code || 'no code'}): ${existing.error.message}` };
+    if (existing.data) return { ok: true };
+    const created = await supabase.from('students').insert({
+      student_id: GUEST_CHECKOUT_STUDENT_ID,
+      full_name: 'Guest Checkout (system record)',
+      email: GUEST_CHECKOUT_STUDENT_EMAIL,
+      phone: 'N/A',
+      course_name: 'Guest checkout',
+      internal_notes: 'System record that holds the invoices of visitors who book without signing in. Do not edit or delete: deleting it deletes those invoices.'
+    });
+    if (created.error) {
+      if (created.error.code === '23505') {
+        // A concurrent checkout created it first; confirm it is really there before relying on it.
+        const again = await supabase.from('students').select('student_id').eq('student_id', GUEST_CHECKOUT_STUDENT_ID).maybeSingle();
+        if (!again.error && again.data) return { ok: true };
+      }
+      return { ok: false, detail: `create failed (${created.error.code || 'no code'}): ${created.error.message}` };
+    }
+    return { ok: true };
+  } catch (err: any) {
+    return { ok: false, detail: `unavailable: ${err?.message}` };
+  }
+}
+
 const text = (value: unknown, fallback: string, max: number) => {
   const s = String(value ?? '').trim();
   return (s || fallback).slice(0, max);
@@ -116,6 +163,28 @@ export async function createBookingCheckout(
     }
   }
 
+  // The student_id the invoice will carry: the linked student's own id, or the fixed guest-checkout record.
+  // Done BEFORE the Stripe session exists, so a database problem here can never leave an open payment session behind.
+  let invoiceStudentId = studentId;
+  if (!linkedUserId) {
+    const ensured = await ensureGuestCheckoutStudent();
+    if (!ensured.ok) {
+      console.error('[Checkout] Guest checkout record unavailable; payment not started:', ensured.detail);
+      await sendDiscordAlert(
+        '⚠️ Checkout blocked: guest checkout record unavailable',
+        'The system record that guest invoices attach to could not be read or created, so payment was not started. No Stripe session was created.',
+        [
+          { name: 'Email', value: email, inline: true },
+          { name: 'Course Track', value: courseSelection, inline: false },
+          { name: 'Database error', value: String(ensured.detail || 'unknown').slice(0, 300), inline: false }
+        ],
+        0xEF4444
+      );
+      return { status: 503, body: { success: false, status: 'error', error: 'We could not record your booking, so payment was not started. Please try again in a few minutes or contact FIFS directly.' } };
+    }
+    invoiceStudentId = GUEST_CHECKOUT_STUDENT_ID;
+  }
+
   const invoiceId = generateInvoiceId();
   const pricing = calculatePricingBreakdown(courseSelection, attendees, isPayFull);
 
@@ -130,6 +199,7 @@ export async function createBookingCheckout(
       metadata: {
         invoiceId,
         studentId,
+        invoiceStudentId,
         linkedUserId: linkedUserId || '',
         fullName,
         phone,
@@ -175,12 +245,13 @@ export async function createBookingCheckout(
   // Record the PENDING invoice (insert-only). If it cannot be saved, the customer is not sent to
   // payment: the Stripe session is expired and the request fails (see below).
   let invoiceRecorded = false;
+  let invoiceFailure = '';
   let supabase: any = null;
   try {
     supabase = getPrivilegedClient();
     const { error: invoiceErr } = await supabase.from('invoices').insert({
       invoice_number: invoiceId,
-      student_id: studentId,
+      student_id: invoiceStudentId,
       course: courseSelection,
       total_amount: pricing.grandTotal.toFixed(2),
       tuition_amount: pricing.discountedTuition.toFixed(2),
@@ -197,11 +268,15 @@ export async function createBookingCheckout(
       updated_at: new Date().toISOString()
     });
     if (invoiceErr) {
-      console.error('[Checkout] Pending invoice insert failed:', invoiceErr.message || invoiceErr);
+      invoiceFailure = `${invoiceErr.code || 'no code'}: ${invoiceErr.message || 'unknown error'}`;
+      const hint = invoiceErr.code === '23503' ? ' (foreign key: the invoice student_id has no matching students row)'
+        : invoiceErr.code === '23502' ? ' (a required invoice column was empty)' : '';
+      console.error('[Checkout] Pending invoice insert failed:', invoiceFailure + hint);
     } else {
       invoiceRecorded = true;
     }
   } catch (dbErr: any) {
+    invoiceFailure = `unavailable: ${dbErr?.message}`;
     console.error('[Checkout] Pending invoice could not be recorded:', dbErr?.message);
   }
 
@@ -223,7 +298,8 @@ export async function createBookingCheckout(
         { name: 'Student Name', value: fullName, inline: true },
         { name: 'Email', value: email, inline: true },
         { name: 'Course Track', value: courseSelection, inline: false },
-        { name: 'Invoice', value: invoiceId, inline: true }
+        { name: 'Invoice', value: invoiceId, inline: true },
+        { name: 'Database error', value: (invoiceFailure || 'unknown').slice(0, 300), inline: false }
       ],
       0xEF4444
     );

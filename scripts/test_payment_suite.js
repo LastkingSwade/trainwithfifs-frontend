@@ -79,7 +79,8 @@ function queryBuilder(table, clientKey) {
   let returning = false;
   const matches = (row) => filters.every((f) => f(row));
   const run = () => {
-    const injected = failures[`${table}.${op}`];
+    const injectedRaw = failures[`${table}.${op}`];
+    const injected = typeof injectedRaw === 'function' ? injectedRaw() : injectedRaw;
     if (injected) return { data: null, error: injected };
     const rows = db[table] || (db[table] = []);
     if (op === 'insert') {
@@ -87,6 +88,13 @@ function queryBuilder(table, clientKey) {
       for (const row of list) {
         if (table === 'invoices' && rows.some((r) => r.invoice_number === row.invoice_number)) {
           return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint' } };
+        }
+        // Production rules for invoices.student_id: NOT NULL, and a foreign key to students(student_id).
+        if (table === 'invoices' && (row.student_id === null || row.student_id === undefined)) {
+          return { data: null, error: { code: '23502', message: 'null value in column "student_id" of relation "invoices" violates not-null constraint' } };
+        }
+        if (table === 'invoices' && !(db.students || []).some((s) => s.student_id === row.student_id)) {
+          return { data: null, error: { code: '23503', message: 'insert or update on table "invoices" violates foreign key constraint "invoices_student_id_fkey"' } };
         }
       }
       rows.push(...list.map((r) => ({ ...r })));
@@ -108,6 +116,7 @@ function queryBuilder(table, clientKey) {
     update: (values) => { op = 'update'; payload = values; return b; },
     delete: () => { op = 'delete'; return b; },
     eq: (col, val) => { filters.push((r) => r[col] === val); return b; },
+    neq: (col, val) => { filters.push((r) => r[col] !== val); return b; },
     in: (col, vals) => { filters.push((r) => vals.includes(r[col])); return b; },
     gte: (col, val) => { filters.push((r) => r[col] >= val); return b; },
     lte: (col, val) => { filters.push((r) => r[col] <= val); return b; },
@@ -121,11 +130,16 @@ function queryBuilder(table, clientKey) {
 }
 
 const createdClientKeys = [];
+const rpcCalls = [];
 const mockSupabase = {
   createClient: (url, key) => ({
     _record: createdClientKeys.push(key),
     from: (table) => queryBuilder(table, key),
-    rpc: async () => ({ data: 'POD-TEST', error: null }),
+    rpc: async (fn, args) => {
+      rpcCalls.push({ fn, args, key });
+      const injected = failures[`rpc.${fn}`];
+      return injected ? { data: null, error: injected } : { data: 'POD-TEST', error: null };
+    },
     storage: { from: () => ({ createSignedUrl: async () => ({ data: null, error: { message: 'none' } }) }) },
     auth: {
       getUser: async (token) => {
@@ -603,6 +617,147 @@ async function main() {
       const { status } = await fifs('check24HourReminders', {}, { 'x-cron-secret': 'cron-secret-for-tests-only-0123456789' });
       assert(status === 200, `expected 200, got ${status}`);
     } finally { delete process.env.CRON_SECRET; delete process.env.RESEND_API_KEY; }
+  });
+
+  console.log('\n[SECTION G: Guest checkout invoices satisfy invoices_student_id_fkey (NOT NULL + foreign key to students)]');
+  const SYSTEM_ID = 'GUEST-CHECKOUT';
+  const everyInvoiceHasAStudent = () => db.invoices.filter((i) => i.invoice_number.startsWith('INV-FI-') && i.invoice_number !== 'INV-FI-2026-1234')
+    .every((i) => i.student_id && db.students.some((st) => st.student_id === i.student_id));
+  await test('A guest checkout stores its invoice against the guest-checkout system record, not the per-visitor id', async () => {
+    const { status, body } = await checkoutPost({ email: 'Guest.Buyer@Example.com', fullName: 'Pat Guest', phone: '410-555-0100', courseSelection: 'Maryland CCW', groupSize: '2' });
+    assert(status === 200 && body.success === true && body.checkoutUrl, `expected a payment link, got ${status} ${JSON.stringify(body)}`);
+    const inv = db.invoices.find((i) => i.invoice_number === body.invoiceId);
+    assert(inv && inv.student_id === SYSTEM_ID, 'the invoice must reference the system record, got ' + (inv && inv.student_id));
+    assert(inv.email === 'guest.buyer@example.com' && inv.status === 'PENDING' && inv.stripe_session_id === body.sessionId && inv.invoice_number === body.invoiceId, 'invoice details must stay intact: ' + JSON.stringify(inv));
+    assert(/^GUEST-[0-9A-F]{8}$/.test(body.studentId) && body.studentId !== SYSTEM_ID, 'the per-visitor reference is still returned for traceability: ' + body.studentId);
+    assert(lastCreateParams.metadata.studentId === body.studentId && lastCreateParams.metadata.invoiceStudentId === SYSTEM_ID && lastCreateParams.metadata.linkedUserId === '', 'Stripe metadata keeps the guest reference and the invoice student id');
+    assert(everyInvoiceHasAStudent(), 'every new invoice must have a matching students row');
+  });
+  await test('The system record has every required column and holds no personal data or sign-in link', async () => {
+    await checkoutPost({ email: 'guest.buyer@example.com', fullName: 'Pat Guest', phone: '410-555-0100', courseSelection: 'Maryland CCW' });
+    const rec = db.students.filter((st) => st.student_id === SYSTEM_ID);
+    assert(rec.length === 1, 'exactly one system record');
+    const r = rec[0];
+    for (const col of ['student_id', 'full_name', 'email', 'phone', 'course_name']) assert(typeof r[col] === 'string' && r[col].length > 0, 'required column empty: ' + col);
+    assert(r.email.endsWith('.invalid') && !r.user_id, 'it must not look like a real person or link to an account');
+    assert(!JSON.stringify(r).includes('guest.buyer') && !JSON.stringify(r).includes('Pat Guest') && !JSON.stringify(r).includes('410-555'), 'no guest personal data may be copied onto it');
+    assert(/Do not edit or delete/.test(r.internal_notes), 'staff note explains why it must not be deleted');
+  });
+  await test('A second guest checkout reuses the same system record (still exactly one)', async () => {
+    await checkoutPost({ email: 'one@example.com', courseSelection: 'Maryland CCW' });
+    await checkoutPost({ email: 'two@example.com', courseSelection: 'Maryland CCW' });
+    assert(db.students.filter((st) => st.student_id === SYSTEM_ID).length === 1, 'must not create a second record');
+    assert(db.invoices.filter((i) => i.student_id === SYSTEM_ID).length === 2, 'both guest invoices attach to it');
+    assert(writes.filter((w) => w.table === 'students' && w.op === 'insert').length === 1, 'only one students insert across both checkouts');
+  });
+  await test('A signed-in student keeps their own student_id and no system record is created', async () => {
+    const { status, body } = await checkoutPost({ email: 'alice@student.com', courseSelection: 'Maryland CCW' }, { Authorization: 'Bearer student-alice-token' });
+    assert(status === 200, 'expected 200, got ' + status);
+    assert(db.invoices.find((i) => i.invoice_number === body.invoiceId).student_id === 'FIFS-1001', 'the invoice uses the student\'s own id');
+    assert(!db.students.some((st) => st.student_id === SYSTEM_ID), 'no system record is needed for linked students');
+    assert(lastCreateParams.metadata.invoiceStudentId === 'FIFS-1001', 'metadata names the same id');
+  });
+  await test('If the system record cannot be created, checkout fails closed BEFORE Stripe: no session, no invoice, staff alerted', async () => {
+    process.env.DISCORD_WEBHOOK_URL = 'https://alerts.example.test/hook';
+    const sessionsBefore = Object.keys(stripeSessions).length;
+    lastCreateParams = null;
+    failures['students.insert'] = { code: '42501', message: 'permission denied for table students' };
+    const { status, body } = await checkoutPost({ email: 'guest@example.com', courseSelection: 'Maryland CCW' });
+    assert(status === 503 && !body.url && !body.checkoutUrl && !body.sessionId, `expected 503 without a link, got ${status}`);
+    assert(/could not record your booking/i.test(body.error), 'customer-facing wording unchanged');
+    assert(lastCreateParams === null && Object.keys(stripeSessions).length === sessionsBefore, 'no Stripe session may be created');
+    assert(!writes.some((w) => w.table === 'invoices'), 'no invoice may be written');
+    assert(fetchCalls.length === 1 && /guest checkout record unavailable/i.test(JSON.stringify(fetchCalls[0])) && /42501/.test(JSON.stringify(fetchCalls[0])), 'staff alert names the problem and the database error code');
+    assert(!JSON.stringify(body).includes('42501'), 'the customer never sees database details');
+  });
+  await test('If the system record lookup fails, checkout fails closed before Stripe', async () => {
+    lastCreateParams = null;
+    failures['students.select'] = { code: 'XX000', message: 'boom' };
+    const { status, body } = await checkoutPost({ email: 'guest@example.com', courseSelection: 'Maryland CCW' });
+    assert(status === 503 && !body.checkoutUrl && lastCreateParams === null && !writes.some((w) => w.table === 'invoices' || w.table === 'students'), `expected a clean 503, got ${status}`);
+  });
+  await test('A concurrent checkout that created the record first is tolerated; a duplicate error without the record is not', async () => {
+    failures['students.insert'] = () => {
+      db.students.push({ student_id: SYSTEM_ID, full_name: 'Guest Checkout (system record)', email: 'guest-checkout@fifs.invalid', phone: 'N/A', course_name: 'Guest checkout' });
+      return { code: '23505', message: 'duplicate key value violates unique constraint "students_student_id_key"' };
+    };
+    let r = await checkoutPost({ email: 'race@example.com', courseSelection: 'Maryland CCW' });
+    assert(r.status === 200 && db.invoices.some((i) => i.student_id === SYSTEM_ID), 'the checkout proceeds when the record now exists: ' + r.status);
+    resetDb(); lastCreateParams = null;
+    failures['students.insert'] = { code: '23505', message: 'duplicate key' };
+    r = await checkoutPost({ email: 'race2@example.com', courseSelection: 'Maryland CCW' });
+    assert(r.status === 503 && lastCreateParams === null, 'a duplicate error with no record present must still fail closed');
+  });
+  await test('An invoice database error is surfaced clearly to staff, the Stripe session is still expired, and nothing leaks to the customer', async () => {
+    expiredSessionIds = [];
+    process.env.DISCORD_WEBHOOK_URL = 'https://alerts.example.test/hook';
+    failures['invoices.insert'] = { code: '23503', message: 'insert or update on table "invoices" violates foreign key constraint "invoices_student_id_fkey"' };
+    const { status, body } = await checkoutPost({ email: 'buyer@example.com', courseSelection: 'Maryland CCW' });
+    assert(status === 503 && !body.checkoutUrl && !body.url, 'blocked with no payment link');
+    assert(expiredSessionIds.length === 1 && stripeSessions[expiredSessionIds[0]].status === 'expired', 'the open Stripe session is expired, not orphaned');
+    const alert = JSON.stringify(fetchCalls[0] || {});
+    assert(/23503/.test(alert) && /invoices_student_id_fkey/.test(alert), 'the alert carries the database error code and constraint name');
+    assert(!alert.includes(process.env.SUPABASE_SERVICE_ROLE_KEY) && !JSON.stringify(body).includes('invoices_student_id_fkey'), 'no key in the alert and no database detail for the customer');
+  });
+  await test('The admin roster hides the system record but still lists real students', async () => {
+    await checkoutPost({ email: 'guest@example.com', courseSelection: 'Maryland CCW' });
+    assert(db.students.some((st) => st.student_id === SYSTEM_ID), 'precondition: the record exists');
+    const { status, body } = await fifs('getAdminDashboardData', {}, { Authorization: 'Bearer admin-bearer-token' });
+    assert(status === 200 && Array.isArray(body.students), 'dashboard loads: ' + status);
+    const ids = body.students.map((st) => st.studentId || st.student_id);
+    assert(!ids.includes(SYSTEM_ID), 'the system record must not appear on the roster');
+    assert(ids.includes('FIFS-1001') && ids.includes('FIFS-1002'), 'real students remain listed: ' + ids.join(','));
+  });
+  await test('Staff cannot delete the system record (by id or by email): the cascade would erase every guest invoice', async () => {
+    await checkoutPost({ email: 'guest@example.com', courseSelection: 'Maryland CCW' });
+    const invoicesBefore = db.invoices.filter((i) => i.student_id === SYSTEM_ID).length;
+    assert(invoicesBefore === 1, 'precondition');
+    for (const payload of [{ studentId: SYSTEM_ID }, { studentId: 'guest-checkout' }, { email: 'Guest-Checkout@FIFS.invalid' }]) {
+      const { status, body } = await fifs('adminDeleteStudent', payload, { Authorization: 'Bearer admin-bearer-token' });
+      assert(status === 400 && body.success === false && /cannot be deleted/.test(body.error), `refused ${JSON.stringify(payload)}: ${status} ${JSON.stringify(body)}`);
+    }
+    assert(db.students.some((st) => st.student_id === SYSTEM_ID) && db.invoices.filter((i) => i.student_id === SYSTEM_ID).length === invoicesBefore, 'the record and its invoices are intact');
+  });
+
+  console.log('\n[SECTION H: Group (2+ attendee) booking: pricing, invoice and pod code]');
+  await test('A 2-person guest booking is priced by the server, recorded FK-safely, and charged the 30% deposit', async () => {
+    const expected = pricing.calculatePricingBreakdown('Maryland CCW', 2, false);
+    const { status, body } = await checkoutPost({ email: 'pair@example.com', fullName: 'Pair Lead', courseSelection: 'Maryland CCW', groupSize: '2 (Paired Session)', totalAmount: '1.00', depositAmount: '0.01' });
+    assert(status === 200 && body.attendees === 2, `expected 200 for 2 attendees, got ${status} ${body.attendees}`);
+    const inv = db.invoices.find((i) => i.invoice_number === body.invoiceId);
+    assert(inv.student_id === SYSTEM_ID && everyInvoiceHasAStudent(), 'FK-safe student_id');
+    assert(inv.total_amount === expected.grandTotal.toFixed(2) && inv.deposit_due === expected.depositDueNow.toFixed(2) && inv.balance_due === expected.grandTotal.toFixed(2), 'invoice amounts come from the server pricing, not the client: ' + JSON.stringify(inv));
+    assert(lastCreateParams.line_items[0].price_data.unit_amount === expected.chargeCents && lastCreateParams.metadata.attendees === '2', 'Stripe is charged the server-computed deposit');
+  });
+  await test('/api/fifs submitBooking for 2+ attendees creates a pod code with the service-role key and still returns the payment link', async () => {
+    rpcCalls.length = 0;
+    const { status, body } = await fifs('submitBooking', { email: 'Lead@Example.com', fullName: 'Pod Lead', phone: '410-555-0111', courseSelection: 'Maryland CCW', groupSize: '3' });
+    assert(status === 200 && body.checkoutUrl && body.podInviteCode === 'POD-TEST' && body.attendees === 3, `got ${status} ${JSON.stringify(body)}`);
+    assert(rpcCalls.length === 1 && rpcCalls[0].fn === 'create_booking_group' && rpcCalls[0].key === process.env.SUPABASE_SERVICE_ROLE_KEY, 'one rpc call with the server key');
+    assert(rpcCalls[0].args.p_leader_email === 'lead@example.com' && rpcCalls[0].args.p_max_seats === 3 && rpcCalls[0].args.p_track === 'Base', 'rpc arguments: ' + JSON.stringify(rpcCalls[0].args));
+    assert(db.invoices.find((i) => i.invoice_number === body.invoiceId).student_id === SYSTEM_ID, 'the invoice is FK-safe too');
+  });
+  await test('A single-attendee booking creates no pod', async () => {
+    rpcCalls.length = 0;
+    const { status, body } = await fifs('submitBooking', { email: 'solo@example.com', courseSelection: 'Maryland CCW', groupSize: '1' });
+    assert(status === 200 && body.podInviteCode === null && rpcCalls.length === 0, 'no pod for one seat');
+  });
+  await test('A failing pod rpc never breaks the booking: payment link returned, invoice kept, no pod code', async () => {
+    failures['rpc.create_booking_group'] = { code: '42501', message: 'permission denied for function create_booking_group' };
+    const warns = []; const origWarn = console.warn; console.warn = (...a) => warns.push(a.join(' '));
+    let status, body;
+    try { ({ status, body } = await fifs('submitBooking', { email: 'lead2@example.com', courseSelection: 'Maryland CCW', groupSize: '2' })); } finally { console.warn = origWarn; }
+    assert(status === 200 && body.checkoutUrl && body.podInviteCode === null, `booking must survive a pod failure: ${status} ${JSON.stringify(body)}`);
+    assert(warns.some((w) => /Pod invite code was not created/.test(w) && /42501/.test(w)), 'the failure is logged with its error code: ' + warns.join(' | '));
+    assert(db.invoices.some((i) => i.invoice_number === body.invoiceId), 'the invoice is still recorded');
+    assert(!JSON.stringify(body).includes('42501'), 'the pod database error is not shown to the customer');
+  });
+  await test('Source checks: the invoice insert uses the FK-safe id and the roster/delete guards use the shared helper', async () => {
+    const ck = fs.readFileSync(path.join(SRC, 'Lib/server/booking-checkout.ts'), 'utf-8');
+    assert(/student_id: invoiceStudentId,/.test(ck) && !/student_id: studentId,/.test(ck), 'the invoice insert must use invoiceStudentId');
+    assert(ck.indexOf('ensureGuestCheckoutStudent()') < ck.indexOf('stripe.checkout.sessions.create'), 'the system record is ensured before the Stripe session is created');
+    const route = fs.readFileSync(path.join(SRC, 'app/api/fifs/route.ts'), 'utf-8');
+    assert(/\.neq\('student_id', GUEST_CHECKOUT_STUDENT_ID\)/.test(route) && /isGuestCheckoutRecord\(resolvedStudentId, resolvedEmail\)/.test(route), 'roster filter and delete guard present');
   });
 
   console.log('\n[SECTION: 24-hour reminders are marked sent only after the email succeeds]');

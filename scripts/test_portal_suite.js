@@ -270,7 +270,11 @@ const originalRequire = Module.prototype.require;
 Module.prototype.require = function (id) {
   if (id === 'next/server') return mockNextServer;
   if (id === '@supabase/supabase-js') return mockSupabase;
-  if (id === '@/Lib/server/booking-checkout') return { createBookingCheckout: async () => bookingStub };
+  if (id === '@/Lib/server/booking-checkout') {
+    // The real module's helpers and constants, with only the Stripe-backed checkout replaced by a stub.
+    const real = originalRequire.call(this, path.join(__dirname, '../src/Lib/server/booking-checkout.ts'));
+    return { ...real, createBookingCheckout: async () => bookingStub };
+  }
   if (id === 'stripe') return class { constructor() { throw new Error('Stripe must not be used by this suite'); } };
   return originalRequire.apply(this, arguments);
 };
