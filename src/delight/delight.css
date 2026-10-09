@@ -168,3 +168,9 @@
   .btn-base-side { transition: transform 90ms ease-out; }
   .btn-base-side:active { transform: scale(0.97); }
 }
+
+/* D029 press feedback on tier-option-btn */
+@media (prefers-reduced-motion: no-preference) {
+  .tier-option-btn { transition: transform 90ms ease-out; }
+  .tier-option-btn:active { transform: scale(0.97); }
+}
