@@ -503,3 +503,9 @@
   .review-quote-text { transition: color 140ms ease-out; }
   .review-quote-text:hover { color: #ffffff; }
 }
+
+/* D086 review author tag glows on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .review-author-tag { transition: text-shadow 160ms ease-out; }
+  .review-author-tag:hover { text-shadow: 0 0 8px rgba(0, 229, 255, 0.4); }
+}
