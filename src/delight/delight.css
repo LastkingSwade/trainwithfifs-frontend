@@ -276,3 +276,9 @@
   .fi-check-item { transition: border-color 180ms ease-out; }
   .fi-check-item:hover { border-color: rgba(0, 229, 255, 0.55); }
 }
+
+/* D047 border brightens on hover for corridor-route-card */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .corridor-route-card { transition: border-color 180ms ease-out; }
+  .corridor-route-card:hover { border-color: rgba(0, 229, 255, 0.55); }
+}
