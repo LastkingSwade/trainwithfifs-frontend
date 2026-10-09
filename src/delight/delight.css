@@ -545,3 +545,9 @@
   .panel-header { transition: text-shadow 200ms ease-out; }
   .panel-header:hover { text-shadow: 0 0 12px rgba(0, 229, 255, 0.25); }
 }
+
+/* D093 goal badge glows on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .goal-header-badge { transition: box-shadow 180ms ease-out; }
+  .goal-header-badge:hover { box-shadow: 0 0 12px rgba(0, 229, 255, 0.3); }
+}
