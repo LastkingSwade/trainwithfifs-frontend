@@ -174,3 +174,9 @@
   .tier-option-btn { transition: transform 90ms ease-out; }
   .tier-option-btn:active { transform: scale(0.97); }
 }
+
+/* D030 press feedback on fi-subnav-btn */
+@media (prefers-reduced-motion: no-preference) {
+  .fi-subnav-btn { transition: transform 90ms ease-out; }
+  .fi-subnav-btn:active { transform: scale(0.97); }
+}
