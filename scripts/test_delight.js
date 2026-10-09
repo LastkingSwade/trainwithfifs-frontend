@@ -8,7 +8,7 @@ function test(n, f) { try { f(); console.log('  ✓ PASS: ' + n); passed++; } ca
 function assert(c, m) { if (!c) throw new Error(m || 'assertion failed'); }
 function blocks(src) { const out = []; let depth = 0, start = 0; for (let i = 0; i < src.length; i++) { if (src[i] === '{') depth++; else if (src[i] === '}') { depth--; if (depth === 0) { out.push([src.slice(start, src.indexOf('{', start)).trim(), src.slice(src.indexOf('{', start) + 1, i)]); start = i + 1; } } } return out; }
 const MOTION = '@media (prefers-reduced-motion: no-preference)';
-const ALLOWED = new Set(['transform', 'opacity', 'box-shadow', 'text-shadow', 'border-color', 'background-color', 'color', 'outline', 'outline-offset', 'filter', 'transition', 'transition-property', 'transition-duration', 'transition-timing-function', 'transition-delay', 'animation', 'animation-delay', 'cursor', 'accent-color', 'caret-color', 'text-decoration-color', 'will-change']);
+const ALLOWED = new Set(['transform', 'opacity', 'box-shadow', 'text-shadow', 'border-color', 'background-color', 'color', 'outline', 'outline-offset', 'filter', 'transition', 'transition-property', 'transition-duration', 'transition-timing-function', 'transition-delay', 'animation', 'animation-delay', 'cursor', 'accent-color', 'caret-color', 'text-decoration-color', 'will-change', 'scroll-behavior', '-webkit-tap-highlight-color']);
 const top = blocks(CSS);
 const rules = []; // [mediaHeader, selector, body]
 for (const [h, body] of top) { if (h.startsWith('@media')) { for (const [s, b] of blocks(body)) rules.push([h, s, b]); } else if (h.startsWith('@keyframes')) rules.push(['', h, body]); else rules.push(['', h, body]); }
