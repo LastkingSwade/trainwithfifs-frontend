@@ -246,3 +246,9 @@
   .next-step-badge { transition: text-shadow 200ms ease-out; }
   .next-step-badge:hover { text-shadow: 0 0 10px rgba(0, 229, 255, 0.45); }
 }
+
+/* D042 border brightens on hover for tuition-card */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .tuition-card { transition: border-color 180ms ease-out; }
+  .tuition-card:hover { border-color: rgba(0, 229, 255, 0.55); }
+}
