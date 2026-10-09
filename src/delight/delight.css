@@ -150,3 +150,9 @@
   .btn-return-home { transition: transform 90ms ease-out; }
   .btn-return-home:active { transform: scale(0.97); }
 }
+
+/* D026 press feedback on btn-select-course */
+@media (prefers-reduced-motion: no-preference) {
+  .btn-select-course { transition: transform 90ms ease-out; }
+  .btn-select-course:active { transform: scale(0.97); }
+}
