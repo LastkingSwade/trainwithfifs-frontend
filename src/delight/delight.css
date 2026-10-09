@@ -515,3 +515,9 @@
   .tuition-bullets { transition: filter 160ms ease-out; }
   .tuition-bullets:hover { filter: brightness(1.12); }
 }
+
+/* D088 tuition description brightens on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .tuition-desc { transition: color 140ms ease-out; }
+  .tuition-desc:hover { color: #ffffff; }
+}
