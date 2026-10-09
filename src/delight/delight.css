@@ -144,3 +144,9 @@
   .btn-secondary-modal { transition: transform 90ms ease-out; }
   .btn-secondary-modal:active { transform: scale(0.97); }
 }
+
+/* D025 press feedback on btn-return-home */
+@media (prefers-reduced-motion: no-preference) {
+  .btn-return-home { transition: transform 90ms ease-out; }
+  .btn-return-home:active { transform: scale(0.97); }
+}
