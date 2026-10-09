@@ -360,3 +360,9 @@
   @keyframes d060 { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   .target-card-student { animation: d060 320ms ease-out 0ms both; }
 }
+
+/* D061 entrance fade-up on corridor-route-card */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes d061 { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .corridor-route-card { animation: d061 320ms ease-out 0ms both; }
+}
