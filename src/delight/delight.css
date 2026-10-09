@@ -366,3 +366,9 @@
   @keyframes d061 { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   .corridor-route-card { animation: d061 320ms ease-out 0ms both; }
 }
+
+/* D062 entrance stagger 1 on vip-perk-item */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes d062 { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .vip-perks-box .vip-perk-item:nth-child(1) { animation: d062 260ms ease-out 70ms both; }
+}
