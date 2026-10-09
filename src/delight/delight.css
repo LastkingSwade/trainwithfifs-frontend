@@ -222,3 +222,9 @@
   .metric-name { transition: text-shadow 200ms ease-out; }
   .metric-name:hover { text-shadow: 0 0 10px rgba(0, 229, 255, 0.45); }
 }
+
+/* D038 soft cyan text glow on hover for badge-score */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .badge-score { transition: text-shadow 200ms ease-out; }
+  .badge-score:hover { text-shadow: 0 0 10px rgba(0, 229, 255, 0.45); }
+}
