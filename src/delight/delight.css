@@ -156,3 +156,9 @@
   .btn-select-course { transition: transform 90ms ease-out; }
   .btn-select-course:active { transform: scale(0.97); }
 }
+
+/* D027 press feedback on btn-vip-side */
+@media (prefers-reduced-motion: no-preference) {
+  .btn-vip-side { transition: transform 90ms ease-out; }
+  .btn-vip-side:active { transform: scale(0.97); }
+}
