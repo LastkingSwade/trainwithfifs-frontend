@@ -1,15 +1,15 @@
 // Authoritative server-side course pricing. Client-supplied totals are never trusted.
 
 export const COURSE_PRICING: Record<string, { base: number; vip: number }> = {
-  mastery: { base: 424.99, vip: 549.99 },
-  combo: { base: 249.99, vip: 375.00 },
-  ccw: { base: 199.99, vip: 349.99 },
-  renewal: { base: 149.99, vip: 249.99 },
-  hql: { base: 100.00, vip: 165.00 },
-  coaching: { base: 125.00, vip: 195.00 },
-  cleaning: { base: 75.00, vip: 115.00 },
-  children: { base: 199.99, vip: 265.00 },
-  alumni: { base: 65.00, vip: 115.00 }
+  mastery: { base: 424.99, vip: 594.99 },
+  combo: { base: 249.99, vip: 349.99 },
+  ccw: { base: 199.99, vip: 279.99 },
+  renewal: { base: 149.99, vip: 209.99 },
+  hql: { base: 100.00, vip: 140.00 },
+  coaching: { base: 125.00, vip: 175.00 },
+  cleaning: { base: 75.00, vip: 105.00 },
+  children: { base: 199.99, vip: 279.99 },
+  alumni: { base: 65.00, vip: 91.00 }
 };
 
 const DEFAULT_TUITION_PER_PERSON = 249.99;

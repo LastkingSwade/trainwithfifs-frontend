@@ -220,8 +220,8 @@ export default function TrainWithFIFS(props: any) {
       need_multistate: {
         badge: "Multi-State Travel & I-95 Commuters",
         title: "Do I Need a Multi-State Carry Permit?",
-        rec: "Recommended: Mid-Atlantic Multi-State Mastery ($424.99 Base / $549.99 VIP)",
-        courseValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($549.99)",
+        rec: "Recommended: Mid-Atlantic Multi-State Mastery ($424.99 Base / $594.99 VIP)",
+        courseValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($594.99)",
         showGuide: false,
         synopsis: "Designed for travelers, commuters, and roadtrippers who regularly cross Maryland state borders into Virginia, Pennsylvania, Delaware, the Carolinas, Georgia, or Florida. Fulfills your 16-hour Maryland requirement while preparing documentation for Virginia, Florida, Arizona, and Pennsylvania non-resident carry in a single weekend.",
         why: [
@@ -230,7 +230,7 @@ export default function TrainWithFIFS(props: any) {
           "VIP Turnkey option provides everything: range fees, targets, loaner 9mm, factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos."
         ],
         whyNot: [
-          "If you only stay inside Maryland and rarely travel out of state, the standard Maryland Wear & Carry course ($249.99 Base / $375 VIP) is all you need.",
+          "If you only stay inside Maryland and rarely travel out of state, the standard Maryland Wear & Carry course ($199.99 Base / $279.99 VIP) is all you need.",
           "If your only goal is keeping a firearm at home for protection, choose the Maryland HQL class instead."
         ]
       },
@@ -646,7 +646,7 @@ export default function TrainWithFIFS(props: any) {
         const COURSE_TIER_CONFIG: Record<string, any> = {
       mastery: {
         basePrice: "$424.99",
-        vipPrice: "$549.99",
+        vipPrice: "$594.99",
         baseTitle: "Mid-Atlantic Multi-State Mastery",
         vipTitle: "👑 VIP Mid-Atlantic Multi-State Mastery Concierge",
         baseBadge: "5-STATE EXPANSION (MD+VA+FL+AZ+PA) — 34+ STATES LEGAL CARRY",
@@ -654,11 +654,11 @@ export default function TrainWithFIFS(props: any) {
         baseDesc: "Full 16-hour Maryland Wear & Carry qualification + application dossiers for Virginia, Florida, Arizona, and Pennsylvania (34+ state legal carry reciprocity). Self-equipped track: bring own firearm and ammo.",
         vipDesc: "👑 All-Inclusive VIP Turnkey Concierge. 5-state application packets, Livescan fingerprint guidance, priority range lane, loaner firearm, ammunition, photo compliance passport prints, and full notary certification included.",
         baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($424.99)",
-        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($549.99)"
+        vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($594.99)"
       },
       combo: {
         basePrice: "$249.99",
-        vipPrice: "$375.00",
+        vipPrice: "$349.99",
         baseTitle: "Maryland CCW & HQL Combo Certification",
         vipTitle: "👑 VIP Maryland CCW & HQL Combo Concierge",
         baseBadge: "DUAL CERTIFICATION: CONCEALED CARRY + HANDGUN PURCHASE PERMIT",
@@ -666,11 +666,11 @@ export default function TrainWithFIFS(props: any) {
         baseDesc: "Comprehensive dual-licensing package meeting both purchase and carry requirements under Maryland law (MSP PS § 5-306 & § 5-117.1). Self-equipped track: provide own handgun, holster, and 50 rounds ammo. Range fee ($45.00) & 6% tax calculated at checkout.",
         vipDesc: "👑 Turnkey VIP Concierge. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Includes B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition, holster, eye/ear pro, and on-site passport compliance photos.",
         baseValue: "Maryland CCW & HQL Combo — Base Track ($249.99)",
-        vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($375.00)"
+        vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($349.99)"
       },
       ccw: {
         basePrice: "$199.99",
-        vipPrice: "$349.99",
+        vipPrice: "$279.99",
         baseTitle: "Maryland Wear & Carry (CCW) Initial Course",
         vipTitle: "👑 VIP Maryland Wear & Carry (CCW) Concierge",
         baseBadge: "MARYLAND STATE POLICE CERTIFIED 16-HOUR INITIAL CCW",
@@ -678,11 +678,11 @@ export default function TrainWithFIFS(props: any) {
         baseDesc: "Full 16-Hour Maryland Wear & Carry certification. In-depth legal curriculum (State v. Faulkner, SB 1), weapon mechanics, and 25-round MSP qualification course. Self-equipped track: bring own handgun, holster, and 50 rounds.",
         vipDesc: "👑 Turnkey VIP Concierge. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Everything provided: loaner 9mm firearm, holster, eye/ear protection, 50 rounds factory ammunition, targets, and passport compliance photos.",
         baseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
-        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($349.99)"
+        vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($279.99)"
       },
       renewal: {
         basePrice: "$149.99",
-        vipPrice: "$249.99",
+        vipPrice: "$209.99",
         baseTitle: "Maryland Wear & Carry (8-Hour Renewal)",
         vipTitle: "👑 VIP Maryland Wear & Carry (8-Hour Renewal) Concierge",
         baseBadge: "8-HOUR MARYLAND STATE POLICE RECERTIFICATION",
@@ -690,11 +690,11 @@ export default function TrainWithFIFS(props: any) {
         baseDesc: "State-mandated 8-hour classroom recertification + 25-round MSP live-fire qualification at Cindy's Hot Shots. Self-equipped track: bring your own handgun, holster, and 50 rounds factory ammo.",
         vipDesc: "👑 VIP Turnkey Recertification. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Includes B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!",
         baseValue: "Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)",
-        vipValue: "Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($249.99)"
+        vipValue: "Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($209.99)"
       },
       hql: {
         basePrice: "$100.00",
-        vipPrice: "$165.00",
+        vipPrice: "$140.00",
         baseTitle: "Maryland Handgun Qualification License (HQL)",
         vipTitle: "👑 VIP Maryland HQL Concierge Licensing",
         baseBadge: "MARYLAND HANDGUN PURCHASE PERMIT MANDATORY TRAINING",
@@ -702,11 +702,11 @@ export default function TrainWithFIFS(props: any) {
         baseDesc: "State prerequisite for handgun purchase under MD Public Safety § 5-117.1. Covers firearm safety, mechanics, safe storage, and live-fire component. Self-equipped base track.",
         vipDesc: "👑 VIP HQL Experience. Range fee, loaner handgun, 50 rounds ammunition, eye/ear protection, and hands-on application submission assistance through the Maryland State Police licensing portal.",
         baseValue: "Maryland HQL (Purchase License) — Base Track ($100.00)",
-        vipValue: "Maryland HQL (Purchase License) — VIP Turnkey ($165.00)"
+        vipValue: "Maryland HQL (Purchase License) — VIP Turnkey ($140.00)"
       },
       coaching: {
         basePrice: "$125.00/hr",
-        vipPrice: "$195.00/hr",
+        vipPrice: "$175.00/hr",
         baseTitle: "Personal 1-on-1 Private Firearms Coaching",
         vipTitle: "👑 VIP Private Masterclass & Tactical Diagnostics",
         baseBadge: "DEDICATED 1-ON-1 INSTRUCTOR TIME & MARKSMANSHIP TARGETING",
@@ -714,11 +714,11 @@ export default function TrainWithFIFS(props: any) {
         baseDesc: "Dedicated private coaching. Diagnostic marksmanship, trigger press refinement, draw-stroke economy, malfunction drills, and stress inoculation drills with Lead Instructor Kai Wade.",
         vipDesc: "👑 VIP Private Masterclass. Multi-caliber handgun rentals (9mm & .45 ACP), 100 rounds match ammunition, high-speed video diagnostics, and customized tactical home defense action plan.",
         baseValue: "Personal 1-on-1 Coaching — Base Track ($125.00/hr)",
-        vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)"
+        vipValue: "Personal 1-on-1 Coaching — VIP Turnkey ($175.00/hr)"
       },
       cleaning: {
         basePrice: "$75.00",
-        vipPrice: "$115.00",
+        vipPrice: "$105.00",
         baseTitle: "Firearm Maintenance & Deep Cleaning Workshop",
         vipTitle: "👑 VIP Armorer Inspection & Ultrasonic Deep Clean",
         baseBadge: "FIELD-STRIP, CLEANING CHEMICAL SAFETY & PROPER LUBRICATION",
@@ -726,11 +726,11 @@ export default function TrainWithFIFS(props: any) {
         baseDesc: "Field-stripping, ultrasonic inspection methods, lubrication points, carbon fouling removal, and proper long-term storage preservation techniques for modern semi-automatic handguns.",
         vipDesc: "👑 VIP Armorer Service. Professional ultrasonic deep-clean tank soak, bore scoping, sear engagement safety inspection, spring tension testing, and premium Lucas Oil extreme-duty lubricant treatment.",
         baseValue: "Gun Cleaning & Maintenance — Base Track ($75.00)",
-        vipValue: "Gun Cleaning & Maintenance — VIP Turnkey ($115.00)"
+        vipValue: "Gun Cleaning & Maintenance — VIP Turnkey ($105.00)"
       },
       children: {
         basePrice: "$199.99",
-        vipPrice: "$265.00",
+        vipPrice: "$279.99",
         baseTitle: "Youth & Family Gun Safety Academy",
         vipTitle: "👑 VIP Family Defensive & Safe Storage Mastery",
         baseBadge: "ACCIDENT PREVENTION, EDDIE EAGLE PROTOCOL & RANGE DISCIPLINE",
@@ -738,11 +738,11 @@ export default function TrainWithFIFS(props: any) {
         baseDesc: "Comprehensive youth accident prevention and family home defense. Eddie Eagle 4-step emergency protocol: Stop, Don't Touch, Run Away, Tell an Adult. Safe storage principles and stress-free range introduction.",
         vipDesc: "👑 VIP Family Safety Bundle. Includes certified biometric rapid-access steel lockbox, youth ear/eye protection kit, private instructor range lane, and hands-on home safety emergency plan.",
         baseValue: "Children's Safety Class — Base Track ($199.99)",
-        vipValue: "Children's Safety Class — VIP Turnkey ($265.00)"
+        vipValue: "Children's Safety Class — VIP Turnkey ($279.99)"
       },
       alumni: {
         basePrice: "$65.00",
-        vipPrice: "$115.00",
+        vipPrice: "$91.00",
         baseTitle: "FIFS Graduate Alumni Tactical Marksman Clinic",
         vipTitle: "👑 VIP Alumni Advanced Shoot/Don't-Shoot Shootout",
         baseBadge: "EXCLUSIVELY FOR FIFS GRADUATES — ADVANCED DRILLS & SPEED",
@@ -750,7 +750,7 @@ export default function TrainWithFIFS(props: any) {
         baseDesc: "Designed exclusively for Wear & Carry graduates and permit holders. Rapid holster presentation, multiple threat transitions, reload speed drills, and cover/concealment movement.",
         vipDesc: "👑 VIP Alumni Shootout. Includes 100 rounds match ammunition, low-light weapon mounted light (WML) scenario drills, steel target plate challenge, and computerized split-time scoring.",
         baseValue: "FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)",
-        vipValue: "FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)"
+        vipValue: "FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($91.00)"
       }
     };
     (window as any).COURSE_TIER_CONFIG = COURSE_TIER_CONFIG;
@@ -3251,27 +3251,27 @@ export default function TrainWithFIFS(props: any) {
       const isVip = clean.includes('vip') || clean.includes('turnkey');
 
       let unitBase = 199.99;
-      let unitVip = 349.99;
+      let unitVip = 279.99;
       let matchedKey = 'ccw';
 
       if (clean.includes('renewal') || clean.includes('8-hour') || clean.includes('8hr')) {
-        matchedKey = 'renewal'; unitBase = 149.99; unitVip = 249.99;
+        matchedKey = 'renewal'; unitBase = 149.99; unitVip = 209.99;
       } else if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) {
-        matchedKey = 'mastery'; unitBase = 424.99; unitVip = 549.99;
+        matchedKey = 'mastery'; unitBase = 424.99; unitVip = 594.99;
       } else if (clean.includes('combo')) {
-        matchedKey = 'combo'; unitBase = 249.99; unitVip = 375.00;
+        matchedKey = 'combo'; unitBase = 249.99; unitVip = 349.99;
       } else if (clean.includes('hql')) {
-        matchedKey = 'hql'; unitBase = 100.00; unitVip = 165.00;
+        matchedKey = 'hql'; unitBase = 100.00; unitVip = 140.00;
       } else if (clean.includes('ccw') || clean.includes('wear & carry')) {
-        matchedKey = 'ccw'; unitBase = 199.99; unitVip = 349.99;
+        matchedKey = 'ccw'; unitBase = 199.99; unitVip = 279.99;
       } else if (clean.includes('coaching') || clean.includes('1-on-1')) {
-        matchedKey = 'coaching'; unitBase = 125.00; unitVip = 195.00;
+        matchedKey = 'coaching'; unitBase = 125.00; unitVip = 175.00;
       } else if (clean.includes('cleaning')) {
-        matchedKey = 'cleaning'; unitBase = 75.00; unitVip = 115.00;
+        matchedKey = 'cleaning'; unitBase = 75.00; unitVip = 105.00;
       } else if (clean.includes('children') || clean.includes('youth') || clean.includes('family')) {
-        matchedKey = 'children'; unitBase = 199.99; unitVip = 265.00;
+        matchedKey = 'children'; unitBase = 199.99; unitVip = 279.99;
       } else if (clean.includes('alumni') || clean.includes('clinic')) {
-        matchedKey = 'alumni'; unitBase = 65.00; unitVip = 115.00;
+        matchedKey = 'alumni'; unitBase = 65.00; unitVip = 91.00;
       }
 
       const activeUnit = isVip ? unitVip : unitBase;
@@ -3280,6 +3280,12 @@ export default function TrainWithFIFS(props: any) {
 
       const pricing = (window as any).calculateComprehensiveInvoice(activeUnit, isVip, groupVal);
       const config = (window as any).COURSE_TIER_CONFIG?.[matchedKey] || {};
+      // The tier table the browser ends up with can lack titles, badges and descriptions (the script file defines its own
+      // prices-only copies), so a missing value must never be printed as the word "undefined".
+      const tierText = (value: unknown, fallback: string): string => (typeof value === 'string' && value.trim() ? value : fallback);
+      const courseName = selectedVal.split('—')[0].trim() || 'Maryland Firearms Training';
+      const baseName = tierText(config.baseTitle, courseName);
+      const vipName = tierText(config.vipTitle, '👑 VIP ' + courseName);
 
       const titleElem = document.getElementById('formCardCourseTitle');
       const tierTag = document.getElementById('formCardTierTag');
@@ -3292,17 +3298,15 @@ export default function TrainWithFIFS(props: any) {
       const bookingTitle = document.getElementById('bookingModalTitle');
       const bookingBadge = document.getElementById('bookingModalBadge');
 
-      if (titleElem && config) {
-        titleElem.textContent = isVip ? config.vipTitle : config.baseTitle;
-      } else if (titleElem) {
-        titleElem.textContent = selectedVal.split('—')[0].trim() || 'Maryland Firearms Training';
+      if (titleElem) {
+        titleElem.textContent = isVip ? vipName : baseName;
       }
 
-      if (bookingTitle && config) {
-        bookingTitle.textContent = isVip ? `Reserve 👑 VIP ${config.baseTitle}` : `Reserve ${config.baseTitle}`;
+      if (bookingTitle) {
+        bookingTitle.textContent = isVip ? `Reserve 👑 VIP ${baseName}` : `Reserve ${baseName}`;
       }
-      if (bookingBadge && config) {
-        bookingBadge.textContent = isVip ? config.vipBadge : config.baseBadge;
+      if (bookingBadge) {
+        bookingBadge.textContent = isVip ? tierText(config.vipBadge, '👑 VIP TURNKEY TRACK') : tierText(config.baseBadge, 'STANDARD BASE TRACK');
       }
 
       if (tierTag) {
@@ -3310,7 +3314,7 @@ export default function TrainWithFIFS(props: any) {
         tierTag.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
       }
 
-      // Active Price in the card header displays the active class tuition (e.g. $424.99 or $549.99)
+      // Active Price in the card header displays the active class tuition (e.g. $424.99 or $594.99)
       if (activePrice) {
         activePrice.textContent = '$' + activeUnit.toFixed(2);
         activePrice.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
@@ -3328,9 +3332,9 @@ export default function TrainWithFIFS(props: any) {
         boxVip.style.background = isVip ? 'rgba(255, 183, 3, 0.12)' : '#070b10';
         boxVip.style.boxShadow = isVip ? '0 0 14px rgba(245, 158, 11, 0.25)' : 'none';
       }
-      if (tierDesc && config) {
+      if (tierDesc) {
         tierDesc.style.borderLeftColor = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
-        tierDesc.textContent = isVip ? config.vipDesc : config.baseDesc;
+        tierDesc.textContent = tierText(isVip ? config.vipDesc : config.baseDesc, '');
       }
 
       // Update Breakdown Box elements (Course Tuition and all itemized charges)
@@ -3531,26 +3535,26 @@ export default function TrainWithFIFS(props: any) {
 
 
       let unitBase = 249.99;
-      let unitVip = 375.00;
+      let unitVip = 349.99;
       const clean = courseSelection.toLowerCase();
       if (clean.includes('mastery') || clean.includes('multi-state') || clean.includes('multistate')) {
-        unitBase = 424.99; unitVip = 549.99;
+        unitBase = 424.99; unitVip = 594.99;
       } else if (clean.includes('renewal')) {
-        unitBase = 149.99; unitVip = 249.99;
+        unitBase = 149.99; unitVip = 209.99;
       } else if (clean.includes('combo')) {
-        unitBase = 249.99; unitVip = 375.00;
+        unitBase = 249.99; unitVip = 349.99;
       } else if (clean.includes('hql')) {
-        unitBase = 100.00; unitVip = 195.00;
+        unitBase = 100.00; unitVip = 140.00;
       } else if (clean.includes('ccw') || clean.includes('wear & carry')) {
-        unitBase = 249.99; unitVip = 375.00;
+        unitBase = 199.99; unitVip = 279.99;
       } else if (clean.includes('coaching')) {
-        unitBase = 125.00; unitVip = 195.00;
+        unitBase = 125.00; unitVip = 175.00;
       } else if (clean.includes('cleaning')) {
-        unitBase = 75.00; unitVip = 115.00;
+        unitBase = 75.00; unitVip = 105.00;
       } else if (clean.includes('children')) {
-        unitBase = 199.99; unitVip = 265.00;
+        unitBase = 199.99; unitVip = 279.99;
       } else if (clean.includes('alumni')) {
-        unitBase = 65.00; unitVip = 115.00;
+        unitBase = 65.00; unitVip = 91.00;
       }
 
 
@@ -7072,7 +7076,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <div style={{"marginTop": "14px"}}>
               <button className="btn-select-course" id="btn-select-course-combo" onClick={() => { if (typeof window !== "undefined" && (window as any).selectCourse) (window as any).selectCourse("Maryland CCW & HQL Combo — Base Track ($249.99)"); }} data-onclick="selectCourse('Maryland CCW &amp; HQL Combo — Base Track ($249.99)')" style={{"width": "100%", "padding": "12px", "fontFamily": "var(--font-display)", "fontSize": "1rem", "fontWeight": "800", "textTransform": "uppercase"}} type="button">
                 
-              Select Base ($199.99) & Reserve Seat →
+              Select Base ($249.99) & Reserve Seat →
             
               </button>
             </div>
@@ -7539,7 +7543,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
           {/* Properly closes card-course-children */}
           {/* 8. FIFS Graduate Alumni Marksmanship Clinic (Standalone Sibling Card) */}
-          {/* 8. FIFS Graduate Alumni Marksmanship Clinic (Base $65 / VIP $115) */}
+          {/* 8. FIFS Graduate Alumni Marksmanship Clinic (Base $65 / VIP $91) */}
           <div className="tuition-card" id="card-course-alumni" style={{"position": "relative"}}>
             <div className="card-tier-badge" id="badge-course-alumni" style={{"display": "none", "background": "var(--accent-cyan)", "color": "#070b10", "fontFamily": "var(--font-display)", "fontSize": "0.72rem", "fontWeight": "800", "padding": "2px 10px", "borderRadius": "20px", "textTransform": "uppercase", "position": "absolute", "top": "-10px", "right": "16px"}}>
               
@@ -8509,7 +8513,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Standardized Tuition Rate
                 </div>
                 <div style={{"fontFamily": "var(--font-display)", "fontSize": "2rem", "fontWeight": "900", "color": "#fff"}}>
-                  $424.99 <span style={{"fontSize": "1rem", "color": "var(--text-muted)"}}>Base</span> / $549.99 <span style={{"fontSize": "1rem", "color": "var(--accent-amber)"}}>VIP</span>
+                  $424.99 <span style={{"fontSize": "1rem", "color": "var(--text-muted)"}}>Base</span> / $594.99 <span style={{"fontSize": "1rem", "color": "var(--accent-amber)"}}>VIP</span>
                 </div>
               </div>
             </div>
@@ -8600,7 +8604,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Renewal Class Tuition
                 </div>
                 <div style={{"fontFamily": "var(--font-display)", "fontSize": "2rem", "fontWeight": "900", "color": "#fff"}}>
-                  $149.99 <span style={{"fontSize": "1rem", "color": "var(--text-muted)"}}>Base</span> / $249.99 <span style={{"fontSize": "1rem", "color": "var(--accent-amber)"}}>VIP</span>
+                  $149.99 <span style={{"fontSize": "1rem", "color": "var(--text-muted)"}}>Base</span> / $209.99 <span style={{"fontSize": "1rem", "color": "var(--accent-amber)"}}>VIP</span>
                 </div>
               </div>
             </div>
@@ -8656,7 +8660,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <span className="badge-pop" style={{"background": "var(--accent-amber)", "color": "#070b10", "fontWeight": "800"}}>FLAGSHIP MULTI-STATE</span>
                 <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "margin": "10px 0 6px"}}>Mid-Atlantic Multi-State Mastery</h4>
                 <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "marginBottom": "14px"}}>16-hr Maryland Wear & Carry + reciprocal affidavits for VA, FL, AZ, and PA (34+ states total).</p>
-                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$424.99 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $549.99 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$424.99 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $594.99 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
               </div>
               <button type="button" className="btn-primary" data-onclick="closeFutureServicesModal(); selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($424.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeFutureServicesModal) (window as any).closeFutureServicesModal(); if ((window as any).selectCourse) (window as any).selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($424.99)'); } }}>Select Multi-State →</button>
             </div>
@@ -8666,7 +8670,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <span className="badge-pop" style={{"background": "rgba(0, 229, 255, 0.15)", "color": "var(--accent-cyan)", "border": "1px solid var(--accent-cyan)"}}>BIENNIAL RECERTIFICATION</span>
                 <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "margin": "10px 0 6px"}}>Maryland Wear & Carry Renewal</h4>
                 <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "marginBottom": "14px"}}>8-hour statutory renewal instruction + 25-round live-fire qualification at Cindy's Hot Shots.</p>
-                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$149.99 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $249.99 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$149.99 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $209.99 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
               </div>
               <button type="button" className="btn-primary" data-onclick="closeFutureServicesModal(); selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeFutureServicesModal) (window as any).closeFutureServicesModal(); if ((window as any).selectCourse) (window as any).selectCourse('Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)'); } }}>Select Renewal →</button>
             </div>
@@ -8676,7 +8680,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <span className="badge-pop" style={{"background": "rgba(16, 185, 129, 0.15)", "color": "#10b981", "border": "1px solid #10b981"}}>MOST POPULAR COMBO</span>
                 <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "margin": "10px 0 6px"}}>Maryland CCW & HQL Combo</h4>
                 <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "marginBottom": "14px"}}>Complete 16-hr Maryland CCW plus statutory HQL purchase waiver certification. Save $100.</p>
-                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$249.99 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $375 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
+                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$249.99 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $349.99 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
               </div>
               <button type="button" className="btn-primary" data-onclick="closeFutureServicesModal(); selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeFutureServicesModal) (window as any).closeFutureServicesModal(); if ((window as any).selectCourse) (window as any).selectCourse('Maryland CCW & HQL Combo — Base Track ($249.99)'); } }}>Select Combo →</button>
             </div>
@@ -10859,23 +10863,23 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 onChange={() => { if (typeof window !== "undefined" && (window as any).updateFormPriceDisplay) (window as any).updateFormPriceDisplay(); }}
                 required
                 style={{"background": "#070b10", "border": "1px solid var(--accent-cyan)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%", "fontSize": "0.95rem", "fontWeight": "700"}}>
-                <option value="Mid-Atlantic Multi-State Mastery — VIP Turnkey ($549.99)">Mid-Atlantic Multi-State Mastery — VIP Turnkey ($549.99)</option>
+                <option value="Mid-Atlantic Multi-State Mastery — VIP Turnkey ($594.99)">Mid-Atlantic Multi-State Mastery — VIP Turnkey ($594.99)</option>
                 <option value="Mid-Atlantic Multi-State Mastery — Base Track ($424.99)">Mid-Atlantic Multi-State Mastery — Base Track ($424.99)</option>
-                <option value="Maryland CCW & HQL Combo — VIP Turnkey ($375.00)">Maryland CCW & HQL Combo — VIP Turnkey ($375.00)</option>
+                <option value="Maryland CCW & HQL Combo — VIP Turnkey ($349.99)">Maryland CCW & HQL Combo — VIP Turnkey ($349.99)</option>
                 <option value="Maryland CCW & HQL Combo — Base Track ($249.99)">Maryland CCW & HQL Combo — Base Track ($249.99)</option>
-                <option value="Maryland Wear & Carry (CCW) — VIP Turnkey ($349.99)">Maryland Wear & Carry (CCW) — VIP Turnkey ($349.99)</option>
+                <option value="Maryland Wear & Carry (CCW) — VIP Turnkey ($279.99)">Maryland Wear & Carry (CCW) — VIP Turnkey ($279.99)</option>
                 <option value="Maryland Wear & Carry (CCW) — Base Track ($199.99)">Maryland Wear & Carry (CCW) — Base Track ($199.99)</option>
-                <option value="Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($249.99)">Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($249.99)</option>
+                <option value="Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($209.99)">Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($209.99)</option>
                 <option value="Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)">Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)</option>
-                <option value="Maryland HQL (Purchase License) — VIP Turnkey ($165.00)">Maryland HQL (Purchase License) — VIP Turnkey ($165.00)</option>
+                <option value="Maryland HQL (Purchase License) — VIP Turnkey ($140.00)">Maryland HQL (Purchase License) — VIP Turnkey ($140.00)</option>
                 <option value="Maryland HQL (Purchase License) — Base Track ($100.00)">Maryland HQL (Purchase License) — Base Track ($100.00)</option>
-                <option value="Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)">Personal 1-on-1 Coaching — VIP Turnkey ($195.00/hr)</option>
+                <option value="Personal 1-on-1 Coaching — VIP Turnkey ($175.00/hr)">Personal 1-on-1 Coaching — VIP Turnkey ($175.00/hr)</option>
                 <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">Personal 1-on-1 Coaching — Base Track ($125.00/hr)</option>
-                <option value="Gun Cleaning & Maintenance — VIP Turnkey ($115.00)">Gun Cleaning & Maintenance — VIP Turnkey ($115.00)</option>
+                <option value="Gun Cleaning & Maintenance — VIP Turnkey ($105.00)">Gun Cleaning & Maintenance — VIP Turnkey ($105.00)</option>
                 <option value="Gun Cleaning & Maintenance — Base Track ($75.00)">Gun Cleaning & Maintenance — Base Track ($75.00)</option>
-                <option value="Children's Safety Class — VIP Turnkey ($265.00)">Children's Safety Class — VIP Turnkey ($265.00)</option>
+                <option value="Children's Safety Class — VIP Turnkey ($279.99)">Children's Safety Class — VIP Turnkey ($279.99)</option>
                 <option value="Children's Safety Class — Base Track ($199.99)">Children's Safety Class — Base Track ($199.99)</option>
-                <option value="FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)">FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($115.00)</option>
+                <option value="FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($91.00)">FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($91.00)</option>
                 <option value="FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)">FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)</option>
               </select>
             </div>
@@ -10916,7 +10920,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       👑 VIP Turnkey
                     </strong>
                     <span id="formPriceVipVal" style={{"fontFamily": "var(--font-display)", "fontSize": "1.15rem", "fontWeight": "800", "color": "var(--accent-amber)"}}>
-                      $549.99
+                      $594.99
                     </span>
                   </div>
                   <p style={{"color": "var(--text-muted)", "fontSize": "0.74rem", "marginTop": "3px", "lineHeight": "1.35"}}>
