@@ -1,0 +1,58 @@
+/* Boot-sequence intro. Colours come from the site's own variables (--accent-cyan, --accent-amber); the background is pure black.
+   Tunable: --boot-glow-near, --boot-glow-far, --boot-scan-opacity, --boot-flicker. */
+:root {
+  --boot-color: var(--accent-cyan, #00e5ff);
+  --boot-accent: var(--accent-amber, #ffb703);
+  --boot-glow-near: 3px;
+  --boot-glow-far: 14px;
+  --boot-scan-opacity: 0.1;
+  --boot-flicker: 0.04;
+}
+
+.boot-intro { display: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* While booting the page is hidden (it keeps its layout, so nothing shifts when it appears) and every animation in it is paused.
+     The CSS-only backup below reveals it after 6 s even if no script runs. */
+  html[data-boot] body { background: #000; }
+  html[data-boot="on"] body { visibility: hidden; animation: bootFailsafe 0s linear 6s forwards; }
+  html[data-boot] body > :not(.boot-intro),
+  html[data-boot] body > :not(.boot-intro) *,
+  html[data-boot] body > :not(.boot-intro) *::before,
+  html[data-boot] body > :not(.boot-intro) *::after { animation-play-state: paused !important; }
+
+  html[data-boot] .boot-intro { display: flex; visibility: visible; position: fixed; inset: 0; z-index: 2147483647; align-items: center; justify-content: center;
+    background: #000; overflow: hidden; font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+    animation: bootBackup 0s linear 6s forwards; }
+  .boot-intro.is-leaving { animation: bootFade var(--boot-fade, 400ms) ease-out forwards; pointer-events: none; }
+
+  .boot-text { position: relative; z-index: 1; padding: 0 24px; text-align: center; max-width: 100%; }
+  .boot-title, .boot-granted { font-size: clamp(13px, 3.9vw, 24px); font-weight: 700; letter-spacing: 0.08em; line-height: 1.5; overflow-wrap: anywhere; }
+  .boot-title { color: var(--boot-color); animation: bootFlicker 130ms steps(1, end) infinite alternate;
+    text-shadow: 0 0 var(--boot-glow-near) color-mix(in srgb, var(--boot-color) 90%, transparent), 0 0 var(--boot-glow-far) color-mix(in srgb, var(--boot-color) 45%, transparent); }
+  .boot-granted { position: relative; display: inline-block; margin-top: 18px; color: var(--boot-accent); animation: bootFlicker 130ms steps(1, end) infinite alternate;
+    text-shadow: 0 0 var(--boot-glow-near) color-mix(in srgb, var(--boot-accent) 90%, transparent), 0 0 var(--boot-glow-far) color-mix(in srgb, var(--boot-accent) 45%, transparent); }
+  .boot-halo { position: absolute; inset: -40px -60px; pointer-events: none; opacity: 0.12; animation: bootPulse 300ms ease-out;
+    background: radial-gradient(ellipse at center, color-mix(in srgb, var(--boot-accent) 55%, transparent) 0%, transparent 70%); }
+  .boot-granted-text { position: relative; }
+  .boot-cursor { display: inline-block; width: 0.6em; height: 1.1em; margin-left: 2px; vertical-align: -0.17em; background: var(--boot-color); animation: bootBlink 1s steps(1, end) infinite; }
+  .boot-cursor-accent { background: var(--boot-accent); }
+
+  .boot-scan { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: var(--boot-scan-opacity);
+    background: repeating-linear-gradient(0deg, transparent 0 2px, #000 2px 3px); }
+  .boot-sweep { position: absolute; left: 0; right: 0; top: -25%; height: 22%; z-index: 0; pointer-events: none; opacity: 0.5; animation: bootSweep 5s linear infinite;
+    background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--boot-color) 10%, transparent), transparent); }
+  .boot-vignette { position: absolute; inset: 0; z-index: 3; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.75) 100%); }
+  .boot-skip { position: absolute; left: 0; right: 0; bottom: 18px; z-index: 4; text-align: center; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: color-mix(in srgb, var(--boot-color) 70%, #fff); opacity: 0.6; }
+  .boot-skip-tap { display: none; }
+  @media (hover: none) { .boot-skip-key { display: none; } .boot-skip-tap { display: inline; } }
+
+  @keyframes bootFailsafe { to { visibility: visible; } }
+  @keyframes bootBackup { to { opacity: 0; visibility: hidden; pointer-events: none; } }
+  @keyframes bootFade { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes bootBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  @keyframes bootFlicker { from { opacity: calc(1 - var(--boot-flicker)); } to { opacity: 1; } }
+  @keyframes bootPulse { 0% { opacity: 0; } 30% { opacity: 0.7; } 100% { opacity: 0.12; } }
+  @keyframes bootSweep { from { transform: translateY(0); } to { transform: translateY(650%); } }
+}

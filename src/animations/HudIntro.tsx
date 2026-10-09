@@ -34,6 +34,7 @@ const boxStyle = (x: number, y: number, w: number, h: number): React.CSSProperti
 
 export default function HudIntro() {
   const [hero, setHero] = useState<HTMLElement | null>(null);
+  const [bootDone, setBootDone] = useState(false);
   const [fit, setFit] = useState<HeroFit | null>(null);
   const [card, setCard] = useState<{ el: HTMLElement; w: number; h: number } | null>(null);
   const layerRef = useRef<HTMLDivElement>(null);
@@ -76,6 +77,12 @@ export default function HudIntro() {
   useEffect(() => {
     if (!hero) return;
     const root = document.documentElement;
+    // First-visit boot screen still showing: hold everything until it hands over (the HUD must not run behind it).
+    if (!bootDone && root.hasAttribute('data-boot')) {
+      const release = () => setBootDone(true);
+      window.addEventListener('fifs:boot-complete', release, { once: true });
+      return () => window.removeEventListener('fifs:boot-complete', release);
+    }
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     const heroShown = hero.offsetParent !== null && !hero.classList.contains('hidden-view');
     let seen = false;
@@ -144,7 +151,7 @@ export default function HudIntro() {
       ambient?.stop();
       root.removeAttribute('data-hud-state');
     };
-  }, [hero]);
+  }, [hero, bootDone]);
 
   // The pistol strips and their colour-fringe ghosts are canvases fed from the photo that is already on the page. Canvases are never
   // largest-contentful-paint candidates, so painting them cannot move the page's LCP (SVG <image> copies of the photo did).

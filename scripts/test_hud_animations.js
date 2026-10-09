@@ -169,8 +169,8 @@ test('Only the HUD files, the journey chooser and alumni-gate files, and the tes
   const untracked = gitLines('git ls-files --others --exclude-standard');
   if (changed === null || untracked === null) return; // no git here (for example a source export): nothing to compare
   const files = [...changed, ...untracked].filter((f) => !/^scripts\/test_students_(access|self_update_draft)_suite\.js$/.test(f));
-  const allowed = [/^src\/animations\//, /^src\/app\/page\.tsx$/, /^src\/app\/globals\.css$/, /^src\/Lib\/pricing\.ts$/, /^src\/Lib\/server\/booking-checkout\.ts$/, /^src\/delight\//, /^src\/app\/layout\.tsx$/,
-    /^scripts\/test_(hud_animations|payment_suite|journey_chooser_suite|delight)\.js$/, /^package\.json$/, /^ANIMATIONS\.md$/];
+  const allowed = [/^src\/animations\//, /^src\/app\/page\.tsx$/, /^src\/app\/globals\.css$/, /^src\/Lib\/pricing\.ts$/, /^src\/Lib\/server\/booking-checkout\.ts$/, /^src\/delight\//, /^src\/boot\//, /^src\/app\/layout\.tsx$/,
+    /^scripts\/test_(hud_animations|payment_suite|journey_chooser_suite|delight|boot_intro)\.js$/, /^package\.json$/, /^ANIMATIONS\.md$/];
   const stray = files.filter((f) => !allowed.some((re) => re.test(f)));
   assert(stray.length === 0, 'files outside the expected scope changed: ' + stray.join(', '));
 });

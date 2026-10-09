@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 import "../delight/delight.css";
+import BootIntro from "../boot/BootIntro";
+import { BOOT_GATE_SCRIPT } from "../boot/bootConfig";
 
 export const metadata: Metadata = {
   title: "Train With FIFS | Maryland Firearms Training & Concealed Carry Courses",
@@ -23,10 +25,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* A plain inline script (not next/script, which waits for the app bundle): it must run before the first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: BOOT_GATE_SCRIPT }} />
+      </head>
       <body>
         <Script id="fifs-recovery-redirect" strategy="beforeInteractive">
           {recoveryRedirect}
         </Script>
+        <BootIntro />
         {children}
       </body>
     </html>
