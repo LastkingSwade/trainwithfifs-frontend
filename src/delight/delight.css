@@ -312,3 +312,9 @@
   .fi-subnav-btn { transition: outline-offset 120ms ease-out; }
   .fi-subnav-btn:focus-visible { outline: 2px solid rgba(0, 229, 255, 0.85); outline-offset: 3px; }
 }
+
+/* D053 clear cyan focus ring on tier-option-btn */
+@media (prefers-reduced-motion: no-preference) {
+  .tier-option-btn { transition: outline-offset 120ms ease-out; }
+  .tier-option-btn:focus-visible { outline: 2px solid rgba(0, 229, 255, 0.85); outline-offset: 3px; }
+}
