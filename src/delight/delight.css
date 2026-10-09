@@ -491,3 +491,9 @@
   .fi-check-item { transition: background-color 160ms ease-out; }
   .fi-check-item:hover { background-color: rgba(0, 229, 255, 0.06); }
 }
+
+/* D084 check labels warm up on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .fi-check-label { transition: color 140ms ease-out; }
+  .fi-check-label:hover { color: #ffffff; }
+}
