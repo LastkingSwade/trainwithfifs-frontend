@@ -479,3 +479,9 @@
   .card-tier-badge { transition: transform 160ms ease-out; }
   .card-tier-badge:hover { transform: scale(1.04); }
 }
+
+/* D082 fallback badge softens on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .img-fallback-badge { transition: opacity 160ms ease-out; }
+  .img-fallback-badge:hover { opacity: 0.85; }
+}
