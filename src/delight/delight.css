@@ -384,3 +384,9 @@
   @keyframes d064 { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
   .vip-perks-box .vip-perk-item:nth-child(3) { animation: d064 260ms ease-out 210ms both; }
 }
+
+/* D065 entrance stagger 4 on vip-perk-item */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes d065 { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .vip-perks-box .vip-perk-item:nth-child(4) { animation: d065 260ms ease-out 280ms both; }
+}
