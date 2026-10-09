@@ -587,3 +587,9 @@
   .target-card-student { transition: transform 90ms ease-out; }
   .target-card-student:active { transform: scale(0.985); }
 }
+
+/* D100 press feedback on corridor-route-card */
+@media (prefers-reduced-motion: no-preference) {
+  .corridor-route-card { transition: transform 90ms ease-out; }
+  .corridor-route-card:active { transform: scale(0.985); }
+}
