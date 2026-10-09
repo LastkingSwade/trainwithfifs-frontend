@@ -527,3 +527,9 @@
   .vip-perks-box { transition: box-shadow 200ms ease-out; }
   .vip-perks-box:hover { box-shadow: 0 0 18px rgba(255, 183, 3, 0.18); }
 }
+
+/* D090 tier switch pill settles on press */
+@media (prefers-reduced-motion: no-preference) {
+  .tier-sliding-switch { transition: transform 90ms ease-out; }
+  .tier-sliding-switch:active { transform: scale(0.985); }
+}
