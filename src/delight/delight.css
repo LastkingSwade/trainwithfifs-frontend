@@ -449,3 +449,9 @@
   .gold-stars-cluster { transition: transform 200ms ease-out; }
   .gold-stars-cluster:hover { transform: scale(1.05); }
 }
+
+/* D077 target photo eases in on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .target-img-frame { transition: transform 240ms ease-out; }
+  .target-img-frame:hover { transform: scale(1.02); }
+}
