@@ -467,3 +467,9 @@
   .fi-badge { transition: transform 160ms ease-out; }
   .fi-badge:hover { transform: translateY(-1px); }
 }
+
+/* D080 next-step badge lifts on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .next-step-badge { transition: transform 160ms ease-out; }
+  .next-step-badge:hover { transform: translateY(-1px); }
+}
