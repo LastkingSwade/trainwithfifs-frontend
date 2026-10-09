@@ -78,3 +78,9 @@
   .btn-secondary { transition: filter 160ms ease-out, box-shadow 160ms ease-out; }
   .btn-secondary:hover { filter: brightness(1.1); box-shadow: 0 0 14px rgba(0, 229, 255, 0.3); }
 }
+
+/* D014 hover glow on button btn-secondary-modal */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .btn-secondary-modal { transition: filter 160ms ease-out, box-shadow 160ms ease-out; }
+  .btn-secondary-modal:hover { filter: brightness(1.1); box-shadow: 0 0 14px rgba(0, 229, 255, 0.3); }
+}
