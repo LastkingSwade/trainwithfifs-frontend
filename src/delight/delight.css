@@ -401,3 +401,6 @@
 @media (prefers-reduced-motion: no-preference) {
   html { scroll-behavior: smooth; }
 }
+
+/* D068 cyan text selection */
+::selection { background-color: rgba(0, 229, 255, 0.35); color: #ffffff; }
