@@ -2681,7 +2681,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       const textBtn = document.getElementById('admin-active-chat-text-btn');
       if (textBtn) {
         const textDigits = fifsAdminPhoneDigits(thread.senderPhone);
-        textBtn.href = textDigits ? `sms:${textDigits}` : '#';
+        if (textDigits) textBtn.href = `sms:${textDigits}`; else textBtn.removeAttribute('href');
         textBtn.style.display = textDigits ? 'inline-flex' : 'none';
       }
       if (actionsBox) actionsBox.style.display = 'flex';
@@ -4683,13 +4683,13 @@ function openAdminEditStudentModal(studentId) {
       }).join('');
       return `
           <td><strong style="color: var(--accent-cyan); font-family: var(--font-display); font-size: 0.95rem;">${escapeHtml(s.studentId)}</strong></td>
-          <td><a href="javascript:void(0)" onclick="openAdminEditStudentModal('${id}')" style="color: var(--accent-cyan); font-weight: 700; text-decoration: none;" title="Edit student record"><strong>${escapeHtml(s.fullName)}</strong></a><br><span style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(s.email || '')}</span></td>
+          <td><button type="button" onclick="openAdminEditStudentModal('${id}')" style="color: var(--accent-cyan); font-weight: 700; text-decoration: none; background: none; border: none; padding: 0; font: inherit; cursor: pointer;" title="Edit student record"><strong>${escapeHtml(s.fullName)}</strong></button><br><span style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(s.email || '')}</span></td>
           <td>${escapeHtml((s.course || '').split('(')[0].trim())}</td>
           <td>${escapeHtml(s.assignedDate || s.preferredDates || 'To Be Scheduled')}</td>
           <td>
             <span class="meta-chip chip-status" id="chip-status-${escapeHtml(s.studentId)}">${escapeHtml(formatStepLabel(stepNum))}</span>
           </td>
-          <td><a href="javascript:void(0)" onclick="openStudentDossierModal('${id}')" style="color: var(--accent-cyan); font-weight: 700;" title="View/Edit Supabase Dossier & Notes">Dossier ↗</a></td>
+          <td><button type="button" onclick="openStudentDossierModal('${id}')" style="color: var(--accent-cyan); font-weight: 700; background: none; border: none; padding: 0; font: inherit; cursor: pointer;" title="View/Edit Supabase Dossier & Notes">Dossier ↗</button></td>
           <td>
             <select onchange="updateStudentJourneyStep('${id}', this.value, this)" data-current="${escapeHtml(s.status || 'STEP_1_REGISTERED')}" style="padding: 6px 8px; font-size: 0.78rem; min-height: 34px; background: #070b10; color: var(--accent-cyan); border-radius: 6px; border: 1px solid var(--accent-cyan); font-weight: 700; cursor: pointer;">
               ${options}
@@ -5900,11 +5900,19 @@ function openAdminEditStudentModal(studentId) {
       if (docLink) {
         if (student.profileDocUrl && student.profileDocUrl !== '#' && fifsSafeHttpUrl(student.profileDocUrl)) {
           docLink.href = fifsSafeHttpUrl(student.profileDocUrl);
+          docLink.removeAttribute('role');
+          docLink.removeAttribute('tabindex');
           docLink.onclick = null;
+          docLink.onkeydown = null;
         } else {
-          docLink.href = 'javascript:void(0)';
+          docLink.removeAttribute('href');
+          docLink.setAttribute('role', 'button');
+          docLink.tabIndex = 0;
           docLink.onclick = function() {
             alert('Your official Student Training Dossier (Google Doc) is currently being prepared by Instructor Kai Wade and will be linked here upon class confirmation.');
+          };
+          docLink.onkeydown = function(e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); docLink.onclick(); }
           };
         }
       }

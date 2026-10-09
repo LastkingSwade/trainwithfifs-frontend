@@ -51,6 +51,30 @@ export default function TrainWithFIFS(props: any) {
       return null;
     }
   };
+  // Deep links such as /#enrollment (the /register redirect target): the booking panel starts hidden, so a plain browser
+  // hash scroll cannot reach it. Open the panel, then scroll to the matching section.
+  useEffect(() => {
+    const HASH_TARGETS: Record<string, string> = {
+      '#enrollment': 'course-catalog-section',
+      '#register': 'course-catalog-section',
+      '#course-catalog-section': 'course-catalog-section',
+      '#booking-form': 'booking-form',
+    };
+    const openFromHash = () => {
+      const targetId = HASH_TARGETS[window.location.hash.toLowerCase()];
+      const open = (window as any).openAndSwitch;
+      if (!targetId || typeof open !== 'function') return;
+      open('booking');
+      setTimeout(() => {
+        const el = document.getElementById(targetId);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+    };
+    (window as any).fifsOpenFromHash = openFromHash;
+    window.addEventListener('hashchange', openFromHash);
+    openFromHash();
+    return () => window.removeEventListener('hashchange', openFromHash);
+  }, []);
   useEffect(() => {
 
 
@@ -3990,7 +4014,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch)}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -4519,9 +4543,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginTop": "14px", "fontSize": "0.82rem", "color": "var(--text-muted)"}}>
                 <span>
                   Need to book first? 
-                  <a href="javascript:void(0)" data-onclick="switchTab('booking')" style={{"color": "var(--accent-cyan)"}}>
+                  <button type="button" data-onclick="switchTab('booking')" style={{"background": "none", "border": "none", "padding": "0", "font": "inherit", "cursor": "pointer", "textDecoration": "underline", "color": "var(--accent-cyan)"}}>
                     View Courses
-                  </a>
+                  </button>
                 </span>
               </div>
               <div style={{"marginTop": "22px", "paddingTop": "16px", "borderTop": "1px solid var(--border-subtle)", "textAlign": "center"}}>
@@ -4643,10 +4667,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     Your Maryland State Police Form 29-14 Certified Qualification Score Sheet has been verified and registered by Instructor Kai Wade.
                   </p>
                   <div style={{"display": "flex", "gap": "12px", "flexWrap": "wrap", "alignItems": "center"}}>
-                    <a id="dash-scoresheet-fullscreen-btn" href="#" target="_blank" rel="noopener noreferrer" style={{"background": "var(--accent-cyan)", "color": "#070b10", "padding": "8px 16px", "borderRadius": "6px", "fontWeight": "700", "fontSize": "0.85rem", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                    <a id="dash-scoresheet-fullscreen-btn" target="_blank" rel="noopener noreferrer" style={{"background": "var(--accent-cyan)", "color": "#070b10", "padding": "8px 16px", "borderRadius": "6px", "fontWeight": "700", "fontSize": "0.85rem", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
                       <span>👁️</span> <span>View Fullscreen</span>
                     </a>
-                    <a id="dash-scoresheet-download-btn" href="#" download="MSP-Form-29-14-Qualification-Scoresheet.pdf" target="_blank" rel="noopener noreferrer" style={{"background": "transparent", "border": "1px solid var(--accent-cyan)", "color": "var(--accent-cyan)", "padding": "8px 16px", "borderRadius": "6px", "fontWeight": "700", "fontSize": "0.85rem", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                    <a id="dash-scoresheet-download-btn" download="MSP-Form-29-14-Qualification-Scoresheet.pdf" target="_blank" rel="noopener noreferrer" style={{"background": "transparent", "border": "1px solid var(--accent-cyan)", "color": "var(--accent-cyan)", "padding": "8px 16px", "borderRadius": "6px", "fontWeight": "700", "fontSize": "0.85rem", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
                       <span>📥</span> <span>Download Official PDF / Copy</span>
                     </a>
                   </div>
@@ -4791,7 +4815,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </p>
                 </div>
                 <div>
-                  <a className="btn-primary" href="#" id="dash-doc-link" rel="noopener noreferrer" style={{"textDecoration": "none", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)"}} target="_blank">
+                  <a className="btn-primary" id="dash-doc-link" rel="noopener noreferrer" style={{"textDecoration": "none", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)"}} target="_blank">
                     
                 Open Student Dossier (Supabase Document) ↗
               
@@ -4931,7 +4955,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               
                   </p>
                 </div>
-                <a className="btn-primary" href="#" id="packetCardLink" rel="noopener noreferrer" style={{"width": "auto", "padding": "10px 22px", "fontSize": "0.92rem", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} target="_blank">
+                <a className="btn-primary" id="packetCardLink" rel="noopener noreferrer" style={{"width": "auto", "padding": "10px 22px", "fontSize": "0.92rem", "textDecoration": "none", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} target="_blank">
                   
               Open Course Guide (PDF) ↗
             
@@ -5068,9 +5092,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginTop": "14px", "fontSize": "0.82rem"}}>
                     <span>
                       First time here? 
-                      <a href="javascript:void(0)" data-onclick="switchClientAuthTab('register')" style={{"color": "var(--accent-cyan)"}}>
+                      <button type="button" data-onclick="switchClientAuthTab('register')" style={{"background": "none", "border": "none", "padding": "0", "font": "inherit", "cursor": "pointer", "textDecoration": "underline", "color": "var(--accent-cyan)"}}>
                         Create Profile
-                      </a>
+                      </button>
                     </span>
                   </div>
                   <div className="status-msg" id="client-login-status">
@@ -6400,12 +6424,12 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       </span>
                     </div>
                     <div id="admin-active-chat-actions" style={{"display": "none", "gap": "8px"}}>
-                      <a id="admin-active-chat-call-btn" href="#" className="btn-spark" style={{"padding": "7px 16px", "fontSize": "0.82rem", "fontWeight": "800", "textDecoration": "none", "border": "1px solid #10b981", "background": "rgba(16, 185, 129, 0.12)", "color": "#10b981", "borderRadius": "6px", "boxShadow": "0 0 10px rgba(16, 185, 129, 0.25)", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                      <a id="admin-active-chat-call-btn" className="btn-spark" style={{"padding": "7px 16px", "fontSize": "0.82rem", "fontWeight": "800", "textDecoration": "none", "border": "1px solid #10b981", "background": "rgba(16, 185, 129, 0.12)", "color": "#10b981", "borderRadius": "6px", "boxShadow": "0 0 10px rgba(16, 185, 129, 0.25)", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
                         
               📞 Call Student
             
                       </a>
-                      <a id="admin-active-chat-text-btn" href="#" className="btn-spark" style={{"padding": "7px 16px", "fontSize": "0.82rem", "fontWeight": "800", "textDecoration": "none", "border": "1px solid #38bdf8", "background": "rgba(56, 189, 248, 0.12)", "color": "#38bdf8", "borderRadius": "6px", "display": "none", "alignItems": "center", "gap": "6px"}}>
+                      <a id="admin-active-chat-text-btn" className="btn-spark" style={{"padding": "7px 16px", "fontSize": "0.82rem", "fontWeight": "800", "textDecoration": "none", "border": "1px solid #38bdf8", "background": "rgba(56, 189, 248, 0.12)", "color": "#38bdf8", "borderRadius": "6px", "display": "none", "alignItems": "center", "gap": "6px"}}>
                         💬 Text Student
                       </a>
                     </div>
@@ -6967,7 +6991,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 👑 Flexible Any-Day Scheduling (Sunday through Saturday Anytime — Standard is Weekend Only)
               </div>
               <div>
-                👑 Range lane fee included at Cindy's Hot Shots (Save $25–$35)
+                👑 Range lane fee included at Cindy's Hot Shots ($45 value)
               </div>
               <div>
                 👑 Official B-27 practical qualification targets provided
@@ -7055,7 +7079,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 👑 Flexible Any-Day Scheduling (Sunday through Saturday Anytime — Standard is Weekend Only)
               </div>
               <div>
-                👑 Cindy's Hot Shots range lane fee included (Save $25–$35)
+                👑 Cindy's Hot Shots range lane fee included ($45 value)
               </div>
               <div>
                 👑 Official B-27 qualification targets provided
@@ -7134,7 +7158,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 👑 Flexible Any-Day Scheduling (Sunday through Saturday Anytime — Standard is Weekend Only)
               </div>
               <div>
-                👑 Cindy's Hot Shots range lane fee included (Save $25–$35)
+                👑 Cindy's Hot Shots range lane fee included ($45 value)
               </div>
               <div>
                 👑 Official B-27 qualification targets provided
@@ -7210,7 +7234,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 👑 Flexible Any-Day Scheduling (Weekday &amp; Weekend Priority)
               </div>
               <div>
-                👑 Cindy&#39;s Hot Shots range lane fee included (Save $25–$35)
+                👑 Cindy&#39;s Hot Shots range lane fee included ($45 value)
               </div>
               <div>
                 👑 Loaner 9mm semi-automatic handgun provided
@@ -7604,7 +7628,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 👑 WHAT'S ADDED IN VIP MODE:
               </div>
               <div className="vip-perk-item">
-                ✔ Cindy's Hot Shots Range Lane Fee Included ($25–$35 Value)
+                ✔ Cindy's Hot Shots Range Lane Fee Included ($45 Value)
               </div>
               <div className="vip-perk-item">
                 ✔ 50 Rounds Factory Brass 9mm Target Ammunition Provided
@@ -10622,7 +10646,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <button type="button" id="btnSaveScoresheetFromEdit" data-onclick="handleSaveScoresheetFromEdit()" style={{"background": "var(--accent-cyan)", "color": "#070b10", "border": "none", "borderRadius": "6px", "padding": "8px 14px", "fontWeight": "700", "cursor": "pointer", "fontSize": "0.82rem"}}>
                   💾 Save score sheet
                 </button>
-                <a id="editScoresheetViewLink" href="#" target="_blank" rel="noopener noreferrer" style={{"display": "none", "color": "var(--accent-cyan)", "fontSize": "0.80rem", "textDecoration": "underline", "fontWeight": "600"}}>
+                <a id="editScoresheetViewLink" target="_blank" rel="noopener noreferrer" style={{"display": "none", "color": "var(--accent-cyan)", "fontSize": "0.80rem", "textDecoration": "underline", "fontWeight": "600"}}>
                   👁️ View signed document ↗
                 </a>
                 <button type="button" id="btnDeleteScoresheetFromEdit" data-onclick="handleDeleteScoresheetFromEdit()" style={{"display": "none", "background": "transparent", "color": "#ef4444", "border": "1px solid #ef4444", "borderRadius": "6px", "padding": "7px 12px", "cursor": "pointer", "fontSize": "0.8rem"}}>
@@ -11118,6 +11142,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
                 </label>
               
+            </div>
+            <div id="booking-fee-notice" style={{"background": "rgba(245, 158, 11, 0.08)", "border": "1px solid rgba(245, 158, 11, 0.35)", "borderRadius": "8px", "padding": "12px 14px", "marginBottom": "18px", "fontSize": "0.82rem", "color": "#e2e8f0", "lineHeight": "1.5"}}>
+              <strong style={{"color": "#f59e0b"}}>Before you confirm:</strong>
+              <ul style={{"margin": "6px 0 0 18px", "padding": "0"}}>
+                <li>30% deposit due today to reserve your seat; remaining balance due at class.</li>
+                <li>Base track includes Cindy's Hot Shots range fee ($45/person); VIP turnkey includes all range fees.</li>
+              </ul>
             </div>
             <button className="btn-primary" id="btn-booking-submit" style={{"width": "100%", "padding": "14px", "fontSize": "1.1rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1.5px", "boxShadow": "0 0 20px var(--accent-cyan-glow)"}} type="button" data-onclick="showBookingInvoiceModal(event)"
   onClick={(e) => {
@@ -12508,7 +12539,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <input type="checkbox" id="waiverRulesSworn" required style={{"width": "18px", "height": "18px", "accentColor": "#00e5ff"}}  defaultChecked={false} />
                 <label htmlFor="waiverRulesSworn" style={{"fontSize": "0.82rem", "color": "#fff", "cursor": "pointer"}}>
                   
-            I have read, fully understand, and agree to adhere strictly to all 16 Training Rules & Cindy's Range Safety commands.
+            I have read, fully understand, and agree to adhere strictly to all 7 Mandatory Training Rules, all 4 Strictly Prohibited items, and Cindy's Range Safety commands.
           
                 </label>
               </div>

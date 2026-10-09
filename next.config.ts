@@ -27,6 +27,13 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_FIFS_DEPLOYMENT_ENV: process.env.VERCEL_ENV === 'production' ? 'production' : 'non-production',
   },
+  // /register was linked from outside the site but never existed (404). Send visitors to the course enrollment section on the home
+  // page; the page opens the booking panel and scrolls to the catalog when it sees #enrollment (see openFromHash in src/app/page.tsx).
+  async redirects() {
+    return [
+      { source: "/register", destination: "/#enrollment", permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

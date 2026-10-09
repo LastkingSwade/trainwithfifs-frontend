@@ -119,7 +119,7 @@ async function main() {
     for (const name of NAMES) {
       const html = renderRows([{ studentId: 'FIFS-1001', fullName: name, email: 'kai+test@example.com', course: 'HQL (8 hr)', status: 'STEP_2_CONFIRMED' }]);
       const esc = name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-      const cell = html.match(/<td><a[^>]*openAdminEditStudentModal[^>]*><strong>([\s\S]*?)<\/strong><\/a><br><span[^>]*>([\s\S]*?)<\/span><\/td>/);
+      const cell = html.match(/<td><(?:a|button)[^>]*openAdminEditStudentModal[^>]*><strong>([\s\S]*?)<\/strong><\/(?:a|button)><br><span[^>]*>([\s\S]*?)<\/span><\/td>/);
       assert(cell, 'name cell is malformed for ' + name + ': ' + html.slice(0, 400));
       assert(cell[1] === esc && cell[2] === 'kai+test@example.com', `name/email not shown correctly for ${name}: ${cell[1]} / ${cell[2]}`);
     }
