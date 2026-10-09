@@ -5747,6 +5747,20 @@ button:focus-visible,
   }
 }
 
+/* The booking calendar is a true 7-column grid (weekday header and days). The pop-up rule above stacks EVERY inline grid into one
+   column on phones, which turned the calendar into a tall vertical list. Keep the calendar's two grids at 7 columns; the more specific
+   selectors here win over that rule. minmax(0, 1fr) lets the columns shrink to fit a 320px phone without overflowing. */
+@media (max-width: 768px) {
+  .goal-modal-box .booking-calendar-card [style*="repeat(7"] {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+  }
+  .goal-modal-box .booking-calendar-card #bookingCalDaysGrid {
+    gap: 1px !important;
+    min-width: 0 !important; /* the older 320px minimum made the days wider than the weekday row on 320-360px phones */
+  }
+}
+
 
 
 
