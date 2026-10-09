@@ -90,3 +90,9 @@
   .btn-return-home { transition: filter 160ms ease-out, box-shadow 160ms ease-out; }
   .btn-return-home:hover { filter: brightness(1.1); box-shadow: 0 0 14px rgba(0, 229, 255, 0.3); }
 }
+
+/* D016 hover glow on button btn-select-course */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .btn-select-course { transition: filter 160ms ease-out, box-shadow 160ms ease-out; }
+  .btn-select-course:hover { filter: brightness(1.1); box-shadow: 0 0 14px rgba(0, 229, 255, 0.3); }
+}
