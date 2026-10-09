@@ -581,3 +581,9 @@
   .metric-card { transition: transform 90ms ease-out; }
   .metric-card:active { transform: scale(0.985); }
 }
+
+/* D099 press feedback on target-card-student */
+@media (prefers-reduced-motion: no-preference) {
+  .target-card-student { transition: transform 90ms ease-out; }
+  .target-card-student:active { transform: scale(0.985); }
+}
