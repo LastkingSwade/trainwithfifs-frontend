@@ -54,3 +54,9 @@
   .review-item-pill { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
   .review-item-pill:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 229, 255, 0.16); }
 }
+
+/* D010 hover lift on meta-chip */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .meta-chip { transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
+  .meta-chip:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 229, 255, 0.16); }
+}
