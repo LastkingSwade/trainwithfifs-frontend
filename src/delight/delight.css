@@ -473,3 +473,9 @@
   .next-step-badge { transition: transform 160ms ease-out; }
   .next-step-badge:hover { transform: translateY(-1px); }
 }
+
+/* D081 tier badge pops on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .card-tier-badge { transition: transform 160ms ease-out; }
+  .card-tier-badge:hover { transform: scale(1.04); }
+}
