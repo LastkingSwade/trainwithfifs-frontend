@@ -96,3 +96,9 @@
   .btn-select-course { transition: filter 160ms ease-out, box-shadow 160ms ease-out; }
   .btn-select-course:hover { filter: brightness(1.1); box-shadow: 0 0 14px rgba(0, 229, 255, 0.3); }
 }
+
+/* D017 hover glow on button btn-vip-side */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .btn-vip-side { transition: filter 160ms ease-out, box-shadow 160ms ease-out; }
+  .btn-vip-side:hover { filter: brightness(1.1); box-shadow: 0 0 14px rgba(0, 229, 255, 0.3); }
+}
