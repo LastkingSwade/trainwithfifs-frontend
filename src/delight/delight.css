@@ -354,3 +354,9 @@
   @keyframes d059 { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   .metric-card { animation: d059 320ms ease-out 0ms both; }
 }
+
+/* D060 entrance fade-up on target-card-student */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes d060 { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .target-card-student { animation: d060 320ms ease-out 0ms both; }
+}
