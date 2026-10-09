@@ -108,3 +108,9 @@
   .btn-base-side { transition: filter 160ms ease-out, box-shadow 160ms ease-out; }
   .btn-base-side:hover { filter: brightness(1.1); box-shadow: 0 0 14px rgba(0, 229, 255, 0.3); }
 }
+
+/* D019 hover glow on button tier-option-btn */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .tier-option-btn { transition: filter 160ms ease-out, box-shadow 160ms ease-out; }
+  .tier-option-btn:hover { filter: brightness(1.1); box-shadow: 0 0 14px rgba(0, 229, 255, 0.3); }
+}
