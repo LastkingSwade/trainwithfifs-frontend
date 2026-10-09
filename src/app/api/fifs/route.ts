@@ -2352,7 +2352,8 @@ export async function POST(req: NextRequest) {
      // 9. Admin Dashboard Roster & History
           // 8a. Live Chat Visitor/Student Message Handler (Persists to Supabase & Dispatches Discord Alert)
      case 'handleLiveChatMessage': {
-       supabase = getPublicClient();
+       // Server-side client: the thread credential is verified below, so visitors never need direct table access.
+       supabase = getPrivilegedClient();
        const {
          name, fullName, senderName,
          email, senderEmail,
@@ -2507,7 +2508,8 @@ export async function POST(req: NextRequest) {
      }
 
      case 'getVisitorChatMessages': {
-       supabase = getPublicClient();
+       // Server-side client: reads happen only after the thread credential is verified below.
+       supabase = getPrivilegedClient();
        const tId = (payload.threadId || payload.thread_id || body.threadId || body.thread_id || '').trim();
        const tSecret = (payload.threadSecret || payload.thread_secret || body.threadSecret || body.thread_secret || '').trim();
 
@@ -2770,7 +2772,7 @@ export async function POST(req: NextRequest) {
        if (result.body.attendees > 1) {
          try {
            const pricingCourse = String(payload.courseSelection || 'Maryland Firearms Training Course').trim().slice(0, 200);
-           const { data: codeData } = await getPublicClient().rpc('create_booking_group', {
+           const { data: codeData } = await getPrivilegedClient().rpc('create_booking_group', {
              p_leader_name: String(payload.fullName || 'FIFS Training Student').trim().slice(0, 100),
              p_leader_email: String(payload.email).trim().toLowerCase(),
              p_leader_phone: String(payload.phone || '').trim().slice(0, 30) || null,

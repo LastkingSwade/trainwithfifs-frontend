@@ -11,6 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const crypto = require('crypto');
 const Module = require('module');
 const { installFetchStub } = require('./lib/ts-loader');
 
@@ -44,6 +45,12 @@ let authFail = null;
 // unlinked student has that email, that student is linked to it. Modes: 'own' (normal), 'other' (links to a different
 // account), 'vanish' (the student row is deleted mid-request). false = no trigger.
 let authTrigger = false;
+// Which Supabase key each client was created with (anon vs service role), what each used, and rpc calls.
+let clientCalls = [];
+let rpcCalls = [];
+let messageSeq = 0;
+// createBookingCheckout is replaced by a stub (the real one needs Stripe); tests set the result it returns.
+let bookingStub = { status: 200, body: { success: true, attendees: 1, isVip: false } };
 function resetDb() {
   db = {
     students: [
@@ -89,6 +96,10 @@ function resetDb() {
   storageCalls = { upload: [], remove: [], sign: [] };
   authFail = null;
   authTrigger = false;
+  clientCalls = [];
+  rpcCalls = [];
+  messageSeq = 0;
+  bookingStub = { status: 200, body: { success: true, attendees: 1, isVip: false } };
   authCalls = { createUser: [], generateLink: [], deleteUser: [], getUserById: [], deleteSnapshots: [] };
   authUsers = {
     'alice@student.com': { id: 'uuid-student-alice', email: 'alice@student.com', app_metadata: { role: 'student' } },
@@ -115,7 +126,8 @@ function likeToRegExp(pattern, caseInsensitive) {
   return new RegExp('^' + out + '$', caseInsensitive ? 'i' : '');
 }
 
-function queryBuilder(table) {
+function queryBuilder(table, clientKey) {
+  clientCalls.push({ key: clientKey, table });
   const filters = [];
   let op = 'select';
   let patch = null;
@@ -143,9 +155,10 @@ function queryBuilder(table) {
       return { data: gone.map((r) => ({ ...r })), error: null };
     }
     if (op === 'insert') {
-      (db[table] = db[table] || []).push({ ...patch });
+      const stored = table === 'messages' ? { id: 'msg-' + (++messageSeq), sent_at: '2026-01-01T00:00:00.000Z', ...(Array.isArray(patch) ? patch[0] : patch) } : { ...patch };
+      (db[table] = db[table] || []).push(stored);
       writes.push({ table, op, patch });
-      return { data: null, error: null };
+      return { data: table === 'messages' ? [{ ...stored }] : null, error: null };
     }
     if (op !== 'select') { writes.push({ table, op }); return { data: null, error: null }; }
     return { data: (db[table] || []).filter((r) => filters.every((f) => f(r))).map((r) => ({ ...r })), error: null };
@@ -176,8 +189,9 @@ function queryBuilder(table) {
 }
 
 const mockSupabase = {
-  createClient: () => ({
-    from: queryBuilder,
+  createClient: (url, key) => ({
+    from: (table) => queryBuilder(table, key),
+    rpc: async (fn, args) => { rpcCalls.push({ key, fn, args }); return { data: 'POD-TEST', error: null }; },
     storage: { from: (bucket) => ({
       createSignedUrl: async (path, ttl) => {
         if (bucket !== 'scoresheets') return { data: null, error: { message: 'none' } };
@@ -256,6 +270,7 @@ const originalRequire = Module.prototype.require;
 Module.prototype.require = function (id) {
   if (id === 'next/server') return mockNextServer;
   if (id === '@supabase/supabase-js') return mockSupabase;
+  if (id === '@/Lib/server/booking-checkout') return { createBookingCheckout: async () => bookingStub };
   if (id === 'stripe') return class { constructor() { throw new Error('Stripe must not be used by this suite'); } };
   return originalRequire.apply(this, arguments);
 };
@@ -2399,6 +2414,107 @@ async function main() {
     const cli = ROUTE_SRC.slice(ROUTE_SRC.indexOf("case 'adminDeleteClient'"), ROUTE_SRC.indexOf("case 'deletePermit'"));
     assert(/findRecordByEmail\(supabase, 'clients', resolvedEmail\)/.test(stu) && /if \(!profileCleanupSkipped\) \{\s*try \{\s*await supabase\.from\('profiles'\)/.test(stu) && /profileCleanupSkipped,/.test(stu), 'the student delete must check clients before removing the profile');
     assert(/findRecordByEmail\(supabase, 'students', resolvedEmail\)/.test(cli) && /if \(!profileCleanupSkipped\) \{\s*try \{\s*await supabase\.from\('profiles'\)/.test(cli) && /profileCleanupSkipped,/.test(cli), 'the client delete must check students before removing the profile');
+  });
+
+  console.log('\n[SECTION W: Live chat and pod codes use the server client, not the public one]');
+  const ANON_KEY = 'test-anon-key';
+  const SERVICE_KEY = 'service-role-test-secret-key-32chars!';
+  const CHAT_SECRET = 'chat-hmac-test-secret-key-32chars-long!';
+  const threadSecretFor = (tId) => crypto.createHmac('sha256', CHAT_SECRET).update(tId).digest('hex');
+  async function withChatSecret(fn) {
+    const saved = process.env.CHAT_HMAC_SECRET;
+    process.env.CHAT_HMAC_SECRET = CHAT_SECRET;
+    try { return await fn(); } finally { if (saved === undefined) delete process.env.CHAT_HMAC_SECRET; else process.env.CHAT_HMAC_SECRET = saved; }
+  }
+  const usedKeys = () => Array.from(new Set(clientCalls.map((c) => c.key))).sort();
+
+  await test('Live chat insert and read never use the anonymous key', async () => {
+    await withChatSecret(async () => {
+      const sent = await fifs('handleLiveChatMessage', { name: 'Vera Visitor', message: 'Is there a class Saturday?' });
+      assert(sent.status === 200, 'send failed: ' + JSON.stringify(sent.body));
+      const read = await fifs('getVisitorChatMessages', { threadId: sent.body.threadId, threadSecret: sent.body.threadSecret });
+      assert(read.status === 200, 'read failed: ' + JSON.stringify(read.body));
+      const touched = clientCalls.filter((c) => c.table === 'messages');
+      assert(touched.length >= 2, 'the messages table must have been used by both calls');
+      assert(touched.every((c) => c.key === SERVICE_KEY), `messages must only be used with the server key, got ${JSON.stringify(usedKeys())}`);
+      assert(!clientCalls.some((c) => c.key === ANON_KEY), 'no client may be created with the anonymous key');
+    });
+  });
+  await test('A pod invite code is created with the server key', async () => {
+    bookingStub = { status: 200, body: { success: true, attendees: 3, isVip: true, checkoutUrl: 'https://pay.example.test/x' } };
+    const res = await fifs('submitBooking', { fullName: 'Pat Leader', email: 'Pat@Example.test', phone: '410-555-0100', courseSelection: 'Maryland CCW', groupSize: '3' });
+    assert(res.status === 200 && res.body.podInviteCode === 'POD-TEST', 'the invite code must still be returned: ' + JSON.stringify(res.body));
+    assert(rpcCalls.length === 1 && rpcCalls[0].fn === 'create_booking_group', 'the group must be created through the rpc');
+    assert(rpcCalls[0].key === SERVICE_KEY, `the rpc must use the server key, got ${rpcCalls[0].key}`);
+    assert(rpcCalls[0].args.p_leader_email === 'pat@example.test' && rpcCalls[0].args.p_max_seats === 3 && rpcCalls[0].args.p_track === 'VIP', 'the rpc arguments must be unchanged');
+  });
+  await test('A single-seat booking creates no pod and a failed booking creates no pod', async () => {
+    const single = await fifs('submitBooking', { email: 'solo@example.test', courseSelection: 'Maryland CCW' });
+    assert(single.status === 200 && single.body.podInviteCode === null && rpcCalls.length === 0, 'one seat means no group');
+    bookingStub = { status: 503, body: { success: false, error: 'unavailable' } };
+    const failed = await fifs('submitBooking', { email: 'group@example.test', courseSelection: 'Maryland CCW', groupSize: '4' });
+    assert(failed.status === 503 && rpcCalls.length === 0, 'a refused checkout must not create a group');
+  });
+  await test('Thread credentials are still enforced for sending', async () => {
+    await withChatSecret(async () => {
+      const tId = 'th_victim_1';
+      const missing = await fifs('handleLiveChatMessage', { name: 'Eve', message: 'hi', threadId: tId });
+      const forged = await fifs('handleLiveChatMessage', { name: 'Eve', message: 'hi', threadId: tId, threadSecret: 'deadbeef' });
+      const swapped = await fifs('handleLiveChatMessage', { name: 'Eve', message: 'hi', threadId: tId, threadSecret: threadSecretFor('th_other') });
+      assert(missing.status === 403 && forged.status === 403 && swapped.status === 403, `expected 403 x3, got ${missing.status}/${forged.status}/${swapped.status}`);
+      assert(!writes.some((w) => w.table === 'messages' && w.op === 'insert'), 'a rejected send must store nothing');
+    });
+  });
+  await test('Thread credentials are still enforced for reading', async () => {
+    await withChatSecret(async () => {
+      db.messages = [{ id: 'm1', thread_id: 'th_victim_1', sender: 'visitor', sender_name: 'Victim', message: 'private', sent_at: '2026-01-01T00:00:00.000Z', email: 'victim@example.test' }];
+      const none = await fifs('getVisitorChatMessages', {});
+      const noSecret = await fifs('getVisitorChatMessages', { threadId: 'th_victim_1' });
+      const forged = await fifs('getVisitorChatMessages', { threadId: 'th_victim_1', threadSecret: 'invalid' });
+      const wrongThread = await fifs('getVisitorChatMessages', { threadId: 'th_victim_1', threadSecret: threadSecretFor('th_other') });
+      assert(none.status === 401 && noSecret.status === 401, `missing credentials must be 401, got ${none.status}/${noSecret.status}`);
+      assert(forged.status === 403 && wrongThread.status === 403, `bad credentials must be 403, got ${forged.status}/${wrongThread.status}`);
+      for (const r of [none, noSecret, forged, wrongThread]) assert(!JSON.stringify(r.body).includes('private'), 'a rejected read must reveal no message text');
+    });
+  });
+  await test('Without CHAT_HMAC_SECRET the chat fails closed', async () => {
+    const send = await fifs('handleLiveChatMessage', { name: 'Vera', message: 'hello' });
+    const read = await fifs('getVisitorChatMessages', { threadId: 'th_x', threadSecret: 'abc' });
+    assert(send.status === 503 && read.status === 503, `expected 503 for both, got ${send.status}/${read.status}`);
+    assert(!writes.some((w) => w.table === 'messages'), 'nothing may be stored');
+  });
+  await test('Live chat responses keep their shapes', async () => {
+    await withChatSecret(async () => {
+      const first = await fifs('handleLiveChatMessage', { name: 'Vera Visitor', email: 'Vera@Example.test', phone: '410-555-0101', message: 'Hello there' });
+      assert(first.status === 200 && first.body.success === true, 'send must succeed');
+      assert(typeof first.body.threadId === 'string' && first.body.threadSecret === threadSecretFor(first.body.threadId), 'a new thread gets an id and its credential');
+      const row = db.messages[0];
+      assert(row.sender === 'visitor' && row.status === 'UNREAD' && row.thread_id === first.body.threadId && row.message === 'Hello there' && row.email === 'vera@example.test', 'the stored row keeps its fields: ' + JSON.stringify(row));
+      assert(first.body.status === 'success' && first.body.message === 'Live chat message received and synced to Admin Hub.', 'the status and confirmation text must be unchanged');
+      assert(JSON.stringify(Object.keys(first.body.data).sort()) === JSON.stringify(['id', 'message', 'sender', 'senderName', 'sent_at']), 'the data object keeps its fields: ' + JSON.stringify(first.body.data));
+      assert(first.body.data.id === row.id && first.body.data.sent_at === row.sent_at && first.body.data.sender === 'visitor' && first.body.data.senderName === 'Vera Visitor' && first.body.data.message === 'Hello there', 'the response echoes the stored message: ' + JSON.stringify(first.body.data));
+      const again = await fifs('handleLiveChatMessage', { name: 'Vera Visitor', message: 'Second', threadId: first.body.threadId, threadSecret: first.body.threadSecret });
+      assert(again.status === 200 && again.body.threadId === first.body.threadId, 'a valid credential continues the thread');
+      db.messages.push({ id: 'm-reply', thread_id: first.body.threadId, sender: 'instructor', sender_name: 'Internal Name', message: 'See you then', sent_at: '2026-01-01T01:00:00.000Z', email: 'secret@staff.test', status: 'READ' });
+      db.messages.push({ id: 'm-other', thread_id: 'th_elsewhere', sender: 'visitor', sender_name: 'Other', message: 'not mine', sent_at: '2026-01-01T02:00:00.000Z' });
+      const read = await fifs('getVisitorChatMessages', { threadId: first.body.threadId, threadSecret: first.body.threadSecret });
+      assert(read.status === 200 && read.body.success === true && read.body.threadId === first.body.threadId, 'read must succeed');
+      assert(read.body.messages.length === 3 && !read.body.messages.some((m) => m.text === 'not mine'), 'only this thread is returned');
+      const reply = read.body.messages.find((m) => m.id === 'm-reply');
+      assert(reply.senderName === 'Lead Instructor Kai Wade' && reply.text === 'See you then' && reply.sender === 'instructor', 'instructor replies show the public name');
+      assert(read.body.messages.every((m) => Object.keys(m).sort().join() === 'id,sender,senderName,sentAt,text,time'), 'only the safe fields are returned: ' + JSON.stringify(read.body.messages[0]));
+    });
+  });
+  await test('The three call sites in the route use the server client', async () => {
+    const chatSend = ROUTE_SRC.slice(ROUTE_SRC.indexOf("case 'handleLiveChatMessage'"), ROUTE_SRC.indexOf("case 'getVisitorChatMessages'"));
+    const chatRead = ROUTE_SRC.slice(ROUTE_SRC.indexOf("case 'getVisitorChatMessages'"), ROUTE_SRC.indexOf("case 'getLiveChats'"));
+    const booking = ROUTE_SRC.slice(ROUTE_SRC.indexOf("case 'submitBooking'"), ROUTE_SRC.indexOf("case 'trackSiteVisit'"));
+    for (const [name, body] of [['handleLiveChatMessage', chatSend], ['getVisitorChatMessages', chatRead], ['submitBooking', booking]]) {
+      assert(body.length > 200, name + ' section not found');
+      assert(!/getPublicClient/.test(body), name + ' must not use the public client');
+      assert(/getPrivilegedClient\(\)/.test(body), name + ' must use the server client');
+    }
+    assert(/verifyThreadSecret\(incomingThread, incomingSecret\)/.test(chatSend) && /verifyThreadSecret\(tId, tSecret\)/.test(chatRead), 'the credential checks must stay');
   });
 
   console.log('\n================================================================');
