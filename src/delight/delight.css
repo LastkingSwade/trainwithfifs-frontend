@@ -557,3 +557,9 @@
   .portal-feature-title { transition: transform 160ms ease-out; }
   .portal-feature-title:hover { transform: translateX(2px); }
 }
+
+/* D095 card lists brighten on hover */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .fi-card-list { transition: filter 160ms ease-out; }
+  .fi-card-list:hover { filter: brightness(1.1); }
+}
