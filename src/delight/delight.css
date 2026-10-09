@@ -270,3 +270,9 @@
   .faq-item { transition: border-color 180ms ease-out; }
   .faq-item:hover { border-color: rgba(0, 229, 255, 0.55); }
 }
+
+/* D046 border brightens on hover for fi-check-item */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .fi-check-item { transition: border-color 180ms ease-out; }
+  .fi-check-item:hover { border-color: rgba(0, 229, 255, 0.55); }
+}
