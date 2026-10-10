@@ -88,3 +88,4 @@ Q087	2026-10-10T23:04:51.961Z	Phone links read as "Call 443-990-1304" to screen 
 Q088	2026-10-10T23:04:53.376Z	Email links read as "Email info@..." to screen readers	SUCCESS	15637	15946	309	code
 Q089	2026-10-10T23:04:54.808Z	Images with no description are marked decorative so screen readers skip them	SUCCESS	15946	16142	196	code
 Q090	2026-10-10T23:04:56.269Z	All images decode off the main thread (smoother scrolling)	SUCCESS	16142	16335	193	code
+Q091	2026-10-10T23:04:57.749Z	Icon-only buttons get a spoken name from their tooltip	SUCCESS	16335	16617	282	code

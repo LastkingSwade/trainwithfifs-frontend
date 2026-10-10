@@ -69,5 +69,7 @@ export function installQol(): void {
   run('Q090', () => { $$<HTMLImageElement>('img:not([decoding])').forEach((i) => i.setAttribute('decoding', 'async')); });
   // Q091: Icon-only buttons get a spoken name from their tooltip
   run('Q091', () => { $$('button').forEach((b) => { if (!b.getAttribute('aria-label') && !(b.textContent || '').trim() && b.getAttribute('title')) b.setAttribute('aria-label', b.getAttribute('title') || ''); }); });
+  // Q092: Decorative emoji next to labels are hidden from screen readers
+  run('Q092', () => { $$('.chip-icon, .pitch-icon, .ssp-cta').forEach((e) => e.setAttribute('aria-hidden', 'true')); });
   // @@QOL_END
 }
