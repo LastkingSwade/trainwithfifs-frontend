@@ -91,5 +91,7 @@ export function installQol(): void {
   run('Q096', () => { const el = document.getElementById('podCodeInput'); if (el && !el.getAttribute('aria-describedby')) el.setAttribute('aria-describedby', 'podCodeStatus'); });
   // Q097: The chat bubble button has a spoken name
   run('Q097', () => { const p = document.getElementById('floatingCommPill'); if (p && !p.getAttribute('aria-label')) p.setAttribute('aria-label', 'Chat with Coach Kai Wade'); });
+  // Q098: Pressing Enter on the chat bubble opens it (keyboard access)
+  run('Q098', () => { const p = document.getElementById('floatingCommPill'); if (p) p.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); p.click(); } }); });
   // @@QOL_END
 }
