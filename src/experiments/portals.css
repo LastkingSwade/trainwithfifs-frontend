@@ -41,7 +41,7 @@
 .metric-val { font-variant-numeric: tabular-nums; }
 
 /* P014 Admin: metric names balance their lines */
-.metric-name { text-wrap: balance; }
+.metric-name { text-wrap-style: balance; }
 
 /* P015 Admin: a clear focus ring on metric cards */
 .metric-card:focus-visible { outline: 2px solid var(--accent-cyan, #00e5ff); outline-offset: 2px; }
@@ -80,7 +80,7 @@
 .msp-intel-card:focus-within { outline: 2px solid rgba(0, 229, 255, 0.55); outline-offset: 2px; }
 
 /* P027 Admin: intel card text wraps nicely */
-.msp-card-title { text-wrap: balance; } .msp-card-desc { text-wrap: pretty; }
+.msp-card-title { text-wrap-style: balance; } .msp-card-desc { text-wrap-style: pretty; }
 
 /* P028 Admin: intel card buttons are 44 px tall */
 .msp-card-action-btn { min-height: 44px; }
@@ -95,7 +95,7 @@
 .admin-filter-count { font-variant-numeric: tabular-nums; }
 
 /* P032 Admin: empty-table messages balance their lines */
-.admin-empty-row td { text-wrap: balance; }
+.admin-empty-row td { text-wrap-style: balance; }
 
 /* P033 Admin: windows (Online, Payments, Recently Deleted) highlight rows under the pointer */
 .online-admin tbody tr:hover { background: rgba(0, 229, 255, 0.06); }
@@ -140,7 +140,7 @@
 [id^="admin-tab-"][id$="-badge"] { white-space: nowrap; }
 
 /* P047 Admin: the new-student alert box balances its lines */
-#admin-alert-title, #admin-client-alert-title { text-wrap: balance; } #admin-alert-desc, #admin-client-alert-desc { text-wrap: pretty; }
+#admin-alert-title, #admin-client-alert-title { text-wrap-style: balance; } #admin-alert-desc, #admin-client-alert-desc { text-wrap-style: pretty; }
 
 /* P048 Admin: telemetry numbers line up */
 [id^="telemetry-"][id$="-val"], [id^="telemetry-"][id$="-pct"], [id^="telemetry-"][id$="-count"] { font-variant-numeric: tabular-nums; }
@@ -167,7 +167,7 @@
 .next-step-card { scroll-margin-top: 90px; }
 
 /* P056 Student: next-step text wraps nicely */
-.next-step-title { text-wrap: balance; } .next-step-desc { text-wrap: pretty; }
+.next-step-title { text-wrap-style: balance; } .next-step-desc { text-wrap-style: pretty; }
 
 /* P057 Student: state dossier sections stay together when printed */
 @media print { .dossier-section { break-inside: avoid; } }
@@ -218,10 +218,10 @@
 .online-admin .sess span { min-width: 0; }
 
 /* P073 Student: the course packet card wraps its title */
-#packetCardTitle { text-wrap: balance; }
+#packetCardTitle { text-wrap-style: balance; }
 
 /* P074 Student: the course packet description wraps nicely */
-#packetCardDesc { text-wrap: pretty; }
+#packetCardDesc { text-wrap-style: pretty; }
 
 /* P075 Student: step circles never shrink */
 .track-step-node { flex-shrink: 0; }
@@ -230,7 +230,7 @@
 .fi-feature-card { min-width: 0; }
 
 /* P077 Client: feature titles balance their lines */
-.fi-feature-title { text-wrap: balance; }
+.fi-feature-title { text-wrap-style: balance; }
 
 /* P078 Client: the permit card wraps long values */
 .client-ccw-wallet-card { overflow-wrap: anywhere; }
@@ -248,7 +248,7 @@
 .fi-hub-cards-grid > * { min-width: 0; }
 
 /* P083 Client: the banner card wraps nicely */
-.fi-banner-card { text-wrap: pretty; }
+.fi-banner-card { text-wrap-style: pretty; }
 
 /* P084 Client: the sub-menu can be swiped sideways on a phone */
 .fi-portal-subnav { overflow-x: auto; scrollbar-width: none; } .fi-portal-subnav::-webkit-scrollbar { display: none; }

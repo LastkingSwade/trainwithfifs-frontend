@@ -8,10 +8,10 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 
 /* Q003 Balanced line breaks on headings so no single word is left alone */
-h1, h2, h3, .goal-modal-title, .tuition-title, .j-title { text-wrap: balance; }
+h1, h2, h3, .goal-modal-title, .tuition-title, .j-title { text-wrap-style: balance; }
 
 /* Q004 Prettier paragraph endings (no one-word last lines) */
-p, .tuition-desc, .review-quote-text { text-wrap: pretty; }
+p, .tuition-desc, .review-quote-text { text-wrap-style: pretty; }
 
 /* Q005 Selected text uses the brand cyan */
 ::selection { background: rgba(0, 229, 255, 0.35); color: #fff; }
@@ -110,22 +110,22 @@ button:focus:not(:focus-visible) { outline: none; }
 .vip-perks-box { scroll-margin-top: 80px; }
 
 /* Q037 Review quotes wrap more nicely */
-.review-quote-text { text-wrap: pretty; }
+.review-quote-text { text-wrap-style: pretty; }
 
 /* Q038 Photo captions wrap more nicely */
-.target-content { text-wrap: pretty; }
+.target-content { text-wrap-style: pretty; }
 
 /* Q039 Card descriptions wrap more nicely */
-.fi-card-desc, .fi-feature-desc { text-wrap: pretty; }
+.fi-card-desc, .fi-feature-desc { text-wrap-style: pretty; }
 
 /* Q040 Journey step text wraps more nicely */
-.j-desc { text-wrap: pretty; } .j-title { text-wrap: balance; }
+.j-desc { text-wrap-style: pretty; } .j-title { text-wrap-style: balance; }
 
 /* Q041 Big buttons break long labels evenly */
-.btn-spark, .btn-primary { text-wrap: balance; }
+.btn-spark, .btn-primary { text-wrap-style: balance; }
 
 /* Q042 Card titles break evenly */
-.fi-select-card h3, .fi-card-title { text-wrap: balance; }
+.fi-select-card h3, .fi-card-title { text-wrap-style: balance; }
 
 /* Q043 Tier badges never swallow a tap meant for the card under them */
 .card-tier-badge, .badge-pop { pointer-events: none; }
@@ -182,7 +182,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .tuition-bullets div { overflow-wrap: anywhere; }
 
 /* Q061 VIP perks wrap more nicely */
-.vip-perks-box { text-wrap: pretty; }
+.vip-perks-box { text-wrap-style: pretty; }
 
 /* Q062 Price tags never split onto two lines */
 .price-tier-tag { white-space: nowrap; }
@@ -206,7 +206,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .meta-chip { white-space: nowrap; }
 
 /* Q069 Pop-up titles balance their lines */
-.goal-modal-title { text-wrap: balance; }
+.goal-modal-title { text-wrap-style: balance; }
 
 /* Q070 The header badge on a pop-up never stretches */
 .goal-header-badge { white-space: nowrap; }
@@ -221,7 +221,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 @media print { .state-dossier-card { break-inside: avoid; } }
 
 /* Q074 Route cards balance their text */
-.corridor-route-card { text-wrap: pretty; }
+.corridor-route-card { text-wrap-style: pretty; }
 
 /* Q075 Course badges keep their text on one line */
 .badge-course, .badge-score { white-space: nowrap; }

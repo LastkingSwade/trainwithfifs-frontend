@@ -13,6 +13,7 @@ test('Both style sheets parse, every block carries a unique ID tag, and nothing 
     const src = R(f); const root = postcss.parse(src);
     for (const m of src.matchAll(/\/\*\s*([QP]\d{3})\b/g)) { assert(!ids.has(m[1]), 'duplicate ID ' + m[1]); ids.add(m[1]); }
     root.walkDecls((d) => {
+      assert(d.prop !== 'text-wrap', f + ': use text-wrap-style, never the text-wrap shorthand (it silently resets white-space: nowrap, which broke the reviews marquee) in ' + d.parent.selector);
       assert(!d.important, f + ': !important in ' + d.parent.selector + ' { ' + d.prop + ' }');
       if (/^(animation|transition)/.test(d.prop) || d.prop === 'scroll-behavior') {
         let n = d.parent, ok = false; while (n) { if (n.type === 'atrule' && n.name === 'media' && SAFE.test(n.params)) ok = true; n = n.parent; }
