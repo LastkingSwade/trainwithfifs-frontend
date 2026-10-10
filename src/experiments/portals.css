@@ -45,3 +45,6 @@
 
 /* P015 Admin: a clear focus ring on metric cards */
 .metric-card:focus-visible { outline: 2px solid var(--accent-cyan, #00e5ff); outline-offset: 2px; }
+
+/* P016 Admin: the button toolbar wraps on narrow screens instead of overflowing */
+.admin-secondary-toolbar { flex-wrap: wrap; row-gap: 8px; }
