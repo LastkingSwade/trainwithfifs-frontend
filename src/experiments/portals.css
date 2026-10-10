@@ -237,3 +237,6 @@
 
 /* P079 Client: days left and expiry date line up */
 #wallet-days-left, #wallet-exp-date { font-variant-numeric: tabular-nums; }
+
+/* P080 Client: state permit badges stay on one line */
+[id^="permit-badge-"] { white-space: nowrap; }
