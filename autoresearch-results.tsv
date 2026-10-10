@@ -15,3 +15,4 @@ Q013	2026-10-10T23:00:06.884Z	A busy control shows a progress cursor	SUCCESS	311
 Q015	2026-10-10T23:01:55.960Z	Fold-away rows show a pointer	SUCCESS	3348	3419	71	css
 Q016	2026-10-10T23:01:56.080Z	Fold-away arrows use the brand color	SUCCESS	3419	3524	105	css
 Q017	2026-10-10T23:01:56.204Z	Labels that wrap a checkbox or radio show a pointer	SUCCESS	3524	3679	155	css
+Q018	2026-10-10T23:01:56.322Z	A field with a valid answer gets a quiet green edge	SUCCESS	3679	3828	149	css

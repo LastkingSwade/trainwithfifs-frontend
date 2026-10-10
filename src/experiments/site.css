@@ -54,3 +54,6 @@ label:has(> input[type="checkbox"]), label:has(> input[type="radio"]) { cursor: 
 
 /* Q018 A field with a valid answer gets a quiet green edge */
 input:user-valid:not(:placeholder-shown) { border-color: rgba(52, 211, 153, 0.55); }
+
+/* Q019 Text boxes can only be stretched up and down, never sideways out of the card */
+textarea { resize: vertical; min-height: 5.5rem; }
