@@ -69,3 +69,6 @@
 
 /* P023 Admin: the live activity feed scrolls on its own */
 #telemetry-stream-box { overscroll-behavior: contain; }
+
+/* P024 Admin: visitor device bars grow smoothly when numbers change (motion safe) */
+@media (prefers-reduced-motion: no-preference) { [id^="telemetry-"][id$="-bar"] { transition: width 400ms ease; } }
