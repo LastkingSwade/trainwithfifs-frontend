@@ -3,3 +3,6 @@
 
 /* Q001 Stop iOS from inflating text when the phone turns sideways */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* Q002 Crisper text on Mac and iPhone screens */
+body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
