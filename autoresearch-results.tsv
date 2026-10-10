@@ -20,3 +20,4 @@ Q019	2026-10-10T23:01:56.437Z	Text boxes can only be stretched up and down, neve
 Q020	2026-10-10T23:01:56.554Z	A soft gray placeholder while a lazy image loads	SUCCESS	3968	4144	176	css
 Q021	2026-10-10T23:01:56.672Z	Visitors who ask for more contrast get firmer field borders	SUCCESS	4144	4299	155	css
 Q022	2026-10-10T23:01:56.824Z	Windows high-contrast mode keeps a visible focus outline	SUCCESS	4299	4452	153	css
+Q023	2026-10-10T23:01:56.941Z	Bigger tap targets for sub-menu buttons and pop-up close buttons on touch screens	SUCCESS	4452	4674	222	css

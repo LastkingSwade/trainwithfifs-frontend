@@ -69,3 +69,6 @@ img[loading="lazy"] { background: linear-gradient(135deg, rgba(148, 163, 184, 0.
 
 /* Q023 Bigger tap targets for sub-menu buttons and pop-up close buttons on touch screens */
 @media (pointer: coarse) { .fi-subnav-btn, .btn-secondary-modal, .goal-modal-close-btn { min-height: 44px; min-width: 44px; } }
+
+/* Q024 Printed pages show the address of outside links */
+@media print { a[href^="http"]:not([href*="trainwithfifs.com"])::after { content: " (" attr(href) ")"; font-size: 0.8em; } }
