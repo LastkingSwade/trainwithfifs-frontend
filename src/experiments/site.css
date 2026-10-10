@@ -219,3 +219,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q073 Dossier cards keep together when printed */
 @media print { .state-dossier-card { break-inside: avoid; } }
+
+/* Q074 Route cards balance their text */
+.corridor-route-card { text-wrap: pretty; }
