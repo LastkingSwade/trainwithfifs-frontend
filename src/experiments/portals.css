@@ -120,3 +120,6 @@
 
 /* P040 Admin: the invite window scrolls on its own */
 #adminInviteModal { overscroll-behavior: contain; }
+
+/* P041 Admin: the score sheet pad toolbar keeps clear of the iPad home bar */
+.ssp-bar { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
