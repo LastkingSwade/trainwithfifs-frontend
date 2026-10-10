@@ -34,3 +34,4 @@ Q033	2026-10-10T23:02:15.971Z	No focus ring after a mouse click on a button (key
 Q034	2026-10-10T23:02:33.337Z	Pop-up close buttons are at least 44 by 44	SUCCESS	6139	6255	116	css
 Q035	2026-10-10T23:02:33.457Z	Tapping the Standard / VIP switch never selects its text	SUCCESS	6255	6391	136	css
 Q036	2026-10-10T23:02:33.575Z	VIP perk box keeps clear of the header when jumped to	SUCCESS	6391	6501	110	css
+Q037	2026-10-10T23:02:33.694Z	Review quotes wrap more nicely	SUCCESS	6501	6586	85	css

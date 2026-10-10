@@ -111,3 +111,6 @@ button:focus:not(:focus-visible) { outline: none; }
 
 /* Q037 Review quotes wrap more nicely */
 .review-quote-text { text-wrap: pretty; }
+
+/* Q038 Photo captions wrap more nicely */
+.target-content { text-wrap: pretty; }
