@@ -180,3 +180,6 @@
 
 /* P060 Student: tapping the student ID selects all of it (easy to copy) */
 #dash-student-id { -webkit-user-select: all; user-select: all; }
+
+/* P061 Student: sign-out and change-password buttons are 44 px tall */
+.btn-sign-out, .btn-change-password { min-height: 44px; }
