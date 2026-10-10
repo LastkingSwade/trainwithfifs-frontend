@@ -67,5 +67,7 @@ export function installQol(): void {
   run('Q089', () => { $$<HTMLImageElement>('img:not([alt])').forEach((i) => i.setAttribute('alt', '')); });
   // Q090: All images decode off the main thread (smoother scrolling)
   run('Q090', () => { $$<HTMLImageElement>('img:not([decoding])').forEach((i) => i.setAttribute('decoding', 'async')); });
+  // Q091: Icon-only buttons get a spoken name from their tooltip
+  run('Q091', () => { $$('button').forEach((b) => { if (!b.getAttribute('aria-label') && !(b.textContent || '').trim() && b.getAttribute('title')) b.setAttribute('aria-label', b.getAttribute('title') || ''); }); });
   // @@QOL_END
 }
