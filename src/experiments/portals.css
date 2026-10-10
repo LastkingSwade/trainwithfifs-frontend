@@ -42,3 +42,6 @@
 
 /* P014 Admin: metric names balance their lines */
 .metric-name { text-wrap: balance; }
+
+/* P015 Admin: a clear focus ring on metric cards */
+.metric-card:focus-visible { outline: 2px solid var(--accent-cyan, #00e5ff); outline-offset: 2px; }

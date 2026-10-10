@@ -111,3 +111,4 @@ P010	2026-10-10T23:05:50.163Z	Admin: ID columns never wrap	SUCCESS	21391	21528	1
 P011	2026-10-10T23:05:50.311Z	Admin: table buttons are 44 px tall on touch screens	SUCCESS	21528	21671	143	css
 P012	2026-10-10T23:05:50.466Z	Admin: metric cards never overflow their grid cell	SUCCESS	21671	21765	94	css
 P013	2026-10-10T23:05:50.618Z	Admin: metric numbers line up	SUCCESS	21765	21859	94	css
+P014	2026-10-10T23:06:08.863Z	Admin: metric names balance their lines	SUCCESS	21859	21948	89	css
