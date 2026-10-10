@@ -109,5 +109,9 @@ export function installQol(): void {
   });
   // P092: Admin: column headings in the roster and clients tables are announced as columns
   run('P092', () => { $$('.admin-roster-table th').forEach((th) => th.setAttribute('scope', 'col')); });
+  // P093: Admin: Esc clears a search box and shows every row again
+  run('P093', () => {
+    for (const id of ['admin-roster-search', 'admin-client-search']) { document.addEventListener('keydown', (e) => { const el = document.getElementById(id) as HTMLInputElement | null; if (e.key === 'Escape' && el && document.activeElement === el && el.value) { el.value = ''; el.dispatchEvent(new Event('input', { bubbles: true })); } }); }
+  });
   // @@QOL_END
 }
