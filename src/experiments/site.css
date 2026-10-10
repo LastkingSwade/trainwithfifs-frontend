@@ -15,3 +15,6 @@ p, .tuition-desc, .review-quote-text { text-wrap: pretty; }
 
 /* Q005 Selected text uses the brand cyan */
 ::selection { background: rgba(0, 229, 255, 0.35); color: #fff; }
+
+/* Q006 Jumping to a section no longer hides its title under the header */
+html { scroll-padding-top: 80px; }
