@@ -240,3 +240,6 @@
 
 /* P080 Client: state permit badges stay on one line */
 [id^="permit-badge-"] { white-space: nowrap; }
+
+/* P081 Client: the expiration badge stays on one line */
+#dash-client-exp-badge { white-space: nowrap; }

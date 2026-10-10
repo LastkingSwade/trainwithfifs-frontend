@@ -177,3 +177,4 @@ P076	2026-10-10T23:08:15.466Z	Client: feature cards never overflow their grid ce
 P077	2026-10-10T23:08:15.626Z	Client: feature titles balance their lines	SUCCESS	30228	30325	97	css
 P078	2026-10-10T23:08:15.788Z	Client: the permit card wraps long values	SUCCESS	30325	30432	107	css
 P079	2026-10-10T23:08:15.952Z	Client: days left and expiry date line up	SUCCESS	30432	30562	130	css
+P080	2026-10-10T23:08:16.113Z	Client: state permit badges stay on one line	SUCCESS	30562	30666	104	css
