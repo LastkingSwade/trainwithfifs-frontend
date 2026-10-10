@@ -30,3 +30,4 @@ Q029	2026-10-10T23:02:15.501Z	Off-screen gallery photos are skipped until needed
 Q030	2026-10-10T23:02:15.617Z	Gallery photos zoom a touch on hover (motion safe)	SUCCESS	5492	5762	270	css
 Q031	2026-10-10T23:02:15.734Z	Empty status messages take no space	SUCCESS	5762	5847	85	css
 Q032	2026-10-10T23:02:15.852Z	Disabled big buttons look disabled	SUCCESS	5847	6000	153	css
+Q033	2026-10-10T23:02:15.971Z	No focus ring after a mouse click on a button (keyboard focus still shows)	SUCCESS	6000	6139	139	css
