@@ -4,6 +4,7 @@ import { getPrivilegedClient } from '@/Lib/server/supabase-admin';
 import { sendDiscordAlert } from '@/Lib/server/discord';
 import { sendGroupCodeEmail } from '@/Lib/server/group-email';
 import { releaseOnlineSeats } from '@/Lib/server/online-classroom';
+import { sendOnlineConfirmationForSession } from '@/Lib/server/online-email';
 import { cancelUnpaidLeaderPod, releasePodSeat } from '@/Lib/server/booking-checkout';
 
 // Signature verification is local (HMAC); this key is never used for API calls in this route.
@@ -140,6 +141,8 @@ async function handlePaidSession(supabase: any, session: Stripe.Checkout.Session
     0x10b981
   );
 
+  await sendOnlineConfirmation(supabase, session);
+
   // The person who booked a group gets their group code by email, once, right after the payment is applied. Best effort: it can
   // never change the payment result (the helper never throws, and this is wrapped as well).
   if (session.metadata?.podRole === 'leader' && session.metadata?.podCode) {
@@ -155,6 +158,12 @@ async function handlePaidSession(supabase: any, session: Stripe.Checkout.Session
       console.warn('[Stripe Webhook] Group code email not sent:', emailErr?.message || 'unknown error');
     }
   }
+}
+
+// Live-online bookings: confirmation with both dates, the Day 2 statement and the join link, once the payment is applied. Best effort.
+async function sendOnlineConfirmation(supabase: any, session: Stripe.Checkout.Session) {
+  if (session.metadata?.delivery !== 'live_online') return;
+  try { await sendOnlineConfirmationForSession(supabase, session as any); } catch (err: any) { console.warn('[Stripe Webhook] Online confirmation not sent:', err?.message || 'unknown error'); }
 }
 
 async function handleExpiredSession(supabase: any, session: Stripe.Checkout.Session) {

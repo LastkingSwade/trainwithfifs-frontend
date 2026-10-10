@@ -12,6 +12,7 @@ import Script from "next/script";
 import dynamic from "next/dynamic";
 import { GROUP_EXPLAINER, cleanCourse, friendlyCodeError } from "@/group/groupCopy";
 import { installOnlineForm } from "@/online/onlineForm";
+import { installStudentOnline } from "@/online/studentOnline";
 import { DAY2_ACK_TEXT, DAY2_STATEMENT, FEE_LABEL, IN_PERSON_NOTE, ONLINE_NAME, TECH_REQUIREMENTS } from "@/online/onlineCopy";
 import Head from "next/head";
 import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
@@ -4097,7 +4098,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -4705,6 +4706,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             {/* 8-Step Progress Tracker Roadmap */}
             
+            <div id="dash-online-card" hidden></div>
             {/* Official Maryland Qualification Scoresheet Card (MSP Form 29-14) */}
             <div className="fi-card" id="dash-scoresheet-card" style={{"marginBottom": "24px", "border": "1px solid rgba(0, 229, 255, 0.28)", "background": "linear-gradient(135deg, rgba(7,11,16,0.95), rgba(15,23,42,0.85))", "borderRadius": "12px", "padding": "20px"}}>
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "12px", "flexWrap": "wrap", "gap": "8px"}}>
@@ -6002,6 +6004,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
           <div className="admin-secondary-toolbar">
             <button className="btn-tactical-hud hud-cyan" id="btn-admin-refresh-data" onClick={(e) => { e.preventDefault(); (window as any).refreshAdminRoster?.(); }} data-onclick="refreshAdminRoster()" title="Synchronize student and client records from Supabase" type="button">
               <span>🔄</span> <span>REFRESH ROSTER</span>
+            </button>
+            <button className="btn-tactical-hud hud-purple" id="btn-admin-online-hdr" onClick={(e) => { e.preventDefault(); (window as any).openOnlineAdmin?.(); }} data-onclick="openOnlineAdmin()" title="Live online classroom: switches, dates, meeting links, Day 2 attendance" type="button">
+              💻 Online Classes
             </button>
             <button className="btn-tactical-hud hud-purple" id="btn-admin-invite-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminInviteModal?.(); }} data-onclick="openAdminInviteModal()" title="Dispatch student/client portal onboarding invitation" type="button">
               <span>✉️</span> <span>SEND INVITE</span>

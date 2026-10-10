@@ -24,6 +24,7 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null, f
     if (id === '@/Lib/server/discord') return { sendDiscordAlert: async (title) => { alerts.push(title); return true; } };
     // Group code email (recorded, never sent). failEmail makes it throw, to prove a mail problem cannot affect the payment.
     if (id === '@/Lib/server/group-email') return { sendGroupCodeEmail: async (to, meta) => { if (failEmail) throw new Error('mail down'); emails.push({ to, meta }); return true; } };
+    if (id === '@/Lib/server/online-email') return { sendOnlineConfirmationForSession: async (sb, session) => { emails.push({ online: true, to: session.customer_email, md: session.metadata }); return true; } };
     // Online-classroom seat release (recorded, never run): called only when an unpaid live-online checkout expires.
     if (id === '@/Lib/server/online-classroom') return { releaseOnlineSeats: async (inv) => { podCalls.push(['releaseOnline', inv]); } };
     // Pod seat helpers (recorded, never run): the webhook calls them only when an unpaid member/leader checkout expires.
@@ -190,6 +191,19 @@ function sessionEvent(type, overrides = {}) {
     const under = makeHarness({ event: sessionEvent('checkout.session.completed', { amount_total: 100, metadata: { invoiceId: 'INV-1', podRole: 'leader', podCode: 'FIFS-POD-A1B2' } }), invoices: [invoiceRow()] });
     await under.post();
     assert.equal(member.emails.length + plain.emails.length + under.emails.length, 0, 'only a paid organizer gets the email');
+  }
+  {
+    // Live online booking: the confirmation goes out once after the payment is applied; ordinary bookings send none.
+    const online = makeHarness({ event: sessionEvent('checkout.session.completed', { metadata: { invoiceId: 'INV-1', delivery: 'live_online', classroomSessionId: 'a', rangeSessionId: 'b', fullName: 'Remote' } }), invoices: [invoiceRow()] });
+    assert.equal((await online.post()).status, 200);
+    assert.equal((await online.post()).status, 200);
+    assert.equal(online.emails.filter((e) => e.online).length, 1, 'one online confirmation, even if Stripe repeats the event');
+    const plain = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [invoiceRow()] });
+    await plain.post();
+    assert.equal(plain.emails.filter((e) => e.online).length, 0, 'in-person bookings get no online confirmation');
+    const expired = makeHarness({ event: sessionEvent('checkout.session.expired', { metadata: { invoiceId: 'INV-1', delivery: 'live_online' } }), invoices: [invoiceRow({ status: 'PENDING' })] });
+    await expired.post();
+    assert.ok(expired.podCalls.some((c) => c[0] === 'releaseOnline'), 'an expired unpaid online checkout gives its seats back');
   }
   {
     // A mail failure never changes the payment result.

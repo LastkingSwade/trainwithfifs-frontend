@@ -4,7 +4,7 @@ import { getAuthenticatedUser, getPrivilegedClient, getPublicClient } from '@/Li
 import { isLiveChatHours } from '@/Lib/server/chat-hours';
 import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/group-status';
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
-import { getOnlineOptions } from '@/Lib/server/online-classroom';
+import { adminMarkAttendance, adminOnlineOverview, adminSaveSession, adminSessionRoster, adminSetCourseOnline, day2Pending, getOnlineOptions, studentOnlineClasses } from '@/Lib/server/online-classroom';
 import { createBookingCheckout, createPodInviteCode, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord, lookupPod } from '@/Lib/server/booking-checkout';
 import { ConfigurationError, resolveSiteUrl } from '@/Lib/config/environment';
 
@@ -72,6 +72,7 @@ const NOT_IMPLEMENTED_ACTIONS: Record<string, string> = {
 };
 
 // --- Student record edit validation (adminEditStudent, updateStudentStatus, updateStudentTask) ---
+const CERTIFICATE_AND_LATER = ['STEP_6_CERTIFIED', 'STEP_7_MSP_PORTAL', 'STEP_8_LICENSED'];
 const STUDENT_STATUS_ALLOWLIST = [
   'STEP_1_REGISTERED', 'STEP_2_CONFIRMED', 'STEP_3_PREPARATION', 'STEP_4_CLASSROOM',
   'STEP_5_LIVE_FIRE', 'STEP_6_CERTIFIED', 'STEP_7_MSP_PORTAL', 'STEP_8_LICENSED'
@@ -2038,6 +2039,10 @@ export async function POST(req: NextRequest) {
        if (Object.keys(row).length === 0) {
          return NextResponse.json({ success: false, status: 'error', error: 'No editable changes were supplied.' }, { status: 400 });
        }
+       // Live online students: the certificate step (and everything after it) stays locked until Day 2 range attendance is recorded.
+       if (typeof row.status === 'string' && CERTIFICATE_AND_LATER.includes(row.status) && await day2Pending(supabase, studentId)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'This student booked the live online classroom. Record their in-person Day 2 range attendance first; the certificate step stays locked until then.' }, { status: 409 });
+       }
 
        const { data: updated, error: updateErr } = await supabase.from('students')
          .update({ ...row, updated_at: new Date().toISOString() })
@@ -2868,6 +2873,38 @@ export async function POST(req: NextRequest) {
        // Public: which classes can be taken with the live online classroom right now (switch on AND dated sessions posted). Returns
        // only dates and seats left; never meeting links. An empty list simply hides the option.
        return NextResponse.json({ success: true, ...(await getOnlineOptions()) });
+     }
+
+     case 'adminOnlineOverview':
+     case 'adminSetOnlineCourse':
+     case 'adminSaveSession':
+     case 'adminSessionRoster':
+     case 'adminMarkAttendance': {
+       // Staff only. The caller's role is checked on the server before anything is read or written.
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
+       const done = (r: any) => (r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status }));
+       if (action === 'adminOnlineOverview') return done(await adminOnlineOverview(supabase));
+       if (action === 'adminSetOnlineCourse') return done(await adminSetCourseOnline(supabase, payload.courseKey, payload.enabled));
+       if (action === 'adminSaveSession') return done(await adminSaveSession(supabase, payload));
+       if (action === 'adminSessionRoster') return done(await adminSessionRoster(supabase, payload.sessionId));
+       return done(await adminMarkAttendance(supabase, payload.invoiceNumber, payload.kind, payload.attended, String(user?.email || user?.id || 'staff')));
+     }
+
+     case 'studentOnlineClass': {
+       // The signed-in student's own live-online bookings (found only from the verified token). The join link is included only for paid bookings.
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user?.id) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
+       const { data: stu, error: stuErr } = await supabase.from('students').select('student_id').eq('user_id', user.id).maybeSingle();
+       if (stuErr) return NextResponse.json({ success: false, error: 'Could not load your classes right now.' }, { status: 503 });
+       if (!stu?.student_id) return NextResponse.json({ success: true, classes: [] });
+       return NextResponse.json({ success: true, classes: await studentOnlineClasses(supabase, String(stu.student_id)) });
      }
 
      case 'groupStatus':
