@@ -159,3 +159,6 @@ option { background: #0d141e; color: #f8fafc; }
 
 /* Q053 Long unbroken words never push the page wider */
 body { overflow-wrap: break-word; }
+
+/* Q054 A soft ring around the field being typed in */
+input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.22); }
