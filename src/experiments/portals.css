@@ -60,3 +60,6 @@
 
 /* P020 Admin: reload buttons in the windows show a focus ring */
 .btn-modal-subpanel-reload:focus-visible { outline: 2px solid var(--accent-cyan, #00e5ff); outline-offset: 2px; }
+
+/* P021 Admin: the chat inbox list scrolls on its own */
+#admin-chat-inbox-list { overscroll-behavior: contain; scrollbar-width: thin; }
