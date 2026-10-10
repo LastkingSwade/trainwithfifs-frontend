@@ -195,3 +195,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q065 A field scrolled into view by the keyboard keeps room above it */
 :is(input, select, textarea):focus { scroll-margin-block: 120px; }
+
+/* Q066 Review pills keep a default cursor (they are not buttons) */
+.review-item-pill { cursor: default; }
