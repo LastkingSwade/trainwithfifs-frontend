@@ -255,3 +255,6 @@
 
 /* P085 Client: sub-menu buttons keep their text on one line */
 .fi-portal-subnav .fi-subnav-btn { white-space: nowrap; }
+
+/* P086 Client: tapping the client ID selects all of it */
+#dash-client-id { -webkit-user-select: all; user-select: all; }
