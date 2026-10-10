@@ -186,3 +186,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q062 Price tags never split onto two lines */
 .price-tier-tag { white-space: nowrap; }
+
+/* Q063 Big buttons do not select their text on a double tap */
+.btn-spark, .btn-primary { -webkit-user-select: none; user-select: none; }

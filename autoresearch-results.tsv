@@ -59,3 +59,4 @@ Q058	2026-10-10T23:03:17.742Z	Course cards keep together when printed	SUCCESS	89
 Q059	2026-10-10T23:03:17.865Z	Printed pages hide the Standard / VIP switches and select buttons	SUCCESS	9113	9268	155	css
 Q060	2026-10-10T23:03:17.989Z	Bullet lines in cards break long words	SUCCESS	9268	9369	101	css
 Q061	2026-10-10T23:03:18.110Z	VIP perks wrap more nicely	SUCCESS	9369	9446	77	css
+Q062	2026-10-10T23:03:18.233Z	Price tags never split onto two lines	SUCCESS	9446	9537	91	css
