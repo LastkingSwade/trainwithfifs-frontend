@@ -171,3 +171,6 @@ input[type="file"] { cursor: pointer; }
 
 /* Q057 Number fields hide the tiny spin arrows that are hard to tap */
 input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
+/* Q058 Course cards keep together when printed */
+@media print { .tuition-card, .fi-select-card, .faq-item { break-inside: avoid; } }
