@@ -138,3 +138,6 @@
 
 /* P046 Admin: tab badges never wrap */
 [id^="admin-tab-"][id$="-badge"] { white-space: nowrap; }
+
+/* P047 Admin: the new-student alert box balances its lines */
+#admin-alert-title, #admin-client-alert-title { text-wrap: balance; } #admin-alert-desc, #admin-client-alert-desc { text-wrap: pretty; }
