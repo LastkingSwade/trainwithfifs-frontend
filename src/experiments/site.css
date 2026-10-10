@@ -60,3 +60,6 @@ textarea { resize: vertical; min-height: 5.5rem; }
 
 /* Q020 A soft gray placeholder while a lazy image loads */
 img[loading="lazy"] { background: linear-gradient(135deg, rgba(148, 163, 184, 0.08), rgba(148, 163, 184, 0.16)); }
+
+/* Q021 Visitors who ask for more contrast get firmer field borders */
+@media (prefers-contrast: more) { input, select, textarea { border-width: 2px; } }
