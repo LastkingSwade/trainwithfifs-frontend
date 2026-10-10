@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import Stripe from 'stripe';
 import { recordPodCodeOnInvoice } from './group-status';
-import { claimOnlineSeats, releaseOnlineSeats, validateOnlineBooking } from './online-classroom';
+import { claimBookingDays, inPersonClaims, onlineClaims, planOnlineBooking, releaseDayClaims } from './online-classroom';
 import { calculatePricingBreakdown, displayCourseLabel, isAlumniCourse, parseAttendeeCount } from '../pricing';
 import { getAuthenticatedUser, getPrivilegedClient, hasBearerToken, resolveStripeSecretKey } from './supabase-admin';
 import { sendDiscordAlert } from './discord';
@@ -168,12 +168,13 @@ export async function createBookingCheckout(
     return { status: 503, body: { success: false, status: 'error', error: 'Payment processing is not configured on the server. Please contact FIFS directly.' } };
   }
 
-  // Live Online Classroom (classroom over video, Day 2 range always in person): every rule is checked here, before any payment starts.
-  let online: { classroomSessionId: string; rangeSessionId: string } | null = null;
+  // Live Online Classroom (classroom over video, Day 2 range always in person): every rule that needs no database is checked here,
+  // before any payment starts. The day rule (web day / in-person day) is enforced just before payment, below.
+  let online: { day1: string; day2: string } | null = null;
   if (String(input.delivery || '') === 'live_online') {
-    const check = await validateOnlineBooking(getPrivilegedClient(), courseSelection, { classroomSessionId: input.classroomSessionId, rangeSessionId: input.rangeSessionId, ack: input.day2Ack });
-    if (!check.ok) return { status: check.status, body: { success: false, status: 'error', error: check.message } };
-    online = { classroomSessionId: check.classroomSessionId, rangeSessionId: check.rangeSessionId };
+    const plan = planOnlineBooking(courseSelection, { day1: input.day1, day2: input.day2, ack: input.day2Ack });
+    if (!plan.ok) return { status: plan.status, body: { success: false, status: 'error', error: plan.message } };
+    online = { day1: plan.day1, day2: plan.day2 };
   }
 
   // Optional authenticated linking. An absent or invalid token simply means a guest checkout;
@@ -232,15 +233,18 @@ export async function createBookingCheckout(
     if (!claim.ok) return { status: claim.status, body: { success: false, status: 'error', error: claim.message } };
     podSeatClaimed = true;
   }
-  let onlineSeatsClaimed = false;
+  let dayClaimsHeld = false;
   const releaseClaimedPodSeat = async () => {
     if (podMember && podSeatClaimed) { podSeatClaimed = false; await releasePodSeat(podMember.code); }
-    if (online && onlineSeatsClaimed) { onlineSeatsClaimed = false; await releaseOnlineSeats(invoiceId); }
+    if (dayClaimsHeld) { dayClaimsHeld = false; await releaseDayClaims(invoiceId); }
   };
-  if (online) {
-    const held = await claimOnlineSeats(getPrivilegedClient(), invoiceId, online);
-    if (!held.ok) { await releaseClaimedPodSeat(); return { status: 409, body: { success: false, status: 'error', error: held.message } }; }
-    onlineSeatsClaimed = true;
+  // The day rule: each calendar day is a web day or an in-person day, decided by whoever books it first. Group members joining a
+  // leader's pod share the leader's days, so only the leader's booking claims them.
+  const dayClaims = online ? onlineClaims(online) : (podMember ? [] : inPersonClaims({ day1: input.day1, day2: input.day2 }));
+  if (dayClaims.length) {
+    const held = await claimBookingDays(getPrivilegedClient(), invoiceId, dayClaims, Boolean(online));
+    if (!held.ok) { await releaseClaimedPodSeat(); return { status: held.status, body: { success: false, status: 'error', error: held.message } }; }
+    dayClaimsHeld = true;
   }
 
   const stripe = new Stripe(stripeKey, { apiVersion: STRIPE_API_VERSION });
@@ -272,7 +276,7 @@ export async function createBookingCheckout(
         balanceDueClass: pricing.balanceDueClass.toFixed(2),
         isDepositPayment: String(!isPayFull),
         ...(podMember ? { podCode: podMember.code, podRole: 'member' } : {}),
-        ...(online ? { delivery: 'live_online', classroomSessionId: online.classroomSessionId, rangeSessionId: online.rangeSessionId, remoteFee: pricing.remoteFee.toFixed(2) } : {})
+        ...(online ? { delivery: 'live_online', day1: online.day1, day2: online.day2, remoteFee: pricing.remoteFee.toFixed(2) } : {})
       },
       line_items: [
         {

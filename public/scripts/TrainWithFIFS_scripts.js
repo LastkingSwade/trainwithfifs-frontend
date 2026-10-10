@@ -1769,6 +1769,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     var calSelectedDate1Obj = null;
     var calSelectedDate2Obj = null;
     function is16HourCourseSelected() {
+      // Live Online Classroom always books two dates: Day 1 (live classroom) and Day 2 (in-person range day).
+      if (window.__fifsOnline && window.__fifsOnline.on) return true;
       var selectElem = document.getElementById('courseSelection');
       var val = (selectElem ? selectElem.value : '').toLowerCase();
       // 16-hour courses in MD: Wear & Carry (CCW), CCW & HQL Combo, Multi-State Mastery
@@ -6175,11 +6177,7 @@ function getStepNumberFromStatus(statusStr) {
         return false;
       }
       var is16Hr = typeof is16HourCourseSelected === 'function' ? is16HourCourseSelected() : false;
-      // Live Online Classroom: the dates come from the two sessions chosen in the online panel (checked by the online form code), not from the calendar.
-      var onlineBooking = !!(window.__fifsOnline && window.__fifsOnline.on);
-      if (onlineBooking) {
-        // nothing to check here
-      } else if (is16Hr) {
+      if (is16Hr) {
         if (!calSelectedDate1 || !calSelectedDate2) {
           var calElem = document.getElementById('bookingCalendarPolicyBanner') || document.getElementById('bookingCalDaysGrid');
           reportBookingError(calElem, '📅 16-Hour Course Requirement:\n\nPlease select 2 dates on the calendar:\n• Day 1: FIFS Classroom Instruction\n• Day 2: Cindy\'s Hot Shots Live-Fire Practical Qualification');
@@ -6207,10 +6205,12 @@ function getStepNumberFromStatus(statusStr) {
       var options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
       var date1Str = calSelectedDate1Obj ? calSelectedDate1Obj.toLocaleDateString('en-US', options) : (calSelectedDate1 || 'TBD');
       var date2Str = calSelectedDate2Obj ? calSelectedDate2Obj.toLocaleDateString('en-US', options) : (calSelectedDate2 || 'TBD');
-      var scheduleSummary = onlineBooking ? (window.__fifsOnline.datesText || 'Live Online Classroom + In-Person Range Day') : is16Hr
+      var scheduleSummary = is16Hr
         ? ('Day 1: ' + date1Str + ' (FIFS Classroom) | Day 2: ' + date2Str + ' (Cindy\'s Hot Shots Qualification)')
         : (calSelectedDate1Obj ? ('Session Date: ' + date1Str) : (form.preferredDates ? form.preferredDates.value : 'Flexible / Coordinated with Instructor'));
       __fifsCurrentBookingPayload = {
+        date1Iso: calSelectedDate1 || '',
+        date2Iso: calSelectedDate2 || '',
         invoiceId: invoiceId,
         studentId: studentId,
         fullName: fullName,
@@ -6448,6 +6448,8 @@ function getStepNumberFromStatus(statusStr) {
         portalPassword: p.password || '',
         courseSelection: p.courseSelection,
         preferredDates: p.preferredDates,
+        day1: p.date1Iso || '',
+        day2: p.date2Iso || '',
         groupSize: p.groupSize,
         comments: p.comments
       };

@@ -1,197 +1,189 @@
 import { getPrivilegedClient } from '@/Lib/server/supabase-admin';
-import { ONLINE_ELIGIBLE_KEYS, ONLINE_PREMIUM_RATE, courseKeyFor, onlineEligible } from '@/Lib/pricing';
+import { ONLINE_ELIGIBLE_KEYS, ONLINE_PREMIUM_RATE, onlineEligible } from '@/Lib/pricing';
 
 // Live Online Classroom rules, all enforced here on the server. The browser only guides the form.
-//  - classroom taught live over video; Day 2 (range) is always in person
-//  - a course is offered online only if its switch is ON in public.course_settings (everything starts OFF)
-//  - booking requires a live classroom session, an in-person range session, and the "Day 2 is mandatory" acknowledgement
-//  - remote students hold range seats exactly like in-person students (shared capacity)
-// Every database call fails safe: if the tables are missing or the database is unreachable, online is simply not offered.
+//  - the classroom is taught live over video; Day 2 (hands-on range day) is always in person
+//  - online bookings use the same calendar as in-person bookings: Day 1 = live online classroom, Day 2 = in-person range day
+//  - THE DAY RULE: every calendar day is a web day or an in-person day, decided by whoever books it first. Day 1 of an online
+//    booking claims its date as a web day; every other date (an online Day 2 and both dates of an in-person booking) claims its date
+//    as an in-person day. A claim for the other kind is refused.
+// Database trouble fails safe: online bookings are refused; ordinary in-person bookings still go through (and the problem is logged).
 
 export { DAY2_ACK_TEXT, DAY2_STATEMENT } from '@/online/onlineCopy';
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export interface PublicSession { id: string; kind: 'classroom' | 'range'; startsAt: string; seatsLeft: number | null }
-export interface OnlineOptions { premiumRate: number; courses: Record<string, { classroom: PublicSession[]; range: PublicSession[] }> }
+export type DayMode = 'online' | 'in_person';
+export interface DayClaim { day: string; mode: DayMode; role: 'day1' | 'day2' }
 
-export async function getOnlineOptions(supabase: any = getPrivilegedClient()): Promise<OnlineOptions> {
-  const empty: OnlineOptions = { premiumRate: ONLINE_PREMIUM_RATE, courses: {} };
-  try {
-    const sw = await supabase.from('course_settings').select('course_key').eq('online_enabled', true);
-    if (sw.error || !Array.isArray(sw.data) || sw.data.length === 0) return empty;
-    const keys: string[] = sw.data.map((r: any) => String(r.course_key));
-    const ses = await supabase.from('class_sessions').select('id, course_key, kind, delivery, starts_at, capacity, is_open').eq('is_open', true).gt('starts_at', new Date().toISOString()).order('starts_at', { ascending: true });
-    if (ses.error || !Array.isArray(ses.data)) return empty;
-    const rows = ses.data.filter((r: any) => keys.includes(String(r.course_key)));
-    const counts = new Map<string, number>();
-    if (rows.length) {
-      const enr = await supabase.from('session_enrollments').select('session_id').in('session_id', rows.map((r: any) => r.id));
-      if (!enr.error && Array.isArray(enr.data)) for (const e of enr.data) counts.set(String(e.session_id), (counts.get(String(e.session_id)) || 0) + 1);
-    }
-    for (const k of keys) {
-      const mine = rows.filter((r: any) => r.course_key === k);
-      const toPublic = (r: any): PublicSession => ({ id: String(r.id), kind: r.kind, startsAt: String(r.starts_at), seatsLeft: Number(r.capacity) > 0 ? Math.max(Number(r.capacity) - (counts.get(String(r.id)) || 0), 0) : null });
-      const classroom = mine.filter((r: any) => r.kind === 'classroom' && r.delivery === 'live_online').map(toPublic);
-      const range = mine.filter((r: any) => r.kind === 'range' && r.delivery === 'in_person').map(toPublic);
-      if (classroom.length && range.length) empty.courses[k] = { classroom, range };   // offered only when both a live classroom and a range day exist
-    }
-    return empty;
-  } catch (err: any) {
-    console.warn('[Online] Options unavailable:', err?.message);
-    return { premiumRate: ONLINE_PREMIUM_RATE, courses: {} };
-  }
+const DAY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+export const todayET = (now: Date = new Date()): string => now.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+export function validDay(s: unknown): s is string {
+  const m = DAY_RE.exec(String(s ?? ''));
+  if (!m) return false;
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  return d.getUTCFullYear() === +m[1] && d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[3];
 }
+export const prettyDay = (day: string): string => new Date(day + 'T12:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
-export type OnlineCheck = { ok: true; courseKey: string; classroomSessionId: string; rangeSessionId: string } | { ok: false; status: number; message: string };
+/** What the browser needs to know: the fee rate and which classes can be taken online. No database, always on. */
+export function getOnlineOptions(): { premiumRate: number; eligible: string[] } { return { premiumRate: ONLINE_PREMIUM_RATE, eligible: [...ONLINE_ELIGIBLE_KEYS] }; }
 
-export async function validateOnlineBooking(supabase: any, courseSelection: string, sel: { classroomSessionId?: unknown; rangeSessionId?: unknown; ack?: unknown }): Promise<OnlineCheck> {
-  const courseKey = courseKeyFor(courseSelection) || '';
+export type OnlinePlan = { ok: true; day1: string; day2: string } | { ok: false; status: number; message: string };
+/** Checks everything about an online request that needs no database. */
+export function planOnlineBooking(courseSelection: string, sel: { day1?: unknown; day2?: unknown; ack?: unknown }, now: Date = new Date()): OnlinePlan {
   if (!onlineEligible(courseSelection)) return { ok: false, status: 400, message: 'The live online classroom is not offered for this class.' };
   if (!(sel.ack === true || sel.ack === 'true')) return { ok: false, status: 400, message: 'Please confirm that Day 2 is mandatory, in person, at the range.' };
-  const classroomId = String(sel.classroomSessionId ?? ''), rangeId = String(sel.rangeSessionId ?? '');
-  if (!UUID.test(classroomId)) return { ok: false, status: 400, message: 'Please choose a live classroom date.' };
-  if (!UUID.test(rangeId)) return { ok: false, status: 400, message: 'Please choose your in-person Day 2 range date. It is required.' };
-  try {
-    const sw = await supabase.from('course_settings').select('online_enabled').eq('course_key', courseKey).maybeSingle();
-    if (sw.error || !sw.data || sw.data.online_enabled !== true) return { ok: false, status: 400, message: 'The live online classroom is not available for this class right now.' };
-    const ses = await supabase.from('class_sessions').select('id, course_key, kind, delivery, starts_at, is_open').in('id', [classroomId, rangeId]);
-    if (ses.error || !Array.isArray(ses.data)) return { ok: false, status: 503, message: 'Dates are temporarily unavailable. Please try again in a few minutes.' };
-    const now = Date.now();
-    const good = (r: any, kind: string, delivery: string) => r && r.kind === kind && r.delivery === delivery && r.course_key === courseKey && r.is_open === true && Date.parse(r.starts_at) > now;
-    if (!good(ses.data.find((r: any) => r.id === classroomId), 'classroom', 'live_online')) return { ok: false, status: 400, message: 'That live classroom date is not available. Please choose another.' };
-    if (!good(ses.data.find((r: any) => r.id === rangeId), 'range', 'in_person')) return { ok: false, status: 400, message: 'That range day is not available. Please choose another.' };
-    return { ok: true, courseKey, classroomSessionId: classroomId, rangeSessionId: rangeId };
-  } catch (err: any) {
-    console.warn('[Online] Validation unavailable:', err?.message);
-    return { ok: false, status: 503, message: 'The online option is temporarily unavailable. Please try again in a few minutes.' };
-  }
+  const day1 = String(sel.day1 ?? ''), day2 = String(sel.day2 ?? '');
+  if (!validDay(day1)) return { ok: false, status: 400, message: 'Please choose Day 1 (your live online classroom day) on the calendar.' };
+  if (!validDay(day2)) return { ok: false, status: 400, message: 'Please choose Day 2 (your in-person range day) on the calendar. It is required.' };
+  if (day1 >= day2) return { ok: false, status: 400, message: 'Day 2 (the in-person range day) must come after Day 1 (the live online classroom day).' };
+  if (day1 < todayET(now)) return { ok: false, status: 400, message: 'Please choose dates that have not passed.' };
+  return { ok: true, day1, day2 };
 }
 
-export async function releaseOnlineSeats(invoiceNumber: unknown, supabase: any = getPrivilegedClient()): Promise<void> {
+/** The days an ordinary in-person booking claims (best effort: an unreadable date is simply not claimed). */
+export function inPersonClaims(sel: { day1?: unknown; day2?: unknown }, now: Date = new Date()): DayClaim[] {
+  const out: DayClaim[] = [];
+  if (validDay(sel.day1) && sel.day1 >= todayET(now)) out.push({ day: sel.day1, mode: 'in_person', role: 'day1' });
+  if (validDay(sel.day2) && sel.day2 >= todayET(now) && sel.day2 !== sel.day1) out.push({ day: sel.day2, mode: 'in_person', role: 'day2' });
+  return out;
+}
+export function onlineClaims(plan: { day1: string; day2: string }): DayClaim[] { return [{ day: plan.day1, mode: 'online', role: 'day1' }, { day: plan.day2, mode: 'in_person', role: 'day2' }]; }
+
+export async function releaseDayClaims(invoiceNumber: unknown, supabase: any = getPrivilegedClient()): Promise<void> {
   try {
     if (!invoiceNumber) return;
-    const { error } = await supabase.rpc('release_session_seats', { p_invoice: String(invoiceNumber) });
-    if (error) console.warn('[Online] Seat release failed:', error.code || 'no code');
-  } catch (err: any) { console.warn('[Online] Seat release unavailable:', err?.message); }
+    const { error } = await supabase.rpc('release_day_claims', { p_invoice: String(invoiceNumber) });
+    if (error) console.warn('[Days] Release failed:', error.code || 'no code');
+  } catch (err: any) { console.warn('[Days] Release unavailable:', err?.message); }
 }
 
-/** Holds one range seat and one classroom seat for the invoice. If either is full, nothing stays held. */
-export async function claimOnlineSeats(supabase: any, invoiceNumber: string, check: { classroomSessionId: string; rangeSessionId: string }): Promise<{ ok: true } | { ok: false; message: string }> {
+/**
+ * Claims each day for the booking. If any day belongs to the other kind, nothing stays held and a plain message says which day.
+ * strict=true (online bookings): a database problem refuses the booking. strict=false (in-person): a database problem is logged and the booking goes on.
+ */
+export async function claimBookingDays(supabase: any, invoiceNumber: string, claims: DayClaim[], strict: boolean): Promise<{ ok: true } | { ok: false; status: number; message: string }> {
+  if (!claims.length) return { ok: true };
   try {
-    const range = await supabase.rpc('claim_session_seat', { p_session: check.rangeSessionId, p_invoice: invoiceNumber, p_kind: 'range' });
-    if (range.error || range.data !== true) { await releaseOnlineSeats(invoiceNumber, supabase); return { ok: false, message: 'That range day just filled up. Please choose another date.' }; }
-    const room = await supabase.rpc('claim_session_seat', { p_session: check.classroomSessionId, p_invoice: invoiceNumber, p_kind: 'classroom' });
-    if (room.error || room.data !== true) { await releaseOnlineSeats(invoiceNumber, supabase); return { ok: false, message: 'That live classroom date just filled up. Please choose another date.' }; }
+    for (const c of claims) {
+      const r = await supabase.rpc('claim_day_mode', { p_invoice: invoiceNumber, p_day: c.day, p_mode: c.mode, p_role: c.role });
+      if (r.error) {
+        console.warn('[Days] Claim unavailable:', r.error.code || 'no code', r.error.message);
+        await releaseDayClaims(invoiceNumber, supabase);
+        return strict ? { ok: false, status: 503, message: 'Dates are temporarily unavailable. Please try again in a few minutes.' } : { ok: true };
+      }
+      if (r.data !== true) {
+        await releaseDayClaims(invoiceNumber, supabase);
+        const pretty = prettyDay(c.day);
+        return c.mode === 'online'
+          ? { ok: false, status: 409, message: `${pretty} is already an in-person day, so it cannot be a live online classroom day. Please choose a different Day 1.` }
+          : { ok: false, status: 409, message: `${pretty} is already a live online classroom day, so it cannot be an in-person day. Please choose a different date.` };
+      }
+    }
     return { ok: true };
   } catch (err: any) {
-    await releaseOnlineSeats(invoiceNumber, supabase);
-    return { ok: false, message: 'Dates are temporarily unavailable. Please try again in a few minutes.' };
+    console.warn('[Days] Claim error:', err?.message);
+    await releaseDayClaims(invoiceNumber, supabase);
+    return strict ? { ok: false, status: 503, message: 'Dates are temporarily unavailable. Please try again in a few minutes.' } : { ok: true };
   }
 }
 
+/** Public: which days in a range are web days or in-person days right now. Returns only dates and kinds. */
+export async function getDayModes(supabase: any, from: unknown, to: unknown): Promise<Record<string, DayMode>> {
+  try {
+    if (!validDay(from) || !validDay(to) || to < from) return {};
+    const span = (Date.parse(to + 'T00:00:00Z') - Date.parse(from + 'T00:00:00Z')) / 86400000;
+    if (span > 460) return {};
+    const { data, error } = await supabase.rpc('day_modes', { p_from: from, p_to: to });
+    if (error || !Array.isArray(data)) return {};
+    const out: Record<string, DayMode> = {};
+    for (const r of data) if (validDay(r.day) && (r.mode === 'online' || r.mode === 'in_person')) out[r.day] = r.mode;
+    return out;
+  } catch (err: any) { console.warn('[Days] Modes unavailable:', err?.message); return {}; }
+}
+
 // ---------------------------------------------------------------------------------------------------------------------------
-// Admin and student sides. Every function takes the (service-role) client; the route checks WHO is asking before calling any of them.
+// Admin and student sides. The route checks WHO is asking before calling any of these.
 // ---------------------------------------------------------------------------------------------------------------------------
-const KEYS = ONLINE_ELIGIBLE_KEYS as readonly string[];
 const PAID = ['PAID', 'DEPOSIT_PAID'];
 export type AdminResult<T = {}> = ({ ok: true } & T) | { ok: false; status: number; message: string };
+const isLive = (status: unknown, createdAt: unknown, now: number) => PAID.includes(String(status)) || (String(status) === 'PENDING' && now - Date.parse(String(createdAt)) < 2 * 3600 * 1000);
 
-export async function adminOnlineOverview(supabase: any): Promise<AdminResult<{ switches: Array<{ courseKey: string; enabled: boolean }>; sessions: any[] }>> {
+export interface AdminDay { day: string; mode: DayMode; bookings: number; attended: number; meetingUrl: string }
+export async function adminOnlineOverview(supabase: any): Promise<AdminResult<{ days: AdminDay[] }>> {
   try {
-    const sw = await supabase.from('course_settings').select('course_key, online_enabled');
-    const ses = await supabase.from('class_sessions').select('id, course_key, kind, delivery, starts_at, capacity, meeting_url, is_open').order('starts_at', { ascending: true });
-    if (sw.error || ses.error) return { ok: false, status: 503, message: 'The online class tables are not set up yet. Run the database script first.' };
-    const enr = await supabase.from('session_enrollments').select('session_id, attended_at');
-    const taken = new Map<string, number>(); const attended = new Map<string, number>();
-    for (const e of (enr.data || [])) { taken.set(String(e.session_id), (taken.get(String(e.session_id)) || 0) + 1); if (e.attended_at) attended.set(String(e.session_id), (attended.get(String(e.session_id)) || 0) + 1); }
-    const switches = KEYS.map((k) => ({ courseKey: k, enabled: (sw.data || []).some((r: any) => r.course_key === k && r.online_enabled === true) }));
-    return { ok: true, switches, sessions: (ses.data || []).map((r: any) => ({ id: r.id, courseKey: r.course_key, kind: r.kind, delivery: r.delivery, startsAt: r.starts_at, capacity: r.capacity, meetingUrl: r.meeting_url || '', isOpen: r.is_open, seatsTaken: taken.get(String(r.id)) || 0, attended: attended.get(String(r.id)) || 0 })) };
-  } catch (err: any) { console.warn('[Online admin] overview:', err?.message); return { ok: false, status: 503, message: 'Could not load the online classes.' }; }
-}
-
-export async function adminSetCourseOnline(supabase: any, courseKey: unknown, enabled: unknown): Promise<AdminResult> {
-  const key = String(courseKey ?? '');
-  if (!KEYS.includes(key) || typeof enabled !== 'boolean') return { ok: false, status: 400, message: 'That class cannot be switched.' };
-  try {
-    const { error } = await supabase.from('course_settings').upsert({ course_key: key, online_enabled: enabled, updated_at: new Date().toISOString() }, { onConflict: 'course_key' });
-    if (error) return { ok: false, status: 503, message: 'Could not save the switch. The online class tables may not be set up yet.' };
-    return { ok: true };
-  } catch (err: any) { return { ok: false, status: 503, message: 'Could not save the switch.' }; }
-}
-
-export async function adminSaveSession(supabase: any, input: any): Promise<AdminResult<{ id: string }>> {
-  const courseKey = String(input?.courseKey ?? ''), kind = String(input?.kind ?? '');
-  if (!KEYS.includes(courseKey)) return { ok: false, status: 400, message: 'Choose one of the classes that can be taught online.' };
-  if (kind !== 'classroom' && kind !== 'range') return { ok: false, status: 400, message: 'Choose live classroom or range day.' };
-  const startsMs = Date.parse(String(input?.startsAt ?? ''));
-  if (!Number.isFinite(startsMs)) return { ok: false, status: 400, message: 'Enter a valid date and time.' };
-  const capacity = Number(input?.capacity ?? 0);
-  if (!Number.isInteger(capacity) || capacity < 0 || capacity > 200) return { ok: false, status: 400, message: 'Seats must be a whole number from 0 (no limit) to 200.' };
-  const meetingUrl = String(input?.meetingUrl ?? '').trim();
-  if (kind === 'classroom' && meetingUrl && !/^https:\/\/[^\s<>"']{4,480}$/.test(meetingUrl)) return { ok: false, status: 400, message: 'The meeting link must start with https://.' };
-  const row: Record<string, unknown> = { course_key: courseKey, kind, delivery: kind === 'classroom' ? 'live_online' : 'in_person', starts_at: new Date(startsMs).toISOString(), capacity,
-    meeting_url: kind === 'classroom' ? (meetingUrl || null) : null, is_open: input?.isOpen !== false };
-  try {
-    const id = String(input?.id ?? '');
-    if (id) {
-      if (!UUID.test(id)) return { ok: false, status: 400, message: 'That session was not found.' };
-      const { data, error } = await supabase.from('class_sessions').update(row).eq('id', id).select('id');
-      if (error || !Array.isArray(data) || data.length !== 1) return { ok: false, status: 404, message: 'That session was not found.' };
-      return { ok: true, id };
+    const from = new Date(Date.now() - 14 * 86400000).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+    const claims = await supabase.from('day_claims').select('invoice_number, day, mode, role, attended_at, created_at').gte('day', from).order('day', { ascending: true });
+    const links = await supabase.from('online_days').select('day, meeting_url').gte('day', from);
+    if (claims.error || links.error) return { ok: false, status: 503, message: 'The day tables are not set up yet. Run the database script first.' };
+    const nums = Array.from(new Set((claims.data || []).map((c: any) => String(c.invoice_number))));
+    const inv = nums.length ? await supabase.from('invoices').select('invoice_number, status').in('invoice_number', nums) : { data: [] };
+    const status = new Map<string, string>((inv.data || []).map((r: any) => [String(r.invoice_number), String(r.status)]));
+    const now = Date.now(); const byDay = new Map<string, AdminDay>();
+    for (const c of (claims.data || [])) {
+      if (!isLive(status.get(String(c.invoice_number)) ?? '__none__', c.created_at, now) && status.get(String(c.invoice_number)) !== undefined) continue;
+      const d = byDay.get(String(c.day)) || { day: String(c.day), mode: c.mode as DayMode, bookings: 0, attended: 0, meetingUrl: '' };
+      d.bookings += 1; if (c.attended_at) d.attended += 1; byDay.set(String(c.day), d);
     }
-    const { data, error } = await supabase.from('class_sessions').insert(row).select('id');
-    if (error || !Array.isArray(data) || !data[0]) return { ok: false, status: 503, message: 'Could not save the session. The online class tables may not be set up yet.' };
-    return { ok: true, id: String(data[0].id) };
-  } catch (err: any) { return { ok: false, status: 503, message: 'Could not save the session.' }; }
+    for (const l of (links.data || [])) { const d = byDay.get(String(l.day)) || { day: String(l.day), mode: 'online' as DayMode, bookings: 0, attended: 0, meetingUrl: '' }; d.meetingUrl = l.meeting_url || ''; byDay.set(String(l.day), d); }
+    return { ok: true, days: Array.from(byDay.values()).sort((a, b) => a.day.localeCompare(b.day)) };
+  } catch (err: any) { console.warn('[Online admin] overview:', err?.message); return { ok: false, status: 503, message: 'Could not load the online days.' }; }
 }
 
-export async function adminSessionRoster(supabase: any, sessionId: unknown): Promise<AdminResult<{ people: Array<{ invoiceNumber: string; email: string; status: string; attendedAt: string | null }> }>> {
-  const id = String(sessionId ?? '');
-  if (!UUID.test(id)) return { ok: false, status: 400, message: 'That session was not found.' };
+export async function adminSetMeetingLink(supabase: any, day: unknown, url: unknown): Promise<AdminResult> {
+  if (!validDay(day)) return { ok: false, status: 400, message: 'Choose a valid date.' };
+  const link = String(url ?? '').trim();
+  if (link && !/^https:\/\/[^\s<>"']{4,480}$/.test(link)) return { ok: false, status: 400, message: 'The meeting link must start with https://.' };
   try {
-    const enr = await supabase.from('session_enrollments').select('invoice_number, attended_at').eq('session_id', id);
-    if (enr.error) return { ok: false, status: 503, message: 'Could not load the roster.' };
-    const numbers = (enr.data || []).map((e: any) => String(e.invoice_number));
-    const inv = numbers.length ? await supabase.from('invoices').select('invoice_number, email, status').in('invoice_number', numbers) : { data: [], error: null };
-    const byNum = new Map<string, any>((inv.data || []).map((r: any) => [String(r.invoice_number), r]));
-    return { ok: true, people: (enr.data || []).map((e: any) => ({ invoiceNumber: String(e.invoice_number), email: String(byNum.get(String(e.invoice_number))?.email || ''), status: String(byNum.get(String(e.invoice_number))?.status || ''), attendedAt: e.attended_at || null })) };
-  } catch (err: any) { return { ok: false, status: 503, message: 'Could not load the roster.' }; }
-}
-
-export async function adminMarkAttendance(supabase: any, invoiceNumber: unknown, kind: unknown, attended: unknown, markedBy: string): Promise<AdminResult> {
-  const inv = String(invoiceNumber ?? '').trim();
-  if (!/^INV-[A-Za-z0-9-]{3,40}$/.test(inv) || (kind !== 'classroom' && kind !== 'range') || typeof attended !== 'boolean') return { ok: false, status: 400, message: 'Choose a person and whether they attended.' };
-  try {
-    const { data, error } = await supabase.from('session_enrollments').update({ attended_at: attended ? new Date().toISOString() : null, marked_by: attended ? String(markedBy).slice(0, 120) : null }).eq('invoice_number', inv).eq('kind', kind).select('invoice_number');
-    if (error) return { ok: false, status: 503, message: 'Could not save attendance.' };
-    if (!Array.isArray(data) || data.length === 0) return { ok: false, status: 404, message: 'That person has no seat in this session.' };
+    const { error } = await supabase.from('online_days').upsert({ day, meeting_url: link || null, updated_at: new Date().toISOString() }, { onConflict: 'day' });
+    if (error) return { ok: false, status: 503, message: 'Could not save the link. The day tables may not be set up yet.' };
     return { ok: true };
-  } catch (err: any) { return { ok: false, status: 503, message: 'Could not save attendance.' }; }
+  } catch { return { ok: false, status: 503, message: 'Could not save the link.' }; }
 }
 
-export interface StudentOnlineClass { invoiceNumber: string; classroom: { startsAt: string; meetingUrl: string; attended: boolean } | null; range: { startsAt: string; attended: boolean } | null; day2Attended: boolean }
-/** Live-online bookings of ONE student (found by the verified student id), only once paid. The meeting link is returned only for paid invoices. */
+export async function adminDayRoster(supabase: any, day: unknown): Promise<AdminResult<{ people: Array<{ invoiceNumber: string; email: string; status: string; role: string; attendedAt: string | null }> }>> {
+  if (!validDay(day)) return { ok: false, status: 400, message: 'Choose a valid date.' };
+  try {
+    const c = await supabase.from('day_claims').select('invoice_number, role, attended_at').eq('day', day);
+    if (c.error) return { ok: false, status: 503, message: 'Could not load the roster.' };
+    const nums = (c.data || []).map((e: any) => String(e.invoice_number));
+    const inv = nums.length ? await supabase.from('invoices').select('invoice_number, email, status').in('invoice_number', nums) : { data: [] };
+    const by = new Map<string, any>((inv.data || []).map((r: any) => [String(r.invoice_number), r]));
+    return { ok: true, people: (c.data || []).map((e: any) => ({ invoiceNumber: String(e.invoice_number), email: String(by.get(String(e.invoice_number))?.email || ''), status: String(by.get(String(e.invoice_number))?.status || ''), role: String(e.role), attendedAt: e.attended_at || null })) };
+  } catch { return { ok: false, status: 503, message: 'Could not load the roster.' }; }
+}
+
+export async function adminMarkAttendance(supabase: any, invoiceNumber: unknown, day: unknown, attended: unknown, markedBy: string): Promise<AdminResult> {
+  const inv = String(invoiceNumber ?? '').trim();
+  if (!/^INV-[A-Za-z0-9-]{3,40}$/.test(inv) || !validDay(day) || typeof attended !== 'boolean') return { ok: false, status: 400, message: 'Choose a person, a day and whether they attended.' };
+  try {
+    const { data, error } = await supabase.from('day_claims').update({ attended_at: attended ? new Date().toISOString() : null, marked_by: attended ? String(markedBy).slice(0, 120) : null }).eq('invoice_number', inv).eq('day', day).select('invoice_number');
+    if (error) return { ok: false, status: 503, message: 'Could not save attendance.' };
+    if (!Array.isArray(data) || data.length === 0) return { ok: false, status: 404, message: 'That person is not booked on this day.' };
+    return { ok: true };
+  } catch { return { ok: false, status: 503, message: 'Could not save attendance.' }; }
+}
+
+export interface StudentOnlineClass { invoiceNumber: string; day1: { day: string; meetingUrl: string; attended: boolean } | null; day2: { day: string; attended: boolean } | null; day2Attended: boolean }
+/** Live-online bookings of ONE student (found by the verified student id), only once paid. The join link is returned only for paid bookings. */
 export async function studentOnlineClasses(supabase: any, studentId: string): Promise<StudentOnlineClass[]> {
   try {
     const inv = await supabase.from('invoices').select('invoice_number, status, delivery').eq('student_id', studentId).eq('delivery', 'live_online');
     if (inv.error || !Array.isArray(inv.data)) return [];
     const paid = inv.data.filter((r: any) => PAID.includes(String(r.status))).map((r: any) => String(r.invoice_number));
     if (!paid.length) return [];
-    const enr = await supabase.from('session_enrollments').select('invoice_number, session_id, kind, attended_at').in('invoice_number', paid);
-    if (enr.error || !Array.isArray(enr.data) || !enr.data.length) return paid.map((n: string) => ({ invoiceNumber: n, classroom: null, range: null, day2Attended: false }));
-    const ses = await supabase.from('class_sessions').select('id, starts_at, meeting_url').in('id', Array.from(new Set(enr.data.map((e: any) => String(e.session_id)))));
-    const sById = new Map<string, any>((ses.data || []).map((s: any) => [String(s.id), s]));
+    const cl = await supabase.from('day_claims').select('invoice_number, day, role, attended_at').in('invoice_number', paid);
+    const claims: any[] = cl.error || !Array.isArray(cl.data) ? [] : cl.data;
+    const days = Array.from(new Set(claims.filter((c) => c.role === 'day1').map((c) => String(c.day))));
+    const lk = days.length ? await supabase.from('online_days').select('day, meeting_url').in('day', days) : { data: [] };
+    const link = new Map<string, string>((lk.data || []).map((r: any) => [String(r.day), String(r.meeting_url || '')]));
     return paid.map((n: string) => {
-      const mine = enr.data.filter((e: any) => e.invoice_number === n);
-      const room = mine.find((e: any) => e.kind === 'classroom'), rng = mine.find((e: any) => e.kind === 'range');
-      const rs = room ? sById.get(String(room.session_id)) : null, gs = rng ? sById.get(String(rng.session_id)) : null;
-      return { invoiceNumber: n, classroom: rs ? { startsAt: rs.starts_at, meetingUrl: rs.meeting_url || '', attended: !!room.attended_at } : null, range: gs ? { startsAt: gs.starts_at, attended: !!rng.attended_at } : null, day2Attended: !!(rng && rng.attended_at) };
+      const mine = claims.filter((c) => c.invoice_number === n); const d1 = mine.find((c) => c.role === 'day1'), d2 = mine.find((c) => c.role === 'day2');
+      return { invoiceNumber: n, day1: d1 ? { day: String(d1.day), meetingUrl: link.get(String(d1.day)) || '', attended: !!d1.attended_at } : null, day2: d2 ? { day: String(d2.day), attended: !!d2.attended_at } : null, day2Attended: !!(d2 && d2.attended_at) };
     });
   } catch (err: any) { console.warn('[Online] student classes:', err?.message); return []; }
 }
 
 /** True when this student has a paid live-online booking whose Day 2 range attendance is not recorded yet. */
 export async function day2Pending(supabase: any, studentId: string): Promise<boolean> {
-  const list = await studentOnlineClasses(supabase, studentId);
-  return list.some((c) => !c.day2Attended);
+  return (await studentOnlineClasses(supabase, studentId)).some((c) => !c.day2Attended);
 }

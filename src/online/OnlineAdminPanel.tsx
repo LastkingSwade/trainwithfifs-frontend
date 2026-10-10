@@ -3,21 +3,18 @@
 import { useCallback, useEffect, useState } from 'react';
 import './online.css';
 
-const COURSES: Record<string, string> = { mastery: 'Multi-State Mastery', combo: 'CCW & HQL Combo', ccw: 'Wear & Carry (CCW)', renewal: 'Wear & Carry Renewal', hql: 'HQL' };
-interface Session { id: string; courseKey: string; kind: 'classroom' | 'range'; startsAt: string; capacity: number; meetingUrl: string; isOpen: boolean; seatsTaken: number; attended: number }
-interface Person { invoiceNumber: string; email: string; status: string; attendedAt: string | null }
-const when = (iso: string) => new Date(iso).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-const toLocalInput = (iso: string) => { const d = new Date(iso); const p = (n: number) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
+interface Day { day: string; mode: 'online' | 'in_person'; bookings: number; attended: number; meetingUrl: string }
+interface Person { invoiceNumber: string; email: string; status: string; role: string; attendedAt: string | null }
+const pretty = (day: string) => new Date(day + 'T12:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
-// Admin Hub: switch classes on for the live online option, post classroom and range dates, set meeting links, mark Day 2 attendance.
-// The server checks the staff role on every call; nothing here is trusted.
+// Admin Hub: see which calendar days are web days or in-person days (set by the first booking), set the meeting link for a web day,
+// and mark attendance. The server checks the staff role on every call; nothing here is trusted.
 export default function OnlineAdminPanel() {
   const [open, setOpen] = useState(false);
-  const [switches, setSwitches] = useState<Array<{ courseKey: string; enabled: boolean }>>([]);
-  const [sessions, setSessions] = useState<Session[]>([]);
+  const [days, setDays] = useState<Day[]>([]);
   const [msg, setMsg] = useState('');
-  const [roster, setRoster] = useState<{ session: Session; people: Person[] } | null>(null);
-  const [form, setForm] = useState({ id: '', courseKey: 'ccw', kind: 'classroom', startsAt: '', capacity: '10', meetingUrl: '', isOpen: true });
+  const [roster, setRoster] = useState<{ day: string; people: Person[] } | null>(null);
+  const [links, setLinks] = useState<Record<string, string>>({});
 
   const call = useCallback(async (action: string, payload: Record<string, unknown> = {}) => {
     const fn = (window as any).callFifsBackend;
@@ -25,63 +22,47 @@ export default function OnlineAdminPanel() {
     return fn(action, payload);
   }, []);
   const load = useCallback(async () => {
-    try { const d = await call('adminOnlineOverview'); setSwitches(d.switches || []); setSessions(d.sessions || []); setMsg(''); } catch (e: any) { setMsg(e?.message || 'Could not load.'); }
+    try { const d = await call('adminOnlineOverview'); const list: Day[] = d.days || []; setDays(list); setLinks(Object.fromEntries(list.map((x) => [x.day, x.meetingUrl]))); setMsg(''); } catch (e: any) { setMsg(e?.message || 'Could not load.'); }
   }, [call]);
 
   useEffect(() => { (window as any).openOnlineAdmin = () => { setOpen(true); load(); }; return () => { delete (window as any).openOnlineAdmin; }; }, [load]);
   useEffect(() => { if (!open) return; const k = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [open]);
   if (!open) return null;
 
-  const flip = async (courseKey: string, enabled: boolean) => { try { await call('adminSetOnlineCourse', { courseKey, enabled }); setSwitches((s) => s.map((x) => (x.courseKey === courseKey ? { ...x, enabled } : x))); setMsg(enabled ? 'Online option is ON for this class (students see it once a classroom date and a range day are posted).' : 'Online option is OFF for this class.'); } catch (e: any) { setMsg(e?.message || 'Could not save.'); } };
-  const save = async () => {
-    try {
-      await call('adminSaveSession', { ...form, id: form.id || undefined, capacity: Number(form.capacity), startsAt: form.startsAt ? new Date(form.startsAt).toISOString() : '' });
-      setForm({ ...form, id: '', startsAt: '', meetingUrl: '' }); setMsg('Saved.'); load();
-    } catch (e: any) { setMsg(e?.message || 'Could not save.'); }
-  };
-  const edit = (s: Session) => setForm({ id: s.id, courseKey: s.courseKey, kind: s.kind, startsAt: toLocalInput(s.startsAt), capacity: String(s.capacity), meetingUrl: s.meetingUrl, isOpen: s.isOpen });
-  const showRoster = async (s: Session) => { try { const d = await call('adminSessionRoster', { sessionId: s.id }); setRoster({ session: s, people: d.people || [] }); } catch (e: any) { setMsg(e?.message || 'Could not load.'); } };
+  const saveLink = async (day: string) => { try { await call('adminSetMeetingLink', { day, url: links[day] || '' }); setMsg('Meeting link saved for ' + pretty(day) + '.'); } catch (e: any) { setMsg(e?.message || 'Could not save.'); } };
+  const showRoster = async (day: string) => { try { const d = await call('adminDayRoster', { day }); setRoster({ day, people: d.people || [] }); } catch (e: any) { setMsg(e?.message || 'Could not load.'); } };
   const mark = async (p: Person, attended: boolean) => {
     if (!roster) return;
-    try { await call('adminMarkAttendance', { invoiceNumber: p.invoiceNumber, kind: roster.session.kind, attended }); await showRoster(roster.session); load(); setMsg(attended ? 'Attendance recorded.' : 'Attendance cleared.'); } catch (e: any) { setMsg(e?.message || 'Could not save.'); }
+    try { await call('adminMarkAttendance', { invoiceNumber: p.invoiceNumber, day: roster.day, attended }); await showRoster(roster.day); load(); setMsg(attended ? 'Attendance recorded.' : 'Attendance cleared.'); } catch (e: any) { setMsg(e?.message || 'Could not save.'); }
   };
 
   return (
     <div className="online-admin-overlay" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
       <section className="online-admin" role="dialog" aria-modal="true" aria-label="Online classes">
         <div className="row" style={{ justifyContent: 'space-between' }}><h2>💻 Live Online Classroom</h2><button type="button" onClick={() => setOpen(false)}>Close</button></div>
-        <p className="hint">Day 2 (range) is always in person. A class shows the online option to students only when its switch is ON and you have posted at least one live classroom date and one range day.</p>
-        <h3>1. Which classes can be taken online</h3>
-        <p className="hint">Every class starts OFF. Check Maryland State Police requirements before turning one on.</p>
-        <div className="row">{switches.map((s) => (<label className="sw" key={s.courseKey}><input type="checkbox" checked={s.enabled} onChange={(e) => flip(s.courseKey, e.target.checked)} /> {COURSES[s.courseKey] || s.courseKey}</label>))}</div>
-        <h3>2. Dates</h3>
-        {sessions.length === 0 && <p className="hint">No dates yet. Add a live classroom date and a range day below.</p>}
-        {sessions.map((s) => (
-          <div className="sess" key={s.id}>
-            <span><strong>{s.kind === 'classroom' ? 'Live classroom' : 'Range day (in person)'}</strong> · {COURSES[s.courseKey] || s.courseKey} · {when(s.startsAt)} · {s.seatsTaken}{s.capacity ? ` of ${s.capacity}` : ''} seats{s.isOpen ? '' : ' · CLOSED'}</span>
-            <span className="row"><button type="button" onClick={() => edit(s)}>Edit</button><button type="button" onClick={() => showRoster(s)}>Roster</button></span>
+        <p className="hint">Live online classes are always available for the five eligible classes and use the same booking calendar as in-person classes. Each calendar day is a web day (💻) or an in-person day (🏫): whichever type books first sets the day, and the other type is refused for it. Day 2 (range) is always in person.</p>
+        <h3>Upcoming days with bookings</h3>
+        {days.length === 0 && <p className="hint">No days are claimed yet. A day appears here when the first booking for it is made.</p>}
+        {days.map((d) => (
+          <div className="sess" key={d.day}>
+            <span><strong>{d.mode === 'online' ? '💻 Web day' : '🏫 In-person day'}</strong> · {pretty(d.day)} · {d.bookings} booked · {d.attended} attended</span>
+            <span className="row">
+              {d.mode === 'online' && <><input aria-label={'Meeting link for ' + pretty(d.day)} placeholder="Meeting link (https://...)" style={{ minWidth: 200 }} value={links[d.day] || ''} onChange={(e) => setLinks({ ...links, [d.day]: e.target.value })} /><button type="button" onClick={() => saveLink(d.day)}>Save link</button></>}
+              <button type="button" onClick={() => showRoster(d.day)}>Roster</button>
+            </span>
           </div>
         ))}
-        <h3>{form.id ? 'Edit date' : 'Add a date'}</h3>
-        <div className="row">
-          <select aria-label="Class" value={form.courseKey} onChange={(e) => setForm({ ...form, courseKey: e.target.value })}>{Object.entries(COURSES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
-          <select aria-label="Kind" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}><option value="classroom">Live classroom (video)</option><option value="range">Range day (in person)</option></select>
-          <input aria-label="Date and time" type="datetime-local" value={form.startsAt} onChange={(e) => setForm({ ...form, startsAt: e.target.value })} />
-          <input aria-label="Seats (0 = no limit)" type="number" min={0} max={200} style={{ width: 90 }} value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} />
-        </div>
-        {form.kind === 'classroom' && <div className="row"><input aria-label="Meeting link" placeholder="Meeting link (https://...)" style={{ flex: 1, minWidth: 220 }} value={form.meetingUrl} onChange={(e) => setForm({ ...form, meetingUrl: e.target.value })} /></div>}
-        <div className="row"><label className="sw"><input type="checkbox" checked={form.isOpen} onChange={(e) => setForm({ ...form, isOpen: e.target.checked })} /> Open for booking</label><button type="button" className="primary" onClick={save}>{form.id ? 'Save changes' : 'Add date'}</button>{form.id && <button type="button" onClick={() => setForm({ ...form, id: '', startsAt: '', meetingUrl: '' })}>Cancel edit</button>}</div>
         {roster && (
           <>
-            <h3>Roster: {roster.session.kind === 'classroom' ? 'Live classroom' : 'Range day'} · {when(roster.session.startsAt)}</h3>
-            {roster.people.length === 0 && <p className="hint">Nobody has a seat yet.</p>}
+            <h3>Roster: {pretty(roster.day)}</h3>
+            {roster.people.length === 0 && <p className="hint">Nobody is booked yet.</p>}
             {roster.people.map((p) => (
               <div className="sess" key={p.invoiceNumber}>
-                <span>{p.email || p.invoiceNumber} · {p.status === 'PENDING' ? 'not paid yet' : 'paid'} · {p.attendedAt ? 'attended' : 'not marked'}</span>
+                <span>{p.email || p.invoiceNumber} · {p.role === 'day2' ? 'Day 2 range' : 'Day 1'} · {p.status === 'PENDING' ? 'not paid yet' : 'paid'} · {p.attendedAt ? 'attended' : 'not marked'}</span>
                 <span className="row">{p.attendedAt ? <button type="button" onClick={() => mark(p, false)}>Undo</button> : <button type="button" className="primary" onClick={() => mark(p, true)}>Mark attended</button>}</span>
               </div>
             ))}
-            <p className="hint">Certificates for live online students unlock only after their range day is marked attended.</p>
+            <p className="hint">Certificates for live online students unlock only after their Day 2 range day is marked attended.</p>
           </>
         )}
         <div className="msg" role="status">{msg}</div>

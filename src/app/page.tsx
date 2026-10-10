@@ -8621,8 +8621,11 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </section>
-      
-      {/* ================= 1. STANDARDIZED MULTISTATE MASTERY MODAL ================= */}
+     
+     
+     
+     
+           {/* ================= 1. STANDARDIZED MULTISTATE MASTERY MODAL ================= */}
       <div className="reciprocity-hub-modal-overlay" id="multistateMasteryModal" style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "overflowY": "auto", "padding": "24px 16px"}}>
         <div style={{"maxWidth": "1140px", "margin": "0 auto", "position": "relative"}}>
           <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "18px", "paddingBottom": "12px", "borderBottom": "1px solid var(--border-subtle)"}}>
@@ -8677,6 +8680,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </div>
+
 
 
 
@@ -11164,10 +11168,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div id="formOnlineFields" hidden style={{"marginTop": "12px", "border": "1px solid var(--border-accent)", "borderRadius": "10px", "padding": "12px 14px", "background": "rgba(0, 229, 255, 0.05)"}}>
                 <div style={{"fontWeight": "800", "color": "var(--text-main)", "fontSize": "0.9rem", "marginBottom": "6px"}}>{ONLINE_NAME}</div>
                 <p style={{"color": "var(--text-main)", "fontSize": "0.84rem", "lineHeight": "1.5", "margin": "0 0 8px"}}><strong>{DAY2_STATEMENT}</strong></p>
-                <label htmlFor="onlineClassroomSession" style={{"display": "block", "fontSize": "0.8rem", "color": "var(--text-muted)", "margin": "8px 0 4px"}}>Live classroom date (over video)</label>
-                <select id="onlineClassroomSession" style={{"width": "100%", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px"}}></select>
-                <label htmlFor="onlineRangeSession" style={{"display": "block", "fontSize": "0.8rem", "color": "var(--text-muted)", "margin": "8px 0 4px"}}>Day 2 range day (in person at the range) — required</label>
-                <select id="onlineRangeSession" style={{"width": "100%", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px"}}></select>
+                <p style={{"color": "var(--text-main)", "fontSize": "0.84rem", "lineHeight": "1.5", "margin": "0 0 4px"}}>Pick <strong>Day 1</strong> (your live online classroom day) and then <strong>Day 2</strong> (your in-person range day) on the calendar below. 💻 marks web days and 🏫 marks in-person days.</p>
                 <label style={{"display": "flex", "gap": "8px", "alignItems": "flex-start", "margin": "10px 0 4px", "fontSize": "0.84rem", "color": "var(--text-main)", "cursor": "pointer"}}>
                   <input type="checkbox" id="onlineDay2Ack" style={{"marginTop": "3px"}} />
                   <span>{DAY2_ACK_TEXT}</span>

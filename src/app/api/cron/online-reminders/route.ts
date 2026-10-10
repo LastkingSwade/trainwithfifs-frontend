@@ -3,11 +3,8 @@ import { getPrivilegedClient } from '@/Lib/server/supabase-admin';
 import { buildOnlineReminder, sendOnlineEmail } from '@/Lib/server/online-email';
 import { timingSafeEqual } from 'crypto';
 
-// Daily reminder for live-online students. Vercel Cron calls this once a day with `Authorization: Bearer <CRON_SECRET>`.
-// Window: sessions starting between 12 and 36 hours from now, so each session is reminded exactly once by a daily run.
-// Without a matching CRON_SECRET nothing runs. Only paid bookings are emailed.
-const HOUR = 3600 * 1000;
-
+// Daily reminder for live-online students, sent the morning before each of their days (Vercel Cron calls this once a day with
+// `Authorization: Bearer <CRON_SECRET>`). Without a matching CRON_SECRET nothing runs. Only paid bookings are emailed.
 function authorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET || '';
   const got = req.headers.get('authorization') || '';
@@ -19,19 +16,17 @@ export async function GET(req: NextRequest) {
   if (!authorized(req)) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   try {
     const supabase = getPrivilegedClient();
-    const from = new Date(Date.now() + 12 * HOUR).toISOString(), to = new Date(Date.now() + 36 * HOUR).toISOString();
-    const ses = await supabase.from('class_sessions').select('id, kind, starts_at, meeting_url, course_key').eq('is_open', true).gt('starts_at', from).lte('starts_at', to);
-    if (ses.error || !Array.isArray(ses.data)) return NextResponse.json({ success: true, sent: 0, note: 'no session data' });
+    const tomorrow = new Date(Date.now() + 24 * 3600 * 1000).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+    const claims = await supabase.from('day_claims').select('invoice_number, role').eq('day', tomorrow);
+    if (claims.error || !Array.isArray(claims.data) || !claims.data.length) return NextResponse.json({ success: true, sent: 0 });
+    const link = await supabase.from('online_days').select('meeting_url').eq('day', tomorrow).maybeSingle();
     let sent = 0;
-    for (const s of ses.data) {
-      const enr = await supabase.from('session_enrollments').select('invoice_number').eq('session_id', s.id);
-      const numbers = (enr.data || []).map((e: any) => String(e.invoice_number));
-      if (!numbers.length) continue;
-      const inv = await supabase.from('invoices').select('email, status, course').in('invoice_number', numbers).eq('delivery', 'live_online').in('status', ['PAID', 'DEPOSIT_PAID']);
-      for (const r of (inv.data || [])) {
-        const mail = buildOnlineReminder({ kind: s.kind, course: r.course, classroomAt: s.kind === 'classroom' ? s.starts_at : undefined, rangeAt: s.kind === 'range' ? s.starts_at : undefined, meetingUrl: s.kind === 'classroom' ? (s.meeting_url || '') : '' });
-        if (await sendOnlineEmail(String(r.email || ''), mail)) sent += 1;
-      }
+    for (const c of claims.data) {
+      const inv = await supabase.from('invoices').select('email, status, course, delivery').eq('invoice_number', c.invoice_number).eq('delivery', 'live_online').in('status', ['PAID', 'DEPOSIT_PAID']).maybeSingle();
+      if (!inv.data) continue;
+      const kind = c.role === 'day1' ? 'classroom' : 'range';
+      const mail = buildOnlineReminder({ kind, course: inv.data.course, day1: kind === 'classroom' ? tomorrow : undefined, day2: kind === 'range' ? tomorrow : undefined, meetingUrl: kind === 'classroom' ? (link.data?.meeting_url || '') : '' });
+      if (await sendOnlineEmail(String(inv.data.email || ''), mail)) sent += 1;
     }
     return NextResponse.json({ success: true, sent });
   } catch (err: any) {

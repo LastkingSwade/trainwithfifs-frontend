@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { getPrivilegedClient } from '@/Lib/server/supabase-admin';
 import { sendDiscordAlert } from '@/Lib/server/discord';
 import { sendGroupCodeEmail } from '@/Lib/server/group-email';
-import { releaseOnlineSeats } from '@/Lib/server/online-classroom';
+import { releaseDayClaims } from '@/Lib/server/online-classroom';
 import { sendOnlineConfirmationForSession } from '@/Lib/server/online-email';
 import { cancelUnpaidLeaderPod, releasePodSeat } from '@/Lib/server/booking-checkout';
 
@@ -182,7 +182,8 @@ async function handleExpiredSession(supabase: any, session: Stripe.Checkout.Sess
 
   // The invoice went PENDING -> ABANDONED just now (never paid), so this runs once. Give back a pod member's seat, or cancel a
   // pod whose leader never paid and nobody joined. Best effort: these helpers never throw and never change payment state.
-  if (session.metadata?.delivery === 'live_online') await releaseOnlineSeats(invoiceNumber);
+  // Any booking that never got paid gives its calendar days back (best effort; never changes payment state).
+  await releaseDayClaims(invoiceNumber);
   const podCode = session.metadata?.podCode;
   if (podCode) {
     if (session.metadata?.podRole === 'member') await releasePodSeat(podCode);

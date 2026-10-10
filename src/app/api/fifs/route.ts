@@ -5,7 +5,7 @@ import { isLiveChatHours } from '@/Lib/server/chat-hours';
 import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/group-status';
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
-import { adminMarkAttendance, adminOnlineOverview, adminSaveSession, adminSessionRoster, adminSetCourseOnline, day2Pending, getOnlineOptions, studentOnlineClasses } from '@/Lib/server/online-classroom';
+import { adminDayRoster, adminMarkAttendance, adminOnlineOverview, adminSetMeetingLink, day2Pending, getDayModes, getOnlineOptions, studentOnlineClasses } from '@/Lib/server/online-classroom';
 import { createBookingCheckout, createPodInviteCode, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord, lookupPod } from '@/Lib/server/booking-checkout';
 import { ConfigurationError, resolveSiteUrl } from '@/Lib/config/environment';
 
@@ -2871,15 +2871,18 @@ export async function POST(req: NextRequest) {
      }
 
      case 'onlineOptions': {
-       // Public: which classes can be taken with the live online classroom right now (switch on AND dated sessions posted). Returns
-       // only dates and seats left; never meeting links. An empty list simply hides the option.
-       return NextResponse.json({ success: true, ...(await getOnlineOptions()) });
+       // Public: the fee rate and which classes can be taken online. Always on; no database needed.
+       return NextResponse.json({ success: true, ...getOnlineOptions() });
+     }
+
+     case 'dayModes': {
+       // Public: which calendar days are web days or in-person days right now (dates and kinds only, nothing about people).
+       return NextResponse.json({ success: true, modes: await getDayModes(getPrivilegedClient(), payload.from, payload.to) });
      }
 
      case 'adminOnlineOverview':
-     case 'adminSetOnlineCourse':
-     case 'adminSaveSession':
-     case 'adminSessionRoster':
+     case 'adminSetMeetingLink':
+     case 'adminDayRoster':
      case 'adminMarkAttendance': {
        // Staff only. The caller's role is checked on the server before anything is read or written.
        const { user, error: authErr } = await getAuthenticatedUser(req);
@@ -2889,10 +2892,9 @@ export async function POST(req: NextRequest) {
        supabase = getPrivilegedClient();
        const done = (r: any) => (r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status }));
        if (action === 'adminOnlineOverview') return done(await adminOnlineOverview(supabase));
-       if (action === 'adminSetOnlineCourse') return done(await adminSetCourseOnline(supabase, payload.courseKey, payload.enabled));
-       if (action === 'adminSaveSession') return done(await adminSaveSession(supabase, payload));
-       if (action === 'adminSessionRoster') return done(await adminSessionRoster(supabase, payload.sessionId));
-       return done(await adminMarkAttendance(supabase, payload.invoiceNumber, payload.kind, payload.attended, String(user?.email || user?.id || 'staff')));
+       if (action === 'adminSetMeetingLink') return done(await adminSetMeetingLink(supabase, payload.day, payload.url));
+       if (action === 'adminDayRoster') return done(await adminDayRoster(supabase, payload.day));
+       return done(await adminMarkAttendance(supabase, payload.invoiceNumber, payload.day, payload.attended, String(user?.email || user?.id || 'staff')));
      }
 
      case 'studentInvoices': {
