@@ -21,5 +21,11 @@ export function installQol(): void {
     const map: Record<string, string> = { fullName: 'name', email: 'email', phone: 'tel' };
     for (const [id, val] of Object.entries(map)) { const el = document.getElementById(id); if (el && !el.getAttribute('autocomplete')) el.setAttribute('autocomplete', val); }
   });
+  // Q079: The phone keypad matches the field (number pad for phone, @ keyboard for email)
+  run('Q079', () => {
+    const phone = document.getElementById('phone'), email = document.getElementById('email');
+    if (phone && !phone.getAttribute('inputmode')) phone.setAttribute('inputmode', 'tel');
+    if (email && !email.getAttribute('inputmode')) email.setAttribute('inputmode', 'email');
+  });
   // @@QOL_END
 }

@@ -74,3 +74,4 @@ Q073	2026-10-10T23:03:37.943Z	Dossier cards keep together when printed	SUCCESS	1
 Q074	2026-10-10T23:03:56.073Z	Route cards balance their text	SUCCESS	10689	10776	87	css
 Q075	2026-10-10T23:03:56.208Z	Course badges keep their text on one line	SUCCESS	10776	10883	107	css
 Q077	2026-10-10T23:03:59.268Z	Outside links always open safely (no access to the page that opened them)	FAIL	11679	11679	0	tsc: src/experiments/qol.ts(21,5): error TS2581: Cannot find name '$'. Do you need to install type definitions for jQuery? Try `npm i --save-dev 
+Q078	2026-10-10T23:04:00.687Z	Phones and password managers fill the booking form for you (autocomplete hints)	SUCCESS	11679	12065	386	code
