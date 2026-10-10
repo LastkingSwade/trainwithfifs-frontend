@@ -159,3 +159,6 @@
 
 /* P053 Student: the 8 journey steps can be swiped on a phone */
 .progress-steps-row { overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 6px; }
+
+/* P054 Student: each journey step snaps to the middle when swiped */
+.progress-steps-row .track-step-node { scroll-snap-align: center; flex-shrink: 0; }

@@ -150,3 +150,4 @@ P049	2026-10-10T23:07:08.492Z	Admin: live dot is hidden from the printout	SUCCES
 P050	2026-10-10T23:07:08.644Z	Admin: sign-out button is 44 px tall	SUCCESS	26934	27025	91	css
 P051	2026-10-10T23:07:08.793Z	Student: finished checklist items fade back	SUCCESS	27025	27144	119	css
 P052	2026-10-10T23:07:08.943Z	Student: checklist boxes are big enough to tap	SUCCESS	27144	27249	105	css
+P053	2026-10-10T23:07:09.093Z	Student: the 8 journey steps can be swiped on a phone	SUCCESS	27249	27409	160	css
