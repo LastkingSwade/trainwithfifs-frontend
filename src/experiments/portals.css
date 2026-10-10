@@ -183,3 +183,6 @@
 
 /* P061 Student: sign-out and change-password buttons are 44 px tall */
 .btn-sign-out, .btn-change-password { min-height: 44px; }
+
+/* P062 Student: portal card buttons are 44 px tall */
+.pcard .pbtn { min-height: 44px; }
