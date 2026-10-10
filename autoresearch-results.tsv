@@ -126,3 +126,4 @@ P025	2026-10-10T23:06:28.792Z	Admin: instructor badges stay on one line	SUCCESS	
 P026	2026-10-10T23:06:28.940Z	Admin: intel cards show a ring when a button inside has focus	SUCCESS	23529	23701	172	css
 P027	2026-10-10T23:06:29.087Z	Admin: intel card text wraps nicely	SUCCESS	23701	23827	126	css
 P028	2026-10-10T23:06:29.234Z	Admin: intel card buttons are 44 px tall	SUCCESS	23827	23923	96	css
+P029	2026-10-10T23:06:29.381Z	Admin: unread counts line up	SUCCESS	23923	24027	104	css

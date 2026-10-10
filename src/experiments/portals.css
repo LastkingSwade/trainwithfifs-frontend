@@ -87,3 +87,6 @@
 
 /* P029 Admin: unread counts line up */
 .msp-card-unread-badge { font-variant-numeric: tabular-nums; }
+
+/* P030 Admin: search boxes do not zoom the phone in */
+@media (pointer: coarse) { .admin-filter input { font-size: 16px; } }
