@@ -90,3 +90,6 @@ img[loading="lazy"] { background: linear-gradient(135deg, rgba(148, 163, 184, 0.
 
 /* Q030 Gallery photos zoom a touch on hover (motion safe) */
 @media (prefers-reduced-motion: no-preference) and (hover: hover) { .target-img-frame img { transition: transform 300ms ease; } .target-card-student:hover .target-img-frame img { transform: scale(1.04); } }
+
+/* Q031 Empty status messages take no space */
+.status-msg:empty { display: none; }
