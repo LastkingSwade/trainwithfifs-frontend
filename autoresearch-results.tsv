@@ -197,3 +197,10 @@ P096	2026-10-10T23:09:04.295Z	Student: tap your student ID to copy it	SUCCESS	35
 P097	2026-10-10T23:09:05.723Z	Client: tap your client ID to copy it	SUCCESS	36217	36890	673	code
 P098	2026-10-10T23:09:07.185Z	Client: days-left number turns green, amber or red (the number is still shown)	SUCCESS	36890	37400	510	code
 P099	2026-10-10T23:09:08.746Z	Admin: rows with an expired permit get a red edge as well as the text	SUCCESS	37400	37948	548	code
+P100	2026-10-10T23:09:10.337Z	Admin: shows "Updated 3:42 PM" next to the Refresh button after the roster loads	SUCCESS	37948	38775	827	code
+Q014	2026-10-10T23:10:01.830209Z	Plain text links get a clearer, offset underline	SUCCESS	-	-	-	reconstructed from git: the original log line was lost when the log file was reset after a test-harness fix; the commit exists and passed
+Q076	2026-10-10T23:10:01.852161Z	The tab title follows the page you are on (and returns to the original on the home page)	SUCCESS	-	-	-	reconstructed from git: the original log line was lost when the log file was reset after a test-harness fix; the commit exists and passed
+Q079	2026-10-10T23:10:01.868816Z	The phone keypad matches the field (number pad for phone, @ keyboard for email)	SUCCESS	-	-	-	reconstructed from git: the original log line was lost when the log file was reset after a test-harness fix; the commit exists and passed
+Q086	2026-10-10T23:10:01.885020Z	Screen readers hear which page you moved to	SUCCESS	-	-	-	reconstructed from git: the original log line was lost when the log file was reset after a test-harness fix; the commit exists and passed
+Q087	2026-10-10T23:10:01.901360Z	Phone links read as 'Call 443-990-1304' to screen readers	FAIL	-	-	-	harness bug (a "$$" was swallowed when the code was inserted); fixed and re-run, see the later SUCCESS line; original log line lost in the same reset
+Q088	2026-10-10T23:10:01.917796Z	Email links read as 'Email info@...' to screen readers	FAIL	-	-	-	harness bug (a "$$" was swallowed when the code was inserted); fixed and re-run, see the later SUCCESS line; original log line lost in the same reset
