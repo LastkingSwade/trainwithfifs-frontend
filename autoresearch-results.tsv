@@ -134,3 +134,4 @@ P033	2026-10-10T23:06:29.983Z	Admin: windows (Online, Payments, Recently Deleted
 P034	2026-10-10T23:06:48.111Z	Admin: payment checkboxes are big enough to tap	SUCCESS	24540	24668	128	css
 P035	2026-10-10T23:06:48.267Z	Admin: rows in the windows wrap long emails	SUCCESS	24668	24773	105	css
 P036	2026-10-10T23:06:48.417Z	Admin: online-class rows light up under the pointer	SUCCESS	24773	24904	131	css
+P037	2026-10-10T23:06:48.569Z	Admin: edit windows scroll on their own	SUCCESS	24904	25036	132	css

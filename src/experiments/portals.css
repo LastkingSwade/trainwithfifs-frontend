@@ -111,3 +111,6 @@
 
 /* P037 Admin: edit windows scroll on their own */
 #adminEditStudentModal, #adminEditClientModal { overscroll-behavior: contain; }
+
+/* P038 Admin: edit-window fields are 44 px tall and do not zoom the phone */
+@media (pointer: coarse) { #adminEditStudentModal input, #adminEditStudentModal select, #adminEditStudentModal textarea, #adminEditClientModal input, #adminEditClientModal select { min-height: 44px; font-size: 16px; } }
