@@ -6134,8 +6134,6 @@ function getStepNumberFromStatus(statusStr) {
       var courseSelection = form.courseSelection ? form.courseSelection.value : 'Maryland Firearms Training';
       var groupSize = form.groupSize ? form.groupSize.value : '1 (Private One-on-One)';
       var comments = form.comments ? form.comments.value.trim() : '';
-      var portalPasswordInput = document.getElementById('bookingPortalPassword') || document.getElementById('studentPassword') || document.getElementById('portalPassword');
-      var portalPassword = portalPasswordInput ? portalPasswordInput.value : ''; // passwords are used exactly as typed
       [fullNameInput, emailInput, phoneInput].forEach(function(inp) {
         if (inp) {
           inp.style.borderColor = 'var(--border-subtle)';
@@ -6216,7 +6214,6 @@ function getStepNumberFromStatus(statusStr) {
         fullName: fullName,
         email: email,
         phone: phone,
-        password: portalPassword,
         courseSelection: courseSelection,
         preferredDates: scheduleSummary,
         date1: date1Str,
@@ -6444,8 +6441,6 @@ function getStepNumberFromStatus(statusStr) {
         fullName: p.fullName,
         email: p.email,
         phone: p.phone,
-        password: p.password || '',
-        portalPassword: p.password || '',
         courseSelection: p.courseSelection,
         preferredDates: p.preferredDates,
         day1: p.date1Iso || '',

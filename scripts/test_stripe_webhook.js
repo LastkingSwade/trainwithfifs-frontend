@@ -9,12 +9,13 @@ const sourcePath = path.join(__dirname, '../src/app/api/stripe/webhook/route.ts'
 const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
 
-function makeHarness({ event, invoices, students = [], failUpdateTable = null, failEmail = false }) {
+function makeHarness({ event, invoices, students = [], failUpdateTable = null, failEmail = false, failAccess = false }) {
   let eventToReturn = event;
   const tables = { invoices: structuredClone(invoices), students: structuredClone(students) };
   const alerts = [];
   const podCalls = [];
   const dayCalls = [];
+  const accessCalls = [];
   const emails = [];
   const mockRequire = (id) => {
     if (id === 'next/server') return { NextResponse: { json: (body, init = {}) => ({ status: init.status || 200, body }) } };
@@ -26,6 +27,8 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null, f
     // Group code email (recorded, never sent). failEmail makes it throw, to prove a mail problem cannot affect the payment.
     if (id === '@/Lib/server/group-email') return { sendGroupCodeEmail: async (to, meta) => { if (failEmail) throw new Error('mail down'); emails.push({ to, meta }); return true; } };
     if (id === '@/Lib/server/online-email') return { sendOnlineConfirmationForSession: async (sb, session) => { emails.push({ online: true, to: session.customer_email, md: session.metadata }); return true; } };
+    // Student Portal access after payment (recorded, never run). failAccess makes it throw, to prove it cannot affect the payment.
+    if (id === '@/Lib/server/portal-access') return { ensurePortalAccessAfterPayment: async (sb, session) => { accessCalls.push(session.metadata && session.metadata.invoiceId); if (failAccess) throw new Error('auth down'); return 'created'; } };
     // Online-classroom seat release (recorded, never run): called only when an unpaid live-online checkout expires.
     if (id === '@/Lib/server/online-classroom') return { releaseDayClaims: async (inv) => { dayCalls.push(inv); } };
     // Pod seat helpers (recorded, never run): the webhook calls them only when an unpaid member/leader checkout expires.
@@ -68,6 +71,7 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null, f
     emails,
     podCalls,
     dayCalls,
+    accessCalls,
     async post() {
       return sandbox.exports.POST({ text: async () => 'signed raw payload', headers: { get: (key) => key === 'stripe-signature' ? 'valid-signature' : null } });
     },
@@ -203,6 +207,15 @@ function sessionEvent(type, overrides = {}) {
     const plain = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [invoiceRow()] });
     await plain.post();
     assert.equal(plain.emails.filter((e) => e.online).length, 0, 'in-person bookings get no online confirmation');
+    // Portal access: set up once after a payment is applied (never on a repeat delivery), and a failure there cannot change the payment.
+    const acc = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [invoiceRow()] });
+    assert.equal((await acc.post()).status, 200); assert.equal((await acc.post()).status, 200);
+    assert.equal(acc.accessCalls.length, 1, 'portal access is set up once, even if Stripe repeats the event');
+    const accFail = makeHarness({ failAccess: true, event: sessionEvent('checkout.session.completed'), invoices: [invoiceRow()] });
+    assert.equal((await accFail.post()).status, 200, 'a portal access failure must never change the payment result');
+    assert.equal(accFail.tables.invoices[0].status, 'PAID');
+    const accOff = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [invoiceRow({ status: 'PAID' })] });
+    await accOff.post(); assert.equal(accOff.accessCalls.length, 0, 'an already-paid invoice sets nothing up');
     const expired = makeHarness({ event: sessionEvent('checkout.session.expired', { metadata: { invoiceId: 'INV-1', delivery: 'live_online' } }), invoices: [invoiceRow({ status: 'PENDING' })] });
     await expired.post();
     assert.ok(expired.dayCalls.length === 1, 'an expired unpaid checkout gives its calendar days back');

@@ -11293,12 +11293,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
               <div id="podCodeStatus" role="status" style={{"marginTop": "6px", "fontSize": "0.8rem", "color": "var(--text-muted)", "display": "none"}}></div>
             </div>
-            <div className="form-group" style={{"marginBottom": "14px"}}>
-              <label htmlFor="bookingPortalPassword" style={{"fontSize": "0.84rem", "color": "#cbd5e1", "fontWeight": "700", "display": "flex", "justifyContent": "space-between", "alignItems": "center"}}>
-                <span>Student Portal Password</span>
-                <span style={{"fontSize": "0.74rem", "color": "var(--text-muted)", "fontWeight": "400"}}>(Optional — or create upon first login)</span>
-              </label>
-              <input autoComplete="new-password" id="bookingPortalPassword" name="bookingPortalPassword" placeholder="Create a password now (min 4 characters)" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}} type="password" />
+            <div className="form-group" id="bookingPortalNote" style={{"marginBottom": "14px", "fontSize": "0.84rem", "color": "#cbd5e1", "lineHeight": "1.5", "padding": "10px 12px", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "background": "rgba(0, 229, 255, 0.05)"}}>
+              <strong style={{"color": "var(--accent-cyan)"}}>Student Portal:</strong> once your payment is confirmed we email you a secure link to create your Student Portal password. You need that password to open your portal (class details, checklist and receipts).
             </div>
             <div className="form-group" style={{"marginBottom": "14px"}}>
               <label htmlFor="comments">

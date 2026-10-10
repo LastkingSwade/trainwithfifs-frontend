@@ -5,6 +5,7 @@ import { sendDiscordAlert } from '@/Lib/server/discord';
 import { sendGroupCodeEmail } from '@/Lib/server/group-email';
 import { releaseDayClaims } from '@/Lib/server/online-classroom';
 import { sendOnlineConfirmationForSession } from '@/Lib/server/online-email';
+import { ensurePortalAccessAfterPayment } from '@/Lib/server/portal-access';
 import { cancelUnpaidLeaderPod, releasePodSeat } from '@/Lib/server/booking-checkout';
 
 // Signature verification is local (HMAC); this key is never used for API calls in this route.
@@ -142,6 +143,9 @@ async function handlePaidSession(supabase: any, session: Stripe.Checkout.Session
   );
 
   await sendOnlineConfirmation(supabase, session);
+
+  // Guests get a secure link by email to create their Student Portal password. Best effort: it can never change the payment result.
+  try { await ensurePortalAccessAfterPayment(supabase, session as any); } catch (accessErr: any) { console.warn('[Stripe Webhook] Portal access not set up:', accessErr?.message || 'unknown error'); }
 
   // The person who booked a group gets their group code by email, once, right after the payment is applied. Best effort: it can
   // never change the payment result (the helper never throws, and this is wrapped as well).
