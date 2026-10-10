@@ -2,7 +2,7 @@
 const fs = require('fs'); const path = require('path'); const vm = require('vm'); const assert = require('assert'); const ts = require('typescript');
 const ROOT = path.resolve(__dirname, '..'); const cache = {};
 const load = (rel) => { if (cache[rel]) return cache[rel]; const m = { exports: {} }; const src = fs.readFileSync(path.join(ROOT, rel), 'utf8');
-  const req = (id) => (id === '@/Lib/pricing' ? load('src/Lib/pricing.ts') : id === '@/Lib/server/supabase-admin' ? { getPrivilegedClient: () => { throw new Error('no db in tests'); } } : require(id));
+  const req = (id) => (id === '@/Lib/pricing' ? load('src/Lib/pricing.ts') : id === '@/online/onlineCopy' ? load('src/online/onlineCopy.ts') : id === '@/Lib/server/supabase-admin' ? { getPrivilegedClient: () => { throw new Error('no db in tests'); } } : require(id));
   vm.runInNewContext(ts.transpileModule(src, { compilerOptions: { target: 'ES2020', module: 'commonjs' } }).outputText, { module: m, exports: m.exports, require: req, process, console, Date, Math, Number, String, Array, Map, Set, Promise, Error, JSON, RegExp }); return (cache[rel] = m.exports); };
 let passed = 0, failed = 0;
 async function test(n, f) { try { await f(); console.log('  ✓ PASS: ' + n); passed++; } catch (e) { console.log('  ✗ FAIL: ' + n + '\n    -> ' + e.message); failed++; } }
@@ -77,6 +77,18 @@ function fakeDb({ enabled = ['ccw'], sessions, enrollments = [], rpc = {} } = {}
     assert(/online && onlineSeatsClaimed/.test(CHECKOUT) && /releaseOnlineSeats\(invoiceId\)/.test(CHECKOUT), 'seat release missing');
     assert(/\.\.\.\(online \? \{ delivery: 'live_online', day2_ack_at/.test(CHECKOUT), 'new invoice columns must be written only for online bookings');
     assert(/podMember \|\| online \? \{ expires_at/.test(CHECKOUT), 'unpaid online checkouts must expire so seats are returned');
+  });
+  await test('The booking form: the 💻 switch sits next to the 👑 box, hidden until the server offers the class; wording says Day 2 is in person; the fee is its own line', () => {
+    const PAGE = fs.readFileSync(path.join(ROOT, 'src/app/page.tsx'), 'utf8'), FORM = fs.readFileSync(path.join(ROOT, 'src/online/onlineForm.ts'), 'utf8'), COPY = fs.readFileSync(path.join(ROOT, 'src/online/onlineCopy.ts'), 'utf8'), SCRIPT = fs.readFileSync(path.join(ROOT, 'public/scripts/TrainWithFIFS_scripts.js'), 'utf8');
+    const vip = PAGE.indexOf('id="formBoxVip"'), on = PAGE.indexOf('id="formBoxOnline"');
+    assert(vip > 0 && on > vip && on - vip < 2500 && /formBoxOnline" role="switch" aria-checked="false" tabIndex=\{0\} hidden/.test(PAGE), 'switch must follow the VIP box, hidden and accessible');
+    assert(/💻 Live Online Classroom/.test(PAGE) && /id="formBreakdownRemoteRow"/.test(PAGE) && /id="onlineDay2Ack"/.test(PAGE) && /id="onlineRangeSession"/.test(PAGE));
+    assert(/Day 2 is the hands-on range day/.test(COPY) && /always in person at the range/.test(COPY) && /I understand Day 2 is mandatory, in person, at the range\./.test(COPY) && /In person: best value/.test(COPY) && /Hybrid: Live Online Classroom \+ In-Person Range Day/.test(COPY));
+    assert(/calculatePricingBreakdown\(sel, n, false, 'live_online'\)/.test(FORM), 'the form must use the same pricing function as the server');
+    assert(/available\(\)/.test(FORM) && /\/api\/fifs/.test(FORM) && /onlineOptions/.test(FORM), 'shown only when the server says so');
+    assert(/window\.__fifsOnline && window\.__fifsOnline\.on/.test(SCRIPT), 'the live booking script must skip the in-person calendar rule when online is on');
+    assert(/Remote-delivery fee/.test(PAGE) && /Remote-delivery fee/.test(SCRIPT), 'the review step must list the fee in both copies');
+    assert(/installOnlineForm\(\);/.test(PAGE));
   });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   process.exit(failed ? 1 : 0);

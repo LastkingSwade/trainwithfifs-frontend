@@ -11,6 +11,8 @@ import React, { useEffect } from "react";
 import Script from "next/script";
 import dynamic from "next/dynamic";
 import { GROUP_EXPLAINER, cleanCourse, friendlyCodeError } from "@/group/groupCopy";
+import { installOnlineForm } from "@/online/onlineForm";
+import { DAY2_ACK_TEXT, DAY2_STATEMENT, FEE_LABEL, IN_PERSON_NOTE, ONLINE_NAME, TECH_REQUIREMENTS } from "@/online/onlineCopy";
 import Head from "next/head";
 import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
 import { createRecoveryClient } from "@/Lib/supabase/recovery-client";
@@ -3687,6 +3689,7 @@ export default function TrainWithFIFS(props: any) {
               <div><span style="color:#f8fafc;font-weight:600;">Cindy\'s Range &amp; Target Fee</span><br><span style="color:#64748b;font-size:0.75rem;">Dedicated lane reservation, B-27 qualification targets & ammo</span></div>
               <strong style="color:${isVipCourse ? '#10b981' : '#f59e0b'};">${isVipCourse ? 'INCLUDED (VIP Perk)' : '+$' + pricing.rangeFee.toFixed(2)}</strong>
             </div>
+            ${pricing.remoteFee > 0 ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;"><div><span style="color:#f8fafc;font-weight:600;">Remote-delivery fee</span><br><span style="color:#64748b;font-size:0.75rem;">Live online classroom. Day 2 range day is in person.</span></div><strong style="color:var(--accent-cyan);">+$${pricing.remoteFee.toFixed(2)}</strong></div>` : ''}
             <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;color:#94a3b8;">
               <span>Subtotal:</span>
               <strong style="color:#f8fafc;">$${pricing.subtotal.toFixed(2)}</strong>
@@ -4094,7 +4097,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -11167,6 +11170,31 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     All-inclusive (Lane fee, targets, loaner 9mm, ammo & photos)
                   </p>
                 </div>
+                <div id="formBoxOnline" role="switch" aria-checked="false" tabIndex={0} hidden data-onclick="toggleFormOnline()" style={{"gridColumn": "1 / -1", "background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "10px", "cursor": "pointer", "transition": "all 0.2s"}}>
+                  <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "gap": "10px"}}>
+                    <strong style={{"color": "var(--accent-cyan)", "fontSize": "0.85rem"}}>
+                      💻 Live Online Classroom
+                    </strong>
+                    <span id="formOnlineBadge" style={{"fontSize": "0.74rem", "fontWeight": "800", "color": "var(--text-muted)"}}>OFF</span>
+                  </div>
+                  <p style={{"color": "var(--text-muted)", "fontSize": "0.74rem", "marginTop": "3px", "lineHeight": "1.35"}}>
+                    Classroom taught live over video. Day 2 range day stays in person. Adds a remote-delivery fee.
+                  </p>
+                </div>
+              </div>
+              <div id="formOnlineFields" hidden style={{"marginTop": "12px", "border": "1px solid var(--border-accent)", "borderRadius": "10px", "padding": "12px 14px", "background": "rgba(0, 229, 255, 0.05)"}}>
+                <div style={{"fontWeight": "800", "color": "var(--text-main)", "fontSize": "0.9rem", "marginBottom": "6px"}}>{ONLINE_NAME}</div>
+                <p style={{"color": "var(--text-main)", "fontSize": "0.84rem", "lineHeight": "1.5", "margin": "0 0 8px"}}><strong>{DAY2_STATEMENT}</strong></p>
+                <label htmlFor="onlineClassroomSession" style={{"display": "block", "fontSize": "0.8rem", "color": "var(--text-muted)", "margin": "8px 0 4px"}}>Live classroom date (over video)</label>
+                <select id="onlineClassroomSession" style={{"width": "100%", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px"}}></select>
+                <label htmlFor="onlineRangeSession" style={{"display": "block", "fontSize": "0.8rem", "color": "var(--text-muted)", "margin": "8px 0 4px"}}>Day 2 range day (in person at the range) — required</label>
+                <select id="onlineRangeSession" style={{"width": "100%", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px"}}></select>
+                <label style={{"display": "flex", "gap": "8px", "alignItems": "flex-start", "margin": "10px 0 4px", "fontSize": "0.84rem", "color": "var(--text-main)", "cursor": "pointer"}}>
+                  <input type="checkbox" id="onlineDay2Ack" style={{"marginTop": "3px"}} />
+                  <span>{DAY2_ACK_TEXT}</span>
+                </label>
+                <p style={{"color": "var(--text-muted)", "fontSize": "0.76rem", "lineHeight": "1.45", "margin": "8px 0 0"}}>{TECH_REQUIREMENTS} The remote-delivery fee is shown as its own line below. {IN_PERSON_NOTE}</p>
+                <div id="formOnlineStatus" role="status" style={{"color": "#f87171", "fontSize": "0.8rem", "marginTop": "6px"}}></div>
               </div>
               <p id="formCardTierDesc" style={{"fontSize": "0.82rem", "color": "#cbd5e1", "marginTop": "12px", "lineHeight": "1.5", "borderLeft": "2px solid var(--accent-cyan)", "paddingLeft": "10px"}}>
                 Full 16-hour Maryland Wear & Carry qualification + application dossiers for Virginia, Florida, Arizona, and Pennsylvania (34+ state legal carry reciprocity). Self-equipped track: bring own firearm and ammo. Range fee ($45.00) & 6% MD tax calculated automatically.
@@ -11176,6 +11204,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "fontSize": "0.84rem", "color": "#cbd5e1", "marginBottom": "6px"}}>
                   <span>Course Tuition:</span>
                   <strong id="formBreakdownTuition" style={{"color": "#fff"}}>$424.99</strong>
+                </div>
+                <div id="formBreakdownRemoteRow" style={{"display": "none", "justifyContent": "space-between", "alignItems": "center", "fontSize": "0.84rem", "marginBottom": "6px"}}>
+                  <span>{FEE_LABEL} (live online classroom):</span>
+                  <strong id="formBreakdownRemote" style={{"color": "var(--accent-cyan)"}}>+$0.00</strong>
                 </div>
                 <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "fontSize": "0.84rem", "marginBottom": "6px"}}>
                   <span>Cindy's Hot Shots Range &amp; Target Fee:</span>

@@ -8,8 +8,7 @@ import { ONLINE_PREMIUM_RATE, courseKeyFor, onlineEligible } from '@/Lib/pricing
 //  - remote students hold range seats exactly like in-person students (shared capacity)
 // Every database call fails safe: if the tables are missing or the database is unreachable, online is simply not offered.
 
-export const DAY2_STATEMENT = 'Day 2 is the hands-on range day (loading, malfunctions and jams, live fire) and it is always in person at the range.';
-export const DAY2_ACK_TEXT = 'I understand Day 2 is mandatory, in person, at the range.';
+export { DAY2_ACK_TEXT, DAY2_STATEMENT } from '@/online/onlineCopy';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export interface PublicSession { id: string; kind: 'classroom' | 'range'; startsAt: string; seatsLeft: number | null }

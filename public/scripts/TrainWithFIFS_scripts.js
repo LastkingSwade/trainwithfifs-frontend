@@ -6175,7 +6175,11 @@ function getStepNumberFromStatus(statusStr) {
         return false;
       }
       var is16Hr = typeof is16HourCourseSelected === 'function' ? is16HourCourseSelected() : false;
-      if (is16Hr) {
+      // Live Online Classroom: the dates come from the two sessions chosen in the online panel (checked by the online form code), not from the calendar.
+      var onlineBooking = !!(window.__fifsOnline && window.__fifsOnline.on);
+      if (onlineBooking) {
+        // nothing to check here
+      } else if (is16Hr) {
         if (!calSelectedDate1 || !calSelectedDate2) {
           var calElem = document.getElementById('bookingCalendarPolicyBanner') || document.getElementById('bookingCalDaysGrid');
           reportBookingError(calElem, '📅 16-Hour Course Requirement:\n\nPlease select 2 dates on the calendar:\n• Day 1: FIFS Classroom Instruction\n• Day 2: Cindy\'s Hot Shots Live-Fire Practical Qualification');
@@ -6203,7 +6207,7 @@ function getStepNumberFromStatus(statusStr) {
       var options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
       var date1Str = calSelectedDate1Obj ? calSelectedDate1Obj.toLocaleDateString('en-US', options) : (calSelectedDate1 || 'TBD');
       var date2Str = calSelectedDate2Obj ? calSelectedDate2Obj.toLocaleDateString('en-US', options) : (calSelectedDate2 || 'TBD');
-      var scheduleSummary = is16Hr
+      var scheduleSummary = onlineBooking ? (window.__fifsOnline.datesText || 'Live Online Classroom + In-Person Range Day') : is16Hr
         ? ('Day 1: ' + date1Str + ' (FIFS Classroom) | Day 2: ' + date2Str + ' (Cindy\'s Hot Shots Qualification)')
         : (calSelectedDate1Obj ? ('Session Date: ' + date1Str) : (form.preferredDates ? form.preferredDates.value : 'Flexible / Coordinated with Instructor'));
       __fifsCurrentBookingPayload = {
@@ -6305,6 +6309,7 @@ function getStepNumberFromStatus(statusStr) {
             '<div><span style="color:#f8fafc;font-weight:600;">Cindy\&#39;s Range &amp; Ammo Fee</span><br><span style="color:#64748b;font-size:0.75rem;">Includes dedicated lane time, B-27 qualification target &amp; ammo</span></div>' +
             '<strong style="color:' + (isVipCourse ? '#10b981' : '#f59e0b') + ';">' + (isVipCourse ? 'INCLUDED (VIP Perk)' : '$' + pricing.rangeFee.toFixed(2)) + '</strong>' +
           '</div>' +
+          (pricing.remoteFee > 0 ? ('<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;"><div><span style="color:#f8fafc;font-weight:600;">Remote-delivery fee</span><br><span style="color:#64748b;font-size:0.75rem;">Live online classroom. Day 2 range day is in person.</span></div><strong style="color:var(--accent-cyan);">+$' + pricing.remoteFee.toFixed(2) + '</strong></div>') : '') +
           '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;color:#94a3b8;">' +
             '<span>Subtotal:</span>' +
             '<strong style="color:#f8fafc;">$' + pricing.subtotal.toFixed(2) + '</strong>' +
