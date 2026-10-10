@@ -53,3 +53,4 @@ Q052	2026-10-10T23:02:57.771Z	Long status messages wrap instead of overflowing	S
 Q053	2026-10-10T23:02:57.900Z	Long unbroken words never push the page wider	SUCCESS	8438	8532	94	css
 Q054	2026-10-10T23:03:17.206Z	A soft ring around the field being typed in	SUCCESS	8532	8681	149	css
 Q055	2026-10-10T23:03:17.377Z	Drop-downs show a pointer	SUCCESS	8681	8747	66	css
+Q056	2026-10-10T23:03:17.500Z	File choosers show a pointer	SUCCESS	8747	8828	81	css

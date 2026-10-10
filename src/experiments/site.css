@@ -168,3 +168,6 @@ select { cursor: pointer; }
 
 /* Q056 File choosers show a pointer */
 input[type="file"] { cursor: pointer; }
+
+/* Q057 Number fields hide the tiny spin arrows that are hard to tap */
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
