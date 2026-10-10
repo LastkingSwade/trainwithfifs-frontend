@@ -18,7 +18,7 @@ test('Timing: every value is a constant in bootConfig.ts, the sequence always pl
   assert(num('accessMsPerChar') >= 25 && num('accessMsPerChar') <= 60, 'typing speed out of range');
   assert(!/\b\d{3,4}\b/.test(COMP.replace(/\d+px/g, '').replace(/SCATTER[\s\S]*?\];/, '')), 'BootIntro.tsx has a loose timing number');
 });
-test('The order is exact: blinking cursor, Access Granted with dots, Loading line, clear, Welcome Agent, glitch, dissolve, CRT switch-off, reveal', () => {
+test('The order is exact: blinking cursor, Access Granted with dots, Loading line, clear, Welcome Agent, glitch, dissolve, CRT switch-on, reveal', () => {
   const order = ['typeOut(accessText', 'typeOut(loadingText', "setPhase('welcome')", 'typeOut(BOOT_WELCOME', "setPhase('glitch')", "setPhase('dissolve')", "setPhase('crt')", 'finish(BOOT.fadeMs)'];
   let at = -1; for (const k of order) { const i = COMP.indexOf(k); assert(i > at, 'out of order or missing: ' + k); at = i; }
   assert(/loadingPlain/.test(COMP) && /className="boot-brand"/.test(COMP), 'only the business words get the brand class');
@@ -33,9 +33,12 @@ test('Colours: terminal text is plain light gray; only "Future Initiative Traini
 test('Terminal look: left aligned monospace text with a blinking block cursor', () => {
   assert(/\.boot-term \{[^}]*text-align: left/.test(CSS) && /font-family: var\(--font-mono/.test(CSS) && /bootBlink 1s steps\(1, end\) infinite/.test(CSS) && /\.boot-cursor \{[^}]*background: var\(--boot-text\)/.test(CSS), 'terminal styling');
 });
-test('Glitch, dissolve and CRT switch-off exist and use only opacity and transform', () => {
-  for (const k of ['bootJitter', 'bootSplitA', 'bootSplitB', 'bootDissolve', 'bootCrtSquash', 'bootCrtLine']) assert(CSS.includes('@keyframes ' + k), k + ' missing');
-  assert(/\.phase-crt \.boot-screen \{ animation: bootCrtSquash/.test(CSS) && /scale\(1, 0\.006\)/.test(CSS), 'the picture must squash to a line');
+test('Glitch, dissolve and CRT switch-ON exist and use only opacity and transform: a line stretches out, then the black opens top and bottom', () => {
+  for (const k of ['bootJitter', 'bootSplitA', 'bootSplitB', 'bootDissolve', 'bootCurtainOpen', 'bootCrtLineOn']) assert(CSS.includes('@keyframes ' + k), k + ' missing');
+  assert(!/bootCrtSquash|bootCrtLine\b/.test(CSS), 'the old switch-off must be gone');
+  assert(/\.phase-crt \.boot-curtain-top, \.phase-crt \.boot-curtain-bottom \{ animation: bootCurtainOpen/.test(CSS) && /scaleY\(0\)/.test(CSS) && /scale\(0\.01, 1\.6\)/.test(CSS) && /transform: scale\(1, 1\)/.test(CSS), 'dot, then line, then opening');
+  assert(/transform-origin: top center/.test(CSS) && /transform-origin: bottom center/.test(CSS), 'curtains open from the middle line');
+  assert(/root\.setAttribute\('data-boot', 'reveal'\);[^\n]*curtains/.test(COMP) && COMP.indexOf("setPhase('crt')") < COMP.indexOf("root.setAttribute('data-boot', 'reveal');   // the page is visible"), 'the page must be visible behind the curtains when they open');
 });
 test('The CRT look is tunable by CSS variables and uses only opacity and transform in its animations', () => {
   for (const v of ['--boot-glow-near', '--boot-glow-far', '--boot-scan-opacity']) assert(CSS.includes(v + ':'), v + ' missing');

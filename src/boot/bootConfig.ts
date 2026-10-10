@@ -1,6 +1,6 @@
 // Boot-sequence intro: every timing value in one place. It looks like a plain computer terminal: a blinking cursor, then "Access Granted .....",
 // then "Loading Future Initiative Training Grounds", the screen clears, "Welcome Agent" appears on the first line, the text glitches and dissolves,
-// and a CRT-TV switch-off plays before the home page appears. The sequence always plays to the end (no ceiling); the visitor can skip any time.
+// and a CRT-TV switch-on plays: a bright line stretches across the screen, then opens to reveal the home page. The sequence always plays to the end (no ceiling); the visitor can skip any time.
 // Total with the defaults: 1500 + 560 + 750 + 450 + 1008 + 800 + 200 + 910 + 650 + 800 + 700 + 700 + 300 = 9328 ms.
 export const BOOT = {
   blankMs: 1500,             // empty terminal with a blinking cursor
@@ -14,7 +14,7 @@ export const BOOT = {
   holdAfterWelcomeMs: 650,   // pause on Welcome Agent
   glitchMs: 800,             // the text glitches
   dissolveMs: 700,           // the glitching text breaks up and dissipates
-  crtMs: 700,                // CRT-TV switch-off: the picture collapses to a line, then a dot
+  crtMs: 700,                // CRT-TV switch-on: a dot stretches into a line, then the black opens from the middle to show the home page
   fadeMs: 300,               // overlay fade-out that reveals the home page
   skipFadeMs: 150,           // fade-out when the visitor skips
   failsafeMs: 24000,         // the page is released no matter what after this long (a CSS-only backup fires at 26 s). Far above the sequence, so it never cuts it short

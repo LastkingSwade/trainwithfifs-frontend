@@ -75,6 +75,7 @@ export default function BootIntro() {
                       setPhase('dissolve');
                       later(() => {
                         setPhase('crt');
+                        root.setAttribute('data-boot', 'reveal');   // the page is visible behind the black curtains, which now open
                         later(() => finish(BOOT.fadeMs), BOOT.crtMs);
                       }, BOOT.dissolveMs);
                     }, BOOT.glitchMs);
@@ -132,6 +133,8 @@ export default function BootIntro() {
           )}
         </div>
       </div>
+      <div className="boot-curtain boot-curtain-top" aria-hidden="true" />
+      <div className="boot-curtain boot-curtain-bottom" aria-hidden="true" />
       <div className="boot-crt-line" aria-hidden="true" />
       <div className="boot-scan" aria-hidden="true" />
       <div className="boot-vignette" aria-hidden="true" />

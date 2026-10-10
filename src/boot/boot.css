@@ -25,6 +25,7 @@
   html[data-boot] .boot-intro { display: block; visibility: visible; position: fixed; inset: 0; z-index: 2147483647;
     background: #000; overflow: hidden; font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
     animation: bootBackup 0s linear 26s forwards; }
+  html[data-boot] .boot-intro.phase-crt { background: transparent; }
   .boot-intro.is-leaving { animation: bootFade var(--boot-fade, 300ms) ease-out forwards; pointer-events: none; }
 
   /* The "screen": what collapses in the CRT switch-off. */
@@ -50,15 +51,22 @@
   .phase-dissolve .boot-ch { animation: bootDissolve var(--boot-dissolve, 700ms) ease-in forwards; animation-delay: var(--bd, 0ms); }
   .phase-dissolve .boot-welcome::before, .phase-dissolve .boot-welcome::after { animation-name: bootSplitFade; animation-duration: var(--boot-dissolve, 700ms); animation-timing-function: ease-in; animation-fill-mode: forwards; }
 
-  /* After the dissolve the letters stay gone while the screen switches off. */
+  /* After the dissolve the letters stay gone while the screen switches on. */
   .phase-crt .boot-ch { opacity: 0; }
   .phase-crt .boot-skip { opacity: 0; }
 
-  /* CRT-TV switch-off: the picture squashes to a bright line, the line shrinks to a dot and goes out. */
-  .phase-crt .boot-screen { animation: bootCrtSquash var(--boot-crt, 700ms) cubic-bezier(0.55, 0, 0.35, 1) forwards; }
-  .boot-crt-line { position: absolute; left: 0; right: 0; top: 50%; height: 3px; margin-top: -1.5px; z-index: 2; pointer-events: none; opacity: 0; background: #eaffff;
+  /* CRT-TV switch-on: a bright dot stretches into a line across the middle, then the black closes open from that line, top and bottom,
+     and the home page shows through. (The page is made visible under the overlay when this phase starts.) */
+  .phase-crt .boot-screen { background: transparent; }
+  .phase-crt .boot-term { visibility: hidden; }
+  .boot-curtain { position: absolute; left: 0; right: 0; height: 50%; z-index: 2; background: #000; pointer-events: none; display: none; }
+  .boot-curtain-top { top: 0; transform-origin: top center; }
+  .boot-curtain-bottom { bottom: 0; transform-origin: bottom center; }
+  .phase-crt .boot-curtain { display: block; }
+  .phase-crt .boot-curtain-top, .phase-crt .boot-curtain-bottom { animation: bootCurtainOpen var(--boot-crt, 700ms) cubic-bezier(0.55, 0, 0.35, 1) forwards; }
+  .boot-crt-line { position: absolute; left: 0; right: 0; top: 50%; height: 3px; margin-top: -1.5px; z-index: 3; pointer-events: none; opacity: 0; background: #eaffff;
     box-shadow: 0 0 14px 4px color-mix(in srgb, var(--boot-color) 70%, #fff), 0 0 40px 10px color-mix(in srgb, var(--boot-color) 35%, transparent); transform-origin: center; }
-  .phase-crt .boot-crt-line { animation: bootCrtLine var(--boot-crt, 700ms) cubic-bezier(0.55, 0, 0.35, 1) forwards; }
+  .phase-crt .boot-crt-line { animation: bootCrtLineOn var(--boot-crt, 700ms) cubic-bezier(0.55, 0, 0.35, 1) forwards; }
 
   .boot-scan { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: var(--boot-scan-opacity);
     background: repeating-linear-gradient(0deg, transparent 0 2px, #000 2px 3px); }
@@ -77,6 +85,6 @@
   @keyframes bootSplitB { 0% { transform: translate(4px, 1px); } 33% { transform: translate(-6px, 0); } 66% { transform: translate(3px, -2px); } 100% { transform: translate(-5px, 1px); } }
   @keyframes bootSplitFade { from { opacity: 0.8; } to { opacity: 0; } }
   @keyframes bootDissolve { 0% { opacity: 1; transform: translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(var(--bx, 12px), var(--by, -18px)) scale(0.4); } }
-  @keyframes bootCrtSquash { 0% { transform: scale(1, 1); opacity: 1; } 55% { transform: scale(1, 0.006); opacity: 1; } 85% { transform: scale(0.02, 0.006); opacity: 1; } 100% { transform: scale(0, 0); opacity: 0; } }
-  @keyframes bootCrtLine { 0% { opacity: 0; transform: scale(1, 1); } 45% { opacity: 1; transform: scale(1, 1); } 85% { opacity: 1; transform: scale(0.02, 1.6); } 100% { opacity: 0; transform: scale(0, 0); } }
+  @keyframes bootCurtainOpen { 0%, 40% { transform: scaleY(1); } 100% { transform: scaleY(0); } }
+  @keyframes bootCrtLineOn { 0% { opacity: 0; transform: scale(0.01, 1.6); } 10% { opacity: 1; transform: scale(0.01, 1.6); } 40% { opacity: 1; transform: scale(1, 1); } 100% { opacity: 0; transform: scale(1, 6); } }
 }
