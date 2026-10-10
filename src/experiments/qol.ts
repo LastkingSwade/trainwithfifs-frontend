@@ -97,5 +97,15 @@ export function installQol(): void {
   run('Q099', () => { $$('table thead th').forEach((th) => { if (!th.getAttribute('scope')) th.setAttribute('scope', 'col'); }); });
   // Q100: Outside links tell screen readers they open a new tab
   run('Q100', () => { $$<HTMLAnchorElement>('a[target="_blank"]').forEach((a) => { const l = a.getAttribute('aria-label') || (a.textContent || '').trim(); if (l && !/new tab/i.test(l)) a.setAttribute('aria-label', l + ' (opens in a new tab)'); }); });
+  // P091: Admin: tap an ID in the roster or clients table to copy it
+  run('P091', () => {
+    document.addEventListener('click', (e) => {
+      const cell = (e.target as HTMLElement | null)?.closest?.('#admin-roster-tbody td:first-child, #admin-client-tbody td:first-child') as HTMLElement | null;
+      if (!cell || !navigator.clipboard) return;
+      const text = (cell.textContent || '').trim(); if (!text) return;
+      navigator.clipboard.writeText(text).then(() => { cell.setAttribute('data-copied', '1'); window.setTimeout(() => cell.removeAttribute('data-copied'), 1400); }).catch(() => { /* copying is a convenience */ });
+    });
+    $$('#admin-roster-tbody, #admin-client-tbody').forEach((t) => t.setAttribute('title', 'Tap an ID to copy it'));
+  });
   // @@QOL_END
 }

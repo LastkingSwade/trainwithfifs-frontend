@@ -270,3 +270,7 @@
 
 /* P090 Client: urgency colors for days left (green, amber, red) with the number still shown */
 #wallet-days-left[data-urgency="ok"] { color: #34d399; } #wallet-days-left[data-urgency="soon"] { color: #fbbf24; } #wallet-days-left[data-urgency="urgent"] { color: #f87171; }
+
+/* P091 Admin: tap an ID in the roster or clients table to copy it */
+#admin-roster-tbody td:first-child, #admin-client-tbody td:first-child { cursor: copy; }
+#admin-roster-tbody td[data-copied]::after, #admin-client-tbody td[data-copied]::after { content: " ✓ copied"; color: #34d399; font-size: 0.75rem; }
