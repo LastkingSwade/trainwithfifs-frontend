@@ -177,3 +177,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q059 Printed pages hide the Standard / VIP switches and select buttons */
 @media print { .tier-sliding-switch, .btn-select-course { display: none; } }
+
+/* Q060 Bullet lines in cards break long words */
+.tuition-bullets div { overflow-wrap: anywhere; }
