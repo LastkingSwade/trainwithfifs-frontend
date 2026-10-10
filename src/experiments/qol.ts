@@ -35,5 +35,7 @@ export function installQol(): void {
   run('Q083', () => {
     for (const id of ['fullName', 'email', 'phone']) { const el = document.getElementById(id) as HTMLInputElement | null; if (el) el.addEventListener('blur', () => { const v = el.value.trim(); if (v !== el.value) el.value = v; }); }
   });
+  // Q084: Tapping the group code box selects the whole code so a new one replaces it
+  run('Q084', () => { const el = document.getElementById('podCodeInput') as HTMLInputElement | null; if (el) el.addEventListener('focus', () => { try { el.select(); } catch { /* ignore */ } }); });
   // @@QOL_END
 }
