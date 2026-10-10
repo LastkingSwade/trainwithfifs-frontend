@@ -59,5 +59,9 @@ export function installQol(): void {
   run('Q087', () => {
     $$<HTMLAnchorElement>('a[href^="tel:"]').forEach((a) => { if (!a.getAttribute('aria-label')) a.setAttribute('aria-label', 'Call ' + (a.textContent || a.getAttribute('href') || '').replace(/^tel:/, '').trim()); });
   });
+  // Q088: Email links read as "Email info@..." to screen readers
+  run('Q088', () => {
+    $$<HTMLAnchorElement>('a[href^="mailto:"]').forEach((a) => { if (!a.getAttribute('aria-label')) a.setAttribute('aria-label', 'Email ' + (a.getAttribute('href') || '').replace(/^mailto:/, '').split('?')[0]); });
+  });
   // @@QOL_END
 }

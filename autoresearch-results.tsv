@@ -84,3 +84,4 @@ Q085	2026-10-10T23:04:10.303Z	The phone browser bar matches the site background	
 Q089	2026-10-10T23:04:35.166Z	Images with no description are marked decorative so screen readers skip them	FAIL	14632	14632	0	tsc: src/experiments/qol.ts(51,23): error TS2581: Cannot find name '$'. Do you need to install type definitions for jQuery? Try `npm i --save-dev
 Q077	2026-10-10T23:04:48.677Z	Outside links always open safely (no access to the page that opened them)	SUCCESS	14632	14995	363	code
 Q080	2026-10-10T23:04:50.252Z	The keyboard shows a Next key while filling the booking form	SUCCESS	14995	15322	327	code
+Q087	2026-10-10T23:04:51.961Z	Phone links read as "Call 443-990-1304" to screen readers	SUCCESS	15322	15637	315	code
