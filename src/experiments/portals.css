@@ -162,3 +162,6 @@
 
 /* P054 Student: each journey step snaps to the middle when swiped */
 .progress-steps-row .track-step-node { scroll-snap-align: center; flex-shrink: 0; }
+
+/* P055 Student: the next-step card keeps clear of the header when jumped to */
+.next-step-card { scroll-margin-top: 90px; }
