@@ -18,3 +18,6 @@ p, .tuition-desc, .review-quote-text { text-wrap: pretty; }
 
 /* Q006 Jumping to a section no longer hides its title under the header */
 html { scroll-padding-top: 80px; }
+
+/* Q007 Remove the tap delay on buttons and summaries */
+button, summary, select, [role="button"], .btn-spark, .btn-primary { touch-action: manipulation; }

@@ -4,3 +4,4 @@ Q002	2026-10-10T23:00:01.443Z	Crisper text on Mac and iPhone screens	SUCCESS	155
 Q003	2026-10-10T23:00:01.564Z	Balanced line breaks on headings so no single word is left alone	SUCCESS	1690	1847	157	css
 Q004	2026-10-10T23:00:01.683Z	Prettier paragraph endings (no one-word last lines)	SUCCESS	1847	1971	124	css
 Q005	2026-10-10T23:00:01.801Z	Selected text uses the brand cyan	SUCCESS	1971	2083	112	css
+Q006	2026-10-10T23:00:06.030Z	Jumping to a section no longer hides its title under the header	SUCCESS	2083	2194	111	css
