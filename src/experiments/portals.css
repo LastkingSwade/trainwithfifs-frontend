@@ -225,3 +225,6 @@
 
 /* P075 Student: step circles never shrink */
 .track-step-node { flex-shrink: 0; }
+
+/* P076 Client: feature cards never overflow their grid cell */
+.fi-feature-card { min-width: 0; }

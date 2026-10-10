@@ -172,3 +172,4 @@ P071	2026-10-10T23:07:55.056Z	Student: wallet buttons show a visible focus ring	
 P072	2026-10-10T23:07:55.259Z	Student: wallet document rows wrap long text	SUCCESS	29740	29840	100	css
 P073	2026-10-10T23:07:55.460Z	Student: the course packet card wraps its title	SUCCESS	29840	29941	101	css
 P074	2026-10-10T23:08:15.121Z	Student: the course packet description wraps nicely	SUCCESS	29941	30044	103	css
+P075	2026-10-10T23:08:15.306Z	Student: step circles never shrink	SUCCESS	30044	30128	84	css
