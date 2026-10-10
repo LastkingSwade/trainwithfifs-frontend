@@ -63,3 +63,6 @@
 
 /* P021 Admin: the chat inbox list scrolls on its own */
 #admin-chat-inbox-list { overscroll-behavior: contain; scrollbar-width: thin; }
+
+/* P022 Admin: the open chat scrolls on its own */
+#admin-active-chat-stream { overscroll-behavior: contain; }
