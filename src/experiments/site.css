@@ -204,3 +204,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q068 Meta chips keep their text on one line */
 .meta-chip { white-space: nowrap; }
+
+/* Q069 Pop-up titles balance their lines */
+.goal-modal-title { text-wrap: balance; }
