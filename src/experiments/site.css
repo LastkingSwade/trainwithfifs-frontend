@@ -216,3 +216,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q072 Map state codes never break */
 .state-code-text { white-space: nowrap; }
+
+/* Q073 Dossier cards keep together when printed */
+@media print { .state-dossier-card { break-inside: avoid; } }
