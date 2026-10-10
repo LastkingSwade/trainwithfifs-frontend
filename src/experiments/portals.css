@@ -264,3 +264,6 @@
 
 /* P088 Client: renewal countdown card keeps clear of the header */
 #fi-client-extras { scroll-margin-top: 90px; }
+
+/* P089 Client: permit card wraps nicely on narrow phones */
+#wallet-cardholder-name { overflow-wrap: anywhere; }
