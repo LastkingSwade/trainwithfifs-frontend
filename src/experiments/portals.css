@@ -117,3 +117,6 @@
 
 /* P039 Admin: the score sheet notes box can be stretched down only */
 #adminEditStudentModal textarea { resize: vertical; }
+
+/* P040 Admin: the invite window scrolls on its own */
+#adminInviteModal { overscroll-behavior: contain; }
