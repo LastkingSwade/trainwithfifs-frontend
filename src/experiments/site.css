@@ -105,3 +105,6 @@ button:focus:not(:focus-visible) { outline: none; }
 
 /* Q035 Tapping the Standard / VIP switch never selects its text */
 .tier-option-btn { -webkit-user-select: none; user-select: none; }
+
+/* Q036 VIP perk box keeps clear of the header when jumped to */
+.vip-perks-box { scroll-margin-top: 80px; }
