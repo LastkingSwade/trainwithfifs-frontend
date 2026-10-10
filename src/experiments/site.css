@@ -198,3 +198,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q066 Review pills keep a default cursor (they are not buttons) */
 .review-item-pill { cursor: default; }
+
+/* Q067 Star clusters never wrap */
+.gold-stars-cluster { white-space: nowrap; }

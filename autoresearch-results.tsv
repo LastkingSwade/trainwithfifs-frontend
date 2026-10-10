@@ -63,3 +63,4 @@ Q062	2026-10-10T23:03:18.233Z	Price tags never split onto two lines	SUCCESS	9446
 Q063	2026-10-10T23:03:18.357Z	Big buttons do not select their text on a double tap	SUCCESS	9537	9677	140	css
 Q064	2026-10-10T23:03:36.824Z	Pop-up boxes scroll smoothly on iPhone	SUCCESS	9677	9783	106	css
 Q065	2026-10-10T23:03:36.951Z	A field scrolled into view by the keyboard keeps room above it	SUCCESS	9783	9925	142	css
+Q066	2026-10-10T23:03:37.075Z	Review pills keep a default cursor (they are not buttons)	SUCCESS	9925	10034	109	css
