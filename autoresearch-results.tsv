@@ -35,3 +35,4 @@ Q034	2026-10-10T23:02:33.337Z	Pop-up close buttons are at least 44 by 44	SUCCESS
 Q035	2026-10-10T23:02:33.457Z	Tapping the Standard / VIP switch never selects its text	SUCCESS	6255	6391	136	css
 Q036	2026-10-10T23:02:33.575Z	VIP perk box keeps clear of the header when jumped to	SUCCESS	6391	6501	110	css
 Q037	2026-10-10T23:02:33.694Z	Review quotes wrap more nicely	SUCCESS	6501	6586	85	css
+Q038	2026-10-10T23:02:33.810Z	Photo captions wrap more nicely	SUCCESS	6586	6669	83	css

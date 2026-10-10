@@ -114,3 +114,6 @@ button:focus:not(:focus-visible) { outline: none; }
 
 /* Q038 Photo captions wrap more nicely */
 .target-content { text-wrap: pretty; }
+
+/* Q039 Card descriptions wrap more nicely */
+.fi-card-desc, .fi-feature-desc { text-wrap: pretty; }
