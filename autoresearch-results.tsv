@@ -92,3 +92,4 @@ Q091	2026-10-10T23:04:57.749Z	Icon-only buttons get a spoken name from their too
 Q092	2026-10-10T23:04:59.128Z	Decorative emoji next to labels are hidden from screen readers	SUCCESS	16617	16812	195	code
 Q093	2026-10-10T23:05:00.587Z	Reading progress bar on the About, FAQ and Reviews pages (motion safe)	SUCCESS	16812	18185	1373	code
 Q094	2026-10-10T23:05:21.352Z	Moving to a new page puts keyboard focus at its top so Tab starts there	SUCCESS	18185	18734	549	code
+Q095	2026-10-10T23:05:23.071Z	The booking form tells screen readers which fields are required	SUCCESS	18734	18941	207	code

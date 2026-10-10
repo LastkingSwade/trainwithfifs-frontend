@@ -87,5 +87,7 @@ export function installQol(): void {
   });
   // Q095: The booking form tells screen readers which fields are required
   run('Q095', () => { $$<HTMLInputElement>('#booking-form [required]').forEach((i) => i.setAttribute('aria-required', 'true')); });
+  // Q096: Group code box says what it expects
+  run('Q096', () => { const el = document.getElementById('podCodeInput'); if (el && !el.getAttribute('aria-describedby')) el.setAttribute('aria-describedby', 'podCodeStatus'); });
   // @@QOL_END
 }
