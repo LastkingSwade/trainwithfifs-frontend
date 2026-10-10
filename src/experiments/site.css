@@ -189,3 +189,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q063 Big buttons do not select their text on a double tap */
 .btn-spark, .btn-primary { -webkit-user-select: none; user-select: none; }
+
+/* Q064 Pop-up boxes scroll smoothly on iPhone */
+.goal-modal-box { -webkit-overflow-scrolling: touch; }
