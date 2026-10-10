@@ -67,3 +67,4 @@ Q066	2026-10-10T23:03:37.075Z	Review pills keep a default cursor (they are not b
 Q067	2026-10-10T23:03:37.194Z	Star clusters never wrap	SUCCESS	10034	10116	82	css
 Q068	2026-10-10T23:03:37.317Z	Meta chips keep their text on one line	SUCCESS	10116	10203	87	css
 Q069	2026-10-10T23:03:37.438Z	Pop-up titles balance their lines	SUCCESS	10203	10291	88	css
+Q070	2026-10-10T23:03:37.560Z	The header badge on a pop-up never stretches	SUCCESS	10291	10392	101	css

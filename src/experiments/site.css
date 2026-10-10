@@ -210,3 +210,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q070 The header badge on a pop-up never stretches */
 .goal-header-badge { white-space: nowrap; }
+
+/* Q071 Journey cards keep a steady number width */
+.j-num { font-variant-numeric: tabular-nums; }
