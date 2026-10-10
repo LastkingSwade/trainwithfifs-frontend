@@ -138,5 +138,11 @@ export function installQol(): void {
     el.setAttribute('title', 'Tap to copy'); el.style.cursor = 'copy';
     el.addEventListener('click', () => { const t = (el.textContent || '').trim(); if (t) navigator.clipboard.writeText(t).then(() => { el.setAttribute('data-copied', '1'); window.setTimeout(() => el.removeAttribute('data-copied'), 1400); }).catch(() => { /* ignore */ }); });
   });
+  // P098: Client: days-left number turns green, amber or red (the number is still shown)
+  run('P098', () => {
+    const el = document.getElementById('wallet-days-left'); if (!el) return;
+    const paint = () => { const n = parseInt((el.textContent || '').replace(/[^0-9-]/g, ''), 10); if (Number.isFinite(n)) el.setAttribute('data-urgency', n <= 30 ? 'urgent' : n <= 90 ? 'soon' : 'ok'); };
+    new MutationObserver(paint).observe(el, { childList: true, characterData: true, subtree: true }); paint();
+  });
   // @@QOL_END
 }
