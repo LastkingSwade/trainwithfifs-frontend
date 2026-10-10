@@ -183,3 +183,4 @@ P082	2026-10-10T23:08:16.431Z	Client: hub cards never overflow their grid cell	S
 P083	2026-10-10T23:08:16.592Z	Client: the banner card wraps nicely	SUCCESS	30875	30963	88	css
 P084	2026-10-10T23:08:35.439Z	Client: the sub-menu can be swiped sideways on a phone	SUCCESS	30963	31149	186	css
 P085	2026-10-10T23:08:35.613Z	Client: sub-menu buttons keep their text on one line	SUCCESS	31149	31272	123	css
+P086	2026-10-10T23:08:35.765Z	Client: tapping the client ID selects all of it	SUCCESS	31272	31396	124	css

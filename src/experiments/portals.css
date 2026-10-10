@@ -258,3 +258,6 @@
 
 /* P086 Client: tapping the client ID selects all of it */
 #dash-client-id { -webkit-user-select: all; user-select: all; }
+
+/* P087 Client: the permit number is easy to select */
+#wallet-permit-number { -webkit-user-select: all; user-select: all; }
