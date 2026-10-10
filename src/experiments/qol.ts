@@ -71,5 +71,14 @@ export function installQol(): void {
   run('Q091', () => { $$('button').forEach((b) => { if (!b.getAttribute('aria-label') && !(b.textContent || '').trim() && b.getAttribute('title')) b.setAttribute('aria-label', b.getAttribute('title') || ''); }); });
   // Q092: Decorative emoji next to labels are hidden from screen readers
   run('Q092', () => { $$('.chip-icon, .pitch-icon, .ssp-cta').forEach((e) => e.setAttribute('aria-hidden', 'true')); });
+  // Q093: Reading progress bar on the About, FAQ and Reviews pages (motion safe)
+  run('Q093', () => {
+    const bar = document.createElement('div'); bar.id = 'qol-read-progress'; bar.setAttribute('aria-hidden', 'true'); document.body.appendChild(bar);
+    const reading = () => ['about', 'faq', 'testimonial'].includes(String(w.currentActiveView));
+    let tick = false;
+    const update = () => { tick = false; if (!reading()) { bar.style.opacity = '0'; return; } const max = document.documentElement.scrollHeight - window.innerHeight; bar.style.opacity = max > 200 ? '1' : '0'; bar.style.transform = 'scaleX(' + (max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0) + ')'; };
+    window.addEventListener('scroll', () => { if (!tick) { tick = true; window.requestAnimationFrame(update); } }, { passive: true });
+    new MutationObserver(update).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  });
   // @@QOL_END
 }
