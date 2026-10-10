@@ -106,3 +106,4 @@ P005	2026-10-10T23:05:49.428Z	Admin: column titles never wrap	SUCCESS	20736	2082
 P006	2026-10-10T23:05:49.575Z	Admin: every other roster row shaded for easier reading	SUCCESS	20828	20984	156	css
 P007	2026-10-10T23:05:49.721Z	Admin: long emails and names wrap instead of widening the table	SUCCESS	20984	21112	128	css
 P008	2026-10-10T23:05:49.869Z	Admin: numbers in the roster line up	SUCCESS	21112	21221	109	css
+P009	2026-10-10T23:05:50.015Z	Admin: status chips in the roster and clients tables stay on one line	SUCCESS	21221	21391	170	css

@@ -27,3 +27,6 @@
 
 /* P009 Admin: status chips in the roster and clients tables stay on one line */
 #admin-roster-tbody .meta-chip, #admin-client-tbody .meta-chip { white-space: nowrap; }
+
+/* P010 Admin: ID columns never wrap */
+#admin-roster-tbody td:first-child, #admin-client-tbody td:first-child { white-space: nowrap; }
