@@ -156,3 +156,4 @@ P055	2026-10-10T23:07:29.767Z	Student: the next-step card keeps clear of the hea
 P056	2026-10-10T23:07:29.913Z	Student: next-step text wraps nicely	SUCCESS	27690	27819	129	css
 P057	2026-10-10T23:07:30.062Z	Student: state dossier sections stay together when printed	SUCCESS	27819	27949	130	css
 P058	2026-10-10T23:07:30.209Z	Student: long dossier values wrap	SUCCESS	27949	28042	93	css
+P059	2026-10-10T23:07:30.358Z	Student: badges and chips wrap onto a second row on small screens	SUCCESS	28042	28195	153	css
