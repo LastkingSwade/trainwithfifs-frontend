@@ -22,3 +22,4 @@ Q021	2026-10-10T23:01:56.672Z	Visitors who ask for more contrast get firmer fiel
 Q022	2026-10-10T23:01:56.824Z	Windows high-contrast mode keeps a visible focus outline	SUCCESS	4299	4452	153	css
 Q023	2026-10-10T23:01:56.941Z	Bigger tap targets for sub-menu buttons and pop-up close buttons on touch screens	SUCCESS	4452	4674	222	css
 Q024	2026-10-10T23:02:14.910Z	Printed pages show the address of outside links	SUCCESS	4674	4859	185	css
+Q025	2026-10-10T23:02:15.030Z	Scrolling inside a pop-up no longer scrolls the page behind it	SUCCESS	4859	4984	125	css

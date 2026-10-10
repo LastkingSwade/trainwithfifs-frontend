@@ -75,3 +75,6 @@ img[loading="lazy"] { background: linear-gradient(135deg, rgba(148, 163, 184, 0.
 
 /* Q025 Scrolling inside a pop-up no longer scrolls the page behind it */
 .goal-modal-box { overscroll-behavior: contain; }
+
+/* Q026 Same for the dimmed overlay around a pop-up */
+.goal-modal-overlay, .fi-portal-modal-overlay { overscroll-behavior: contain; }
