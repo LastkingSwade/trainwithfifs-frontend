@@ -252,3 +252,6 @@
 
 /* P084 Client: the sub-menu can be swiped sideways on a phone */
 .fi-portal-subnav { overflow-x: auto; scrollbar-width: none; } .fi-portal-subnav::-webkit-scrollbar { display: none; }
+
+/* P085 Client: sub-menu buttons keep their text on one line */
+.fi-portal-subnav .fi-subnav-btn { white-space: nowrap; }
