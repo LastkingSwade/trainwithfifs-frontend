@@ -180,3 +180,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q060 Bullet lines in cards break long words */
 .tuition-bullets div { overflow-wrap: anywhere; }
+
+/* Q061 VIP perks wrap more nicely */
+.vip-perks-box { text-wrap: pretty; }
