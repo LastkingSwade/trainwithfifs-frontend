@@ -156,3 +156,6 @@
 
 /* P052 Student: checklist boxes are big enough to tap */
 .task-checkbox { width: 22px; height: 22px; }
+
+/* P053 Student: the 8 journey steps can be swiped on a phone */
+.progress-steps-row { overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 6px; }
