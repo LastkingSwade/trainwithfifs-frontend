@@ -132,3 +132,6 @@
 
 /* P044 Admin: roster search keeps a clear focus ring */
 .admin-filter input:focus-visible { outline: 2px solid var(--accent-cyan, #00e5ff); outline-offset: 2px; }
+
+/* P045 Admin: the chat count badge lines up */
+#admin-chat-count-badge, #admin-tab-chat-badge-count, #admin-tab-roster-badge-count, #admin-tab-clients-badge-count { font-variant-numeric: tabular-nums; }

@@ -141,3 +141,4 @@ P040	2026-10-10T23:06:49.093Z	Admin: the invite window scrolls on its own	SUCCES
 P041	2026-10-10T23:06:49.244Z	Admin: the score sheet pad toolbar keeps clear of the iPad home bar	SUCCESS	25569	25718	149	css
 P042	2026-10-10T23:06:49.396Z	Admin: the score sheet pad canvas never selects or drags like an image	SUCCESS	25718	25892	174	css
 P043	2026-10-10T23:06:49.547Z	Admin: pad buttons show a pointer	SUCCESS	25892	25980	88	css
+P044	2026-10-10T23:07:07.736Z	Admin: roster search keeps a clear focus ring	SUCCESS	25980	26145	165	css
