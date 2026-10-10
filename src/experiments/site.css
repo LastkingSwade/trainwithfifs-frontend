@@ -126,3 +126,6 @@ button:focus:not(:focus-visible) { outline: none; }
 
 /* Q042 Card titles break evenly */
 .fi-select-card h3, .fi-card-title { text-wrap: balance; }
+
+/* Q043 Tier badges never swallow a tap meant for the card under them */
+.card-tier-badge, .badge-pop { pointer-events: none; }

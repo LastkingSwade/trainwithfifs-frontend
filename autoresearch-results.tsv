@@ -39,3 +39,4 @@ Q038	2026-10-10T23:02:33.810Z	Photo captions wrap more nicely	SUCCESS	6586	6669	
 Q039	2026-10-10T23:02:33.928Z	Card descriptions wrap more nicely	SUCCESS	6669	6771	102	css
 Q040	2026-10-10T23:02:34.044Z	Journey step text wraps more nicely	SUCCESS	6771	6883	112	css
 Q041	2026-10-10T23:02:34.161Z	Big buttons break long labels evenly	SUCCESS	6883	6981	98	css
+Q042	2026-10-10T23:02:34.278Z	Card titles break evenly	SUCCESS	6981	7077	96	css
