@@ -1,0 +1,21 @@
+/* Portal extras (student, client, admin). Site variables only; motion only when the visitor allows it. */
+.pextras { display: grid; gap: 10px; margin: 0 0 24px; }
+.pcard { border: 1px solid var(--border-accent, rgba(56, 189, 248, 0.28)); border-radius: 10px; background: rgba(0, 229, 255, 0.04); }
+.pcard > summary { cursor: pointer; padding: 14px 16px; min-height: 48px; font-weight: 800; color: var(--text-main, #f8fafc); list-style: none; display: flex; align-items: center; justify-content: space-between; }
+.pcard > summary::after { content: '+'; color: var(--accent-cyan, #00e5ff); font-weight: 800; }
+.pcard[open] > summary::after { content: '\2212'; }
+.pcard > summary::-webkit-details-marker { display: none; }
+.pcard > summary:focus-visible, .pbtn:focus-visible { outline: 2px solid var(--accent-cyan, #00e5ff); outline-offset: 2px; }
+.pcard-body { padding: 0 16px 16px; font-size: 0.88rem; line-height: 1.5; color: var(--text-muted, #cbd5e1); }
+.pcard-body h4 { margin: 14px 0 4px; font-size: 0.82rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent-cyan, #00e5ff); }
+.pcard-body ul { margin: 0; padding-left: 18px; }
+.pcard-body li { margin: 3px 0; }
+.pcard-body a { color: var(--accent-cyan, #00e5ff); }
+.pcard-strong { font-size: 1rem; font-weight: 800; color: var(--accent-amber, #ffb703); margin: 4px 0 0; }
+.pcard-note { padding: 8px 10px; border-left: 3px solid var(--accent-amber, #ffb703); background: rgba(255, 183, 3, 0.08); color: var(--text-main, #f8fafc); }
+.prow { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.pbtn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 16px; margin-top: 10px; border-radius: 8px; border: 1px solid var(--accent-cyan, #00e5ff); background: rgba(0, 229, 255, 0.1); color: var(--accent-cyan, #00e5ff) !important; font-weight: 700; text-decoration: none; cursor: pointer; }
+.prow .pbtn { margin-top: 0; }
+.preceipt { display: grid; gap: 2px; padding: 8px 0; border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08)); }
+.preceipt strong { color: var(--text-main, #f8fafc); }
+@media (prefers-reduced-motion: no-preference) { .pbtn { transition: background-color 120ms ease-out; } .pbtn:hover { background: rgba(0, 229, 255, 0.2); } }

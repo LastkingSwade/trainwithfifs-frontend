@@ -4,6 +4,7 @@ import { getAuthenticatedUser, getPrivilegedClient, getPublicClient } from '@/Li
 import { isLiveChatHours } from '@/Lib/server/chat-hours';
 import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/group-status';
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
+import { studentInvoices } from '@/Lib/server/student-invoices';
 import { adminMarkAttendance, adminOnlineOverview, adminSaveSession, adminSessionRoster, adminSetCourseOnline, day2Pending, getOnlineOptions, studentOnlineClasses } from '@/Lib/server/online-classroom';
 import { createBookingCheckout, createPodInviteCode, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord, lookupPod } from '@/Lib/server/booking-checkout';
 import { ConfigurationError, resolveSiteUrl } from '@/Lib/config/environment';
@@ -2892,6 +2893,19 @@ export async function POST(req: NextRequest) {
        if (action === 'adminSaveSession') return done(await adminSaveSession(supabase, payload));
        if (action === 'adminSessionRoster') return done(await adminSessionRoster(supabase, payload.sessionId));
        return done(await adminMarkAttendance(supabase, payload.invoiceNumber, payload.kind, payload.attended, String(user?.email || user?.id || 'staff')));
+     }
+
+     case 'studentInvoices': {
+       // The signed-in student's own receipts (paid or deposit paid). The student is found only from the verified token.
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user?.id) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
+       const { data: me, error: meErr } = await supabase.from('students').select('student_id').eq('user_id', user.id).maybeSingle();
+       if (meErr) return NextResponse.json({ success: false, error: 'Could not load your receipts right now.' }, { status: 503 });
+       if (!me?.student_id) return NextResponse.json({ success: true, invoices: [] });
+       return NextResponse.json({ success: true, invoices: await studentInvoices(supabase, String(me.student_id)) });
      }
 
      case 'studentOnlineClass': {

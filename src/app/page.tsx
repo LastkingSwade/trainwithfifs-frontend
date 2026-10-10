@@ -13,6 +13,8 @@ import dynamic from "next/dynamic";
 import { GROUP_EXPLAINER, cleanCourse, friendlyCodeError } from "@/group/groupCopy";
 import { installOnlineForm } from "@/online/onlineForm";
 import { installStudentOnline } from "@/online/studentOnline";
+import { installStudentExtras } from "@/portal/studentExtras";
+import "@/portal/portal.css";
 import { DAY2_ACK_TEXT, DAY2_STATEMENT, FEE_LABEL, IN_PERSON_NOTE, ONLINE_NAME, TECH_REQUIREMENTS } from "@/online/onlineCopy";
 import Head from "next/head";
 import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
@@ -4098,7 +4100,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -4707,6 +4709,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             {/* 8-Step Progress Tracker Roadmap */}
             
             <div id="dash-online-card" hidden></div>
+            <section id="dash-extras" className="pextras" aria-label="Class day, receipts and guides" hidden></section>
             {/* Official Maryland Qualification Scoresheet Card (MSP Form 29-14) */}
             <div className="fi-card" id="dash-scoresheet-card" style={{"marginBottom": "24px", "border": "1px solid rgba(0, 229, 255, 0.28)", "background": "linear-gradient(135deg, rgba(7,11,16,0.95), rgba(15,23,42,0.85))", "borderRadius": "12px", "padding": "20px"}}>
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "12px", "flexWrap": "wrap", "gap": "8px"}}>
@@ -4817,7 +4820,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </p>
               <div className="interactive-checklist">
                 <div className="task-item-card" id="task-card-transport" data-onclick="toggleTaskCheckbox('transport_law')">
-                  <input className="task-checkbox" id="chk-transport_law" data-onclick="event.stopPropagation(); syncTask('transport_law', this.checked)" type="checkbox" />
+                  <input className="task-checkbox" id="chk-transport_law" aria-label="Maryland transport compliance confirmed" data-onclick="event.stopPropagation(); syncTask('transport_law', this.checked)" type="checkbox" />
                   <div>
                     <strong style={{"color": "#fff", "fontFamily": "var(--font-display)", "fontSize": "1.05rem", "display": "block"}}>
                       Maryland Transport Compliance Confirmed
@@ -4828,7 +4831,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </div>
                 </div>
                 <div className="task-item-card" id="task-card-ammo" data-onclick="toggleTaskCheckbox('ammo_acquired')">
-                  <input className="task-checkbox" id="chk-ammo_acquired" data-onclick="event.stopPropagation(); syncTask('ammo_acquired', this.checked)" type="checkbox" />
+                  <input className="task-checkbox" id="chk-ammo_acquired" aria-label="Factory target ammunition acquired" data-onclick="event.stopPropagation(); syncTask('ammo_acquired', this.checked)" type="checkbox" />
                   <div>
                     <strong style={{"color": "#fff", "fontFamily": "var(--font-display)", "fontSize": "1.05rem", "display": "block"}}>
                       Factory Target Ammunition Acquired (50–100 Rounds)
@@ -4839,7 +4842,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </div>
                 </div>
                 <div className="task-item-card" id="task-card-eye" data-onclick="toggleTaskCheckbox('eye_ear_pro')">
-                  <input className="task-checkbox" id="chk-eye_ear_pro" data-onclick="event.stopPropagation(); syncTask('eye_ear_pro', this.checked)" type="checkbox" />
+                  <input className="task-checkbox" id="chk-eye_ear_pro" aria-label="Wrap-around eye and hearing protection ready" data-onclick="event.stopPropagation(); syncTask('eye_ear_pro', this.checked)" type="checkbox" />
                   <div>
                     <strong style={{"color": "#fff", "fontFamily": "var(--font-display)", "fontSize": "1.05rem", "display": "block"}}>
                       Wrap-Around Eye & Hearing Protection Ready
@@ -4850,7 +4853,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </div>
                 </div>
                 <div className="task-item-card" id="task-card-id" data-onclick="toggleTaskCheckbox('id_ready')">
-                  <input className="task-checkbox" id="chk-id_ready" data-onclick="event.stopPropagation(); syncTask('id_ready', this.checked)" type="checkbox" />
+                  <input className="task-checkbox" id="chk-id_ready" aria-label="Government photo identification ready" data-onclick="event.stopPropagation(); syncTask('id_ready', this.checked)" type="checkbox" />
                   <div>
                     <strong style={{"color": "#fff", "fontFamily": "var(--font-display)", "fontSize": "1.05rem", "display": "block"}}>
                       Government Photo Identification Ready
@@ -5888,7 +5891,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           {/* 4 INTERACTIVE INTELLIGENCE CARDS (Primary Navigation Deck - MSP Portal Styling) */}
           <div className="admin-intel-cards-container msp-intel-deck-grid" style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(260px, 1fr))", "gap": "16px", "margin": "20px 0 24px"}}>
             {/* Card 1: Student Roster & Ops */}
-            <div className="portal-feature-launcher-card msp-intel-card msp-card-cyan active" id="btn-admin-tab-roster" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('roster'); }} data-onclick="switchAdminTab('roster')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.25)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-cyan active" id="btn-admin-tab-roster" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('roster'); }} data-onclick="switchAdminTab('roster')" style={{"border": "2px solid var(--accent-cyan)", "background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(0, 229, 255, 0.25)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <span className="card-badge msp-card-unread-badge" id="admin-tab-roster-badge" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "var(--accent-cyan)", "color": "#070b10", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px var(--accent-cyan)", "display": "none"}}>🔔 <span id="admin-tab-roster-badge-count">0</span> NEW</span>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-cyan" style={{"color": "var(--accent-cyan)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
@@ -5916,7 +5919,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
 
             {/* Card 2: Future Initiative Clients */}
-            <div className="portal-feature-launcher-card msp-intel-card msp-card-amber" id="btn-admin-tab-clients" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('clients'); }} data-onclick="switchAdminTab('clients')" role="button" tabIndex={0} style={{"border": "2px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-amber" id="btn-admin-tab-clients" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('clients'); }} data-onclick="switchAdminTab('clients')" style={{"border": "2px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <span className="card-badge msp-card-unread-badge" id="admin-tab-clients-badge" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "var(--accent-amber)", "color": "#070b10", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px var(--accent-amber)", "display": "none"}}>🔔 <span id="admin-tab-clients-badge-count">0</span> NEW</span>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-amber" style={{"color": "var(--accent-amber)", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
@@ -5944,7 +5947,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
 
             {/* Card 3: Live Chat Command */}
-            <div className="portal-feature-launcher-card msp-intel-card msp-card-purple" id="btn-admin-tab-chat" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('chat'); }} data-onclick="switchAdminTab('chat')" role="button" tabIndex={0} style={{"border": "2px solid #a855f7", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(168, 85, 247, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-purple" id="btn-admin-tab-chat" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('chat'); }} data-onclick="switchAdminTab('chat')" style={{"border": "2px solid #a855f7", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(168, 85, 247, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <span className="card-badge msp-card-unread-badge hidden" id="admin-tab-chat-unread" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "#ef4444", "color": "#fff", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px #ef4444"}}>🔔 <span id="admin-tab-chat-badge-count">0</span> NEW</span>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-purple" style={{"color": "#c084fc", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
@@ -5972,7 +5975,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
 
             {/* Card 4: Website Telemetry */}
-            <div className="portal-feature-launcher-card msp-intel-card msp-card-emerald" id="btn-admin-tab-telemetry" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('telemetry'); }} data-onclick="switchAdminTab('telemetry')" role="button" tabIndex={0} style={{"border": "2px solid #10b981", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(16, 185, 129, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
+            <div className="portal-feature-launcher-card msp-intel-card msp-card-emerald" id="btn-admin-tab-telemetry" onClick={(e) => { e.preventDefault(); (window as any).switchAdminTab?.('telemetry'); }} data-onclick="switchAdminTab('telemetry')" style={{"border": "2px solid #10b981", "background": "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(16, 185, 129, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer", "position": "relative", "transition": "all 0.25s ease"}}>
               <span className="card-badge msp-card-unread-badge" id="admin-tab-telemetry-badge" style={{"position": "absolute", "top": "12px", "right": "12px", "background": "#10b981", "color": "#070b10", "fontSize": "0.75rem", "fontWeight": "900", "padding": "3px 9px", "borderRadius": "20px", "boxShadow": "0 0 10px #10b981", "display": "inline-block"}}>📡 LIVE</span>
               <div>
                 <span className="next-step-badge msp-card-eyebrow eyebrow-emerald" style={{"color": "#34d399", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
