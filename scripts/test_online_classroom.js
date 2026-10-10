@@ -100,11 +100,11 @@ function memDb(seed = {}) {
     assert(/\.\.\.\(online \? \{ delivery: 'live_online', day2_ack_at/.test(CHECKOUT), 'new invoice columns must be written only for online bookings');
     assert(/podMember \|\| online \? \{ expires_at/.test(CHECKOUT), 'unpaid online checkouts must expire so days are released');
   });
-  await test('The booking form: the 💻 switch sits next to the 👑 box, shown for every eligible class; uses the calendar; Day 2 wording; the fee is its own line', () => {
+  await test('The booking form: the 💻 switch sits next to the 👑 box, shown for every eligible class; uses the calendar; Day 2 wording; the fee is its own line (the box now sells learning Day 1 from home)', () => {
     const PAGE = fs.readFileSync(path.join(ROOT, 'src/app/page.tsx'), 'utf8'), FORM = fs.readFileSync(path.join(ROOT, 'src/online/onlineForm.ts'), 'utf8'), COPY = fs.readFileSync(path.join(ROOT, 'src/online/onlineCopy.ts'), 'utf8'), SCRIPT = fs.readFileSync(path.join(ROOT, 'public/scripts/TrainWithFIFS_scripts.js'), 'utf8');
     const vip = PAGE.indexOf('id="formBoxVip"'), on = PAGE.indexOf('id="formBoxOnline"');
     assert(vip > 0 && on > vip && on - vip < 2500 && /formBoxOnline" role="switch" aria-checked="false" tabIndex=\{0\} hidden/.test(PAGE), 'switch must follow the VIP box and be accessible');
-    assert(/💻 Live Online Classroom/.test(PAGE) && /id="formBreakdownRemoteRow"/.test(PAGE) && /id="onlineDay2Ack"/.test(PAGE) && !/onlineClassroomSession|onlineRangeSession/.test(PAGE), 'no session pickers any more');
+    assert(/💻 Learn Day 1 From Home/.test(PAGE) && /id="formBreakdownRemoteRow"/.test(PAGE) && /id="onlineDay2Ack"/.test(PAGE) && !/onlineClassroomSession|onlineRangeSession/.test(PAGE), 'no session pickers any more');
     assert(/Day 2 is the hands-on range day/.test(COPY) && /always in person at the range/.test(COPY) && /I understand Day 2 is mandatory, in person, at the range\./.test(COPY) && /In person: best value/.test(COPY) && /Hybrid: Live Online Classroom \+ In-Person Range Day/.test(COPY));
     assert(/calculatePricingBreakdown\(sel, attendees\(\), false, 'live_online'\)/.test(FORM), 'the form must use the same pricing function as the server');
     assert(/onlineEligible\(courseValue\(\)\)/.test(FORM) && /action: 'dayModes'/.test(FORM) && !/onlineOptions|class_sessions/.test(FORM), 'always on: no server switch');

@@ -69,3 +69,29 @@ body.modal-open .fifs-float, .goal-modal-overlay.active ~ .fifs-float { display:
 .fifs-busy { position: relative; }
 .fifs-busy::after { content: ""; display: inline-block; width: 0.9em; height: 0.9em; margin-left: 10px; vertical-align: -0.12em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; }
 @media (prefers-reduced-motion: no-preference) { .fifs-busy::after { animation: fifsSpin 700ms linear infinite; } @keyframes fifsSpin { to { transform: rotate(360deg); } } }
+
+/* Catalog heading: the three ways to train as eye-catching chips instead of one run-on sentence */
+.catalog-legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; max-width: 900px; margin: 18px auto 0; text-align: left; }
+.catalog-chip { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; row-gap: 2px; align-items: center; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1)); background: rgba(13, 20, 30, 0.9); color: var(--text-muted, #cbd5e1); font-size: 0.82rem; line-height: 1.4; }
+.catalog-chip .chip-icon { grid-row: 1 / span 2; font-size: 1.7rem; line-height: 1; }
+.catalog-chip strong { color: #fff; font-family: var(--font-display, sans-serif); font-size: 1rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.catalog-chip.chip-standard { border-color: rgba(0, 229, 255, 0.45); box-shadow: 0 0 18px rgba(0, 229, 255, 0.12); }
+.catalog-chip.chip-standard strong { color: var(--accent-cyan, #00e5ff); }
+.catalog-chip.chip-vip { border-color: rgba(255, 183, 3, 0.6); box-shadow: 0 0 18px rgba(255, 183, 3, 0.16); }
+.catalog-chip.chip-vip strong { color: var(--accent-amber, #ffb703); }
+.catalog-chip.chip-online { border-color: rgba(56, 189, 248, 0.6); box-shadow: 0 0 18px rgba(56, 189, 248, 0.16); }
+.catalog-chip.chip-online strong { color: #7dd3fc; }
+.catalog-legend-hint { margin: 10px 0 0; font-size: 0.8rem; color: var(--text-muted, #94a3b8); letter-spacing: 0.04em; }
+
+/* The live online pitch (booking form, when the 💻 option is switched on) */
+.online-pitch-title { font-family: var(--font-display, sans-serif); font-size: 1.25rem; font-weight: 800; color: var(--accent-cyan, #00e5ff); letter-spacing: 0.04em; text-transform: uppercase; }
+.online-pitch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 10px; margin: 6px 0 12px; }
+.online-pitch-card { display: grid; gap: 4px; padding: 10px 12px; border-radius: 10px; background: rgba(0, 229, 255, 0.07); border: 1px solid rgba(0, 229, 255, 0.28); font-size: 0.8rem; line-height: 1.45; color: var(--text-muted, #cbd5e1); }
+.online-pitch-card .pitch-icon { font-size: 1.5rem; line-height: 1; }
+.online-pitch-card strong { color: #fff; font-size: 0.92rem; }
+.online-day2-callout { padding: 10px 12px; border-left: 4px solid var(--accent-amber, #ffb703); border-radius: 6px; background: rgba(255, 183, 3, 0.08); font-size: 0.84rem; line-height: 1.5; color: var(--text-muted, #cbd5e1); }
+.online-day2-callout strong { color: var(--accent-amber, #ffb703); display: block; margin-bottom: 2px; }
+.online-day2-callout p { margin: 4px 0 0; }
+
+/* Chat bubble: when any pop-up is open the whole bubble (chat pill AND its close button) steps aside, so the red ✕ is never left floating alone */
+body.modal-open #floatingCommWrapper { display: none !important; }

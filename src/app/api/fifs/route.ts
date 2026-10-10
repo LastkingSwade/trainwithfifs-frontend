@@ -1514,6 +1514,65 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ success: true, status: 'success', message: 'Password setup link sent to student.', studentId, emailDispatched: true, accountCreated, accountLinked });
      }
 
+     // Staff: email a registered CLIENT a fresh password setup (reset) link. Only the client ID is sent; the email comes from the client's own
+     // record. Nothing is created and nothing is relinked: it only works for a client who already has a sign-in tied to this record.
+     case 'adminResendClientSetupLink': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       const clientId = typeof payload.clientId === 'string' ? payload.clientId.trim() : '';
+       if (!STUDENT_ID_PATTERN.test(clientId)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'A valid client ID is required.' }, { status: 400 });
+       }
+       const siteUrl = resolveSiteUrl();
+       supabase = getPrivilegedClient();
+       const { data: crow, error: cFindErr } = await supabase.from('clients').select('id, client_id, user_id, email, full_name').eq('client_id', clientId).maybeSingle();
+       if (cFindErr) {
+         console.error('[adminResendClientSetupLink] Client lookup failed:', cFindErr.message);
+         return NextResponse.json({ success: false, status: 'error', error: 'Could not look up the client record. Nothing was sent.' }, { status: 500 });
+       }
+       if (!crow) return NextResponse.json({ success: false, status: 'error', error: 'Client not found. Nothing was sent.' }, { status: 404 });
+       const cEmail = String(crow.email || '').trim().toLowerCase();
+       if (!cEmail || !cEmail.includes('@')) {
+         return NextResponse.json({ success: false, status: 'error', error: 'This client has no email address on file. Add one first; nothing was sent.' }, { status: 422 });
+       }
+       const cLink = await supabase.auth.admin.generateLink({ type: 'recovery', email: cEmail, options: { redirectTo: new URL('/reset-password', siteUrl).toString() } });
+       const cAuth: any = cLink.data?.user; const cAction = cLink.data?.properties?.action_link;
+       if (cLink.error || !cAuth?.id || !cAction) {
+         const e: any = cLink.error;
+         const noAccount = !!e && (e.status === 404 || /user_not_found|not found|no user/i.test(String(e.code || '') + ' ' + String(e.message || '')));
+         console.error('[adminResendClientSetupLink] Link not prepared:', e?.code || e?.message || 'missing link');
+         return NextResponse.json({ success: false, status: 'error', error: noAccount
+           ? 'This client has no sign-in yet, so there is nothing to reset. Use SEND PORTAL INVITE to create one. Nothing was sent.'
+           : 'Could not prepare the setup link. Nothing was sent; try again shortly.' }, { status: noAccount ? 409 : 502 });
+       }
+       if (isStaffOrAdmin(cAuth)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'This email belongs to a staff account, so no client setup link was sent.' }, { status: 409 });
+       }
+       if (!crow.user_id || crow.user_id !== cAuth.id) {
+         return NextResponse.json({ success: false, status: 'error', error: 'This client record is not linked to the sign-in for this email, so nothing was sent. Contact support to repair the link.' }, { status: 409 });
+       }
+       const cMail = await sendResendEmail({
+         to: cEmail,
+         subject: 'Reset your Train With FIFS client portal password',
+         html: `
+           <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#0b0f14;color:#fff;padding:24px;border-radius:8px;">
+             <h2 style="color:#ffb703;">Set your client portal password</h2>
+             <p>Dear ${escapeHtml(crow.full_name || 'Client')},</p>
+             <p>Use the secure link below to choose a new password for your Train With FIFS client portal. The link is time-limited and works once.</p>
+             <p><a href="${escapeHtml(cAction)}" style="display:inline-block;background:#ffb703;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;border-radius:4px;">Set my password</a></p>
+             <p style="color:#aaa;font-size:12px;">If you did not expect this email, you can ignore it. Do not share this link.</p>
+             <p style="color:#888;font-size:12px;margin-top:24px;">Future Initiative Firearm Services • Maryland State Police Certified Training</p>
+           </div>`
+       });
+       if (!cMail.success) {
+         console.error('[adminResendClientSetupLink] Email not delivered:', String(cMail.error || 'unknown').slice(0, 200));
+         return NextResponse.json({ success: false, status: 'error', emailDispatched: false, error: 'The email was NOT delivered, so the client has no new link. Press "Setup link" again to retry.' }, { status: 502 });
+       }
+       return NextResponse.json({ success: true, status: 'success', message: 'Password setup link sent to client.', clientId, emailDispatched: true });
+     }
+
      case 'adminEnrollStudent': {
        const { user, error: authErr } = await getAuthenticatedUser(req);
        if (authErr || !isStaffOrAdmin(user)) {

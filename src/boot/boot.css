@@ -1,4 +1,4 @@
-/* Boot-sequence intro: a plain computer terminal. Terminal text is soft white on pure black; only "Future Initiative Training Grounds" uses the
+/* Boot-sequence intro: a plain computer terminal, centered on the screen so the eye is already where the CRT turn-on happens. Terminal text is soft white on pure black; only "Future Initiative Training Grounds" uses the
    business colours (--accent-cyan). Tunable: --boot-glow-near, --boot-glow-far, --boot-scan-opacity, --boot-flicker. */
 :root {
   --boot-text: #d9dde3;
@@ -29,8 +29,8 @@
   .boot-intro.is-leaving { animation: bootFade var(--boot-fade, 300ms) ease-out forwards; pointer-events: none; }
 
   /* The "screen": what collapses in the CRT switch-off. */
-  .boot-screen { position: absolute; inset: 0; background: #000; transform-origin: center; }
-  .boot-term { position: relative; z-index: 1; padding: clamp(16px, 4vw, 40px); text-align: left; max-width: 100%; color: var(--boot-text);
+  .boot-screen { position: absolute; inset: 0; background: #000; transform-origin: center; display: flex; align-items: center; justify-content: center; }
+  .boot-term { position: relative; z-index: 1; padding: clamp(16px, 4vw, 40px); text-align: center; width: min(94vw, 980px); max-width: 100%; color: var(--boot-text);
     font-size: clamp(14px, 3.6vw, 22px); font-weight: 500; letter-spacing: 0.04em; line-height: 1.6; }
   .boot-line { min-height: 1.6em; overflow-wrap: anywhere; white-space: pre-wrap; }
   .boot-brand { color: var(--boot-color); font-weight: 700;

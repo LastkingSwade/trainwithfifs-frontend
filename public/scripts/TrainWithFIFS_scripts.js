@@ -4656,6 +4656,22 @@ function openAdminEditStudentModal(studentId) {
       });
     }
     window.resendStudentSetupLink = resendStudentSetupLink;
+    // Emails a registered client a password setup (reset) link. The server uses the email on the client's own record (only the ID is sent).
+    function resendClientSetupLink(clientId, btnEl) {
+      var c = (window.adminCachedClients || []).find(function(item) { return item.clientId === clientId; });
+      if (!c) { alert('Client record not found in the active list.'); return; }
+      if (!c.email) { alert('This client has no email address on file. Add one before sending a setup link.'); return; }
+      if (!confirm('Email a password setup link to ' + (c.fullName || clientId) + ' at ' + c.email + '?')) return;
+      if (btnEl) btnEl.disabled = true;
+      fifsSaveOrReport('adminResendClientSetupLink', { clientId: clientId }, function(res) {
+        if (btnEl) btnEl.disabled = false;
+        alert((res && res.message) || 'Password setup link sent to client.');
+      }, function(err) {
+        if (btnEl) btnEl.disabled = false;
+        alert('Setup link was NOT sent: ' + ((err && err.message) || 'the server did not confirm it.'));
+      });
+    }
+    window.resendClientSetupLink = resendClientSetupLink;
     function deleteStudentFromRoster(studentId) {
       var s = adminCachedStudents.find(item => item.studentId === studentId);
       var name = s ? s.fullName : studentId;
@@ -4835,6 +4851,7 @@ function openAdminEditStudentModal(studentId) {
           <td style="text-align: center;">
             <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
               <button type="button" class="btn-spark" onclick="openAdminEditClientModal('${fifsSafeId(c.clientId)}')" style="width: auto; padding: 5px 10px; font-size: 0.78rem; border-color: var(--accent-amber); color: var(--accent-amber);">✏️ Edit</button>
+              <button type="button" class="btn-spark" onclick="resendClientSetupLink('${fifsSafeId(c.clientId)}', this)" title="Email this client a link to set or reset their password" style="width: auto; padding: 5px 10px; font-size: 0.78rem; border-color: var(--accent-cyan); color: var(--accent-cyan);">✉️ Setup link</button>
               <button type="button" class="btn-spark" onclick="deleteClientFromRoster('${fifsSafeId(c.clientId)}')" style="width: auto; padding: 5px 10px; font-size: 0.78rem; border-color: var(--accent-red); color: var(--accent-red);">🗑️ Delete</button>
             </div>
           </td>

@@ -29,3 +29,23 @@
 .admin-help dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; font-size: 0.84rem; }
 .admin-help dt { font-family: var(--font-mono, ui-monospace, Menlo, Consolas, monospace); color: var(--accent-amber, #ffb703); }
 .admin-help dd { margin: 0; color: var(--text-muted, #cbd5e1); }
+
+/* Score sheet pad (Admin Hub > Student Roster > Edit): the editable official form that replaces "Choose file" */
+.ssp-box { border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 10px; padding: 12px; background: rgba(0, 229, 255, 0.05); margin-bottom: 8px; }
+.ssp-title { font-weight: 800; color: var(--text-main, #f8fafc); font-size: 0.95rem; }
+.ssp-help { margin: 4px 0 10px; color: var(--text-muted, #cbd5e1); font-size: 0.82rem; line-height: 1.45; }
+.ssp-thumb { display: block; position: relative; width: min(100%, 300px); padding: 0; border: 2px dashed var(--accent-cyan, #00e5ff); border-radius: 8px; background: #fff; cursor: pointer; overflow: hidden; }
+.ssp-thumb img { display: block; width: 100%; height: auto; }
+.ssp-cta { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px; background: rgba(7, 11, 16, 0.88); color: var(--accent-cyan, #00e5ff); font-weight: 800; font-size: 0.9rem; }
+.ssp-thumb:focus-visible { outline: 3px solid var(--accent-amber, #ffb703); outline-offset: 2px; }
+.ssp-status { margin-top: 8px; font-size: 0.84rem; color: var(--accent-amber, #ffb703); min-height: 1.2em; }
+.ssp-fold { margin-top: 6px; font-size: 0.8rem; color: var(--text-muted, #94a3b8); }
+.ssp-fold summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+.ssp-overlay { position: fixed; inset: 0; z-index: 2147483200; background: #0b0f14; display: flex; flex-direction: column; }
+.ssp-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px; background: #0d141e; border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12)); }
+.ssp-btn { min-width: 44px; min-height: 44px; padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--border-subtle, rgba(255, 255, 255, 0.25)); background: transparent; color: var(--text-main, #f8fafc); font-weight: 700; cursor: pointer; }
+.ssp-btn.on { border-color: var(--accent-cyan, #00e5ff); box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.35); }
+.ssp-btn[data-color] { border-radius: 50%; width: 44px; padding: 0; }
+.ssp-done { margin-left: auto; background: var(--accent-cyan, #00e5ff); color: #070b10; border-color: var(--accent-cyan, #00e5ff); }
+.ssp-scroll { flex: 1; overflow: auto; background: #1b2430; padding: 12px; -webkit-overflow-scrolling: touch; }
+.ssp-canvas { display: block; margin: 0 auto; background: #fff; touch-action: none; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6); }

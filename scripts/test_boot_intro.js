@@ -30,8 +30,8 @@ test('Colours: terminal text is plain light gray; only "Future Initiative Traini
   assert(/background: #000;/.test(CSS), 'background must be pure black');
   assert(!/#0f0\b|#00ff00|lime|green/i.test(CSS), 'a green slipped in');
 });
-test('Terminal look: left aligned monospace text with a blinking block cursor', () => {
-  assert(/\.boot-term \{[^}]*text-align: left/.test(CSS) && /font-family: var\(--font-mono/.test(CSS) && /bootBlink 1s steps\(1, end\) infinite/.test(CSS) && /\.boot-cursor \{[^}]*background: var\(--boot-text\)/.test(CSS), 'terminal styling');
+test('Terminal look: monospace text centered on the screen (so the eye is where the CRT turn-on happens) with a blinking block cursor', () => {
+  assert(/\.boot-screen \{[^}]*display: flex; align-items: center; justify-content: center/.test(CSS) && /\.boot-term \{[^}]*text-align: center/.test(CSS) && /font-family: var\(--font-mono/.test(CSS) && /bootBlink 1s steps\(1, end\) infinite/.test(CSS) && /\.boot-cursor \{[^}]*background: var\(--boot-text\)/.test(CSS), 'terminal styling');
 });
 test('Glitch, dissolve and CRT switch-ON exist and use only opacity and transform: a line stretches out, then the black opens top and bottom', () => {
   for (const k of ['bootJitter', 'bootSplitA', 'bootSplitB', 'bootDissolve', 'bootCurtainOpen', 'bootCrtLineOn']) assert(CSS.includes('@keyframes ' + k), k + ' missing');

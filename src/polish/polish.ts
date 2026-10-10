@@ -13,9 +13,66 @@ function floatBtn(id: string, text: string, label: string): HTMLButtonElement {
 }
 const modalOpen = () => document.body.classList.contains('modal-open') || !!document.querySelector('.goal-modal-overlay.active');
 
+
+// Back button: one step back closes only the front-most pop-up (an edit window over the roster window, for example) and shows what was behind it.
+// Only when no pop-up is open does it go to the previous page, as before. (It used to close every pop-up at once and then jump to the home screen.)
+const OVERLAYS = '.goal-modal-overlay, .fi-portal-modal-overlay, #adminSubpanelModalOverlay, [id$="Modal"][style], [role="dialog"]';
+const CLOSERS: Record<string, string> = { adminSubpanelModalOverlay: 'closeAdminSubpanelModal', adminEditStudentModal: 'closeAdminEditStudentModal', courseBookingModal: 'closeCourseBookingModal' };
+function isOpen(el: HTMLElement): boolean {
+  const cs = getComputedStyle(el);
+  return cs.display !== 'none' && cs.visibility !== 'hidden' && parseFloat(cs.opacity) > 0 && el.getClientRects().length > 0;
+}
+export function frontOverlay(): HTMLElement | null {
+  const all = Array.from(document.querySelectorAll<HTMLElement>(OVERLAYS)).filter((el) => el.id && isOpen(el));
+  let best: HTMLElement | null = null, bestZ = -Infinity;
+  for (const el of all) {
+    if (el.id === 'floatingCommPill' || el.classList.contains('boot-intro')) continue;
+    const z = parseInt(getComputedStyle(el).zIndex, 10); const zz = Number.isFinite(z) ? z : 0;
+    if (zz >= bestZ) { best = el; bestZ = zz; }   // equal z-index: the later one in the page is in front
+  }
+  return best;
+}
+function closeOverlay(el: HTMLElement) {
+  const fn = CLOSERS[el.id] && w[CLOSERS[el.id]];
+  if (typeof fn === 'function') fn(); else { el.classList.remove('active', 'open'); el.style.setProperty('display', 'none', 'important'); el.style.setProperty('opacity', '0', 'important'); el.style.setProperty('visibility', 'hidden', 'important'); }
+  if (!frontOverlay()) { document.body.classList.remove('modal-open'); document.body.style.overflow = ''; }
+}
+export function installBackStep(): void {
+  const original = w.navigateBack;
+  if (typeof original !== 'function' || original.__fifsStep) return;
+  const wrapped = function (this: unknown, ...args: unknown[]) {
+    const front = frontOverlay();
+    if (front) { closeOverlay(front); return; }
+    return original.apply(this, args);
+  };
+  (wrapped as any).__fifsStep = true;
+  w.navigateBack = wrapped;
+}
+
+
+// Chat bubble: closing it hides it for this visit only (it used to vanish forever, and a stranded red ✕ could be left on screen).
+// Visitors who closed it before get it back; the old permanent flag is cleared.
+const CHAT_FLAG = 'fifs_chat_bubble_dismissed';
+export function installChatBubble(): void {
+  try { window.localStorage.removeItem(CHAT_FLAG); } catch { /* ignore */ }
+  const wrap = document.getElementById('floatingCommWrapper');
+  let dismissed = false;
+  try { dismissed = window.sessionStorage.getItem('fifs.chatDismissed') === '1'; } catch { /* shown as usual */ }
+  if (wrap) { if (dismissed) wrap.style.setProperty('display', 'none', 'important'); else wrap.style.setProperty('display', 'flex'); }
+  const original = w.dismissFloatingChat;
+  w.dismissFloatingChat = function (this: unknown, ...args: unknown[]) {
+    if (typeof original === 'function') original.apply(this, args);
+    try { window.localStorage.removeItem(CHAT_FLAG); } catch { /* ignore */ }
+    try { window.sessionStorage.setItem('fifs.chatDismissed', '1'); } catch { /* ignore */ }
+  };
+}
+
 export function installPolish(): void {
   if (w.__fifsPolishInstalled) return;
   w.__fifsPolishInstalled = true;
+
+  installBackStep();
+  installChatBubble();
 
   // #80 status messages are announced by screen readers
   document.querySelectorAll<HTMLElement>('.status-msg').forEach((el) => { if (!el.getAttribute('role')) { el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); } });

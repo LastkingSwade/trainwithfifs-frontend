@@ -18,9 +18,10 @@ import { installStudentExtras } from "@/portal/studentExtras";
 import { installClientExtras } from "@/portal/clientExtras";
 import { installSkeletons } from "@/portal/skeleton";
 import { installPolish } from "@/polish/polish";
+import { installScoresheetPad } from "@/portal/scoresheetPad";
 import { installAdminExtras } from "@/portal/adminExtras";
 import "@/portal/portal.css";
-import { DAY2_ACK_TEXT, DAY2_STATEMENT, FEE_LABEL, IN_PERSON_NOTE, ONLINE_NAME, TECH_REQUIREMENTS } from "@/online/onlineCopy";
+import { DAY2_ACK_TEXT, DAY2_STATEMENT, DAY2_WHY, DAY2_WHY_TITLE, FEE_LABEL, IN_PERSON_NOTE, ONLINE_BENEFITS, ONLINE_NAME, ONLINE_PITCH_TITLE, TECH_REQUIREMENTS } from "@/online/onlineCopy";
 import Head from "next/head";
 import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
 import { createRecoveryClient } from "@/Lib/supabase/recovery-client";
@@ -4183,7 +4184,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installAdminExtras(); installSkeletons(); installPolish(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installAdminExtras(); installSkeletons(); installPolish(); installScoresheetPad(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -6664,24 +6665,32 @@ document.addEventListener('submit', handleDelegatedSubmit);
         {/* Course Catalog & Transparent Pricing Section */}
         <div id="course-catalog-section" style={{"textAlign": "center", "margin": "36px 0 20px"}}>
           <span style={{"fontFamily": "var(--font-display)", "fontSize": "0.88rem", "fontWeight": "800", "color": "var(--accent-cyan)", "textTransform": "uppercase", "letterSpacing": "1.5px"}}>
-            All-Inclusive & Self-Equipped Options
+            Clear Prices. No Surprises.
           </span>
           <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.95rem", "color": "#fff", "textTransform": "uppercase", "marginTop": "4px"}}>
-            Course Catalog & Transparent Pricing
+            Choose Your Class. Choose Your Level.
           </h3>
-          <p style={{"fontSize": "0.92rem", "color": "var(--text-muted)", "maxWidth": "740px", "margin": "6px auto 0", "lineHeight": "1.55"}}>
-            
-          All courses display standard self-equipped Base Pricing by default. Toggle between 
-            <strong>
-              Standard Base
-            </strong>
-             and 
-            <strong>
-              👑 VIP
-            </strong>
-             on any card to see exactly what is added!
-        
+          <p style={{"fontSize": "0.95rem", "color": "var(--text-muted)", "maxWidth": "700px", "margin": "6px auto 0", "lineHeight": "1.55"}}>
+            Every price is shown up front. Flip any card between three ways to train and watch the price and what is included change right there.
           </p>
+          <div className="catalog-legend" role="list" aria-label="Ways to train">
+            <div className="catalog-chip chip-standard" role="listitem">
+              <span className="chip-icon" aria-hidden="true">🎯</span>
+              <strong>Standard</strong>
+              <span>Bring your own firearm and ammo. Weekend classes.</span>
+            </div>
+            <div className="catalog-chip chip-vip" role="listitem">
+              <span className="chip-icon" aria-hidden="true">👑</span>
+              <strong>VIP</strong>
+              <span>Range fee, loaner firearm and ammo included. Any day of the week.</span>
+            </div>
+            <div className="catalog-chip chip-online" role="listitem">
+              <span className="chip-icon" aria-hidden="true">💻</span>
+              <strong>Live Online</strong>
+              <span>Learn Day 1 from home. Day 2 is hands-on at the range.</span>
+            </div>
+          </div>
+          <p className="catalog-legend-hint">Tap the switch on any card: Standard, 👑 or 💻.</p>
         </div>
         <div className="tuition-grid">
           {/* 1. Mid-Atlantic Multi-State Mastery (NEW FLAGSHIP) */}
@@ -11247,20 +11256,34 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
                 <div id="formBoxOnline" role="switch" aria-checked="false" tabIndex={0} hidden data-onclick="toggleFormOnline()" style={{"gridColumn": "1 / -1", "background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "10px", "cursor": "pointer", "transition": "all 0.2s"}}>
                   <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "gap": "10px"}}>
-                    <strong style={{"color": "var(--accent-cyan)", "fontSize": "0.85rem"}}>
-                      💻 Live Online Classroom
+                    <strong style={{"color": "var(--accent-cyan)", "fontSize": "0.9rem"}}>
+                      💻 Learn Day 1 From Home
                     </strong>
                     <span id="formOnlineBadge" style={{"fontSize": "0.74rem", "fontWeight": "800", "color": "var(--text-muted)"}}>OFF</span>
                   </div>
-                  <p style={{"color": "var(--text-muted)", "fontSize": "0.74rem", "marginTop": "3px", "lineHeight": "1.35"}}>
-                    Classroom taught live over video. Day 2 range day stays in person. Adds a remote-delivery fee.
+                  <p style={{"color": "var(--text-muted)", "fontSize": "0.78rem", "marginTop": "3px", "lineHeight": "1.4"}}>
+                    Live classroom over video, no commute. Day 2 stays hands-on at the range. Adds a remote-delivery fee.
                   </p>
                 </div>
               </div>
               <div id="formOnlineFields" hidden style={{"marginTop": "12px", "border": "1px solid var(--border-accent)", "borderRadius": "10px", "padding": "12px 14px", "background": "rgba(0, 229, 255, 0.05)"}}>
-                <div style={{"fontWeight": "800", "color": "var(--text-main)", "fontSize": "0.9rem", "marginBottom": "6px"}}>{ONLINE_NAME}</div>
-                <p style={{"color": "var(--text-main)", "fontSize": "0.84rem", "lineHeight": "1.5", "margin": "0 0 8px"}}><strong>{DAY2_STATEMENT}</strong></p>
-                <p style={{"color": "var(--text-main)", "fontSize": "0.84rem", "lineHeight": "1.5", "margin": "0 0 4px"}}>Pick <strong>Day 1</strong> (your live online classroom day) and then <strong>Day 2</strong> (your in-person range day) on the calendar below. 💻 marks web days and 🏫 marks in-person days.</p>
+                <div className="online-pitch-title">{ONLINE_PITCH_TITLE}</div>
+                <div style={{"fontSize": "0.76rem", "color": "var(--text-muted)", "marginBottom": "8px", "letterSpacing": "0.3px"}}>{ONLINE_NAME}</div>
+                <div className="online-pitch-grid">
+                  {ONLINE_BENEFITS.map((b) => (
+                    <div className="online-pitch-card" key={b.title}>
+                      <span className="pitch-icon" aria-hidden="true">{b.icon}</span>
+                      <strong>{b.title}</strong>
+                      <span>{b.text}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="online-day2-callout" role="note">
+                  <strong>{DAY2_WHY_TITLE}</strong>
+                  <p>{DAY2_WHY}</p>
+                  <p style={{"fontWeight": "700", "color": "var(--text-main)"}}>{DAY2_STATEMENT}</p>
+                </div>
+                <p style={{"color": "var(--text-main)", "fontSize": "0.84rem", "lineHeight": "1.5", "margin": "10px 0 4px"}}>Pick <strong>Day 1</strong> (your live online classroom day) and then <strong>Day 2</strong> (your in-person range day) on the calendar below. 💻 marks web days and 🏫 marks in-person days.</p>
                 <label style={{"display": "flex", "gap": "8px", "alignItems": "flex-start", "margin": "10px 0 4px", "fontSize": "0.84rem", "color": "var(--text-main)", "cursor": "pointer"}}>
                   <input type="checkbox" id="onlineDay2Ack" style={{"marginTop": "3px"}} />
                   <span>{DAY2_ACK_TEXT}</span>

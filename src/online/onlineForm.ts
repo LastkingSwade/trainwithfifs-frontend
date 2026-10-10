@@ -164,7 +164,7 @@ export function installOnlineForm(): void {
     if (!card || card.querySelector('.online-badge')) continue;
     const badge = document.createElement('div');
     badge.className = 'online-badge';
-    badge.textContent = '💻 Live online classroom available. Day 2 range day is always in person.';
+    badge.textContent = '💻 Learn Day 1 from home. Day 2 is hands-on at the range.';
     const title = card.querySelector('.tuition-title');
     if (title && title.parentNode) title.parentNode.insertBefore(badge, title.nextSibling); else card.appendChild(badge);
   }
