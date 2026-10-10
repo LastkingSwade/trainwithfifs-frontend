@@ -74,7 +74,7 @@ export function calculatePricingBreakdown(courseSelection: string, attendees: nu
   const rawTuitionCents = toCents(baseTuitionPerPerson * attendees);
   const discountCents = Math.round(rawTuitionCents * discountPercent);
   const discountedTuitionCents = rawTuitionCents - discountCents;
-  // Range lane fee: $45.00 per person on the Base track, included for VIP Turnkey
+  // Range lane fee: $45.00 per person on the Base track, included for VIP
   const rangeFeeCents = isVip ? 0 : toCents(RANGE_FEE_PER_PERSON * attendees);
   const subtotalCents = discountedTuitionCents + rangeFeeCents;
   const mdTaxCents = Math.round(subtotalCents * MD_SALES_TAX_RATE);
@@ -97,4 +97,10 @@ export function calculatePricingBreakdown(courseSelection: string, attendees: nu
     depositCents,
     chargeCents
   };
+}
+
+// Course strings keep "VIP Turnkey" inside their stored values (existing records and pricing matches depend on it);
+// anything a person reads shows just "VIP".
+export function displayCourseLabel(courseSelection: string): string {
+  return String(courseSelection || '').replace(/VIP Turnkey/gi, 'VIP');
 }

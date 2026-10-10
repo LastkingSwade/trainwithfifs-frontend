@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import "../delight/delight.css";
 import BootIntro from "../boot/BootIntro";
+import HackDetected from "../hack/HackDetected";
 import { BOOT_GATE_SCRIPT } from "../boot/bootConfig";
 
 export const metadata: Metadata = {
@@ -34,6 +35,7 @@ export default function RootLayout({
           {recoveryRedirect}
         </Script>
         <BootIntro />
+        <HackDetected />
         {children}
       </body>
     </html>

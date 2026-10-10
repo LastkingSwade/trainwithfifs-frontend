@@ -427,7 +427,7 @@ async function main() {
     assert(bad.length === 0, 'browser imports server code: ' + bad.map((f) => path.relative(ROOT, f)).join(', '));
   });
   await test('Browser-reachable modules reference no server secret variables and only allowed NEXT_PUBLIC_* names', async () => {
-    const allowedPublic = new Set(['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'NEXT_PUBLIC_SITE_URL', 'NEXT_PUBLIC_FIFS_DEPLOYMENT_ENV']);
+    const allowedPublic = new Set(['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'NEXT_PUBLIC_SITE_URL', 'NEXT_PUBLIC_FIFS_DEPLOYMENT_ENV', 'NEXT_PUBLIC_HACK_EFFECT']); // the last is a harmless on/off switch (value 'off' disables the homepage Hack Detected effect)
     for (const f of browserFiles) {
       const code = fs.readFileSync(f, 'utf-8');
       for (const name of SERVER_SECRET_NAMES) assert(!new RegExp(`process\\.env\\.${name}\\b`).test(code), `${path.relative(ROOT, f)} reads ${name}`);

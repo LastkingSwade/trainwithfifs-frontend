@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import Stripe from 'stripe';
-import { calculatePricingBreakdown, isAlumniCourse, parseAttendeeCount } from '../pricing';
+import { calculatePricingBreakdown, displayCourseLabel, isAlumniCourse, parseAttendeeCount } from '../pricing';
 import { getAuthenticatedUser, getPrivilegedClient, hasBearerToken, resolveStripeSecretKey } from './supabase-admin';
 import { sendDiscordAlert } from './discord';
 import { ConfigurationError, resolveSiteUrl } from '../config/environment';
@@ -262,7 +262,7 @@ export async function createBookingCheckout(
             currency: 'usd',
             unit_amount: pricing.chargeCents,
             product_data: {
-              name: `${courseSelection} — ${isPayFull ? 'Full Tuition & Range Fee' : '30% Reservation Deposit'}`,
+              name: `${displayCourseLabel(courseSelection)} — ${isPayFull ? 'Full Tuition & Range Fee' : '30% Reservation Deposit'}`,
               description: `Invoice: ${invoiceId} • Total Course Investment: $${pricing.grandTotal.toFixed(2)} (Tuition + ${pricing.isVip ? 'VIP Range Perk' : "$45 Cindy's Range Fee"} + 6% MD Tax) • ${isPayFull ? 'Paid in Full' : 'Deposit: $' + pricing.depositDueNow.toFixed(2) + ' (Remaining $' + pricing.balanceDueClass.toFixed(2) + ' due on class day)'}`,
             },
           },
@@ -371,7 +371,7 @@ export async function createBookingCheckout(
       { name: 'Classification', value: isGuest ? 'Guest' : 'Verified Student', inline: true },
       { name: 'Email', value: email, inline: true },
       { name: 'Phone', value: phone || 'Not provided', inline: true },
-      { name: 'Course Track', value: courseSelection + (pricing.isVip ? ' (VIP Turnkey)' : ' (Standard Base)'), inline: false },
+      { name: 'Course Track', value: courseSelection + (pricing.isVip ? ' (VIP)' : ' (Standard Base)'), inline: false },
       { name: 'Attendees', value: String(attendees), inline: true },
       { name: isPayFull ? 'Charged Now (Full)' : 'Deposit Due Now', value: '$' + (pricing.chargeCents / 100).toFixed(2), inline: true },
       { name: 'Total Investment', value: '$' + pricing.grandTotal.toFixed(2), inline: true },

@@ -139,7 +139,7 @@ test('The booking form shows both required statements before the submit button, 
   assert(PAGE.lastIndexOf('<form', notice) > PAGE.lastIndexOf('</form>', notice), 'notice is not inside a form');
   const text = PAGE.slice(notice, submit).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
   assert(text.includes('30% deposit due today to reserve your seat; remaining balance due at class.'), 'deposit sentence missing');
-  assert(text.includes("Base track includes Cindy's Hot Shots range fee ($45/person); VIP turnkey includes all range fees."), 'range fee sentence missing');
+  assert(text.includes("Base track includes Cindy's Hot Shots range fee ($45/person); VIP includes all range fees."), 'range fee sentence missing');
 });
 test('The $45 range fee in the notice matches the server', () => {
   const pricing = fs.readFileSync(path.join(ROOT, 'src/Lib/pricing.ts'), 'utf-8');

@@ -1,10 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BOOT, BOOT_DONE_EVENT, BOOT_FLAG, BOOT_GRANTED, BOOT_TITLE } from './bootConfig';
+import { BOOT, BOOT_DONE_EVENT, BOOT_GRANTED, BOOT_TITLE } from './bootConfig';
 import './boot.css';
 
-// First-visit terminal intro. The inline gate script in the page head sets data-boot on <html> before the first paint (which keeps the
+// Module-level: lives as long as this document. A full load or reload starts fresh (the intro plays again); client-side route changes keep it,
+// so the intro cannot replay on navigation even if the component were mounted again.
+let introFinished = false;
+
+// Terminal intro, once per full page load. The inline gate script in the page head sets data-boot on <html> before the first paint (which keeps the
 // page hidden and its animations paused); this component plays the sequence, then reveals the page and starts the animations.
 export default function BootIntro() {
   const [active, setActive] = useState(true);
@@ -14,8 +18,7 @@ export default function BootIntro() {
 
   useEffect(() => {
     const root = document.documentElement;
-    if (!root.hasAttribute('data-boot')) { setActive(false); return; }
-    try { localStorage.setItem(BOOT_FLAG, '1'); } catch { /* storage blocked: the gate already refused to boot */ }
+    if (introFinished || !root.hasAttribute('data-boot')) { setActive(false); return; }
 
     const timers: number[] = [];
     const later = (fn: () => void, ms: number) => { timers.push(window.setTimeout(fn, ms)); };
@@ -24,6 +27,7 @@ export default function BootIntro() {
     const finish = (fadeMs: number) => {
       if (finished) return;
       finished = true;
+      introFinished = true;
       timers.forEach((t) => window.clearTimeout(t));
       window.removeEventListener('pointerdown', skip);
       window.removeEventListener('keydown', skip);

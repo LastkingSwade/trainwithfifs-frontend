@@ -14,12 +14,11 @@ export const BOOT = {
 
 export const BOOT_TITLE = 'FUTURE INITIATIVE FIREARM SERVICES';
 export const BOOT_GRANTED = 'ACCESS GRANTED';
-export const BOOT_FLAG = 'fifs_intro_seen'; // localStorage: set once the intro has started, so repeat visits and refreshes skip it
 export const BOOT_DONE_EVENT = 'fifs:boot-complete';
 
 export const BOOT_TOTAL_MS = BOOT.blankMs + BOOT_TITLE.length * BOOT.typeMsPerChar + BOOT.holdAfterTitleMs + BOOT_GRANTED.length * BOOT.grantedMsPerChar + BOOT.holdAfterGrantedMs + BOOT.fadeMs;
 
-// Runs in <head> before the first paint. Marks the page as booting only for a first-time visitor on the plain home page.
-// No boot for: other routes, links with a hash or a password-reset/sign-in token, reduced motion, search and speed-test bots,
-// or when storage is unavailable. The timer here is the guarantee that the page can never stay hidden.
-export const BOOT_GATE_SCRIPT = `(function(){try{var d=document.documentElement,l=location;if(l.pathname!=='/')return;if((l.hash&&l.hash!=='#')||/access_token=|[?&]code=|type=recovery/.test(l.search+l.hash))return;if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;if(/bot|crawl|spider|slurp|lighthouse|headless|preview/i.test(navigator.userAgent))return;if(localStorage.getItem('${BOOT_FLAG}'))return;d.setAttribute('data-boot','on');setTimeout(function(){if(d.hasAttribute('data-boot')){d.removeAttribute('data-boot');try{window.dispatchEvent(new Event('${BOOT_DONE_EVENT}'))}catch(e){}}},${BOOT.failsafeMs});}catch(e){}})();`;
+// Runs in <head> before the first paint, so it runs on every full page load and reload (including hard refresh) and never on client-side route changes.
+// Marks the page as booting on the plain home page only. No boot for: other routes, links with a hash or a password-reset/sign-in token,
+// reduced motion, or search and speed-test bots. The timer here is the guarantee that the page can never stay hidden.
+export const BOOT_GATE_SCRIPT = `(function(){try{var d=document.documentElement,l=location;if(l.pathname!=='/')return;if((l.hash&&l.hash!=='#')||/access_token=|[?&]code=|type=recovery/.test(l.search+l.hash))return;if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;if(/bot|crawl|spider|slurp|lighthouse|headless|preview/i.test(navigator.userAgent))return;d.setAttribute('data-boot','on');setTimeout(function(){if(d.hasAttribute('data-boot')){d.removeAttribute('data-boot');try{window.dispatchEvent(new Event('${BOOT_DONE_EVENT}'))}catch(e){}}},${BOOT.failsafeMs});}catch(e){}})();`;

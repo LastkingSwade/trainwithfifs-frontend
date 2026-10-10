@@ -290,7 +290,7 @@ export default function TrainWithFIFS(props: any) {
         why: [
           "You travel along I-95, I-81, or I-70 for work, family, or vacations and want legal carry coverage across multiple states without accidental felony violations.",
           "Knocks out your Maryland Wear & Carry permit plus non-resident application documentation for VA, FL, AZ, and PA in one organized experience.",
-          "VIP Turnkey option provides everything: range fees, targets, loaner 9mm, factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos."
+          "VIP option provides everything: range fees, targets, loaner 9mm, factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos."
         ],
         whyNot: [
           "If you only stay inside Maryland and rarely travel out of state, the standard Maryland Wear & Carry course ($199.99 Base / $279.99 VIP) is all you need.",
@@ -715,7 +715,7 @@ export default function TrainWithFIFS(props: any) {
         baseBadge: "5-STATE EXPANSION (MD+VA+FL+AZ+PA) — 34+ STATES LEGAL CARRY",
         vipBadge: "👑 ALL-INCLUSIVE VIP 5-STATE CONCIERGE EXPERIENCE",
         baseDesc: "Full 16-hour Maryland Wear & Carry qualification + application dossiers for Virginia, Florida, Arizona, and Pennsylvania (34+ state legal carry reciprocity). Self-equipped track: bring own firearm and ammo.",
-        vipDesc: "👑 All-Inclusive VIP Turnkey Concierge. 5-state application packets, Livescan fingerprint guidance, priority range lane, loaner firearm, ammunition, photo compliance passport prints, and full notary certification included.",
+        vipDesc: "👑 All-Inclusive VIP Concierge. 5-state application packets, Livescan fingerprint guidance, priority range lane, loaner firearm, ammunition, photo compliance passport prints, and full notary certification included.",
         baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($424.99)",
         vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($594.99)"
       },
@@ -727,7 +727,7 @@ export default function TrainWithFIFS(props: any) {
         baseBadge: "DUAL CERTIFICATION: CONCEALED CARRY + HANDGUN PURCHASE PERMIT",
         vipBadge: "👑 ALL-INCLUSIVE VIP COMBO CONCIERGE (LIVESCAN + RANGE INCLUDED)",
         baseDesc: "Comprehensive dual-licensing package meeting both purchase and carry requirements under Maryland law (MSP PS § 5-306 & § 5-117.1). Self-equipped track: provide own handgun, holster, and 50 rounds ammo. Range fee ($45.00) & 6% tax calculated at checkout.",
-        vipDesc: "👑 Turnkey VIP Concierge. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Includes B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition, holster, eye/ear pro, and on-site passport compliance photos.",
+        vipDesc: "👑 VIP Concierge. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Includes B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition, holster, eye/ear pro, and on-site passport compliance photos.",
         baseValue: "Maryland CCW & HQL Combo — Base Track ($249.99)",
         vipValue: "Maryland CCW & HQL Combo — VIP Turnkey ($349.99)"
       },
@@ -737,9 +737,9 @@ export default function TrainWithFIFS(props: any) {
         baseTitle: "Maryland Wear & Carry (CCW) Initial Course",
         vipTitle: "👑 VIP Maryland Wear & Carry (CCW) Concierge",
         baseBadge: "MARYLAND STATE POLICE CERTIFIED 16-HOUR INITIAL CCW",
-        vipBadge: "👑 VIP WEAR & CARRY: EXPEDITED PACKET & TURNKEY RANGE EXPERIENCE",
+        vipBadge: "👑 VIP WEAR & CARRY: EXPEDITED PACKET & RANGE EXPERIENCE",
         baseDesc: "Full 16-Hour Maryland Wear & Carry certification. In-depth legal curriculum (State v. Faulkner, SB 1), weapon mechanics, and 25-round MSP qualification course. Self-equipped track: bring own handgun, holster, and 50 rounds.",
-        vipDesc: "👑 Turnkey VIP Concierge. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Everything provided: loaner 9mm firearm, holster, eye/ear protection, 50 rounds factory ammunition, targets, and passport compliance photos.",
+        vipDesc: "👑 VIP Concierge. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Everything provided: loaner 9mm firearm, holster, eye/ear protection, 50 rounds factory ammunition, targets, and passport compliance photos.",
         baseValue: "Maryland Wear & Carry (CCW) — Base Track ($199.99)",
         vipValue: "Maryland Wear & Carry (CCW) — VIP Turnkey ($279.99)"
       },
@@ -751,7 +751,7 @@ export default function TrainWithFIFS(props: any) {
         baseBadge: "8-HOUR MARYLAND STATE POLICE RECERTIFICATION",
         vipBadge: "👑 ALL-INCLUSIVE VIP 8-HOUR RECERTIFICATION CONCIERGE",
         baseDesc: "State-mandated 8-hour classroom recertification + 25-round MSP live-fire qualification at Cindy's Hot Shots. Self-equipped track: bring your own handgun, holster, and 50 rounds factory ammo.",
-        vipDesc: "👑 VIP Turnkey Recertification. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Includes B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!",
+        vipDesc: "👑 VIP Recertification. Cindy's Hot Shots range fee ($45 value) is 100% INCLUDED! Includes B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!",
         baseValue: "Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)",
         vipValue: "Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($209.99)"
       },
@@ -881,7 +881,7 @@ export default function TrainWithFIFS(props: any) {
       // 2. Dynamic Active Price
       if (priceElem) {
         if (isVip) {
-          priceElem.innerHTML = `<span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-amber);">${config.vipPrice}</span><span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>`;
+          priceElem.innerHTML = `<span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-amber);">${config.vipPrice}</span><span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP ★)</span>`;
         } else {
           priceElem.innerHTML = `<span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fff;">${config.basePrice}</span><span class="price-tier-tag" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(Standard Base)</span>`;
         }
@@ -1254,7 +1254,7 @@ export default function TrainWithFIFS(props: any) {
         }
       } else {
         if (calSelectedDate1) {
-          if (dateInput) dateInput.value = f1 + (isVip ? ' (👑 VIP Turnkey)' : ' (Standard Base)');
+          if (dateInput) dateInput.value = f1 + (isVip ? ' (👑 VIP)' : ' (Standard Base)');
           if (dateText) dateText.innerHTML = `Selected Training Date: <strong style="color:${isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)'};">${f1}</strong>`;
         } else {
           if (dateInput) dateInput.value = '';
@@ -1292,11 +1292,11 @@ export default function TrainWithFIFS(props: any) {
       if (policyBanner) {
         if (is16Hr) {
           policyBanner.innerHTML = `📌 <strong style="color:#00e5ff;">16-Hour Maryland Requirement:</strong> Please select <strong>2 dates</strong> on the calendar below:<br><span style="display:inline-block;margin-top:4px;">• <strong>Day 1:</strong> Classroom Instruction & Firearms Safety (FIFS Classroom)<br>• <strong>Day 2:</strong> Live-Fire Practical Qualification (Cindy's Hot Shots Partner Range)</span>` +
-            (isVip ? `<br><span style="color:var(--accent-amber);font-weight:700;">👑 VIP Turnkey: 7-day flexible scheduling unlocked.</span>` : `<br><span style="color:#94a3b8;">📅 Standard Schedule: Saturday & Sunday cohorts.</span>`);
+            (isVip ? `<br><span style="color:var(--accent-amber);font-weight:700;">👑 VIP: 7-day flexible scheduling unlocked.</span>` : `<br><span style="color:#94a3b8;">📅 Standard Schedule: Saturday & Sunday cohorts.</span>`);
           policyBanner.style.borderColor = '#00e5ff';
           policyBanner.style.background = 'rgba(0, 229, 255, 0.09)';
         } else if (isVip) {
-          policyBanner.innerHTML = '👑 <strong style="color: var(--accent-amber);">VIP Turnkey Perk:</strong> Priority <strong>7-Day Flexible Scheduling (Monday–Sunday)</strong> is unlocked! Select your date below.';
+          policyBanner.innerHTML = '👑 <strong style="color: var(--accent-amber);">VIP Perk:</strong> Priority <strong>7-Day Flexible Scheduling (Monday–Sunday)</strong> is unlocked! Select your date below.';
           policyBanner.style.borderColor = 'var(--accent-amber)';
           policyBanner.style.background = 'rgba(255, 183, 3, 0.08)';
         } else {
@@ -2699,7 +2699,7 @@ export default function TrainWithFIFS(props: any) {
             desc: "Hands-on diagnostic drills covering dominant-eye targeting, recoil mitigation, smooth trigger reset, emergency reloads, and instantaneous tap-rack-bang malfunction clearing."
           },
           {
-            title: "VIP Turnkey All-Inclusive Range Access",
+            title: "VIP All-Inclusive Range Access",
             desc: "VIP students receive all range lane fees fully covered, clean loaner 9mm handguns, rigid holsters, 50-100 rounds of factory target ammunition, and professional eye and ear protection."
           }
         ]
@@ -3254,7 +3254,7 @@ export default function TrainWithFIFS(props: any) {
 
 
 
-                    // Modal Form Tier Toggle (Standard Base vs VIP Turnkey)
+                    // Modal Form Tier Toggle (Standard Base vs VIP)
     (window as any).toggleFormTier = function(targetTier: 'base' | 'vip') {
       const selectElem = document.getElementById('courseSelection') as HTMLSelectElement | null;
       if (!selectElem) return;
@@ -3373,11 +3373,11 @@ export default function TrainWithFIFS(props: any) {
         bookingTitle.textContent = isVip ? `Reserve 👑 VIP ${baseName}` : `Reserve ${baseName}`;
       }
       if (bookingBadge) {
-        bookingBadge.textContent = isVip ? tierText(config.vipBadge, '👑 VIP TURNKEY TRACK') : tierText(config.baseBadge, 'STANDARD BASE TRACK');
+        bookingBadge.textContent = isVip ? tierText(config.vipBadge, '👑 VIP TRACK') : tierText(config.baseBadge, 'STANDARD BASE TRACK');
       }
 
       if (tierTag) {
-        tierTag.textContent = isVip ? '👑 VIP Turnkey Track Selected' : 'Standard Base Track Selected';
+        tierTag.textContent = isVip ? '👑 VIP Track Selected' : 'Standard Base Track Selected';
         tierTag.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
       }
 
@@ -6592,7 +6592,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </strong>
              and 
             <strong>
-              👑 VIP Turnkey
+              👑 VIP
             </strong>
              on any card to see exactly what is added!
         
@@ -6654,7 +6654,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="vip-perks-box" id="vip-box-course-mastery" style={{"display": "none", "background": "rgba(0, 229, 255, 0.12)", "border": "1px solid var(--accent-cyan)", "borderRadius": "10px", "padding": "14px", "margin": "12px 0", "fontSize": "0.85rem", "color": "#e2e8f0", "lineHeight": "1.6", "textAlign": "left"}}>
               <strong style={{"color": "var(--accent-cyan)", "display": "block", "marginBottom": "6px", "fontFamily": "var(--font-display)", "fontSize": "1.05rem"}}>
-                👑 What's Added in VIP Turnkey Mode:
+                👑 What's Added in VIP Mode:
               </strong>
               <div className="vip-perk-item" style={{"color": "var(--accent-amber)", "fontWeight": "700"}}>
                 👑 Flexible Any-Day Scheduling (Sunday through Saturday Anytime — Standard is Weekend Only)
@@ -6742,7 +6742,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="vip-perks-box" id="vip-box-course-combo" style={{"display": "none", "background": "rgba(0, 229, 255, 0.12)", "border": "1px solid var(--accent-cyan)", "borderRadius": "10px", "padding": "14px", "margin": "12px 0", "fontSize": "0.85rem", "color": "#e2e8f0", "lineHeight": "1.6", "textAlign": "left"}}>
               <strong style={{"color": "var(--accent-cyan)", "display": "block", "marginBottom": "6px", "fontFamily": "var(--font-display)", "fontSize": "1.05rem"}}>
-                👑 What's Added in VIP Turnkey Mode:
+                👑 What's Added in VIP Mode:
               </strong>
               <div className="vip-perk-item" style={{"color": "var(--accent-amber)", "fontWeight": "700"}}>
                 👑 Flexible Any-Day Scheduling (Sunday through Saturday Anytime — Standard is Weekend Only)
@@ -6821,7 +6821,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="vip-perks-box" id="vip-box-course-ccw" style={{"display": "none", "background": "rgba(0, 229, 255, 0.12)", "border": "1px solid var(--accent-cyan)", "borderRadius": "10px", "padding": "14px", "margin": "12px 0", "fontSize": "0.85rem", "color": "#e2e8f0", "lineHeight": "1.6", "textAlign": "left"}}>
               <strong style={{"color": "var(--accent-cyan)", "display": "block", "marginBottom": "6px", "fontFamily": "var(--font-display)", "fontSize": "1.05rem"}}>
-                👑 What's Added in VIP Turnkey Mode:
+                👑 What's Added in VIP Mode:
               </strong>
               <div className="vip-perk-item" style={{"color": "var(--accent-amber)", "fontWeight": "700"}}>
                 👑 Flexible Any-Day Scheduling (Sunday through Saturday Anytime — Standard is Weekend Only)
@@ -6897,7 +6897,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="vip-perks-box" id="vip-box-course-renewal" style={{"display": "none", "background": "rgba(0, 229, 255, 0.12)", "border": "1px solid var(--accent-cyan)", "borderRadius": "10px", "padding": "14px", "margin": "12px 0", "fontSize": "0.85rem", "color": "#e2e8f0", "lineHeight": "1.6", "textAlign": "left"}}>
               <strong style={{"color": "var(--accent-cyan)", "display": "block", "marginBottom": "6px", "fontFamily": "var(--font-display)", "fontSize": "1.05rem"}}>
-                👑 What&#39;s Added in VIP Turnkey Mode:
+                👑 What&#39;s Added in VIP Mode:
               </strong>
               <div className="vip-perk-item" style={{"color": "var(--accent-amber)", "fontWeight": "700"}}>
                 👑 Flexible Any-Day Scheduling (Weekday &amp; Weekend Priority)
@@ -6972,7 +6972,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="vip-perks-box" id="vip-box-course-hql" style={{"display": "none", "background": "rgba(0, 229, 255, 0.12)", "border": "1px solid var(--accent-cyan)", "borderRadius": "10px", "padding": "14px", "margin": "12px 0", "fontSize": "0.85rem", "color": "#e2e8f0", "lineHeight": "1.6", "textAlign": "left"}}>
               <strong style={{"color": "var(--accent-cyan)", "display": "block", "marginBottom": "6px", "fontFamily": "var(--font-display)", "fontSize": "1.05rem"}}>
-                👑 What's Added in VIP Turnkey Mode:
+                👑 What's Added in VIP Mode:
               </strong>
               <div className="vip-perk-item" style={{"color": "var(--accent-amber)", "fontWeight": "700"}}>
                 👑 Flexible Any-Day Scheduling (Sunday through Saturday Anytime — Standard is Weekend Only)
@@ -7050,7 +7050,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="vip-perks-box" id="vip-box-course-coaching" style={{"display": "none", "background": "rgba(0, 229, 255, 0.12)", "border": "1px solid var(--accent-cyan)", "borderRadius": "10px", "padding": "14px", "margin": "12px 0", "fontSize": "0.85rem", "color": "#e2e8f0", "lineHeight": "1.6", "textAlign": "left"}}>
               <strong style={{"color": "var(--accent-cyan)", "display": "block", "marginBottom": "6px", "fontFamily": "var(--font-display)", "fontSize": "1.05rem"}}>
-                👑 What's Added in VIP Turnkey Mode:
+                👑 What's Added in VIP Mode:
               </strong>
               <div className="vip-perk-item" style={{"color": "var(--accent-amber)", "fontWeight": "700"}}>
                 👑 Flexible Any-Day Scheduling (Sunday through Saturday Anytime — Standard is Weekend Only)
@@ -7128,7 +7128,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="vip-perks-box" id="vip-box-course-cleaning" style={{"display": "none", "background": "rgba(0, 229, 255, 0.12)", "border": "1px solid var(--accent-cyan)", "borderRadius": "10px", "padding": "14px", "margin": "12px 0", "fontSize": "0.85rem", "color": "#e2e8f0", "lineHeight": "1.6", "textAlign": "left"}}>
               <strong style={{"color": "var(--accent-cyan)", "display": "block", "marginBottom": "6px", "fontFamily": "var(--font-display)", "fontSize": "1.05rem"}}>
-                👑 What's Added in VIP Turnkey Mode:
+                👑 What's Added in VIP Mode:
               </strong>
               <div className="vip-perk-item" style={{"color": "var(--accent-amber)", "fontWeight": "700"}}>
                 👑 Flexible Any-Day Scheduling (Sunday through Saturday Anytime — Standard is Weekend Only)
@@ -7208,7 +7208,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="vip-perks-box" id="vip-box-course-children" style={{"display": "none", "background": "rgba(0, 229, 255, 0.12)", "border": "1px solid var(--accent-cyan)", "borderRadius": "10px", "padding": "14px", "margin": "12px 0", "fontSize": "0.85rem", "color": "#e2e8f0", "lineHeight": "1.6", "textAlign": "left"}}>
               <strong style={{"color": "var(--accent-cyan)", "display": "block", "marginBottom": "6px", "fontFamily": "var(--font-display)", "fontSize": "1.05rem"}}>
-                👑 What's Added in VIP Turnkey Mode:
+                👑 What's Added in VIP Mode:
               </strong>
               <div className="vip-perk-item" style={{"color": "var(--accent-amber)", "fontWeight": "700"}}>
                 👑 Flexible Any-Day Scheduling (Sunday through Saturday Anytime — Standard is Weekend Only)
@@ -10182,57 +10182,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </p>
           </div>
           <div className="fi-select-grid">
-            {/* OPTION 1: BOOK NOW */}
+            {/* OPTION 1: NEW TO FIREARMS (shown first) */}
             <div className="fi-select-card highlight">
-              <div>
-                <span className="fi-card-badge fi-card-badge-amber">
-                  Ready To Reserve
-                </span>
-                <h3 className="fi-card-title">
-                  Book Now
-                </h3>
-                <p className="fi-card-desc">
-                  Choose your class, pick your date, and reserve your seat
-                </p>
-                <ul className="fi-card-list">
-                  <li>
-                    <span>
-                      📚
-                    </span>
-                     Wear & Carry, HQL & Combo Courses
-                  </li>
-                  <li>
-                    <span>
-                      💲
-                    </span>
-                     Transparent Pricing, No Hidden Fees
-                  </li>
-                  <li>
-                    <span>
-                      👥
-                    </span>
-                     Group Discounts Up To 15%
-                  </li>
-                  <li>
-                    <span>
-                      👑
-                    </span>
-                     Standard Base Or VIP Turnkey Track
-                  </li>
-                  <li>
-                    <span>
-                      📅
-                    </span>
-                     Live Calendar & 30% Deposit To Reserve
-                  </li>
-                </ul>
-              </div>
-              <button className="btn-spark" data-onclick="closeJourneySelectionModal(); openAndSwitch('booking');" style={{"width": "100%", "padding": "13px"}} type="button">
-                Book Now →
-              </button>
-            </div>
-            {/* OPTION 2: NEW TO FIREARMS */}
-            <div className="fi-select-card">
               <div>
                 <span className="fi-card-badge fi-card-badge-cyan">
                   First-Time Shooters
@@ -10278,6 +10229,55 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
               <button className="btn-primary" data-onclick="closeJourneySelectionModal(); openAndSwitch('start');" style={{"width": "100%", "padding": "13px"}} type="button">
                 Start Your Journey →
+              </button>
+            </div>
+            {/* OPTION 2: BOOK NOW */}
+            <div className="fi-select-card">
+              <div>
+                <span className="fi-card-badge fi-card-badge-amber">
+                  Ready To Reserve
+                </span>
+                <h3 className="fi-card-title">
+                  Book Now
+                </h3>
+                <p className="fi-card-desc">
+                  Choose your class, pick your date, and reserve your seat
+                </p>
+                <ul className="fi-card-list">
+                  <li>
+                    <span>
+                      📚
+                    </span>
+                     Wear & Carry, HQL & Combo Courses
+                  </li>
+                  <li>
+                    <span>
+                      💲
+                    </span>
+                     Transparent Pricing, No Hidden Fees
+                  </li>
+                  <li>
+                    <span>
+                      👥
+                    </span>
+                     Group Discounts Up To 15%
+                  </li>
+                  <li>
+                    <span>
+                      👑
+                    </span>
+                     Standard Base Or VIP Track
+                  </li>
+                  <li>
+                    <span>
+                      📅
+                    </span>
+                     Live Calendar & 30% Deposit To Reserve
+                  </li>
+                </ul>
+              </div>
+              <button className="btn-spark" data-onclick="closeJourneySelectionModal(); openAndSwitch('booking');" style={{"width": "100%", "padding": "13px"}} type="button">
+                Book Now →
               </button>
             </div>
           </div>
@@ -11119,23 +11119,23 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 onChange={() => { if (typeof window !== "undefined" && (window as any).updateFormPriceDisplay) (window as any).updateFormPriceDisplay(); }}
                 required
                 style={{"background": "#070b10", "border": "1px solid var(--accent-cyan)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%", "fontSize": "0.95rem", "fontWeight": "700"}}>
-                <option value="Mid-Atlantic Multi-State Mastery — VIP Turnkey ($594.99)">Mid-Atlantic Multi-State Mastery — VIP Turnkey ($594.99)</option>
+                <option value="Mid-Atlantic Multi-State Mastery — VIP Turnkey ($594.99)">Mid-Atlantic Multi-State Mastery — VIP ($594.99)</option>
                 <option value="Mid-Atlantic Multi-State Mastery — Base Track ($424.99)">Mid-Atlantic Multi-State Mastery — Base Track ($424.99)</option>
-                <option value="Maryland CCW & HQL Combo — VIP Turnkey ($349.99)">Maryland CCW & HQL Combo — VIP Turnkey ($349.99)</option>
+                <option value="Maryland CCW & HQL Combo — VIP Turnkey ($349.99)">Maryland CCW & HQL Combo — VIP ($349.99)</option>
                 <option value="Maryland CCW & HQL Combo — Base Track ($249.99)">Maryland CCW & HQL Combo — Base Track ($249.99)</option>
-                <option value="Maryland Wear & Carry (CCW) — VIP Turnkey ($279.99)">Maryland Wear & Carry (CCW) — VIP Turnkey ($279.99)</option>
+                <option value="Maryland Wear & Carry (CCW) — VIP Turnkey ($279.99)">Maryland Wear & Carry (CCW) — VIP ($279.99)</option>
                 <option value="Maryland Wear & Carry (CCW) — Base Track ($199.99)">Maryland Wear & Carry (CCW) — Base Track ($199.99)</option>
-                <option value="Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($209.99)">Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($209.99)</option>
+                <option value="Maryland Wear & Carry (8-Hour Renewal) — VIP Turnkey ($209.99)">Maryland Wear & Carry (8-Hour Renewal) — VIP ($209.99)</option>
                 <option value="Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)">Maryland Wear & Carry (8-Hour Renewal) — Base Track ($149.99)</option>
-                <option value="Maryland HQL (Purchase License) — VIP Turnkey ($140.00)">Maryland HQL (Purchase License) — VIP Turnkey ($140.00)</option>
+                <option value="Maryland HQL (Purchase License) — VIP Turnkey ($140.00)">Maryland HQL (Purchase License) — VIP ($140.00)</option>
                 <option value="Maryland HQL (Purchase License) — Base Track ($100.00)">Maryland HQL (Purchase License) — Base Track ($100.00)</option>
-                <option value="Personal 1-on-1 Coaching — VIP Turnkey ($175.00/hr)">Personal 1-on-1 Coaching — VIP Turnkey ($175.00/hr)</option>
+                <option value="Personal 1-on-1 Coaching — VIP Turnkey ($175.00/hr)">Personal 1-on-1 Coaching — VIP ($175.00/hr)</option>
                 <option value="Personal 1-on-1 Coaching — Base Track ($125.00/hr)">Personal 1-on-1 Coaching — Base Track ($125.00/hr)</option>
-                <option value="Gun Cleaning & Maintenance — VIP Turnkey ($105.00)">Gun Cleaning & Maintenance — VIP Turnkey ($105.00)</option>
+                <option value="Gun Cleaning & Maintenance — VIP Turnkey ($105.00)">Gun Cleaning & Maintenance — VIP ($105.00)</option>
                 <option value="Gun Cleaning & Maintenance — Base Track ($75.00)">Gun Cleaning & Maintenance — Base Track ($75.00)</option>
-                <option value="Children's Safety Class — VIP Turnkey ($279.99)">Children's Safety Class — VIP Turnkey ($279.99)</option>
+                <option value="Children's Safety Class — VIP Turnkey ($279.99)">Children's Safety Class — VIP ($279.99)</option>
                 <option value="Children's Safety Class — Base Track ($199.99)">Children's Safety Class — Base Track ($199.99)</option>
-                <option value="FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($91.00)">FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($91.00)</option>
+                <option value="FIFS Graduate Alumni Marksmanship Clinic — VIP Turnkey ($91.00)">FIFS Graduate Alumni Marksmanship Clinic — VIP ($91.00)</option>
                 <option value="FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)">FIFS Graduate Alumni Marksmanship Clinic — Base Track ($65.00)</option>
               </select>
             </div>
@@ -11173,14 +11173,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <div id="formBoxVip" data-onclick="toggleFormTier('vip')" onClick={() => { if (typeof window !== "undefined" && (window as any).toggleFormTier) (window as any).toggleFormTier("vip"); }} style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "padding": "10px", "cursor": "pointer", "transition": "all 0.2s"}}>
                   <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center"}}>
                     <strong style={{"color": "var(--accent-amber)", "fontSize": "0.85rem"}}>
-                      👑 VIP Turnkey
+                      👑 VIP
                     </strong>
                     <span id="formPriceVipVal" style={{"fontFamily": "var(--font-display)", "fontSize": "1.15rem", "fontWeight": "800", "color": "var(--accent-amber)"}}>
                       $594.99
                     </span>
                   </div>
                   <p style={{"color": "var(--text-muted)", "fontSize": "0.74rem", "marginTop": "3px", "lineHeight": "1.35"}}>
-                    Turnkey (Lane fee, targets, loaner 9mm, ammo & photos)
+                    All-inclusive (Lane fee, targets, loaner 9mm, ammo & photos)
                   </p>
                 </div>
               </div>
@@ -11315,7 +11315,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   <strong>
                     Saturdays & Sundays
                   </strong>
-                  . Weekdays (Mon–Fri) locked. (Toggle to 👑 VIP Turnkey to unlock 7-day flexible scheduling).
+                  . Weekdays (Mon–Fri) locked. (Toggle to 👑 VIP to unlock 7-day flexible scheduling).
                 </span>
               </div>
               {/* Unified Responsive Booking Calendar Card */}
@@ -11391,7 +11391,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <strong style={{"color": "#f59e0b"}}>Before you confirm:</strong>
               <ul style={{"margin": "6px 0 0 18px", "padding": "0"}}>
                 <li>30% deposit due today to reserve your seat; remaining balance due at class.</li>
-                <li>Base track includes Cindy's Hot Shots range fee ($45/person); VIP turnkey includes all range fees.</li>
+                <li>Base track includes Cindy's Hot Shots range fee ($45/person); VIP includes all range fees.</li>
               </ul>
             </div>
             <button className="btn-primary" id="btn-booking-submit" style={{"width": "100%", "padding": "14px", "fontSize": "1.1rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1.5px", "boxShadow": "0 0 20px var(--accent-cyan-glow)"}} type="button" data-onclick="showBookingInvoiceModal(event)"

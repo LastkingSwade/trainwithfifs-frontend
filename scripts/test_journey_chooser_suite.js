@@ -24,6 +24,11 @@ test('It has exactly two choices with the requested labels', () => {
   assert(/New To Firearms\? Start Your Journey/.test(modal), 'beginner card missing');
   assert((modal.match(/className="fi-select-card/g) || []).length === 2, 'must be exactly two cards');
 });
+test('New To Firearms is the FIRST card (left on desktop, top on phones) and Book Now is second', () => {
+  const a = modal.indexOf('New To Firearms? Start Your Journey'), b = modal.indexOf('>Book Now<') >= 0 ? modal.indexOf('>Book Now<') : modal.search(/Book Now\s*\n?\s*<\/h/);
+  assert(a > 0 && b > 0 && a < b, 'beginner card must come before Book Now');
+  assert(/fi-select-card highlight/.test(modal.slice(modal.indexOf('OPTION 1'), modal.indexOf('OPTION 2'))), 'first card is the highlighted one');
+});
 test('Book Now goes to the catalog; the beginner card goes to the new panel; both close the pop-up first', () => {
   assert(/closeJourneySelectionModal\(\); openAndSwitch\('booking'\);/.test(modal));
   assert(/closeJourneySelectionModal\(\); openAndSwitch\('start'\);/.test(modal));

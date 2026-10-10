@@ -27,8 +27,10 @@ test('The CRT look is tunable by CSS variables and uses only opacity and transfo
   for (const m of CSS.matchAll(/@keyframes\s+(\w+)\s*\{((?:[^{}]|\{[^{}]*\})*)\}/g)) for (const d of m[2].matchAll(/([a-z-]+)\s*:/g)) assert(['opacity', 'transform', 'visibility', 'pointer-events'].includes(d[1]), `keyframes ${m[1]} animates ${d[1]}`);
   assert(/repeating-linear-gradient/.test(CSS) && /radial-gradient\(ellipse at center, transparent 55%/.test(CSS) && /bootSweep 5s linear infinite/.test(CSS), 'scanlines, vignette or 5 s sweep missing');
 });
-test('First-visit only: gate script checks localStorage fifs_intro_seen, the route, hashes, tokens, reduced motion and bots; it is a plain inline <head> script', () => {
-  for (const k of ["fifs_intro_seen", "pathname!=='/'", 'prefers-reduced-motion', 'access_token', 'localStorage.getItem', 'lighthouse']) assert(CFG.includes(k), 'gate missing: ' + k);
+test('Plays on every full page load: no stored flag anywhere; the gate checks the route, hashes, tokens, reduced motion and bots; it is a plain inline <head> script; a module-level guard stops a replay on route changes', () => {
+  for (const k of ["pathname!=='/'", 'prefers-reduced-motion', 'access_token', 'lighthouse']) assert(CFG.includes(k), 'gate missing: ' + k);
+  assert(!/localStorage|fifs_intro_seen|BOOT_FLAG/.test(CFG + COMP), 'the seen flag must be gone');
+  assert(/^let introFinished = false;/m.test(COMP) && /introFinished \|\|/.test(COMP), 'module-level replay guard missing');
   assert(/<head>[\s\S]*<script dangerouslySetInnerHTML=\{\{ __html: BOOT_GATE_SCRIPT \}\} \/>[\s\S]*<\/head>/.test(LAYOUT), 'gate must be an inline script in <head>');
   assert(!/strategy="beforeInteractive"[^>]*>\s*\{BOOT_GATE_SCRIPT/.test(LAYOUT), 'next/script would run too late');
 });

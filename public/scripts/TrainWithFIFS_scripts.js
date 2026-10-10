@@ -168,7 +168,7 @@ function fifsRemoveClientSession() { window.__fifsClientPortalRecord = null; }
         }
         var tierSpan = priceElem.querySelector('.price-tier-tag');
         if (tierSpan) {
-          tierSpan.textContent = isVip ? '(👑 VIP Turnkey ★)' : '(Standard Base)';
+          tierSpan.textContent = isVip ? '(👑 VIP ★)' : '(Standard Base)';
           tierSpan.style.color = isVip ? 'var(--accent-amber)' : 'var(--text-muted)';
         }
       }
@@ -799,7 +799,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         why: [
           "You travel along I-95, I-81, or I-70 for work, family, or vacations and want legal carry coverage across multiple states without accidental felony violations.",
           "Knocks out your Maryland Wear & Carry permit plus non-resident application documentation for VA, FL, AZ, and PA in one organized experience.",
-          "VIP Turnkey option provides everything: range fees, targets, loaner 9mm, factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos."
+          "VIP option provides everything: range fees, targets, loaner 9mm, factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos."
         ],
         whyNot: [
           "If you only stay inside Maryland and rarely travel out of state, the standard Maryland Wear & Carry course ($199.99 Base / $279.99 VIP) is all you need.",
@@ -1026,55 +1026,55 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         base: "$424.99",
         vip: "$594.99",
         baseDesc: "Self-equipped track. Includes 16-hour instruction + live-fire qualification + documentation for MD, VA, FL, AZ, and PA. Provide own firearm and ammo.",
-        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
+        vipDesc: "👑 VIP Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
       },
       "Maryland CCW & HQL Combo": {
         base: "$249.99",
         vip: "$349.99",
         baseDesc: "Self-equipped track. 16-hour Wear & Carry curriculum + Maryland HQL exemption guide. Provide own handgun, holster, and ammo.",
-        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
+        vipDesc: "👑 VIP Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
       },
       "Maryland Wear & Carry (8-Hour Renewal)": {
         base: "$149.99",
         vip: "$209.99",
         baseDesc: "Self-equipped track. 8-hour state recertification curriculum and 25-round live-fire qualification. Bring your own firearm, holster, and 50 rounds.",
-        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range fee, B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!"
+        vipDesc: "👑 VIP Track. Includes Cindy's Hot Shots range fee, B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!"
       },
       "Maryland Wear & Carry (CCW)": {
         base: "$199.99",
         vip: "$279.99",
         baseDesc: "Self-equipped track. 16-hour Wear & Carry certification and live-fire range qualification. Provide own firearm and ammo.",
-        vipDesc: "👑 VIP Turnkey Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
+        vipDesc: "👑 VIP Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
       },
       "Maryland HQL (Purchase License)": {
         base: "$100.00",
         vip: "$140.00",
         baseDesc: "Self-equipped track. 4-hour state prerequisite course with live-fire component.",
-        vipDesc: "👑 VIP Turnkey Track. Includes range fee, loaner handgun, live-fire target ammo, target & portal submission guidance!"
+        vipDesc: "👑 VIP Track. Includes range fee, loaner handgun, live-fire target ammo, target & portal submission guidance!"
       },
       "Personal 1-on-1 Coaching": {
         base: "$125.00/hr",
         vip: "$175.00/hr",
         baseDesc: "Dedicated 1-on-1 private coaching. Custom diagnostic instruction.",
-        vipDesc: "👑 VIP Turnkey Track. Includes private lane fee, diagnostic sensor telemetry (MantisX), loaner firearms & ammunition!"
+        vipDesc: "👑 VIP Track. Includes private lane fee, diagnostic sensor telemetry (MantisX), loaner firearms & ammunition!"
       },
       "Gun Cleaning & Maintenance": {
         base: "$75.00",
         vip: "$105.00",
         baseDesc: "Instructional field-strip, cleaning, and maintenance workshop.",
-        vipDesc: "👑 VIP Turnkey Track. Includes full premium take-home cleaning kit, ultrasonic treatment & specialized solvents!"
+        vipDesc: "👑 VIP Track. Includes full premium take-home cleaning kit, ultrasonic treatment & specialized solvents!"
       },
       "Children's Safety Class": {
         base: "$199.99",
         vip: "$279.99",
         baseDesc: "Family safety and Eddie Eagle accident-prevention curriculum.",
-        vipDesc: "👑 VIP Turnkey Track. Includes certified home cable gun locks, youth workbook & child-safe lockbox guidance!"
+        vipDesc: "👑 VIP Track. Includes certified home cable gun locks, youth workbook & child-safe lockbox guidance!"
       },
       "FIFS Graduate Alumni Marksmanship Clinic": {
         base: "$65.00",
         vip: "$91.00",
         baseDesc: "Advanced diagnostics, holster draw speed, speed reloads & stress shooting drills for FIFS alumni.",
-        vipDesc: "👑 VIP Turnkey Track. Includes range lane fee, 50 rounds ammo, steel silhouette targets & shot-timer telemetry breakdown!"
+        vipDesc: "👑 VIP Track. Includes range lane fee, 50 rounds ammo, steel silhouette targets & shot-timer telemetry breakdown!"
       }
     };
     window.FORM_COURSE_PRICING = FORM_COURSE_PRICING;
@@ -1397,11 +1397,11 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         bookingTitle.textContent = isVip ? ('Reserve 👑 VIP ' + baseName) : ('Reserve ' + baseName);
       }
       if (bookingBadge) {
-        bookingBadge.textContent = isVip ? tierText(config.vipBadge, '👑 VIP TURNKEY TRACK') : tierText(config.baseBadge, 'STANDARD BASE TRACK');
+        bookingBadge.textContent = isVip ? tierText(config.vipBadge, '👑 VIP TRACK') : tierText(config.baseBadge, 'STANDARD BASE TRACK');
       }
 
       if (tierTag) {
-        tierTag.textContent = (isVip ? '👑 VIP Turnkey Track' : 'Standard Base Track') + (discountBadge || ' Selected');
+        tierTag.textContent = (isVip ? '👑 VIP Track' : 'Standard Base Track') + (discountBadge || ' Selected');
         tierTag.style.color = isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)';
       }
 
@@ -1572,7 +1572,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         return "Our courses start at $100 for Maryland HQL and $249.99 for the complete Wear & Carry + HQL Combo (which saves you $100). All classes include live-fire qualification shots conducted downrange at Cindy&#39;s Hot Shots. You can view full transparent pricing in our course catalog!";
       }
       if (m.includes('schedule') || m.includes('date') || m.includes('when') || m.includes('weekend') || m.includes('weekday')) {
-        return "We offer flexible scheduling: Standard courses run on Saturdays & Sundays, while VIP Turnkey enrollments unlock 7-day flexible scheduling (Monday through Sunday anytime) to match your personal schedule!";
+        return "We offer flexible scheduling: Standard courses run on Saturdays & Sundays, while VIP enrollments unlock 7-day flexible scheduling (Monday through Sunday anytime) to match your personal schedule!";
       }
       if (m.includes('range') || m.includes('location') || m.includes('where')) {
         return "All live-fire marksmanship training and practical qualification shots are conducted at Cindy&#39;s Hot Shots (classroom instruction conducted by FIFS) (115 Holsum Way, Glen Burnie, MD 21060). It's a clean, safe, and professional certified indoor range facility.";
@@ -1632,11 +1632,11 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         if (is16Hr) {
           policyBanner.innerHTML = '📌 <strong style="color:#00e5ff;">16-Hour Maryland Requirement:</strong> Please select <strong>2 dates</strong> on the calendar below:<br>' +
             '<span style="display:inline-block;margin-top:4px;">• <strong>Day 1:</strong> Classroom Instruction & Firearms Safety (FIFS Classroom)<br>• <strong>Day 2:</strong> Live-Fire Practical Qualification (Cindy\'s Hot Shots Partner Range)</span>' +
-            (isVip ? '<br><span style="color:var(--accent-amber);font-weight:700;">👑 VIP Turnkey: 7-day flexible scheduling unlocked.</span>' : '<br><span style="color:#94a3b8;">📅 Standard Schedule: Saturday & Sunday cohorts.</span>');
+            (isVip ? '<br><span style="color:var(--accent-amber);font-weight:700;">👑 VIP: 7-day flexible scheduling unlocked.</span>' : '<br><span style="color:#94a3b8;">📅 Standard Schedule: Saturday & Sunday cohorts.</span>');
           policyBanner.style.borderColor = '#00e5ff';
           policyBanner.style.background = 'rgba(0, 229, 255, 0.09)';
         } else if (isVip) {
-          policyBanner.innerHTML = '👑 <strong style="color: var(--accent-amber);">VIP Turnkey Perk:</strong> Priority <strong>7-Day Flexible Scheduling (Monday–Sunday)</strong> is unlocked! Select any open date below.';
+          policyBanner.innerHTML = '👑 <strong style="color: var(--accent-amber);">VIP Perk:</strong> Priority <strong>7-Day Flexible Scheduling (Monday–Sunday)</strong> is unlocked! Select any open date below.';
           policyBanner.style.borderColor = 'var(--accent-amber)';
           policyBanner.style.background = 'rgba(255, 183, 3, 0.08)';
         } else {
@@ -1849,7 +1849,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         }
       } else {
         if (calSelectedDate1) {
-          if (dateInput) dateInput.value = f1 + (isVip ? ' (👑 VIP Turnkey)' : ' (Standard Base)');
+          if (dateInput) dateInput.value = f1 + (isVip ? ' (👑 VIP)' : ' (Standard Base)');
           if (dateText) dateText.innerHTML = 'Selected Training Date: <strong style="color:' + (isVip ? 'var(--accent-amber)' : 'var(--accent-cyan)') + ';">' + f1 + '</strong>';
         } else {
           if (dateInput) dateInput.value = '';
@@ -3312,7 +3312,7 @@ function loadDemoStudent() {
         if (priceElem) {
           priceElem.innerHTML = `
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-amber);">${config.vipPrice}</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP ★)</span>
           `;
         }
         if (btnSelect) {
@@ -5582,16 +5582,16 @@ function openAdminEditStudentModal(studentId) {
     function generateCoachWadeReply(name, msg) {
       var m = (msg || '').toLowerCase();
       if (m.includes('schedule') || m.includes('date') || m.includes('when') || m.includes('calendar') || m.includes('day')) {
-        return "We hold our live-fire group sessions at <strong>Cindy\'s Hot Shots</strong> in Glen Burnie on <strong>Saturdays and Sundays at 9:00 AM</strong>. If you enroll in our 👑 <strong>VIP Turnkey</strong> track, you unlock priority 7-day flexible scheduling (Monday through Sunday anytime). Would you like to check available dates?";
+        return "We hold our live-fire group sessions at <strong>Cindy\'s Hot Shots</strong> in Glen Burnie on <strong>Saturdays and Sundays at 9:00 AM</strong>. If you enroll in our 👑 <strong>VIP</strong> track, you unlock priority 7-day flexible scheduling (Monday through Sunday anytime). Would you like to check available dates?";
       }
       if (m.includes('price') || m.includes('cost') || m.includes('fee') || m.includes('tuition') || m.includes('how much')) {
-        return "Our pricing is 100% transparent with zero hidden fees:<br>• <strong>Maryland CCW & HQL Combo:</strong> $249.99 Base / $349.99 VIP Turnkey<br>• <strong>Wear & Carry (16-Hr Initial):</strong> $199.99 Base / $279.99 VIP<br>• <strong>Wear & Carry (8-Hr Renewal):</strong> $149.99 Base / $209.99 VIP (10% off with promo code <code>RENEWAL10</code>)<br>• <strong>Maryland HQL:</strong> $100 Base / $140 VIP<br>• <strong>1-on-1 Private Range Coaching:</strong> $125/hr Base / $175/hr VIP";
+        return "Our pricing is 100% transparent with zero hidden fees:<br>• <strong>Maryland CCW & HQL Combo:</strong> $249.99 Base / $349.99 VIP<br>• <strong>Wear & Carry (16-Hr Initial):</strong> $199.99 Base / $279.99 VIP<br>• <strong>Wear & Carry (8-Hr Renewal):</strong> $149.99 Base / $209.99 VIP (10% off with promo code <code>RENEWAL10</code>)<br>• <strong>Maryland HQL:</strong> $100 Base / $140 VIP<br>• <strong>1-on-1 Private Range Coaching:</strong> $125/hr Base / $175/hr VIP";
       }
       if (m.includes('where') || m.includes('location') || m.includes('range') || m.includes('address') || m.includes('cindy')) {
         return "All our practical live-fire range qualifications take place at <strong>Cindy\'s Hot Shots</strong>, located at <strong>115 Holsum Way, Glen Burnie, MD 21060</strong>. It\'s a premier, state-of-the-art indoor climate-controlled range.";
       }
       if (m.includes('ammo') || m.includes('ammunition') || m.includes('round') || m.includes('caliber')) {
-        return "You\'ll need <strong>50 to 100 rounds</strong> of clean factory target brass ammunition (9mm, .380, etc.). It\'s available on-site at Cindy\'s Hot Shots or included in our VIP Turnkey package. <em>Mandatory safety rule:</em> strictly zero live ammo in the classroom—keep it locked in your trunk until range live-fire!";
+        return "You\'ll need <strong>50 to 100 rounds</strong> of clean factory target brass ammunition (9mm, .380, etc.). It\'s available on-site at Cindy\'s Hot Shots or included in our VIP package. <em>Mandatory safety rule:</em> strictly zero live ammo in the classroom—keep it locked in your trunk until range live-fire!";
       }
       if (m.includes('hql') || m.includes('wear and carry') || m.includes('ccw') || m.includes('permit') || m.includes('difference')) {
         return "An <strong>HQL</strong> is required by Maryland law just to purchase or rent a handgun. A <strong>Wear & Carry Permit (CCW)</strong> authorizes legal concealed carry in public. Our <strong>Combo course</strong> gives you both in one weekend and saves you $100 under Maryland Public Safety § 5-117.1!";
@@ -6761,7 +6761,7 @@ function getStepNumberFromStatus(statusStr) {
         why: [
           "You travel along I-95, I-81, or I-70 for work, family, or vacations and want legal carry coverage across multiple states without accidental felony violations.",
           "Knocks out your Maryland Wear & Carry permit plus non-resident application documentation for VA, FL, AZ, and PA in one organized experience.",
-          "VIP Turnkey option provides everything: range fees, targets, loaner 9mm, factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos."
+          "VIP option provides everything: range fees, targets, loaner 9mm, factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos."
         ],
         whyNot: [
           "If you only stay inside Maryland and rarely travel out of state, the standard Maryland Wear & Carry course ($199.99 Base / $279.99 VIP) is all you need.",
@@ -7281,7 +7281,7 @@ function getStepNumberFromStatus(statusStr) {
         if (priceElem) {
           priceElem.innerHTML = `
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-cyan);">${config.vipPrice}</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP ★)</span>
           `;
         }
         if (btnSelect) {
@@ -7330,55 +7330,55 @@ function getStepNumberFromStatus(statusStr) {
         base: "$424.99",
         vip: "$594.99",
         baseDesc: "Self-equipped track. Includes 16-hour instruction + live-fire qualification + documentation for MD, VA, FL, AZ, and PA. Provide own firearm and ammo.",
-        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
+        vipDesc: "👑 VIP Track. Includes Cindy's Hot Shots range lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo, on-site FD-258 fingerprint cards, and 2x2 passport photos!"
       },
       "Maryland CCW & HQL Combo": {
         base: "$249.99",
         vip: "$349.99",
         baseDesc: "Self-equipped track. 16-hour Wear & Carry curriculum + Maryland HQL exemption guide. Provide own handgun, holster, and ammo.",
-        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
+        vipDesc: "👑 VIP Track. Includes Cindy's Hot Shots lane fee, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & on-site passport photos!"
       },
       "Maryland Wear & Carry (8-Hour Renewal)": {
         base: "$149.99",
         vip: "$209.99",
         baseDesc: "Self-equipped track. 8-hour state recertification curriculum and 25-round live-fire qualification. Bring your own firearm, holster, and 50 rounds.",
-        vipDesc: "👑 VIP Turnkey Track. Includes Cindy's Hot Shots range fee, B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!"
+        vipDesc: "👑 VIP Track. Includes Cindy's Hot Shots range fee, B-27 qualification targets, loaner 9mm handgun, 50 rounds factory ammunition & MSP portal submission assistance!"
       },
       "Maryland Wear & Carry (CCW)": {
         base: "$199.99",
         vip: "$279.99",
         baseDesc: "Self-equipped track. 16-hour Wear & Carry certification and live-fire range qualification. Provide own firearm and ammo.",
-        vipDesc: "👑 VIP Turnkey Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
+        vipDesc: "👑 VIP Track. Includes range fee at Cindy's Hot Shots, B-27 targets, loaner 9mm handgun, 50 rounds factory ammo & passport photos!"
       },
       "Maryland HQL (Purchase License)": {
         base: "$100.00",
         vip: "$140.00",
         baseDesc: "Self-equipped track. 4-hour state prerequisite course with live-fire component.",
-        vipDesc: "👑 VIP Turnkey Track. Includes range fee, loaner handgun, live-fire target ammo, target & portal submission guidance!"
+        vipDesc: "👑 VIP Track. Includes range fee, loaner handgun, live-fire target ammo, target & portal submission guidance!"
       },
       "Personal 1-on-1 Coaching": {
         base: "$125.00/hr",
         vip: "$175.00/hr",
         baseDesc: "Dedicated 1-on-1 private coaching. Custom diagnostic instruction.",
-        vipDesc: "👑 VIP Turnkey Track. Includes private lane fee, diagnostic sensor telemetry (MantisX), loaner firearms & ammunition!"
+        vipDesc: "👑 VIP Track. Includes private lane fee, diagnostic sensor telemetry (MantisX), loaner firearms & ammunition!"
       },
       "Gun Cleaning & Maintenance": {
         base: "$75.00",
         vip: "$105.00",
         baseDesc: "Instructional field-strip, cleaning, and maintenance workshop.",
-        vipDesc: "👑 VIP Turnkey Track. Includes full premium take-home cleaning kit, ultrasonic treatment & specialized solvents!"
+        vipDesc: "👑 VIP Track. Includes full premium take-home cleaning kit, ultrasonic treatment & specialized solvents!"
       },
       "Children's Safety Class": {
         base: "$199.99",
         vip: "$279.99",
         baseDesc: "Family safety and Eddie Eagle accident-prevention curriculum.",
-        vipDesc: "👑 VIP Turnkey Track. Includes certified home cable gun locks, youth workbook & child-safe lockbox guidance!"
+        vipDesc: "👑 VIP Track. Includes certified home cable gun locks, youth workbook & child-safe lockbox guidance!"
       },
       "FIFS Graduate Alumni Marksmanship Clinic": {
         base: "$65.00",
         vip: "$91.00",
         baseDesc: "Advanced diagnostics, holster draw speed, speed reloads & stress shooting drills for FIFS alumni.",
-        vipDesc: "👑 VIP Turnkey Track. Includes range lane fee, 50 rounds ammo, steel silhouette targets & shot-timer telemetry breakdown!"
+        vipDesc: "👑 VIP Track. Includes range lane fee, 50 rounds ammo, steel silhouette targets & shot-timer telemetry breakdown!"
       }
     };
         function getMatchedCourseKey(selectedVal) {
@@ -7419,7 +7419,7 @@ function getStepNumberFromStatus(statusStr) {
         if (priceElem) {
           priceElem.innerHTML = `
             <span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-amber);">${config.vipPrice}</span>
-            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>
+            <span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP ★)</span>
           `;
         }
         if (btnSelect) {
@@ -10922,7 +10922,7 @@ if (typeof window !== 'undefined') {
         if (badge) badge.style.setProperty('display', 'block', 'important');
         if (vipBox) vipBox.style.setProperty('display', 'block', 'important');
         if (priceElem) {
-          priceElem.innerHTML = '<span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-amber);">' + config.vipPrice + '</span><span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP Turnkey ★)</span>';
+          priceElem.innerHTML = '<span class="price-val" style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--accent-amber);">' + config.vipPrice + '</span><span class="price-tier-tag" style="font-size: 0.82rem; color: var(--accent-amber); font-weight: 800; margin-left: 6px;">(👑 VIP ★)</span>';
         }
         if (btnSelect) {
           btnSelect.textContent = 'Select 👑 VIP (' + config.vipPrice + ') & Reserve Seat →';
