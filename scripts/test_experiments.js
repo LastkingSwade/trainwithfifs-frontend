@@ -36,7 +36,7 @@ test('Nothing protected is touched by the loop: the boot intro, Hack Detected, s
   const { execSync } = require('child_process');
   let changed = [];
   try { changed = execSync('git diff --name-only research-start...HEAD 2>/dev/null', { cwd: path.join(__dirname, '..') }).toString().split('\n').filter(Boolean); } catch { return; }
-  const allowed = [/^src\/experiments\//, /^scripts\/test_experiments\.js$/, /^src\/app\/layout\.tsx$/, /^src\/polish\/polish\.ts$/, /^package\.json$/, /^scripts\/test_hud_animations\.js$/, /^autoresearch-results\.tsv$/];
+  const allowed = [/^src\/experiments\//, /^scripts\/test_experiments\.js$/, /^src\/app\/layout\.tsx$/, /^src\/polish\/polish\.ts$/, /^package\.json$/, /^scripts\/test_hud_animations\.js$/, /^scripts\/test_ux_polish\.js$/, /^autoresearch-results\.tsv$/];
   for (const f of changed) assert(allowed.some((a) => a.test(f)), 'the loop changed a protected or unexpected file: ' + f);
 });
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);

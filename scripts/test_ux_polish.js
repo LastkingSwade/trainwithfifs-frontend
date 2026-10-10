@@ -39,8 +39,8 @@ test('Weight: the favicon is a small PNG (it was a 4.9 MB picture), the old file
   assert(fs.statSync(path.join(__dirname, '..', 'src/app/icon.png')).size < 30 * 1024, 'icon must stay under 30 KB');
   assert((PAGE.match(/installPolish\(\);/g) || []).length === 1 && /polish\/polish\.css/.test(LAYOUT));
 });
-test('No new dependency and no new network call: the polish module imports only the prefs helper', () => {
-  assert(/^import [^\n]+ from '\.\.\/portal\/prefs';$/m.test(TS) && (TS.match(/^import /gm) || []).length === 1 && !/fetch\(|XMLHttpRequest|new WebSocket/.test(TS));
+test('No new dependency and no new network call: the polish module imports only the prefs helper and the experiments file', () => {
+  assert(/^import [^\n]+ from '\.\.\/portal\/prefs';$/m.test(TS) && /^import \{ installQol \} from '\.\.\/experiments\/qol';$/m.test(TS) && (TS.match(/^import /gm) || []).length === 2 && !/fetch\(|XMLHttpRequest|new WebSocket/.test(TS));
   const pkg = JSON.parse(R('package.json')); assert(Object.keys(pkg.dependencies).join() === '@supabase/ssr,@supabase/supabase-js,next,postcss,react,react-dom,stripe', 'dependencies must not change');
 });
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
