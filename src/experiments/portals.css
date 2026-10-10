@@ -231,3 +231,6 @@
 
 /* P077 Client: feature titles balance their lines */
 .fi-feature-title { text-wrap: balance; }
+
+/* P078 Client: the permit card wraps long values */
+.client-ccw-wallet-card { overflow-wrap: anywhere; }

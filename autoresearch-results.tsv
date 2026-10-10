@@ -174,3 +174,4 @@ P073	2026-10-10T23:07:55.460Z	Student: the course packet card wraps its title	SU
 P074	2026-10-10T23:08:15.121Z	Student: the course packet description wraps nicely	SUCCESS	29941	30044	103	css
 P075	2026-10-10T23:08:15.306Z	Student: step circles never shrink	SUCCESS	30044	30128	84	css
 P076	2026-10-10T23:08:15.466Z	Client: feature cards never overflow their grid cell	SUCCESS	30128	30228	100	css
+P077	2026-10-10T23:08:15.626Z	Client: feature titles balance their lines	SUCCESS	30228	30325	97	css
