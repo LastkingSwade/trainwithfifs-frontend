@@ -7,8 +7,8 @@ function test(n, f) { try { f(); console.log('  ✓ PASS: ' + n); passed++; } ca
 function assert(c, m) { if (!c) throw new Error(m || 'assertion failed'); }
 const num = (k) => Number((CFG.match(new RegExp(k + ':\\s*([\\d* ]+),')) || [])[1].split('*').reduce((a, b) => a * Number(b), 1));
 console.log('\n[hack detected]');
-test('Schedule and switches are constants: first run 3 minutes after the boot, then every 3 minutes, with an env off switch', () => {
-  assert(num('firstDelayMs') === 180000 && num('intervalMs') === 180000, 'schedule is not 3 minutes');
+test('Schedule and switches are constants: first run 1 minute after the boot, then every 1 minute, with an env off switch', () => {
+  assert(num('firstDelayMs') === 60000 && num('intervalMs') === 60000, 'schedule is not 1 minute');
   assert(/NEXT_PUBLIC_HACK_EFFECT !== 'off'/.test(CFG) && /ENABLED/.test(COMP), 'on/off switch missing');
   assert(/started = true/.test(COMP) && /fifs:boot-complete/.test(COMP), 'clock must start only after the boot intro');
 });

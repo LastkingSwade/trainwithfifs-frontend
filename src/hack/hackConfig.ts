@@ -2,8 +2,8 @@
 // Switch it off for everyone with NEXT_PUBLIC_HACK_EFFECT=off (build-time), or set ENABLED to false here.
 export const HACK = {
   ENABLED: process.env.NEXT_PUBLIC_HACK_EFFECT !== 'off',
-  firstDelayMs: 3 * 60 * 1000,   // first run: this long after the boot intro finishes (time spent with the tab hidden does not count)
-  intervalMs: 3 * 60 * 1000,     // then every this long after the previous run ends
+  firstDelayMs: 60 * 1000,       // first run: this long after the boot intro finishes (time spent with the tab hidden does not count)
+  intervalMs: 60 * 1000,         // then every this long after the previous run ends
   retryMs: 20 * 1000,            // if a modal, form field, other page or boot screen is in the way, try again after this
   scrambleLeadMs: 800,           // text scrambles alone for this long, then the message appears
   messageHoldMs: 3000,           // "HACK DETECTED////" stays this long, then the colour wash
