@@ -89,5 +89,7 @@ export function installQol(): void {
   run('Q095', () => { $$<HTMLInputElement>('#booking-form [required]').forEach((i) => i.setAttribute('aria-required', 'true')); });
   // Q096: Group code box says what it expects
   run('Q096', () => { const el = document.getElementById('podCodeInput'); if (el && !el.getAttribute('aria-describedby')) el.setAttribute('aria-describedby', 'podCodeStatus'); });
+  // Q097: The chat bubble button has a spoken name
+  run('Q097', () => { const p = document.getElementById('floatingCommPill'); if (p && !p.getAttribute('aria-label')) p.setAttribute('aria-label', 'Chat with Coach Kai Wade'); });
   // @@QOL_END
 }
