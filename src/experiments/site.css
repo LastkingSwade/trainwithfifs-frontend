@@ -183,3 +183,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q061 VIP perks wrap more nicely */
 .vip-perks-box { text-wrap: pretty; }
+
+/* Q062 Price tags never split onto two lines */
+.price-tier-tag { white-space: nowrap; }
