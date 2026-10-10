@@ -36,10 +36,25 @@ const db = (rows, { noDelivery = false, fail = false } = {}) => ({ calls: [], fr
   await test('Route and screen: staff check before any database access; read only; no write calls anywhere', () => {
     const ROUTE = fs.readFileSync(path.join(ROOT, 'src/app/api/fifs/route.ts'), 'utf8'), SRV = fs.readFileSync(path.join(ROOT, 'src/Lib/server/admin-payments.ts'), 'utf8'), UI = fs.readFileSync(path.join(ROOT, 'src/portal/AdminPaymentsPanel.tsx'), 'utf8');
     const at = ROUTE.indexOf("case 'adminPayments':"), body = ROUTE.slice(at, ROUTE.indexOf("case 'studentInvoices':", at));
-    assert(body.indexOf('isStaffOrAdmin(user)') > 0 && body.indexOf('isStaffOrAdmin(user)') < body.indexOf('getPrivilegedClient()') && /status: 401/.test(body));
-    assert(!/\.(insert|update|upsert|delete)\(/.test(SRV) && !/stripe/i.test(SRV.replace(/Stripe ids and card details/, '')), 'read only');
+    assert(body.indexOf('isStaffOrAdmin(user)') > 0 && body.indexOf('isStaffOrAdmin(user)') < body.indexOf('getPrivilegedClient()') && /status: 401/.test(body) && /case 'adminDeletePayments'/.test(body), 'staff check before any database access, for both actions');
+    const readPart = SRV.slice(0, SRV.indexOf('// Staff-only delete of payment records'));
+    assert(!/\.(insert|update|upsert|delete)\(/.test(readPart), 'the listing is read only');
     assert(/aria-label="Payments"/.test(UI) && /csvCell/.test(UI) && /\[=\+\\-@/.test(UI), 'accessible, CSV cells guarded against spreadsheet formulas');
     assert(/id="btn-admin-payments-hdr"/.test(fs.readFileSync(path.join(ROOT, 'src/app/page.tsx'), 'utf8')) && /AdminPaymentsPanel/.test(fs.readFileSync(path.join(ROOT, 'src/app/layout.tsx'), 'utf8')));
+  });
+  await test('Delete: only well-formed invoice numbers, at most 50; paid rows need explicit confirmation; days are freed first; nothing outside the list is touched', async () => {
+    const mk = (rows, { failDays = false, failInv = false } = {}) => { const log = []; return { log, from(t) { const f = {}; let op = 'select'; const q = { select: () => q, in: (c, v) => { f[c] = v; return q; }, delete: () => { op = 'delete'; return q;},
+      then: (res) => { log.push(t + ':' + op); if (op === 'delete') { if ((t === 'day_claims' && failDays) || (t === 'invoices' && failInv)) return res({ error: { message: 'boom' } }); if (t === 'invoices') rows.splice(0, rows.length, ...rows.filter((r) => !f.invoice_number.includes(r.invoice_number))); return res({ error: null }); } return res({ data: rows.filter((r) => (f.invoice_number || []).includes(r.invoice_number)).map((r) => ({ ...r })), error: null }); } }; return q; } }; };
+    const rows = () => [{ invoice_number: 'INV-FI-1001', status: 'PENDING' }, { invoice_number: 'INV-FI-1002', status: 'ABANDONED' }, { invoice_number: 'INV-FI-1003', status: 'PAID' }];
+    for (const bad of [undefined, [], 'INV-FI-1001', ['x'], ['INV-1; drop'], Array.from({ length: 51 }, (_, i) => 'INV-FI-' + (1000 + i))]) assert((await ap.adminDeletePayments(mk(rows()), bad, false, 'kai')).status === 400, 'accepted ' + JSON.stringify(bad));
+    const a = mk(rows()); const ok = await ap.adminDeletePayments(a, ['INV-FI-1001', 'INV-FI-1002', 'INV-FI-1001'], false, 'kai@x.com');
+    assert(ok.ok && ok.deleted === 2 && ok.paidDeleted === 0 && a.log.indexOf('day_claims:delete') < a.log.indexOf('invoices:delete'), JSON.stringify([ok, a.log]));
+    const b = mk(rows()); const refused = await ap.adminDeletePayments(b, ['INV-FI-1001', 'INV-FI-1003'], false, 'kai');
+    assert(!refused.ok && refused.status === 409 && refused.needsPaidConfirm && refused.paidCount === 1 && !b.log.some((l) => l.endsWith(':delete')), 'paid rows need confirmation and nothing is deleted before it');
+    const c = mk(rows()); const done = await ap.adminDeletePayments(c, ['INV-FI-1001', 'INV-FI-1003'], true, 'kai'); assert(done.ok && done.deleted === 2 && done.paidDeleted === 1);
+    assert((await ap.adminDeletePayments(mk(rows()), ['INV-FI-9999'], false, 'k')).status === 404);
+    const d = mk(rows(), { failDays: true }); assert((await ap.adminDeletePayments(d, ['INV-FI-1001'], false, 'k')).status === 503 && !d.log.includes('invoices:delete'), 'a failure freeing days deletes nothing');
+    assert((await ap.adminDeletePayments(mk(rows(), { failInv: true }), ['INV-FI-1001'], false, 'k')).status === 503);
   });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   process.exit(failed ? 1 : 0);

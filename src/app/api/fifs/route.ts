@@ -6,7 +6,7 @@ import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
 import { purgeWallet, walletConsent, walletDelete, walletOpen, walletStatus, walletUpload } from '@/Lib/server/wallet';
-import { adminPayments } from '@/Lib/server/admin-payments';
+import { adminDeletePayments, adminPayments } from '@/Lib/server/admin-payments';
 import { listTrash, restoreFromTrash, saveToTrash } from '@/Lib/server/admin-trash';
 import { adminDayRoster, adminMarkAttendance, adminOnlineOverview, adminSetMeetingLink, day2Pending, getDayModes, getOnlineOptions, studentOnlineClasses } from '@/Lib/server/online-classroom';
 import { createBookingCheckout, createPodInviteCode, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord, lookupPod } from '@/Lib/server/booking-checkout';
@@ -2949,11 +2949,16 @@ export async function POST(req: NextRequest) {
        return res.ok ? NextResponse.json({ success: true, ...res }) : NextResponse.json({ success: false, error: res.message }, { status: res.status });
      }
 
-     case 'adminPayments': {
-       // Staff only, read only. The caller's role is checked on the server before the database is touched.
+     case 'adminPayments':
+     case 'adminDeletePayments': {
+       // Staff only. The caller's role is checked on the server before the database is touched.
        const { user, error: authErr } = await getAuthenticatedUser(req);
        if (authErr || !isStaffOrAdmin(user)) {
          return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       if (action === 'adminDeletePayments') {
+         const r = await adminDeletePayments(getPrivilegedClient(), payload.ids, payload.confirmPaid, String(user?.email || user?.id || 'staff'));
+         return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message, needsPaidConfirm: r.needsPaidConfirm === true, paidCount: r.paidCount }, { status: r.status });
        }
        const res = await adminPayments(getPrivilegedClient(), payload.filter, payload.search);
        return res.ok ? NextResponse.json({ success: true, ...res }) : NextResponse.json({ success: false, error: res.message }, { status: res.status });
