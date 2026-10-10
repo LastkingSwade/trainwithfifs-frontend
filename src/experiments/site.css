@@ -45,3 +45,6 @@ a:not([class]) { text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
 
 /* Q015 Fold-away rows show a pointer */
 summary { cursor: pointer; }
+
+/* Q016 Fold-away arrows use the brand color */
+summary::marker { color: var(--accent-cyan, #00e5ff); }

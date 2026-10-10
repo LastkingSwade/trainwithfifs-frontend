@@ -12,3 +12,4 @@ Q010	2026-10-10T23:00:06.526Z	Thin brand-colored scrollbars	SUCCESS	2717	2856	13
 Q011	2026-10-10T23:00:06.645Z	Placeholder text easier to read on the dark fields	SUCCESS	2856	2965	109	css
 Q012	2026-10-10T23:00:06.765Z	Disabled controls show a not-allowed cursor	SUCCESS	2965	3114	149	css
 Q013	2026-10-10T23:00:06.884Z	A busy control shows a progress cursor	SUCCESS	3114	3206	92	css
+Q015	2026-10-10T23:01:55.960Z	Fold-away rows show a pointer	SUCCESS	3348	3419	71	css
