@@ -25,7 +25,7 @@ const isShown = (el: HTMLElement) => {
 const modalOpen = () => Array.from(document.querySelectorAll<HTMLElement>(MODALS)).some(isShown);
 const fieldFocused = () => { const a = document.activeElement; return !!a && a !== document.body && a.matches(FIELDS); };
 const blocked = () => !homeVisible() || modalOpen() || fieldFocused() || document.documentElement.hasAttribute('data-boot') || document.visibilityState !== 'visible'
-  || document.documentElement.getAttribute('data-hud-state') === 'intro';
+  || document.documentElement.getAttribute('data-hud-state') === 'intro' || !!document.querySelector('.scr-layer');
 const rnd = (n: number) => { let s = ''; for (let i = 0; i < n; i++) s += HACK_CHARS[Math.floor(Math.random() * HACK_CHARS.length)]; return s; };
 
 interface Word { el: HTMLSpanElement; len: number }

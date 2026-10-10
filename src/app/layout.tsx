@@ -4,6 +4,7 @@ import "./globals.css";
 import "../delight/delight.css";
 import BootIntro from "../boot/BootIntro";
 import HackDetected from "../hack/HackDetected";
+import LetterScramble from "../scramble/LetterScramble";
 import GroupCodePanel from "../group/GroupCodePanel";
 import GroupStatusPanel from "../group/GroupStatusPanel";
 import OnlineAdminPanel from "../online/OnlineAdminPanel";
@@ -43,6 +44,7 @@ export default function RootLayout({
         </Script>
         <BootIntro />
         <HackDetected />
+        <LetterScramble />
         <GroupCodePanel />
         <GroupStatusPanel />
         <OnlineAdminPanel />
