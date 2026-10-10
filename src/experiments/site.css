@@ -84,3 +84,6 @@ img[loading="lazy"] { background: linear-gradient(135deg, rgba(148, 163, 184, 0.
 
 /* Q028 Prices line up digit by digit */
 .price-val { font-variant-numeric: tabular-nums; }
+
+/* Q029 Off-screen gallery photos are skipped until needed (faster scrolling) */
+.target-card-student { content-visibility: auto; contain-intrinsic-size: auto 420px; }

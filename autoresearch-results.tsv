@@ -25,3 +25,4 @@ Q024	2026-10-10T23:02:14.910Z	Printed pages show the address of outside links	SU
 Q025	2026-10-10T23:02:15.030Z	Scrolling inside a pop-up no longer scrolls the page behind it	SUCCESS	4859	4984	125	css
 Q026	2026-10-10T23:02:15.147Z	Same for the dimmed overlay around a pop-up	SUCCESS	4984	5120	136	css
 Q027	2026-10-10T23:02:15.264Z	Opening a question in the FAQ keeps it clear of the header	SUCCESS	5120	5230	110	css
+Q028	2026-10-10T23:02:15.386Z	Prices line up digit by digit	SUCCESS	5230	5323	93	css
