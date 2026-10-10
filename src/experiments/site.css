@@ -138,3 +138,6 @@ a[href^="tel:"], a[href^="mailto:"] { white-space: nowrap; }
 
 /* Q046 Checkboxes and radios are big enough to hit */
 input[type="checkbox"], input[type="radio"] { min-width: 20px; min-height: 20px; }
+
+/* Q047 The label of the field being typed in lights up */
+.form-group:focus-within > label { color: var(--accent-cyan, #00e5ff); }
