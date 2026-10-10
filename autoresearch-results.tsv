@@ -113,3 +113,4 @@ P012	2026-10-10T23:05:50.466Z	Admin: metric cards never overflow their grid cell
 P013	2026-10-10T23:05:50.618Z	Admin: metric numbers line up	SUCCESS	21765	21859	94	css
 P014	2026-10-10T23:06:08.863Z	Admin: metric names balance their lines	SUCCESS	21859	21948	89	css
 P015	2026-10-10T23:06:09.014Z	Admin: a clear focus ring on metric cards	SUCCESS	21948	22102	154	css
+P016	2026-10-10T23:06:09.164Z	Admin: the button toolbar wraps on narrow screens instead of overflowing	SUCCESS	22102	22247	145	css
