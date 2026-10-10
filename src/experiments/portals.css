@@ -195,3 +195,6 @@
 
 /* P065 Student: score sheet buttons are 44 px tall */
 #dash-scoresheet-fullscreen-btn, #dash-scoresheet-download-btn { min-height: 44px; display: inline-flex; align-items: center; }
+
+/* P066 Student: the score badge lines up */
+#dash-scoresheet-score-badge { font-variant-numeric: tabular-nums; }
