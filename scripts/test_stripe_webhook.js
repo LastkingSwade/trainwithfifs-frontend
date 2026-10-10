@@ -24,6 +24,8 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null, f
     if (id === '@/Lib/server/discord') return { sendDiscordAlert: async (title) => { alerts.push(title); return true; } };
     // Group code email (recorded, never sent). failEmail makes it throw, to prove a mail problem cannot affect the payment.
     if (id === '@/Lib/server/group-email') return { sendGroupCodeEmail: async (to, meta) => { if (failEmail) throw new Error('mail down'); emails.push({ to, meta }); return true; } };
+    // Online-classroom seat release (recorded, never run): called only when an unpaid live-online checkout expires.
+    if (id === '@/Lib/server/online-classroom') return { releaseOnlineSeats: async (inv) => { podCalls.push(['releaseOnline', inv]); } };
     // Pod seat helpers (recorded, never run): the webhook calls them only when an unpaid member/leader checkout expires.
     if (id === '@/Lib/server/booking-checkout') return { releasePodSeat: async (code) => { podCalls.push(['release', code]); return true; }, cancelUnpaidLeaderPod: async (code) => { podCalls.push(['cancelLeader', code]); return true; } };
     return require(id);

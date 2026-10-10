@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import Stripe from 'stripe';
 import { recordPodCodeOnInvoice } from './group-status';
+import { claimOnlineSeats, releaseOnlineSeats, validateOnlineBooking } from './online-classroom';
 import { calculatePricingBreakdown, displayCourseLabel, isAlumniCourse, parseAttendeeCount } from '../pricing';
 import { getAuthenticatedUser, getPrivilegedClient, hasBearerToken, resolveStripeSecretKey } from './supabase-admin';
 import { sendDiscordAlert } from './discord';
@@ -167,6 +168,14 @@ export async function createBookingCheckout(
     return { status: 503, body: { success: false, status: 'error', error: 'Payment processing is not configured on the server. Please contact FIFS directly.' } };
   }
 
+  // Live Online Classroom (classroom over video, Day 2 range always in person): every rule is checked here, before any payment starts.
+  let online: { classroomSessionId: string; rangeSessionId: string } | null = null;
+  if (String(input.delivery || '') === 'live_online') {
+    const check = await validateOnlineBooking(getPrivilegedClient(), courseSelection, { classroomSessionId: input.classroomSessionId, rangeSessionId: input.rangeSessionId, ack: input.day2Ack });
+    if (!check.ok) return { status: check.status, body: { success: false, status: 'error', error: check.message } };
+    online = { classroomSessionId: check.classroomSessionId, rangeSessionId: check.rangeSessionId };
+  }
+
   // Optional authenticated linking. An absent or invalid token simply means a guest checkout;
   // it never grants access to another student's record.
   let linkedUserId: string | null = null;
@@ -215,7 +224,7 @@ export async function createBookingCheckout(
   }
 
   const invoiceId = generateInvoiceId();
-  const pricing = calculatePricingBreakdown(courseSelection, attendees, isPayFull);
+  const pricing = calculatePricingBreakdown(courseSelection, attendees, isPayFull, online ? 'live_online' : 'in_person');
 
   let podSeatClaimed = false;
   if (podMember) {
@@ -223,9 +232,16 @@ export async function createBookingCheckout(
     if (!claim.ok) return { status: claim.status, body: { success: false, status: 'error', error: claim.message } };
     podSeatClaimed = true;
   }
+  let onlineSeatsClaimed = false;
   const releaseClaimedPodSeat = async () => {
     if (podMember && podSeatClaimed) { podSeatClaimed = false; await releasePodSeat(podMember.code); }
+    if (online && onlineSeatsClaimed) { onlineSeatsClaimed = false; await releaseOnlineSeats(invoiceId); }
   };
+  if (online) {
+    const held = await claimOnlineSeats(getPrivilegedClient(), invoiceId, online);
+    if (!held.ok) { await releaseClaimedPodSeat(); return { status: 409, body: { success: false, status: 'error', error: held.message } }; }
+    onlineSeatsClaimed = true;
+  }
 
   const stripe = new Stripe(stripeKey, { apiVersion: STRIPE_API_VERSION });
   let session: Stripe.Checkout.Session;
@@ -255,7 +271,8 @@ export async function createBookingCheckout(
         depositDueNow: pricing.depositDueNow.toFixed(2),
         balanceDueClass: pricing.balanceDueClass.toFixed(2),
         isDepositPayment: String(!isPayFull),
-        ...(podMember ? { podCode: podMember.code, podRole: 'member' } : {})
+        ...(podMember ? { podCode: podMember.code, podRole: 'member' } : {}),
+        ...(online ? { delivery: 'live_online', classroomSessionId: online.classroomSessionId, rangeSessionId: online.rangeSessionId, remoteFee: pricing.remoteFee.toFixed(2) } : {})
       },
       line_items: [
         {
@@ -263,14 +280,14 @@ export async function createBookingCheckout(
             currency: 'usd',
             unit_amount: pricing.chargeCents,
             product_data: {
-              name: `${displayCourseLabel(courseSelection)} — ${isPayFull ? 'Full Tuition & Range Fee' : '30% Reservation Deposit'}`,
-              description: `Invoice: ${invoiceId} • Total Course Investment: $${pricing.grandTotal.toFixed(2)} (Tuition + ${pricing.isVip ? 'VIP Range Perk' : "$45 Cindy's Range Fee"} + 6% MD Tax) • ${isPayFull ? 'Paid in Full' : 'Deposit: $' + pricing.depositDueNow.toFixed(2) + ' (Remaining $' + pricing.balanceDueClass.toFixed(2) + ' due on class day)'}`,
+              name: `${displayCourseLabel(courseSelection)}${online ? ' (Live Online Classroom + In-Person Range Day)' : ''} — ${isPayFull ? 'Full Tuition & Range Fee' : '30% Reservation Deposit'}`,
+              description: `Invoice: ${invoiceId} • Total Course Investment: $${pricing.grandTotal.toFixed(2)} (Tuition + ${pricing.isVip ? 'VIP Range Perk' : "$45 Cindy's Range Fee"}${online ? ' + $' + pricing.remoteFee.toFixed(2) + ' remote-delivery fee' : ''} + 6% MD Tax) • ${isPayFull ? 'Paid in Full' : 'Deposit: $' + pricing.depositDueNow.toFixed(2) + ' (Remaining $' + pricing.balanceDueClass.toFixed(2) + ' due on class day)'}`,
             },
           },
           quantity: 1,
         },
       ],
-      ...(podMember ? { expires_at: Math.floor(Date.now() / 1000) + POD_MEMBER_SESSION_MINUTES * 60 } : {}),
+      ...(podMember || online ? { expires_at: Math.floor(Date.now() / 1000) + POD_MEMBER_SESSION_MINUTES * 60 } : {}),
       success_url: `${baseUrl}/?session_id={CHECKOUT_SESSION_ID}&booking_confirmed=true&invoice=${encodeURIComponent(invoiceId)}`,
       cancel_url: `${baseUrl}/?booking_cancelled=true&session_id={CHECKOUT_SESSION_ID}&invoice=${encodeURIComponent(invoiceId)}`,
     });
@@ -308,7 +325,9 @@ export async function createBookingCheckout(
       email,
       facility: FACILITY,
       payment_method: 'Stripe Checkout',
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      // Only live-online bookings write the new columns, so ordinary bookings never depend on the database script.
+      ...(online ? { delivery: 'live_online', day2_ack_at: new Date().toISOString() } : {})
     });
     if (invoiceErr) {
       invoiceFailure = `${invoiceErr.code || 'no code'}: ${invoiceErr.message || 'unknown error'}`;

@@ -12,6 +12,15 @@ export const COURSE_PRICING: Record<string, { base: number; vip: number }> = {
   alumni: { base: 65.00, vip: 91.00 }
 };
 
+// Live Online Classroom: the classroom portion is taught live over video; Day 2 (range) stays in person. The premium is a
+// remote-delivery fee, ONE constant, the same for Standard and VIP. fee = round(track tuition x rate) to the cent, per person, so
+// a 1-person price is exactly tuition + fee (for example $424.99 + $85.00 = $509.99).
+export const ONLINE_PREMIUM_RATE = 0.20;
+// Courses that have a classroom portion and a range day. Whether each one is actually offered online is a switch the owner controls
+// (public.course_settings); everything is off until switched on.
+export const ONLINE_ELIGIBLE_KEYS = ['mastery', 'combo', 'ccw', 'renewal', 'hql'] as const;
+export type Delivery = 'in_person' | 'live_online';
+
 const DEFAULT_TUITION_PER_PERSON = 249.99;
 const RANGE_FEE_PER_PERSON = 45.00;
 const MD_SALES_TAX_RATE = 0.06;
@@ -66,7 +75,16 @@ const toCents = (dollars: number) => Math.round(dollars * 100);
  * Computes the invoice breakdown. Money values are rounded to whole cents once, so the
  * amount charged in Stripe exactly matches the deposit/total stored on the invoice.
  */
-export function calculatePricingBreakdown(courseSelection: string, attendees: number, isPayFull: boolean) {
+export function onlineEligible(courseSelection: string): boolean {
+  const key = courseKeyFor(courseSelection);
+  return !!key && (ONLINE_ELIGIBLE_KEYS as readonly string[]).includes(key);
+}
+
+export function remoteFeePerPerson(baseTuitionPerPerson: number): number {
+  return Math.round(baseTuitionPerPerson * ONLINE_PREMIUM_RATE * 100) / 100;
+}
+
+export function calculatePricingBreakdown(courseSelection: string, attendees: number, isPayFull: boolean, delivery: Delivery = 'in_person') {
   const isVip = /VIP/i.test(courseSelection || '');
   const baseTuitionPerPerson = baseTuitionFor(courseSelection || '', isVip);
   const discountPercent = GROUP_DISCOUNTS[attendees] ?? 0;
@@ -76,7 +94,9 @@ export function calculatePricingBreakdown(courseSelection: string, attendees: nu
   const discountedTuitionCents = rawTuitionCents - discountCents;
   // Range lane fee: $45.00 per person on the Base track, included for VIP
   const rangeFeeCents = isVip ? 0 : toCents(RANGE_FEE_PER_PERSON * attendees);
-  const subtotalCents = discountedTuitionCents + rangeFeeCents;
+  // Remote-delivery fee (live online classroom only): per person, not part of the group discount, shown on its own line.
+  const remoteFeeCents = delivery === 'live_online' && onlineEligible(courseSelection) ? toCents(remoteFeePerPerson(baseTuitionPerPerson)) * attendees : 0;
+  const subtotalCents = discountedTuitionCents + rangeFeeCents + remoteFeeCents;
   const mdTaxCents = Math.round(subtotalCents * MD_SALES_TAX_RATE);
   const grandTotalCents = subtotalCents + mdTaxCents;
   const depositCents = Math.round(grandTotalCents * DEPOSIT_RATE);
@@ -89,6 +109,8 @@ export function calculatePricingBreakdown(courseSelection: string, attendees: nu
     discountPercent,
     discountedTuition: discountedTuitionCents / 100,
     rangeFee: rangeFeeCents / 100,
+    remoteFee: remoteFeeCents / 100,
+    delivery: remoteFeeCents > 0 ? 'live_online' as Delivery : 'in_person' as Delivery,
     mdTax: mdTaxCents / 100,
     grandTotal: grandTotalCents / 100,
     depositDueNow: depositCents / 100,

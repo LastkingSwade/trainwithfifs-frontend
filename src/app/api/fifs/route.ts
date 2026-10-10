@@ -4,6 +4,7 @@ import { getAuthenticatedUser, getPrivilegedClient, getPublicClient } from '@/Li
 import { isLiveChatHours } from '@/Lib/server/chat-hours';
 import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/group-status';
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
+import { getOnlineOptions } from '@/Lib/server/online-classroom';
 import { createBookingCheckout, createPodInviteCode, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord, lookupPod } from '@/Lib/server/booking-checkout';
 import { ConfigurationError, resolveSiteUrl } from '@/Lib/config/environment';
 
@@ -2861,6 +2862,12 @@ export async function POST(req: NextRequest) {
          preferredDates: found.pod.preferredDates,
          seatsLeft: found.pod.maxSeats - found.pod.claimedSeats
        });
+     }
+
+     case 'onlineOptions': {
+       // Public: which classes can be taken with the live online classroom right now (switch on AND dated sessions posted). Returns
+       // only dates and seats left; never meeting links. An empty list simply hides the option.
+       return NextResponse.json({ success: true, ...(await getOnlineOptions()) });
      }
 
      case 'groupStatus':

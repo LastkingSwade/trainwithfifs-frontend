@@ -145,6 +145,8 @@ const mockSupabase = {
     rpc: async (fn, args) => {
       rpcCalls.push({ fn, args, key });
       const injected = failures[`rpc.${fn}`];
+      if (fn === 'claim_session_seat') return injected ? { data: null, error: injected } : { data: !(failures && failures.seatFull), error: null };
+      if (fn === 'release_session_seats') return { data: null, error: null };
       return injected ? { data: null, error: injected } : { data: 'POD-TEST', error: null };
     },
     storage: { from: () => ({ createSignedUrl: async () => ({ data: null, error: { message: 'none' } }) }) },
@@ -1258,6 +1260,54 @@ async function main() {
       const r = await runNotice('adminResendEnrollmentNotice', { enrollmentId: 'enr-1', type: 'cancelled' }, { headers, enrollment: { status: 'cancelled' } });
       assert(r.status === 401 && r.emails.length === 0, `expected 401, got ${r.status}`);
     }
+  });
+
+  console.log('\n[SECTION H4: Live Online Classroom booking (classroom over video, Day 2 range in person)]');
+  const CCW = 'Maryland Wear & Carry (CCW) — Base Track ($199.99)';
+  const ROOM_ID = '11111111-1111-4111-8111-111111111111', RANGE_ID = '22222222-2222-4222-8222-222222222222';
+  const soon = new Date(Date.now() + 7 * 864e5).toISOString();
+  const withOnline = async (fn, { enabled = true } = {}) => {
+    const saved = { cs: db.course_settings, cl: db.class_sessions };
+    db.course_settings = enabled ? [{ course_key: 'ccw', online_enabled: true }] : [{ course_key: 'ccw', online_enabled: false }];
+    db.class_sessions = [{ id: ROOM_ID, course_key: 'ccw', kind: 'classroom', delivery: 'live_online', starts_at: soon, capacity: 0, is_open: true }, { id: RANGE_ID, course_key: 'ccw', kind: 'range', delivery: 'in_person', starts_at: soon, capacity: 2, is_open: true }];
+    try { await fn(); } finally { db.course_settings = saved.cs; db.class_sessions = saved.cl; if (failures) delete failures.seatFull; }
+  };
+  const onlineBody = (over = {}) => ({ email: 'remote@example.com', fullName: 'Remote Student', courseSelection: CCW, groupSize: '1', delivery: 'live_online', classroomSessionId: ROOM_ID, rangeSessionId: RANGE_ID, day2Ack: true, ...over });
+  await test('A valid online booking is priced with the remote-delivery fee on the server, recorded as live online, and never trusts a browser price', async () => {
+    await withOnline(async () => {
+      const expected = pricing.calculatePricingBreakdown('Maryland Wear & Carry (CCW)', 1, false, 'live_online');
+      const r = await checkoutPost(onlineBody({ totalAmount: '1.00', grandTotal: 1 }));
+      assert(r.status === 200 && r.body.url, JSON.stringify(r.body));
+      const item = lastCreateParams.line_items[0].price_data;
+      assert(item.unit_amount === expected.chargeCents && expected.remoteFee === 40, 'charge must include the $40 fee: ' + item.unit_amount);
+      assert(/Live Online Classroom \+ In-Person Range Day/.test(item.product_data.name) && /remote-delivery fee/.test(item.product_data.description), item.product_data.name);
+      assert(lastCreateParams.metadata.delivery === 'live_online' && lastCreateParams.metadata.rangeSessionId === RANGE_ID, 'metadata must record the delivery and range day');
+      const inv = db.invoices[db.invoices.length - 1];
+      assert(inv.delivery === 'live_online' && !!inv.day2_ack_at && inv.total_amount === expected.grandTotal.toFixed(2), JSON.stringify(inv));
+      assert(lastCreateParams.expires_at, 'an unpaid online checkout must expire so its seats come back');
+    });
+  });
+  await test('Refused before any invoice or Stripe session: no Day 2 box, no range date, no classroom date, switch off, or a course with no online option', async () => {
+    const cases = [[{ day2Ack: false }, true], [{ rangeSessionId: '' }, true], [{ classroomSessionId: '' }, true], [{}, false], [{ courseSelection: 'Personal 1-on-1 Coaching — Base Track ($125.00/hr)' }, true]];
+    for (const [over, enabled] of cases) await withOnline(async () => {
+      const invoices = db.invoices.length, sessions = Object.keys(stripeSessions).length;
+      const r = await checkoutPost(onlineBody(over));
+      assert(r.status >= 400 && r.status < 500 && db.invoices.length === invoices && Object.keys(stripeSessions).length === sessions, `${JSON.stringify(over)} enabled=${enabled}: got ${r.status}`);
+    }, { enabled });
+  });
+  await test('A full range day refuses the booking (409) with no payment started', async () => {
+    await withOnline(async () => {
+      const invoices = db.invoices.length, sessions = Object.keys(stripeSessions).length; failures = failures || {}; failures.seatFull = true;
+      const r = await checkoutPost(onlineBody());
+      delete failures.seatFull;
+      assert(r.status === 409 && /filled up/.test(r.body.error) && db.invoices.length === invoices && Object.keys(stripeSessions).length === sessions, JSON.stringify(r.body));
+    });
+  });
+  await test('Ordinary in-person bookings never write the new invoice columns', async () => {
+    const r = await checkoutPost({ email: 'inperson@example.com', fullName: 'In Person', courseSelection: CCW, groupSize: '1' });
+    assert(r.status === 200, JSON.stringify(r.body));
+    const inv = db.invoices[db.invoices.length - 1];
+    assert(!('delivery' in inv) && !('day2_ack_at' in inv), 'in-person invoices must not depend on the database script');
   });
 
   console.log('\n================================================================');
