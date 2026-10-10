@@ -192,3 +192,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q064 Pop-up boxes scroll smoothly on iPhone */
 .goal-modal-box { -webkit-overflow-scrolling: touch; }
+
+/* Q065 A field scrolled into view by the keyboard keeps room above it */
+:is(input, select, textarea):focus { scroll-margin-block: 120px; }
