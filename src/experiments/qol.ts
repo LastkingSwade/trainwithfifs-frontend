@@ -123,7 +123,7 @@ export function installQol(): void {
   run('P095', () => {
     const list = document.querySelector('.interactive-checklist'); if (!list) return;
     const note = document.createElement('div'); note.id = 'qol-checklist-progress'; note.setAttribute('role', 'status'); note.setAttribute('aria-live', 'polite'); list.insertBefore(note, list.firstChild);
-    const update = () => { const boxes = $$<HTMLInputElement>('.task-checkbox', list); const done = boxes.filter((b) => b.checked).length; note.textContent = boxes.length ? done + ' of ' + boxes.length + ' done' : ''; };
+    const update = () => { const boxes = $$<HTMLInputElement>('.task-checkbox', list); const done = boxes.filter((b) => b.checked).length; const next = boxes.length ? done + ' of ' + boxes.length + ' done' : ''; if (note.textContent !== next) note.textContent = next; };
     list.addEventListener('change', update); new MutationObserver(update).observe(list, { subtree: true, childList: true, attributes: true, attributeFilter: ['checked'] }); update();
   });
   // P096: Student: tap your student ID to copy it
