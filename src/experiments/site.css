@@ -72,3 +72,6 @@ img[loading="lazy"] { background: linear-gradient(135deg, rgba(148, 163, 184, 0.
 
 /* Q024 Printed pages show the address of outside links */
 @media print { a[href^="http"]:not([href*="trainwithfifs.com"])::after { content: " (" attr(href) ")"; font-size: 0.8em; } }
+
+/* Q025 Scrolling inside a pop-up no longer scrolls the page behind it */
+.goal-modal-box { overscroll-behavior: contain; }
