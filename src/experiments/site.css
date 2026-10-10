@@ -222,3 +222,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q074 Route cards balance their text */
 .corridor-route-card { text-wrap: pretty; }
+
+/* Q075 Course badges keep their text on one line */
+.badge-course, .badge-score { white-space: nowrap; }

@@ -71,3 +71,4 @@ Q070	2026-10-10T23:03:37.560Z	The header badge on a pop-up never stretches	SUCCE
 Q071	2026-10-10T23:03:37.681Z	Journey cards keep a steady number width	SUCCESS	10392	10492	100	css
 Q072	2026-10-10T23:03:37.809Z	Map state codes never break	SUCCESS	10492	10574	82	css
 Q073	2026-10-10T23:03:37.943Z	Dossier cards keep together when printed	SUCCESS	10574	10689	115	css
+Q074	2026-10-10T23:03:56.073Z	Route cards balance their text	SUCCESS	10689	10776	87	css
