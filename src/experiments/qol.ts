@@ -29,5 +29,7 @@ export function installQol(): void {
   });
   // Q081: The name field starts each word with a capital
   run('Q081', () => { const n = document.getElementById('fullName'); if (n && !n.getAttribute('autocapitalize')) n.setAttribute('autocapitalize', 'words'); });
+  // Q082: No red squiggles under emails and group codes
+  run('Q082', () => { for (const id of ['email', 'podCodeInput']) { const el = document.getElementById(id); if (el) el.setAttribute('spellcheck', 'false'); } });
   // @@QOL_END
 }
