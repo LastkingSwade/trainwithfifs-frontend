@@ -190,3 +190,4 @@ P089	2026-10-10T23:08:36.218Z	Client: permit card wraps nicely on narrow phones	
 P090	2026-10-10T23:08:36.366Z	Client: urgency colors for days left (green, amber, red) with the number still shown	SUCCESS	31753	32027	274	css
 P091	2026-10-10T23:08:38.159Z	Admin: tap an ID in the roster or clients table to copy it	SUCCESS	32027	33102	1075	code
 P092	2026-10-10T23:08:39.606Z	Admin: column headings in the roster and clients tables are announced as columns	SUCCESS	33102	33299	197	code
+P093	2026-10-10T23:08:41.064Z	Admin: Esc clears a search box and shows every row again	SUCCESS	33299	33736	437	code

@@ -113,5 +113,11 @@ export function installQol(): void {
   run('P093', () => {
     for (const id of ['admin-roster-search', 'admin-client-search']) { document.addEventListener('keydown', (e) => { const el = document.getElementById(id) as HTMLInputElement | null; if (e.key === 'Escape' && el && document.activeElement === el && el.value) { el.value = ''; el.dispatchEvent(new Event('input', { bubbles: true })); } }); }
   });
+  // P094: Admin: the roster window puts the cursor in the search box on computers (not phones, so the keyboard does not pop up)
+  run('P094', () => {
+    const overlay = document.getElementById('adminSubpanelModalOverlay'); if (!overlay || !window.matchMedia('(pointer: fine)').matches) return;
+    let was = false;
+    new MutationObserver(() => { const now = getComputedStyle(overlay).display !== 'none'; if (now && !was) { const s = ['admin-roster-search', 'admin-client-search'].map((id) => document.getElementById(id) as HTMLInputElement | null).find((i) => i && i.offsetParent !== null); if (s) window.setTimeout(() => { try { s.focus({ preventScroll: true }); } catch { /* ignore */ } }, 80); } was = now; }).observe(overlay, { attributes: true, attributeFilter: ['class', 'style'] });
+  });
   // @@QOL_END
 }
