@@ -174,3 +174,6 @@
 
 /* P058 Student: long dossier values wrap */
 .dossier-prop-val { overflow-wrap: anywhere; }
+
+/* P059 Student: badges and chips wrap onto a second row on small screens */
+.student-badge-bar, .student-meta-chips { flex-wrap: wrap; row-gap: 6px; }
