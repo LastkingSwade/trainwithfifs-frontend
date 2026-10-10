@@ -216,3 +216,6 @@
 
 /* P072 Student: wallet document rows wrap long text */
 .online-admin .sess span { min-width: 0; }
+
+/* P073 Student: the course packet card wraps its title */
+#packetCardTitle { text-wrap: balance; }
