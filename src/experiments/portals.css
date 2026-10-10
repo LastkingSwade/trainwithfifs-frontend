@@ -12,3 +12,6 @@
 
 /* P004 Admin: roster cells centered vertically */
 .admin-roster-table td { vertical-align: middle; }
+
+/* P005 Admin: column titles never wrap */
+.admin-roster-table th { white-space: nowrap; }
