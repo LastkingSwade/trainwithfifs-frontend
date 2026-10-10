@@ -128,3 +128,4 @@ P027	2026-10-10T23:06:29.087Z	Admin: intel card text wraps nicely	SUCCESS	23701	
 P028	2026-10-10T23:06:29.234Z	Admin: intel card buttons are 44 px tall	SUCCESS	23827	23923	96	css
 P029	2026-10-10T23:06:29.381Z	Admin: unread counts line up	SUCCESS	23923	24027	104	css
 P030	2026-10-10T23:06:29.532Z	Admin: search boxes do not zoom the phone in	SUCCESS	24027	24154	127	css
+P031	2026-10-10T23:06:29.686Z	Admin: the "Showing x of y" count lines up	SUCCESS	24154	24269	115	css

@@ -93,3 +93,6 @@
 
 /* P031 Admin: the "Showing x of y" count lines up */
 .admin-filter-count { font-variant-numeric: tabular-nums; }
+
+/* P032 Admin: empty-table messages balance their lines */
+.admin-empty-row td { text-wrap: balance; }
