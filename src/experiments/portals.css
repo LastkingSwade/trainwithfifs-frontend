@@ -123,3 +123,6 @@
 
 /* P041 Admin: the score sheet pad toolbar keeps clear of the iPad home bar */
 .ssp-bar { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+
+/* P042 Admin: the score sheet pad canvas never selects or drags like an image */
+.ssp-canvas { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }

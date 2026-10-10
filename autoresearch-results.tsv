@@ -138,3 +138,4 @@ P037	2026-10-10T23:06:48.569Z	Admin: edit windows scroll on their own	SUCCESS	24
 P038	2026-10-10T23:06:48.790Z	Admin: edit-window fields are 44 px tall and do not zoom the phone	SUCCESS	25036	25335	299	css
 P039	2026-10-10T23:06:48.943Z	Admin: the score sheet notes box can be stretched down only	SUCCESS	25335	25461	126	css
 P040	2026-10-10T23:06:49.093Z	Admin: the invite window scrolls on its own	SUCCESS	25461	25569	108	css
+P041	2026-10-10T23:06:49.244Z	Admin: the score sheet pad toolbar keeps clear of the iPad home bar	SUCCESS	25569	25718	149	css
