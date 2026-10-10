@@ -150,3 +150,6 @@
 
 /* P050 Admin: sign-out button is 44 px tall */
 #btn-admin-sign-out { min-height: 44px; }
+
+/* P051 Student: finished checklist items fade back */
+.task-item-card:has(.task-checkbox:checked) { opacity: 0.72; }

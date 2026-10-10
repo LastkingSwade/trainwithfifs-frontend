@@ -147,3 +147,4 @@ P046	2026-10-10T23:07:08.039Z	Admin: tab badges never wrap	SUCCESS	26350	26449	9
 P047	2026-10-10T23:07:08.192Z	Admin: the new-student alert box balances its lines	SUCCESS	26449	26650	201	css
 P048	2026-10-10T23:07:08.343Z	Admin: telemetry numbers line up	SUCCESS	26650	26832	182	css
 P049	2026-10-10T23:07:08.492Z	Admin: live dot is hidden from the printout	SUCCESS	26832	26934	102	css
+P050	2026-10-10T23:07:08.644Z	Admin: sign-out button is 44 px tall	SUCCESS	26934	27025	91	css
