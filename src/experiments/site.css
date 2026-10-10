@@ -120,3 +120,6 @@ button:focus:not(:focus-visible) { outline: none; }
 
 /* Q040 Journey step text wraps more nicely */
 .j-desc { text-wrap: pretty; } .j-title { text-wrap: balance; }
+
+/* Q041 Big buttons break long labels evenly */
+.btn-spark, .btn-primary { text-wrap: balance; }
