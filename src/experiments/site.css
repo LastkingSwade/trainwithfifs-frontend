@@ -207,3 +207,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q069 Pop-up titles balance their lines */
 .goal-modal-title { text-wrap: balance; }
+
+/* Q070 The header badge on a pop-up never stretches */
+.goal-header-badge { white-space: nowrap; }
