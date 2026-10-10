@@ -81,3 +81,4 @@ Q082	2026-10-10T23:04:06.029Z	No red squiggles under emails and group codes	SUCC
 Q083	2026-10-10T23:04:07.567Z	Stray spaces around a name, email or phone are removed when you leave the field	SUCCESS	12899	13251	352	code
 Q084	2026-10-10T23:04:08.962Z	Tapping the group code box selects the whole code so a new one replaces it	SUCCESS	13251	13535	284	code
 Q085	2026-10-10T23:04:10.303Z	The phone browser bar matches the site background	SUCCESS	13535	13808	273	code
+Q089	2026-10-10T23:04:35.166Z	Images with no description are marked decorative so screen readers skip them	FAIL	14632	14632	0	tsc: src/experiments/qol.ts(51,23): error TS2581: Cannot find name '$'. Do you need to install type definitions for jQuery? Try `npm i --save-dev

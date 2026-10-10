@@ -47,5 +47,9 @@ export function installQol(): void {
     let last = String(w.currentActiveView || 'home');
     new MutationObserver(() => { const v = String(w.currentActiveView || 'home'); if (v !== last) { last = v; live.textContent = (w.SECTION_TITLES && w.SECTION_TITLES[v]) || (v === 'home' ? 'Home' : v); } }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   });
+  // Q077: Outside links always open safely (no access to the page that opened them)
+  run('Q077', () => {
+    $$<HTMLAnchorElement>('a[target="_blank"]').forEach((a) => { const r = (a.getAttribute('rel') || '').split(/\s+/).filter(Boolean); for (const t of ['noopener', 'noreferrer']) if (!r.includes(t)) r.push(t); a.setAttribute('rel', r.join(' ')); });
+  });
   // @@QOL_END
 }
