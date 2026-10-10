@@ -156,3 +156,6 @@ option { background: #0d141e; color: #f8fafc; }
 
 /* Q052 Long status messages wrap instead of overflowing */
 .status-msg { overflow-wrap: anywhere; }
+
+/* Q053 Long unbroken words never push the page wider */
+body { overflow-wrap: break-word; }
