@@ -207,3 +207,6 @@
 
 /* P069 Student: the live online card wraps long meeting text */
 #dash-online-card { overflow-wrap: anywhere; }
+
+/* P070 Student: the Join button keeps a visible focus ring */
+.online-card a.join:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
