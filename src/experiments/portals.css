@@ -90,3 +90,6 @@
 
 /* P030 Admin: search boxes do not zoom the phone in */
 @media (pointer: coarse) { .admin-filter input { font-size: 16px; } }
+
+/* P031 Admin: the "Showing x of y" count lines up */
+.admin-filter-count { font-variant-numeric: tabular-nums; }
