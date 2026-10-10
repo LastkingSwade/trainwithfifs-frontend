@@ -131,3 +131,4 @@ P030	2026-10-10T23:06:29.532Z	Admin: search boxes do not zoom the phone in	SUCCE
 P031	2026-10-10T23:06:29.686Z	Admin: the "Showing x of y" count lines up	SUCCESS	24154	24269	115	css
 P032	2026-10-10T23:06:29.834Z	Admin: empty-table messages balance their lines	SUCCESS	24269	24373	104	css
 P033	2026-10-10T23:06:29.983Z	Admin: windows (Online, Payments, Recently Deleted) highlight rows under the pointer	SUCCESS	24373	24540	167	css
+P034	2026-10-10T23:06:48.111Z	Admin: payment checkboxes are big enough to tap	SUCCESS	24540	24668	128	css

@@ -102,3 +102,6 @@
 
 /* P034 Admin: payment checkboxes are big enough to tap */
 .online-admin input[type="checkbox"] { width: 20px; height: 20px; }
+
+/* P035 Admin: rows in the windows wrap long emails */
+.online-admin .sess { overflow-wrap: anywhere; }
