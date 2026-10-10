@@ -10,7 +10,8 @@
 import React, { useEffect } from "react";
 import Script from "next/script";
 import dynamic from "next/dynamic";
-import { GROUP_EXPLAINER, cleanCourse, friendlyCodeError } from "@/group/groupCopy";
+import { GROUP_CODE_PARAM, GROUP_EXPLAINER, cleanCourse, friendlyCodeError } from "@/group/groupCopy";
+import { normalizeGroupCode } from "@/group/groupCode";
 import { installOnlineForm } from "@/online/onlineForm";
 import { installStudentOnline } from "@/online/studentOnline";
 import { installStudentExtras } from "@/portal/studentExtras";
@@ -3804,7 +3805,7 @@ export default function TrainWithFIFS(props: any) {
     };
     (window as any).applyPodCode = async function() {
       const input = document.getElementById('podCodeInput') as HTMLInputElement | null;
-      const code = (input?.value || '').trim().toUpperCase();
+      const code = normalizeGroupCode(input?.value || '');
       if (!code) { (window as any).clearPodCode(); return; }
       setPodStatus('Checking your group code...', 'info');
       try {
@@ -3830,6 +3831,42 @@ export default function TrainWithFIFS(props: any) {
         setPodStatus(friendlyCodeError((err && err.message) || ''), 'error');
       }
     };
+
+    // Opens the booking form on the Group Code box (used by the email link, the Start Your Journey link and the "Have a code?" row).
+    // With a code it is filled in and checked straight away. The visitor still confirms before anything is booked.
+    (window as any).openGroupCodeEntry = function(prefill?: string) {
+      if (typeof (window as any).closeJourneySelectionModal === 'function') (window as any).closeJourneySelectionModal();
+      if (typeof (window as any).openCourseBookingModal === 'function') (window as any).openCourseBookingModal();
+      const box = document.getElementById('podCodeBox') as HTMLDetailsElement | null;
+      if (box && box.tagName === 'DETAILS') box.open = true;
+      const input = document.getElementById('podCodeInput') as HTMLInputElement | null;
+      if (input && !input.disabled) {
+        if (prefill) input.value = normalizeGroupCode(prefill);
+        window.setTimeout(() => { try { input.focus(); input.scrollIntoView({ block: 'center' }); } catch { /* ignore */ } }, 50);
+        if (prefill) (window as any).applyPodCode();
+      }
+    };
+
+    // An email link like /?gcode=FIFS-POD-AB12 opens the booking form with that group code. The code is taken out of the address bar right
+    // away, so it is not left in the browser history, a bookmark or a screenshot of the address.
+    try {
+      const incoming = new URLSearchParams(window.location.search);
+      const fromLink = incoming.get(GROUP_CODE_PARAM);
+      if (fromLink !== null) {
+        incoming.delete(GROUP_CODE_PARAM);
+        const rest = incoming.toString();
+        window.history.replaceState(null, '', window.location.pathname + (rest ? '?' + rest : '') + window.location.hash);
+        const wanted = normalizeGroupCode(fromLink);
+        let tries = 0;
+        const wait = window.setInterval(() => {
+          tries += 1;
+          if (typeof (window as any).openGroupCodeEntry === 'function' && typeof (window as any).applyPodCode === 'function' && document.getElementById('podCodeInput')) {
+            window.clearInterval(wait);
+            (window as any).openGroupCodeEntry(wanted);
+          } else if (tries > 50) window.clearInterval(wait);
+        }, 200);
+      }
+    } catch { /* the link is a convenience; the code can always be typed in */ }
 
     (window as any).confirmAndFinalizeBooking = function(payInFull: boolean = false) {
       const p = __fifsCurrentBookingPayload;

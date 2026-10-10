@@ -169,7 +169,7 @@ test('Only the HUD files, the journey chooser and alumni-gate files, and the tes
   const untracked = gitLines('git ls-files --others --exclude-standard');
   if (changed === null || untracked === null) return; // no git here (for example a source export): nothing to compare
   const files = [...changed, ...untracked].filter((f) => !/^scripts\/test_students_(access|self_update_draft)_suite\.js$/.test(f));
-  const allowed = [/^src\/animations\//, /^src\/app\/page\.tsx$/, /^src\/app\/globals\.css$/, /^src\/Lib\/pricing\.ts$/, /^src\/Lib\/server\/booking-checkout\.ts$/, /^src\/delight\//, /^src\/boot\//, /^src\/hack\//, /^src\/group\//, /^src\/online\//, /^src\/portal\//, /^EXPERIMENTS\.md$/, /^scripts\/test_student_portal\.js$/, /^public\/scripts\/TrainWithFIFS_scripts\.js$/, /^src\/Lib\/server\/(group-email|group-status|online-classroom|online-email|permit-email|admin-payments|admin-trash|wallet|portal-access|student-invoices)\.ts$/, /^src\/app\/api\/cron\//, /^vercel\.json$/, /^src\/app\/api\/fifs\/route\.ts$/, /^src\/app\/api\/stripe\/webhook\/route\.ts$/, /^scripts\/test_(stripe_webhook|group_email|group_status|group_code|online_classroom|permit_reminders|admin_payments|admin_trash|polish|wallet|portal_access|student_portal|client_portal|admin_portal)\.js$/, /^scripts\/test_chat_hud_and_pod_ui\.js$/, /^src\/Lib\/pricing\.ts$/, /^public\/scripts\/TrainWithFIFS_scripts\.js$/, /^scripts\/test_audit_batch2\.js$/, /^scripts\/test_environment_config_suite\.js$/, /^src\/app\/layout\.tsx$/, /^docs\/UX-BACKLOG\.md$/, /^src\/polish\//, /^src\/app\/icon\.(ico|png)$/, /^scripts\/test_ux_polish\.js$/,
+  const allowed = [/^src\/animations\//, /^src\/app\/page\.tsx$/, /^src\/app\/globals\.css$/, /^src\/Lib\/pricing\.ts$/, /^src\/Lib\/server\/booking-checkout\.ts$/, /^src\/delight\//, /^src\/boot\//, /^src\/hack\//, /^src\/group\//, /^src\/online\//, /^src\/portal\//, /^EXPERIMENTS\.md$/, /^scripts\/test_student_portal\.js$/, /^public\/scripts\/TrainWithFIFS_scripts\.js$/, /^src\/Lib\/server\/(group-email|group-status|online-classroom|online-email|permit-email|admin-payments|admin-trash|wallet|portal-access|student-invoices)\.ts$/, /^src\/app\/api\/cron\//, /^vercel\.json$/, /^src\/app\/api\/fifs\/route\.ts$/, /^src\/app\/api\/stripe\/webhook\/route\.ts$/, /^scripts\/test_(stripe_webhook|group_email|group_status|group_code|online_classroom|permit_reminders|admin_payments|admin_trash|polish|wallet|portal_access|student_portal|client_portal|admin_portal)\.js$/, /^scripts\/test_chat_hud_and_pod_ui\.js$/, /^src\/Lib\/pricing\.ts$/, /^public\/scripts\/TrainWithFIFS_scripts\.js$/, /^scripts\/test_audit_batch2\.js$/, /^scripts\/test_environment_config_suite\.js$/, /^src\/app\/layout\.tsx$/, /^next\.config\.ts$/, /^docs\/UX-BACKLOG\.md$/, /^src\/polish\//, /^src\/app\/icon\.(ico|png)$/, /^scripts\/test_ux_polish\.js$/,
     /^scripts\/test_(hud_animations|payment_suite|journey_chooser_suite|delight|boot_intro|hack_effect)\.js$/, /^package\.json$/, /^ANIMATIONS\.md$/];
   const stray = files.filter((f) => !allowed.some((re) => re.test(f)));
   assert(stray.length === 0, 'files outside the expected scope changed: ' + stray.join(', '));
@@ -183,9 +183,12 @@ test('The home page no longer shows the "Save TRAIN with FIFS to your phone" ins
   assert(/id="pwaStudentBanner"/.test(PAGE), 'the student portal install banner must stay');
 });
 test('The security headers and the content security policy are exactly as before', () => {
-  const diff = gitLines('git diff --name-only main -- next.config.ts');
+  // The only permitted change: one added rule that sends no Referer on links that carry a group code (?gcode=). Nothing may be removed or edited.
+  const diff = gitLines('git diff -U0 main -- next.config.ts');
   if (diff === null) return;
-  assert(diff.length === 0, 'next.config.ts changed');
+  const removed = diff.filter((l) => l.startsWith('-') && !l.startsWith('---')), added = diff.filter((l) => l.startsWith('+') && !l.startsWith('+++')).join('\n');
+  assert(removed.length === 0, 'next.config.ts lost or edited existing lines: ' + (removed[0] || '').slice(0, 80));
+  assert(added === '' || (/gcode/.test(added) && /no-referrer/.test(added) && !/Content-Security-Policy|Strict-Transport|X-Frame|Permissions-Policy|script-src|default-src/.test(added)), 'next.config.ts gained something other than the group-code referrer rule');
 });
 test('The mobile calendar rules in globals.css are untouched (the file only gained lines, none removed or edited)', () => {
   const diff = gitLines('git diff -U0 main -- src/app/globals.css');

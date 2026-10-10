@@ -1,5 +1,5 @@
 import { groupManageUrl } from '@/Lib/server/group-status';
-import { CODE_PATTERN, CONTACT_EMAIL, CONTACT_PHONE, GROUP_STEPS, RANGE_LOCATION, SITE_URL, buildShareMessage, cleanCourse } from '@/group/groupCopy';
+import { CODE_PATTERN, CONTACT_EMAIL, CONTACT_PHONE, GROUP_STEPS, RANGE_LOCATION, SITE_URL, buildShareMessage, cleanCourse, groupRegisterUrl } from '@/group/groupCopy';
 
 // Confirmation email for the person who booked a group: their group code, the four steps, and a block they can forward as it is.
 // Sent once, right after the payment is applied. Best effort: it never throws and never changes the payment result.
@@ -21,6 +21,7 @@ export function buildGroupCodeEmail(meta: GroupEmailMeta): { subject: string; ht
   <p style="margin:18px 0 4px;font-size:13px;color:#555;">YOUR GROUP CODE (ALSO CALLED A POD CODE)</p>
   <p style="font-family:Consolas,Menlo,monospace;font-size:28px;font-weight:bold;letter-spacing:2px;margin:0 0 16px;">${esc(meta.code)}</p>
   <ol style="padding-left:20px;margin:0 0 18px;">${steps}</ol>
+  <p style="margin:0 0 18px;"><a href="${esc(groupRegisterUrl(meta.code))}" style="display:inline-block;background:#ffb703;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;border-radius:4px;">Register for your class</a><br><span style="font-size:13px;color:#555;">Opens the booking form with your group code filled in.</span></p>
   <p><strong>Forward this part to your party:</strong></p>
   <div style="border:1px solid #bbb;border-radius:8px;padding:12px 14px;background:#f6f6f6;white-space:pre-line;">${esc(invite)}</div>
   ${meta.manageUrl ? `<p style="font-size:14px;"><a href="${esc(meta.manageUrl)}">See who has joined your group</a> (private link, keep it to yourself).</p>` : ''}
@@ -55,7 +56,7 @@ export function buildGroupReminderEmail(meta: { code: string; course?: string; d
   const course = cleanCourse(meta.course);
   const when = meta.dates ? ` on ${meta.dates}` : '';
   const subject = `Your seat in ${course} is not finished yet`;
-  const body = `You started booking ${course}${when} with a group code, but the payment is not finished, so your seat is not held. To finish: go to ${SITE_URL}, tap Start Your Journey, then Book Now, type the group code ${meta.code} in the Group Code box and tap Apply. Questions? Call ${CONTACT_PHONE}.`;
+  const body = `You started booking ${course}${when} with a group code, but the payment is not finished, so your seat is not held. To finish, open ${groupRegisterUrl(meta.code)} and your group code is filled in. Or go to ${SITE_URL}, tap Start Your Journey, then Book Now, type the group code ${meta.code} in the Group Code box and tap Apply. Questions? Call ${CONTACT_PHONE}.`;
   const html = `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#111;line-height:1.5;"><p>Hi,</p><p>${esc(body)}</p><p style="font-family:Consolas,Menlo,monospace;font-size:24px;font-weight:bold;letter-spacing:2px;">${esc(meta.code)}</p><p style="font-size:14px;">Train With FIFS</p></div>`;
   return { subject, html, text: body };
 }

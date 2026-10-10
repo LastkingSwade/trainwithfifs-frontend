@@ -62,6 +62,17 @@ const grp = (over = {}) => ({ invite_code: 'FIFS-POD-AB12', status: 'ACTIVE', ma
       for (const line of R(f).split('\n').filter((l) => /console\.(log|warn|error)\(/.test(l))) { const code = line.replace(/'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`/g, ''); assert(!/\b(podCode|podCodeInput|checkedCode|podMember|code)\b(?!\s*[:|?])/.test(code.replace(/\b(error|err|Err|e)\??\.code\b/g, '')) || /maskCode\(/.test(code), f + ' logs a code: ' + line.trim().slice(0, 90)); }
     }
   });
+  await test('Entry point 1, the email: a "Register for your class" button and a share link carry the code in ?gcode= (never ?code=, which belongs to sign-in), the page cleans the address bar, skips the intro and sends no Referer', () => {
+    const cp = load('src/group/groupCopy.ts');
+    assert(cp.GROUP_CODE_PARAM === 'gcode' && cp.groupRegisterUrl('FIFS-POD-AB12') === 'https://trainwithfifs.com/?gcode=FIFS-POD-AB12');
+    const EM = R('src/Lib/server/group-email.ts');
+    assert(/Register for your class/.test(EM) && /groupRegisterUrl\(meta\.code\)/.test(EM), 'email button');
+    assert(cp.buildShareMessage({ code: 'FIFS-POD-AB12', course: 'Maryland CCW', dates: 'Oct 25' }).includes('https://trainwithfifs.com/?gcode=FIFS-POD-AB12'), 'the forwarded message carries the link');
+    const PAGE = R('src/app/page.tsx'); const at = PAGE.indexOf('const fromLink = incoming.get(GROUP_CODE_PARAM)'), blk = PAGE.slice(at, at + 1500);
+    assert(/incoming\.delete\(GROUP_CODE_PARAM\)/.test(blk) && /window\.history\.replaceState/.test(blk) && blk.indexOf('replaceState') < blk.indexOf('openGroupCodeEntry(wanted)'), 'the code leaves the address before anything else happens');
+    assert(/\[\?&\]gcode=/.test(R('src/boot/bootConfig.ts')), 'a group-code link skips the intro');
+    const NC = R('next.config.ts'); assert(/has: \[\{ type: "query", key: "gcode" \}\]/.test(NC) && /Referrer-Policy", value: "no-referrer"/.test(NC) && NC.indexOf('has: [{ type: "query", key: "gcode" }]') > NC.indexOf('strict-origin-when-cross-origin'), 'strict referrer policy for the link, listed after the default');
+  });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   process.exit(failed ? 1 : 0);
 })();

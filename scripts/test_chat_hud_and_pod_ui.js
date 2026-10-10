@@ -127,6 +127,7 @@ test('The checkout response code is stored before the redirect to Stripe', () =>
   assert(at > 0 && redirect > at, 'the code must be stored before window.location.href = data.url');
 });
 const GROUP_SRC = fs.readFileSync(path.join(ROOT, 'src', 'group', 'groupCopy.ts'), 'utf8');
+const groupCode = (() => { const m = { exports: {} }; vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(ROOT, 'src', 'group', 'groupCode.ts'), 'utf8'), { compilerOptions: { target: 'ES2020', module: 'commonjs' } }).outputText, { module: m, exports: m.exports, String, RegExp }); return m.exports; })();
 const PANEL_SRC = fs.readFileSync(path.join(ROOT, 'src', 'group', 'GroupCodePanel.tsx'), 'utf8');
 const groupCopy = (() => { const m = { exports: {} }; vm.runInNewContext(ts.transpileModule(GROUP_SRC, { compilerOptions: { target: 'ES2020', module: 'commonjs' } }).outputText, { module: m, exports: m.exports, encodeURIComponent, String, Number, Array }); return m.exports; })();
 test('The group code panel only shows after a paid booking, with a real code, as plain text (never HTML)', () => {
@@ -167,7 +168,7 @@ function podBoxEnv(backend) {
   const priceUpdates = [];
   const win = { callFifsBackend: backend, updateFormPriceDisplay: () => priceUpdates.push(1) };
   const js = ts.transpileModule(`(function(){ ${PAGE.slice(at, end)} })()`, { compilerOptions: { target: 'ES2020' } }).outputText;
-  vm.runInNewContext(js, { window: win, document: { getElementById: (id) => els[id] || null }, Array, String, Error, parseInt, friendlyCodeError: groupCopy.friendlyCodeError, cleanCourse: groupCopy.cleanCourse });
+  vm.runInNewContext(js, { window: win, document: { getElementById: (id) => els[id] || null }, Array, String, Error, parseInt, friendlyCodeError: groupCopy.friendlyCodeError, cleanCourse: groupCopy.cleanCourse, normalizeGroupCode: groupCode.normalizeGroupCode });
   return { els, win, priceUpdates };
 }
 test('A valid code selects the pod\'s course, locks the course and group size, shows the seats left and offers Remove', async () => {

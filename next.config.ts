@@ -71,6 +71,13 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // A link that carries a group code (?gcode=) sends no Referer at all, so the code cannot leak to another site while the page loads.
+      // (Listed after the rule above, so for these requests this value wins.)
+      {
+        source: "/",
+        has: [{ type: "query", key: "gcode" }],
+        headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
+      },
     ];
   },
 };

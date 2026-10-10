@@ -6,6 +6,9 @@ export const CONTACT_PHONE_HREF = 'tel:4439901304';
 export const CONTACT_EMAIL = 'info@trainwithfifs.com';
 export const RANGE_LOCATION = "Cindy's Hot Shots, Glen Burnie, MD";
 export const CODE_PATTERN = /^FIFS-POD-[A-Z0-9]{4}$/;
+// Link that opens the booking form with a group code filled in. (Not "code": that name belongs to the sign-in system's own redirects.)
+export const GROUP_CODE_PARAM = 'gcode';
+export const groupRegisterUrl = (code: string) => `${SITE_URL}/?${GROUP_CODE_PARAM}=${encodeURIComponent(code)}`;
 export const META_KEY = 'fifs_group_invite_meta'; // course, dates and party size remembered next to the code across the Stripe redirect
 export const CODE_KEY = 'fifs_pod_invite_code';   // the code itself (unchanged key)
 
@@ -41,7 +44,9 @@ export function buildShareMessage(meta: GroupMeta): string {
     `Where: ${RANGE_LOCATION}`,
     '',
     'How to join:',
-    `1. Go to ${SITE_URL} and tap Start Your Journey, then Book Now.`,
+    `Quickest: open this link and your group code is already filled in: ${groupRegisterUrl(meta.code)}`,
+    '',
+    `Or by hand: 1. Go to ${SITE_URL} and tap Start Your Journey, then Book Now.`,
     `2. Type this group code in the Group Code box and tap Apply: ${meta.code}`,
     '3. Your class and date fill in by themselves. Finish your details and book your own seat.',
     '',
