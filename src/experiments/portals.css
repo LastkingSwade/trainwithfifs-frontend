@@ -135,3 +135,6 @@
 
 /* P045 Admin: the chat count badge lines up */
 #admin-chat-count-badge, #admin-tab-chat-badge-count, #admin-tab-roster-badge-count, #admin-tab-clients-badge-count { font-variant-numeric: tabular-nums; }
+
+/* P046 Admin: tab badges never wrap */
+[id^="admin-tab-"][id$="-badge"] { white-space: nowrap; }
