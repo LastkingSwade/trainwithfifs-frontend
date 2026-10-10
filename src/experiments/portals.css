@@ -234,3 +234,6 @@
 
 /* P078 Client: the permit card wraps long values */
 .client-ccw-wallet-card { overflow-wrap: anywhere; }
+
+/* P079 Client: days left and expiry date line up */
+#wallet-days-left, #wallet-exp-date { font-variant-numeric: tabular-nums; }

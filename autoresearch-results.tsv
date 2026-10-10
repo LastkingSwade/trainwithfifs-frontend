@@ -175,3 +175,4 @@ P074	2026-10-10T23:08:15.121Z	Student: the course packet description wraps nicel
 P075	2026-10-10T23:08:15.306Z	Student: step circles never shrink	SUCCESS	30044	30128	84	css
 P076	2026-10-10T23:08:15.466Z	Client: feature cards never overflow their grid cell	SUCCESS	30128	30228	100	css
 P077	2026-10-10T23:08:15.626Z	Client: feature titles balance their lines	SUCCESS	30228	30325	97	css
+P078	2026-10-10T23:08:15.788Z	Client: the permit card wraps long values	SUCCESS	30325	30432	107	css
