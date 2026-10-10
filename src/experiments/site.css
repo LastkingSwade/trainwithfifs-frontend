@@ -147,3 +147,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); curso
 
 /* Q049 Search boxes show a visible clear button on dark backgrounds */
 input[type="search"]::-webkit-search-cancel-button { filter: invert(1); cursor: pointer; }
+
+/* Q050 Drop-down options are readable on dark backgrounds */
+option { background: #0d141e; color: #f8fafc; }
