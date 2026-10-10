@@ -144,3 +144,6 @@
 
 /* P048 Admin: telemetry numbers line up */
 [id^="telemetry-"][id$="-val"], [id^="telemetry-"][id$="-pct"], [id^="telemetry-"][id$="-count"] { font-variant-numeric: tabular-nums; }
+
+/* P049 Admin: live dot is hidden from the printout */
+@media print { .live-dot { display: none; } }
