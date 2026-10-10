@@ -7520,7 +7520,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Learn More →
               </div>
             </button>
-            <button className="pathway-pill" data-onclick="openMultistateMasteryModal()" onClick={() => { if (typeof window !== "undefined" && (window as any).openMultistateMasteryModal) (window as any).openMultistateMasteryModal(); }} title="Learn more about multi-state carry" type="button">
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('need_multistate', this)" title="Learn more about multi-state carry" type="button">
               <div className="pathway-intent" style={{"color": "var(--accent-amber)"}}>
                 Do I Need a Multi-State Permit?
               </div>
