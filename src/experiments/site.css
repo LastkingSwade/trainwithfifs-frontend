@@ -81,3 +81,6 @@ img[loading="lazy"] { background: linear-gradient(135deg, rgba(148, 163, 184, 0.
 
 /* Q027 Opening a question in the FAQ keeps it clear of the header */
 .faq-item { scroll-margin-top: 90px; }
+
+/* Q028 Prices line up digit by digit */
+.price-val { font-variant-numeric: tabular-nums; }
