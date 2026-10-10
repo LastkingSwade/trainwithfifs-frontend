@@ -141,3 +141,6 @@
 
 /* P047 Admin: the new-student alert box balances its lines */
 #admin-alert-title, #admin-client-alert-title { text-wrap: balance; } #admin-alert-desc, #admin-client-alert-desc { text-wrap: pretty; }
+
+/* P048 Admin: telemetry numbers line up */
+[id^="telemetry-"][id$="-val"], [id^="telemetry-"][id$="-pct"], [id^="telemetry-"][id$="-count"] { font-variant-numeric: tabular-nums; }
