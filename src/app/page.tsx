@@ -10,7 +10,7 @@
 import React, { useEffect } from "react";
 import Script from "next/script";
 import dynamic from "next/dynamic";
-import { GROUP_CODE_PARAM, GROUP_EXPLAINER, cleanCourse, friendlyCodeError } from "@/group/groupCopy";
+import { GROUP_CODE_PARAM, GROUP_EXPLAINER, RANGE_LOCATION, cleanCourse, friendlyCodeError } from "@/group/groupCopy";
 import { normalizeGroupCode } from "@/group/groupCode";
 import { installOnlineForm } from "@/online/onlineForm";
 import { installStudentOnline } from "@/online/studentOnline";
@@ -3783,6 +3783,19 @@ export default function TrainWithFIFS(props: any) {
       el.style.color = kind === 'ok' ? '#34d399' : kind === 'error' ? '#f87171' : 'var(--text-muted)';
       el.textContent = message;
     };
+    // The "this is what your code covers" panel (class, date, place). Plain text only.
+    const showPodConfirm = (info: { course: string; dates: string; seatsLeft: number } | null) => {
+      const box = document.getElementById('podCodeConfirm');
+      if (!box) return;
+      if (!info) { box.hidden = true; return; }
+      const set = (id: string, text: string) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+      set('podConfirmCourse', info.course);
+      set('podConfirmDates', info.dates || 'Date set by the person who booked');
+      set('podConfirmPlace', RANGE_LOCATION);
+      set('podConfirmSeats', info.seatsLeft + ' seat' + (info.seatsLeft === 1 ? '' : 's') + ' still open');
+      box.hidden = false;
+      const yes = document.getElementById('btnPodConfirmYes'); if (yes) { try { (yes as HTMLElement).focus(); } catch { /* ignore */ } }
+    };
     (window as any).toggleGroupExplainer = function() {
       const g = document.getElementById('groupSize') as HTMLSelectElement | null;
       const box = document.getElementById('groupExplainer');
@@ -3791,6 +3804,8 @@ export default function TrainWithFIFS(props: any) {
     };
     (window as any).clearPodCode = function() {
       (window as any).__fifsPodCode = '';
+      (window as any).__fifsPendingPod = null;
+      showPodConfirm(null);
       const input = document.getElementById('podCodeInput') as HTMLInputElement | null;
       const course = document.getElementById('courseSelection') as HTMLSelectElement | null;
       const group = document.getElementById('groupSize') as HTMLSelectElement | null;
@@ -3803,33 +3818,60 @@ export default function TrainWithFIFS(props: any) {
       if (typeof (window as any).updateFormPriceDisplay === 'function') (window as any).updateFormPriceDisplay();
       (window as any).toggleGroupExplainer();
     };
+    // Step 1: check the code on the server and show what it covers. Nothing on the form changes until the visitor confirms.
     (window as any).applyPodCode = async function() {
       const input = document.getElementById('podCodeInput') as HTMLInputElement | null;
       const code = normalizeGroupCode(input?.value || '');
       if (!code) { (window as any).clearPodCode(); return; }
+      (window as any).__fifsPendingPod = null;
+      showPodConfirm(null);
       setPodStatus('Checking your group code...', 'info');
       try {
         const res = await (window as any).callFifsBackend('validatePodCode', { code });
         if (!res || res.valid !== true) throw new Error(friendlyCodeError((res && res.error) || ''));
         const course = document.getElementById('courseSelection') as HTMLSelectElement | null;
-        const group = document.getElementById('groupSize') as HTMLSelectElement | null;
         const option = course ? Array.from(course.options).find((o) => o.value === res.course) : undefined;
-        if (!course || !group || !option) throw new Error("This group's class is not available to book online. Please call 443-990-1304 and we will help.");
-        course.value = option.value;
-        course.disabled = true;
-        group.selectedIndex = 0;
-        group.disabled = true;
-        (window as any).__fifsPodCode = code;
-        if (input) { input.value = code; input.disabled = true; }
-        const clearBtn = document.getElementById('btnClearPodCode');
-        if (clearBtn) clearBtn.style.display = 'inline-block';
-        if (typeof (window as any).updateFormPriceDisplay === 'function') (window as any).updateFormPriceDisplay();
-        (window as any).toggleGroupExplainer();
-        setPodStatus("You're in the group: " + cleanCourse(res.course) + ' — ' + res.seatsLeft + ' seat(s) still open. You book one seat at the regular single-person price.', 'ok');
+        if (!course || !option) throw new Error("This group's class is not available to book online. Please call 443-990-1304 and we will help.");
+        if (input) input.value = code;
+        (window as any).__fifsPendingPod = { code, res };
+        setPodStatus('', 'info');
+        showPodConfirm({ course: cleanCourse(res.course), dates: String(res.preferredDates || ''), seatsLeft: Number(res.seatsLeft) || 0 });
       } catch (err: any) {
         (window as any).__fifsPodCode = '';
+        (window as any).__fifsPendingPod = null;
         setPodStatus(friendlyCodeError((err && err.message) || ''), 'error');
       }
+    };
+    // Step 2: the visitor says "yes, this is my class". Only now does the form take the group's class and lock.
+    (window as any).confirmPodCode = function() {
+      const pending = (window as any).__fifsPendingPod;
+      if (!pending) return;
+      const { code, res } = pending;
+      const input = document.getElementById('podCodeInput') as HTMLInputElement | null;
+      const course = document.getElementById('courseSelection') as HTMLSelectElement | null;
+      const group = document.getElementById('groupSize') as HTMLSelectElement | null;
+      const option = course ? Array.from(course.options).find((o) => o.value === res.course) : undefined;
+      if (!course || !group || !option) { setPodStatus("This group's class is not available to book online. Please call 443-990-1304 and we will help.", 'error'); return; }
+      course.value = option.value;
+      course.disabled = true;
+      group.selectedIndex = 0;
+      group.disabled = true;
+      (window as any).__fifsPodCode = code;
+      (window as any).__fifsPendingPod = null;
+      showPodConfirm(null);
+      if (input) { input.value = code; input.disabled = true; }
+      const clearBtn = document.getElementById('btnClearPodCode');
+      if (clearBtn) clearBtn.style.display = 'inline-block';
+      if (typeof (window as any).updateFormPriceDisplay === 'function') (window as any).updateFormPriceDisplay();
+      (window as any).toggleGroupExplainer();
+      setPodStatus("You're in the group: " + cleanCourse(res.course) + ' — ' + res.seatsLeft + ' seat(s) still open. You book one seat at the regular single-person price.', 'ok');
+    };
+    (window as any).declinePodCode = function() {
+      (window as any).__fifsPendingPod = null;
+      showPodConfirm(null);
+      const input = document.getElementById('podCodeInput') as HTMLInputElement | null;
+      if (input) { input.value = ''; try { input.focus(); } catch { /* ignore */ } }
+      setPodStatus('No problem. Check the code with the person who booked, or call 443-990-1304 and we will help.', 'info');
     };
 
     // Opens the booking form on the Group Code box (used by the email link, the Start Your Journey link and the "Have a code?" row).
@@ -11323,10 +11365,11 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 {GROUP_EXPLAINER.steps.map((step) => (<li key={step}>{step}</li>))}
               </ol>
             </div>
-            <div className="form-group" id="podCodeBox" style={{"marginBottom": "14px"}}>
+            <details className="form-group" id="podCodeBox" style={{"marginBottom": "14px"}}>
+              <summary id="podCodeSummary" style={{"fontSize": "0.9rem", "color": "var(--accent-cyan)", "fontWeight": "700", "cursor": "pointer", "minHeight": "44px", "display": "flex", "alignItems": "center", "gap": "8px"}}>Have a code? (group code or pod code)</summary>
               <label htmlFor="podCodeInput" style={{"fontSize": "0.84rem", "color": "#cbd5e1", "fontWeight": "700", "display": "flex", "justifyContent": "space-between", "marginBottom": "6px"}}>
                 <span>Group Code (also called a pod code)</span>
-                <span style={{"fontSize": "0.74rem", "color": "var(--text-muted)", "fontWeight": "400"}}>(Optional — only if the person who booked your group sent you one)</span>
+                <span style={{"fontSize": "0.74rem", "color": "var(--text-muted)", "fontWeight": "400"}}>(Only if the person who booked your group sent you one)</span>
               </label>
               <div style={{"display": "flex", "gap": "8px"}}>
                 <input id="podCodeInput" name="podCodeInput" placeholder="FIFS-POD-XXXX" autoComplete="off" maxLength={13} style={{"flex": "1", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "textTransform": "uppercase"}} type="text" />
@@ -11334,7 +11377,18 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <button type="button" id="btnClearPodCode" className="btn-secondary-modal" data-onclick="clearPodCode()" style={{"padding": "10px 14px", "display": "none"}}>Remove</button>
               </div>
               <div id="podCodeStatus" role="status" style={{"marginTop": "6px", "fontSize": "0.8rem", "color": "var(--text-muted)", "display": "none"}}></div>
-            </div>
+              <div id="podCodeConfirm" role="group" aria-label="Confirm your group class" hidden style={{"marginTop": "10px", "padding": "12px 14px", "border": "1px solid var(--accent-cyan)", "borderRadius": "10px", "background": "rgba(0, 229, 255, 0.06)", "fontSize": "0.88rem", "color": "var(--text-main)", "lineHeight": "1.6"}}>
+                <strong style={{"display": "block", "marginBottom": "4px"}}>This code covers:</strong>
+                <div>Class: <strong id="podConfirmCourse"></strong></div>
+                <div>Date: <strong id="podConfirmDates"></strong></div>
+                <div>Where: <strong id="podConfirmPlace"></strong></div>
+                <div id="podConfirmSeats" style={{"color": "var(--text-muted)"}}></div>
+                <div style={{"display": "flex", "gap": "8px", "flexWrap": "wrap", "marginTop": "10px"}}>
+                  <button type="button" id="btnPodConfirmYes" className="btn-primary" data-onclick="confirmPodCode()" style={{"padding": "10px 16px", "minHeight": "44px"}}>Yes, this is my class</button>
+                  <button type="button" id="btnPodConfirmNo" className="btn-secondary-modal" data-onclick="declinePodCode()" style={{"padding": "10px 16px", "minHeight": "44px"}}>Not my class</button>
+                </div>
+              </div>
+            </details>
             <div className="form-group" id="bookingPortalNote" style={{"marginBottom": "14px", "fontSize": "0.84rem", "color": "#cbd5e1", "lineHeight": "1.5", "padding": "10px 12px", "border": "1px solid var(--border-subtle)", "borderRadius": "8px", "background": "rgba(0, 229, 255, 0.05)"}}>
               <strong style={{"color": "var(--accent-cyan)"}}>Student Portal:</strong> once your payment is confirmed we email you a secure link to create your Student Portal password. You need that password to open your portal (class details, checklist and receipts).
             </div>

@@ -82,6 +82,17 @@ const grp = (over = {}) => ({ invite_code: 'FIFS-POD-AB12', status: 'ACTIVE', ma
     const CSS = R('src/group/group.css'); assert(/\.journey-code-link \{ min-height: 44px/.test(CSS) && /\.journey-code-link:focus-visible/.test(CSS), '44 px target and visible focus');
     assert(/window as any\)\.openGroupCodeEntry = function\(prefill\?: string\) \{\s*if \(typeof \(window as any\)\.closeJourneySelectionModal === 'function'\)/.test(PAGE) && /input\.focus\(\)/.test(PAGE), 'opens the box and focuses the field');
   });
+  await test('Entry point 3, the booking form: "Have a code?" is collapsed until clicked, labelled, announced, and shows what the code covers before the visitor confirms', () => {
+    const PAGE = R('src/app/page.tsx'); const at = PAGE.indexOf('<details className="form-group" id="podCodeBox"'), blk = PAGE.slice(at, PAGE.indexOf('</details>', at));
+    assert(at > 0 && !/<details[^>]*\sopen[\s=>]/.test(blk.split('>')[0]) && /<summary id="podCodeSummary"[^>]*minHeight": "44px"/.test(blk) && /Have a code\?/.test(blk), 'collapsed by default with a 44 px summary');
+    assert(/<label htmlFor="podCodeInput"/.test(blk) && /id="podCodeStatus" role="status"/.test(blk) && /role="group" aria-label="Confirm your group class"/.test(blk), 'label, live status, labelled confirmation');
+    for (const id of ['podConfirmCourse', 'podConfirmDates', 'podConfirmPlace', 'podConfirmSeats', 'btnPodConfirmYes', 'btnPodConfirmNo']) assert(blk.includes('id="' + id + '"'), id);
+    assert(/Class: <strong id="podConfirmCourse"/.test(blk) && /Date: <strong id="podConfirmDates"/.test(blk) && /Where: <strong id="podConfirmPlace"/.test(blk), 'class, date and place');
+    const ap = PAGE.slice(PAGE.indexOf('window as any).applyPodCode = async function')), apply = ap.slice(0, ap.indexOf('(window as any).confirmPodCode'));
+    assert(!/course\.disabled = true|__fifsPodCode = code/.test(apply) && /__fifsPendingPod = \{ code, res \}/.test(apply) && /showPodConfirm\(\{/.test(apply), 'applying a code changes nothing until it is confirmed');
+    assert(/box\.tagName === 'DETAILS'\) box\.open = true/.test(PAGE), 'it expands when a code arrives from a link');
+    assert(/RANGE_LOCATION/.test(PAGE.slice(PAGE.indexOf('const showPodConfirm'), PAGE.indexOf('const showPodConfirm') + 700)), 'location comes from the shared copy');
+  });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   process.exit(failed ? 1 : 0);
 })();
