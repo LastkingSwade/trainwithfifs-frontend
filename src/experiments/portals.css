@@ -219,3 +219,6 @@
 
 /* P073 Student: the course packet card wraps its title */
 #packetCardTitle { text-wrap: balance; }
+
+/* P074 Student: the course packet description wraps nicely */
+#packetCardDesc { text-wrap: pretty; }
