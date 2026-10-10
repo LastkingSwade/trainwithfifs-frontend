@@ -201,3 +201,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q067 Star clusters never wrap */
 .gold-stars-cluster { white-space: nowrap; }
+
+/* Q068 Meta chips keep their text on one line */
+.meta-chip { white-space: nowrap; }
