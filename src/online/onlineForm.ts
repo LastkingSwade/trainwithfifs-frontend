@@ -138,7 +138,20 @@ export function installOnlineForm(): void {
     return typeof origReview === 'function' ? origReview.apply(this, args) : undefined;
   };
 
+  // A clear badge on each class card that can be taken online (only those the server offers right now).
+  const badgeCards = () => {
+    for (const key of Object.keys(state.options?.courses || {})) {
+      const card = document.getElementById('card-course-' + key);
+      if (!card || card.querySelector('.online-badge')) continue;
+      const badge = document.createElement('div');
+      badge.className = 'online-badge';
+      badge.textContent = '💻 Live online classroom available. Day 2 range day is always in person.';
+      const title = card.querySelector('.tuition-title');
+      if (title && title.parentNode) title.parentNode.insertBefore(badge, title.nextSibling); else card.appendChild(badge);
+    }
+  };
+
   // Which classes can be taken online right now (switch on AND dates posted). Failure just means the option stays hidden.
   fetch('/api/fifs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'onlineOptions' }) })
-    .then((r) => r.json()).then((d) => { if (d && d.success && d.courses) { state.options = { premiumRate: d.premiumRate, courses: d.courses }; render(); } }).catch(() => { /* option stays hidden */ });
+    .then((r) => r.json()).then((d) => { if (d && d.success && d.courses) { state.options = { premiumRate: d.premiumRate, courses: d.courses }; badgeCards(); render(); } }).catch(() => { /* option stays hidden */ });
 }

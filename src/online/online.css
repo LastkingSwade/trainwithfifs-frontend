@@ -17,3 +17,4 @@
 .online-card strong { color: var(--text-main, #f8fafc); }
 .online-card a.join { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border-radius: 8px; border: 1px solid var(--accent-cyan, #00e5ff); background: rgba(0, 229, 255, 0.14); color: var(--accent-cyan, #00e5ff); font-weight: 800; text-decoration: none; }
 .online-card .locked { color: var(--accent-amber, #ffb703); font-weight: 700; }
+.online-badge { margin: 6px 0; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--accent-cyan, #00e5ff); background: rgba(0, 229, 255, 0.08); color: var(--accent-cyan, #00e5ff); font-size: 0.74rem; font-weight: 800; line-height: 1.3; display: inline-block; }
