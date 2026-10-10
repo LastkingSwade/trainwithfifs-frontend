@@ -87,6 +87,7 @@ export function installStudentExtras(): void {
     const dash = document.getElementById('student-active-dashboard'); const host = document.getElementById('dash-extras');
     if (!dash || !host || busy || dash.classList.contains('hidden') || dash.hidden || getComputedStyle(dash).display === 'none') return;
     busy = true;
+    if (!host.firstChild) { const sk = document.createElement('div'); sk.className = 'pcard'; sk.setAttribute('aria-hidden', 'true'); for (let i = 0; i < 3; i += 1) { const bar = document.createElement('div'); bar.className = 'fifs-skel'; bar.style.margin = '10px 0'; sk.appendChild(bar); } host.appendChild(sk); host.hidden = false; }
     let receipts: Receipt[] | null = null;
     try { const d = await w.callFifsBackend('studentInvoices', {}); receipts = (d && d.invoices) || []; } catch { receipts = null; }
     host.textContent = '';

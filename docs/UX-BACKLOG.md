@@ -1,0 +1,21 @@
+# UX backlog (100 micro-optimizations)
+
+IDs are fixed so commits can cite them. Status: DONE = already live, NA = not applicable to this site, B1-B4 = planned batch, ASK = touches payments/auth/API (needs owner OK), DECIDE = needs a design or content decision.
+
+## A. Perceived Performance & Transitions
+1 Skeleton rows everywhere (B4) · 2 Reserve space for images (B1) · 3 Stable booking calendar height (B1) · 4 Prefetch booking form (NA) · 5 Instant button feedback, visual busy state only (approved, B4) · 6 Optimistic checklist ticks (DECIDE) · 7 Lazy-load remaining images (B4) · 8 Smooth tab/panel transitions (B1) · 9 Keep old rows while refreshing (DECIDE) · 10 Compress images (partly: icon, B1; rest DECIDE) · 11 Font display swap (NA, no web fonts) · 12 Defer Stripe script (ASK) · 13 Cache public data (ASK) · 14 Checkout redirect progress (ASK) · 15 Auto retry on network blip (ASK) · 16 Preserve scroll on modal close (B1) · 17 Smooth anchor scroll with offset (B1) · 18 Shimmer for wallet and online cards (B4) · 19 Idle-time animations (NA) · 20 Offline notice (B4)
+
+## B. Navigation & Flow
+21 Sticky Book a class button (B3) · 22 Back-to-top button (B3) · 23 Breadcrumbs in panels (DECIDE) · 24 Remember last portal tab (B3) · 25 Smart class suggestion (DECIDE) · 26 Class search (DECIDE) · 27 Inline FAQ under cards (DECIDE) · 28 Compare classes row (DECIDE) · 29 Shortcuts in student/client portals (DECIDE) · 30 Escape closes any modal (B3) · 31 Focus returns after closing (B3) · 32 Step indicator in booking (DECIDE) · 33 Smart date default (ASK, calendar rules) · 34 Remember form entries (DECIDE, personal data) · 35 Deep links (DONE) · 36 Mobile bottom nav (declined for now) · 37 Tap-to-call everywhere (B3) · 38 First-timer path (DONE) · 39 Session-expired notice (ASK) · 40 Contextual back button in modals (B3)
+
+## C. Micro-Delight & Interactive Polish
+41 Button press feel (DONE) · 42 Hover lift on cards (DONE) · 43 Toggle click sound (DECIDE) · 44 Haptic tap on phones (B4) · 45 Confetti on paid booking (DECIDE) · 46 Checklist completion burst (B4) · 47 Animated price change (DECIDE) · 48 Typing effect on tips (NA) · 49 Terminal caret color in inputs (B4) · 50 Success checkmark draw (B4) · 51 Progress ring for class prep (B4) · 52 Study streak counter (DECIDE) · 53 Gentle shake on invalid field (B1) · 54 Ripple on tap (NA) · 55 Seasonal accent (DECIDE) · 56 Easter egg (DECIDE) · 57 Tooltips on 👑 and 💻 (B3) · 58 Count-up stats (DECIDE) · 59 Emoji reaction on guides (DECIDE) · 60 Tab title notification (NA)
+
+## D. Readability & Cognitive Comfort
+61 Contrast check on all text (B2) · 62 Text size A-/A+ (B2) · 63 Max line length 65 characters (B1) · 64 Line-height 1.5-1.6 (B1) · 65 Light mode (DECIDE) · 66 Reduced motion respected everywhere (B2) · 67 Calm mode (DECIDE) · 68 Plain-language summaries (DECIDE) · 69 Heading hierarchy (B2) · 70 Chunked long forms (DECIDE) · 71 Visible focus rings (B2) · 72 44px tap targets (B1) · 73 Labels on every field (B2) · 74 Inline error help (B2) · 75 Consistent readable dates (B2) · 76 Price clarity (DONE) · 77 Glossary tooltips (DECIDE) · 78 Print-friendly receipts (B2) · 79 Language simplification (DECIDE) · 80 Screen-reader live regions (B2)
+
+## E. Engagement Loops & Discovery
+81 Renewal countdown (DONE) · 82 Permit expiry emails (DONE) · 83 Calendar reminders (DONE) · 84 Next best class (DECIDE) · 85 Saved booking draft (DECIDE) · 86 Abandoned-booking email (ASK) · 87 Wishlist (DECIDE) · 88 Recently viewed (DECIDE) · 89 Related guides (DECIDE) · 90 Referral code (DECIDE) · 91 Group-booking prompt (partly done) · 92 Review prompt after class (DECIDE) · 93 Graduate area (DECIDE) · 94 Wallet reminders (DECIDE) · 95 Seasonal range tips (DECIDE) · 96 What's new dot (DECIDE) · 97 Which-class quiz (partly done) · 98 Gentle exit-intent prompt (DECIDE) · 99 Email digest opt-in (DECIDE) · 100 "Saved just now" indicator (B4)
+
+## Baseline (Lighthouse 12.2.1, mobile, home page, local production build at 9b96152, 3 runs)
+Score 52 / 71 / 70, LCP 33.7-34.1 s, CLS 0.026-0.037, TBT 220-250 ms, page weight 6.3 MB. 4.9 MB of that is `src/app/icon.ico` (a 2039x1872 PNG saved as .ico). Stripe is loaded twice (v3 and dahlia).

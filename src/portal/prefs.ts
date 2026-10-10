@@ -1,7 +1,7 @@
 // Remembered preferences, kept only in this browser (localStorage). A short allow-list of harmless choices: never a name, email, id or anything
 // typed into a search box. Every read and write is wrapped, so a blocked or full browser store simply means nothing is remembered.
 const KEY = 'fifs.prefs.v1';
-export const PREF_VALUES = { paymentsFilter: ['all', 'PAID', 'DEPOSIT_PAID', 'PENDING', 'ABANDONED', 'CANCELLED'] } as const;
+export const PREF_VALUES = { paymentsFilter: ['all', 'PAID', 'DEPOSIT_PAID', 'PENDING', 'ABANDONED', 'CANCELLED'], textSize: ['normal', 'large', 'larger'] } as const;
 export type PrefName = keyof typeof PREF_VALUES;
 
 function readAll(): Record<string, string> {

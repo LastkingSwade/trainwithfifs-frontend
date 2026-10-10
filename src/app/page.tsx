@@ -16,6 +16,7 @@ import { installStudentOnline } from "@/online/studentOnline";
 import { installStudentExtras } from "@/portal/studentExtras";
 import { installClientExtras } from "@/portal/clientExtras";
 import { installSkeletons } from "@/portal/skeleton";
+import { installPolish } from "@/polish/polish";
 import { installAdminExtras } from "@/portal/adminExtras";
 import "@/portal/portal.css";
 import { DAY2_ACK_TEXT, DAY2_STATEMENT, FEE_LABEL, IN_PERSON_NOTE, ONLINE_NAME, TECH_REQUIREMENTS } from "@/online/onlineCopy";
@@ -4103,7 +4104,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installAdminExtras(); installSkeletons(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installAdminExtras(); installSkeletons(); installPolish(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -7788,7 +7789,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         {/* Instructor Kai Wade Clean Focus Profile Card */}
         <div className="instructor-hero-card">
           <div className="instructor-avatar-frame">
-            <img alt="Instructor Wade - Lead Instructor, Future Initiative Firearm Services" className="instructor-avatar-img" data-onerror="this.src=&#x27;https://drive.google.com/thumbnail?id=1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa&amp;sz=w1000&#x27;" src="https://lh3.googleusercontent.com/d/1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa" />
+            <img alt="Instructor Wade - Lead Instructor, Future Initiative Firearm Services" className="instructor-avatar-img" data-onerror="this.src=&#x27;https://drive.google.com/thumbnail?id=1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa&amp;sz=w1000&#x27;" src="https://lh3.googleusercontent.com/d/1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa"  loading="lazy" decoding="async" />
           </div>
           <div className="instructor-hero-info">
             <div className="instructor-badge-tag">
@@ -7969,7 +7970,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         <div className="gallery-grid-targets" id="targets-grid-container">
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Lane Diagnostics &amp; Fundamentals" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1R00tHvnh7Cb_G6BNOjahAPUzv-tAOkHO=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Lane Diagnostics &amp; Fundamentals" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -7996,7 +7997,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Center-Mass Cadence Cluster" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/10OAZEfs-L0AeJEx8LMBdDcvZnVW155ps=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Center-Mass Cadence Cluster" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8023,7 +8024,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="B-27 Precision Grouping" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1Ro-oA50xJUiA8D8TEItGz4hlAVYhzApv=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="B-27 Precision Grouping" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8050,7 +8051,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Dual Student Center Clusters" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1X-TSEMxypHMf73rTNrlo5L3dUwwMajCR=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Dual Student Center Clusters" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8077,7 +8078,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1rUcirGX7jLT0upSobd82iJf91Ycv9xlt&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1rUcirGX7jLT0upSobd82iJf91Ycv9xlt=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Confidence &amp; Marksmanship" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1rUcirGX7jLT0upSobd82iJf91Ycv9xlt&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1rUcirGX7jLT0upSobd82iJf91Ycv9xlt=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Confidence &amp; Marksmanship" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8104,7 +8105,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1Z8VLFy2L1Sd6bASqfpt-BBeRiKpVU9qF&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1Z8VLFy2L1Sd6bASqfpt-BBeRiKpVU9qF=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Precision Vital-Zone Group" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1Z8VLFy2L1Sd6bASqfpt-BBeRiKpVU9qF&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1Z8VLFy2L1Sd6bASqfpt-BBeRiKpVU9qF=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Precision Vital-Zone Group" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8131,7 +8132,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1mljZQi7U4-O4vBCldtd5xMqAtbk7xBBl&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1mljZQi7U4-O4vBCldtd5xMqAtbk7xBBl=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Dynamic Range Drills" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1mljZQi7U4-O4vBCldtd5xMqAtbk7xBBl&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1mljZQi7U4-O4vBCldtd5xMqAtbk7xBBl=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Dynamic Range Drills" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8158,7 +8159,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1bQjmsgeIz5AOZbyHLnLe-y84FFmmOQSh&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1bQjmsgeIz5AOZbyHLnLe-y84FFmmOQSh=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Paired Class Qualifiers" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1bQjmsgeIz5AOZbyHLnLe-y84FFmmOQSh&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1bQjmsgeIz5AOZbyHLnLe-y84FFmmOQSh=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Paired Class Qualifiers" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8185,7 +8186,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1I8SYXbZ8Vs_RoaISP-Oi_yVf8y24wJM_&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1I8SYXbZ8Vs_RoaISP-Oi_yVf8y24wJM_=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Small Group Milestone" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1I8SYXbZ8Vs_RoaISP-Oi_yVf8y24wJM_&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1I8SYXbZ8Vs_RoaISP-Oi_yVf8y24wJM_=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Small Group Milestone" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8212,7 +8213,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Live Firing Line Perspective" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1Q8wfkRpxmKlhRYttlgvGVuakdxRIFofV=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Live Firing Line Perspective" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8239,7 +8240,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1GKKGtLxhSqGOgfh1-u1_CFNr1af-xFUS&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1GKKGtLxhSqGOgfh1-u1_CFNr1af-xFUS=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Silhouette Marksmanship" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1GKKGtLxhSqGOgfh1-u1_CFNr1af-xFUS&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1GKKGtLxhSqGOgfh1-u1_CFNr1af-xFUS=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Silhouette Marksmanship" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8266,7 +8267,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1Xr431Fu4IWY2KIhpJJ5REskODfpH-X9M&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1Xr431Fu4IWY2KIhpJJ5REskODfpH-X9M=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Marksmanship Diagnostics" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1Xr431Fu4IWY2KIhpJJ5REskODfpH-X9M&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1Xr431Fu4IWY2KIhpJJ5REskODfpH-X9M=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Marksmanship Diagnostics" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8293,7 +8294,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1O5ON4PlVTuCaW-w09a0zzMnOYBMwQ_6k&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1O5ON4PlVTuCaW-w09a0zzMnOYBMwQ_6k=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="B27 Shield Precision" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1O5ON4PlVTuCaW-w09a0zzMnOYBMwQ_6k&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1O5ON4PlVTuCaW-w09a0zzMnOYBMwQ_6k=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="B27 Shield Precision" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8320,7 +8321,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1-dVzb2ipi3IYNb5dGxUpBCBaEyYJIpZ_&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1-dVzb2ipi3IYNb5dGxUpBCBaEyYJIpZ_=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Vital-Zone Control" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1-dVzb2ipi3IYNb5dGxUpBCBaEyYJIpZ_&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1-dVzb2ipi3IYNb5dGxUpBCBaEyYJIpZ_=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Vital-Zone Control" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8347,7 +8348,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1XLGG8VZTEOSdnPF5-SXLVGZmeK9m55rR&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1XLGG8VZTEOSdnPF5-SXLVGZmeK9m55rR=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Group Class Milestone" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1XLGG8VZTEOSdnPF5-SXLVGZmeK9m55rR&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1XLGG8VZTEOSdnPF5-SXLVGZmeK9m55rR=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Group Class Milestone" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8374,7 +8375,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1sOye7641V0sTZLrOQ7VHAuEe4wFBdfoL&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1sOye7641V0sTZLrOQ7VHAuEe4wFBdfoL=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="BakerTargets Standard" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1sOye7641V0sTZLrOQ7VHAuEe4wFBdfoL&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1sOye7641V0sTZLrOQ7VHAuEe4wFBdfoL=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="BakerTargets Standard" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8401,7 +8402,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1bWUFKzFuf-xsE7XSuPEE9mWuyGyVcH_z&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1bWUFKzFuf-xsE7XSuPEE9mWuyGyVcH_z=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Orange Silhouette Grouping" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1bWUFKzFuf-xsE7XSuPEE9mWuyGyVcH_z&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1bWUFKzFuf-xsE7XSuPEE9mWuyGyVcH_z=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Orange Silhouette Grouping" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8428,7 +8429,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=191TKVFSz48i2NP9T23KKzZcNFIr42Fls&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/191TKVFSz48i2NP9T23KKzZcNFIr42Fls=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Confident Marksmanship" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=191TKVFSz48i2NP9T23KKzZcNFIr42Fls&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/191TKVFSz48i2NP9T23KKzZcNFIr42Fls=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Confident Marksmanship" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8455,7 +8456,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1-__LG3c5gZA2zAKX-qeX8magmZRBETsY&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1-__LG3c5gZA2zAKX-qeX8magmZRBETsY=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Paired Training Cohort" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1-__LG3c5gZA2zAKX-qeX8magmZRBETsY&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1-__LG3c5gZA2zAKX-qeX8magmZRBETsY=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Paired Training Cohort" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8482,7 +8483,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </article>
           <article className="target-card-student">
             <div className="target-img-frame">
-              <img src="https://drive.google.com/thumbnail?id=1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Red X-Ring Accuracy" loading="lazy" />
+              <img src="https://drive.google.com/thumbnail?id=1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5&amp;sz=w800" data-onerror="if(this.dataset.fb!==&#x27;1&#x27;){this.dataset.fb=&#x27;1&#x27;;this.src=&#x27;https://lh3.googleusercontent.com/d/1RVuyUeMQwrSMCl1-M4Wzx1aIzK2AypI5=w800&#x27;;}else{this.onerror=null;this.style.display=&#x27;none&#x27;;this.parentElement.classList.add(&#x27;img-fallback&#x27;);}" alt="Red X-Ring Accuracy" loading="lazy" decoding="async" />
               <div className="img-fallback-badge">
                 🎯 Range Qualification Verified
               </div>
@@ -8828,7 +8829,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             {/* Brand HUD Header */}
             <header className="brand-hud-header" style={{"display": "flex", "alignItems": "center", "justifyContent": "space-between", "flexWrap": "wrap", "gap": "16px"}}>
               <div style={{"display": "flex", "alignItems": "center", "gap": "16px"}}>
-                <img alt="Future Initiative Firearm Services Logo" src="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&amp;sz=w500" style={{"width": "52px", "height": "52px", "objectFit": "contain", "filter": "drop-shadow(0 0 10px rgba(0, 229, 255, 0.5))", "flexShrink": "0"}} />
+                <img alt="Future Initiative Firearm Services Logo" src="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&amp;sz=w500" style={{"width": "52px", "height": "52px", "objectFit": "contain", "filter": "drop-shadow(0 0 10px rgba(0, 229, 255, 0.5))", "flexShrink": "0"}}  loading="lazy" decoding="async" />
                   <div className="brand-info-block">
                     <div style={{"display": "flex", "alignItems": "center", "gap": "10px", "marginBottom": "4px"}}>
                       <span className="badge-instructor">
@@ -12307,7 +12308,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           <div style={{"padding": "14px 20px", "background": "#0d131b", "borderBottom": "1px solid var(--border-subtle)", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "10px"}}>
             <div style={{"display": "flex", "alignItems": "center", "gap": "12px"}}>
               <div style={{"position": "relative"}}>
-                <img src="https://lh3.googleusercontent.com/d/1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa" data-onerror="this.src=&#x27;https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&amp;sz=w128&#x27;" alt="Instructor Kai Wade" style={{"width": "44px", "height": "44px", "borderRadius": "50%", "objectFit": "cover", "border": "2px solid var(--accent-cyan)", "boxShadow": "0 0 10px var(--accent-cyan-glow)"}} />
+                <img src="https://lh3.googleusercontent.com/d/1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa" data-onerror="this.src=&#x27;https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&amp;sz=w128&#x27;" alt="Instructor Kai Wade" style={{"width": "44px", "height": "44px", "borderRadius": "50%", "objectFit": "cover", "border": "2px solid var(--accent-cyan)", "boxShadow": "0 0 10px var(--accent-cyan-glow)"}}  loading="lazy" decoding="async" />
                 <span className="pulse-dot" style={{"position": "absolute", "bottom": "0", "right": "0", "width": "10px", "height": "10px", "border": "2px solid #0d131b", "background": "#10b981"}}>
                 </span>
               </div>
