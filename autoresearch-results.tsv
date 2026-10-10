@@ -79,3 +79,4 @@ Q080	2026-10-10T23:04:03.374Z	The keyboard shows a Next key while filling the bo
 Q081	2026-10-10T23:04:04.689Z	The name field starts each word with a capital	SUCCESS	12462	12680	218	code
 Q082	2026-10-10T23:04:06.029Z	No red squiggles under emails and group codes	SUCCESS	12680	12899	219	code
 Q083	2026-10-10T23:04:07.567Z	Stray spaces around a name, email or phone are removed when you leave the field	SUCCESS	12899	13251	352	code
+Q084	2026-10-10T23:04:08.962Z	Tapping the group code box selects the whole code so a new one replaces it	SUCCESS	13251	13535	284	code

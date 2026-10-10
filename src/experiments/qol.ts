@@ -37,5 +37,9 @@ export function installQol(): void {
   });
   // Q084: Tapping the group code box selects the whole code so a new one replaces it
   run('Q084', () => { const el = document.getElementById('podCodeInput') as HTMLInputElement | null; if (el) el.addEventListener('focus', () => { try { el.select(); } catch { /* ignore */ } }); });
+  // Q085: The phone browser bar matches the site background
+  run('Q085', () => {
+    if (!document.querySelector('meta[name="theme-color"]')) { const m = document.createElement('meta'); m.name = 'theme-color'; m.content = '#070b10'; document.head.appendChild(m); }
+  });
   // @@QOL_END
 }
