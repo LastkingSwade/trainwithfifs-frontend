@@ -51,3 +51,6 @@
 
 /* P017 Admin: toolbar buttons are 44 px tall on touch screens */
 @media (pointer: coarse) { .admin-secondary-toolbar .btn-tactical-hud { min-height: 44px; } }
+
+/* P018 Admin: scrolling the roster window never scrolls the page behind */
+#adminSubpanelModalOverlay { overscroll-behavior: contain; }
