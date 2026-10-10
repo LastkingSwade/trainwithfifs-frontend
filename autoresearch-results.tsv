@@ -132,3 +132,4 @@ P031	2026-10-10T23:06:29.686Z	Admin: the "Showing x of y" count lines up	SUCCESS
 P032	2026-10-10T23:06:29.834Z	Admin: empty-table messages balance their lines	SUCCESS	24269	24373	104	css
 P033	2026-10-10T23:06:29.983Z	Admin: windows (Online, Payments, Recently Deleted) highlight rows under the pointer	SUCCESS	24373	24540	167	css
 P034	2026-10-10T23:06:48.111Z	Admin: payment checkboxes are big enough to tap	SUCCESS	24540	24668	128	css
+P035	2026-10-10T23:06:48.267Z	Admin: rows in the windows wrap long emails	SUCCESS	24668	24773	105	css

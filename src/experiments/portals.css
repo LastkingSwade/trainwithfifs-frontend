@@ -105,3 +105,6 @@
 
 /* P035 Admin: rows in the windows wrap long emails */
 .online-admin .sess { overflow-wrap: anywhere; }
+
+/* P036 Admin: online-class rows light up under the pointer */
+.online-admin .sess:hover { background: rgba(0, 229, 255, 0.05); }
