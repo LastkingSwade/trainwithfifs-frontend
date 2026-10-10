@@ -213,3 +213,6 @@
 
 /* P071 Student: wallet buttons show a visible focus ring */
 .pbtn:focus-visible { outline: 2px solid var(--accent-cyan, #00e5ff); outline-offset: 2px; }
+
+/* P072 Student: wallet document rows wrap long text */
+.online-admin .sess span { min-width: 0; }
