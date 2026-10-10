@@ -174,3 +174,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q058 Course cards keep together when printed */
 @media print { .tuition-card, .fi-select-card, .faq-item { break-inside: avoid; } }
+
+/* Q059 Printed pages hide the Standard / VIP switches and select buttons */
+@media print { .tier-sliding-switch, .btn-select-course { display: none; } }
