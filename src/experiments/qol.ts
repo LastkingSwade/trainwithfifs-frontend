@@ -65,5 +65,7 @@ export function installQol(): void {
   });
   // Q089: Images with no description are marked decorative so screen readers skip them
   run('Q089', () => { $$<HTMLImageElement>('img:not([alt])').forEach((i) => i.setAttribute('alt', '')); });
+  // Q090: All images decode off the main thread (smoother scrolling)
+  run('Q090', () => { $$<HTMLImageElement>('img:not([decoding])').forEach((i) => i.setAttribute('decoding', 'async')); });
   // @@QOL_END
 }
