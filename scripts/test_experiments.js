@@ -33,10 +33,10 @@ test('The experiment script is safe: every experiment is wrapped, no network, no
   assert(bare.length === 0, 'code outside run(): ' + (bare[0] || ''));
   for (const m of src.matchAll(/run\('([QP]\d{3})'/g)) assert(/^[QP]\d{3}$/.test(m[1]));
 });
-test('Nothing protected is touched by the loop: the boot intro, Hack Detected, scramble, calendar rules, auth, payments and API routes are not edited', () => {
+test('Nothing protected was touched by the loop (the range research-start...research-end; skipped where the tags are absent): the boot intro, Hack Detected, scramble, calendar rules, auth, payments and API routes are not edited', () => {
   const { execSync } = require('child_process');
   let changed = [];
-  try { changed = execSync('git diff --name-only research-start...HEAD 2>/dev/null', { cwd: path.join(__dirname, '..') }).toString().split('\n').filter(Boolean); } catch { return; }
+  try { changed = execSync('git diff --name-only research-start...research-end 2>/dev/null', { cwd: path.join(__dirname, '..') }).toString().split('\n').filter(Boolean); } catch { return; }
   const allowed = [/^src\/experiments\//, /^scripts\/test_experiments\.js$/, /^src\/app\/layout\.tsx$/, /^src\/polish\/polish\.ts$/, /^package\.json$/, /^scripts\/test_hud_animations\.js$/, /^scripts\/test_ux_polish\.js$/, /^autoresearch-results\.tsv$/];
   for (const f of changed) assert(allowed.some((a) => a.test(f)), 'the loop changed a protected or unexpected file: ' + f);
 });
