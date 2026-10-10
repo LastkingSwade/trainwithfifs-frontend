@@ -23,3 +23,4 @@ Q022	2026-10-10T23:01:56.824Z	Windows high-contrast mode keeps a visible focus o
 Q023	2026-10-10T23:01:56.941Z	Bigger tap targets for sub-menu buttons and pop-up close buttons on touch screens	SUCCESS	4452	4674	222	css
 Q024	2026-10-10T23:02:14.910Z	Printed pages show the address of outside links	SUCCESS	4674	4859	185	css
 Q025	2026-10-10T23:02:15.030Z	Scrolling inside a pop-up no longer scrolls the page behind it	SUCCESS	4859	4984	125	css
+Q026	2026-10-10T23:02:15.147Z	Same for the dimmed overlay around a pop-up	SUCCESS	4984	5120	136	css

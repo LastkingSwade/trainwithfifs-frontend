@@ -78,3 +78,6 @@ img[loading="lazy"] { background: linear-gradient(135deg, rgba(148, 163, 184, 0.
 
 /* Q026 Same for the dimmed overlay around a pop-up */
 .goal-modal-overlay, .fi-portal-modal-overlay { overscroll-behavior: contain; }
+
+/* Q027 Opening a question in the FAQ keeps it clear of the header */
+.faq-item { scroll-margin-top: 90px; }
