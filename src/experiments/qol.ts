@@ -119,5 +119,12 @@ export function installQol(): void {
     let was = false;
     new MutationObserver(() => { const now = getComputedStyle(overlay).display !== 'none'; if (now && !was) { const s = ['admin-roster-search', 'admin-client-search'].map((id) => document.getElementById(id) as HTMLInputElement | null).find((i) => i && i.offsetParent !== null); if (s) window.setTimeout(() => { try { s.focus({ preventScroll: true }); } catch { /* ignore */ } }, 80); } was = now; }).observe(overlay, { attributes: true, attributeFilter: ['class', 'style'] });
   });
+  // P095: Student: checklist shows "2 of 4 done" as you tick boxes
+  run('P095', () => {
+    const list = document.querySelector('.interactive-checklist'); if (!list) return;
+    const note = document.createElement('div'); note.id = 'qol-checklist-progress'; note.setAttribute('role', 'status'); note.setAttribute('aria-live', 'polite'); list.insertBefore(note, list.firstChild);
+    const update = () => { const boxes = $$<HTMLInputElement>('.task-checkbox', list); const done = boxes.filter((b) => b.checked).length; note.textContent = boxes.length ? done + ' of ' + boxes.length + ' done' : ''; };
+    list.addEventListener('change', update); new MutationObserver(update).observe(list, { subtree: true, childList: true, attributes: true, attributeFilter: ['checked'] }); update();
+  });
   // @@QOL_END
 }
