@@ -45,3 +45,4 @@ Q044	2026-10-10T23:02:56.756Z	Phone numbers and emails never break across lines	
 Q045	2026-10-10T23:02:56.888Z	Phones do not zoom in when a field is tapped	SUCCESS	7329	7460	131	css
 Q046	2026-10-10T23:02:57.011Z	Checkboxes and radios are big enough to hit	SUCCESS	7460	7599	139	css
 Q047	2026-10-10T23:02:57.132Z	The label of the field being typed in lights up	SUCCESS	7599	7732	133	css
+Q048	2026-10-10T23:02:57.255Z	Dark-mode date picker icon is visible	SUCCESS	7732	7876	144	css

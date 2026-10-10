@@ -144,3 +144,6 @@ input[type="checkbox"], input[type="radio"] { min-width: 20px; min-height: 20px;
 
 /* Q048 Dark-mode date picker icon is visible */
 input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+
+/* Q049 Search boxes show a visible clear button on dark backgrounds */
+input[type="search"]::-webkit-search-cancel-button { filter: invert(1); cursor: pointer; }
