@@ -51,3 +51,6 @@ summary::marker { color: var(--accent-cyan, #00e5ff); }
 
 /* Q017 Labels that wrap a checkbox or radio show a pointer */
 label:has(> input[type="checkbox"]), label:has(> input[type="radio"]) { cursor: pointer; }
+
+/* Q018 A field with a valid answer gets a quiet green edge */
+input:user-valid:not(:placeholder-shown) { border-color: rgba(52, 211, 153, 0.55); }
