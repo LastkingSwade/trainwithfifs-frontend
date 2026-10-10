@@ -36,3 +36,6 @@
 
 /* P012 Admin: metric cards never overflow their grid cell */
 .metric-card { min-width: 0; }
+
+/* P013 Admin: metric numbers line up */
+.metric-val { font-variant-numeric: tabular-nums; }
