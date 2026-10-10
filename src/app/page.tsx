@@ -8621,21 +8621,15 @@ document.addEventListener('submit', handleDelegatedSubmit);
         <div style={{"maxWidth": "1140px", "margin": "0 auto", "position": "relative"}}>
           <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "18px", "paddingBottom": "12px", "borderBottom": "1px solid var(--border-subtle)"}}>
             <h2 style={{"fontFamily": "var(--font-display)", "fontSize": "1.65rem", "color": "#fff", "letterSpacing": "1px"}}>
-              ⭐ Mid-Atlantic Multi-State Mastery (34+ State Legal Shield)
+              Mid-Atlantic Multi-State Mastery (34+ State Reciprocity)
             </h2>
-            <button className="btn-return-home" data-onclick="closeMultistateMasteryModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closeMultistateMasteryModal) (window as any).closeMultistateMasteryModal(); }} style={{"padding": "8px 18px", "fontSize": "0.95rem", "minHeight": "40px", "cursor": "pointer"}} type="button">
-              ✕ CLOSE MODAL
+            <button className="btn-return-home" aria-label="Close" title="Close" data-onclick="closeMultistateMasteryModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closeMultistateMasteryModal) (window as any).closeMultistateMasteryModal(); }} style={{"padding": "8px 18px", "fontSize": "0.95rem", "minHeight": "40px", "cursor": "pointer"}} type="button">
+              ✕
             </button>
           </div>
           <div style={{"background": "#0d131d", "border": "1px solid var(--border-subtle)", "borderRadius": "16px", "padding": "28px", "marginBottom": "24px", "boxShadow": "0 12px 30px rgba(0,0,0,0.8)"}}>
             <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "flexWrap": "wrap", "gap": "16px", "marginBottom": "20px"}}>
               <div>
-                <span className="badge-pop" style={{"background": "var(--accent-amber)", "color": "#070b10", "fontWeight": "800"}}>
-                  AUTHORIZED FIELD GUIDE SYSTEM
-                </span>
-                <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.85rem", "color": "#fff", "margin": "8px 0 4px"}}>
-                  34+ State Multi-Permit Expansion Protocol
-                </h3>
                 <p style={{"color": "var(--text-muted)", "fontSize": "0.95rem", "maxWidth": "760px"}}>
                   Lead Instructor: Kai Wade (NRA #262929961 • MSP QHIC § 5-101). Transform your Maryland certification into a seamless, coast-to-coast multi-state defensive shield while bypassing clerical disqualifications and saving on state licensing.
                 </p>
@@ -8649,53 +8643,27 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
               </div>
             </div>
-            {/* System At A Glance Metrics */}
-            <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(220px, 1fr))", "gap": "16px", "marginBottom": "24px"}}>
-              <div style={{"background": "rgba(18, 26, 44, 0.6)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "16px"}}>
-                <div style={{"fontSize": "0.74rem", "textTransform": "uppercase", "color": "var(--accent-cyan)", "fontWeight": "800"}}>Reciprocity Reach</div>
-                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.6rem", "fontWeight": "800", "color": "#fff", "marginTop": "4px"}}>34+ STATES</div>
-                <div style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "marginTop": "2px"}}>Interstate legal reciprocity footprint</div>
-              </div>
-              <div style={{"background": "rgba(18, 26, 44, 0.6)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "16px"}}>
-                <div style={{"fontSize": "0.74rem", "textTransform": "uppercase", "color": "#10b981", "fontWeight": "800"}}>Course Architecture</div>
-                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.6rem", "fontWeight": "800", "color": "#fff", "marginTop": "4px"}}>5-IN-1 STACK</div>
-                <div style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "marginTop": "2px"}}>One comprehensive training framework</div>
-              </div>
-              <div style={{"background": "rgba(18, 26, 44, 0.6)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "16px"}}>
-                <div style={{"fontSize": "0.74rem", "textTransform": "uppercase", "color": "var(--accent-amber)", "fontWeight": "800"}}>Statutory Proof</div>
-                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.6rem", "fontWeight": "800", "color": "#fff", "marginTop": "4px"}}>100% IN-PERSON</div>
-                <div style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "marginTop": "2px"}}>Strict Va. Code § 18.2-308 compliance</div>
-              </div>
-              <div style={{"background": "rgba(18, 26, 44, 0.6)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "16px"}}>
-                <div style={{"fontSize": "0.74rem", "textTransform": "uppercase", "color": "#38bdf8", "fontWeight": "800"}}>Student Benefit</div>
-                <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.6rem", "fontWeight": "800", "color": "#fff", "marginTop": "4px"}}>$150 SAVED</div>
-                <div style={{"fontSize": "0.82rem", "color": "var(--text-muted)", "marginTop": "2px"}}>Free Maryland HQL Exemption unlocked</div>
-              </div>
-            </div>
             {/* Phased Roadmap */}
             <div style={{"background": "rgba(10, 16, 26, 0.8)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "20px", "marginBottom": "24px"}}>
               <h4 style={{"fontFamily": "var(--font-display)", "color": "var(--accent-cyan)", "fontSize": "1.2rem", "marginBottom": "12px", "textTransform": "uppercase"}}>
-                Chronological Phased Dispatch Flow
+                How It Works: 3 Steps
               </h4>
               <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(280px, 1fr))", "gap": "16px"}}>
                 <div style={{"borderLeft": "3px solid var(--accent-cyan)", "paddingLeft": "14px"}}>
-                  <strong style={{"color": "#fff", "display": "block"}}>Phase 1: Maryland Wear & Carry (Home Base)</strong>
-                  <p style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "marginTop": "4px"}}>Submit 100% online via MSP Licensing Portal immediately following LiveScan. Unlocks $0 Free Maryland HQL Exemption.</p>
+                  <strong style={{"color": "#fff", "display": "block"}}>1. Maryland Wear & Carry</strong>
+                  <p style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "marginTop": "4px"}}>Apply online through the MSP Licensing Portal right after LiveScan. This also unlocks your free Maryland HQL exemption.</p>
                 </div>
                 <div style={{"borderLeft": "3px solid #10b981", "paddingLeft": "14px"}}>
-                  <strong style={{"color": "#fff", "display": "block"}}>Phase 2: Virginia • Florida • Arizona (Parallel Mail)</strong>
-                  <p style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "marginTop": "4px"}}>Assemble packets with Kai's notarized credentials and dispatch via USPS. Do not wait for Maryland approval!</p>
+                  <strong style={{"color": "#fff", "display": "block"}}>2. Virginia, Florida and Arizona</strong>
+                  <p style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "marginTop": "4px"}}>We help you assemble each packet with Kai's notarized credentials, and you mail them by USPS. You do not have to wait for Maryland.</p>
                 </div>
                 <div style={{"borderLeft": "3px solid var(--accent-amber)", "paddingLeft": "14px"}}>
-                  <strong style={{"color": "#fff", "display": "block"}}>Phase 3: Pennsylvania LTCF (Border Pickup)</strong>
-                  <p style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "marginTop": "4px"}}>York County online submission, then 35-min drive for rapid 5-minute photo issuance once physical MD permit arrives.</p>
+                  <strong style={{"color": "#fff", "display": "block"}}>3. Pennsylvania</strong>
+                  <p style={{"fontSize": "0.84rem", "color": "var(--text-muted)", "marginTop": "4px"}}>Apply online with York County, then make the 35-minute drive for fast photo issuance once your Maryland permit arrives.</p>
                 </div>
               </div>
             </div>
             <div style={{"display": "flex", "gap": "14px", "justifyContent": "flex-end", "flexWrap": "wrap"}}>
-              <button type="button" className="btn-secondary" data-onclick="closeMultistateMasteryModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closeMultistateMasteryModal) (window as any).closeMultistateMasteryModal(); }}>
-                Close
-              </button>
               <button type="button" className="btn-primary" data-onclick="closeMultistateMasteryModal(); selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($424.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeMultistateMasteryModal) (window as any).closeMultistateMasteryModal(); if ((window as any).selectCourse) (window as any).selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($424.99)'); } }}>
                 Enroll in Multi-State Mastery ($424.99) →
               </button>
