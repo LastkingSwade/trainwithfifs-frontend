@@ -6,3 +6,6 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 /* Q002 Crisper text on Mac and iPhone screens */
 body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+/* Q003 Balanced line breaks on headings so no single word is left alone */
+h1, h2, h3, .goal-modal-title, .tuition-title, .j-title { text-wrap: balance; }
