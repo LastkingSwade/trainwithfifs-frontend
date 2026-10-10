@@ -189,3 +189,6 @@
 
 /* P063 Student: extras cards keep clear of the header when jumped to */
 .pextras { scroll-margin-top: 90px; } .pcard { scroll-margin-top: 90px; }
+
+/* P064 Student: score sheet card keeps clear of the header */
+#dash-scoresheet-card { scroll-margin-top: 90px; }
