@@ -93,5 +93,7 @@ export function installQol(): void {
   run('Q097', () => { const p = document.getElementById('floatingCommPill'); if (p && !p.getAttribute('aria-label')) p.setAttribute('aria-label', 'Chat with Coach Kai Wade'); });
   // Q098: Pressing Enter on the chat bubble opens it (keyboard access)
   run('Q098', () => { const p = document.getElementById('floatingCommPill'); if (p) p.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); p.click(); } }); });
+  // Q099: Tables get column scope for screen readers
+  run('Q099', () => { $$('table thead th').forEach((th) => { if (!th.getAttribute('scope')) th.setAttribute('scope', 'col'); }); });
   // @@QOL_END
 }
