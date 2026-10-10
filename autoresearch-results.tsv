@@ -13,3 +13,4 @@ Q011	2026-10-10T23:00:06.645Z	Placeholder text easier to read on the dark fields
 Q012	2026-10-10T23:00:06.765Z	Disabled controls show a not-allowed cursor	SUCCESS	2965	3114	149	css
 Q013	2026-10-10T23:00:06.884Z	A busy control shows a progress cursor	SUCCESS	3114	3206	92	css
 Q015	2026-10-10T23:01:55.960Z	Fold-away rows show a pointer	SUCCESS	3348	3419	71	css
+Q016	2026-10-10T23:01:56.080Z	Fold-away arrows use the brand color	SUCCESS	3419	3524	105	css
