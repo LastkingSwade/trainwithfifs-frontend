@@ -96,3 +96,6 @@ img[loading="lazy"] { background: linear-gradient(135deg, rgba(148, 163, 184, 0.
 
 /* Q032 Disabled big buttons look disabled */
 .btn-spark:disabled, .btn-primary:disabled { opacity: 0.55; filter: saturate(0.6); cursor: not-allowed; }
+
+/* Q033 No focus ring after a mouse click on a button (keyboard focus still shows) */
+button:focus:not(:focus-visible) { outline: none; }

@@ -29,3 +29,4 @@ Q028	2026-10-10T23:02:15.386Z	Prices line up digit by digit	SUCCESS	5230	5323	93
 Q029	2026-10-10T23:02:15.501Z	Off-screen gallery photos are skipped until needed (faster scrolling)	SUCCESS	5323	5492	169	css
 Q030	2026-10-10T23:02:15.617Z	Gallery photos zoom a touch on hover (motion safe)	SUCCESS	5492	5762	270	css
 Q031	2026-10-10T23:02:15.734Z	Empty status messages take no space	SUCCESS	5762	5847	85	css
+Q032	2026-10-10T23:02:15.852Z	Disabled big buttons look disabled	SUCCESS	5847	6000	153	css
