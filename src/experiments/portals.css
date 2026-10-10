@@ -54,3 +54,6 @@
 
 /* P018 Admin: scrolling the roster window never scrolls the page behind */
 #adminSubpanelModalOverlay { overscroll-behavior: contain; }
+
+/* P019 Admin: the roster window does not jump when its scrollbar appears */
+#adminSubpanelModalOverlay { scrollbar-gutter: stable; }
