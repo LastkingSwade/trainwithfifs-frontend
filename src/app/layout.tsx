@@ -12,6 +12,8 @@ import AdminPaymentsPanel from "../portal/AdminPaymentsPanel";
 import AdminTrashPanel from "../portal/AdminTrashPanel";
 import WalletPanel from "../portal/WalletPanel";
 import "../polish/polish.css";
+import "../experiments/site.css";
+import "../experiments/portals.css";
 import { BOOT_GATE_SCRIPT } from "../boot/bootConfig";
 
 export const metadata: Metadata = {

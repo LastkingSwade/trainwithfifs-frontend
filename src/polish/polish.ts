@@ -1,6 +1,7 @@
 // Small quality-of-life behaviours (backlog IDs in docs/UX-BACKLOG.md). Additive: nothing here changes a handler, a price or a booking rule.
 // Storage is touched only through src/portal/prefs.ts (try/catch, allow-list) or sessionStorage inside try/catch.
 import { getPref, setPref } from '../portal/prefs';
+import { installQol } from '../experiments/qol';
 
 const w: any = typeof window === 'undefined' ? {} : window;
 const reduce = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -73,6 +74,7 @@ export function installPolish(): void {
 
   installBackStep();
   installChatBubble();
+  installQol();
 
   // #80 status messages are announced by screen readers
   document.querySelectorAll<HTMLElement>('.status-msg').forEach((el) => { if (!el.getAttribute('role')) { el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); } });
