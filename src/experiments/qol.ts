@@ -150,5 +150,11 @@ export function installQol(): void {
     const mark = () => { $$('tr', tbody).forEach((tr) => tr.classList.toggle('qol-row-expired', /Expired/i.test(tr.textContent || ''))); };
     new MutationObserver(mark).observe(tbody, { childList: true }); mark();
   });
+  // P100: Admin: shows "Updated 3:42 PM" next to the Refresh button after the roster loads
+  run('P100', () => {
+    const tbody = document.getElementById('admin-roster-tbody'), btn = document.getElementById('btn-admin-refresh-data'); if (!tbody || !btn || !btn.parentElement) return;
+    const stamp = document.createElement('span'); stamp.id = 'qol-updated-stamp'; stamp.setAttribute('role', 'status'); btn.parentElement.appendChild(stamp);
+    new MutationObserver(() => { stamp.textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); }).observe(tbody, { childList: true });
+  });
   // @@QOL_END
 }

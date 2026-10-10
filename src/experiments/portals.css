@@ -286,3 +286,6 @@
 
 /* P099 Admin: rows with an expired permit get a red edge as well as the text */
 .qol-row-expired { box-shadow: inset 4px 0 0 #ef4444; }
+
+/* P100 Admin: shows "Updated 3:42 PM" next to the Refresh button after the roster loads */
+#qol-updated-stamp { font-size: 0.74rem; color: var(--text-muted, #94a3b8); align-self: center; }

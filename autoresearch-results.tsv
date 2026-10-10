@@ -196,3 +196,4 @@ P095	2026-10-10T23:09:02.805Z	Student: checklist shows "2 of 4 done" as you tick
 P096	2026-10-10T23:09:04.295Z	Student: tap your student ID to copy it	SUCCESS	35538	36217	679	code
 P097	2026-10-10T23:09:05.723Z	Client: tap your client ID to copy it	SUCCESS	36217	36890	673	code
 P098	2026-10-10T23:09:07.185Z	Client: days-left number turns green, amber or red (the number is still shown)	SUCCESS	36890	37400	510	code
+P099	2026-10-10T23:09:08.746Z	Admin: rows with an expired permit get a red edge as well as the text	SUCCESS	37400	37948	548	code
