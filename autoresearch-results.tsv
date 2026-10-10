@@ -104,3 +104,4 @@ P003	2026-10-10T23:05:30.413Z	Admin: the row you are working in stays highlighte
 P004	2026-10-10T23:05:49.272Z	Admin: roster cells centered vertically	SUCCESS	20633	20736	103	css
 P005	2026-10-10T23:05:49.428Z	Admin: column titles never wrap	SUCCESS	20736	20828	92	css
 P006	2026-10-10T23:05:49.575Z	Admin: every other roster row shaded for easier reading	SUCCESS	20828	20984	156	css
+P007	2026-10-10T23:05:49.721Z	Admin: long emails and names wrap instead of widening the table	SUCCESS	20984	21112	128	css

@@ -21,3 +21,6 @@
 
 /* P007 Admin: long emails and names wrap instead of widening the table */
 .admin-roster-table td { overflow-wrap: anywhere; }
+
+/* P008 Admin: numbers in the roster line up */
+.admin-roster-table { font-variant-numeric: tabular-nums; }
