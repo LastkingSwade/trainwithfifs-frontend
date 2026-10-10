@@ -246,3 +246,6 @@
 
 /* P082 Client: hub cards never overflow their grid cell */
 .fi-hub-cards-grid > * { min-width: 0; }
+
+/* P083 Client: the banner card wraps nicely */
+.fi-banner-card { text-wrap: pretty; }
