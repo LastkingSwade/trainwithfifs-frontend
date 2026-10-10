@@ -87,3 +87,6 @@ img[loading="lazy"] { background: linear-gradient(135deg, rgba(148, 163, 184, 0.
 
 /* Q029 Off-screen gallery photos are skipped until needed (faster scrolling) */
 .target-card-student { content-visibility: auto; contain-intrinsic-size: auto 420px; }
+
+/* Q030 Gallery photos zoom a touch on hover (motion safe) */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) { .target-img-frame img { transition: transform 300ms ease; } .target-card-student:hover .target-img-frame img { transform: scale(1.04); } }
