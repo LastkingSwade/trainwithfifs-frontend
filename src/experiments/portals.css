@@ -24,3 +24,6 @@
 
 /* P008 Admin: numbers in the roster line up */
 .admin-roster-table { font-variant-numeric: tabular-nums; }
+
+/* P009 Admin: status chips in the roster and clients tables stay on one line */
+#admin-roster-tbody .meta-chip, #admin-client-tbody .meta-chip { white-space: nowrap; }
