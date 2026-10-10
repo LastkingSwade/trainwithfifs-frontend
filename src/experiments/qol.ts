@@ -126,5 +126,11 @@ export function installQol(): void {
     const update = () => { const boxes = $$<HTMLInputElement>('.task-checkbox', list); const done = boxes.filter((b) => b.checked).length; note.textContent = boxes.length ? done + ' of ' + boxes.length + ' done' : ''; };
     list.addEventListener('change', update); new MutationObserver(update).observe(list, { subtree: true, childList: true, attributes: true, attributeFilter: ['checked'] }); update();
   });
+  // P096: Student: tap your student ID to copy it
+  run('P096', () => {
+    const el = document.getElementById('dash-student-id'); if (!el || !navigator.clipboard) return;
+    el.setAttribute('title', 'Tap to copy'); el.style.cursor = 'copy';
+    el.addEventListener('click', () => { const t = (el.textContent || '').trim(); if (t) navigator.clipboard.writeText(t).then(() => { el.setAttribute('data-copied', '1'); window.setTimeout(() => el.removeAttribute('data-copied'), 1400); }).catch(() => { /* ignore */ }); });
+  });
   // @@QOL_END
 }

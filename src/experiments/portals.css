@@ -277,3 +277,6 @@
 
 /* P095 Student: checklist shows "2 of 4 done" as you tick boxes */
 #qol-checklist-progress { font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan, #00e5ff); margin: 0 0 8px; letter-spacing: 0.04em; }
+
+/* P096 Student: tap your student ID to copy it */
+#dash-student-id[data-copied]::after { content: " ✓ copied"; color: #34d399; font-size: 0.75rem; }
