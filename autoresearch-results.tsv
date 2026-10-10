@@ -116,3 +116,4 @@ P015	2026-10-10T23:06:09.014Z	Admin: a clear focus ring on metric cards	SUCCESS	
 P016	2026-10-10T23:06:09.164Z	Admin: the button toolbar wraps on narrow screens instead of overflowing	SUCCESS	22102	22247	145	css
 P017	2026-10-10T23:06:09.314Z	Admin: toolbar buttons are 44 px tall on touch screens	SUCCESS	22247	22408	161	css
 P018	2026-10-10T23:06:09.462Z	Admin: scrolling the roster window never scrolls the page behind	SUCCESS	22408	22546	138	css
+P019	2026-10-10T23:06:09.611Z	Admin: the roster window does not jump when its scrollbar appears	SUCCESS	22546	22681	135	css

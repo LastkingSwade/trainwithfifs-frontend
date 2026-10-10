@@ -57,3 +57,6 @@
 
 /* P019 Admin: the roster window does not jump when its scrollbar appears */
 #adminSubpanelModalOverlay { scrollbar-gutter: stable; }
+
+/* P020 Admin: reload buttons in the windows show a focus ring */
+.btn-modal-subpanel-reload:focus-visible { outline: 2px solid var(--accent-cyan, #00e5ff); outline-offset: 2px; }
