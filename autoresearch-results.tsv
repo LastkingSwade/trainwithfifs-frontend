@@ -152,3 +152,4 @@ P051	2026-10-10T23:07:08.793Z	Student: finished checklist items fade back	SUCCES
 P052	2026-10-10T23:07:08.943Z	Student: checklist boxes are big enough to tap	SUCCESS	27144	27249	105	css
 P053	2026-10-10T23:07:09.093Z	Student: the 8 journey steps can be swiped on a phone	SUCCESS	27249	27409	160	css
 P054	2026-10-10T23:07:29.607Z	Student: each journey step snaps to the middle when swiped	SUCCESS	27409	27564	155	css
+P055	2026-10-10T23:07:29.767Z	Student: the next-step card keeps clear of the header when jumped to	SUCCESS	27564	27690	126	css

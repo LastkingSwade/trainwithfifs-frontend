@@ -165,3 +165,6 @@
 
 /* P055 Student: the next-step card keeps clear of the header when jumped to */
 .next-step-card { scroll-margin-top: 90px; }
+
+/* P056 Student: next-step text wraps nicely */
+.next-step-title { text-wrap: balance; } .next-step-desc { text-wrap: pretty; }
