@@ -213,3 +213,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q071 Journey cards keep a steady number width */
 .j-num { font-variant-numeric: tabular-nums; }
+
+/* Q072 Map state codes never break */
+.state-code-text { white-space: nowrap; }
