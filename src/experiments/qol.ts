@@ -27,5 +27,7 @@ export function installQol(): void {
     if (phone && !phone.getAttribute('inputmode')) phone.setAttribute('inputmode', 'tel');
     if (email && !email.getAttribute('inputmode')) email.setAttribute('inputmode', 'email');
   });
+  // Q081: The name field starts each word with a capital
+  run('Q081', () => { const n = document.getElementById('fullName'); if (n && !n.getAttribute('autocapitalize')) n.setAttribute('autocapitalize', 'words'); });
   // @@QOL_END
 }
