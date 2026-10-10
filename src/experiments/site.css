@@ -57,3 +57,6 @@ input:user-valid:not(:placeholder-shown) { border-color: rgba(52, 211, 153, 0.55
 
 /* Q019 Text boxes can only be stretched up and down, never sideways out of the card */
 textarea { resize: vertical; min-height: 5.5rem; }
+
+/* Q020 A soft gray placeholder while a lazy image loads */
+img[loading="lazy"] { background: linear-gradient(135deg, rgba(148, 163, 184, 0.08), rgba(148, 163, 184, 0.16)); }
