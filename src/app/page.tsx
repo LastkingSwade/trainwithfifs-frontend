@@ -14,6 +14,8 @@ import { GROUP_EXPLAINER, cleanCourse, friendlyCodeError } from "@/group/groupCo
 import { installOnlineForm } from "@/online/onlineForm";
 import { installStudentOnline } from "@/online/studentOnline";
 import { installStudentExtras } from "@/portal/studentExtras";
+import { installClientExtras } from "@/portal/clientExtras";
+import { installAdminExtras } from "@/portal/adminExtras";
 import "@/portal/portal.css";
 import { DAY2_ACK_TEXT, DAY2_STATEMENT, FEE_LABEL, IN_PERSON_NOTE, ONLINE_NAME, TECH_REQUIREMENTS } from "@/online/onlineCopy";
 import Head from "next/head";
@@ -4100,7 +4102,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installAdminExtras(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -5386,6 +5388,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </button>
               </nav>
               {/* PORTAL HERO BANNER */}
+              <section id="fi-client-extras" className="pextras" aria-label="Permit renewal" hidden></section>
               <div className="fi-banner-card" id="fi-sec-dashboard">
                 <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "flexWrap": "wrap", "gap": "16px"}}>
                   <div style={{"maxWidth": "780px"}}>

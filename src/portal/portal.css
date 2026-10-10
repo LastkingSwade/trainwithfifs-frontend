@@ -19,3 +19,13 @@
 .preceipt { display: grid; gap: 2px; padding: 8px 0; border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08)); }
 .preceipt strong { color: var(--text-main, #f8fafc); }
 @media (prefers-reduced-motion: no-preference) { .pbtn { transition: background-color 120ms ease-out; } .pbtn:hover { background: rgba(0, 229, 255, 0.2); } }
+.admin-filter { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 10px; }
+.admin-filter input { flex: 1 1 220px; min-height: 44px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08)); background: #070b10; color: #fff; font-size: 0.9rem; }
+.admin-filter input:focus-visible { outline: 2px solid var(--accent-cyan, #00e5ff); outline-offset: 2px; }
+.admin-filter-count { font-size: 0.8rem; color: var(--text-muted, #cbd5e1); }
+.admin-hint { font-size: 0.74rem; color: var(--text-muted, #cbd5e1); align-self: center; }
+.admin-help { position: fixed; right: 16px; bottom: 16px; z-index: 2147482700; width: min(92vw, 320px); padding: 14px 16px; border-radius: 12px; background: #0d141e; border: 1.5px solid var(--accent-cyan, #00e5ff); color: var(--text-main, #f8fafc); }
+.admin-help h3 { margin: 0 0 8px; font-size: 0.95rem; color: var(--accent-cyan, #00e5ff); }
+.admin-help dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; font-size: 0.84rem; }
+.admin-help dt { font-family: var(--font-mono, ui-monospace, Menlo, Consolas, monospace); color: var(--accent-amber, #ffb703); }
+.admin-help dd { margin: 0; color: var(--text-muted, #cbd5e1); }

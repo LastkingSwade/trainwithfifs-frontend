@@ -18,3 +18,16 @@ Baseline (main @ 3ac14c1): route "/" 121 kB, First Load JS 292 kB. axe violation
 | E006 | Student | People ask "do I need an HQL or a permit?" | Maryland requirements guide with official MSP links, labelled informational, not legal advice, no fees or dates that can go stale | links verified against mdsp.maryland.gov search results | KEEP |
 
 After E001-E006: route "/" 123 kB (+2 kB), First Load JS 294 kB. axe violations: student 0, client 0, admin 0. 22 test suites pass.
+
+| # | Portal | Hypothesis | Change | Result | Decision |
+|---|--------|------------|--------|--------|----------|
+| E007 | Client | Clients forget to renew until it is late; a visible countdown with a next step prompts action | Renewal card: days left, stage message (plenty, window, inside 90 days, passed), checklist | 14/14 browser checks; axe 0; wording avoids any deadline we could not verify (MSP says processing can take up to 90 days) | KEEP |
+| E008 | Client | People will not remember a date months out | "Add reminders to my calendar": .ics with 120 days, 90 days and expiry day (made in the browser, nothing sent) | valid file test (CRLF, 3 all-day events, correct dates) | KEEP |
+| E009 | Client | Renewing should be one tap | "Book my 8-hour renewal" opens the booking with the renewal class selected | taps: 1 (was about 4) | KEEP |
+| E010 | Admin | Finding one student in a long roster is slow | Search box above the roster and the clients table with "Showing X of Y" | typed "lee": 2 of 3 rows kept, rest really hidden; no-match message | KEEP |
+| E011 | Admin | Staff live in the keyboard | Shortcuts: g then r/c/m/t switch tabs, / jumps to search, ? lists them, Esc closes; never fire while typing or with Ctrl/Cmd/Alt | 4 pure tests + browser run incl. "typing gr in the search box does nothing" | KEEP |
+| E012 | Admin, Client | Blank tables and blank cards look broken | Plain empty states: no students yet, no clients yet, no match, add your expiration date | seen in browser run | KEEP |
+
+After E007-E012: route "/" 126 kB (+5 kB vs baseline), First Load JS 297 kB (+5 kB). axe violations: student 0, client 0, admin 0. 24 test suites pass.
+
+Not done yet in this loop (still planned): undo for destructive admin actions, skeleton loading, remembered preferences, attendance and document-review views for admins, a payments view for admins (needs a new server route; held for approval), certificate and document wallet and reminder emails (held for approval), visual restyle (Part B, held for mockup approval).
