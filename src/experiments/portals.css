@@ -3,3 +3,6 @@
 
 /* P001 Admin: roster table header stays visible while scrolling long lists */
 .admin-roster-table thead th { position: sticky; top: 0; z-index: 1; background: #0d141e; }
+
+/* P002 Admin: roster rows light up under the pointer */
+.admin-roster-table tbody tr:hover { background: rgba(0, 229, 255, 0.06); }
