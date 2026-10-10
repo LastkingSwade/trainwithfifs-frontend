@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { getPrivilegedClient } from '@/Lib/server/supabase-admin';
 import { sendDiscordAlert } from '@/Lib/server/discord';
+import { sendGroupCodeEmail } from '@/Lib/server/group-email';
 import { cancelUnpaidLeaderPod, releasePodSeat } from '@/Lib/server/booking-checkout';
 
 // Signature verification is local (HMAC); this key is never used for API calls in this route.
@@ -137,6 +138,22 @@ async function handlePaidSession(supabase: any, session: Stripe.Checkout.Session
     ],
     0x10b981
   );
+
+  // The person who booked a group gets their group code by email, once, right after the payment is applied. Best effort: it can
+  // never change the payment result (the helper never throws, and this is wrapped as well).
+  if (session.metadata?.podRole === 'leader' && session.metadata?.podCode) {
+    try {
+      await sendGroupCodeEmail(session.customer_email || session.customer_details?.email || '', {
+        code: session.metadata.podCode,
+        course: session.metadata.courseSelection,
+        dates: session.metadata.preferredDates,
+        size: Number(session.metadata.attendees) || undefined,
+        name: session.metadata.fullName,
+      });
+    } catch (emailErr: any) {
+      console.warn('[Stripe Webhook] Group code email not sent:', emailErr?.message || 'unknown error');
+    }
+  }
 }
 
 async function handleExpiredSession(supabase: any, session: Stripe.Checkout.Session) {

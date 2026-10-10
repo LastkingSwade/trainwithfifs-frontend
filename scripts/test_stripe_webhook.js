@@ -9,11 +9,12 @@ const sourcePath = path.join(__dirname, '../src/app/api/stripe/webhook/route.ts'
 const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
 
-function makeHarness({ event, invoices, students = [], failUpdateTable = null }) {
+function makeHarness({ event, invoices, students = [], failUpdateTable = null, failEmail = false }) {
   let eventToReturn = event;
   const tables = { invoices: structuredClone(invoices), students: structuredClone(students) };
   const alerts = [];
   const podCalls = [];
+  const emails = [];
   const mockRequire = (id) => {
     if (id === 'next/server') return { NextResponse: { json: (body, init = {}) => ({ status: init.status || 200, body }) } };
     if (id === 'stripe') return { __esModule: true, default: class Stripe { constructor() { this.webhooks = { constructEvent: () => eventToReturn }; } } };
@@ -21,6 +22,8 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null })
     // Shared server modules used by the webhook: service-role client and Discord alerts (recorded, never sent).
     if (id === '@/Lib/server/supabase-admin') return { getPrivilegedClient: () => ({ from: (table) => makeQuery(table) }) };
     if (id === '@/Lib/server/discord') return { sendDiscordAlert: async (title) => { alerts.push(title); return true; } };
+    // Group code email (recorded, never sent). failEmail makes it throw, to prove a mail problem cannot affect the payment.
+    if (id === '@/Lib/server/group-email') return { sendGroupCodeEmail: async (to, meta) => { if (failEmail) throw new Error('mail down'); emails.push({ to, meta }); return true; } };
     // Pod seat helpers (recorded, never run): the webhook calls them only when an unpaid member/leader checkout expires.
     if (id === '@/Lib/server/booking-checkout') return { releasePodSeat: async (code) => { podCalls.push(['release', code]); return true; }, cancelUnpaidLeaderPod: async (code) => { podCalls.push(['cancelLeader', code]); return true; } };
     return require(id);
@@ -58,6 +61,7 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null })
   return {
     tables,
     alerts,
+    emails,
     podCalls,
     async post() {
       return sandbox.exports.POST({ text: async () => 'signed raw payload', headers: { get: (key) => key === 'stripe-signature' ? 'valid-signature' : null } });
@@ -165,6 +169,31 @@ function sessionEvent(type, overrides = {}) {
     assert.equal((await h.post()).status, 200);
     assert.equal((await h.post()).status, 200);
     assert.equal(h.alerts.filter((t) => /Payment in Full Received/.test(t)).length, 1, 'duplicate event must not re-apply or re-alert');
+  }
+  {
+    // Group organizer: the group code email goes out once, to the booker, after the payment is applied.
+    const leaderMeta = { invoiceId: 'INV-1', podRole: 'leader', podCode: 'FIFS-POD-A1B2', courseSelection: 'Maryland CCW — VIP Turnkey ($279.99)', preferredDates: 'Oct 25', attendees: '4', fullName: 'Pat Leader' };
+    const h = makeHarness({ event: sessionEvent('checkout.session.completed', { metadata: leaderMeta }), invoices: [invoiceRow()] });
+    assert.equal((await h.post()).status, 200);
+    assert.equal((await h.post()).status, 200);
+    assert.equal(h.emails.length, 1, 'a duplicate delivery must not send a second email');
+    assert.deepEqual([h.emails[0].to, h.emails[0].meta.code, h.emails[0].meta.size], ['guest@example.com', 'FIFS-POD-A1B2', 4]);
+  }
+  {
+    // Members and ordinary bookings get no group email; an unpaid or mismatched payment sends nothing.
+    const member = makeHarness({ event: sessionEvent('checkout.session.completed', { metadata: { invoiceId: 'INV-1', podRole: 'member', podCode: 'FIFS-POD-A1B2' } }), invoices: [invoiceRow()] });
+    await member.post();
+    const plain = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [invoiceRow()] });
+    await plain.post();
+    const under = makeHarness({ event: sessionEvent('checkout.session.completed', { amount_total: 100, metadata: { invoiceId: 'INV-1', podRole: 'leader', podCode: 'FIFS-POD-A1B2' } }), invoices: [invoiceRow()] });
+    await under.post();
+    assert.equal(member.emails.length + plain.emails.length + under.emails.length, 0, 'only a paid organizer gets the email');
+  }
+  {
+    // A mail failure never changes the payment result.
+    const h = makeHarness({ failEmail: true, event: sessionEvent('checkout.session.completed', { metadata: { invoiceId: 'INV-1', podRole: 'leader', podCode: 'FIFS-POD-A1B2' } }), invoices: [invoiceRow()] });
+    assert.equal((await h.post()).status, 200);
+    assert.equal(h.tables.invoices[0].status, 'PAID', 'the payment must still be recorded');
   }
   {
     // A browser-supplied studentId in metadata never confirms a student; only verified linkedUserId does.
