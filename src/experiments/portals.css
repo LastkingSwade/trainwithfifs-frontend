@@ -108,3 +108,6 @@
 
 /* P036 Admin: online-class rows light up under the pointer */
 .online-admin .sess:hover { background: rgba(0, 229, 255, 0.05); }
+
+/* P037 Admin: edit windows scroll on their own */
+#adminEditStudentModal, #adminEditClientModal { overscroll-behavior: contain; }
