@@ -121,3 +121,4 @@ P020	2026-10-10T23:06:09.762Z	Admin: reload buttons in the windows show a focus 
 P021	2026-10-10T23:06:09.910Z	Admin: the chat inbox list scrolls on its own	SUCCESS	22862	23000	138	css
 P022	2026-10-10T23:06:10.059Z	Admin: the open chat scrolls on its own	SUCCESS	23000	23112	112	css
 P023	2026-10-10T23:06:10.204Z	Admin: the live activity feed scrolls on its own	SUCCESS	23112	23229	117	css
+P024	2026-10-10T23:06:28.639Z	Admin: visitor device bars grow smoothly when numbers change (motion safe)	SUCCESS	23229	23432	203	css

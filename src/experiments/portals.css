@@ -72,3 +72,6 @@
 
 /* P024 Admin: visitor device bars grow smoothly when numbers change (motion safe) */
 @media (prefers-reduced-motion: no-preference) { [id^="telemetry-"][id$="-bar"] { transition: width 400ms ease; } }
+
+/* P025 Admin: instructor badges stay on one line */
+.badge-instructor { white-space: nowrap; }
