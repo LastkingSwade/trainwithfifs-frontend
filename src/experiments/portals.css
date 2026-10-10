@@ -192,3 +192,6 @@
 
 /* P064 Student: score sheet card keeps clear of the header */
 #dash-scoresheet-card { scroll-margin-top: 90px; }
+
+/* P065 Student: score sheet buttons are 44 px tall */
+#dash-scoresheet-fullscreen-btn, #dash-scoresheet-download-btn { min-height: 44px; display: inline-flex; align-items: center; }
