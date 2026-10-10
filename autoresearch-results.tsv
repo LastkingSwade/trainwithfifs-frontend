@@ -159,3 +159,4 @@ P058	2026-10-10T23:07:30.209Z	Student: long dossier values wrap	SUCCESS	27949	28
 P059	2026-10-10T23:07:30.358Z	Student: badges and chips wrap onto a second row on small screens	SUCCESS	28042	28195	153	css
 P060	2026-10-10T23:07:30.519Z	Student: tapping the student ID selects all of it (easy to copy)	SUCCESS	28195	28337	142	css
 P061	2026-10-10T23:07:30.668Z	Student: sign-out and change-password buttons are 44 px tall	SUCCESS	28337	28468	131	css
+P062	2026-10-10T23:07:30.830Z	Student: portal card buttons are 44 px tall	SUCCESS	28468	28559	91	css

@@ -186,3 +186,6 @@
 
 /* P062 Student: portal card buttons are 44 px tall */
 .pcard .pbtn { min-height: 44px; }
+
+/* P063 Student: extras cards keep clear of the header when jumped to */
+.pextras { scroll-margin-top: 90px; } .pcard { scroll-margin-top: 90px; }
