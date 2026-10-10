@@ -41,5 +41,11 @@ export function installQol(): void {
   run('Q085', () => {
     if (!document.querySelector('meta[name="theme-color"]')) { const m = document.createElement('meta'); m.name = 'theme-color'; m.content = '#070b10'; document.head.appendChild(m); }
   });
+  // Q086: Screen readers hear which page you moved to
+  run('Q086', () => {
+    const live = document.createElement('div'); live.id = 'fifs-view-announcer'; live.className = 'qol-sr-only'; live.setAttribute('role', 'status'); live.setAttribute('aria-live', 'polite'); document.body.appendChild(live);
+    let last = String(w.currentActiveView || 'home');
+    new MutationObserver(() => { const v = String(w.currentActiveView || 'home'); if (v !== last) { last = v; live.textContent = (w.SECTION_TITLES && w.SECTION_TITLES[v]) || (v === 'home' ? 'Home' : v); } }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  });
   // @@QOL_END
 }

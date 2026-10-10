@@ -225,3 +225,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Q075 Course badges keep their text on one line */
 .badge-course, .badge-score { white-space: nowrap; }
+
+/* Q086 Screen readers hear which page you moved to */
+.qol-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
