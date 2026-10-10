@@ -9,3 +9,6 @@
 
 /* P003 Admin: the row you are working in stays highlighted */
 .admin-roster-table tbody tr:focus-within { background: rgba(0, 229, 255, 0.1); }
+
+/* P004 Admin: roster cells centered vertically */
+.admin-roster-table td { vertical-align: middle; }

@@ -100,3 +100,4 @@ Q099	2026-10-10T23:05:28.628Z	Tables get column scope for screen readers	SUCCESS
 Q100	2026-10-10T23:05:29.977Z	Outside links tell screen readers they open a new tab	SUCCESS	19864	20181	317	code
 P001	2026-10-10T23:05:30.120Z	Admin: roster table header stays visible while scrolling long lists	SUCCESS	20181	20353	172	css
 P002	2026-10-10T23:05:30.267Z	Admin: roster rows light up under the pointer	SUCCESS	20353	20487	134	css
+P003	2026-10-10T23:05:30.413Z	Admin: the row you are working in stays highlighted	SUCCESS	20487	20633	146	css
