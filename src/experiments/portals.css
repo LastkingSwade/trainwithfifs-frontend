@@ -198,3 +198,6 @@
 
 /* P066 Student: the score badge lines up */
 #dash-scoresheet-score-badge { font-variant-numeric: tabular-nums; }
+
+/* P067 Student: waiver status stays on one line */
+#waiverStatusBadge { white-space: nowrap; }
