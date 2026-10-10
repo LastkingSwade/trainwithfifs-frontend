@@ -31,5 +31,9 @@ export function installQol(): void {
   run('Q081', () => { const n = document.getElementById('fullName'); if (n && !n.getAttribute('autocapitalize')) n.setAttribute('autocapitalize', 'words'); });
   // Q082: No red squiggles under emails and group codes
   run('Q082', () => { for (const id of ['email', 'podCodeInput']) { const el = document.getElementById(id); if (el) el.setAttribute('spellcheck', 'false'); } });
+  // Q083: Stray spaces around a name, email or phone are removed when you leave the field
+  run('Q083', () => {
+    for (const id of ['fullName', 'email', 'phone']) { const el = document.getElementById(id) as HTMLInputElement | null; if (el) el.addEventListener('blur', () => { const v = el.value.trim(); if (v !== el.value) el.value = v; }); }
+  });
   // @@QOL_END
 }

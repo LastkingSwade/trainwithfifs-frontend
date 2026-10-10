@@ -77,3 +77,4 @@ Q077	2026-10-10T23:03:59.268Z	Outside links always open safely (no access to the
 Q078	2026-10-10T23:04:00.687Z	Phones and password managers fill the booking form for you (autocomplete hints)	SUCCESS	11679	12065	386	code
 Q080	2026-10-10T23:04:03.374Z	The keyboard shows a Next key while filling the booking form	FAIL	12462	12462	0	tsc: src/experiments/qol.ts(32,5): error TS2581: Cannot find name '$'. Do you need to install type definitions for jQuery? Try `npm i --save-dev 
 Q081	2026-10-10T23:04:04.689Z	The name field starts each word with a capital	SUCCESS	12462	12680	218	code
+Q082	2026-10-10T23:04:06.029Z	No red squiggles under emails and group codes	SUCCESS	12680	12899	219	code
