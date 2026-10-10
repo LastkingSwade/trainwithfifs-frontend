@@ -16,5 +16,10 @@ export function installQol(): void {
     const apply = () => { const v = String(w.currentActiveView || 'home'); const t = titles[v] || base; if (t !== last) { document.title = t; last = t; } };
     new MutationObserver(apply).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   });
+  // Q078: Phones and password managers fill the booking form for you (autocomplete hints)
+  run('Q078', () => {
+    const map: Record<string, string> = { fullName: 'name', email: 'email', phone: 'tel' };
+    for (const [id, val] of Object.entries(map)) { const el = document.getElementById(id); if (el && !el.getAttribute('autocomplete')) el.setAttribute('autocomplete', val); }
+  });
   // @@QOL_END
 }
