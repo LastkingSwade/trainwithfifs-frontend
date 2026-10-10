@@ -21,3 +21,6 @@ html { scroll-padding-top: 80px; }
 
 /* Q007 Remove the tap delay on buttons and summaries */
 button, summary, select, [role="button"], .btn-spark, .btn-primary { touch-action: manipulation; }
+
+/* Q008 A soft cyan flash when a card or button is tapped on a phone */
+a, button, [role="button"], .tuition-card, .fi-select-card { -webkit-tap-highlight-color: rgba(0, 229, 255, 0.18); }
