@@ -168,3 +168,6 @@
 
 /* P056 Student: next-step text wraps nicely */
 .next-step-title { text-wrap: balance; } .next-step-desc { text-wrap: pretty; }
+
+/* P057 Student: state dossier sections stay together when printed */
+@media print { .dossier-section { break-inside: avoid; } }
