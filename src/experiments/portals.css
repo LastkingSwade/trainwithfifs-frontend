@@ -39,3 +39,6 @@
 
 /* P013 Admin: metric numbers line up */
 .metric-val { font-variant-numeric: tabular-nums; }
+
+/* P014 Admin: metric names balance their lines */
+.metric-name { text-wrap: balance; }
