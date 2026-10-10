@@ -30,3 +30,6 @@ input[type="checkbox"], input[type="radio"], input[type="range"], progress { acc
 
 /* Q010 Thin brand-colored scrollbars */
 * { scrollbar-width: thin; scrollbar-color: rgba(0, 229, 255, 0.45) rgba(255, 255, 255, 0.06); }
+
+/* Q011 Placeholder text easier to read on the dark fields */
+::placeholder { color: #94a3b8; opacity: 1; }
