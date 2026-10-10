@@ -130,3 +130,4 @@ P029	2026-10-10T23:06:29.381Z	Admin: unread counts line up	SUCCESS	23923	24027	1
 P030	2026-10-10T23:06:29.532Z	Admin: search boxes do not zoom the phone in	SUCCESS	24027	24154	127	css
 P031	2026-10-10T23:06:29.686Z	Admin: the "Showing x of y" count lines up	SUCCESS	24154	24269	115	css
 P032	2026-10-10T23:06:29.834Z	Admin: empty-table messages balance their lines	SUCCESS	24269	24373	104	css
+P033	2026-10-10T23:06:29.983Z	Admin: windows (Online, Payments, Recently Deleted) highlight rows under the pointer	SUCCESS	24373	24540	167	css
