@@ -243,3 +243,6 @@
 
 /* P081 Client: the expiration badge stays on one line */
 #dash-client-exp-badge { white-space: nowrap; }
+
+/* P082 Client: hub cards never overflow their grid cell */
+.fi-hub-cards-grid > * { min-width: 0; }
