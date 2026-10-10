@@ -267,3 +267,6 @@
 
 /* P089 Client: permit card wraps nicely on narrow phones */
 #wallet-cardholder-name { overflow-wrap: anywhere; }
+
+/* P090 Client: urgency colors for days left (green, amber, red) with the number still shown */
+#wallet-days-left[data-urgency="ok"] { color: #34d399; } #wallet-days-left[data-urgency="soon"] { color: #fbbf24; } #wallet-days-left[data-urgency="urgent"] { color: #f87171; }

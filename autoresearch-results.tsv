@@ -186,3 +186,4 @@ P085	2026-10-10T23:08:35.613Z	Client: sub-menu buttons keep their text on one li
 P086	2026-10-10T23:08:35.765Z	Client: tapping the client ID selects all of it	SUCCESS	31272	31396	124	css
 P087	2026-10-10T23:08:35.915Z	Client: the permit number is easy to select	SUCCESS	31396	31522	126	css
 P088	2026-10-10T23:08:36.066Z	Client: renewal countdown card keeps clear of the header	SUCCESS	31522	31638	116	css
+P089	2026-10-10T23:08:36.218Z	Client: permit card wraps nicely on narrow phones	SUCCESS	31638	31753	115	css
