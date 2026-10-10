@@ -150,3 +150,6 @@ input[type="search"]::-webkit-search-cancel-button { filter: invert(1); cursor: 
 
 /* Q050 Drop-down options are readable on dark backgrounds */
 option { background: #0d141e; color: #f8fafc; }
+
+/* Q051 Status messages get a symbol as well as a color (helps color-blind visitors) */
+.status-msg.success::before { content: "✓ "; } .status-msg.error::before { content: "⚠ "; }

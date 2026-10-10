@@ -47,3 +47,4 @@ Q046	2026-10-10T23:02:57.011Z	Checkboxes and radios are big enough to hit	SUCCES
 Q047	2026-10-10T23:02:57.132Z	The label of the field being typed in lights up	SUCCESS	7599	7732	133	css
 Q048	2026-10-10T23:02:57.255Z	Dark-mode date picker icon is visible	SUCCESS	7732	7876	144	css
 Q049	2026-10-10T23:02:57.379Z	Search boxes show a visible clear button on dark backgrounds	SUCCESS	7876	8040	164	css
+Q050	2026-10-10T23:02:57.503Z	Drop-down options are readable on dark backgrounds	SUCCESS	8040	8151	111	css
