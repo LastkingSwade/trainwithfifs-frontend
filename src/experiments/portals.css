@@ -81,3 +81,6 @@
 
 /* P027 Admin: intel card text wraps nicely */
 .msp-card-title { text-wrap: balance; } .msp-card-desc { text-wrap: pretty; }
+
+/* P028 Admin: intel card buttons are 44 px tall */
+.msp-card-action-btn { min-height: 44px; }
