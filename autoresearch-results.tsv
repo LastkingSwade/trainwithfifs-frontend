@@ -2,3 +2,4 @@ Iteration	Timestamp	Hypothesis	Status	Old_Score	New_Score	Delta	Note
 Q001	2026-10-10T23:00:01.318Z	Stop iOS from inflating text when the phone turns sideways	SUCCESS	1421	1557	136	css
 Q002	2026-10-10T23:00:01.443Z	Crisper text on Mac and iPhone screens	SUCCESS	1557	1690	133	css
 Q003	2026-10-10T23:00:01.564Z	Balanced line breaks on headings so no single word is left alone	SUCCESS	1690	1847	157	css
+Q004	2026-10-10T23:00:01.683Z	Prettier paragraph endings (no one-word last lines)	SUCCESS	1847	1971	124	css

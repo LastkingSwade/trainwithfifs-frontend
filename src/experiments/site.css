@@ -12,3 +12,6 @@ h1, h2, h3, .goal-modal-title, .tuition-title, .j-title { text-wrap: balance; }
 
 /* Q004 Prettier paragraph endings (no one-word last lines) */
 p, .tuition-desc, .review-quote-text { text-wrap: pretty; }
+
+/* Q005 Selected text uses the brand cyan */
+::selection { background: rgba(0, 229, 255, 0.35); color: #fff; }
