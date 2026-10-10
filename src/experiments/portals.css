@@ -66,3 +66,6 @@
 
 /* P022 Admin: the open chat scrolls on its own */
 #admin-active-chat-stream { overscroll-behavior: contain; }
+
+/* P023 Admin: the live activity feed scrolls on its own */
+#telemetry-stream-box { overscroll-behavior: contain; }
