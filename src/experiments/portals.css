@@ -78,3 +78,6 @@
 
 /* P026 Admin: intel cards show a ring when a button inside has focus */
 .msp-intel-card:focus-within { outline: 2px solid rgba(0, 229, 255, 0.55); outline-offset: 2px; }
+
+/* P027 Admin: intel card text wraps nicely */
+.msp-card-title { text-wrap: balance; } .msp-card-desc { text-wrap: pretty; }
