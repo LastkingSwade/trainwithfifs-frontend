@@ -41,3 +41,4 @@ Q040	2026-10-10T23:02:34.044Z	Journey step text wraps more nicely	SUCCESS	6771	6
 Q041	2026-10-10T23:02:34.161Z	Big buttons break long labels evenly	SUCCESS	6883	6981	98	css
 Q042	2026-10-10T23:02:34.278Z	Card titles break evenly	SUCCESS	6981	7077	96	css
 Q043	2026-10-10T23:02:34.395Z	Tier badges never swallow a tap meant for the card under them	SUCCESS	7077	7206	129	css
+Q044	2026-10-10T23:02:56.756Z	Phone numbers and emails never break across lines	SUCCESS	7206	7329	123	css

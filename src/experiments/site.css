@@ -132,3 +132,6 @@ button:focus:not(:focus-visible) { outline: none; }
 
 /* Q044 Phone numbers and emails never break across lines */
 a[href^="tel:"], a[href^="mailto:"] { white-space: nowrap; }
+
+/* Q045 Phones do not zoom in when a field is tapped */
+@media (pointer: coarse) { input, select, textarea { font-size: 16px; } }
