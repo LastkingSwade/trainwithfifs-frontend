@@ -85,3 +85,4 @@ Q089	2026-10-10T23:04:35.166Z	Images with no description are marked decorative s
 Q077	2026-10-10T23:04:48.677Z	Outside links always open safely (no access to the page that opened them)	SUCCESS	14632	14995	363	code
 Q080	2026-10-10T23:04:50.252Z	The keyboard shows a Next key while filling the booking form	SUCCESS	14995	15322	327	code
 Q087	2026-10-10T23:04:51.961Z	Phone links read as "Call 443-990-1304" to screen readers	SUCCESS	15322	15637	315	code
+Q088	2026-10-10T23:04:53.376Z	Email links read as "Email info@..." to screen readers	SUCCESS	15637	15946	309	code

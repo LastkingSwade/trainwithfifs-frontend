@@ -63,5 +63,7 @@ export function installQol(): void {
   run('Q088', () => {
     $$<HTMLAnchorElement>('a[href^="mailto:"]').forEach((a) => { if (!a.getAttribute('aria-label')) a.setAttribute('aria-label', 'Email ' + (a.getAttribute('href') || '').replace(/^mailto:/, '').split('?')[0]); });
   });
+  // Q089: Images with no description are marked decorative so screen readers skip them
+  run('Q089', () => { $$<HTMLImageElement>('img:not([alt])').forEach((i) => i.setAttribute('alt', '')); });
   // @@QOL_END
 }
