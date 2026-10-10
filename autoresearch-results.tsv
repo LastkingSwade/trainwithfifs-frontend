@@ -51,3 +51,4 @@ Q050	2026-10-10T23:02:57.503Z	Drop-down options are readable on dark backgrounds
 Q051	2026-10-10T23:02:57.633Z	Status messages get a symbol as well as a color (helps color-blind visitors)	SUCCESS	8151	8336	185	css
 Q052	2026-10-10T23:02:57.771Z	Long status messages wrap instead of overflowing	SUCCESS	8336	8438	102	css
 Q053	2026-10-10T23:02:57.900Z	Long unbroken words never push the page wider	SUCCESS	8438	8532	94	css
+Q054	2026-10-10T23:03:17.206Z	A soft ring around the field being typed in	SUCCESS	8532	8681	149	css
