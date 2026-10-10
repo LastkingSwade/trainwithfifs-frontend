@@ -102,3 +102,4 @@ P001	2026-10-10T23:05:30.120Z	Admin: roster table header stays visible while scr
 P002	2026-10-10T23:05:30.267Z	Admin: roster rows light up under the pointer	SUCCESS	20353	20487	134	css
 P003	2026-10-10T23:05:30.413Z	Admin: the row you are working in stays highlighted	SUCCESS	20487	20633	146	css
 P004	2026-10-10T23:05:49.272Z	Admin: roster cells centered vertically	SUCCESS	20633	20736	103	css
+P005	2026-10-10T23:05:49.428Z	Admin: column titles never wrap	SUCCESS	20736	20828	92	css

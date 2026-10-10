@@ -15,3 +15,6 @@
 
 /* P005 Admin: column titles never wrap */
 .admin-roster-table th { white-space: nowrap; }
+
+/* P006 Admin: every other roster row shaded for easier reading */
+.admin-roster-table tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
