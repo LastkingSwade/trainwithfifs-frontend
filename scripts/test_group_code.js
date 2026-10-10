@@ -73,6 +73,15 @@ const grp = (over = {}) => ({ invite_code: 'FIFS-POD-AB12', status: 'ACTIVE', ma
     assert(/\[\?&\]gcode=/.test(R('src/boot/bootConfig.ts')), 'a group-code link skips the intro');
     const NC = R('next.config.ts'); assert(/has: \[\{ type: "query", key: "gcode" \}\]/.test(NC) && /Referrer-Policy", value: "no-referrer"/.test(NC) && NC.indexOf('has: [{ type: "query", key: "gcode" }]') > NC.indexOf('strict-origin-when-cross-origin'), 'strict referrer policy for the link, listed after the default');
   });
+  await test('Entry point 2, Start Your Journey: a small text link under the two cards (no third card) opens the code box; the cards are unchanged', () => {
+    const PAGE = R('src/app/page.tsx'); const m = PAGE.indexOf('id="journeySelectionModal"'), blk = PAGE.slice(m, PAGE.indexOf('</div>\n      </div>', PAGE.indexOf('btnJourneyEnterCode', m)) + 20);
+    assert(/Already paid\? Enter your code →/.test(blk) && /id="btnJourneyEnterCode"/.test(blk) && /data-onclick="openGroupCodeEntry\(\)"/.test(blk), 'link');
+    assert((blk.match(/className="fi-select-card/g) || []).length === 2, 'still exactly two cards');
+    assert(blk.indexOf('journey-code-row') > blk.lastIndexOf('Book Now →'), 'the link sits below the cards');
+    assert(/Start Your Journey →/.test(blk) && /Book Now →/.test(blk) && /openAndSwitch\('start'\)/.test(blk) && /openAndSwitch\('booking'\)/.test(blk), 'the two cards keep their buttons');
+    const CSS = R('src/group/group.css'); assert(/\.journey-code-link \{ min-height: 44px/.test(CSS) && /\.journey-code-link:focus-visible/.test(CSS), '44 px target and visible focus');
+    assert(/window as any\)\.openGroupCodeEntry = function\(prefill\?: string\) \{\s*if \(typeof \(window as any\)\.closeJourneySelectionModal === 'function'\)/.test(PAGE) && /input\.focus\(\)/.test(PAGE), 'opens the box and focuses the field');
+  });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   process.exit(failed ? 1 : 0);
 })();

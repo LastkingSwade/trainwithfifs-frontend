@@ -29,3 +29,9 @@
 .group-members { list-style: none; margin: 8px 0 12px; padding: 0; display: grid; gap: 6px; font-size: 0.86rem; }
 .group-members li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08)); border-radius: 8px; }
 .group-member-state { color: var(--accent-amber, #ffb703); text-align: right; }
+
+/* "Already paid? Enter your code" link under the two Start Your Journey cards */
+.journey-code-row { text-align: center; margin: 14px 0 0; }
+.journey-code-link { min-height: 44px; padding: 8px 14px; background: none; border: 0; color: var(--accent-cyan, #38bdf8); font: 700 0.95rem var(--font-body, sans-serif); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.journey-code-link:hover { color: #fff; }
+.journey-code-link:focus-visible { outline: 2px solid var(--accent-cyan, #38bdf8); outline-offset: 2px; border-radius: 6px; }

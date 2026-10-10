@@ -10296,6 +10296,11 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </button>
             </div>
           </div>
+          <p className="journey-code-row">
+            <button className="journey-code-link" id="btnJourneyEnterCode" data-onclick="openGroupCodeEntry()" type="button">
+              Already paid? Enter your code →
+            </button>
+          </p>
         </div>
       </div>
       {/* ================= STEP 12: PORTAL SELECTION SPLASH MODAL ================= */}
