@@ -39,3 +39,6 @@ input:disabled, select:disabled, textarea:disabled, button:disabled { cursor: no
 
 /* Q013 A busy control shows a progress cursor */
 [aria-busy="true"] { cursor: progress; }
+
+/* Q014 Plain text links get a clearer, offset underline */
+a:not([class]) { text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
