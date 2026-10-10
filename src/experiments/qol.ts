@@ -80,5 +80,10 @@ export function installQol(): void {
     window.addEventListener('scroll', () => { if (!tick) { tick = true; window.requestAnimationFrame(update); } }, { passive: true });
     new MutationObserver(update).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   });
+  // Q094: Moving to a new page puts keyboard focus at its top so Tab starts there
+  run('Q094', () => {
+    let last = String(w.currentActiveView || 'home');
+    new MutationObserver(() => { const v = String(w.currentActiveView || 'home'); if (v === last) return; last = v; const panel = document.getElementById('view-' + v); if (panel) { panel.setAttribute('tabindex', '-1'); try { (panel as HTMLElement).focus({ preventScroll: true }); } catch { /* ignore */ } } }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  });
   // @@QOL_END
 }

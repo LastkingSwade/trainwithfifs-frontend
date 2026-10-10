@@ -90,3 +90,4 @@ Q089	2026-10-10T23:04:54.808Z	Images with no description are marked decorative s
 Q090	2026-10-10T23:04:56.269Z	All images decode off the main thread (smoother scrolling)	SUCCESS	16142	16335	193	code
 Q091	2026-10-10T23:04:57.749Z	Icon-only buttons get a spoken name from their tooltip	SUCCESS	16335	16617	282	code
 Q092	2026-10-10T23:04:59.128Z	Decorative emoji next to labels are hidden from screen readers	SUCCESS	16617	16812	195	code
+Q093	2026-10-10T23:05:00.587Z	Reading progress bar on the About, FAQ and Reviews pages (motion safe)	SUCCESS	16812	18185	1373	code
