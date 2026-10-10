@@ -85,5 +85,7 @@ export function installQol(): void {
     let last = String(w.currentActiveView || 'home');
     new MutationObserver(() => { const v = String(w.currentActiveView || 'home'); if (v === last) return; last = v; const panel = document.getElementById('view-' + v); if (panel) { panel.setAttribute('tabindex', '-1'); try { (panel as HTMLElement).focus({ preventScroll: true }); } catch { /* ignore */ } } }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   });
+  // Q095: The booking form tells screen readers which fields are required
+  run('Q095', () => { $$<HTMLInputElement>('#booking-form [required]').forEach((i) => i.setAttribute('aria-required', 'true')); });
   // @@QOL_END
 }
