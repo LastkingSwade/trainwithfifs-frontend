@@ -23,3 +23,10 @@
 .tier-online-btn { margin-left: 10px; min-width: 44px; min-height: 44px; border-radius: 24px; border: 1.5px solid rgba(0, 229, 255, 0.35); background: #070b10; color: #94a3b8; font-size: 1.15rem; cursor: pointer; box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8); transition: border-color 0.25s ease, background 0.25s ease; }
 .tier-online-btn.is-on { border-color: var(--accent-cyan, #00e5ff); background: rgba(0, 229, 255, 0.18); box-shadow: 0 0 14px rgba(0, 229, 255, 0.3); }
 .tier-online-btn:focus-visible { outline: 2px solid var(--accent-cyan, #00e5ff); outline-offset: 2px; }
+
+/* Skeleton loading (gray shimmer) for tables and panels while data is being fetched */
+.fifs-skel { height: 18px; border-radius: 6px; background: linear-gradient(90deg, rgba(148, 163, 184, 0.10) 25%, rgba(148, 163, 184, 0.22) 50%, rgba(148, 163, 184, 0.10) 75%); background-size: 200% 100%; }
+tbody:has(.fifs-skel-row) .admin-empty-row { display: none; }
+.fifs-skel-row td { padding: 12px 10px; }
+@media (prefers-reduced-motion: no-preference) { .fifs-skel { animation: fifs-skel-shimmer 1.3s ease-in-out infinite; } }
+@keyframes fifs-skel-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }

@@ -5,6 +5,8 @@ import { isLiveChatHours } from '@/Lib/server/chat-hours';
 import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/group-status';
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
+import { adminPayments } from '@/Lib/server/admin-payments';
+import { listTrash, restoreFromTrash, saveToTrash } from '@/Lib/server/admin-trash';
 import { adminDayRoster, adminMarkAttendance, adminOnlineOverview, adminSetMeetingLink, day2Pending, getDayModes, getOnlineOptions, studentOnlineClasses } from '@/Lib/server/online-classroom';
 import { createBookingCheckout, createPodInviteCode, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord, lookupPod } from '@/Lib/server/booking-checkout';
 import { ConfigurationError, resolveSiteUrl } from '@/Lib/config/environment';
@@ -876,6 +878,13 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, error: 'This is the system record that holds guest checkout invoices. It cannot be deleted.' }, { status: 400 });
        }
 
+       // Save a copy for "Recently deleted" first. If it cannot be saved, the delete still goes on (as it always has) and the answer says undo is unavailable.
+       let undoId: string | null = null;
+       if (foundStudent?.id) {
+         const { data: fullStudent } = await supabase.from('students').select('*').eq('id', foundStudent.id).maybeSingle();
+         undoId = await saveToTrash(supabase, 'student', fullStudent, `${foundStudent.full_name || 'Student'} (${foundStudent.student_id || foundStudent.email})`, String(user?.email || user?.id || 'staff'));
+       }
+
        // 2. Cascade delete dependent child records first to satisfy foreign key constraints
        if (resolvedStudentId) {
          try {
@@ -961,6 +970,7 @@ export async function POST(req: NextRequest) {
          success: true,
          status: 'success',
          deletedStudentId: resolvedStudentId || targetId,
+         undoAvailable: !!undoId,
          emailCleanupSkipped,
          profileCleanupSkipped,
          authCleanup,
@@ -1002,6 +1012,12 @@ export async function POST(req: NextRequest) {
        const resolvedClientId = foundClient?.client_id || (targetId.startsWith('CLI-') || targetId.startsWith('FI-CLIENT-') ? targetId : null);
        const resolvedEmail = foundClient?.email || (targetEmail.includes('@') ? targetEmail : null);
        const resolvedUuid = foundClient?.id || (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetId) ? targetId : null);
+
+       let undoId: string | null = null;
+       if (foundClient?.id) {
+         const { data: fullClient } = await supabase.from('clients').select('*').eq('id', foundClient.id).maybeSingle();
+         undoId = await saveToTrash(supabase, 'client', fullClient, `${foundClient.full_name || 'Client'} (${foundClient.client_id || foundClient.email})`, String(user?.email || user?.id || 'staff'));
+       }
 
        // 2. Cascade delete dependent client records
        if (resolvedClientId) {
@@ -1070,6 +1086,7 @@ export async function POST(req: NextRequest) {
          success: true,
          status: 'success',
          deletedClientId: resolvedClientId || targetId,
+         undoAvailable: !!undoId,
          emailCleanupSkipped,
          profileCleanupSkipped,
          authCleanup,
@@ -2895,6 +2912,28 @@ export async function POST(req: NextRequest) {
        if (action === 'adminSetMeetingLink') return done(await adminSetMeetingLink(supabase, payload.day, payload.url));
        if (action === 'adminDayRoster') return done(await adminDayRoster(supabase, payload.day));
        return done(await adminMarkAttendance(supabase, payload.invoiceNumber, payload.day, payload.attended, String(user?.email || user?.id || 'staff')));
+     }
+
+     case 'adminTrashList':
+     case 'adminTrashRestore': {
+       // Staff only ("Recently deleted"). The caller's role is checked on the server before anything is read or written.
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
+       const res: any = action === 'adminTrashList' ? await listTrash(supabase) : await restoreFromTrash(supabase, payload.id, String(user?.email || user?.id || 'staff'));
+       return res.ok ? NextResponse.json({ success: true, ...res }) : NextResponse.json({ success: false, error: res.message }, { status: res.status });
+     }
+
+     case 'adminPayments': {
+       // Staff only, read only. The caller's role is checked on the server before the database is touched.
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       const res = await adminPayments(getPrivilegedClient(), payload.filter, payload.search);
+       return res.ok ? NextResponse.json({ success: true, ...res }) : NextResponse.json({ success: false, error: res.message }, { status: res.status });
      }
 
      case 'studentInvoices': {

@@ -7,6 +7,8 @@ import HackDetected from "../hack/HackDetected";
 import GroupCodePanel from "../group/GroupCodePanel";
 import GroupStatusPanel from "../group/GroupStatusPanel";
 import OnlineAdminPanel from "../online/OnlineAdminPanel";
+import AdminPaymentsPanel from "../portal/AdminPaymentsPanel";
+import AdminTrashPanel from "../portal/AdminTrashPanel";
 import { BOOT_GATE_SCRIPT } from "../boot/bootConfig";
 
 export const metadata: Metadata = {
@@ -42,6 +44,8 @@ export default function RootLayout({
         <GroupCodePanel />
         <GroupStatusPanel />
         <OnlineAdminPanel />
+        <AdminPaymentsPanel />
+        <AdminTrashPanel />
         {children}
       </body>
     </html>

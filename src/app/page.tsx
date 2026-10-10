@@ -15,6 +15,7 @@ import { installOnlineForm } from "@/online/onlineForm";
 import { installStudentOnline } from "@/online/studentOnline";
 import { installStudentExtras } from "@/portal/studentExtras";
 import { installClientExtras } from "@/portal/clientExtras";
+import { installSkeletons } from "@/portal/skeleton";
 import { installAdminExtras } from "@/portal/adminExtras";
 import "@/portal/portal.css";
 import { DAY2_ACK_TEXT, DAY2_STATEMENT, FEE_LABEL, IN_PERSON_NOTE, ONLINE_NAME, TECH_REQUIREMENTS } from "@/online/onlineCopy";
@@ -4102,7 +4103,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installAdminExtras(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installAdminExtras(); installSkeletons(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -6013,6 +6014,12 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </button>
             <button className="btn-tactical-hud hud-purple" id="btn-admin-online-hdr" onClick={(e) => { e.preventDefault(); (window as any).openOnlineAdmin?.(); }} data-onclick="openOnlineAdmin()" title="Live online classroom: switches, dates, meeting links, Day 2 attendance" type="button">
               💻 Online Classes
+            </button>
+            <button className="btn-tactical-hud hud-purple" id="btn-admin-payments-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminPayments?.(); }} data-onclick="openAdminPayments()" title="Who has paid, who owes a balance (read only)" type="button">
+              💵 Payments
+            </button>
+            <button className="btn-tactical-hud hud-purple" id="btn-admin-trash-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminTrash?.(); }} data-onclick="openAdminTrash()" title="Put back a student or client deleted in the last 30 days" type="button">
+              ↩ Recently Deleted
             </button>
             <button className="btn-tactical-hud hud-purple" id="btn-admin-invite-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminInviteModal?.(); }} data-onclick="openAdminInviteModal()" title="Dispatch student/client portal onboarding invitation" type="button">
               <span>✉️</span> <span>SEND INVITE</span>
