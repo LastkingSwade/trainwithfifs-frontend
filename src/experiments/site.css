@@ -165,3 +165,6 @@ input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 3px rgba(0, 229, 2
 
 /* Q055 Drop-downs show a pointer */
 select { cursor: pointer; }
+
+/* Q056 File choosers show a pointer */
+input[type="file"] { cursor: pointer; }
