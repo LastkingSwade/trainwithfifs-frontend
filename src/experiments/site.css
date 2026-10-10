@@ -129,3 +129,6 @@ button:focus:not(:focus-visible) { outline: none; }
 
 /* Q043 Tier badges never swallow a tap meant for the card under them */
 .card-tier-badge, .badge-pop { pointer-events: none; }
+
+/* Q044 Phone numbers and emails never break across lines */
+a[href^="tel:"], a[href^="mailto:"] { white-space: nowrap; }
