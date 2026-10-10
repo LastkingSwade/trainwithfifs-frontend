@@ -147,3 +147,6 @@
 
 /* P049 Admin: live dot is hidden from the printout */
 @media print { .live-dot { display: none; } }
+
+/* P050 Admin: sign-out button is 44 px tall */
+#btn-admin-sign-out { min-height: 44px; }
