@@ -95,5 +95,7 @@ export function installQol(): void {
   run('Q098', () => { const p = document.getElementById('floatingCommPill'); if (p) p.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); p.click(); } }); });
   // Q099: Tables get column scope for screen readers
   run('Q099', () => { $$('table thead th').forEach((th) => { if (!th.getAttribute('scope')) th.setAttribute('scope', 'col'); }); });
+  // Q100: Outside links tell screen readers they open a new tab
+  run('Q100', () => { $$<HTMLAnchorElement>('a[target="_blank"]').forEach((a) => { const l = a.getAttribute('aria-label') || (a.textContent || '').trim(); if (l && !/new tab/i.test(l)) a.setAttribute('aria-label', l + ' (opens in a new tab)'); }); });
   // @@QOL_END
 }
