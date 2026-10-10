@@ -84,3 +84,6 @@
 
 /* P028 Admin: intel card buttons are 44 px tall */
 .msp-card-action-btn { min-height: 44px; }
+
+/* P029 Admin: unread counts line up */
+.msp-card-unread-badge { font-variant-numeric: tabular-nums; }
