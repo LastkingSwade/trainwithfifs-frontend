@@ -204,3 +204,6 @@
 
 /* P068 Student: waiver card keeps clear of the header */
 #portalWaiverCard { scroll-margin-top: 90px; }
+
+/* P069 Student: the live online card wraps long meeting text */
+#dash-online-card { overflow-wrap: anywhere; }

@@ -165,3 +165,4 @@ P064	2026-10-10T23:07:53.843Z	Student: score sheet card keeps clear of the heade
 P065	2026-10-10T23:07:54.009Z	Student: score sheet buttons are 44 px tall	SUCCESS	28822	29006	184	css
 P066	2026-10-10T23:07:54.271Z	Student: the score badge lines up	SUCCESS	29006	29121	115	css
 P067	2026-10-10T23:07:54.425Z	Student: waiver status stays on one line	SUCCESS	29121	29218	97	css
+P068	2026-10-10T23:07:54.573Z	Student: waiver card keeps clear of the header	SUCCESS	29218	29324	106	css
