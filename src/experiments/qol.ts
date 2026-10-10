@@ -55,5 +55,9 @@ export function installQol(): void {
   run('Q080', () => {
     $$<HTMLInputElement>('#booking-form input[type="text"], #booking-form input[type="email"], #booking-form input[type="tel"]').forEach((i) => { if (!i.getAttribute('enterkeyhint')) i.setAttribute('enterkeyhint', 'next'); });
   });
+  // Q087: Phone links read as "Call 443-990-1304" to screen readers
+  run('Q087', () => {
+    $$<HTMLAnchorElement>('a[href^="tel:"]').forEach((a) => { if (!a.getAttribute('aria-label')) a.setAttribute('aria-label', 'Call ' + (a.textContent || a.getAttribute('href') || '').replace(/^tel:/, '').trim()); });
+  });
   // @@QOL_END
 }
