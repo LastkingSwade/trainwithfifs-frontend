@@ -283,3 +283,6 @@
 
 /* P097 Client: tap your client ID to copy it */
 #dash-client-id[data-copied]::after { content: " ✓ copied"; color: #34d399; font-size: 0.75rem; }
+
+/* P099 Admin: rows with an expired permit get a red edge as well as the text */
+.qol-row-expired { box-shadow: inset 4px 0 0 #ef4444; }

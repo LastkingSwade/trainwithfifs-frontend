@@ -144,5 +144,11 @@ export function installQol(): void {
     const paint = () => { const n = parseInt((el.textContent || '').replace(/[^0-9-]/g, ''), 10); if (Number.isFinite(n)) el.setAttribute('data-urgency', n <= 30 ? 'urgent' : n <= 90 ? 'soon' : 'ok'); };
     new MutationObserver(paint).observe(el, { childList: true, characterData: true, subtree: true }); paint();
   });
+  // P099: Admin: rows with an expired permit get a red edge as well as the text
+  run('P099', () => {
+    const tbody = document.getElementById('admin-client-tbody'); if (!tbody) return;
+    const mark = () => { $$('tr', tbody).forEach((tr) => tr.classList.toggle('qol-row-expired', /Expired/i.test(tr.textContent || ''))); };
+    new MutationObserver(mark).observe(tbody, { childList: true }); mark();
+  });
   // @@QOL_END
 }
