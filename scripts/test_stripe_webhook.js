@@ -14,6 +14,7 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null, f
   const tables = { invoices: structuredClone(invoices), students: structuredClone(students) };
   const alerts = [];
   const podCalls = [];
+  const dayCalls = [];
   const emails = [];
   const mockRequire = (id) => {
     if (id === 'next/server') return { NextResponse: { json: (body, init = {}) => ({ status: init.status || 200, body }) } };
@@ -26,7 +27,7 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null, f
     if (id === '@/Lib/server/group-email') return { sendGroupCodeEmail: async (to, meta) => { if (failEmail) throw new Error('mail down'); emails.push({ to, meta }); return true; } };
     if (id === '@/Lib/server/online-email') return { sendOnlineConfirmationForSession: async (sb, session) => { emails.push({ online: true, to: session.customer_email, md: session.metadata }); return true; } };
     // Online-classroom seat release (recorded, never run): called only when an unpaid live-online checkout expires.
-    if (id === '@/Lib/server/online-classroom') return { releaseDayClaims: async (inv) => { podCalls.push(['releaseDays', inv]); } };
+    if (id === '@/Lib/server/online-classroom') return { releaseDayClaims: async (inv) => { dayCalls.push(inv); } };
     // Pod seat helpers (recorded, never run): the webhook calls them only when an unpaid member/leader checkout expires.
     if (id === '@/Lib/server/booking-checkout') return { releasePodSeat: async (code) => { podCalls.push(['release', code]); return true; }, cancelUnpaidLeaderPod: async (code) => { podCalls.push(['cancelLeader', code]); return true; } };
     return require(id);
@@ -66,6 +67,7 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null, f
     alerts,
     emails,
     podCalls,
+    dayCalls,
     async post() {
       return sandbox.exports.POST({ text: async () => 'signed raw payload', headers: { get: (key) => key === 'stripe-signature' ? 'valid-signature' : null } });
     },
@@ -203,7 +205,7 @@ function sessionEvent(type, overrides = {}) {
     assert.equal(plain.emails.filter((e) => e.online).length, 0, 'in-person bookings get no online confirmation');
     const expired = makeHarness({ event: sessionEvent('checkout.session.expired', { metadata: { invoiceId: 'INV-1', delivery: 'live_online' } }), invoices: [invoiceRow({ status: 'PENDING' })] });
     await expired.post();
-    assert.ok(expired.podCalls.some((c) => c[0] === 'releaseDays'), 'an expired unpaid checkout gives its calendar days back');
+    assert.ok(expired.dayCalls.length === 1, 'an expired unpaid checkout gives its calendar days back');
   }
   {
     // A mail failure never changes the payment result.

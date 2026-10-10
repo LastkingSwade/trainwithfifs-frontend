@@ -145,6 +145,8 @@ const mockSupabase = {
     rpc: async (fn, args) => {
       rpcCalls.push({ fn, args, key });
       const injected = failures[`rpc.${fn}`];
+      if (fn === 'claim_day_mode') return injected ? { data: null, error: injected } : { data: !(failures && failures.dayTaken), error: null };
+      if (fn === 'release_day_claims') return { data: null, error: null };
       if (fn === 'claim_session_seat') return injected ? { data: null, error: injected } : { data: !(failures && failures.seatFull), error: null };
       if (fn === 'release_session_seats') return { data: null, error: null };
       return injected ? { data: null, error: injected } : { data: 'POD-TEST', error: null };
@@ -1262,46 +1264,59 @@ async function main() {
     }
   });
 
-  console.log('\n[SECTION H4: Live Online Classroom booking (classroom over video, Day 2 range in person)]');
+  console.log('\n[SECTION H4: Live Online Classroom booking (Day 1 live online on the calendar, Day 2 range in person)]');
   const CCW = 'Maryland Wear & Carry (CCW) — Base Track ($199.99)';
-  const ROOM_ID = '11111111-1111-4111-8111-111111111111', RANGE_ID = '22222222-2222-4222-8222-222222222222';
-  const soon = new Date(Date.now() + 7 * 864e5).toISOString();
-  const withOnline = async (fn, { enabled = true } = {}) => {
-    const saved = { cs: db.course_settings, cl: db.class_sessions };
-    db.course_settings = enabled ? [{ course_key: 'ccw', online_enabled: true }] : [{ course_key: 'ccw', online_enabled: false }];
-    db.class_sessions = [{ id: ROOM_ID, course_key: 'ccw', kind: 'classroom', delivery: 'live_online', starts_at: soon, capacity: 0, is_open: true }, { id: RANGE_ID, course_key: 'ccw', kind: 'range', delivery: 'in_person', starts_at: soon, capacity: 2, is_open: true }];
-    try { await fn(); } finally { db.course_settings = saved.cs; db.class_sessions = saved.cl; if (failures) delete failures.seatFull; }
-  };
-  const onlineBody = (over = {}) => ({ email: 'remote@example.com', fullName: 'Remote Student', courseSelection: CCW, groupSize: '1', delivery: 'live_online', classroomSessionId: ROOM_ID, rangeSessionId: RANGE_ID, day2Ack: true, ...over });
-  await test('A valid online booking is priced with the remote-delivery fee on the server, recorded as live online, and never trusts a browser price', async () => {
+  const dayAt = (n) => new Date(Date.now() + n * 864e5).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  const withOnline = async (fn) => { try { await fn(); } finally { if (failures) delete failures.dayTaken; } };
+  const onlineBody = (over = {}) => ({ email: 'remote@example.com', fullName: 'Remote Student', courseSelection: CCW, groupSize: '1', delivery: 'live_online', day1: dayAt(7), day2: dayAt(9), day2Ack: true, ...over });
+  await test('A valid online booking is priced with the remote-delivery fee on the server, recorded as live online, claims both calendar days, and never trusts a browser price', async () => {
     await withOnline(async () => {
       const expected = pricing.calculatePricingBreakdown('Maryland Wear & Carry (CCW)', 1, false, 'live_online');
+      rpcCalls.length = 0;
       const r = await checkoutPost(onlineBody({ totalAmount: '1.00', grandTotal: 1 }));
       assert(r.status === 200 && r.body.url, JSON.stringify(r.body));
       const item = lastCreateParams.line_items[0].price_data;
       assert(item.unit_amount === expected.chargeCents && expected.remoteFee === 40, 'charge must include the $40 fee: ' + item.unit_amount);
       assert(/Live Online Classroom \+ In-Person Range Day/.test(item.product_data.name) && /remote-delivery fee/.test(item.product_data.description), item.product_data.name);
-      assert(lastCreateParams.metadata.delivery === 'live_online' && lastCreateParams.metadata.rangeSessionId === RANGE_ID, 'metadata must record the delivery and range day');
+      assert(lastCreateParams.metadata.delivery === 'live_online' && lastCreateParams.metadata.day1 === dayAt(7) && lastCreateParams.metadata.day2 === dayAt(9), 'metadata must record the delivery and both days');
+      const claims = rpcCalls.filter((c) => c.fn === 'claim_day_mode').map((c) => c.args.p_mode + ':' + c.args.p_day);
+      assert(claims.join() === `online:${dayAt(7)},in_person:${dayAt(9)}`, 'claims: ' + claims);
       const inv = db.invoices[db.invoices.length - 1];
       assert(inv.delivery === 'live_online' && !!inv.day2_ack_at && inv.total_amount === expected.grandTotal.toFixed(2), JSON.stringify(inv));
-      assert(lastCreateParams.expires_at, 'an unpaid online checkout must expire so its seats come back');
+      assert(lastCreateParams.expires_at, 'an unpaid online checkout must expire so its days are released');
     });
   });
-  await test('Refused before any invoice or Stripe session: no Day 2 box, no range date, no classroom date, switch off, or a course with no online option', async () => {
-    const cases = [[{ day2Ack: false }, true], [{ rangeSessionId: '' }, true], [{ classroomSessionId: '' }, true], [{}, false], [{ courseSelection: 'Personal 1-on-1 Coaching — Base Track ($125.00/hr)' }, true]];
-    for (const [over, enabled] of cases) await withOnline(async () => {
+  await test('Refused before any invoice or Stripe session: no Day 2 box, missing or reversed or past days, or a course with no online option', async () => {
+    const cases = [{ day2Ack: false }, { day2: '' }, { day1: '' }, { day1: dayAt(9), day2: dayAt(7) }, { day1: dayAt(-3), day2: dayAt(2) }, { courseSelection: 'Personal 1-on-1 Coaching — Base Track ($125.00/hr)' }];
+    for (const over of cases) await withOnline(async () => {
       const invoices = db.invoices.length, sessions = Object.keys(stripeSessions).length;
       const r = await checkoutPost(onlineBody(over));
-      assert(r.status >= 400 && r.status < 500 && db.invoices.length === invoices && Object.keys(stripeSessions).length === sessions, `${JSON.stringify(over)} enabled=${enabled}: got ${r.status}`);
-    }, { enabled });
-  });
-  await test('A full range day refuses the booking (409) with no payment started', async () => {
-    await withOnline(async () => {
-      const invoices = db.invoices.length, sessions = Object.keys(stripeSessions).length; failures = failures || {}; failures.seatFull = true;
-      const r = await checkoutPost(onlineBody());
-      delete failures.seatFull;
-      assert(r.status === 409 && /filled up/.test(r.body.error) && db.invoices.length === invoices && Object.keys(stripeSessions).length === sessions, JSON.stringify(r.body));
+      assert(r.status >= 400 && r.status < 500 && db.invoices.length === invoices && Object.keys(stripeSessions).length === sessions, `${JSON.stringify(over)}: got ${r.status}`);
     });
+  });
+  await test('The day rule: a day already taken by the other kind refuses the booking (409), gives the days back, and starts no payment', async () => {
+    await withOnline(async () => {
+      const sessions = Object.keys(stripeSessions).length; failures = failures || {}; failures.dayTaken = true; rpcCalls.length = 0;
+      const r = await checkoutPost(onlineBody());
+      delete failures.dayTaken;
+      assert(r.status === 409 && /already an in-person day/.test(r.body.error) && Object.keys(stripeSessions).length === sessions && rpcCalls.some((c) => c.fn === 'release_day_claims'), JSON.stringify(r.body));
+    });
+  });
+  await test('A database problem refuses an online booking (fail closed) but never an in-person one (fail open)', async () => {
+    failures = failures || {}; failures['rpc.claim_day_mode'] = { code: '42883', message: 'function does not exist' };
+    const origWarn = console.warn; console.warn = () => {};
+    try {
+      const o = await checkoutPost(onlineBody());
+      assert(o.status === 503, 'online must be refused, got ' + o.status);
+      const i = await checkoutPost({ email: 'open@example.com', fullName: 'In Person', courseSelection: CCW, groupSize: '1', day1: dayAt(7), day2: dayAt(9) });
+      assert(i.status === 200 && i.body.url, 'in-person must still book: ' + JSON.stringify(i.body));
+    } finally { console.warn = origWarn; delete failures['rpc.claim_day_mode']; }
+  });
+  await test('An in-person booking claims its dates as in-person days', async () => {
+    rpcCalls.length = 0;
+    const r = await checkoutPost({ email: 'claims@example.com', fullName: 'In Person', courseSelection: CCW, groupSize: '1', day1: dayAt(11), day2: dayAt(12) });
+    assert(r.status === 200, JSON.stringify(r.body));
+    assert(rpcCalls.filter((c) => c.fn === 'claim_day_mode').map((c) => c.args.p_mode + ':' + c.args.p_day).join() === `in_person:${dayAt(11)},in_person:${dayAt(12)}`);
   });
   await test('Ordinary in-person bookings never write the new invoice columns', async () => {
     const r = await checkoutPost({ email: 'inperson@example.com', fullName: 'In Person', courseSelection: CCW, groupSize: '1' });
