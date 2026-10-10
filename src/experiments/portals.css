@@ -33,3 +33,6 @@
 
 /* P011 Admin: table buttons are 44 px tall on touch screens */
 @media (pointer: coarse) { .admin-roster-table button { min-height: 44px; } }
+
+/* P012 Admin: metric cards never overflow their grid cell */
+.metric-card { min-width: 0; }
