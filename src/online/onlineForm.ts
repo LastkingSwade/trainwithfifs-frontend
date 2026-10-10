@@ -2,6 +2,7 @@
 // computes the price. This file shows the 💻 switch next to the 👑 for classes that can be taken online, fills in the price lines with the
 // SAME pricing function the server uses, adds the delivery choice to the booking request, and marks web days and in-person days on the
 // booking calendar. Online bookings use the calendar like in-person ones: Day 1 = live online classroom, Day 2 = in-person range day.
+import { installCardToggles } from './onlineCards';
 import { calculatePricingBreakdown, courseKeyFor, onlineEligible, parseAttendeeCount, remoteFeePerPerson } from '@/Lib/pricing';
 
 type Mode = 'online' | 'in_person';
@@ -167,5 +168,7 @@ export function installOnlineForm(): void {
     const title = card.querySelector('.tuition-title');
     if (title && title.parentNode) title.parentNode.insertBefore(badge, title.nextSibling); else card.appendChild(badge);
   }
+  // 💻 on a class card: opening the booking form from that card starts with the online option matching the card.
+  installCardToggles((_key, wantOn) => { if (state.on !== wantOn) { state.on = wantOn; state.ack = false; } window.setTimeout(refreshCalendar, 0); });
   loadModes();
 }

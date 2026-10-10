@@ -112,6 +112,11 @@ function memDb(seed = {}) {
     assert(/Remote-delivery fee/.test(PAGE) && /Remote-delivery fee/.test(SCRIPT), 'the review step must list the fee in both copies');
     assert(/installOnlineForm\(\);/.test(PAGE));
   });
+  await test('Class cards: a 💻 toggle beside Standard / 👑 on the five eligible cards only; priced with the same fee function; starts the form with the matching option', () => {
+    const CARDS = fs.readFileSync(path.join(ROOT, 'src/online/onlineCards.ts'), 'utf8'), FORM = fs.readFileSync(path.join(ROOT, 'src/online/onlineForm.ts'), 'utf8');
+    assert(/CARD_KEYS = \['mastery', 'combo', 'ccw', 'renewal', 'hql'\]/.test(CARDS) && /remoteFeePerPerson\(base\)/.test(CARDS) && /aria-pressed/.test(CARDS) && /fifsOnlineText/.test(CARDS), 'five cards, shared fee function, accessible, idempotent');
+    assert(/installCardToggles\(/.test(FORM) && /onlineEligible\(String\(value\)\)/.test(CARDS), 'selecting from a card sets the form option');
+  });
   await test('Admin: meeting link per web day (https only); roster lists emails; attendance only for a booked person', async () => {
     const d = dayAt(8); const db = memDb();
     assert((await oc.adminSetMeetingLink(db, d, 'https://zoom.us/j/123')).ok && db.t.online_days[0].meeting_url === 'https://zoom.us/j/123');
