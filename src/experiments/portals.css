@@ -30,3 +30,6 @@
 
 /* P010 Admin: ID columns never wrap */
 #admin-roster-tbody td:first-child, #admin-client-tbody td:first-child { white-space: nowrap; }
+
+/* P011 Admin: table buttons are 44 px tall on touch screens */
+@media (pointer: coarse) { .admin-roster-table button { min-height: 44px; } }
