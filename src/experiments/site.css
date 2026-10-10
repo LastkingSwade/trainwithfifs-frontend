@@ -141,3 +141,6 @@ input[type="checkbox"], input[type="radio"] { min-width: 20px; min-height: 20px;
 
 /* Q047 The label of the field being typed in lights up */
 .form-group:focus-within > label { color: var(--accent-cyan, #00e5ff); }
+
+/* Q048 Dark-mode date picker icon is visible */
+input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
