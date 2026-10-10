@@ -201,3 +201,6 @@
 
 /* P067 Student: waiver status stays on one line */
 #waiverStatusBadge { white-space: nowrap; }
+
+/* P068 Student: waiver card keeps clear of the header */
+#portalWaiverCard { scroll-margin-top: 90px; }
