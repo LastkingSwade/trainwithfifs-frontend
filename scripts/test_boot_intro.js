@@ -7,11 +7,14 @@ function test(n, f) { try { f(); console.log('  ✓ PASS: ' + n); passed++; } ca
 function assert(c, m) { if (!c) throw new Error(m || 'assertion failed'); }
 const num = (k) => Number((CFG.match(new RegExp(k + ':\\s*(\\d+)')) || [])[1]);
 console.log('\n[boot intro]');
-test('Timing: every value is a constant in bootConfig.ts and the default total is between 3 and 3.5 s (never over 4 s)', () => {
+test('Timing: every value is a constant in bootConfig.ts, the sequence (title, ACCESS GRANTED, WELCOME AGENT) always plays to the end with no ceiling, and the fail-safe is far above it', () => {
   const title = 'FUTURE INITIATIVE FIREARM SERVICES'.length, granted = 'ACCESS GRANTED'.length;
-  const total = num('blankMs') + title * num('typeMsPerChar') + num('holdAfterTitleMs') + granted * num('grantedMsPerChar') + num('holdAfterGrantedMs') + num('fadeMs');
-  assert(total >= 3000 && total <= 3500, 'default total is ' + total + ' ms');
-  assert(num('maxTotalMs') <= 4000 && num('failsafeMs') > num('maxTotalMs'), 'ceiling or fail-safe out of range');
+  const welcome = 'WELCOME AGENT'.length;
+  const total = num('blankMs') + title * num('typeMsPerChar') + num('holdAfterTitleMs') + granted * num('grantedMsPerChar') + num('holdAfterGrantedMs') + welcome * num('welcomeMsPerChar') + num('holdAfterWelcomeMs') + num('fadeMs');
+  assert(total >= 3500 && total <= 5000, 'default total is ' + total + ' ms');
+  assert(!/maxTotalMs|minRunMs/.test(CFG + COMP), 'no ceiling may cut the sequence short');
+  assert(num('failsafeMs') >= total * 2.5, 'fail-safe must sit far above the sequence');
+  assert(/BOOT_WELCOME = 'WELCOME AGENT'/.test(CFG) && /typeOut\(BOOT_WELCOME/.test(COMP) && COMP.indexOf('typeOut(BOOT_GRANTED') < COMP.indexOf('typeOut(BOOT_WELCOME'), 'WELCOME AGENT must be typed after ACCESS GRANTED');
   assert(num('typeMsPerChar') >= 30 && num('typeMsPerChar') <= 40, 'typing speed outside 30-40 ms');
   assert(!/\b\d{3,4}\b/.test(COMP.replace(/\d+px/g, '')), 'BootIntro.tsx has a loose timing number');
 });
@@ -52,7 +55,7 @@ test('Reduced motion: no boot is set, and every boot rule is behind prefers-redu
 });
 test('Cannot get stuck: a timer in the gate script, a CSS-only backup, and the page keeps its layout (no layout shift)', () => {
   assert(/setTimeout\(function\(\)\{if\(d\.hasAttribute\('data-boot'\)\)/.test(CFG), 'gate timer missing');
-  assert(/animation: bootFailsafe 0s linear 6s forwards/.test(CSS) && /animation: bootBackup 0s linear 6s forwards/.test(CSS), 'CSS backup missing');
+  assert(/animation: bootFailsafe 0s linear 16s forwards/.test(CSS) && /animation: bootBackup 0s linear 16s forwards/.test(CSS), 'CSS backup missing');
   assert(/html\[data-boot="on"\] body \{ visibility: hidden/.test(CSS) && !/html\[data-boot[^{]*\{[^}]*display: none/.test(CSS), 'page must be hidden with visibility, not removed');
 });
 test('The existing animations wait for the intro: paused behind it, and the HUD intro waits for the hand-off event', () => {

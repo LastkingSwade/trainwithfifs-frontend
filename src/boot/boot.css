@@ -13,9 +13,9 @@
 
 @media (prefers-reduced-motion: no-preference) {
   /* While booting the page is hidden (it keeps its layout, so nothing shifts when it appears) and every animation in it is paused.
-     The CSS-only backup below reveals it after 6 s even if no script runs. */
+     The CSS-only backup below reveals it after 16 s even if no script runs. */
   html[data-boot] body { background: #000; }
-  html[data-boot="on"] body { visibility: hidden; animation: bootFailsafe 0s linear 6s forwards; }
+  html[data-boot="on"] body { visibility: hidden; animation: bootFailsafe 0s linear 16s forwards; }
   html[data-boot] body > :not(.boot-intro),
   html[data-boot] body > :not(.boot-intro) *,
   html[data-boot] body > :not(.boot-intro) *::before,
@@ -23,15 +23,17 @@
 
   html[data-boot] .boot-intro { display: flex; visibility: visible; position: fixed; inset: 0; z-index: 2147483647; align-items: center; justify-content: center;
     background: #000; overflow: hidden; font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
-    animation: bootBackup 0s linear 6s forwards; }
+    animation: bootBackup 0s linear 16s forwards; }
   .boot-intro.is-leaving { animation: bootFade var(--boot-fade, 400ms) ease-out forwards; pointer-events: none; }
 
   .boot-text { position: relative; z-index: 1; padding: 0 24px; text-align: center; max-width: 100%; }
-  .boot-title, .boot-granted { font-size: clamp(13px, 3.9vw, 24px); font-weight: 700; letter-spacing: 0.08em; line-height: 1.5; overflow-wrap: anywhere; }
+  .boot-title, .boot-granted, .boot-welcome { font-size: clamp(13px, 3.9vw, 24px); font-weight: 700; letter-spacing: 0.08em; line-height: 1.5; overflow-wrap: anywhere; }
   .boot-title { color: var(--boot-color); animation: bootFlicker 130ms steps(1, end) infinite alternate;
     text-shadow: 0 0 var(--boot-glow-near) color-mix(in srgb, var(--boot-color) 90%, transparent), 0 0 var(--boot-glow-far) color-mix(in srgb, var(--boot-color) 45%, transparent); }
   .boot-granted { position: relative; display: inline-block; margin-top: 18px; color: var(--boot-accent); animation: bootFlicker 130ms steps(1, end) infinite alternate;
     text-shadow: 0 0 var(--boot-glow-near) color-mix(in srgb, var(--boot-accent) 90%, transparent), 0 0 var(--boot-glow-far) color-mix(in srgb, var(--boot-accent) 45%, transparent); }
+  .boot-welcome { margin-top: 14px; color: var(--boot-color); animation: bootFlicker 130ms steps(1, end) infinite alternate;
+    text-shadow: 0 0 var(--boot-glow-near) color-mix(in srgb, var(--boot-color) 90%, transparent), 0 0 var(--boot-glow-far) color-mix(in srgb, var(--boot-color) 45%, transparent); }
   .boot-halo { position: absolute; inset: -40px -60px; pointer-events: none; opacity: 0.12; animation: bootPulse 300ms ease-out;
     background: radial-gradient(ellipse at center, color-mix(in srgb, var(--boot-accent) 55%, transparent) 0%, transparent 70%); }
   .boot-granted-text { position: relative; }

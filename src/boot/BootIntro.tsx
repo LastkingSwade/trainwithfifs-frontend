@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BOOT, BOOT_DONE_EVENT, BOOT_GRANTED, BOOT_TITLE } from './bootConfig';
+import { BOOT, BOOT_DONE_EVENT, BOOT_GRANTED, BOOT_TITLE, BOOT_WELCOME } from './bootConfig';
 import './boot.css';
 
 // Module-level: lives as long as this document. A full load or reload starts fresh (the intro plays again); client-side route changes keep it,
@@ -15,6 +15,7 @@ export default function BootIntro() {
   const [leaving, setLeaving] = useState(false);
   const [title, setTitle] = useState('');
   const [granted, setGranted] = useState('');
+  const [welcome, setWelcome] = useState('');
 
   useEffect(() => {
     const root = document.documentElement;
@@ -48,14 +49,17 @@ export default function BootIntro() {
       const step = () => { i += 1; set(text.slice(0, i)); if (i < text.length) later(step, perChar); else done(); };
       later(step, perChar);
     };
-    // The clock started when the page began loading, not when this component mounted: skip the blank beat if the page is already late,
-    // and force the hand-off by the ceiling.
+    // The clock started when the page began loading, not when this component mounted: skip the blank beat if the page is already late.
+    // There is no ceiling: the sequence always plays to the end, however long loading took (the gate script's fail-safe is the only backstop).
     const elapsed = Math.round(performance.now());
-    later(() => finish(BOOT.fadeMs), Math.max(BOOT.maxTotalMs - BOOT.fadeMs - elapsed, BOOT.minRunMs));
     later(() => {
       typeOut(BOOT_TITLE, BOOT.typeMsPerChar, setTitle, () => {
         later(() => {
-          typeOut(BOOT_GRANTED, BOOT.grantedMsPerChar, setGranted, () => later(() => finish(BOOT.fadeMs), BOOT.holdAfterGrantedMs));
+          typeOut(BOOT_GRANTED, BOOT.grantedMsPerChar, setGranted, () => {
+            later(() => {
+              typeOut(BOOT_WELCOME, BOOT.welcomeMsPerChar, setWelcome, () => later(() => finish(BOOT.fadeMs), BOOT.holdAfterWelcomeMs));
+            }, BOOT.holdAfterGrantedMs);
+          });
         }, BOOT.holdAfterTitleMs);
       });
     }, Math.max(BOOT.blankMs - elapsed, 0));
@@ -69,6 +73,7 @@ export default function BootIntro() {
 
   if (!active) return null;
   const grantedShown = granted.length > 0;
+  const welcomeShown = welcome.length > 0;
   return (
     <div className={`boot-intro${leaving ? ' is-leaving' : ''}`} style={{ ['--boot-fade' as string]: `${BOOT.fadeMs}ms` }}>
       <div className="boot-text" role="status" aria-live="polite">
@@ -80,7 +85,13 @@ export default function BootIntro() {
           <div className="boot-granted">
             <span className="boot-halo" aria-hidden="true" />
             <span className="boot-granted-text">{granted}</span>
-            <span className="boot-cursor boot-cursor-accent" aria-hidden="true" />
+            {!welcomeShown && <span className="boot-cursor boot-cursor-accent" aria-hidden="true" />}
+          </div>
+        )}
+        {welcomeShown && (
+          <div className="boot-welcome">
+            <span>{welcome}</span>
+            <span className="boot-cursor" aria-hidden="true" />
           </div>
         )}
       </div>
