@@ -153,3 +153,6 @@ option { background: #0d141e; color: #f8fafc; }
 
 /* Q051 Status messages get a symbol as well as a color (helps color-blind visitors) */
 .status-msg.success::before { content: "✓ "; } .status-msg.error::before { content: "⚠ "; }
+
+/* Q052 Long status messages wrap instead of overflowing */
+.status-msg { overflow-wrap: anywhere; }
