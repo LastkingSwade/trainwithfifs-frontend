@@ -228,3 +228,6 @@
 
 /* P076 Client: feature cards never overflow their grid cell */
 .fi-feature-card { min-width: 0; }
+
+/* P077 Client: feature titles balance their lines */
+.fi-feature-title { text-wrap: balance; }
