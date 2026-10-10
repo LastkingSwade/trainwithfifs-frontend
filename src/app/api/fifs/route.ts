@@ -5,6 +5,7 @@ import { isLiveChatHours } from '@/Lib/server/chat-hours';
 import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/group-status';
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
+import { purgeWallet, walletConsent, walletDelete, walletOpen, walletStatus, walletUpload } from '@/Lib/server/wallet';
 import { adminPayments } from '@/Lib/server/admin-payments';
 import { listTrash, restoreFromTrash, saveToTrash } from '@/Lib/server/admin-trash';
 import { adminDayRoster, adminMarkAttendance, adminOnlineOverview, adminSetMeetingLink, day2Pending, getDayModes, getOnlineOptions, studentOnlineClasses } from '@/Lib/server/online-classroom';
@@ -962,6 +963,7 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, error: delError.message }, { status: 500 });
        }
 
+       if (foundStudent?.user_id && Array.isArray(removedRows) && removedRows.length > 0) await purgeWallet(supabase, foundStudent.user_id);
        // The record is gone; now remove its sign-in (best effort, see removeLinkedAuthUser).
        const authCleanup = foundStudent && Array.isArray(removedRows) && removedRows.length > 0
          ? await removeLinkedAuthUser(supabase, foundStudent.user_id, user?.id) : 'none';
@@ -1078,6 +1080,7 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, error: delError.message }, { status: 500 });
        }
 
+       if (foundClient?.user_id && Array.isArray(removedRows) && removedRows.length > 0) await purgeWallet(supabase, foundClient.user_id);
        // The record is gone; now remove its sign-in (best effort, see removeLinkedAuthUser).
        const authCleanup = foundClient && Array.isArray(removedRows) && removedRows.length > 0
          ? await removeLinkedAuthUser(supabase, foundClient.user_id, user?.id) : 'none';
@@ -2912,6 +2915,26 @@ export async function POST(req: NextRequest) {
        if (action === 'adminSetMeetingLink') return done(await adminSetMeetingLink(supabase, payload.day, payload.url));
        if (action === 'adminDayRoster') return done(await adminDayRoster(supabase, payload.day));
        return done(await adminMarkAttendance(supabase, payload.invoiceNumber, payload.day, payload.attended, String(user?.email || user?.id || 'staff')));
+     }
+
+     case 'walletStatus':
+     case 'walletConsent':
+     case 'walletUpload':
+     case 'walletOpen':
+     case 'walletDelete': {
+       // Any signed-in person, for THEIR OWN documents only: the owner id is the verified token's user id, never anything from the request.
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user?.id) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
+       const uid = String(user.id);
+       const res: any = action === 'walletStatus' ? await walletStatus(supabase, uid)
+         : action === 'walletConsent' ? await walletConsent(supabase, uid)
+         : action === 'walletUpload' ? await walletUpload(supabase, uid, { kind: payload.kind, dataBase64: payload.dataBase64, expiresOn: payload.expiresOn })
+         : action === 'walletOpen' ? await walletOpen(supabase, uid, payload.id)
+         : await walletDelete(supabase, uid, payload.id);
+       return res.ok ? NextResponse.json({ success: true, ...res }) : NextResponse.json({ success: false, error: res.message }, { status: res.status });
      }
 
      case 'adminTrashList':

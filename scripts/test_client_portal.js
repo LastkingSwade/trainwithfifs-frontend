@@ -1,7 +1,7 @@
 // Client Portal extras: renewal countdown, stages, calendar file (offline).
 const fs = require('fs'); const path = require('path'); const vm = require('vm'); const ts = require('typescript'); const assert = require('assert');
 const ROOT = path.resolve(__dirname, '..'); const cache = {};
-const load = (rel) => { if (cache[rel]) return cache[rel]; const m = { exports: {} }; const src = fs.readFileSync(path.join(ROOT, rel), 'utf8'); const req = (id) => (id === './ics' ? load('src/portal/ics.ts') : require(id));
+const load = (rel) => { if (cache[rel]) return cache[rel]; const m = { exports: {} }; const src = fs.readFileSync(path.join(ROOT, rel), 'utf8'); const req = (id) => (id === './walletCard' ? load('src/portal/walletCard.ts') : id === './ics' ? load('src/portal/ics.ts') : require(id));
   vm.runInNewContext(ts.transpileModule(src, { compilerOptions: { target: 'ES2020', module: 'commonjs' } }).outputText, { module: m, exports: m.exports, require: req, console, Date, Math, Number, String, Array, RegExp, Promise, Blob: function () {}, URL: {}, document: {}, window: undefined }); return (cache[rel] = m.exports); };
 let passed = 0, failed = 0; const test = (n, f) => { try { f(); console.log('  ✓ PASS: ' + n); passed++; } catch (e) { console.log('  ✗ FAIL: ' + n + '\n    -> ' + e.message); failed++; } };
 const ics = load('src/portal/ics.ts'), ce = load('src/portal/clientExtras.ts'); const PAGE = fs.readFileSync(path.join(ROOT, 'src/app/page.tsx'), 'utf8');

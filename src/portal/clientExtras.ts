@@ -1,6 +1,7 @@
 // Client Portal extras, drawn into #fi-client-extras once the signed-in client dashboard is showing. Text only (textContent).
 import { buildRenewalIcs, daysLeft, parseExpiry, renewalStage } from './ics';
 import type { Stage } from './ics';
+import { walletCard } from './walletCard';
 
 const w: any = typeof window === 'undefined' ? {} : window;
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, cls?: string): HTMLElementTagNameMap[K] { const e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; }
@@ -53,6 +54,7 @@ export function installClientExtras(): void {
     const exp = /Expiration:\s*(.+)$/i.exec(badge.trim())?.[1] || '';
     host.textContent = '';
     host.appendChild(renewalCard(exp));
+    host.appendChild(walletCard());
     host.hidden = false;
   };
   const dash = document.getElementById('client-active-dashboard');

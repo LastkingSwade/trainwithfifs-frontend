@@ -9,6 +9,7 @@ import GroupStatusPanel from "../group/GroupStatusPanel";
 import OnlineAdminPanel from "../online/OnlineAdminPanel";
 import AdminPaymentsPanel from "../portal/AdminPaymentsPanel";
 import AdminTrashPanel from "../portal/AdminTrashPanel";
+import WalletPanel from "../portal/WalletPanel";
 import { BOOT_GATE_SCRIPT } from "../boot/bootConfig";
 
 export const metadata: Metadata = {
@@ -46,6 +47,7 @@ export default function RootLayout({
         <OnlineAdminPanel />
         <AdminPaymentsPanel />
         <AdminTrashPanel />
+        <WalletPanel />
         {children}
       </body>
     </html>

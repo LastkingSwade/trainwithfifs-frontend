@@ -2,7 +2,7 @@
 const fs = require('fs'); const path = require('path'); const vm = require('vm'); const assert = require('assert'); const ts = require('typescript');
 const ROOT = path.resolve(__dirname, '..'); const cache = {};
 const load = (rel, extra = {}) => { const key = rel; if (cache[key]) return cache[key]; const m = { exports: {} }; const src = fs.readFileSync(path.join(ROOT, rel), 'utf8');
-  const req = (id) => (id === './portalCopy' ? load('src/portal/portalCopy.ts') : id === '@/group/groupCopy' ? load('src/group/groupCopy.ts') : require(id));
+  const req = (id) => (id === './walletCard' ? load('src/portal/walletCard.ts') : id === './portalCopy' ? load('src/portal/portalCopy.ts') : id === '@/group/groupCopy' ? load('src/group/groupCopy.ts') : require(id));
   vm.runInNewContext(ts.transpileModule(src, { compilerOptions: { target: 'ES2020', module: 'commonjs' } }).outputText, { module: m, exports: m.exports, require: req, console, Date, Math, Number, String, Array, Promise, Error, RegExp, encodeURIComponent, document: {}, ...extra }); return (cache[key] = m.exports); };
 let passed = 0, failed = 0;
 async function test(n, f) { try { await f(); console.log('  ✓ PASS: ' + n); passed++; } catch (e) { console.log('  ✗ FAIL: ' + n + '\n    -> ' + e.message); failed++; } }

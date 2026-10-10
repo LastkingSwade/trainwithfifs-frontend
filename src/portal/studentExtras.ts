@@ -1,5 +1,6 @@
 // Student Portal extras, drawn into #dash-extras once the signed-in dashboard is showing. All text is set with textContent (no HTML from data).
 import { BRING, EXPECT, GUIDE_DISCLAIMER, GUIDE_ITEMS, MAPS_URL, RANGE_CITY, RANGE_NAME } from './portalCopy';
+import { walletCard } from './walletCard';
 
 // window only exists in the browser; this module is also loaded while the page is rendered on the server.
 const w: any = typeof window === 'undefined' ? {} : window;
@@ -93,6 +94,7 @@ export function installStudentExtras(): void {
     host.appendChild(rebookCard());
     host.appendChild(receiptsCard(receipts));
     host.appendChild(guideCard());
+    host.appendChild(walletCard());
     host.hidden = false;
     busy = false;
   };

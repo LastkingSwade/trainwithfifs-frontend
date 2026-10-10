@@ -38,7 +38,7 @@ export default function AdminTrashPanel() {
     <div className="online-admin-overlay" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
       <section className="online-admin" role="dialog" aria-modal="true" aria-label="Recently deleted">
         <div className="row" style={{ justifyContent: 'space-between' }}><h2>↩ Recently deleted</h2><button type="button" onClick={() => setOpen(false)}>Close</button></div>
-        <p className="hint">Deleted students and clients are kept here for 30 days. Restoring puts back the record and its invoices, class enrollments, messages or permits. Their sign-in is not restored, so send a new invite afterwards.</p>
+        <p className="hint">Deleted students and clients are kept here for 30 days. Restoring puts back the record and its invoices, class enrollments, messages or permits. Their sign-in and any document wallet files are not restored, so send a new invite afterwards.</p>
         {items.length === 0 && <p className="hint">Nothing has been deleted recently.</p>}
         {items.map((it) => (
           <div className="sess" key={it.id}>
