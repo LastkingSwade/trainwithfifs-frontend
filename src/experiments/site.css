@@ -63,3 +63,6 @@ img[loading="lazy"] { background: linear-gradient(135deg, rgba(148, 163, 184, 0.
 
 /* Q021 Visitors who ask for more contrast get firmer field borders */
 @media (prefers-contrast: more) { input, select, textarea { border-width: 2px; } }
+
+/* Q022 Windows high-contrast mode keeps a visible focus outline */
+@media (forced-colors: active) { :focus-visible { outline: 2px solid Highlight; } }
