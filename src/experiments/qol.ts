@@ -57,7 +57,7 @@ export function installQol(): void {
   });
   // Q087: Phone links read as "Call 443-990-1304" to screen readers
   run('Q087', () => {
-    $$<HTMLAnchorElement>('a[href^="tel:"]').forEach((a) => { if (!a.getAttribute('aria-label')) a.setAttribute('aria-label', 'Call ' + (a.textContent || a.getAttribute('href') || '').replace(/^tel:/, '').trim()); });
+    $$<HTMLAnchorElement>('a[href^="tel:"]').forEach((a) => { if (a.getAttribute('aria-label')) return; const visible = (a.textContent || '').replace(/[^\w()\s.-]/g, '').replace(/\s+/g, ' ').trim(); if (visible && !/call/i.test(visible)) a.setAttribute('aria-label', 'Call ' + visible); });
   });
   // Q088: Email links read as "Email info@..." to screen readers
   run('Q088', () => {
