@@ -36,3 +36,4 @@ Q035	2026-10-10T23:02:33.457Z	Tapping the Standard / VIP switch never selects it
 Q036	2026-10-10T23:02:33.575Z	VIP perk box keeps clear of the header when jumped to	SUCCESS	6391	6501	110	css
 Q037	2026-10-10T23:02:33.694Z	Review quotes wrap more nicely	SUCCESS	6501	6586	85	css
 Q038	2026-10-10T23:02:33.810Z	Photo captions wrap more nicely	SUCCESS	6586	6669	83	css
+Q039	2026-10-10T23:02:33.928Z	Card descriptions wrap more nicely	SUCCESS	6669	6771	102	css
