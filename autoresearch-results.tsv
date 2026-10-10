@@ -154,3 +154,4 @@ P053	2026-10-10T23:07:09.093Z	Student: the 8 journey steps can be swiped on a ph
 P054	2026-10-10T23:07:29.607Z	Student: each journey step snaps to the middle when swiped	SUCCESS	27409	27564	155	css
 P055	2026-10-10T23:07:29.767Z	Student: the next-step card keeps clear of the header when jumped to	SUCCESS	27564	27690	126	css
 P056	2026-10-10T23:07:29.913Z	Student: next-step text wraps nicely	SUCCESS	27690	27819	129	css
+P057	2026-10-10T23:07:30.062Z	Student: state dossier sections stay together when printed	SUCCESS	27819	27949	130	css

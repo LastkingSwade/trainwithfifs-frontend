@@ -171,3 +171,6 @@
 
 /* P057 Student: state dossier sections stay together when printed */
 @media print { .dossier-section { break-inside: avoid; } }
+
+/* P058 Student: long dossier values wrap */
+.dossier-prop-val { overflow-wrap: anywhere; }
