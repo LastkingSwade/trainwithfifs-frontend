@@ -24,12 +24,12 @@ test('Client setup link: staff only, uses the email on the client record, never 
   assert(/isStaffOrAdmin\(cAuth\)/.test(body) && /crow\.user_id !== cAuth\.id/.test(body) && /payload\.clientId/.test(body) && !/payload\.email/.test(body), 'guards, and the email comes from the record');
   assert(/function resendClientSetupLink\(clientId, btnEl\)/.test(JS) && /window\.resendClientSetupLink = resendClientSetupLink/.test(JS) && /onclick="resendClientSetupLink\('\$\{fifsSafeId\(c\.clientId\)\}', this\)"[^>]*>✉️ Setup link/.test(JS.slice(JS.lastIndexOf('function renderAdminClientTerminal'))), 'button in the live client row');
 });
-test('Score sheet pad: the editable official form replaces "Choose file" (file box kept in a fold-away), Pencil writes, finger scrolls, output is a PNG through the existing Save button', () => {
+test('Score sheet pad (switched off for now): the module keeps its rules (file box kept in a fold-away, Pencil writes, finger scrolls, PNG output) but the form image is gone from public/ and the pad is not installed', () => {
   const PAD = R('src/portal/scoresheetPad.ts');
   assert(/editScoresheetFileInput/.test(PAD) && /ssp-fold/.test(PAD) && /Prefer to upload a file instead\?/.test(PAD) && /input\.files = dt\.files/.test(PAD) && /type: 'image\/png'/.test(PAD), 'attaches through the existing file box');
   assert(/pointerType === 'touch'/.test(PAD) && /scroller\.scrollLeft -=/.test(PAD) && /getCoalescedEvents/.test(PAD) && /touch-action: none/.test(R('src/portal/portal.css')), 'pencil writes, finger scrolls');
-  assert(/FORM_IMAGE = '\/forms\/msp-29-14-score-sheet\.png'/.test(PAD) && fs.existsSync(path.join(__dirname, '..', 'public/forms/msp-29-14-score-sheet.png')) && fs.statSync(path.join(__dirname, '..', 'public/forms/msp-29-14-score-sheet.png')).size < 700 * 1024, 'form image shipped, small');
-  assert(/installScoresheetPad\(\);/.test(PAGE) && /Save score sheet/.test(PAGE), 'wired; the existing Save button is kept');
+  assert(!fs.existsSync(path.join(__dirname, '..', 'public')) || !fs.existsSync(path.join(__dirname, '..', 'public/forms')), 'the form image must not live in public/ (anything there is reachable by URL)');
+  assert(!/installScoresheetPad\(\);/.test(PAGE) && /Save score sheet/.test(PAGE), 'the pad stays switched off until it loads the real form from private storage; the old file box and the existing Save button remain');
   const m = { exports: {} }; vm.runInNewContext(ts.transpileModule(PAD, { compilerOptions: { target: 'ES2020', module: 'commonjs' } }).outputText, { module: m, exports: m.exports, window: undefined, document: undefined, Math, Image: undefined });
   const w = m.exports.strokeWidth;
   assert(w(3, 1, 'pen') > w(3, 0.2, 'pen') && w(3, 0, 'mouse') === w(3, 1, 'mouse') && w(3, 0.5, 'pen') >= 0.8, 'pressure: a firm press is thicker, a mouse is constant');
