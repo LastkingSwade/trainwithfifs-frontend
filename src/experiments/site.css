@@ -9,3 +9,6 @@ body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; 
 
 /* Q003 Balanced line breaks on headings so no single word is left alone */
 h1, h2, h3, .goal-modal-title, .tuition-title, .j-title { text-wrap: balance; }
+
+/* Q004 Prettier paragraph endings (no one-word last lines) */
+p, .tuition-desc, .review-quote-text { text-wrap: pretty; }
