@@ -10,6 +10,7 @@
 import React, { useEffect } from "react";
 import Script from "next/script";
 import dynamic from "next/dynamic";
+import { GROUP_EXPLAINER, cleanCourse, friendlyCodeError } from "@/group/groupCopy";
 import Head from "next/head";
 import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
 import { createRecoveryClient } from "@/Lib/supabase/recovery-client";
@@ -55,36 +56,7 @@ export default function TrainWithFIFS(props: any) {
       return null;
     }
   };
-  // After Stripe returns to /?booking_confirmed=true, show the group leader their private pod invite code (if the booking made one).
-  useEffect(() => {
-    let code = '';
-    try {
-      if (new URLSearchParams(window.location.search).get('booking_confirmed') !== 'true') return;
-      code = sessionStorage.getItem('fifs_pod_invite_code') || '';
-      if (!/^FIFS-POD-[A-Z0-9]{4}$/.test(code)) return;
-      sessionStorage.removeItem('fifs_pod_invite_code');
-    } catch (_storageErr) { return; }
-    const box = document.createElement('div');
-    box.id = 'pod-code-banner';
-    box.setAttribute('role', 'status');
-    box.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:2147483000;max-width:92vw;width:460px;padding:16px 18px;border-radius:12px;background:#0d141e;border:1.5px solid #00e5ff;color:#e2e8f0;font-size:0.92rem;line-height:1.5;box-shadow:0 10px 40px rgba(0,0,0,0.6);text-align:center;';
-    const title = document.createElement('div');
-    title.style.cssText = 'font-weight:800;color:#00e5ff;margin-bottom:6px;';
-    title.textContent = 'Payment received. Your private pod invite code:';
-    const codeEl = document.createElement('div');
-    codeEl.style.cssText = 'font-family:monospace;font-size:1.5rem;font-weight:800;letter-spacing:2px;margin:6px 0;color:#fff;';
-    codeEl.textContent = code;
-    const hint = document.createElement('div');
-    hint.style.cssText = 'font-size:0.82rem;color:#94a3b8;';
-    hint.textContent = 'Save this code and share it with the people joining your class.';
-    const close = document.createElement('button');
-    close.type = 'button';
-    close.textContent = 'Got it';
-    close.style.cssText = 'margin-top:10px;padding:6px 16px;border-radius:8px;border:1px solid #00e5ff;background:transparent;color:#00e5ff;font-weight:700;cursor:pointer;';
-    close.addEventListener('click', () => box.remove());
-    box.append(title, codeEl, hint, close);
-    document.body.appendChild(box);
-  }, []);
+  // After Stripe returns to /?booking_confirmed=true, the group code panel (src/group/GroupCodePanel.tsx, mounted in the root layout) shows the organizer their code.
   // Deep links such as /#enrollment (the /register redirect target): the booking panel starts hidden, so a plain browser
   // hash scroll cannot reach it. Open the panel, then scroll to the matching section.
   useEffect(() => {
@@ -1781,7 +1753,11 @@ export default function TrainWithFIFS(props: any) {
           }
           // Group bookings get a private pod code; remember it across the Stripe redirect so it can be shown on return.
           if (data.podInviteCode) {
-            try { sessionStorage.setItem('fifs_pod_invite_code', String(data.podInviteCode)); } catch (_storageErr) {}
+            try {
+              sessionStorage.setItem('fifs_pod_invite_code', String(data.podInviteCode));
+              // Course, dates and party size travel with the code so the share message can say what the class is.
+              sessionStorage.setItem('fifs_group_invite_meta', JSON.stringify({ course: payload?.courseSelection || '', dates: payload?.preferredDates || '', size: Number(data.attendees) || undefined }));
+            } catch (_storageErr) {}
           }
           if (data.url) {
             window.location.href = data.url;
@@ -3796,6 +3772,12 @@ export default function TrainWithFIFS(props: any) {
       el.style.color = kind === 'ok' ? '#34d399' : kind === 'error' ? '#f87171' : 'var(--text-muted)';
       el.textContent = message;
     };
+    (window as any).toggleGroupExplainer = function() {
+      const g = document.getElementById('groupSize') as HTMLSelectElement | null;
+      const box = document.getElementById('groupExplainer');
+      if (!g || !box) return;
+      box.hidden = !(parseInt(g.value, 10) > 1) || g.disabled;
+    };
     (window as any).clearPodCode = function() {
       (window as any).__fifsPodCode = '';
       const input = document.getElementById('podCodeInput') as HTMLInputElement | null;
@@ -3808,19 +3790,20 @@ export default function TrainWithFIFS(props: any) {
       if (clearBtn) clearBtn.style.display = 'none';
       setPodStatus('', 'info');
       if (typeof (window as any).updateFormPriceDisplay === 'function') (window as any).updateFormPriceDisplay();
+      (window as any).toggleGroupExplainer();
     };
     (window as any).applyPodCode = async function() {
       const input = document.getElementById('podCodeInput') as HTMLInputElement | null;
       const code = (input?.value || '').trim().toUpperCase();
       if (!code) { (window as any).clearPodCode(); return; }
-      setPodStatus('Checking your pod code...', 'info');
+      setPodStatus('Checking your group code...', 'info');
       try {
         const res = await (window as any).callFifsBackend('validatePodCode', { code });
-        if (!res || res.valid !== true) throw new Error((res && res.error) || 'That pod code could not be used.');
+        if (!res || res.valid !== true) throw new Error(friendlyCodeError((res && res.error) || ''));
         const course = document.getElementById('courseSelection') as HTMLSelectElement | null;
         const group = document.getElementById('groupSize') as HTMLSelectElement | null;
         const option = course ? Array.from(course.options).find((o) => o.value === res.course) : undefined;
-        if (!course || !group || !option) throw new Error("This pod's course is not available to book online. Please contact FIFS.");
+        if (!course || !group || !option) throw new Error("This group's class is not available to book online. Please call 443-990-1304 and we will help.");
         course.value = option.value;
         course.disabled = true;
         group.selectedIndex = 0;
@@ -3830,10 +3813,11 @@ export default function TrainWithFIFS(props: any) {
         const clearBtn = document.getElementById('btnClearPodCode');
         if (clearBtn) clearBtn.style.display = 'inline-block';
         if (typeof (window as any).updateFormPriceDisplay === 'function') (window as any).updateFormPriceDisplay();
-        setPodStatus('Joined private pod: ' + res.course + ' — ' + res.seatsLeft + ' seat(s) left. You book one seat at the normal single-person price.', 'ok');
+        (window as any).toggleGroupExplainer();
+        setPodStatus("You're in the group: " + cleanCourse(res.course) + ' — ' + res.seatsLeft + ' seat(s) still open. You book one seat at the regular single-person price.', 'ok');
       } catch (err: any) {
         (window as any).__fifsPodCode = '';
-        setPodStatus(String((err && err.message) || 'That pod code could not be used.'), 'error');
+        setPodStatus(friendlyCodeError((err && err.message) || ''), 'error');
       }
     };
 
@@ -11251,7 +11235,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <select id="groupSize" name="groupSize" data-onchange="updateFormPriceDisplay();" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}}>
+                <select id="groupSize" name="groupSize" data-onchange="updateFormPriceDisplay(); toggleGroupExplainer();" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}}>
                   <option value="1 (Private One-on-One)">
                     1 Person — Standard Rate
                   </option>
@@ -11270,10 +11254,17 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </select>
               </div>
             </div>
+            <div id="groupExplainer" role="note" hidden style={{"background": "rgba(0, 229, 255, 0.06)", "border": "1px solid var(--border-accent)", "borderRadius": "10px", "padding": "12px 14px", "marginBottom": "14px", "fontSize": "0.84rem", "color": "var(--text-muted)", "lineHeight": "1.5"}}>
+              <strong style={{"color": "var(--text-main)", "display": "block", "marginBottom": "4px"}}>{GROUP_EXPLAINER.title}</strong>
+              {GROUP_EXPLAINER.body}
+              <ol style={{"margin": "8px 0 0 18px", "padding": "0"}}>
+                {GROUP_EXPLAINER.steps.map((step) => (<li key={step}>{step}</li>))}
+              </ol>
+            </div>
             <div className="form-group" id="podCodeBox" style={{"marginBottom": "14px"}}>
               <label htmlFor="podCodeInput" style={{"fontSize": "0.84rem", "color": "#cbd5e1", "fontWeight": "700", "display": "flex", "justifyContent": "space-between", "marginBottom": "6px"}}>
-                <span>Private Pod Code</span>
-                <span style={{"fontSize": "0.74rem", "color": "var(--text-muted)", "fontWeight": "400"}}>(Optional — only if a group leader gave you one)</span>
+                <span>Group Code (also called a pod code)</span>
+                <span style={{"fontSize": "0.74rem", "color": "var(--text-muted)", "fontWeight": "400"}}>(Optional — only if the person who booked your group sent you one)</span>
               </label>
               <div style={{"display": "flex", "gap": "8px"}}>
                 <input id="podCodeInput" name="podCodeInput" placeholder="FIFS-POD-XXXX" autoComplete="off" maxLength={13} style={{"flex": "1", "background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "textTransform": "uppercase"}} type="text" />

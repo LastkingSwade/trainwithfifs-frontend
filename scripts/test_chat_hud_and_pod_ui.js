@@ -126,33 +126,30 @@ test('The checkout response code is stored before the redirect to Stripe', () =>
   const redirect = PAGE.indexOf('window.location.href = data.url;', at);
   assert(at > 0 && redirect > at, 'the code must be stored before window.location.href = data.url');
 });
-function runBanner(search, stored) {
-  const at = PAGE.indexOf('// After Stripe returns to /?booking_confirmed=true');
-  assert(at >= 0, 'banner effect missing');
-  const body = balanced(PAGE, PAGE.indexOf('useEffect(() => ', at) + 'useEffect(() => '.length);
-  const appended = [];
-  const store = { fifs_pod_invite_code: stored };
-  const mkEl = () => ({ style: {}, children: [], textContent: '', setAttribute() {}, addEventListener() {}, append(...k) { this.children.push(...k); }, remove() {} });
-  const js = ts.transpileModule(`(function(){ const f = () => ${body}; f(); })()`, { compilerOptions: { target: 'ES2020' } }).outputText;
-  vm.runInNewContext(js, {
-    window: { location: { search } },
-    URLSearchParams,
-    sessionStorage: { getItem: (k) => (k in store ? store[k] : null), removeItem: (k) => { delete store[k]; } },
-    document: { createElement: mkEl, body: { appendChild: (e) => appended.push(e) } },
-  });
-  return { appended, store };
-}
-test('Returning from Stripe shows the pod code once, as plain text, and clears it', () => {
-  const r = runBanner('?session_id=cs_x&booking_confirmed=true&invoice=INV-1', 'FIFS-POD-A1B2');
-  assert(r.appended.length === 1, 'banner not shown');
-  const texts = r.appended[0].children.map((c) => c.textContent);
-  assert(texts.includes('FIFS-POD-A1B2'), 'code missing from banner: ' + texts.join(' | '));
-  assert(!('fifs_pod_invite_code' in r.store), 'the stored code should be cleared');
+const GROUP_SRC = fs.readFileSync(path.join(ROOT, 'src', 'group', 'groupCopy.ts'), 'utf8');
+const PANEL_SRC = fs.readFileSync(path.join(ROOT, 'src', 'group', 'GroupCodePanel.tsx'), 'utf8');
+const groupCopy = (() => { const m = { exports: {} }; vm.runInNewContext(ts.transpileModule(GROUP_SRC, { compilerOptions: { target: 'ES2020', module: 'commonjs' } }).outputText, { module: m, exports: m.exports, encodeURIComponent, String, Number, Array }); return m.exports; })();
+test('The group code panel only shows after a paid booking, with a real code, as plain text (never HTML)', () => {
+  assert(/get\('booking_confirmed'\) !== 'true'\) return;/.test(PANEL_SRC), 'must require booking_confirmed=true');
+  assert(/CODE_PATTERN\.test\(code\)/.test(PANEL_SRC) && groupCopy.CODE_PATTERN.test('FIFS-POD-A1B2') && !groupCopy.CODE_PATTERN.test('<img src=x onerror=alert(1)>'), 'a hostile value must be rejected');
+  assert(!/dangerouslySetInnerHTML|innerHTML/.test(PANEL_SRC), 'the code must be rendered as text');
+  assert(/<GroupCodePanel \/>/.test(fs.readFileSync(path.join(ROOT, 'src', 'app', 'layout.tsx'), 'utf8')), 'panel must be mounted in the layout');
 });
-test('No banner without booking_confirmed, with no stored code, or with anything that is not a pod code', () => {
-  assert(runBanner('?booking_cancelled=true', 'FIFS-POD-A1B2').appended.length === 0, 'shown on a cancelled booking');
-  assert(runBanner('?booking_confirmed=true', null).appended.length === 0, 'shown with no code');
-  assert(runBanner('?booking_confirmed=true', '<img src=x onerror=alert(1)>').appended.length === 0, 'a hostile value was displayed');
+test('The panel has the four steps, copy, share, a how-many-joined check, and help for lost code, cancel, late add and a wrong code', () => {
+  assert(groupCopy.GROUP_STEPS.length === 4 && /Book and pay/.test(groupCopy.GROUP_STEPS[0]) && /Everyone joins/.test(groupCopy.GROUP_STEPS[3]));
+  for (const k of ['Copy code', 'Share with your party', 'See how many have joined', 'nav.share']) assert(PANEL_SRC.includes(k), 'missing: ' + k);
+  const q = groupCopy.HELP_ITEMS.map((h) => h.q).join(' | ');
+  for (const k of ['lost', 'cancels', 'add someone late', 'did not work']) assert(q.includes(k), 'help missing: ' + k);
+});
+test('The share message has the code, class, date, place and simple join steps; the mail and text links carry it', () => {
+  const meta = { code: 'FIFS-POD-A1B2', course: 'Maryland Wear & Carry (CCW) — VIP Turnkey ($279.99)', dates: 'Oct 25' };
+  const msg = groupCopy.buildShareMessage(meta);
+  assert(msg.includes('FIFS-POD-A1B2') && msg.includes('Maryland Wear & Carry (CCW) on Oct 25') && msg.includes("Cindy's Hot Shots") && /Group Code box/.test(msg) && !/Turnkey|\$279/.test(msg), msg);
+  assert(groupCopy.mailtoHref(meta).startsWith('mailto:?subject=') && groupCopy.mailtoHref(meta).includes(encodeURIComponent('FIFS-POD-A1B2')) && groupCopy.smsHref(meta).startsWith('sms:'));
+  assert(groupCopy.seatsSummary(5, 3) === '2 of 5 seats are taken (you count as one). 3 still open.' && groupCopy.seatsSummary(undefined, 1) === '1 seat still open.');
+});
+test('Wrong, full and closed codes get plain next steps', () => {
+  assert(/could not find that group code/.test(groupCopy.friendlyCodeError('That pod code was not found.')) && /already taken/.test(groupCopy.friendlyCodeError('This private pod is already full.')) && /no longer open/.test(groupCopy.friendlyCodeError('This private pod is no longer active.')));
 });
 
 section('\n[SECTION D: the booking form\'s pod code box]');
@@ -170,7 +167,7 @@ function podBoxEnv(backend) {
   const priceUpdates = [];
   const win = { callFifsBackend: backend, updateFormPriceDisplay: () => priceUpdates.push(1) };
   const js = ts.transpileModule(`(function(){ ${PAGE.slice(at, end)} })()`, { compilerOptions: { target: 'ES2020' } }).outputText;
-  vm.runInNewContext(js, { window: win, document: { getElementById: (id) => els[id] || null }, Array, String, Error });
+  vm.runInNewContext(js, { window: win, document: { getElementById: (id) => els[id] || null }, Array, String, Error, parseInt, friendlyCodeError: groupCopy.friendlyCodeError, cleanCourse: groupCopy.cleanCourse });
   return { els, win, priceUpdates };
 }
 test('A valid code selects the pod\'s course, locks the course and group size, shows the seats left and offers Remove', async () => {
@@ -179,14 +176,14 @@ test('A valid code selects the pod\'s course, locks the course and group size, s
   assert(e.els.courseSelection.value === 'Maryland Wear & Carry (CCW) — Base Track ($199.99)' && e.els.courseSelection.disabled === true, 'course not selected/locked');
   assert(e.els.groupSize.disabled === true && e.els.groupSize.selectedIndex === 0, 'group size must be reset to 1 person and locked');
   assert(e.win.__fifsPodCode === 'FIFS-POD-AB12' && e.els.podCodeInput.disabled === true && e.els.btnClearPodCode.style.display === 'inline-block', 'code not applied');
-  assert(/2 seat\(s\) left/.test(e.els.podCodeStatus.textContent) && /normal single-person price/.test(e.els.podCodeStatus.textContent), e.els.podCodeStatus.textContent);
+  assert(/2 seat\(s\) still open/.test(e.els.podCodeStatus.textContent) && /regular single-person price/.test(e.els.podCodeStatus.textContent), e.els.podCodeStatus.textContent);
   assert(e.priceUpdates.length >= 1, 'the price display must refresh');
 });
 test('A bad code shows the server\'s message and leaves the form untouched', async () => {
   const e = podBoxEnv(async () => { throw new Error('That pod code was not found.'); });
   await e.win.applyPodCode();
   assert(e.win.__fifsPodCode === '' && e.els.courseSelection.disabled === false && e.els.groupSize.disabled === false, 'form must stay editable');
-  assert(e.els.podCodeStatus.textContent === 'That pod code was not found.' && e.els.podCodeStatus.style.color === '#f87171', e.els.podCodeStatus.textContent);
+  assert(/could not find that group code/.test(e.els.podCodeStatus.textContent) && e.els.podCodeStatus.style.color === '#f87171', e.els.podCodeStatus.textContent);
 });
 test('A pod for a course the form does not list is refused (never half-applied)', async () => {
   const e = podBoxEnv(async () => ({ valid: true, course: 'Some Unlisted Course', seatsLeft: 1 }));
