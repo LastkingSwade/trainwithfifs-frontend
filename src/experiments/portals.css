@@ -222,3 +222,6 @@
 
 /* P074 Student: the course packet description wraps nicely */
 #packetCardDesc { text-wrap: pretty; }
+
+/* P075 Student: step circles never shrink */
+.track-step-node { flex-shrink: 0; }
