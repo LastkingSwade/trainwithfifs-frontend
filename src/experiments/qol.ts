@@ -51,5 +51,9 @@ export function installQol(): void {
   run('Q077', () => {
     $$<HTMLAnchorElement>('a[target="_blank"]').forEach((a) => { const r = (a.getAttribute('rel') || '').split(/\s+/).filter(Boolean); for (const t of ['noopener', 'noreferrer']) if (!r.includes(t)) r.push(t); a.setAttribute('rel', r.join(' ')); });
   });
+  // Q080: The keyboard shows a Next key while filling the booking form
+  run('Q080', () => {
+    $$<HTMLInputElement>('#booking-form input[type="text"], #booking-form input[type="email"], #booking-form input[type="tel"]').forEach((i) => { if (!i.getAttribute('enterkeyhint')) i.setAttribute('enterkeyhint', 'next'); });
+  });
   // @@QOL_END
 }

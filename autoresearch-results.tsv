@@ -82,3 +82,4 @@ Q083	2026-10-10T23:04:07.567Z	Stray spaces around a name, email or phone are rem
 Q084	2026-10-10T23:04:08.962Z	Tapping the group code box selects the whole code so a new one replaces it	SUCCESS	13251	13535	284	code
 Q085	2026-10-10T23:04:10.303Z	The phone browser bar matches the site background	SUCCESS	13535	13808	273	code
 Q089	2026-10-10T23:04:35.166Z	Images with no description are marked decorative so screen readers skip them	FAIL	14632	14632	0	tsc: src/experiments/qol.ts(51,23): error TS2581: Cannot find name '$'. Do you need to install type definitions for jQuery? Try `npm i --save-dev
+Q077	2026-10-10T23:04:48.677Z	Outside links always open safely (no access to the page that opened them)	SUCCESS	14632	14995	363	code
