@@ -66,3 +66,6 @@ img[loading="lazy"] { background: linear-gradient(135deg, rgba(148, 163, 184, 0.
 
 /* Q022 Windows high-contrast mode keeps a visible focus outline */
 @media (forced-colors: active) { :focus-visible { outline: 2px solid Highlight; } }
+
+/* Q023 Bigger tap targets for sub-menu buttons and pop-up close buttons on touch screens */
+@media (pointer: coarse) { .fi-subnav-btn, .btn-secondary-modal, .goal-modal-close-btn { min-height: 44px; min-width: 44px; } }
