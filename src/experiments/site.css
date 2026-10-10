@@ -24,3 +24,6 @@ button, summary, select, [role="button"], .btn-spark, .btn-primary { touch-actio
 
 /* Q008 A soft cyan flash when a card or button is tapped on a phone */
 a, button, [role="button"], .tuition-card, .fi-select-card { -webkit-tap-highlight-color: rgba(0, 229, 255, 0.18); }
+
+/* Q009 Checkboxes and radios use the brand color */
+input[type="checkbox"], input[type="radio"], input[type="range"], progress { accent-color: var(--accent-cyan, #00e5ff); }

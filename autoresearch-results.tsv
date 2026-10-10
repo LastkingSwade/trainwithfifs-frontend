@@ -6,3 +6,4 @@ Q004	2026-10-10T23:00:01.683Z	Prettier paragraph endings (no one-word last lines
 Q005	2026-10-10T23:00:01.801Z	Selected text uses the brand cyan	SUCCESS	1971	2083	112	css
 Q006	2026-10-10T23:00:06.030Z	Jumping to a section no longer hides its title under the header	SUCCESS	2083	2194	111	css
 Q007	2026-10-10T23:00:06.158Z	Remove the tap delay on buttons and summaries	SUCCESS	2194	2351	157	css
+Q008	2026-10-10T23:00:06.281Z	A soft cyan flash when a card or button is tapped on a phone	SUCCESS	2351	2541	190	css
