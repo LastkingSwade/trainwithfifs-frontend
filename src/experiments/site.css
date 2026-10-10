@@ -102,3 +102,6 @@ button:focus:not(:focus-visible) { outline: none; }
 
 /* Q034 Pop-up close buttons are at least 44 by 44 */
 .goal-modal-close-btn { min-width: 44px; min-height: 44px; }
+
+/* Q035 Tapping the Standard / VIP switch never selects its text */
+.tier-option-btn { -webkit-user-select: none; user-select: none; }

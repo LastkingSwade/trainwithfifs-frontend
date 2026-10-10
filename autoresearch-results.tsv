@@ -31,3 +31,4 @@ Q030	2026-10-10T23:02:15.617Z	Gallery photos zoom a touch on hover (motion safe)
 Q031	2026-10-10T23:02:15.734Z	Empty status messages take no space	SUCCESS	5762	5847	85	css
 Q032	2026-10-10T23:02:15.852Z	Disabled big buttons look disabled	SUCCESS	5847	6000	153	css
 Q033	2026-10-10T23:02:15.971Z	No focus ring after a mouse click on a button (keyboard focus still shows)	SUCCESS	6000	6139	139	css
+Q034	2026-10-10T23:02:33.337Z	Pop-up close buttons are at least 44 by 44	SUCCESS	6139	6255	116	css
