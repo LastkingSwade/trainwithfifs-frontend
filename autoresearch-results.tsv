@@ -10,3 +10,4 @@ Q008	2026-10-10T23:00:06.281Z	A soft cyan flash when a card or button is tapped 
 Q009	2026-10-10T23:00:06.403Z	Checkboxes and radios use the brand color	SUCCESS	2541	2717	176	css
 Q010	2026-10-10T23:00:06.526Z	Thin brand-colored scrollbars	SUCCESS	2717	2856	139	css
 Q011	2026-10-10T23:00:06.645Z	Placeholder text easier to read on the dark fields	SUCCESS	2856	2965	109	css
+Q012	2026-10-10T23:00:06.765Z	Disabled controls show a not-allowed cursor	SUCCESS	2965	3114	149	css
