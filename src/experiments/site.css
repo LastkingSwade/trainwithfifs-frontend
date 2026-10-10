@@ -123,3 +123,6 @@ button:focus:not(:focus-visible) { outline: none; }
 
 /* Q041 Big buttons break long labels evenly */
 .btn-spark, .btn-primary { text-wrap: balance; }
+
+/* Q042 Card titles break evenly */
+.fi-select-card h3, .fi-card-title { text-wrap: balance; }
