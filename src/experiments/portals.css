@@ -96,3 +96,6 @@
 
 /* P032 Admin: empty-table messages balance their lines */
 .admin-empty-row td { text-wrap: balance; }
+
+/* P033 Admin: windows (Online, Payments, Recently Deleted) highlight rows under the pointer */
+.online-admin tbody tr:hover { background: rgba(0, 229, 255, 0.06); }
