@@ -93,3 +93,6 @@ img[loading="lazy"] { background: linear-gradient(135deg, rgba(148, 163, 184, 0.
 
 /* Q031 Empty status messages take no space */
 .status-msg:empty { display: none; }
+
+/* Q032 Disabled big buttons look disabled */
+.btn-spark:disabled, .btn-primary:disabled { opacity: 0.55; filter: saturate(0.6); cursor: not-allowed; }
