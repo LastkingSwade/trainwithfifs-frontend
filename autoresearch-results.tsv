@@ -180,3 +180,4 @@ P079	2026-10-10T23:08:15.952Z	Client: days left and expiry date line up	SUCCESS	
 P080	2026-10-10T23:08:16.113Z	Client: state permit badges stay on one line	SUCCESS	30562	30666	104	css
 P081	2026-10-10T23:08:16.273Z	Client: the expiration badge stays on one line	SUCCESS	30666	30773	107	css
 P082	2026-10-10T23:08:16.431Z	Client: hub cards never overflow their grid cell	SUCCESS	30773	30875	102	css
+P083	2026-10-10T23:08:16.592Z	Client: the banner card wraps nicely	SUCCESS	30875	30963	88	css

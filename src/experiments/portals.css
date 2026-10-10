@@ -249,3 +249,6 @@
 
 /* P083 Client: the banner card wraps nicely */
 .fi-banner-card { text-wrap: pretty; }
+
+/* P084 Client: the sub-menu can be swiped sideways on a phone */
+.fi-portal-subnav { overflow-x: auto; scrollbar-width: none; } .fi-portal-subnav::-webkit-scrollbar { display: none; }
