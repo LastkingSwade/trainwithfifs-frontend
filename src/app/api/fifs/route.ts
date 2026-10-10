@@ -9,7 +9,8 @@ import { purgeWallet, walletConsent, walletDelete, walletOpen, walletStatus, wal
 import { adminDeletePayments, adminPayments } from '@/Lib/server/admin-payments';
 import { listTrash, restoreFromTrash, saveToTrash } from '@/Lib/server/admin-trash';
 import { adminDayRoster, adminMarkAttendance, adminOnlineOverview, adminSetMeetingLink, day2Pending, getDayModes, getOnlineOptions, studentOnlineClasses } from '@/Lib/server/online-classroom';
-import { createBookingCheckout, createPodInviteCode, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord, lookupPod } from '@/Lib/server/booking-checkout';
+import { createBookingCheckout, createPodInviteCode, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord, lookupPod, normalizePodCode } from '@/Lib/server/booking-checkout';
+import { maskCode } from '@/group/groupCode';
 import { ConfigurationError, resolveSiteUrl } from '@/Lib/config/environment';
 
 
@@ -707,10 +708,10 @@ async function findRecordByEmail(supabase: any, table: 'students' | 'clients', e
 // seat is released within about 30 minutes if it is never paid.
 const groupReminderAt = new Map<string, number>();
 const podCodeAttempts = new Map<string, number[]>();
-function allowPodCodeAttempt(key: string): boolean {
+function allowPodCodeAttempt(key: string, limit = 20): boolean {
   const now = Date.now();
   const recent = (podCodeAttempts.get(key) || []).filter((t) => now - t < 10 * 60 * 1000);
-  if (recent.length >= 20) { podCodeAttempts.set(key, recent); return false; }
+  if (recent.length >= limit) { podCodeAttempts.set(key, recent); return false; }
   recent.push(now);
   podCodeAttempts.set(key, recent);
   if (podCodeAttempts.size > 5000) podCodeAttempts.clear();
@@ -2878,7 +2879,13 @@ export async function POST(req: NextRequest) {
        if (!allowPodCodeAttempt(callerKey)) {
          return NextResponse.json({ success: false, error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 });
        }
-       const found = await lookupPod(payload.code || payload.podCode);
+       // A second limit per code (30 tries in 10 minutes), so one code cannot be hammered from many addresses either. Codes are masked in logs.
+       const checkedCode = normalizePodCode(payload.code || payload.podCode);
+       if (checkedCode && !allowPodCodeAttempt('code:' + checkedCode, 30)) {
+         console.warn('[Group] Too many attempts for code', maskCode(checkedCode));
+         return NextResponse.json({ success: false, error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 });
+       }
+       const found = await lookupPod(checkedCode);
        if (!found.ok) return NextResponse.json({ success: false, valid: false, error: found.message }, { status: found.status });
        return NextResponse.json({
          success: true,

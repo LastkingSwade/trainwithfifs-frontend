@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import Stripe from 'stripe';
 import { recordPodCodeOnInvoice } from './group-status';
+import { GROUP_CODE_PATTERN, normalizeGroupCode } from '../../group/groupCode';
 import { claimBookingDays, inPersonClaims, onlineClaims, planOnlineBooking, releaseDayClaims } from './online-classroom';
 import { calculatePricingBreakdown, displayCourseLabel, isAlumniCourse, parseAttendeeCount } from '../pricing';
 import { getAuthenticatedUser, getPrivilegedClient, hasBearerToken, resolveStripeSecretKey } from './supabase-admin';
@@ -128,6 +129,10 @@ export async function createBookingCheckout(
   const podCodeInput = normalizePodCode(input.podCode);
   let podMember: PodInfo | null = null;
   if (podCodeInput) {
+    // Refresh or double-click: the same person with the same code and an unpaid checkout that is still open gets that same checkout back,
+    // so a second tap never takes a second seat.
+    const reused = await reuseOpenMemberCheckout(email, podCodeInput);
+    if (reused) return { status: 200, body: reused };
     const found = await lookupPod(podCodeInput);
     if (!found.ok) return { status: found.status, body: { success: false, status: 'error', error: found.message } };
     podMember = found.pod;
@@ -469,14 +474,31 @@ export async function createPodInviteCode(payload: any, result: { attendees?: nu
 }
 
 
+/** A member's still-open, unpaid checkout for this code and email (within the member session window), or null. Never throws. */
+export async function reuseOpenMemberCheckout(email: string, code: string): Promise<Record<string, any> | null> {
+  try {
+    if (!POD_CODE_PATTERN.test(code)) return null;
+    const since = new Date(Date.now() - (POD_MEMBER_SESSION_MINUTES - 1) * 60000).toISOString();
+    const { data, error } = await getPrivilegedClient().from('invoices').select('invoice_number, student_id, stripe_session_id')
+      .eq('email', email).eq('pod_code', code).eq('status', 'PENDING').gt('created_at', since).order('created_at', { ascending: false }).limit(1);
+    if (error || !Array.isArray(data) || !data[0]?.stripe_session_id) return null;   // (the column may not exist yet: then there is nothing to reuse)
+    const key = resolveStripeSecretKey();
+    if (!key) return null;
+    const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
+    const session = await stripe.checkout.sessions.retrieve(String(data[0].stripe_session_id));
+    if (session.status !== 'open' || !session.url) return null;
+    return { success: true, status: 'success', url: session.url, checkoutUrl: session.url, sessionId: session.id, invoiceId: data[0].invoice_number, studentId: data[0].student_id, attendees: 1, invoiceRecorded: true, reused: true };
+  } catch { return null; }
+}
+
 // ---- Private pod codes: members join a leader's pod (they pay the normal single-person price) ----
-export const POD_CODE_PATTERN = /^FIFS-POD-[A-Z0-9]{4}$/;
+export const POD_CODE_PATTERN = GROUP_CODE_PATTERN;
 // A member's checkout session expires 30 minutes after it starts (Stripe's minimum), so a seat claimed by a checkout that is
 // never paid is released soon after by the checkout.session.expired webhook.
 export const POD_MEMBER_SESSION_MINUTES = 31;
 
 export function normalizePodCode(value: unknown): string {
-  return String(value ?? '').trim().toUpperCase();
+  return normalizeGroupCode(value);
 }
 
 export interface PodInfo {

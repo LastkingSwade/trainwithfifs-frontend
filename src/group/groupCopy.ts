@@ -60,6 +60,7 @@ export function seatsSummary(size: number | undefined, seatsLeft: number): strin
 // Turns the server's short messages into something a first-time organizer can act on.
 export function friendlyCodeError(message: unknown): string {
   const m = String(message || '').toLowerCase();
+  if (/just taken/.test(m)) return `Someone just took the last seat. Ask the person who booked, or call ${CONTACT_PHONE}.`;
   if (/not valid|not found/.test(m)) return `We could not find that group code. Check it letter by letter (it looks like FIFS-POD-AB12), or ask the person who booked to send it again.`;
   if (/full/.test(m)) return `Every seat in this group is already taken. Ask the person who booked, or call ${CONTACT_PHONE}.`;
   if (/no longer active/.test(m)) return `This group is no longer open. Call ${CONTACT_PHONE} and we will help.`;
