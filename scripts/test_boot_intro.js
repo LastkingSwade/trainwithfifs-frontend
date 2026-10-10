@@ -7,28 +7,40 @@ function test(n, f) { try { f(); console.log('  ✓ PASS: ' + n); passed++; } ca
 function assert(c, m) { if (!c) throw new Error(m || 'assertion failed'); }
 const num = (k) => Number((CFG.match(new RegExp(k + ':\\s*(\\d+)')) || [])[1]);
 console.log('\n[boot intro]');
-test('Timing: every value is a constant in bootConfig.ts, the sequence (title, ACCESS GRANTED, WELCOME AGENT) always plays to the end with no ceiling, and the fail-safe is far above it', () => {
-  const title = 'FUTURE INITIATIVE FIREARM SERVICES'.length, granted = 'ACCESS GRANTED'.length;
-  const welcome = 'WELCOME AGENT'.length;
-  const total = num('blankMs') + title * num('typeMsPerChar') + num('holdAfterTitleMs') + granted * num('grantedMsPerChar') + num('holdAfterGrantedMs') + welcome * num('welcomeMsPerChar') + num('holdAfterWelcomeMs') + num('fadeMs');
-  assert(total >= 3500 && total <= 5000, 'default total is ' + total + ' ms');
+test('Timing: every value is a constant in bootConfig.ts, the sequence always plays to the end with no ceiling, the fail-safe is far above it, and the text matches the spec', () => {
+  const A = 'Access Granted'.length, D = ' .....'.length, L = 'Loading Future Initiative Training Grounds'.length, W = 'Welcome Agent'.length;
+  const total = num('blankMs') + A * num('accessMsPerChar') + D * num('dotMsPerChar') + num('holdAfterAccessMs') + L * num('loadingMsPerChar') + num('holdAfterLoadingMs') + num('clearMs') + W * num('welcomeMsPerChar') + num('holdAfterWelcomeMs') + num('glitchMs') + num('dissolveMs') + num('crtMs') + num('fadeMs');
+  assert(total >= 7000 && total <= 11000, 'default total is ' + total + ' ms');
   assert(!/maxTotalMs|minRunMs/.test(CFG + COMP), 'no ceiling may cut the sequence short');
-  assert(num('failsafeMs') >= total * 2.5, 'fail-safe must sit far above the sequence');
-  assert(/BOOT_WELCOME = 'WELCOME AGENT'/.test(CFG) && /typeOut\(BOOT_WELCOME/.test(COMP) && COMP.indexOf('typeOut(BOOT_GRANTED') < COMP.indexOf('typeOut(BOOT_WELCOME'), 'WELCOME AGENT must be typed after ACCESS GRANTED');
-  assert(num('typeMsPerChar') >= 30 && num('typeMsPerChar') <= 40, 'typing speed outside 30-40 ms');
-  assert(!/\b\d{3,4}\b/.test(COMP.replace(/\d+px/g, '')), 'BootIntro.tsx has a loose timing number');
+  assert(num('failsafeMs') >= total * 2, 'fail-safe must sit far above the sequence');
+  assert(num('blankMs') >= 1000 && num('blankMs') <= 3000, 'the blinking-cursor beat should be a few seconds');
+  assert(/BOOT_ACCESS = 'Access Granted'/.test(CFG) && /BOOT_DOTS = ' \.\.\.\.\.'/.test(CFG) && /BOOT_LOADING = 'Loading '/.test(CFG) && /BOOT_BRAND = 'Future Initiative Training Grounds'/.test(CFG) && /BOOT_WELCOME = 'Welcome Agent'/.test(CFG), 'wording');
+  assert(num('accessMsPerChar') >= 25 && num('accessMsPerChar') <= 60, 'typing speed out of range');
+  assert(!/\b\d{3,4}\b/.test(COMP.replace(/\d+px/g, '').replace(/SCATTER[\s\S]*?\];/, '')), 'BootIntro.tsx has a loose timing number');
 });
-test('Colours come from the site variables (cyan for the title and cursor, amber for ACCESS GRANTED); the background is pure black; no hardcoded green', () => {
-  assert(/--boot-color:\s*var\(--accent-cyan/.test(CSS) && /--boot-accent:\s*var\(--accent-amber/.test(CSS), 'brand variables not used');
-  assert(/\.boot-title \{ color: var\(--boot-color\)/.test(CSS) && /\.boot-granted \{[^}]*color: var\(--boot-accent\)/.test(CSS), 'text colours not from the brand');
+test('The order is exact: blinking cursor, Access Granted with dots, Loading line, clear, Welcome Agent, glitch, dissolve, CRT switch-off, reveal', () => {
+  const order = ['typeOut(accessText', 'typeOut(loadingText', "setPhase('welcome')", 'typeOut(BOOT_WELCOME', "setPhase('glitch')", "setPhase('dissolve')", "setPhase('crt')", 'finish(BOOT.fadeMs)'];
+  let at = -1; for (const k of order) { const i = COMP.indexOf(k); assert(i > at, 'out of order or missing: ' + k); at = i; }
+  assert(/loadingPlain/.test(COMP) && /className="boot-brand"/.test(COMP), 'only the business words get the brand class');
+});
+test('Colours: terminal text is plain light gray; only "Future Initiative Training Grounds" uses the business colour; the background is pure black; no green', () => {
+  assert(/--boot-text:\s*#d9dde3/.test(CSS) && /--boot-color:\s*var\(--accent-cyan/.test(CSS), 'variables');
+  assert(/\.boot-brand \{ color: var\(--boot-color\)/.test(CSS) && /\.boot-term \{[^}]*color: var\(--boot-text\)/.test(CSS), 'only the brand words are coloured');
+  assert(!/\.boot-line[^{]*\{[^}]*color: var\(--boot-(color|accent)\)/.test(CSS), 'terminal lines must not be coloured');
   assert(/background: #000;/.test(CSS), 'background must be pure black');
   assert(!/#0f0\b|#00ff00|lime|green/i.test(CSS), 'a green slipped in');
-  assert((CSS.match(/color-mix\(in srgb, var\(--boot-(color|accent)\)/g) || []).length >= 6, 'glow, sweep and halo must be tinted from the variables');
+});
+test('Terminal look: left aligned monospace text with a blinking block cursor', () => {
+  assert(/\.boot-term \{[^}]*text-align: left/.test(CSS) && /font-family: var\(--font-mono/.test(CSS) && /bootBlink 1s steps\(1, end\) infinite/.test(CSS) && /\.boot-cursor \{[^}]*background: var\(--boot-text\)/.test(CSS), 'terminal styling');
+});
+test('Glitch, dissolve and CRT switch-off exist and use only opacity and transform', () => {
+  for (const k of ['bootJitter', 'bootSplitA', 'bootSplitB', 'bootDissolve', 'bootCrtSquash', 'bootCrtLine']) assert(CSS.includes('@keyframes ' + k), k + ' missing');
+  assert(/\.phase-crt \.boot-screen \{ animation: bootCrtSquash/.test(CSS) && /scale\(1, 0\.006\)/.test(CSS), 'the picture must squash to a line');
 });
 test('The CRT look is tunable by CSS variables and uses only opacity and transform in its animations', () => {
-  for (const v of ['--boot-glow-near', '--boot-glow-far', '--boot-scan-opacity', '--boot-flicker']) assert(CSS.includes(v + ':'), v + ' missing');
+  for (const v of ['--boot-glow-near', '--boot-glow-far', '--boot-scan-opacity']) assert(CSS.includes(v + ':'), v + ' missing');
   for (const m of CSS.matchAll(/@keyframes\s+(\w+)\s*\{((?:[^{}]|\{[^{}]*\})*)\}/g)) for (const d of m[2].matchAll(/([a-z-]+)\s*:/g)) assert(['opacity', 'transform', 'visibility', 'pointer-events'].includes(d[1]), `keyframes ${m[1]} animates ${d[1]}`);
-  assert(/repeating-linear-gradient/.test(CSS) && /radial-gradient\(ellipse at center, transparent 55%/.test(CSS) && /bootSweep 5s linear infinite/.test(CSS), 'scanlines, vignette or 5 s sweep missing');
+  assert(/repeating-linear-gradient/.test(CSS) && /radial-gradient\(ellipse at center, transparent 55%/.test(CSS), 'scanlines or vignette missing');
 });
 test('Plays on every full page load: no stored flag anywhere; the gate checks the route, hashes, tokens, reduced motion and bots; it is a plain inline <head> script; a module-level guard stops a replay on route changes', () => {
   for (const k of ["pathname!=='/'", 'prefers-reduced-motion', 'access_token', 'lighthouse']) assert(CFG.includes(k), 'gate missing: ' + k);
@@ -55,7 +67,7 @@ test('Reduced motion: no boot is set, and every boot rule is behind prefers-redu
 });
 test('Cannot get stuck: a timer in the gate script, a CSS-only backup, and the page keeps its layout (no layout shift)', () => {
   assert(/setTimeout\(function\(\)\{if\(d\.hasAttribute\('data-boot'\)\)/.test(CFG), 'gate timer missing');
-  assert(/animation: bootFailsafe 0s linear 16s forwards/.test(CSS) && /animation: bootBackup 0s linear 16s forwards/.test(CSS), 'CSS backup missing');
+  assert(/animation: bootFailsafe 0s linear 26s forwards/.test(CSS) && /animation: bootBackup 0s linear 26s forwards/.test(CSS), 'CSS backup missing');
   assert(/html\[data-boot="on"\] body \{ visibility: hidden/.test(CSS) && !/html\[data-boot[^{]*\{[^}]*display: none/.test(CSS), 'page must be hidden with visibility, not removed');
 });
 test('The existing animations wait for the intro: paused behind it, and the HUD intro waits for the hand-off event', () => {

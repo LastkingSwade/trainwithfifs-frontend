@@ -1,6 +1,7 @@
-/* Boot-sequence intro. Colours come from the site's own variables (--accent-cyan, --accent-amber); the background is pure black.
-   Tunable: --boot-glow-near, --boot-glow-far, --boot-scan-opacity, --boot-flicker. */
+/* Boot-sequence intro: a plain computer terminal. Terminal text is soft white on pure black; only "Future Initiative Training Grounds" uses the
+   business colours (--accent-cyan). Tunable: --boot-glow-near, --boot-glow-far, --boot-scan-opacity, --boot-flicker. */
 :root {
+  --boot-text: #d9dde3;
   --boot-color: var(--accent-cyan, #00e5ff);
   --boot-accent: var(--accent-amber, #ffb703);
   --boot-glow-near: 3px;
@@ -13,40 +14,57 @@
 
 @media (prefers-reduced-motion: no-preference) {
   /* While booting the page is hidden (it keeps its layout, so nothing shifts when it appears) and every animation in it is paused.
-     The CSS-only backup below reveals it after 16 s even if no script runs. */
+     The CSS-only backup below reveals it after 26 s even if no script runs. */
   html[data-boot] body { background: #000; }
-  html[data-boot="on"] body { visibility: hidden; animation: bootFailsafe 0s linear 16s forwards; }
+  html[data-boot="on"] body { visibility: hidden; animation: bootFailsafe 0s linear 26s forwards; }
   html[data-boot] body > :not(.boot-intro),
   html[data-boot] body > :not(.boot-intro) *,
   html[data-boot] body > :not(.boot-intro) *::before,
   html[data-boot] body > :not(.boot-intro) *::after { animation-play-state: paused !important; }
 
-  html[data-boot] .boot-intro { display: flex; visibility: visible; position: fixed; inset: 0; z-index: 2147483647; align-items: center; justify-content: center;
+  html[data-boot] .boot-intro { display: block; visibility: visible; position: fixed; inset: 0; z-index: 2147483647;
     background: #000; overflow: hidden; font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
-    animation: bootBackup 0s linear 16s forwards; }
-  .boot-intro.is-leaving { animation: bootFade var(--boot-fade, 400ms) ease-out forwards; pointer-events: none; }
+    animation: bootBackup 0s linear 26s forwards; }
+  .boot-intro.is-leaving { animation: bootFade var(--boot-fade, 300ms) ease-out forwards; pointer-events: none; }
 
-  .boot-text { position: relative; z-index: 1; padding: 0 24px; text-align: center; max-width: 100%; }
-  .boot-title, .boot-granted, .boot-welcome { font-size: clamp(13px, 3.9vw, 24px); font-weight: 700; letter-spacing: 0.08em; line-height: 1.5; overflow-wrap: anywhere; }
-  .boot-title { color: var(--boot-color); animation: bootFlicker 130ms steps(1, end) infinite alternate;
+  /* The "screen": what collapses in the CRT switch-off. */
+  .boot-screen { position: absolute; inset: 0; background: #000; transform-origin: center; }
+  .boot-term { position: relative; z-index: 1; padding: clamp(16px, 4vw, 40px); text-align: left; max-width: 100%; color: var(--boot-text);
+    font-size: clamp(14px, 3.6vw, 22px); font-weight: 500; letter-spacing: 0.04em; line-height: 1.6; }
+  .boot-line { min-height: 1.6em; overflow-wrap: anywhere; white-space: pre-wrap; }
+  .boot-brand { color: var(--boot-color); font-weight: 700;
     text-shadow: 0 0 var(--boot-glow-near) color-mix(in srgb, var(--boot-color) 90%, transparent), 0 0 var(--boot-glow-far) color-mix(in srgb, var(--boot-color) 45%, transparent); }
-  .boot-granted { position: relative; display: inline-block; margin-top: 18px; color: var(--boot-accent); animation: bootFlicker 130ms steps(1, end) infinite alternate;
-    text-shadow: 0 0 var(--boot-glow-near) color-mix(in srgb, var(--boot-accent) 90%, transparent), 0 0 var(--boot-glow-far) color-mix(in srgb, var(--boot-accent) 45%, transparent); }
-  .boot-welcome { margin-top: 14px; color: var(--boot-color); animation: bootFlicker 130ms steps(1, end) infinite alternate;
-    text-shadow: 0 0 var(--boot-glow-near) color-mix(in srgb, var(--boot-color) 90%, transparent), 0 0 var(--boot-glow-far) color-mix(in srgb, var(--boot-color) 45%, transparent); }
-  .boot-halo { position: absolute; inset: -40px -60px; pointer-events: none; opacity: 0.12; animation: bootPulse 300ms ease-out;
-    background: radial-gradient(ellipse at center, color-mix(in srgb, var(--boot-accent) 55%, transparent) 0%, transparent 70%); }
-  .boot-granted-text { position: relative; }
-  .boot-cursor { display: inline-block; width: 0.6em; height: 1.1em; margin-left: 2px; vertical-align: -0.17em; background: var(--boot-color); animation: bootBlink 1s steps(1, end) infinite; }
-  .boot-cursor-accent { background: var(--boot-accent); }
+  .boot-cursor { display: inline-block; width: 0.6em; height: 1.1em; margin-left: 2px; vertical-align: -0.17em; background: var(--boot-text); animation: bootBlink 1s steps(1, end) infinite; }
+
+  .boot-welcome { position: relative; }
+  .boot-welcome-text { position: relative; display: inline-block; }
+  .boot-ch { display: inline-block; }
+
+  /* Glitch: the line jitters and splits into colour-shifted copies. */
+  .phase-glitch .boot-welcome-text { animation: bootJitter var(--boot-glitch, 800ms) steps(1, end) forwards; }
+  .phase-glitch .boot-welcome::before, .phase-glitch .boot-welcome::after, .phase-dissolve .boot-welcome::before, .phase-dissolve .boot-welcome::after {
+    content: attr(data-text); position: absolute; left: 0; top: 0; pointer-events: none; opacity: 0.8; white-space: pre; }
+  .phase-glitch .boot-welcome::before, .phase-dissolve .boot-welcome::before { color: var(--boot-color); animation: bootSplitA 160ms steps(1, end) infinite; }
+  .phase-glitch .boot-welcome::after, .phase-dissolve .boot-welcome::after { color: #ff2d55; animation: bootSplitB 130ms steps(1, end) infinite; }
+  /* Dissolve: each letter drifts off and fades out on its own delay. */
+  .phase-dissolve .boot-ch { animation: bootDissolve var(--boot-dissolve, 700ms) ease-in forwards; animation-delay: var(--bd, 0ms); }
+  .phase-dissolve .boot-welcome::before, .phase-dissolve .boot-welcome::after { animation-name: bootSplitFade; animation-duration: var(--boot-dissolve, 700ms); animation-timing-function: ease-in; animation-fill-mode: forwards; }
+
+  /* After the dissolve the letters stay gone while the screen switches off. */
+  .phase-crt .boot-ch { opacity: 0; }
+  .phase-crt .boot-skip { opacity: 0; }
+
+  /* CRT-TV switch-off: the picture squashes to a bright line, the line shrinks to a dot and goes out. */
+  .phase-crt .boot-screen { animation: bootCrtSquash var(--boot-crt, 700ms) cubic-bezier(0.55, 0, 0.35, 1) forwards; }
+  .boot-crt-line { position: absolute; left: 0; right: 0; top: 50%; height: 3px; margin-top: -1.5px; z-index: 2; pointer-events: none; opacity: 0; background: #eaffff;
+    box-shadow: 0 0 14px 4px color-mix(in srgb, var(--boot-color) 70%, #fff), 0 0 40px 10px color-mix(in srgb, var(--boot-color) 35%, transparent); transform-origin: center; }
+  .phase-crt .boot-crt-line { animation: bootCrtLine var(--boot-crt, 700ms) cubic-bezier(0.55, 0, 0.35, 1) forwards; }
 
   .boot-scan { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: var(--boot-scan-opacity);
     background: repeating-linear-gradient(0deg, transparent 0 2px, #000 2px 3px); }
-  .boot-sweep { position: absolute; left: 0; right: 0; top: -25%; height: 22%; z-index: 0; pointer-events: none; opacity: 0.5; animation: bootSweep 5s linear infinite;
-    background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--boot-color) 10%, transparent), transparent); }
   .boot-vignette { position: absolute; inset: 0; z-index: 3; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.75) 100%); }
   .boot-skip { position: absolute; left: 0; right: 0; bottom: 18px; z-index: 4; text-align: center; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: color-mix(in srgb, var(--boot-color) 70%, #fff); opacity: 0.6; }
+    color: color-mix(in srgb, var(--boot-text) 70%, #fff); opacity: 0.5; }
   .boot-skip-tap { display: none; }
   @media (hover: none) { .boot-skip-key { display: none; } .boot-skip-tap { display: inline; } }
 
@@ -54,7 +72,11 @@
   @keyframes bootBackup { to { opacity: 0; visibility: hidden; pointer-events: none; } }
   @keyframes bootFade { from { opacity: 1; } to { opacity: 0; } }
   @keyframes bootBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
-  @keyframes bootFlicker { from { opacity: calc(1 - var(--boot-flicker)); } to { opacity: 1; } }
-  @keyframes bootPulse { 0% { opacity: 0; } 30% { opacity: 0.7; } 100% { opacity: 0.12; } }
-  @keyframes bootSweep { from { transform: translateY(0); } to { transform: translateY(650%); } }
+  @keyframes bootJitter { 0% { transform: translate(0, 0); } 12% { transform: translate(-6px, 1px); } 24% { transform: translate(5px, -2px); } 36% { transform: translate(-3px, 3px); } 48% { transform: translate(7px, 0); } 60% { transform: translate(-8px, -1px); } 72% { transform: translate(2px, 2px); } 84% { transform: translate(-4px, -3px); } 100% { transform: translate(0, 0); } }
+  @keyframes bootSplitA { 0% { transform: translate(-4px, 0); } 33% { transform: translate(5px, -1px); } 66% { transform: translate(-2px, 2px); } 100% { transform: translate(6px, 0); } }
+  @keyframes bootSplitB { 0% { transform: translate(4px, 1px); } 33% { transform: translate(-6px, 0); } 66% { transform: translate(3px, -2px); } 100% { transform: translate(-5px, 1px); } }
+  @keyframes bootSplitFade { from { opacity: 0.8; } to { opacity: 0; } }
+  @keyframes bootDissolve { 0% { opacity: 1; transform: translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(var(--bx, 12px), var(--by, -18px)) scale(0.4); } }
+  @keyframes bootCrtSquash { 0% { transform: scale(1, 1); opacity: 1; } 55% { transform: scale(1, 0.006); opacity: 1; } 85% { transform: scale(0.02, 0.006); opacity: 1; } 100% { transform: scale(0, 0); opacity: 0; } }
+  @keyframes bootCrtLine { 0% { opacity: 0; transform: scale(1, 1); } 45% { opacity: 1; transform: scale(1, 1); } 85% { opacity: 1; transform: scale(0.02, 1.6); } 100% { opacity: 0; transform: scale(0, 0); } }
 }

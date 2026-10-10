@@ -1,24 +1,35 @@
-// Boot-sequence intro: every timing value in one place. The sequence always plays to the end (no ceiling); the visitor can skip any time.
-// Total with the defaults: 300 + 1190 + 500 + 350 + 400 + 13 x 40 + 700 + 400 = 4360 ms.
+// Boot-sequence intro: every timing value in one place. It looks like a plain computer terminal: a blinking cursor, then "Access Granted .....",
+// then "Loading Future Initiative Training Grounds", the screen clears, "Welcome Agent" appears on the first line, the text glitches and dissolves,
+// and a CRT-TV switch-off plays before the home page appears. The sequence always plays to the end (no ceiling); the visitor can skip any time.
+// Total with the defaults: 1500 + 560 + 750 + 450 + 1008 + 800 + 200 + 910 + 650 + 800 + 700 + 700 + 300 = 9328 ms.
 export const BOOT = {
-  blankMs: 300,              // black screen with the cursor blinking
-  typeMsPerChar: 35,         // title typing speed
-  holdAfterTitleMs: 500,     // pause after the title is typed
-  grantedMsPerChar: 25,      // "ACCESS GRANTED" typing speed
-  holdAfterGrantedMs: 400,   // pause on ACCESS GRANTED (the glow pulse plays at its start)
-  welcomeMsPerChar: 40,      // "WELCOME AGENT" typing speed
-  holdAfterWelcomeMs: 700,   // pause on WELCOME AGENT before the page appears
-  fadeMs: 400,               // overlay fade-out
+  blankMs: 1500,             // empty terminal with a blinking cursor
+  accessMsPerChar: 40,       // "Access Granted" typing speed
+  dotMsPerChar: 150,         // the trailing dots are typed more slowly
+  holdAfterAccessMs: 450,    // pause before the next line
+  loadingMsPerChar: 24,      // "Loading Future Initiative Training Grounds" typing speed
+  holdAfterLoadingMs: 800,   // pause on the finished loading line
+  clearMs: 200,              // the screen is cleared (blank beat)
+  welcomeMsPerChar: 70,      // "Welcome Agent" typing speed
+  holdAfterWelcomeMs: 650,   // pause on Welcome Agent
+  glitchMs: 800,             // the text glitches
+  dissolveMs: 700,           // the glitching text breaks up and dissipates
+  crtMs: 700,                // CRT-TV switch-off: the picture collapses to a line, then a dot
+  fadeMs: 300,               // overlay fade-out that reveals the home page
   skipFadeMs: 150,           // fade-out when the visitor skips
-  failsafeMs: 15000,         // the page is released no matter what after this long (a CSS-only backup fires at 16 s). Far above the sequence, so it never cuts it short
+  failsafeMs: 24000,         // the page is released no matter what after this long (a CSS-only backup fires at 26 s). Far above the sequence, so it never cuts it short
 } as const;
 
-export const BOOT_TITLE = 'FUTURE INITIATIVE FIREARM SERVICES';
-export const BOOT_GRANTED = 'ACCESS GRANTED';
-export const BOOT_WELCOME = 'WELCOME AGENT';
+export const BOOT_ACCESS = 'Access Granted';
+export const BOOT_DOTS = ' .....';
+export const BOOT_LOADING = 'Loading ';
+export const BOOT_BRAND = 'Future Initiative Training Grounds';   // the only text in the business colours
+export const BOOT_WELCOME = 'Welcome Agent';
 export const BOOT_DONE_EVENT = 'fifs:boot-complete';
 
-export const BOOT_TOTAL_MS = BOOT.blankMs + BOOT_TITLE.length * BOOT.typeMsPerChar + BOOT.holdAfterTitleMs + BOOT_GRANTED.length * BOOT.grantedMsPerChar + BOOT.holdAfterGrantedMs + BOOT_WELCOME.length * BOOT.welcomeMsPerChar + BOOT.holdAfterWelcomeMs + BOOT.fadeMs;
+export const BOOT_TOTAL_MS = BOOT.blankMs + BOOT_ACCESS.length * BOOT.accessMsPerChar + BOOT_DOTS.length * BOOT.dotMsPerChar + BOOT.holdAfterAccessMs
+  + (BOOT_LOADING.length + BOOT_BRAND.length) * BOOT.loadingMsPerChar + BOOT.holdAfterLoadingMs + BOOT.clearMs + BOOT_WELCOME.length * BOOT.welcomeMsPerChar
+  + BOOT.holdAfterWelcomeMs + BOOT.glitchMs + BOOT.dissolveMs + BOOT.crtMs + BOOT.fadeMs;
 
 // Runs in <head> before the first paint, so it runs on every full page load and reload (including hard refresh) and never on client-side route changes.
 // Marks the page as booting on the plain home page only. No boot for: other routes, links with a hash or a password-reset/sign-in token,
