@@ -6,7 +6,7 @@ import './hack.css';
 
 // Things the effect never touches: anything a person can click, type in or navigate with, and moving content.
 const INTERACTIVE = 'a, button, input, textarea, select, label, nav, form, summary, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [contenteditable], [data-onclick], [onclick], .reviews-marquee-box, .hud-layer, .boot-intro, script, style, noscript, svg';
-const MODALS = '.fi-portal-modal-overlay, .goal-modal-overlay, [role="dialog"], [aria-modal="true"]';
+const MODALS = '.fi-portal-modal-overlay, .goal-modal-overlay, [role="dialog"], [aria-modal="true"], .group-panel';
 const FIELDS = 'input, textarea, select, [contenteditable]';
 
 const homeVisible = () => {

@@ -2,6 +2,8 @@
 import crypto from 'node:crypto';
 import { getAuthenticatedUser, getPrivilegedClient, getPublicClient } from '@/Lib/server/supabase-admin';
 import { isLiveChatHours } from '@/Lib/server/chat-hours';
+import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/group-status';
+import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { createBookingCheckout, createPodInviteCode, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord, lookupPod } from '@/Lib/server/booking-checkout';
 import { ConfigurationError, resolveSiteUrl } from '@/Lib/config/environment';
 
@@ -697,6 +699,7 @@ async function findRecordByEmail(supabase: any, table: 'students' | 'clients', e
 // Small per-instance throttle for pod code checks (20 attempts per 10 minutes per caller). Serverless instances do not share
 // memory, so this slows casual guessing rather than stopping a determined attacker; a wrong code reveals nothing and a claimed
 // seat is released within about 30 minutes if it is never paid.
+const groupReminderAt = new Map<string, number>();
 const podCodeAttempts = new Map<string, number[]>();
 function allowPodCodeAttempt(key: string): boolean {
   const now = Date.now();
@@ -2858,6 +2861,35 @@ export async function POST(req: NextRequest) {
          preferredDates: found.pod.preferredDates,
          seatsLeft: found.pod.maxSeats - found.pod.claimedSeats
        });
+     }
+
+     case 'groupStatus':
+     case 'groupRemind': {
+       // The organizer's private link (code + server-made token). The token is checked before anything is read. A bad token gets one
+       // generic answer, and tries are throttled per caller like pod code checks.
+       const callerKey = 'group:' + (req.headers.get('x-forwarded-for') || 'unknown').split(',')[0].trim().slice(0, 64);
+       if (!allowPodCodeAttempt(callerKey)) {
+         return NextResponse.json({ success: false, error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 });
+       }
+       if (!verifyGroupLinkToken(payload.code, payload.token)) {
+         return NextResponse.json({ success: false, error: 'This link is not valid.' }, { status: 403 });
+       }
+       const code = String(payload.code).trim().toUpperCase();
+       supabase = getPrivilegedClient();
+       if (action === 'groupStatus') {
+         const result = await getGroupStatus(supabase, code);
+         if (!result.ok) return NextResponse.json({ success: false, error: result.message }, { status: result.status });
+         return NextResponse.json({ success: true, group: result.status });
+       }
+       // One reminder round per group every 6 hours (this instance's memory: it slows repeats, it is not a hard guarantee).
+       const last = groupReminderAt.get(code) || 0;
+       if (Date.now() - last < 6 * 60 * 60 * 1000) {
+         return NextResponse.json({ success: false, error: 'A reminder was sent recently. Please try again later.' }, { status: 429 });
+       }
+       const sentResult = await remindGroup(supabase, code, sendGroupReminderEmail);
+       if (!sentResult.ok) return NextResponse.json({ success: false, error: sentResult.message }, { status: sentResult.status });
+       if (sentResult.sent > 0) { groupReminderAt.set(code, Date.now()); if (groupReminderAt.size > 2000) groupReminderAt.clear(); }
+       return NextResponse.json({ success: true, sent: sentResult.sent, waiting: sentResult.waiting });
      }
 
      case 'handleLeadMagnetSubmission': {

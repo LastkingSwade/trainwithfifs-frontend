@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import Stripe from 'stripe';
+import { recordPodCodeOnInvoice } from './group-status';
 import { calculatePricingBreakdown, displayCourseLabel, isAlumniCourse, parseAttendeeCount } from '../pricing';
 import { getAuthenticatedUser, getPrivilegedClient, hasBearerToken, resolveStripeSecretKey } from './supabase-admin';
 import { sendDiscordAlert } from './discord';
@@ -316,6 +317,8 @@ export async function createBookingCheckout(
       console.error('[Checkout] Pending invoice insert failed:', invoiceFailure + hint);
     } else {
       invoiceRecorded = true;
+      // A member's booking is tagged with the group code so the organizer's view can list it (best effort; never blocks the booking).
+      if (podMember) await recordPodCodeOnInvoice(supabase, invoiceId, podMember.code);
     }
   } catch (dbErr: any) {
     invoiceFailure = `unavailable: ${dbErr?.message}`;
@@ -403,7 +406,7 @@ export async function createBookingCheckout(
  * Never throws: the booking and payment link already exist, so a missing pod code is logged and returned as null.
  * Used by both booking entry points (/api/checkout, which the website calls, and the /api/fifs submitBooking action).
  */
-export async function createPodInviteCode(payload: any, result: { attendees?: number; isVip?: boolean; sessionId?: string }): Promise<string | null> {
+export async function createPodInviteCode(payload: any, result: { attendees?: number; isVip?: boolean; sessionId?: string; invoiceId?: string }): Promise<string | null> {
   if (!result || !(Number(result.attendees) > 1)) return null;
   try {
     const pricingCourse = String(payload?.courseSelection || 'Maryland Firearms Training Course').trim().slice(0, 200);
@@ -421,6 +424,8 @@ export async function createPodInviteCode(payload: any, result: { attendees?: nu
       return null;
     }
     const podCode: string | null = codeData ?? null;
+    // Tag the organizer's own invoice with the group code too (best effort).
+    if (podCode && result.invoiceId) await recordPodCodeOnInvoice(getPrivilegedClient(), result.invoiceId, podCode);
     // Tag the leader's open Stripe session with the pod, so the checkout.session.expired webhook can cancel a pod whose
     // leader never paid. Best effort: the booking and payment link already exist.
     if (podCode && typeof result.sessionId === 'string' && result.sessionId) {

@@ -2,7 +2,7 @@
 const fs = require('fs'); const path = require('path'); const vm = require('vm'); const assert = require('assert'); const ts = require('typescript');
 const ROOT = path.resolve(__dirname, '..');
 const load = (rel, extra = {}) => { const m = { exports: {} }; const src = fs.readFileSync(path.join(ROOT, rel), 'utf8');
-  const req = (id) => (id === '@/group/groupCopy' ? loadCopy() : require(id));
+  const req = (id) => (id === '@/group/groupCopy' ? loadCopy() : id === '@/Lib/server/group-status' ? load('src/Lib/server/group-status.ts') : require(id));
   vm.runInNewContext(ts.transpileModule(src, { compilerOptions: { target: 'ES2020', module: 'commonjs' } }).outputText, { module: m, exports: m.exports, require: req, process, console, encodeURIComponent, String, Number, Array, Promise, Error, JSON, ...extra }); return m.exports; };
 let copyCache; const loadCopy = () => (copyCache = copyCache || load('src/group/groupCopy.ts'));
 let passed = 0, failed = 0;
@@ -18,6 +18,14 @@ async function test(n, f) { try { await f(); console.log('  ✓ PASS: ' + n); pa
     assert(subject === 'Your group code for Maryland Wear & Carry (CCW): FIFS-POD-A1B2', subject);
     for (const k of ['FIFS-POD-A1B2', 'Book and pay', 'Everyone joins', 'Forward this part to your party', "Cindy&#39;s Hot Shots", 'POD CODE', '443-990-1304', 'Oct 25']) assert(html.includes(k), 'html missing ' + k);
     assert(!/Turnkey|\$279/.test(html + text + subject) && /FIFS-POD-A1B2/.test(text));
+  });
+  await test('The organizer email links to their private group view when the server can sign it, and omits the link when it cannot', () => {
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-test-key';
+    const withLink = mail().buildGroupCodeEmail({ ...meta, manageUrl: 'https://trainwithfifs.com/?group=FIFS-POD-A1B2&gt=tok' });
+    assert(withLink.html.includes('See who has joined your group') && withLink.html.includes('gt=tok') && withLink.text.includes('private link'));
+    assert(!mail().buildGroupCodeEmail(meta).html.includes('See who has joined'));
+    process.env.RESEND_API_KEY = 're_test'; calls.length = 0;
+    return mail().sendGroupCodeEmail('pat@example.com', meta).then(() => { assert(JSON.parse(calls[0].init.body).html.includes('?group=FIFS-POD-A1B2&amp;gt='), 'the sent email carries a signed link'); });
   });
   await test('Names and details are HTML-escaped', () => {
     const { html } = mail().buildGroupCodeEmail(meta);

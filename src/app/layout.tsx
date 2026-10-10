@@ -5,6 +5,7 @@ import "../delight/delight.css";
 import BootIntro from "../boot/BootIntro";
 import HackDetected from "../hack/HackDetected";
 import GroupCodePanel from "../group/GroupCodePanel";
+import GroupStatusPanel from "../group/GroupStatusPanel";
 import { BOOT_GATE_SCRIPT } from "../boot/bootConfig";
 
 export const metadata: Metadata = {
@@ -38,6 +39,7 @@ export default function RootLayout({
         <BootIntro />
         <HackDetected />
         <GroupCodePanel />
+        <GroupStatusPanel />
         {children}
       </body>
     </html>
