@@ -261,3 +261,6 @@
 
 /* P087 Client: the permit number is easy to select */
 #wallet-permit-number { -webkit-user-select: all; user-select: all; }
+
+/* P088 Client: renewal countdown card keeps clear of the header */
+#fi-client-extras { scroll-margin-top: 90px; }
