@@ -132,5 +132,11 @@ export function installQol(): void {
     el.setAttribute('title', 'Tap to copy'); el.style.cursor = 'copy';
     el.addEventListener('click', () => { const t = (el.textContent || '').trim(); if (t) navigator.clipboard.writeText(t).then(() => { el.setAttribute('data-copied', '1'); window.setTimeout(() => el.removeAttribute('data-copied'), 1400); }).catch(() => { /* ignore */ }); });
   });
+  // P097: Client: tap your client ID to copy it
+  run('P097', () => {
+    const el = document.getElementById('dash-client-id'); if (!el || !navigator.clipboard) return;
+    el.setAttribute('title', 'Tap to copy'); el.style.cursor = 'copy';
+    el.addEventListener('click', () => { const t = (el.textContent || '').trim(); if (t) navigator.clipboard.writeText(t).then(() => { el.setAttribute('data-copied', '1'); window.setTimeout(() => el.removeAttribute('data-copied'), 1400); }).catch(() => { /* ignore */ }); });
+  });
   // @@QOL_END
 }

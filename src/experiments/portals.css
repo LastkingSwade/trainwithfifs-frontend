@@ -280,3 +280,6 @@
 
 /* P096 Student: tap your student ID to copy it */
 #dash-student-id[data-copied]::after { content: " ✓ copied"; color: #34d399; font-size: 0.75rem; }
+
+/* P097 Client: tap your client ID to copy it */
+#dash-client-id[data-copied]::after { content: " ✓ copied"; color: #34d399; font-size: 0.75rem; }

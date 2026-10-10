@@ -193,3 +193,4 @@ P092	2026-10-10T23:08:39.606Z	Admin: column headings in the roster and clients t
 P093	2026-10-10T23:08:41.064Z	Admin: Esc clears a search box and shows every row again	SUCCESS	33299	33736	437	code
 P094	2026-10-10T23:09:01.144Z	Admin: the roster window puts the cursor in the search box on computers (not phones, so the keyboard does not pop up)	SUCCESS	33736	34536	800	code
 P095	2026-10-10T23:09:02.805Z	Student: checklist shows "2 of 4 done" as you tick boxes	SUCCESS	34536	35538	1002	code
+P096	2026-10-10T23:09:04.295Z	Student: tap your student ID to copy it	SUCCESS	35538	36217	679	code
