@@ -107,5 +107,7 @@ export function installQol(): void {
     });
     $$('#admin-roster-tbody, #admin-client-tbody').forEach((t) => t.setAttribute('title', 'Tap an ID to copy it'));
   });
+  // P092: Admin: column headings in the roster and clients tables are announced as columns
+  run('P092', () => { $$('.admin-roster-table th').forEach((th) => th.setAttribute('scope', 'col')); });
   // @@QOL_END
 }

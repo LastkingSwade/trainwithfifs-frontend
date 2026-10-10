@@ -188,3 +188,4 @@ P087	2026-10-10T23:08:35.915Z	Client: the permit number is easy to select	SUCCES
 P088	2026-10-10T23:08:36.066Z	Client: renewal countdown card keeps clear of the header	SUCCESS	31522	31638	116	css
 P089	2026-10-10T23:08:36.218Z	Client: permit card wraps nicely on narrow phones	SUCCESS	31638	31753	115	css
 P090	2026-10-10T23:08:36.366Z	Client: urgency colors for days left (green, amber, red) with the number still shown	SUCCESS	31753	32027	274	css
+P091	2026-10-10T23:08:38.159Z	Admin: tap an ID in the roster or clients table to copy it	SUCCESS	32027	33102	1075	code
