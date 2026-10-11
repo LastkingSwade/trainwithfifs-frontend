@@ -11,6 +11,7 @@ import { listTrash, restoreFromTrash, saveToTrash } from '@/Lib/server/admin-tra
 import { adminDayRoster, adminMarkAttendance, adminOnlineOverview, adminSetMeetingLink, day2Pending, getDayModes, getOnlineOptions, studentOnlineClasses } from '@/Lib/server/online-classroom';
 import { createBookingCheckout, createPodInviteCode, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord, lookupPod, normalizePodCode } from '@/Lib/server/booking-checkout';
 import { maskCode } from '@/group/groupCode';
+import { MAX_INK_JSON_BYTES, MAX_INK_PNG_BYTES, MAX_STAMP_BYTES, TEMPLATE_PDF, TEMPLATE_PREVIEW, TEMPLATE_URL_SECONDS, flattenOntoTemplate, inkObjectPath, isInkPathFor, isStampKind, pngFromBase64, sanitizeInk, stampObjectPath } from '@/Lib/server/scoresheet-ink';
 import { ConfigurationError, resolveSiteUrl } from '@/Lib/config/environment';
 
 
@@ -251,7 +252,7 @@ function parseScoresheetNotes(text: unknown): { sheet: Record<string, unknown> |
   if (typeof text === 'string') {
     try {
       const parsed = JSON.parse(text);
-      if (isPlainObject(parsed) && parsed.form === 'MSP-29-14' && parsed.v === 1) return { sheet: parsed, legacyNotes: '' };
+      if (isPlainObject(parsed) && parsed.form === 'MSP-29-14' && (parsed.v === 1 || parsed.v === 2)) return { sheet: parsed, legacyNotes: '' };
     } catch { /* plain text notes */ }
     return { sheet: null, legacyNotes: text };
   }
@@ -2205,8 +2206,19 @@ export async function POST(req: NextRequest) {
        if (!checked.ok) return NextResponse.json({ success: false, status: 'error', error: checked.error }, { status: 400 });
        const sheet = checked.value;
        const hasFile = payload.fileBase64 !== undefined && payload.fileBase64 !== null && payload.fileBase64 !== '';
-       const file = hasFile ? inspectScoresheetFile(payload.fileBase64, payload.fileType) : null;
+       const hasInk = payload.inkLayerBase64 !== undefined && payload.inkLayerBase64 !== null && payload.inkLayerBase64 !== '';
+       if (hasInk && hasFile) return NextResponse.json({ success: false, status: 'error', error: 'Send either the pen layer or a file, not both.' }, { status: 400 });
+       let file: ReturnType<typeof inspectScoresheetFile> | null = hasFile ? inspectScoresheetFile(payload.fileBase64, payload.fileType) : null;
        if (file && !file.ok) return NextResponse.json({ success: false, status: 'error', error: file.error }, { status: 400 });
+       // The pen layer (a transparent PNG) and its stroke data are checked here, before anything is stored.
+       let inkPng: Buffer | null = null; let inkJson = '';
+       if (hasInk) {
+         const png = pngFromBase64(payload.inkLayerBase64, MAX_INK_PNG_BYTES, 'pen layer');
+         if (!png.ok) return NextResponse.json({ success: false, status: 'error', error: png.error }, { status: 400 });
+         const strokes = sanitizeInk(payload.inkStrokes);
+         if (!strokes.ok) return NextResponse.json({ success: false, status: 'error', error: strokes.error }, { status: 400 });
+         inkPng = png.bytes; inkJson = strokes.json;
+       }
 
        supabase = getPrivilegedClient();
        const { data: studentRow, error: findErr } = await supabase.from('students').select('id, student_id').eq('student_id', studentId).maybeSingle();
@@ -2215,12 +2227,30 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, status: 'error', error: 'Could not look up the student record. Nothing was saved.' }, { status: 500 });
        }
        if (!studentRow) return NextResponse.json({ success: false, status: 'error', error: 'Student not found. Nothing was saved.' }, { status: 404 });
-       const { data: existing, error: existingErr } = await supabase.from('student_scoresheets').select('student_id, image_url').eq('student_id', studentId).maybeSingle();
+       const { data: existing, error: existingErr } = await supabase.from('student_scoresheets').select('student_id, image_url, notes').eq('student_id', studentId).maybeSingle();
        if (existingErr) {
          console.error('[saveStudentScoresheet] Score sheet lookup failed:', existingErr.message);
          return NextResponse.json({ success: false, status: 'error', error: 'Could not check the existing score sheet. Nothing was saved.' }, { status: 500 });
        }
        const previousPath = existing && typeof existing.image_url === 'string' && existing.image_url.startsWith(studentId + '/') ? existing.image_url : '';
+       const prevInk = existing ? (parseScoresheetNotes(existing.notes).sheet as any)?.inkPath : '';
+       const previousInkPath = isInkPathFor(prevInk, studentId) ? prevInk : '';
+
+       // Pen layer: laid over the blank form, which is read here with the server key from the private bucket (never from the browser).
+       if (inkPng) {
+         const tpl = await supabase.storage.from(SCORESHEET_BUCKET).download(TEMPLATE_PDF);
+         if (tpl.error || !tpl.data) {
+           console.error('[saveStudentScoresheet] The blank form could not be read.');
+           return NextResponse.json({ success: false, status: 'error', error: 'The blank form is not available right now. Nothing was saved.' }, { status: 503 });
+         }
+         let flat: Uint8Array;
+         try { flat = await flattenOntoTemplate(new Uint8Array(await tpl.data.arrayBuffer()), inkPng); }
+         catch { return NextResponse.json({ success: false, status: 'error', error: 'The filled-out form could not be built. Nothing was saved.' }, { status: 500 }); }
+         if (flat.length > SCORESHEET_MAX_BYTES) {
+           return NextResponse.json({ success: false, status: 'error', error: 'The finished sheet is over the 3 MB limit. Clear stray marks and try again.' }, { status: 413 });
+         }
+         file = { ok: true, bytes: Buffer.from(flat), mime: 'application/pdf', ext: 'pdf' };
+       }
 
        let uploadedPath = '';
        if (file && file.ok) {
@@ -2231,17 +2261,29 @@ export async function POST(req: NextRequest) {
            return NextResponse.json({ success: false, status: 'error', error: 'The file could not be stored. Nothing was saved.' }, { status: 502 });
          }
        }
+       let newInkPath = '';
+       if (inkJson) {
+         newInkPath = inkObjectPath(studentId);
+         const { error: inkUpErr } = await supabase.storage.from(SCORESHEET_BUCKET).upload(newInkPath, Buffer.from(inkJson), { contentType: 'application/json', upsert: false });
+         if (inkUpErr) {
+           console.error('[saveStudentScoresheet] The pen data could not be stored.');
+           if (uploadedPath) await supabase.storage.from(SCORESHEET_BUCKET).remove([uploadedPath]);
+           return NextResponse.json({ success: false, status: 'error', error: 'The pen data could not be stored. Nothing was saved.' }, { status: 502 });
+         }
+       }
+       // A new document from the pen keeps its stroke data; a plain file replaces the document, so the old strokes no longer match it and go away.
+       const keepInkPath = uploadedPath ? newInkPath : previousInkPath;
        const imageValue = uploadedPath || (existing ? String(existing.image_url || '') : '');
        const scoreText = scoresheetScoreText(sheet);
-       const storedNotes = JSON.stringify({ v: 1, form: 'MSP-29-14', ...sheet });
+       const storedNotes = JSON.stringify({ v: keepInkPath ? 2 : 1, form: 'MSP-29-14', ...sheet, ...(keepInkPath ? { inkPath: keepInkPath } : {}) });
        const { data: saved, error: saveErr } = await supabase.from('student_scoresheets').upsert({
          student_id: studentId, image_url: imageValue, score: scoreText, passed: sheet.result === 'pass' ? true : (sheet.result === 'fail' ? false : null),
          notes: storedNotes, is_unread_by_student: true, updated_at: new Date().toISOString()
        }, { onConflict: 'student_id' }).select('student_id');
        if (saveErr || !Array.isArray(saved) || saved.length !== 1) {
          console.error('[saveStudentScoresheet] Save failed:', saveErr?.message || 'not confirmed');
-         if (uploadedPath) {
-           const { error: cleanupErr } = await supabase.storage.from(SCORESHEET_BUCKET).remove([uploadedPath]);
+         if (uploadedPath || newInkPath) {
+           const { error: cleanupErr } = await supabase.storage.from(SCORESHEET_BUCKET).remove([uploadedPath, newInkPath].filter(Boolean));
            if (cleanupErr) console.error('[saveStudentScoresheet] Cleanup of the uploaded file failed:', cleanupErr.message);
          }
          return NextResponse.json({ success: false, status: 'error', error: 'The score sheet could not be saved. Nothing was changed.' }, { status: 500 });
@@ -2249,6 +2291,10 @@ export async function POST(req: NextRequest) {
        if (uploadedPath && previousPath && previousPath !== uploadedPath) {
          const { error: oldErr } = await supabase.storage.from(SCORESHEET_BUCKET).remove([previousPath]);
          if (oldErr) console.error('[saveStudentScoresheet] The replaced file could not be removed:', oldErr.message);
+       }
+       if (previousInkPath && previousInkPath !== keepInkPath) {
+         const { error: oldInkErr } = await supabase.storage.from(SCORESHEET_BUCKET).remove([previousInkPath]);
+         if (oldInkErr) console.error('[saveStudentScoresheet] The replaced pen data could not be removed:', oldInkErr.message);
        }
        const { data: scored, error: scoreErr } = await supabase.from('students')
          .update({ qualification_score: scoreText, updated_at: new Date().toISOString() }).eq('id', studentRow.id).select('id');
@@ -2258,7 +2304,7 @@ export async function POST(req: NextRequest) {
        }
        return NextResponse.json({
          success: true, status: 'success', message: 'Score sheet saved.', studentId, score: scoreText,
-         finalScorePercent: sheet.finalScorePercent, result: sheet.result, hasFile: !!imageValue, fileReplaced: !!(uploadedPath && previousPath)
+         finalScorePercent: sheet.finalScorePercent, result: sheet.result, hasFile: !!imageValue, fileReplaced: !!(uploadedPath && previousPath), hasInk: !!keepInkPath
        });
      }
 
@@ -2287,9 +2333,16 @@ export async function POST(req: NextRequest) {
          if (signErr || !signed?.signedUrl) console.error('[getStudentScoresheet] Could not sign the file link:', signErr?.message || 'none returned');
          else fileUrl = signed.signedUrl;
        }
+       // Stroke data for editing again (admin only; read with the server key, rebuilt through the same checks used when it was stored).
+       let ink: unknown = null;
+       const inkP = (parsed.sheet as any)?.inkPath;
+       if (isInkPathFor(inkP, studentId)) {
+         const dl = await supabase.storage.from(SCORESHEET_BUCKET).download(inkP);
+         if (!dl.error && dl.data) { try { const text = await dl.data.text(); if (text.length <= MAX_INK_JSON_BYTES) { const clean = sanitizeInk(text); if (clean.ok) ink = clean.data; } } catch { ink = null; } }
+       }
        return NextResponse.json({
          success: true, status: 'success',
-         scoresheet: { sheet: parsed.sheet, legacyNotes: parsed.legacyNotes, score: row.score || '', passed: row.passed ?? null, hasFile: !!path, fileUrl, updatedAt: row.updated_at || null }
+         scoresheet: { sheet: parsed.sheet, ink, legacyNotes: parsed.legacyNotes, score: row.score || '', passed: row.passed ?? null, hasFile: !!path, fileUrl, updatedAt: row.updated_at || null }
        });
      }
 
@@ -2304,7 +2357,7 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, status: 'error', error: 'A valid student ID is required.' }, { status: 400 });
        }
        supabase = getPrivilegedClient();
-       const { data: row, error: readErr } = await supabase.from('student_scoresheets').select('student_id, image_url').eq('student_id', studentId).maybeSingle();
+       const { data: row, error: readErr } = await supabase.from('student_scoresheets').select('student_id, image_url, notes').eq('student_id', studentId).maybeSingle();
        if (readErr) {
          console.error('[deleteStudentScoresheet] Read failed:', readErr.message);
          return NextResponse.json({ success: false, status: 'error', error: 'Could not look up the score sheet. Nothing was removed.' }, { status: 500 });
@@ -2318,6 +2371,8 @@ export async function POST(req: NextRequest) {
            return NextResponse.json({ success: false, status: 'error', error: 'The document could not be removed, so nothing was deleted. Try again.' }, { status: 502 });
          }
        }
+       const delInk = (parseScoresheetNotes(row.notes).sheet as any)?.inkPath;
+       if (isInkPathFor(delInk, studentId)) { const { error: inkRmErr } = await supabase.storage.from(SCORESHEET_BUCKET).remove([delInk]); if (inkRmErr) console.error('[deleteStudentScoresheet] The pen data could not be removed:', inkRmErr.message); }
        const { data: removed, error: deleteErr } = await supabase.from('student_scoresheets').delete().eq('student_id', studentId).select('student_id');
        if (deleteErr || !Array.isArray(removed) || removed.length !== 1) {
          console.error('[deleteStudentScoresheet] Row removal failed:', deleteErr?.message || 'not confirmed');
@@ -2326,6 +2381,82 @@ export async function POST(req: NextRequest) {
        const { error: clearErr } = await supabase.from('students').update({ qualification_score: null, updated_at: new Date().toISOString() }).eq('student_id', studentId);
        if (clearErr) console.error('[deleteStudentScoresheet] Student score was not cleared:', clearErr.message);
        return NextResponse.json({ success: true, status: 'success', message: 'Score sheet removed.', studentId });
+     }
+
+     // Staff: short-lived link to the blank form's preview picture (the pen editor draws on it). The blank PDF itself is never sent to the browser.
+     case 'scoresheetTemplate': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
+       const prev = await supabase.storage.from(SCORESHEET_BUCKET).createSignedUrl(TEMPLATE_PREVIEW, TEMPLATE_URL_SECONDS);
+       const pdf = await supabase.storage.from(SCORESHEET_BUCKET).createSignedUrl(TEMPLATE_PDF, TEMPLATE_URL_SECONDS);   // only to confirm it exists; the link is not returned
+       if (prev.error || !prev.data?.signedUrl || pdf.error || !pdf.data?.signedUrl) {
+         return NextResponse.json({ success: false, status: 'error', error: 'The blank form is not set up yet. It needs the PDF and the preview picture in the private scoresheets bucket.' }, { status: 404 });
+       }
+       return NextResponse.json({ success: true, status: 'success', previewUrl: prev.data.signedUrl, expiresIn: TEMPLATE_URL_SECONDS });
+     }
+
+     // Staff: the signed-in staff member's own saved signature and agency stamps (private; nobody else can read or replace them).
+     case 'scoresheetStamp': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user) || !user?.id) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       const kind = payload.kind;
+       if (!isStampKind(kind)) return NextResponse.json({ success: false, status: 'error', error: 'Choose signature or agency.' }, { status: 400 });
+       const op = String(payload.op || 'get');
+       if (!['get', 'set', 'delete'].includes(op)) return NextResponse.json({ success: false, status: 'error', error: 'Unknown stamp action.' }, { status: 400 });
+       const stampPath = stampObjectPath(String(user.id), kind);
+       if (op === 'set') {
+         const png = pngFromBase64(payload.pngBase64, MAX_STAMP_BYTES, 'stamp');
+         if (!png.ok) return NextResponse.json({ success: false, status: 'error', error: png.error }, { status: 400 });
+         supabase = getPrivilegedClient();
+         const { error: upErr } = await supabase.storage.from(SCORESHEET_BUCKET).upload(stampPath, png.bytes, { contentType: 'image/png', upsert: true });
+         if (upErr) return NextResponse.json({ success: false, status: 'error', error: 'The stamp could not be saved.' }, { status: 502 });
+         return NextResponse.json({ success: true, status: 'success', saved: true });
+       }
+       supabase = getPrivilegedClient();
+       if (op === 'delete') {
+         const { error: rmErr } = await supabase.storage.from(SCORESHEET_BUCKET).remove([stampPath]);
+         if (rmErr) return NextResponse.json({ success: false, status: 'error', error: 'The stamp could not be removed.' }, { status: 502 });
+         return NextResponse.json({ success: true, status: 'success', removed: true });
+       }
+       const dl = await supabase.storage.from(SCORESHEET_BUCKET).download(stampPath);
+       if (dl.error || !dl.data) return NextResponse.json({ success: true, status: 'success', stamp: null });
+       const bytes = Buffer.from(await dl.data.arrayBuffer());
+       if (bytes.length > MAX_STAMP_BYTES) return NextResponse.json({ success: true, status: 'success', stamp: null });
+       return NextResponse.json({ success: true, status: 'success', stamp: 'data:image/png;base64,' + bytes.toString('base64') });
+     }
+
+     // Student: ONLY their own score sheet. The student is found from the verified login (never from anything in the request), the document must sit in
+     // that student's own folder, and the file link is short-lived. Staff-only details (instructor name and number, notes, stroke data) are never returned.
+     case 'studentScoresheet': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user?.id) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
+       const { data: me, error: meErr } = await supabase.from('students').select('student_id').eq('user_id', user.id).maybeSingle();
+       if (meErr) return NextResponse.json({ success: false, status: 'error', error: 'Could not load your score sheet right now.' }, { status: 503 });
+       if (!me?.student_id) return NextResponse.json({ success: true, status: 'success', scoresheet: null });
+       const ownId = String(me.student_id);
+       const { data: srow, error: sErr } = await supabase.from('student_scoresheets').select('student_id, image_url, score, passed, notes, updated_at').eq('student_id', ownId).maybeSingle();
+       if (sErr) return NextResponse.json({ success: false, status: 'error', error: 'Could not load your score sheet right now.' }, { status: 503 });
+       if (!srow) return NextResponse.json({ success: true, status: 'success', scoresheet: null });
+       const sp = parseScoresheetNotes(srow.notes);
+       const ownPath = typeof srow.image_url === 'string' && srow.image_url.startsWith(ownId + '/') && !srow.image_url.includes('..') ? srow.image_url : '';
+       let ownUrl: string | null = null;
+       if (ownPath) {
+         const { data: sg, error: sgErr } = await supabase.storage.from(SCORESHEET_BUCKET).createSignedUrl(ownPath, 300);
+         if (!sgErr && sg?.signedUrl) ownUrl = sg.signedUrl;
+       }
+       const ext = ownPath.split('.').pop() || '';
+       return NextResponse.json({ success: true, status: 'success', scoresheet: {
+         score: String(srow.score || ''), passed: srow.passed ?? null, result: (sp.sheet as any)?.result || null, qualificationDate: (sp.sheet as any)?.qualificationDate || null,
+         hasFile: !!ownUrl, fileUrl: ownUrl, fileKind: ext === 'pdf' ? 'pdf' : ext ? 'image' : null, updatedAt: srow.updated_at || null
+       } });
      }
 
      case 'getClientPortalData': {

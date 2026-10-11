@@ -38,6 +38,7 @@ let deleteMatchesNothing = false;
 let failTable = null;   // with failOp: fail only operations on this table
 let storageCalls = { upload: [], remove: [], sign: [] };
 let storageFail = null;
+let storageObjects = {};   // 'bucket:path' -> Buffer, so tests can stage the blank form and read back what was stored
 let authUsers = {};
 let authCalls = { createUser: [], generateLink: [], deleteUser: [], getUserById: [], deleteSnapshots: [] };
 let authFail = null;
@@ -93,6 +94,7 @@ function resetDb() {
   deleteMatchesNothing = false;
   failTable = null;
   storageFail = null;
+  storageObjects = {};
   storageCalls = { upload: [], remove: [], sign: [] };
   authFail = null;
   authTrigger = false;
@@ -204,16 +206,26 @@ const mockSupabase = {
         if (bucket !== 'scoresheets') return { data: null, error: { message: 'none' } };
         storageCalls.sign.push({ path, ttl });
         if (storageFail === 'sign') return { data: null, error: { message: 'boom: internal storage detail' } };
+        if (/^_template\//.test(path) && !storageObjects['scoresheets:' + path]) return { data: null, error: { message: 'Object not found' } };
         return { data: { signedUrl: 'https://files.example.test/signed/' + path + '?token=SIGNED-TOKEN' }, error: null };
       },
       upload: async (path, bytes, opts) => {
-        storageCalls.upload.push({ bucket, path, size: bytes.length, opts });
+        storageCalls.upload.push({ bucket, path, size: bytes.length, opts, bytes: Buffer.from(bytes) });
         if (storageFail === 'upload') return { data: null, error: { message: 'boom: internal storage detail' } };
+        if (storageFail === 'upload-ink' && /^_ink\//.test(path)) return { data: null, error: { message: 'boom: internal storage detail' } };
+        storageObjects[bucket + ':' + path] = Buffer.from(bytes);
         return { data: { path }, error: null };
+      },
+      download: async (path) => {
+        if (storageFail === 'download') return { data: null, error: { message: 'boom: internal storage detail' } };
+        const obj = storageObjects[bucket + ':' + path];
+        if (!obj) return { data: null, error: { message: 'Object not found' } };
+        return { data: { arrayBuffer: async () => obj.buffer.slice(obj.byteOffset, obj.byteOffset + obj.length), text: async () => obj.toString('utf8') }, error: null };
       },
       remove: async (paths) => {
         storageCalls.remove.push({ bucket, paths });
         if (storageFail === 'remove') return { data: null, error: { message: 'boom: internal storage detail' } };
+        for (const p of paths) delete storageObjects[bucket + ':' + p];
         return { data: paths.map((name) => ({ name })), error: null };
       }
     }) },
@@ -1406,6 +1418,123 @@ async function main() {
     failOp = 'delete';
     await saveSheet(goodSheet());
     err(await fifs('deleteStudentScoresheet', { studentId: 'FIFS-1001' }, 'instructor-token'), 500);
+  });
+
+
+  console.log('\n[SECTION J2: pen-filled score sheet (blank form from private storage, stamps, stroke data, student-only read)]');
+  const { PDFDocument } = require('pdf-lib'); const zlib = require('zlib');
+  const crcTable = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+  const crc32 = (buf) => { let c = 0xffffffff; for (const b of buf) c = crcTable[(c ^ b) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+  const chunk = (type, data) => { const len = Buffer.alloc(4); len.writeUInt32BE(data.length); const td = Buffer.concat([Buffer.from(type), data]); const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(td)); return Buffer.concat([len, td, crc]); };
+  const makePng = (w = 12, h = 12) => { const raw = Buffer.alloc((w * 4 + 1) * h); for (let y = 0; y < h; y += 1) { raw[y * (w * 4 + 1)] = 0; for (let x = 0; x < w; x += 1) { const o = y * (w * 4 + 1) + 1 + x * 4; if (x === y) { raw[o] = 0; raw[o + 1] = 0; raw[o + 2] = 0; raw[o + 3] = 255; } } }
+    const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 6;
+    return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]); };
+  const blankDoc = await PDFDocument.create(); blankDoc.addPage([612, 792]); const BLANK_PDF = Buffer.from(await blankDoc.save());
+  const stageTemplate = () => { storageObjects['scoresheets:_template/msp-29-14-blank.pdf'] = BLANK_PDF; storageObjects['scoresheets:_template/msp-29-14-preview.png'] = makePng(); };
+  const INK_PNG = makePng(); const b64 = (b) => b.toString('base64');
+  const goodInk = (over = {}) => ({ v: 1, strokes: [{ c: '#0b2a8a', s: 3, e: 0, p: [[10, 10, 0.5], [20, 22, 0.6], [30, 31, 0.4]] }], items: [{ id: 'name', kind: 'text', x: 620, y: 240, size: 28, on: true, text: 'Alice Student' }, { id: 'sig', kind: 'stamp', x: 140, y: 1300, size: 60, on: true, stamp: 'signature', w: 380 }], ...over });
+  const saveInk = (extra = {}, token = 'instructor-token', studentId = 'FIFS-1001') => fifs('saveStudentScoresheet', { studentId, sheet: goodSheet(), inkLayerBase64: 'data:image/png;base64,' + b64(INK_PNG), inkStrokes: JSON.stringify(goodInk()), ...extra }, token);
+
+  await test('Blank form link: staff only; returns a 2-minute link to the preview picture and never the PDF; a missing template is a clear 404', async () => {
+    for (const token of [null, 'bad-token', 'student-alice-token', 'student-carol-token', 'client-marcus-token']) err(await fifs('scoresheetTemplate', {}, token), 401);
+    err(await fifs('scoresheetTemplate', {}, 'instructor-token'), 404);
+    stageTemplate(); storageCalls.sign.length = 0;
+    const r = await fifs('scoresheetTemplate', {}, 'staff-token');
+    assert(r.status === 200 && r.body.success === true && /signed\/_template\/msp-29-14-preview\.png/.test(r.body.previewUrl) && r.body.expiresIn === 120, `got ${r.status} ${JSON.stringify(r.body)}`);
+    assert(!JSON.stringify(r.body).includes('blank.pdf') && storageCalls.sign.every((c) => c.ttl === 120), 'the PDF link must not be returned and every link is short-lived');
+  });
+  await test('Saved signature and agency stamps: staff only, per staff member, PNG only, size-limited', async () => {
+    for (const token of [null, 'student-alice-token', 'client-marcus-token']) err(await fifs('scoresheetStamp', { op: 'get', kind: 'signature' }, token), 401);
+    err(await fifs('scoresheetStamp', { op: 'set', kind: 'seal', pngBase64: b64(INK_PNG) }, 'instructor-token'), 400);
+    err(await fifs('scoresheetStamp', { op: 'set', kind: 'signature', pngBase64: b64(Buffer.from('<svg onload=alert(1)>')) }, 'instructor-token'), 400);
+    err(await fifs('scoresheetStamp', { op: 'set', kind: 'signature', pngBase64: b64(Buffer.concat([INK_PNG, Buffer.alloc(420000)])) }, 'instructor-token'), 400);
+    err(await fifs('scoresheetStamp', { op: 'explode', kind: 'signature' }, 'instructor-token'), 400);
+    const set = await fifs('scoresheetStamp', { op: 'set', kind: 'signature', pngBase64: 'data:image/png;base64,' + b64(INK_PNG) }, 'instructor-token');
+    assert(set.status === 200 && set.body.saved === true, JSON.stringify(set.body));
+    const up = storageCalls.upload[storageCalls.upload.length - 1];
+    assert(up.path === '_admin/uuid-instructor-signature.png' && up.opts.upsert === true && !/FIFS-/.test(up.path), 'stamp path: ' + up.path);
+    const mine = await fifs('scoresheetStamp', { op: 'get', kind: 'signature' }, 'instructor-token');
+    assert(mine.body.stamp === 'data:image/png;base64,' + b64(INK_PNG), 'the owner reads it back');
+    const other = await fifs('scoresheetStamp', { op: 'get', kind: 'signature' }, 'staff-token');
+    assert(other.status === 200 && other.body.stamp === null, 'another staff member must not see it');
+    const rm = await fifs('scoresheetStamp', { op: 'delete', kind: 'signature' }, 'instructor-token');
+    assert(rm.body.removed === true && (await fifs('scoresheetStamp', { op: 'get', kind: 'signature' }, 'instructor-token')).body.stamp === null, 'removed');
+  });
+  await test('Pen save: staff only, wrong student 404, validated before anything is stored; the pen layer is laid over the blank PDF from private storage and saved as a PDF in the student\'s folder', async () => {
+    stageTemplate(); storageCalls = { upload: [], remove: [], sign: [] };
+    for (const token of [null, 'bad-token', 'student-alice-token', 'student-carol-token', 'client-marcus-token']) err(await saveInk({}, token), 401);
+    err(await saveInk({}, 'instructor-token', 'FIFS-9999'), 404); err(await saveInk({}, 'instructor-token', "x'--"), 400);
+    noWrites(); noStorage();
+    const r = await saveInk();
+    assert(r.status === 200 && r.body.success === true && r.body.hasFile === true && r.body.hasInk === true, `got ${r.status} ${JSON.stringify(r.body)}`);
+    const pdfUp = storageCalls.upload.find((u) => /^FIFS-1001\/MSP-29-14-\d+-[0-9a-f]{8}\.pdf$/.test(u.path)), inkUp = storageCalls.upload.find((u) => /^_ink\/FIFS-1001\/ink-\d+-[0-9a-f]{12}\.json$/.test(u.path));
+    assert(pdfUp && inkUp && pdfUp.opts.contentType === 'application/pdf' && inkUp.opts.contentType === 'application/json', 'uploads: ' + JSON.stringify(storageCalls.upload.map((u) => u.path)));
+    assert(pdfUp.bytes.subarray(0, 5).toString() === '%PDF-' && pdfUp.size <= 3000000, 'a real PDF within the limit');
+    const merged = await PDFDocument.load(pdfUp.bytes); assert(merged.getPageCount() === 1 && Math.round(merged.getPage(0).getWidth()) === 612, 'the page is the blank form page');
+    assert(pdfUp.size > BLANK_PDF.length, 'the pen layer was embedded');
+    const notes = JSON.parse(sheetRow().notes); assert(notes.v === 2 && notes.inkPath === inkUp.path && notes.courseOfFire === 'Handgun qualification', 'notes: ' + sheetRow().notes);
+    assert(!/Alice|_ink|\.pdf|Handgun/.test(JSON.stringify(r.body)), 'no names, storage paths or entered details in the answer');
+  });
+  await test('Pen save: bad input is refused with 400 and nothing is stored (not a PNG, oversize, both a file and a pen layer, broken or hostile stroke data)', async () => {
+    stageTemplate(); storageCalls = { upload: [], remove: [], sign: [] };
+    const jpg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff]), Buffer.alloc(80)]);
+    const bad = [
+      { inkLayerBase64: b64(jpg) }, { inkLayerBase64: 'data:image/jpeg;base64,' + b64(INK_PNG) }, { inkLayerBase64: '!!!' }, { inkLayerBase64: b64(Buffer.concat([INK_PNG, Buffer.alloc(2600000)])) },
+      { fileBase64: dataUrl('application/pdf', PDF) },
+      { inkStrokes: '{not json' }, { inkStrokes: JSON.stringify({ v: 2, strokes: [], items: [] }) }, { inkStrokes: JSON.stringify(goodInk({ strokes: [{ c: 'red; background:url(x)', s: 3, e: 0, p: [[1, 1, 0.5]] }] })) },
+      { inkStrokes: JSON.stringify(goodInk({ strokes: [{ c: '#000000', s: 3, e: 0, p: [[1e9, 1, 0.5]] }] })) }, { inkStrokes: JSON.stringify(goodInk({ items: [{ id: '../x', kind: 'text', x: 1, y: 1, size: 20, on: true, text: 'a' }] })) },
+      { inkStrokes: JSON.stringify(goodInk({ items: [{ id: 'a', kind: 'stamp', x: 1, y: 1, size: 20, on: true, stamp: 'passwd' }] })) }, { inkStrokes: JSON.stringify(goodInk({ items: [{ id: 'a', kind: 'text', x: 1, y: 1, size: 20, on: true, text: 'x'.repeat(500) }] })) },
+      { inkStrokes: JSON.stringify(goodInk({ strokes: Array.from({ length: 4001 }, () => ({ c: '#000000', s: 3, e: 0, p: [[1, 1, 0.5]] })) })) }, { inkStrokes: undefined }, { inkStrokes: 'x'.repeat(700000) }
+    ];
+    for (const extra of bad) err(await saveInk(extra), 400);
+    noWrites(); noStorage();
+  });
+  await test('Pen save: a missing blank form or a storage failure saves nothing; a failure after the upload removes both uploaded files', async () => {
+    delete storageObjects['scoresheets:_template/msp-29-14-blank.pdf']; storageCalls = { upload: [], remove: [], sign: [] };
+    err(await saveInk(), 503); noWrites(); noStorage();
+    stageTemplate(); storageFail = 'upload-ink';
+    err(await saveInk(), 502); assert(storageCalls.remove.length === 1 && storageCalls.remove[0].paths.length === 1 && /^FIFS-1001\//.test(storageCalls.remove[0].paths[0]), 'the PDF must be cleaned up: ' + JSON.stringify(storageCalls.remove)); noWrites();
+    storageFail = null; storageCalls = { upload: [], remove: [], sign: [] }; failOp = 'upsert';
+    const f = await saveInk(); err(f, 500);
+    assert(storageCalls.upload.length === 2 && storageCalls.remove.length === 1 && storageCalls.remove[0].paths.length === 2, 'both files cleaned up: ' + JSON.stringify(storageCalls.remove));
+    assert(!/boom|internal/.test(JSON.stringify(f.body)) && db.student_scoresheets.length === 0, 'no detail leaked, nothing recorded');
+  });
+  await test('Edit again: staff read the stroke data back (rebuilt through the same checks); replacing removes the old PDF and strokes; a plain file removes strokes; delete removes them', async () => {
+    stageTemplate(); const first = await saveInk(); assert(first.status === 200);
+    const oldPdf = sheetRow().image_url, oldInk = JSON.parse(sheetRow().notes).inkPath;
+    for (const token of [null, 'student-alice-token']) err(await fifs('getStudentScoresheet', { studentId: 'FIFS-1001' }, token), 401);
+    const g = await fifs('getStudentScoresheet', { studentId: 'FIFS-1001' }, 'instructor-token');
+    assert(g.body.scoresheet.ink && g.body.scoresheet.ink.strokes.length === 1 && g.body.scoresheet.ink.items.length === 2 && g.body.scoresheet.ink.items[0].text === 'Alice Student', 'stroke data: ' + JSON.stringify(g.body.scoresheet.ink));
+    storageObjects['scoresheets:' + oldInk] = Buffer.from('{"v":1,"strokes":[{"c":"javascript:1","s":3,"e":0,"p":[[1,1,0.5]]}],"items":[]}');
+    assert((await fifs('getStudentScoresheet', { studentId: 'FIFS-1001' }, 'instructor-token')).body.scoresheet.ink === null, 'tampered stroke data must not be returned');
+    storageObjects['scoresheets:' + oldInk] = Buffer.from(JSON.stringify(goodInk()));
+    storageCalls = { upload: [], remove: [], sign: [] };
+    const second = await saveInk(); assert(second.status === 200 && second.body.fileReplaced === true);
+    assert(storageCalls.remove.length === 2 && storageCalls.remove.map((x) => x.paths[0]).sort().join() === [oldInk, oldPdf].sort().join(), 'old files removed: ' + JSON.stringify(storageCalls.remove));
+    const nowInk = JSON.parse(sheetRow().notes).inkPath; storageCalls = { upload: [], remove: [], sign: [] };
+    const plain = await saveSheet(goodSheet(), { fileBase64: dataUrl('application/pdf', PDF) });
+    assert(plain.status === 200 && plain.body.hasInk === false && JSON.parse(sheetRow().notes).inkPath === undefined && storageCalls.remove.some((x) => x.paths[0] === nowInk), 'a plain file drops the old strokes');
+    await saveSheet(goodSheet(), { fileBase64: dataUrl('application/pdf', PDF) }); await saveInk(); const lastInk = JSON.parse(sheetRow().notes).inkPath; storageCalls = { upload: [], remove: [], sign: [] };
+    const del = await fifs('deleteStudentScoresheet', { studentId: 'FIFS-1001' }, 'instructor-token');
+    assert(del.status === 200 && storageCalls.remove.some((x) => x.paths[0] === lastInk), 'delete removes the strokes too');
+  });
+  await test('Student view: ONLY their own sheet, found from the verified login; another student\'s id in the request changes nothing; no staff details or stroke data; the link is 5 minutes and in their own folder', async () => {
+    stageTemplate(); await saveInk(); db.student_scoresheets.push({ student_id: 'FIFS-1002', image_url: 'FIFS-1002/MSP-29-14-1-abcd1234.pdf', score: '24/25 (96%)', passed: true, notes: JSON.stringify({ v: 1, form: 'MSP-29-14', result: 'pass', qualificationDate: '2026-09-01', instructorName: 'Secret Instructor', notes: 'private bob note' }) });
+    for (const token of [null, 'bad-token']) err(await fifs('studentScoresheet', {}, token), 401);
+    storageCalls.sign.length = 0;
+    const alice = await fifs('studentScoresheet', { studentId: 'FIFS-1002', student_id: 'FIFS-1002', email: 'bob@student.com' }, 'student-alice-token');
+    assert(alice.status === 200 && alice.body.scoresheet.score === '48/50 (96%)' && alice.body.scoresheet.result === 'pass' && alice.body.scoresheet.hasFile === true, `got ${JSON.stringify(alice.body)}`);
+    assert(/signed\/FIFS-1001\//.test(alice.body.scoresheet.fileUrl) && !/FIFS-1002/.test(alice.body.scoresheet.fileUrl) && storageCalls.sign.length === 1 && storageCalls.sign[0].ttl === 300 && alice.body.scoresheet.fileKind === 'pdf', 'her own file, short link');
+    assert(!/Kai Wade|Clean run|MSP-12345|inkPath|_ink|strokes|Secret Instructor|private bob note|24\/25/.test(JSON.stringify(alice.body)), 'no staff details, stroke data or anyone else\'s data');
+    const bob = await fifs('studentScoresheet', { studentId: 'FIFS-1001' }, 'student-bob-token');
+    assert(bob.body.scoresheet.score === '24/25 (96%)' && /signed\/FIFS-1002\//.test(bob.body.scoresheet.fileUrl) && !/48\/50|FIFS-1001/.test(JSON.stringify(bob.body)), 'Bob sees only Bob\'s');
+    const carol = await fifs('studentScoresheet', { studentId: 'FIFS-1001' }, 'student-carol-token'); assert(carol.body.scoresheet === null, 'a student with no sheet gets nothing, whatever id they ask for');
+    const client = await fifs('studentScoresheet', { studentId: 'FIFS-1001' }, 'client-marcus-token'); assert(client.status === 200 && client.body.scoresheet === null, 'a login with no student record gets nothing');
+    const staff = await fifs('studentScoresheet', { studentId: 'FIFS-1001' }, 'instructor-token'); assert(staff.body.scoresheet === null, 'the student route never serves a student\'s sheet to a staff login that has no student record');
+    sheetRow().image_url = 'FIFS-1002/other-students-file.pdf'; storageCalls.sign.length = 0;
+    const trick = await fifs('studentScoresheet', {}, 'student-alice-token');
+    assert(trick.body.scoresheet.hasFile === false && trick.body.scoresheet.fileUrl === null && storageCalls.sign.length === 0, 'a path outside the student\'s own folder is never signed');
+    failOp = 'select'; const down = await fifs('studentScoresheet', {}, 'student-alice-token'); err(down, 503); assert(!/boom|internal/.test(JSON.stringify(down.body)), 'detail leaked');
   });
 
   // ---- browser side ----
