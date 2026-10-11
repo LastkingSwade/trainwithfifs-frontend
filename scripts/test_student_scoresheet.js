@@ -16,6 +16,10 @@ test('A sheet with a file shows the active card, the link on both buttons, a pas
   paintScoresheet({ score: '48/50 (96%)', passed: true, result: 'pass', qualificationDate: '2026-10-01', hasFile: true, fileUrl: 'https://f.example.test/signed/FIFS-1001/x.pdf?token=1', fileKind: 'pdf' });
   assert(els['dash-scoresheet-active'].style.display === 'block' && els['dash-scoresheet-pending'].style.display === 'none' && els['dash-scoresheet-fullscreen-btn'].attrs.href.startsWith('https://') && els['dash-scoresheet-download-btn'].attrs.download.endsWith('.pdf'));
   assert(els['dash-scoresheet-score-badge'].textContent === 'PASSED • 48/50 (96%)' && badgeText({ score: '', result: null }) === 'PENDING' && badgeText({ score: '1/2', result: 'fail' }) === 'NOT PASSED • 1/2');
+  paintScoresheet({ score: '', passed: null, result: null, qualificationDate: null, hasFile: true, fileUrl: 'https://f.example.test/view', downloadUrl: 'https://f.example.test/dl?download=x.pdf', fileKind: 'pdf' });
+  assert(els['dash-scoresheet-fullscreen-btn'].attrs.href === 'https://f.example.test/view' && els['dash-scoresheet-download-btn'].attrs.href === 'https://f.example.test/dl?download=x.pdf', 'download button uses the forced-download link');
+  paintScoresheet({ score: '', passed: null, result: null, qualificationDate: null, hasFile: true, fileUrl: 'https://f.example.test/view', downloadUrl: 'javascript:alert(1)', fileKind: 'pdf' });
+  assert(els['dash-scoresheet-download-btn'].attrs.href === 'https://f.example.test/view', 'an unsafe download link falls back to the view link');
   paintScoresheet(null);
   assert(els['dash-scoresheet-active'].style.display === 'none' && els['dash-scoresheet-pending'].style.display === 'block' && !els['dash-scoresheet-fullscreen-btn'].attrs.href && els['dash-scoresheet-score-badge'].style.display === 'none');
   paintScoresheet({ score: '', passed: null, result: null, qualificationDate: null, hasFile: true, fileUrl: 'javascript:alert(1)', fileKind: 'pdf' });

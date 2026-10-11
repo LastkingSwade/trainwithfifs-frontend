@@ -2453,9 +2453,14 @@ export async function POST(req: NextRequest) {
          if (!sgErr && sg?.signedUrl) ownUrl = sg.signedUrl;
        }
        const ext = ownPath.split('.').pop() || '';
+       let ownDownloadUrl: string | null = null;
+       if (ownUrl) {
+         const { data: dg, error: dgErr } = await supabase.storage.from(SCORESHEET_BUCKET).createSignedUrl(ownPath, 300, { download: 'MSP-Form-29-14-Qualification-Scoresheet.' + (ext === 'pdf' ? 'pdf' : ext || 'png') });
+         if (!dgErr && dg?.signedUrl) ownDownloadUrl = dg.signedUrl;
+       }
        return NextResponse.json({ success: true, status: 'success', scoresheet: {
          score: String(srow.score || ''), passed: srow.passed ?? null, result: (sp.sheet as any)?.result || null, qualificationDate: (sp.sheet as any)?.qualificationDate || null,
-         hasFile: !!ownUrl, fileUrl: ownUrl, fileKind: ext === 'pdf' ? 'pdf' : ext ? 'image' : null, updatedAt: srow.updated_at || null
+         hasFile: !!ownUrl, fileUrl: ownUrl, downloadUrl: ownDownloadUrl, fileKind: ext === 'pdf' ? 'pdf' : ext ? 'image' : null, updatedAt: srow.updated_at || null
        } });
      }
 

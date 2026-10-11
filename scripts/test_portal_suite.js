@@ -202,12 +202,12 @@ const mockSupabase = {
     from: (table) => queryBuilder(table, key),
     rpc: async (fn, args) => { rpcCalls.push({ key, fn, args }); return { data: 'POD-TEST', error: null }; },
     storage: { from: (bucket) => ({
-      createSignedUrl: async (path, ttl) => {
+      createSignedUrl: async (path, ttl, opts) => {
         if (bucket !== 'scoresheets') return { data: null, error: { message: 'none' } };
-        storageCalls.sign.push({ path, ttl });
+        storageCalls.sign.push({ path, ttl, download: opts && opts.download });
         if (storageFail === 'sign') return { data: null, error: { message: 'boom: internal storage detail' } };
         if (/^_template\//.test(path) && !storageObjects['scoresheets:' + path]) return { data: null, error: { message: 'Object not found' } };
-        return { data: { signedUrl: 'https://files.example.test/signed/' + path + '?token=SIGNED-TOKEN' }, error: null };
+        return { data: { signedUrl: 'https://files.example.test/signed/' + path + '?token=SIGNED-TOKEN' + (opts && opts.download ? '&download=' + opts.download : '') }, error: null };
       },
       upload: async (path, bytes, opts) => {
         storageCalls.upload.push({ bucket, path, size: bytes.length, opts, bytes: Buffer.from(bytes) });
@@ -1524,7 +1524,9 @@ async function main() {
     storageCalls.sign.length = 0;
     const alice = await fifs('studentScoresheet', { studentId: 'FIFS-1002', student_id: 'FIFS-1002', email: 'bob@student.com' }, 'student-alice-token');
     assert(alice.status === 200 && alice.body.scoresheet.score === '48/50 (96%)' && alice.body.scoresheet.result === 'pass' && alice.body.scoresheet.hasFile === true, `got ${JSON.stringify(alice.body)}`);
-    assert(/signed\/FIFS-1001\//.test(alice.body.scoresheet.fileUrl) && !/FIFS-1002/.test(alice.body.scoresheet.fileUrl) && storageCalls.sign.length === 1 && storageCalls.sign[0].ttl === 300 && alice.body.scoresheet.fileKind === 'pdf', 'her own file, short link');
+    assert(/signed\/FIFS-1001\//.test(alice.body.scoresheet.fileUrl) && !/FIFS-1002/.test(alice.body.scoresheet.fileUrl) && storageCalls.sign.length === 2 && storageCalls.sign[0].ttl === 300 && alice.body.scoresheet.fileKind === 'pdf', 'her own file, short link');
+    const dl = alice.body.scoresheet.downloadUrl;
+    assert(/signed\/FIFS-1001\//.test(dl) && !/FIFS-1002/.test(dl) && /download=MSP-Form-29-14-Qualification-Scoresheet\.pdf/.test(dl) && storageCalls.sign.every((c) => /^FIFS-1001\//.test(c.path) && c.ttl === 300) && storageCalls.sign[1].download === 'MSP-Form-29-14-Qualification-Scoresheet.pdf', 'download link: her own file, 5 minutes, forces a download with a non-identifying name');
     assert(!/Kai Wade|Clean run|MSP-12345|inkPath|_ink|strokes|Secret Instructor|private bob note|24\/25/.test(JSON.stringify(alice.body)), 'no staff details, stroke data or anyone else\'s data');
     const bob = await fifs('studentScoresheet', { studentId: 'FIFS-1001' }, 'student-bob-token');
     assert(bob.body.scoresheet.score === '24/25 (96%)' && /signed\/FIFS-1002\//.test(bob.body.scoresheet.fileUrl) && !/48\/50|FIFS-1001/.test(JSON.stringify(bob.body)), 'Bob sees only Bob\'s');

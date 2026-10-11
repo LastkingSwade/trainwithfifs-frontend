@@ -2,7 +2,7 @@
 // signed-in login (nothing here sends an id), returns a 5-minute link only for a file in that student's own folder, and no staff details.
 // Text is set with textContent; links are accepted only when they are https.
 const w: any = typeof window === 'undefined' ? {} : window;
-interface Sheet { score: string; passed: boolean | null; result: string | null; qualificationDate: string | null; hasFile: boolean; fileUrl: string | null; fileKind: 'pdf' | 'image' | null }
+interface Sheet { score: string; passed: boolean | null; result: string | null; qualificationDate: string | null; hasFile: boolean; fileUrl: string | null; downloadUrl?: string | null; fileKind: 'pdf' | 'image' | null }
 
 export const safeHttps = (u: unknown): string => { try { const x = new URL(String(u)); return x.protocol === 'https:' ? x.href : ''; } catch { return ''; } };
 export function badgeText(s: Pick<Sheet, 'score' | 'result'>): string {
@@ -15,13 +15,14 @@ export function paintScoresheet(s: Sheet | null): void {
   const pending = byId('dash-scoresheet-pending'), active = byId('dash-scoresheet-active'), badge = byId('dash-scoresheet-score-badge');
   const full = byId('dash-scoresheet-fullscreen-btn') as HTMLAnchorElement | null, down = byId('dash-scoresheet-download-btn') as HTMLAnchorElement | null;
   const url = s && s.hasFile ? safeHttps(s.fileUrl) : '';
+  const dlUrl = (s && safeHttps(s.downloadUrl)) || url;
   if (badge) {
     if (s && s.score) { badge.textContent = badgeText(s); badge.style.display = 'inline-block'; } else { badge.style.display = 'none'; }
   }
   if (pending) pending.style.display = url ? 'none' : 'block';
   if (active) active.style.display = url ? 'block' : 'none';
   if (full && down) {
-    if (url) { full.href = url; down.href = url; down.setAttribute('download', 'MSP-Form-29-14-Qualification-Scoresheet.' + (s && s.fileKind === 'pdf' ? 'pdf' : 'png')); }
+    if (url) { full.href = url; down.href = dlUrl; down.setAttribute('download', 'MSP-Form-29-14-Qualification-Scoresheet.' + (s && s.fileKind === 'pdf' ? 'pdf' : 'png')); }
     else { full.removeAttribute('href'); down.removeAttribute('href'); }
   }
 }
