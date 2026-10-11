@@ -49,3 +49,14 @@
 .ssp-done { margin-left: auto; background: var(--accent-cyan, #00e5ff); color: #070b10; border-color: var(--accent-cyan, #00e5ff); }
 .ssp-scroll { flex: 1; overflow: auto; background: #1b2430; padding: 12px; -webkit-overflow-scrolling: touch; }
 .ssp-canvas { display: block; margin: 0 auto; background: #fff; touch-action: none; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6); }
+.ssp-ph { display: flex; align-items: center; justify-content: center; min-height: 240px; padding: 12px; color: #334155; font-weight: 700; text-align: center; background: #fff; }
+.ssp-panel { padding: 10px 14px; background: #0d141e; border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12)); max-height: 38vh; overflow: auto; }
+.ssp-panel[hidden] { display: none; }
+.ssp-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0; }
+.ssp-row label { min-width: 190px; font-size: 0.84rem; color: var(--text-main, #f8fafc); }
+.ssp-row input[type="text"] { flex: 1; min-width: 160px; min-height: 44px; background: #070b10; border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.2)); color: #fff; border-radius: 8px; padding: 6px 10px; font-size: 16px; }
+.ssp-row input[type="checkbox"] { width: 22px; height: 22px; }
+.ssp-note { padding: 8px 14px; font-size: 0.84rem; color: var(--accent-amber, #ffb703); min-height: 1.4em; background: #0d141e; }
+.ssp-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ssp-stampcanvas { background: #fff; }
+.ssp-overlay.ssp-stamp { z-index: 2147483300; }

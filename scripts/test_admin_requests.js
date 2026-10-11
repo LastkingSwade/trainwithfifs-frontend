@@ -24,16 +24,28 @@ test('Client setup link: staff only, uses the email on the client record, never 
   assert(/isStaffOrAdmin\(cAuth\)/.test(body) && /crow\.user_id !== cAuth\.id/.test(body) && /payload\.clientId/.test(body) && !/payload\.email/.test(body), 'guards, and the email comes from the record');
   assert(/function resendClientSetupLink\(clientId, btnEl\)/.test(JS) && /window\.resendClientSetupLink = resendClientSetupLink/.test(JS) && /onclick="resendClientSetupLink\('\$\{fifsSafeId\(c\.clientId\)\}', this\)"[^>]*>✉️ Setup link/.test(JS.slice(JS.lastIndexOf('function renderAdminClientTerminal'))), 'button in the live client row');
 });
-test('Score sheet pad (switched off for now): the module keeps its rules (file box kept in a fold-away, Pencil writes, finger scrolls, PNG output) but the form image is gone from public/ and the pad is not installed', () => {
+test('Score sheet pen pad: replaces "Choose file" with the real form from private storage (never from the repo), Pencil writes, finger scrolls and pinches, typed text and stamps are movable items, the server flattens it, the upload fallback stays', () => {
   const PAD = R('src/portal/scoresheetPad.ts');
-  assert(/editScoresheetFileInput/.test(PAD) && /ssp-fold/.test(PAD) && /Prefer to upload a file instead\?/.test(PAD) && /input\.files = dt\.files/.test(PAD) && /type: 'image\/png'/.test(PAD), 'attaches through the existing file box');
-  assert(/pointerType === 'touch'/.test(PAD) && /scroller\.scrollLeft -=/.test(PAD) && /getCoalescedEvents/.test(PAD) && /touch-action: none/.test(R('src/portal/portal.css')), 'pencil writes, finger scrolls');
-  assert(!fs.existsSync(path.join(__dirname, '..', 'public')) || !fs.existsSync(path.join(__dirname, '..', 'public/forms')), 'the form image must not live in public/ (anything there is reachable by URL)');
-  assert(!/installScoresheetPad\(\);/.test(PAGE) && /Save score sheet/.test(PAGE), 'the pad stays switched off until it loads the real form from private storage; the old file box and the existing Save button remain');
-  const m = { exports: {} }; vm.runInNewContext(ts.transpileModule(PAD, { compilerOptions: { target: 'ES2020', module: 'commonjs' } }).outputText, { module: m, exports: m.exports, window: undefined, document: undefined, Math, Image: undefined });
-  const w = m.exports.strokeWidth;
-  assert(w(3, 1, 'pen') > w(3, 0.2, 'pen') && w(3, 0, 'mouse') === w(3, 1, 'mouse') && w(3, 0.5, 'pen') >= 0.8, 'pressure: a firm press is thicker, a mouse is constant');
-  assert(m.exports.MAX_STROKES === 4000 && m.exports.ZOOMS.length === 3 && m.exports.PEN_COLORS.length === 3);
+  assert(!fs.existsSync(path.join(__dirname, '..', 'public/forms')) && !/forms\/msp-29-14|\/forms\//.test(PAD), 'no form file in public/ and no URL into it');
+  assert(/call\('scoresheetTemplate'\)/.test(PAD) && /previewUrl/.test(PAD) && /call\('scoresheetStamp'/.test(PAD) && /call\('getStudentScoresheet'/.test(PAD), 'the form picture, stamps and saved strokes all come from the server');
+  assert(/editScoresheetFileInput/.test(PAD) && /Upload a file instead/.test(PAD) && /ssp-fold/.test(PAD) && /input\.addEventListener\('change'/.test(PAD), 'the old file box stays, folded away');
+  assert(/pointerType === 'touch'/.test(PAD) && /scroller\.scrollLeft -=/.test(PAD) && /Math\.hypot/.test(PAD) && /getCoalescedEvents/.test(PAD) && /touch-action: none/.test(R('src/portal/portal.css')), 'pencil writes, finger scrolls, two fingers pinch');
+  assert(/inkLayerBase64/.test(PAD) && /inkStrokes/.test(PAD) && /fifsScoresheetInkPayload/.test(PAD) && /fifsScoresheetAfterSave/.test(PAD) && !/innerHTML/.test(PAD), 'hands the transparent layer to the existing Save button; text only');
+  assert(/installScoresheetPad\(\);/.test(PAGE) && /Save score sheet/.test(PAGE), 'wired; the existing Save button is kept');
+  const JSS = R('public/scripts/TrainWithFIFS_scripts.js'); assert(/window\.fifsScoresheetInkPayload\(\)/.test(JSS) && /payload\.inkLayerBase64 = extra\.inkLayerBase64/.test(JSS) && /window\.fifsScoresheetAfterSave\(\)/.test(JSS), 'the Save button sends the pen page');
+  const m = { exports: {} }; vm.runInNewContext(ts.transpileModule(PAD, { compilerOptions: { target: 'ES2020', module: 'commonjs' } }).outputText, { module: m, exports: m.exports, window: undefined, document: undefined, Math, Image: undefined, Map, JSON, String, Array, Number, Promise });
+  const X = m.exports; const sm = { exports: {} };
+  vm.runInNewContext(ts.transpileModule(R('src/Lib/server/scoresheet-ink.ts').replace("import crypto from 'crypto';", "const crypto = require('crypto');").replace("import { PDFDocument } from 'pdf-lib';", "const { PDFDocument } = require('pdf-lib');"), { compilerOptions: { target: 'ES2020', module: 'commonjs' } }).outputText, { module: sm, exports: sm.exports, require, Buffer, Number, String, JSON, Math, Date, Array, Object, RegExp });
+  assert(X.strokeWidth(3, 1, 'pen') > X.strokeWidth(3, 0.2, 'pen') && X.strokeWidth(3, 0, 'mouse') === X.strokeWidth(3, 1, 'mouse') && X.strokeWidth(3, 0.5, 'pen') >= 0.8, 'pressure');
+  assert(X.drawsWith('pen', false) && X.drawsWith('mouse', false) && !X.drawsWith('touch', false) && X.drawsWith('touch', true) && !X.drawsWith('other', true), 'palm rejection: only pen and mouse unless the finger toggle is on');
+  assert(X.clampZoom(0.2) === 1 && X.clampZoom(99) === 4 && X.clampZoom(2) === 2 && X.formDate('2026-10-01') === '10/01/2026' && X.formDate('x') === 'x' && X.formDate('') === '');
+  for (const sl of X.SLOTS) assert(sl.x > 0 && sl.x < X.FORM_W && sl.y > 0 && sl.y < X.FORM_H, 'slot inside the form: ' + sl.id);
+  const items = X.buildItems({ name: 'Alice Student', hits: '48', rounds: '50', percent: '96%', date: '10/01/2026', instructor: 'Kai Wade', number: 'QHIL-1', renewal: false, place: 'Range' });
+  assert(items.find((i) => i.id === 'initial').on === true && items.find((i) => i.id === 'renewal').on === false && items.find((i) => i.id === 'applicant').text === 'Alice Student' && items.find((i) => i.id === 'score').text === '48', 'typed items from the page');
+  assert(X.buildItems({ name: '', hits: '', rounds: '', percent: '', date: '', instructor: '', number: '', renewal: true, place: '' }).find((i) => i.id === 'renewal').on === true, 'a renewal course ticks B');
+  const json = X.inkToJson([{ c: '#0b2a8a', s: 3, e: 0, p: [[1, 2, 0.5], [3, 4, 0.6]] }], items.concat([{ id: 'stamp-signature', kind: 'stamp', stamp: 'signature', x: 150, y: 1346, size: 60, on: true, w: 400 }]));
+  const clean = sm.exports.sanitizeInk(json); assert(clean.ok && clean.data.strokes.length === 1 && clean.data.items.length === items.length + 1, 'what the pad produces is exactly what the server accepts: ' + (clean.error || ''));
+  const m2 = { exports: {} }; assert(X.MAX_LAYER_BASE64 < 2500000 * 4 / 3 && X.EXPORT_SCALES[0] === 1 && X.EXPORT_SCALES.length === 3, 'the layer is sized under the server limit');
 });
 test('Catalog heading: the run-on sentence is replaced by a clear headline and three eye-catching chips (Standard, VIP, Live Online)', () => {
   assert(/Choose Your Class\. Choose Your Level\./.test(PAGE) && /Clear Prices\. No Surprises\./.test(PAGE) && !/Toggle between/.test(PAGE), 'new wording, old run-on gone');

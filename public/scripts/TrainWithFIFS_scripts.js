@@ -11384,9 +11384,11 @@ if (typeof window !== 'undefined') {
         if (btn) btn.disabled = true;
         fifsScoresheetFeedback('Saving…', 'pending');
         var payload = { studentId: studentId, sheet: read.sheet };
-        if (extra) { payload.fileBase64 = extra.fileBase64; payload.fileType = extra.fileType; }
+        if (extra && extra.inkLayerBase64) { payload.inkLayerBase64 = extra.inkLayerBase64; payload.inkStrokes = extra.inkStrokes; }
+        else if (extra) { payload.fileBase64 = extra.fileBase64; payload.fileType = extra.fileType; }
         fifsSaveOrReport('saveStudentScoresheet', payload, function(res) {
           if (btn) btn.disabled = false;
+          if (typeof window !== 'undefined' && window && typeof window.fifsScoresheetAfterSave === 'function') { try { window.fifsScoresheetAfterSave(); } catch (e) {} }
           var s = (window.adminCachedStudents || []).find(function(item) { return item.studentId === studentId; });
           if (s && res && res.score) s.qualificationScore = res.score;
           var scoreBox = document.getElementById('editScore');
@@ -11398,6 +11400,9 @@ if (typeof window !== 'undefined') {
           fifsScoresheetFeedback('NOT saved: ' + ((err && err.message) || 'the server did not confirm the save.'), 'error');
         });
       }
+      // A page filled out with the pen (the pad hands over a transparent layer; the server lays it over the blank form).
+      var ink = (typeof window !== 'undefined' && window && typeof window.fifsScoresheetInkPayload === 'function') ? window.fifsScoresheetInkPayload() : null;
+      if (ink && ink.inkLayerBase64 && !file) { send(ink); return; }
       if (file) {
         if (file.size > FIFS_SCORESHEET_MAX_FILE_BYTES) { fifsScoresheetFeedback('That file is too large (limit 3 MB). Use a smaller scan or photo.', 'error'); return; }
         if (['application/pdf', 'image/jpeg', 'image/png', 'image/webp'].indexOf(file.type) < 0) { fifsScoresheetFeedback('Use a PDF, JPEG, PNG, or WebP file.', 'error'); return; }
