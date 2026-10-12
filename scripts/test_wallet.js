@@ -78,7 +78,9 @@ function mem() {
     assert((ROUTE.match(/purgeWallet\(supabase,/g) || []).length === 2, 'both delete paths purge');
     assert(!/console\.(log|warn|error)\([^)]*(base64|bytes|dataBase64)/i.test(SRV), 'file contents never logged');
     const UI = fs.readFileSync(path.join(ROOT, 'src/portal/WalletPanel.tsx'), 'utf8'); assert(/Do not upload/.test(UI) && /serial numbers/.test(UI) && /type="checkbox"/.test(UI) && !/placeholder=/.test(UI), 'notice shown, no free-text field');
-    assert(/walletCard\(\)/.test(fs.readFileSync(path.join(ROOT, 'src/portal/clientExtras.ts'), 'utf8')) && /walletCard\(\)/.test(fs.readFileSync(path.join(ROOT, 'src/portal/studentExtras.ts'), 'utf8')) && /WalletPanel/.test(fs.readFileSync(path.join(ROOT, 'src/app/layout.tsx'), 'utf8')));
+    assert(/walletCard\(\)/.test(fs.readFileSync(path.join(ROOT, 'src/portal/clientExtras.ts'), 'utf8')) && /WalletPanel/.test(fs.readFileSync(path.join(ROOT, 'src/app/layout.tsx'), 'utf8')), 'the client portal keeps the wallet card');
+    // Students have no documents yet (they come to the owner to get them), so the student portal no longer shows the wallet card.
+    const STU = fs.readFileSync(path.join(ROOT, 'src/portal/studentExtras.ts'), 'utf8'); assert(!/walletCard/.test(STU) && !/document wallet/i.test(STU), 'the student portal must not show the wallet card');
   });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   process.exit(failed ? 1 : 0);
