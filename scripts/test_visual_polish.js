@@ -51,5 +51,22 @@ test('C2 Text has real color: headings cyan, card titles gold, prices amber, bod
   assert(/\.start-journey-btn \.prime-label \{ color: var\(--ink-head\) !important; \}/.test(t), 'the home journey button leads in cyan');
   assert(!/linear-gradient|background-clip: text|-webkit-text-fill/.test(t), 'solid colours, not gradient text');
 });
+test('C3 Visitors never see the word "Supabase": every message, button, tooltip, confirm box and email in the visitor-facing files says "Future Initiative" instead', () => {
+  const files = ['src/app/page.tsx', 'public/scripts/TrainWithFIFS_scripts.js', 'src/app/api/fifs/route.ts', ...fs.readdirSync(path.join(ROOT, 'src/portal')).filter((f) => /\.tsx?$/.test(f)).map((f) => 'src/portal/' + f), ...['online', 'group', 'polish', 'delight'].flatMap((d) => (fs.existsSync(path.join(ROOT, 'src', d)) ? fs.readdirSync(path.join(ROOT, 'src', d)).filter((f) => /\.tsx?$/.test(f)).map((f) => 'src/' + d + '/' + f) : []))];
+  const bad = [];
+  for (const f of files) R(f).split('\n').forEach((line, i) => {
+    if (!/Supabase/.test(line)) return; const t = line.trim();
+    if (/^(\/\/|\*|\/\*)/.test(t) || /^\s*(import|export .* from)/.test(line)) return;
+    const stripped = line.replace(/[A-Za-z_]Supabase|Supabase[A-Za-z_]/g, ''); // names in code, such as createSupabaseClient
+    if (!/Supabase/.test(stripped)) return;
+    if (/console\.(log|warn|error|info)\(/.test(line) && !/(alert|showStatus|textContent|innerHTML|setMsg|confirm)\(?/.test(line)) return; // developer logs are not shown to visitors
+    bad.push(f + ':' + (i + 1) + ' ' + t.slice(0, 90));
+  });
+  assert(bad.length === 0, 'visible "Supabase" found: ' + bad.slice(0, 5).join(' | '));
+  assert(!/\.supabase\.co/.test(R('src/app/page.tsx')), 'no Supabase web address in the page (it used to show the real project address in an admin form hint)');
+  assert(!/supabase\.co/.test(R('public/scripts/TrainWithFIFS_scripts.js')), 'no Supabase web address in the site script either');
+  const NC = R('next.config.ts'); assert(/async rewrites\(\)/.test(NC) && /source: "\/files\/:name\(\[A-Za-z0-9_\.-\]\+\\\\\.pdf\)"/.test(NC), 'public PDFs are served from /files/ and only for plain PDF file names');
+  assert(/Future Initiative did not return a password setup link\./.test(R('src/app/api/fifs/route.ts')) && /through the Future Initiative secure account recovery flow/.test(R('src/app/api/fifs/route.ts')), 'the setup email and server messages use the new wording');
+});
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
 process.exit(failed ? 1 : 0);

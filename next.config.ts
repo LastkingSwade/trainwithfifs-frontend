@@ -34,6 +34,13 @@ const nextConfig: NextConfig = {
       { source: "/register", destination: "/#enrollment", permanent: false },
     ];
   },
+  // The public PDFs (course packet, guides, score sheet forms) live in file storage. Visitors open them from this site's own address (/files/...), so the storage
+  // provider's address never shows in the browser bar or on hover. Only simple PDF file names are passed through, nothing else.
+  async rewrites() {
+    return [
+      { source: "/files/:name([A-Za-z0-9_.-]+\\.pdf)", destination: "https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/:name" },
+    ];
+  },
   async headers() {
     return [
       {

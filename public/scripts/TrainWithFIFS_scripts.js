@@ -568,7 +568,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           "✔ 100% strict zero-live-ammunition classroom policy enforced."
         ],
         ctaText: "View Follow-Along Course Packet →",
-        ctaAction: "window.open('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/fifs-classroom-course-packet.pdf', '_blank')"
+        ctaAction: "window.open('/files/fifs-classroom-course-packet.pdf', '_blank')"
       },
       5: {
         title: "Live-Fire Practical Range Qualification",
@@ -1613,14 +1613,14 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       if (statusDiv) {
         statusDiv.style.display = 'block';
         statusDiv.className = 'status-msg success';
-        statusDiv.textContent = 'Authenticating staff credentials with Supabase Auth...';
+        statusDiv.textContent = 'Signing in to Future Initiative...';
       }
 
       var client = window.supabaseClient;
       if (!client || !client.auth || typeof client.auth.signInWithPassword !== 'function') {
         if (statusDiv) {
           statusDiv.className = 'status-msg error';
-          statusDiv.textContent = 'Supabase client is not available. Please refresh the page.';
+          statusDiv.textContent = 'Future Initiative sign-in is not available. Please refresh the page.';
         }
         return;
       }
@@ -1815,7 +1815,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     }
     window.refreshAdminClients = refreshAdminClients;
     function resetWebsiteTelemetry() {
-      if (!confirm("Reset all website telemetry counters in Supabase and cache?")) return;
+      if (!confirm("Reset all website telemetry counters in Future Initiative and cache?")) return;
       var btn = document.getElementById('btn-reset-telemetry') || document.querySelector('button[onclick*="resetWebsiteTelemetry"]');
       if (btn) {
         btn.classList.add('btn-animated-loading');
@@ -3480,7 +3480,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
             if (resBox) resBox.style.display = 'block';
             showStatus(st, 'Invitation sent. The ' + (portalType === 'student' ? 'student' : 'client') + ' must open the password setup link in their email and choose a password before they can sign in with that email address at ' + loginPortalUrl + '. No password was sent.', 'success');
           } else {
-            showStatus(st, (res && res.error) || 'Failed to dispatch invite to Supabase.', 'error');
+            showStatus(st, (res && res.error) || 'Failed to send the invite to Future Initiative.', 'error');
           }
         }, function(err) {
           showStatus(st, 'Error communicating with server: ' + (err && err.message ? err.message : err), 'error');
@@ -3505,7 +3505,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
     // ==========================================================================
     function handleDossierClick(urlOrId) {
       if (!urlOrId || urlOrId === '#' || urlOrId === 'javascript:void(0)') {
-        alert('Student dossier is managed on Supabase Storage. Click Edit or Dossier to update.');
+        alert('Student dossier is managed in Future Initiative secure storage. Click Edit or Dossier to update.');
       } else if (typeof urlOrId === 'string' && /^https?:\/\//i.test(urlOrId) && fifsSafeHttpUrl(urlOrId)) {
         window.open(fifsSafeHttpUrl(urlOrId), '_blank', 'noopener,noreferrer');
       } else {
@@ -3586,7 +3586,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
 
       var statusElem = document.getElementById("dossierModalStatus");
       if (statusElem) {
-        statusElem.textContent = "Saving to Supabase backend...";
+        statusElem.textContent = "Saving to Future Initiative...";
         statusElem.style.display = "block";
         statusElem.style.color = "var(--accent-cyan)";
       }
@@ -3606,7 +3606,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
           }
         }, function(res) {
           if (statusElem) {
-            statusElem.textContent = "Dossier and notes saved successfully to Supabase!";
+            statusElem.textContent = "Dossier and notes saved successfully to Future Initiative!";
             statusElem.style.color = "#10b981";
           }
           setTimeout(function() {
@@ -3797,7 +3797,7 @@ function openAdminEditStudentModal(studentId) {
           <td>
             <span class="meta-chip chip-status" id="chip-status-${escapeHtml(s.studentId)}">${escapeHtml(formatStepLabel(stepNum))}</span>
           </td>
-          <td><button type="button" onclick="openStudentDossierModal('${id}')" style="color: var(--accent-cyan); font-weight: 700; background: none; border: none; padding: 0; font: inherit; cursor: pointer;" title="View/Edit Supabase Dossier & Notes">Dossier ↗</button></td>
+          <td><button type="button" onclick="openStudentDossierModal('${id}')" style="color: var(--accent-cyan); font-weight: 700; background: none; border: none; padding: 0; font: inherit; cursor: pointer;" title="View/Edit Future Initiative Dossier & Notes">Dossier ↗</button></td>
           <td>
             <select onchange="updateStudentJourneyStep('${id}', this.value, this)" data-current="${escapeHtml(s.status || 'STEP_1_REGISTERED')}" style="padding: 6px 8px; font-size: 0.78rem; min-height: 34px; background: #070b10; color: var(--accent-cyan); border-radius: 6px; border: 1px solid var(--accent-cyan); font-weight: 700; cursor: pointer;">
               ${options}
@@ -4236,7 +4236,7 @@ function openAdminEditStudentModal(studentId) {
       if (typeof callFifsBackend === 'function') { callFifsBackend('handleLeadMagnetSubmission', { fullName: name, email: email, source: '50-State Reciprocity Guide' }).catch(function() {}); }
       setTimeout(function() {
         showStatus(st, 'Success! Download starting. Thank you for training with Future Initiative.', 'success');
-        window.open('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/top-50-questions-new-gun-owners.pdf', '_blank');
+        window.open('/files/top-50-questions-new-gun-owners.pdf', '_blank');
       }, 400);
     }
     window.handleLeadMagnetSubmit = handleLeadMagnetSubmit;
@@ -6267,12 +6267,12 @@ function getStepNumberFromStatus(statusStr) {
       renewal: {
         title: "📘 Maryland Wear & Carry (8-Hour Renewal) — Follow-Along Guide",
         desc: "Official 8-hour recertification study manual. Covers State v. Faulkner, SB 1 sensitive places, Jaelynn's Law, de-escalation scripts, and the 25-round BPHC qualification course.",
-        url: "https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/maryland-wear-carry-8hr-renewal-study-guide.pdf"
+        url: "/files/maryland-wear-carry-8hr-renewal-study-guide.pdf"
       },
       initial: {
         title: "📘 Maryland Wear & Carry (16-Hour Initial) — Follow-Along Guide",
         desc: "Comprehensive 16-hour curriculum companion. Covers safe gun handling, handgun anatomy, ammunition fundamentals, EDC setup, Maryland statutory pillars, and live-fire range drills.",
-        url: "https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/maryland-wear-carry-16hr-study-guide.pdf"
+        url: "/files/maryland-wear-carry-16hr-study-guide.pdf"
       }
     };
     function updateStudentCoursePacketDisplay(courseName) {
@@ -7751,7 +7751,7 @@ function getStepNumberFromStatus(statusStr) {
           "✔ 100% strict zero-live-ammunition classroom policy enforced."
         ],
         ctaText: "View Follow-Along Course Packet →",
-        ctaAction: "window.open('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/fifs-classroom-course-packet.pdf', '_blank')"
+        ctaAction: "window.open('/files/fifs-classroom-course-packet.pdf', '_blank')"
       },
       5: {
         title: "Live-Fire Practical Range Qualification",
@@ -8140,7 +8140,7 @@ function attachSwipeToDeleteToThread(card, threadId) {
 }
 function deleteAdminChatThread(threadId, event) {
   if (event) event.stopPropagation();
-  if (!confirm("Are you sure you want to permanently delete this live chat thread from Supabase and the admin hub?")) {
+  if (!confirm("Are you sure you want to permanently delete this live chat thread from Future Initiative and the admin hub?")) {
     return;
   }
   var pin = getStaffSessionToken() || getStaffSessionToken();
@@ -8475,7 +8475,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
   var origResetTelemetry = window.resetWebsiteTelemetry;
   window.resetWebsiteTelemetry = function() {
     var btn = document.querySelector('button[onclick*="resetWebsiteTelemetry"]') || document.getElementById('btn-reset-telemetry');
-    if (!confirm("⚠️ TACTICAL PURGE: Reset all website telemetry counters in Supabase and cache?")) return;
+    if (!confirm("⚠️ TACTICAL PURGE: Reset all website telemetry counters in Future Initiative and cache?")) return;
     if (btn) {
       btn.classList.add('btn-emp-purging');
       btn.innerHTML = '<span style="color:#fff; font-weight:800; letter-spacing:1px;">💥 EMP DISCHARGE IN PROGRESS...</span>';
@@ -8564,7 +8564,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
     document.body.appendChild(overlay);
   };
   window.confirmDeleteChatFromSheet = function(threadId) {
-    if (confirm("Are you sure you want to permanently delete this chat thread from Supabase and all devices?")) {
+    if (confirm("Are you sure you want to permanently delete this chat thread from Future Initiative and all devices?")) {
       var sheet = document.getElementById('fifsChatActionSheet');
       if (sheet) sheet.remove();
       if (typeof deleteLiveChatThreadOnServer === 'function') {
@@ -8659,7 +8659,7 @@ window.calculateComprehensiveInvoice = calculateComprehensiveInvoice;
       alert("Please select a chat thread to delete.");
       return;
     }
-    if (!confirm("⚠️ PERMANENT DELETE: Remove this chat thread permanently from Supabase and all devices?")) {
+    if (!confirm("⚠️ PERMANENT DELETE: Remove this chat thread permanently from Future Initiative and all devices?")) {
       return;
     }
     // 1. Instantly remove locally from cached threads so UI updates immediately
@@ -9627,7 +9627,7 @@ window.renderLiveVisitorRoster = renderLiveVisitorRoster;
         document.body.removeChild(a);
       }
     } catch (e) {
-      window.open('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/msp-form-29-14-handgun-score-sheet.pdf', '_blank');
+      window.open('/files/msp-form-29-14-handgun-score-sheet.pdf', '_blank');
     }
   }
   window.openOfficialMspScoreSheet = openOfficialMspScoreSheet;

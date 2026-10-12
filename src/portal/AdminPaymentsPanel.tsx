@@ -46,9 +46,9 @@ export default function AdminPaymentsPanel() {
     const fn = (window as any).callFifsBackend;
     try {
       const d = await fn('adminDeletePayments', { ids: picked, confirmPaid: paidChosen > 0 });
-      setMsg(`Deleted ${d.deleted} payment record${d.deleted === 1 ? '' : 's'} from Supabase.${d.paidDeleted ? ' Money already received is still in Stripe; refund it there if needed.' : ''}`);
+      setMsg(`Deleted ${d.deleted} payment record${d.deleted === 1 ? '' : 's'} from Future Initiative.${d.paidDeleted ? ' Money already received is still in Stripe; refund it there if needed.' : ''}`);
       await load(filter, search);
-      setMsg(`Deleted ${d.deleted} payment record${d.deleted === 1 ? '' : 's'} from Supabase.${d.paidDeleted ? ' Money already received is still in Stripe; refund it there if needed.' : ''}`);
+      setMsg(`Deleted ${d.deleted} payment record${d.deleted === 1 ? '' : 's'} from Future Initiative.${d.paidDeleted ? ' Money already received is still in Stripe; refund it there if needed.' : ''}`);
     } catch (e: any) { setConfirming(false); setMsg(e?.message || 'Could not delete.'); }
   };
 
@@ -63,7 +63,7 @@ export default function AdminPaymentsPanel() {
     <div className="online-admin-overlay" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
       <section className="online-admin" style={{ width: 'min(96vw, 980px)' }} role="dialog" aria-modal="true" aria-label="Payments">
         <div className="row" style={{ justifyContent: 'space-between' }}><h2>💵 Payments</h2><button type="button" onClick={() => setOpen(false)}>Close</button></div>
-        <p className="hint">This lists bookings and what has been paid. You can delete test attempts here (they are removed from Supabase). Refunds and changes to real payments are still made in Stripe.</p>
+        <p className="hint">This lists bookings and what has been paid. You can delete test attempts here (they are removed from Future Initiative). Refunds and changes to real payments are still made in Stripe.</p>
         {sum && (
           <div className="row" aria-label="Totals">
             <span className="sess" style={{ flex: 1, minWidth: 140 }}><span>Collected</span><strong>{usd(sum.collected)}</strong></span>
@@ -92,7 +92,7 @@ export default function AdminPaymentsPanel() {
         {confirming && (
           <div className="sess" role="alertdialog" aria-label="Confirm delete">
             <span>
-              This permanently deletes {picked.length} payment record{picked.length === 1 ? '' : 's'} from Supabase and frees their calendar days. It does not refund or change anything in Stripe.
+              This permanently deletes {picked.length} payment record{picked.length === 1 ? '' : 's'} from Future Initiative and frees their calendar days. It does not refund or change anything in Stripe.
               {paidChosen > 0 && <> <strong>{paidChosen} of them show money received.</strong> Type DELETE to confirm.</>}
             </span>
             <span className="row">

@@ -190,8 +190,9 @@ test('The security headers and the content security policy are exactly as before
   assert(removed.length === 0, 'next.config.ts lost or edited existing lines: ' + (removed[0] || '').slice(0, 80));
   const SECURITY = /Content-Security-Policy|Strict-Transport|X-Frame|Permissions-Policy|script-src|default-src|Referrer-Policy|X-Content-Type/;
   // Allowed additions: the group-code referrer rule, and the /sw.js rule that only stops the browser from caching the service worker file itself.
+  const filesRule = /rewrites\(\)/.test(added) && /\/files\/:name/.test(added) && !SECURITY.test(added.replace(/\/\/.*$/gm, ''));
   const swRule = /sw\.js/.test(added) && /Cache-Control/.test(added) && /Service-Worker-Allowed/.test(added) && !SECURITY.test(added.replace(/\/\/.*$/gm, ''));
-  assert(added === '' || swRule || (/gcode/.test(added) && /no-referrer/.test(added) && !SECURITY.test(added)), 'next.config.ts gained something other than the group-code referrer rule or the service worker cache rule');
+  assert(added === '' || swRule || filesRule || (/gcode/.test(added) && /no-referrer/.test(added) && !SECURITY.test(added)), 'next.config.ts gained something other than the group-code referrer rule or the service worker cache rule');
 });
 test('The mobile calendar rules in globals.css are untouched (the file only gained lines, none removed or edited)', () => {
   const diff = gitLines('git diff -U0 main -- src/app/globals.css');

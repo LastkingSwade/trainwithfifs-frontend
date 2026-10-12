@@ -1000,7 +1000,7 @@ export async function POST(req: NextRequest) {
          profileCleanupSkipped,
          authCleanup,
          authUserRemoved: authCleanup === 'none' ? null : authCleanup === 'removed',
-         message: `Student ${foundStudent?.full_name || targetId} successfully removed from Supabase.`
+         message: `Student ${foundStudent?.full_name || targetId} successfully removed from Future Initiative.`
            + (authCleanup === 'failed' ? ' Their sign-in account could not be removed automatically.' : '')
        });
      }
@@ -1117,7 +1117,7 @@ export async function POST(req: NextRequest) {
          profileCleanupSkipped,
          authCleanup,
          authUserRemoved: authCleanup === 'none' ? null : authCleanup === 'removed',
-         message: `Client ${foundClient?.full_name || targetId} successfully removed from Supabase.`
+         message: `Client ${foundClient?.full_name || targetId} successfully removed from Future Initiative.`
            + (authCleanup === 'failed' ? ' Their sign-in account could not be removed automatically.' : '')
        });
      }
@@ -1270,7 +1270,7 @@ export async function POST(req: NextRequest) {
            options: { redirectTo }
          });
          if (linkErr || !linkData?.properties?.action_link) {
-           setupLinkError = linkErr?.message || 'Supabase did not return a password setup link.';
+           setupLinkError = linkErr?.message || 'Future Initiative did not return a password setup link.';
          } else {
            setupLink = linkData.properties.action_link;
          }
@@ -1288,7 +1288,7 @@ export async function POST(req: NextRequest) {
              <h2 style="color:#ffb703;">Welcome to Future Initiative Firearm Services</h2>
              <p>Dear ${safeName},</p>
              <p>Lead Instructor Kai Wade has invited you to access your personal training portal for <strong>${safeCourse}</strong>.</p>
-             <p>Use the secure link below to set your password and activate portal access. This link is time-limited and can only be used through Supabase's account recovery flow.</p>
+             <p>Use the secure link below to set your password and activate portal access. This link is time-limited and can only be used through the Future Initiative secure account recovery flow.</p>
              <p><a href="${safeSetupLink}" style="display:inline-block;background:#ffb703;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;border-radius:4px;">Set up your password and access the portal</a></p>
              <p style="color:#aaa;font-size:12px;">Your Student/Client ID is for record reference only. Do not share your setup link.</p>
              <p style="color:#888;font-size:12px;margin-top:24px;">Future Initiative Firearm Services • Maryland State Police Certified Training</p>
@@ -1754,7 +1754,7 @@ export async function POST(req: NextRequest) {
              type: 'recovery', email, options: { redirectTo }
            });
            if (linkErr || !linkData?.properties?.action_link) {
-             setupLinkError = linkErr?.message || 'Supabase did not return a password setup link.';
+             setupLinkError = linkErr?.message || 'Future Initiative did not return a password setup link.';
            } else {
              setupLink = linkData.properties.action_link;
            }

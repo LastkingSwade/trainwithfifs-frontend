@@ -436,7 +436,7 @@ export default function TrainWithFIFS(props: any) {
           "✔ 100% strict zero-live-ammunition classroom policy enforced."
         ],
         ctaText: "View Follow-Along Course Packet →",
-        ctaAction: "window.open('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/fifs-classroom-course-packet.pdf', '_blank')"
+        ctaAction: "window.open('/files/fifs-classroom-course-packet.pdf', '_blank')"
       },
       5: {
         title: "Live-Fire Practical Range Qualification",
@@ -2825,13 +2825,13 @@ export default function TrainWithFIFS(props: any) {
       if (statusDiv) {
         statusDiv.style.display = 'block';
         statusDiv.className = 'status-msg success';
-        statusDiv.textContent = 'Authenticating staff credentials with Supabase Auth...';
+        statusDiv.textContent = 'Signing in to Future Initiative...';
       }
 
       try {
         const client = (window as any).supabaseClient || (typeof createSupabaseClient === 'function' ? createSupabaseClient() : null);
         if (!client || !client.auth) {
-          throw new Error('Supabase client is not initialized in browser runtime.');
+          throw new Error('Future Initiative sign-in is not ready. Please refresh the page.');
         }
 
         const { data: authData, error: authError } = await client.auth.signInWithPassword({
@@ -5004,7 +5004,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <div>
                   <a className="btn-primary" id="dash-doc-link" rel="noopener noreferrer" style={{"textDecoration": "none", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "boxShadow": "0 0 16px var(--accent-cyan-glow)"}} target="_blank">
                     
-                Open Student Dossier (Supabase Document) ↗
+                Open Student Dossier (Future Initiative Document) ↗
               
                   </a>
                 </div>
@@ -6104,7 +6104,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
           {/* SECONDARY TACTICAL UTILITY TOOLBAR */}
           <div className="admin-secondary-toolbar">
-            <button className="btn-tactical-hud hud-cyan" id="btn-admin-refresh-data" onClick={(e) => { e.preventDefault(); (window as any).refreshAdminRoster?.(); }} data-onclick="refreshAdminRoster()" title="Synchronize student and client records from Supabase" type="button">
+            <button className="btn-tactical-hud hud-cyan" id="btn-admin-refresh-data" onClick={(e) => { e.preventDefault(); (window as any).refreshAdminRoster?.(); }} data-onclick="refreshAdminRoster()" title="Synchronize student and client records from Future Initiative" type="button">
               <span>🔄</span> <span>REFRESH ROSTER</span>
             </button>
             <button className="btn-tactical-hud hud-purple" id="btn-admin-online-hdr" onClick={(e) => { e.preventDefault(); (window as any).openOnlineAdmin?.(); }} data-onclick="openOnlineAdmin()" title="Live online classroom: switches, dates, meeting links, Day 2 attendance" type="button">
@@ -6526,12 +6526,12 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </div>
                   <div id="telemetry-stream-box" style={{"maxHeight": "250px", "overflowY": "auto", "fontFamily": "monospace", "fontSize": "0.82rem", "background": "#070b10", "borderRadius": "8px", "padding": "12px", "border": "1px solid rgba(255,255,255,0.06)"}}>
                     <div style={{"padding": "12px 8px", "color": "var(--text-muted)", "textAlign": "center", "fontSize": "0.82rem"}}>
-                      Real-time telemetry stream synchronized with Supabase cloud audit log.
+                      Real-time telemetry stream synchronized with the Future Initiative cloud audit log.
                     </div>
                   </div>
                   <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginTop": "14px", "flexWrap": "wrap", "gap": "10px"}}>
                     <span style={{"fontSize": "0.78rem", "color": "var(--text-muted)"}}>
-                      Synced with Supabase Cloud: 
+                      Synced with Future Initiative Cloud: 
                       <code>
                         Telemetry & Audit Stream
                       </code>
@@ -10521,7 +10521,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 Comprehensive 6-page Maryland-compliant guide prepared by Instructor Kai Wade.
               </span>
             </div>
-            <a className="btn-download-guide" href="https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/top-50-questions-new-gun-owners.pdf" rel="noopener noreferrer" target="_blank">
+            <a className="btn-download-guide" href="/files/top-50-questions-new-gun-owners.pdf" rel="noopener noreferrer" target="_blank">
               <span>
                 📥 View & Download PDF
               </span>
@@ -10872,7 +10872,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
               <div className="form-group" style={{"marginBottom": "0"}}>
                 <label htmlFor="editProfileDocUrl" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
-                  Student Dossier (Supabase Document URL)
+                  Student Dossier (Future Initiative Document URL)
                 </label>
                 <input id="editProfileDocUrl" placeholder="https://.../storage/v1/object/public/documents/..." style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
               </div>
@@ -11011,17 +11011,17 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             <div className="form-group" style={{"marginBottom": "12px"}}>
               <label htmlFor="dossierModalDocUrl" style={{"fontSize": "0.84rem", "color": "#cbd5e1"}}>
-                Official Dossier Document (Supabase Storage URL)
+                Official Dossier Document (Future Initiative Storage URL)
               </label>
-              <input id="dossierModalDocUrl" placeholder="https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/..." style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
+              <input id="dossierModalDocUrl" placeholder="https://... (the link to the document)" style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px", "borderRadius": "8px", "width": "100%"}} type="text" />
               <div style={{"display": "flex", "gap": "8px", "flexWrap": "wrap", "marginTop": "8px"}}>
                 <a className="btn-spark" data-target="_blank" id="dossierModalViewLink" rel="noopener noreferrer" style={{"display": "none", "padding": "7px 12px", "fontSize": "0.78rem", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)", "textDecoration": "none", "alignItems": "center", "gap": "6px"}} target="_blank">
                   👁 Preview Current Dossier
                 </a>
-                <button className="btn-spark" data-onclick="setDossierPresetUrl('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/msp-form-29-14-handgun-score-sheet.pdf')" style={{"padding": "7px 12px", "fontSize": "0.78rem", "borderColor": "var(--accent-amber)", "color": "var(--accent-amber)", "width": "auto"}} type="button">
+                <button className="btn-spark" data-onclick="setDossierPresetUrl('/files/msp-form-29-14-handgun-score-sheet.pdf')" style={{"padding": "7px 12px", "fontSize": "0.78rem", "borderColor": "var(--accent-amber)", "color": "var(--accent-amber)", "width": "auto"}} type="button">
                   📋 Use MSP Form 29-14
                 </button>
-                <button className="btn-spark" data-onclick="setDossierPresetUrl('https://ufqnmcincwnlyiwsmzcq.supabase.co/storage/v1/object/public/documents/fifs-classroom-course-packet.pdf')" style={{"padding": "7px 12px", "fontSize": "0.78rem", "borderColor": "var(--accent-amber)", "color": "var(--accent-amber)", "width": "auto"}} type="button">
+                <button className="btn-spark" data-onclick="setDossierPresetUrl('/files/fifs-classroom-course-packet.pdf')" style={{"padding": "7px 12px", "fontSize": "0.78rem", "borderColor": "var(--accent-amber)", "color": "var(--accent-amber)", "width": "auto"}} type="button">
                   📦 Use Course Packet
                 </button>
               </div>
@@ -11035,7 +11035,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <div id="dossierModalStatus" style={{"display": "none", "marginBottom": "10px", "fontSize": "0.82rem", "fontWeight": "700"}}></div>
             <div style={{"display": "flex", "gap": "10px"}}>
               <button className="btn-primary" style={{"flex": "2", "padding": "12px"}} type="submit">
-                💾 Save Dossier & Notes to Supabase
+                💾 Save Dossier & Notes to Future Initiative
               </button>
               <button className="btn-secondary-modal" data-onclick="closeStudentDossierModal()" style={{"flex": "1", "padding": "12px"}} type="button">
                 Cancel
