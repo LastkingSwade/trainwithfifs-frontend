@@ -37,6 +37,14 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // The service worker file itself is never cached by the browser or Vercel, so a fixed version is picked up promptly.
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: [
           // 1. Content Security Policy

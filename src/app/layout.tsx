@@ -11,6 +11,7 @@ import OnlineAdminPanel from "../online/OnlineAdminPanel";
 import AdminPaymentsPanel from "../portal/AdminPaymentsPanel";
 import AdminTrashPanel from "../portal/AdminTrashPanel";
 import WalletPanel from "../portal/WalletPanel";
+import ServiceWorkerRegister from "../pwa/ServiceWorkerRegister";
 import "../polish/polish.css";
 import "../experiments/site.css";
 import "../experiments/portals.css";
@@ -53,6 +54,7 @@ export default function RootLayout({
         <AdminPaymentsPanel />
         <AdminTrashPanel />
         <WalletPanel />
+        <ServiceWorkerRegister />
         {children}
       </body>
     </html>
