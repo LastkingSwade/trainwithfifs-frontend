@@ -357,41 +357,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       rawSwitchTab(tab);
       }
     window.switchTab = switchTab;
-    function openAndSwitch(tabId) {
-      try {
-        if (typeof checkPortalSessionConflict === 'function' && (tabId === 'portal' || tabId === 'fi-portal')) {
-          if (checkPortalSessionConflict(tabId)) return;
-        }
-        closeAllOverlays();
-        if (currentActiveView !== tabId) {
-          contextualHistoryStack.push(currentActiveView);
-          if (contextualHistoryStack.length > 25) contextualHistoryStack.shift();
-        }
-        currentActiveView = tabId;
-        window.currentActiveView = tabId;
-        document.body.classList.remove('in-home');
-        document.body.classList.add('in-app');
-        document.body.className = 'in-app';
-        var hero = document.getElementById('hero-landing');
-        var app = document.getElementById('app-container');
-        if (hero) {
-          hero.style.setProperty('display', 'none', 'important');
-          hero.style.setProperty('pointer-events', 'none', 'important');
-          hero.classList.add('hidden-view');
-        }
-        if (app) {
-          app.style.setProperty('display', 'block', 'important');
-          app.style.setProperty('visibility', 'visible', 'important');
-          app.style.setProperty('opacity', '1', 'important');
-          app.style.setProperty('pointer-events', 'auto', 'important');
-          app.classList.add('active-view');
-        }
-        rawSwitchTab(tabId);
-        try { window.scrollTo(0, 0); } catch (e) {}
-        } catch (err) {
-        console.error('Error in openAndSwitch:', err);
-      }
-    }
     window.openAndSwitch = openAndSwitch;
     window.returnToHome = returnToHome;
     function navigateBack() {
