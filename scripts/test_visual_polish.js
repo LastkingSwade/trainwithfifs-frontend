@@ -27,5 +27,13 @@ test('V3 Pressing a button or card squeezes it 2% using the separate scale prope
   assert(/cubic-bezier\(0\.32, 0\.72, 0, 1\)/.test(t) && !/linear|ease-in-out/.test(t.split('/* ---- V')[0].replace(/\/\*[\s\S]*?\*\//g, '')), 'a weighted spring-like curve, not linear or ease-in-out');
   assert(/:where\(button:not\(:disabled\)/.test(t), 'lowest priority, and disabled buttons never move');
 });
+test('V5 Cards ease in on scroll with pure CSS: only where supported, only when motion is allowed, opacity and translate only, and never on cards that already animate', () => {
+  const t = GCSS.slice(GCSS.indexOf('V5 Scroll-in'));
+  assert(/@media \(prefers-reduced-motion: no-preference\) \{\s*@supports \(animation-timeline: view\(\)\)/.test(t), 'inside both the motion-allowed and the supported checks');
+  const sel = /\n\s*([^{]+) \{\s*animation: fifs-scroll-in linear both;/.exec(t); assert(sel, 'selector found');
+  assert(!/tuition-card|corridor-route-card/.test(sel[1]), 'cards that already have their own entrance animation are left alone');
+  assert(/@keyframes fifs-scroll-in \{ from \{ opacity: 0; translate: 0 26px; \} to \{ opacity: 1; translate: 0 0; \} \}/.test(t), 'only opacity and translate change (no layout properties)');
+  assert(!/(^|[^-])(top|left|width|height|margin)\s*:/.test(t.split('@keyframes')[1] || ''), 'no layout-triggering properties');
+});
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
 process.exit(failed ? 1 : 0);

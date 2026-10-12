@@ -6073,3 +6073,16 @@ header.app-header .btn-nav-profile { padding: 0 !important; width: 44px; positio
   :where(button:not(:disabled), [role="button"], summary, a[href]:where([class*="btn"]), .cc-tile, .hb-item, .tuition-card, .j-card):active { scale: 0.98; }
   :where(button, [role="button"], summary, a[href]:where([class*="btn"]), .cc-tile, .hb-item) { transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1); }
 }
+
+/* ---- V5 Scroll-in: cards ease up into place as they enter the screen. Pure CSS (scroll-driven animation, no scripts); browsers that do not support it
+   simply show the cards as they are, and nothing is ever hidden. Uses `translate`/`opacity` only, and only when motion is allowed. ---- */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .j-card, .fi-feature-card, .pcard, .cc-section, .portal-feature-launcher-card {
+      animation: fifs-scroll-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 38%;
+    }
+    @keyframes fifs-scroll-in { from { opacity: 0; translate: 0 26px; } to { opacity: 1; translate: 0 0; } }
+  }
+}
