@@ -215,3 +215,4 @@ R05	2026-10-12T00:53:04.684Z	Remove the unreachable earlier copies of logAnalyti
 R07	2026-10-12T00:53:15.548Z	Remove the unreachable earlier copies of showPortalConflictModal() (the last definition wins, so they never run)	FAIL	379383	379383	0	Command failed: npm test
 [FIFS Route Discord] DISCORD_WEBHOOK_URL is not configured.
 [FIFS Route Discord] DISCORD_WEBHOO
+R08	2026-10-12T00:53:23.989Z	Remove the unreachable earlier copies of lookupStudentAccount() (the last definition wins, so they never run)	SUCCESS	379383	378947	-436	script gzip bytes; 2095 raw bytes removed

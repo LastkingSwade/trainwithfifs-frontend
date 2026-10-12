@@ -972,49 +972,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
     }
     window.closeGoalSynopsis = closeGoalSynopsis;
-    function openStepDetailModal(stepNum) {
-      var data = FIFS_STEPS_DATA[stepNum];
-      if (!data) return;
-      var modal = document.getElementById('stepDetailModal');
-      var badge = document.getElementById('stepModalBadge');
-      var heading = document.getElementById('stepModalHeading');
-      var icon = document.getElementById('stepModalIcon');
-      var status = document.getElementById('stepModalStatus');
-      var synopsis = document.getElementById('stepModalSynopsis');
-      var keyPoints = document.getElementById('stepModalKeyPoints');
-      var actions = document.getElementById('stepModalActions');
-      if (badge) badge.textContent = `STEP ${stepNum} OF 8 • TRAINING ROADMAP`;
-      if (heading) heading.textContent = data.title;
-      if (icon) icon.textContent = data.icon;
-      if (status) status.textContent = `Status: ${data.status}`;
-      if (synopsis) synopsis.textContent = data.synopsis;
-      if (keyPoints && Array.isArray(data.points)) {
-        keyPoints.innerHTML = data.points.map(p => `
-          <div style="background: #0d121a; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; color: #cbd5e1;">
-            ${p}
-          </div>
-        `).join('');
-      }
-      if (actions) {
-        actions.innerHTML = `
-          <button type="button" class="btn-primary" onclick="closeStepDetailModal(); ${data.ctaAction};">
-            ${data.ctaText}
-          </button>
-          <button type="button" class="btn-secondary-modal" onclick="closeStepDetailModal()">
-            Close Step Overview
-          </button>
-        `;
-      }
-      if (modal) {
-        modal.classList.add('active');
-        modal.style.setProperty('display', 'flex', 'important');
-        modal.style.setProperty('opacity', '1', 'important');
-        modal.style.setProperty('visibility', 'visible', 'important');
-        modal.style.setProperty('pointer-events', 'auto', 'important');
-        document.body.classList.add('modal-open');
-        document.body.style.overflow = 'hidden';
-      }
-    }
     window.openStepDetailModal = openStepDetailModal;
     function closeStepDetailModal() {
       var modal = document.getElementById('stepDetailModal');
