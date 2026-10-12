@@ -35,5 +35,13 @@ test('V5 Cards ease in on scroll with pure CSS: only where supported, only when 
   assert(/@keyframes fifs-scroll-in \{ from \{ opacity: 0; translate: 0 26px; \} to \{ opacity: 1; translate: 0 0; \} \}/.test(t), 'only opacity and translate change (no layout properties)');
   assert(!/(^|[^-])(top|left|width|height|margin)\s*:/.test(t.split('@keyframes')[1] || ''), 'no layout-triggering properties');
 });
+test('V6 Home screen icons are consistent thin-line icons (no emoji in the hero), decorative and hidden from screen readers, one stroke weight', () => {
+  const ICONS = R('src/ui/HeroIcons.tsx'), hero = PAGE.slice(PAGE.indexOf('className="hero-intro-card"'), PAGE.indexOf('Official Google Reviews'));
+  assert(!/\p{Extended_Pictographic}/u.test(hero.replace(/[★•▼]/g, '')), 'no emoji left in the hero block');
+  for (const n of ['IconShield', 'IconTarget', 'IconStar', 'IconBolt', 'IconUser', 'IconHelp', 'IconChat']) assert(new RegExp('<' + n + ' />').test(hero) || n === 'IconChat', n + ' used in the hero');
+  assert(/aria-hidden="true"/.test(ICONS) && /focusable="false"/.test(ICONS) && /strokeWidth="1\.6"/.test(ICONS) && (ICONS.match(/strokeWidth=/g) || []).length === 1, 'decorative, and a single stroke weight');
+  assert(/<IconChat \/>/.test(PAGE.slice(PAGE.indexOf('id="floatingCommPill"'), PAGE.indexOf('id="floatingCommPill"') + 700)), 'the floating chat button uses the same icon');
+  assert(/\.fi-ico \{ display: inline-block; vertical-align: -0\.18em;/.test(GCSS), 'icons sit on the text baseline');
+});
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
 process.exit(failed ? 1 : 0);
