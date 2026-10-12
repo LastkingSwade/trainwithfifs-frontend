@@ -126,47 +126,6 @@ function fifsRemoveClientSession() { window.__fifsClientPortalRecord = null; }
       setCardTier(courseKey, isVip ? 'base' : 'vip', evt);
     }
     window.toggleCardTier = toggleCardTier;
-
-
-    // === TACTICAL GUN REFRESH & SCARED NAVIGATION SYSTEM ===
-    function triggerTopNavGunReload(evt) {
-      if (evt) {
-        if (evt.stopPropagation) evt.stopPropagation();
-        if (evt.preventDefault) evt.preventDefault();
-      }
-      var refreshBtn = document.getElementById('btnNavRefresh') || document.querySelector('.btn-nav-refresh') || document.querySelector('[data-onclick*="triggerTopNavGunReload"]');
-      var backBtn = document.getElementById('btnNavBack') || document.querySelector('.btn-nav-back');
-      var homeBtn = document.getElementById('btnNavHome') || document.querySelector('.btn-return-home');
-
-
-      if (backBtn) backBtn.classList.add('nav-btn-scared-left');
-      if (homeBtn) homeBtn.classList.add('nav-btn-scared-right');
-
-
-      if (refreshBtn) {
-        refreshBtn.classList.add('tactical-gun-recoil');
-        var originalText = refreshBtn.innerHTML;
-        
-        refreshBtn.innerHTML = '⚡ RACKING...';
-        setTimeout(function() {
-          refreshBtn.innerHTML = '💥 BANG!';
-        }, 350);
-        setTimeout(function() {
-          refreshBtn.innerHTML = '💨 EJECTING...';
-        }, 700);
-        setTimeout(function() {
-          refreshBtn.innerHTML = '🔄 LOCKED & LOADED';
-        }, 1050);
-        setTimeout(function() {
-          refreshBtn.classList.remove('tactical-gun-recoil');
-          refreshBtn.innerHTML = originalText;
-          if (backBtn) backBtn.classList.remove('nav-btn-scared-left');
-          if (homeBtn) homeBtn.classList.remove('nav-btn-scared-right');
-          if (window.refreshAdminRoster) window.refreshAdminRoster();
-          if (window.refreshAdminClients) window.refreshAdminClients();
-        }, 1500);
-      }
-    }
     window.triggerTopNavGunReload = triggerTopNavGunReload;
     window.triggerGunRefreshAnimation = triggerTopNavGunReload;
 

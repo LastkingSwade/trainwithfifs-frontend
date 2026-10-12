@@ -220,3 +220,4 @@ R09	2026-10-12T00:53:32.246Z	Remove the unreachable earlier copies of openStepDe
 R10	2026-10-12T00:53:40.405Z	Remove the unreachable earlier copies of switchClientAuthTab() (the last definition wins, so they never run)	SUCCESS	378548	378311	-237	script gzip bytes; 2019 raw bytes removed
 R11	2026-10-12T00:53:50.049Z	Remove the unreachable earlier copies of openExpectationModal() (the last definition wins, so they never run)	SUCCESS	378311	377906	-405	script gzip bytes; 1860 raw bytes removed
 R12	2026-10-12T00:53:59.826Z	Remove the unreachable earlier copies of generateCoachWadeReply() (the last definition wins, so they never run)	SUCCESS	377906	377344	-562	script gzip bytes; 1741 raw bytes removed
+R13	2026-10-12T00:54:08.101Z	Remove the unreachable earlier copies of returnToHome() (the last definition wins, so they never run)	SUCCESS	377344	377219	-125	script gzip bytes; 1723 raw bytes removed
