@@ -96,5 +96,12 @@ test('Owner CSS batch: no chat bubble on the homepage, admin buttons in one swip
   assert(/min-height: 44px; min-width: 44px;/.test(tail), '44px touch targets in the header');
   assert(/@media \(max-width: 380px\)/.test(tail) && /@media \(max-width: 340px\)/.test(tail), 'very small phones are covered so the header never widens the page');
 });
+test('Portal sign-out really signs out: Student and Client sign-out also clear the saved Supabase login on this device (not only the page), and registration clears a stale login for another email', () => {
+  const body = (name) => { const i = JS.lastIndexOf('function ' + name + '()'); return JS.slice(i, i + 700); };
+  assert(/function fifsSignOutSupabase\(\)[\s\S]{0,400}signOut\(\{ scope: 'local' \}\)/.test(JS), 'the helper signs out with scope local (this device only)');
+  for (const fn of ['logoutStudent', 'fiLogoutClient', 'logoutClient']) assert(/fifsSignOutSupabase\(\);/.test(body(fn)), fn + ' must clear the saved login');
+  const reg = JS.slice(JS.indexOf('async function handleClientRegisterSubmit'), JS.indexOf('async function handleClientRegisterSubmit') + 4200);
+  assert(!/Sign out before creating this profile/.test(reg) && /signOut\(\{ scope: 'local' \}\)/.test(reg) && /still signed in to another account/.test(reg), 'registration clears the stale login and still refuses if it cannot');
+});
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
 process.exit(failed ? 1 : 0);

@@ -52,6 +52,15 @@ function fifsRemoveStudentSession() { window.__fifsStudentPortalRecord = null; }
 function fifsGetClientSession() { return window.__fifsClientPortalRecord ? JSON.stringify(window.__fifsClientPortalRecord) : null; }
 function fifsSetClientSession(value) { try { window.__fifsClientPortalRecord = typeof value === 'string' ? JSON.parse(value) : value; } catch (_) { window.__fifsClientPortalRecord = null; } }
 function fifsRemoveClientSession() { window.__fifsClientPortalRecord = null; }
+// The portal screens keep their record in memory, but Supabase also keeps a saved login in this browser. Signing out of a portal must clear that too,
+// otherwise a "signed out" browser still looks signed in to the next sign-up or sign-in (this device only; other devices are not affected).
+function fifsSignOutSupabase() {
+  try {
+    var c = window.supabaseClient || (typeof createSupabaseClient === 'function' ? createSupabaseClient() : null);
+    if (c && c.auth && typeof c.auth.signOut === 'function') return Promise.resolve(c.auth.signOut({ scope: 'local' })).catch(function() {});
+  } catch (e) { /* nothing to clear */ }
+  return Promise.resolve();
+}
 // === AUTHORITATIVE ALL-8 COURSE TIER CONFIGURATION ===
         var COURSE_TIER_CONFIG = {
       mastery: {
@@ -1555,6 +1564,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       try {
         fifsRemoveClientSession();
         fifsRemoveClientSession();
+        fifsSignOutSupabase();
         purgeAllSessionCookies();
         var authBox = document.getElementById('client-auth-box');
         var dashBox = document.getElementById('client-active-dashboard');
@@ -2712,7 +2722,13 @@ function loadDemoStudent() {
         var sessionResult = await authClient.auth.getSession();
         var session = sessionResult && sessionResult.data && sessionResult.data.session;
         if (session && String(session.user && session.user.email || '').toLowerCase() !== email) {
-          throw new Error('You are signed in with a different email. Sign out before creating this profile.');
+          // A saved login from an earlier visit (a past portal, a booking, or staff sign-in on this device) is still in this browser even though the
+          // page looks signed out. The person is creating a NEW profile with a password they just typed, so clear the old saved login on this device
+          // only, then continue. If clearing fails we still stop, rather than attach the new profile to the wrong account.
+          await authClient.auth.signOut({ scope: 'local' });
+          var after = await authClient.auth.getSession();
+          session = after && after.data && after.data.session;
+          if (session) throw new Error('This device is still signed in to another account. Close other tabs of this site, refresh, and try again.');
         }
         if (!session) {
           var signUpResult = await authClient.auth.signUp({
@@ -5114,6 +5130,7 @@ function openAdminEditStudentModal(studentId) {
     }
     function logoutStudent() {
       fifsRemoveStudentSession();
+      fifsSignOutSupabase();
       var dash = document.getElementById('student-active-dashboard');
       var login = document.getElementById('student-login-box');
       if (dash) dash.classList.add('hidden');
@@ -7089,6 +7106,7 @@ function getStepNumberFromStatus(statusStr) {
     // Replaced with robust renderClientDashboard
     function fiLogoutClient() {
       fifsRemoveClientSession();
+      fifsSignOutSupabase();
       var authBox = document.getElementById('client-auth-box');
       var dashBox = document.getElementById('client-active-dashboard');
       if (dashBox) dashBox.style.display = 'none';

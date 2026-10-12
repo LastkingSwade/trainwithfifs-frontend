@@ -132,6 +132,39 @@ async function testEmailConfirmationReturnCompletesProfileAndDashboard() {
   assert.ok(window.__clientSession, 'created profile is stored for the current session');
 }
 
+async function testStaleSavedLoginForAnotherEmailIsClearedThenSignupContinues() {
+  insertedRows.length = 0;
+  let saved = { access_token: 'old-token', user: { id: 'old-user', email: 'someone.else@example.com' } };
+  const calls = [];
+  const auth = {
+    async getSession() { return { data: { session: saved } }; },
+    async signOut(opts) { calls.push(['signOut', opts && opts.scope]); saved = null; return { error: null }; },
+    async signUp() { calls.push(['signUp']); saved = { access_token: 'valid-access-token', user: verifiedUser }; return { data: { session: saved }, error: null }; }
+  };
+  let dashboard = null;
+  const { window, elements } = makeBrowserContext({ auth, onDashboard(v) { dashboard = v; } });
+  await window.handleClientRegisterSubmit({ preventDefault() {} });
+  assert.deepEqual(calls, [['signOut', 'local'], ['signUp']], 'the old saved login is cleared on this device only, then the new account is created');
+  assert.doesNotMatch(String(elements['client-register-status'].innerText || ''), /different email/i, 'the person is not told to sign out of something they cannot see');
+  assert.equal(insertedRows.length, 1); assert.equal(insertedRows[0].user_id, verifiedUser.id, 'the profile belongs to the new account');
+  assert.ok(dashboard, 'the new client reaches the dashboard');
+}
+
+async function testStaleLoginThatCannotBeClearedStopsInsteadOfUsingTheWrongAccount() {
+  insertedRows.length = 0;
+  const calls = [];
+  const auth = {
+    async getSession() { return { data: { session: { access_token: 'old-token', user: { id: 'old-user', email: 'someone.else@example.com' } } } }; },
+    async signOut() { calls.push('signOut'); return { error: null }; },
+    async signUp() { calls.push('signUp'); return { data: { session: null }, error: null }; }
+  };
+  const { window, elements } = makeBrowserContext({ auth });
+  await window.handleClientRegisterSubmit({ preventDefault() {} });
+  assert.deepEqual(calls, ['signOut'], 'no account is created while another login is still active');
+  assert.match(String(elements['client-register-status'].innerText || ''), /still signed in to another account/i);
+  assert.equal(insertedRows.length, 0, 'no profile is created for the wrong account');
+}
+
 async function testVerifiedAuthUidCannotBeOverridden() {
   insertedRows.length = 0;
   const request = {
@@ -150,6 +183,8 @@ async function testVerifiedAuthUidCannotBeOverridden() {
   const tests = [
     ['public signup waits for email confirmation', testPublicSignupAwaitingEmailConfirmation],
     ['email-confirmation return creates profile and renders dashboard', testEmailConfirmationReturnCompletesProfileAndDashboard],
+    ['a stale saved login for another email is cleared, then sign-up continues', testStaleSavedLoginForAnotherEmailIsClearedThenSignupContinues],
+    ['a saved login that cannot be cleared stops the sign-up (never the wrong account)', testStaleLoginThatCannotBeClearedStopsInsteadOfUsingTheWrongAccount],
     ['client row links only to verified Supabase user_id', testVerifiedAuthUidCannotBeOverridden]
   ];
   let failures = 0;
