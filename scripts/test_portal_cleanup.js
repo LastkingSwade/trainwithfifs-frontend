@@ -31,9 +31,9 @@ test('Client: the slide-through bar (with its Switch to Student Portal button) i
   assert(!/fi-portal-subnav/.test(client) && !/Switch to Student Portal/.test(client), 'bar removed');
   for (const fn of ['toggleReciprocityHubModal', 'toggleMultiPermitModal', 'openVehicleTravelModal', 'openFlyingWithFirearmModal', 'openPermitRenewalModal', 'openClientProfileModal', 'openFutureServicesModal', 'openClientFaqModal', 'openWallet']) assert(new RegExp('fi-feature-card[^>]*onClick=\\{\\(\\) => \\{ if \\(typeof window[^}]*' + fn).test(client), fn + ' card');
 });
-test('Client: hub order is Reciprocity Hub, then the Document Vault, then 34+ State and the rest', () => {
+test('Client: hub order is Document Vault first, then the Reciprocity Hub, then 34+ State and the rest', () => {
   const t = client.slice(client.indexOf('fi-hub-cards-grid')); const at = (x) => t.indexOf(x);
-  assert(at('CARD 1: 50-STATE') > 0 && at('CARD 1: 50-STATE') < at('CARD 2: DOCUMENT VAULT') && at('CARD 2: DOCUMENT VAULT') < at('CARD 2: 34+ STATE'), 'order');
+  assert(at('CARD 1: DOCUMENT VAULT') > 0 && at('CARD 1: DOCUMENT VAULT') < at('CARD 2: 50-STATE') && at('CARD 2: 50-STATE') < at('CARD 3: 34+ STATE'), 'order');
   assert(/id="fi-vault-launch"/.test(t) && /openWallet/.test(t), 'vault card opens the vault');
 });
 test('Client: the renewal countdown sits right under the permit card, and the vault is no longer drawn there', () => {

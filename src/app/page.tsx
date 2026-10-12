@@ -5664,7 +5664,25 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <section id="fi-client-extras" className="pextras" aria-label="Permit renewal" hidden></section>
               {/* 8 PRIMARY RESOURCE CARDS (INTERACTIVE MODAL LAUNCHERS) */}
               <div className="fi-hub-cards-grid">
-                {/* CARD 1: 50-STATE RECIPROCITY HUB */}
+                {/* CARD 1: DOCUMENT VAULT (opens the vault panel in src/portal/WalletPanel.tsx) */}
+                <div className="fi-feature-card fi-vault-card" id="fi-vault-launch" onClick={() => { if (typeof window !== 'undefined' && (window as any).openWallet) (window as any).openWallet(); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
+                  <div>
+                    <span className="fi-feature-icon">
+                      🔐
+                    </span>
+                    <h3 className="fi-feature-title">
+                      Your Document Vault
+                    </h3>
+                    <p className="fi-feature-desc">
+                      Your training. Your records. All together. Keep your permit card, class certificate or HQL approval in one private place. Only you can open them, and they are stored encrypted.
+                    </p>
+                  </div>
+                  <button className="btn-spark" data-onclick="openWallet()" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && (window as any).openWallet) (window as any).openWallet(); }} type="button" style={{"width": "100%", "marginTop": "14px", "borderColor": "#ffb703", "color": "#ffd166"}}>
+                    🔐 Open My Document Vault ↗
+                  </button>
+                </div>
+
+                {/* CARD 2: 50-STATE RECIPROCITY HUB */}
                 <div className="fi-feature-card" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleReciprocityHubModal) (window as any).toggleReciprocityHubModal(true); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                   <div>
                     <span className="fi-feature-icon">
@@ -5685,25 +5703,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
 
 
-                {/* CARD 2: DOCUMENT VAULT (opens the vault panel in src/portal/WalletPanel.tsx) */}
-                <div className="fi-feature-card fi-vault-card" id="fi-vault-launch" onClick={() => { if (typeof window !== 'undefined' && (window as any).openWallet) (window as any).openWallet(); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
-                  <div>
-                    <span className="fi-feature-icon">
-                      🔐
-                    </span>
-                    <h3 className="fi-feature-title">
-                      Your Document Vault
-                    </h3>
-                    <p className="fi-feature-desc">
-                      Your training. Your records. All together. Keep your permit card, class certificate or HQL approval in one private place. Only you can open them, and they are stored encrypted.
-                    </p>
-                  </div>
-                  <button className="btn-spark" data-onclick="openWallet()" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && (window as any).openWallet) (window as any).openWallet(); }} type="button" style={{"width": "100%", "marginTop": "14px", "borderColor": "#ffb703", "color": "#ffd166"}}>
-                    🔐 Open My Document Vault ↗
-                  </button>
-                </div>
-
-                {/* CARD 2: 34+ STATE MULTI-PERMIT EXPANSION SYSTEM */}
+                {/* CARD 3: 34+ STATE MULTI-PERMIT EXPANSION SYSTEM */}
                 <div className="fi-feature-card highlight" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} style={{"borderColor": "rgba(245, 158, 11, 0.45)", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.98) 100%)", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                   <div>
                     <span className="fi-feature-icon" style={{"color": "#F59E0B"}}>
