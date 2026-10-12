@@ -434,46 +434,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
     }
     window.openAndSwitch = openAndSwitch;
-    function returnToHome() {
-      try {
-        closeAllOverlays();
-        if (currentActiveView !== 'home') {
-          contextualHistoryStack.push(currentActiveView);
-          if (contextualHistoryStack.length > 25) contextualHistoryStack.shift();
-        }
-        currentActiveView = 'home';
-        window.currentActiveView = 'home';
-        document.body.classList.remove('in-app');
-        document.body.classList.add('in-home');
-        document.body.className = 'in-home';
-        var hero = document.getElementById('hero-landing');
-        var app = document.getElementById('app-container');
-        if (app) {
-          app.style.setProperty('display', 'none', 'important');
-          app.style.setProperty('visibility', 'hidden', 'important');
-          app.style.setProperty('pointer-events', 'none', 'important');
-          app.classList.remove('active-view');
-        }
-        if (hero) {
-          hero.style.setProperty('display', 'flex', 'important');
-          hero.style.setProperty('visibility', 'visible', 'important');
-          hero.style.setProperty('opacity', '1', 'important');
-          hero.style.setProperty('pointer-events', 'auto', 'important');
-          hero.classList.remove('hidden-view');
-        }
-        ALL_APP_TABS.forEach(function(t) {
-          var panel = document.getElementById('view-' + t);
-          if (panel) {
-            panel.classList.add('hidden');
-            panel.style.setProperty('display', 'none', 'important');
-            panel.style.setProperty('pointer-events', 'none', 'important');
-          }
-        });
-        try { window.scrollTo(0, 0); } catch (e) {}
-        } catch (err) {
-        console.error('Error in returnToHome:', err);
-      }
-    }
     window.returnToHome = returnToHome;
     function navigateBack() {
       try {
