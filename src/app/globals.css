@@ -6053,3 +6053,16 @@ header.app-header .btn-nav-profile { padding: 0 !important; width: 44px; positio
 @media (prefers-reduced-motion: reduce) {
   header.app-header .site-header-nav-btn, :where(button, a[href], [role="button"], summary, select, textarea, input, [data-onclick]) { transition: none !important; }
 }
+
+/* ==========================================================================
+   Visual polish. Appended (this file is append-only); every rule is a refinement of the existing look, not a new look.
+   ========================================================================== */
+
+/* ---- V2 Typography: the fonts are loaded by next/font in layout.tsx (the old <Head> font links never reached the page, so visitors were seeing plain
+   system fonts). Rajdhani gives headings and tactical labels their HUD character; Geist keeps body text calm; Geist Mono is for numbers and codes.
+   The system fonts stay as the fallbacks, so if a font cannot load the page looks as it did before. ---- */
+:root {
+  --font-display: var(--font-rajdhani), 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: var(--font-geist), 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}

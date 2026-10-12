@@ -11,5 +11,14 @@ test('V1 The brand logo (header, favicon, portal logos) comes from the site itse
   assert(/id="brand-logo"[^>]*src="\/icons\/icon-192\.png"/.test(PAGE) && /rel="icon" type="image\/png" href="\/icons\/icon-192\.png"/.test(PAGE), 'header logo and favicon use the local emblem');
   assert(fs.existsSync(path.join(ROOT, 'public/icons/icon-192.png')), 'the emblem file exists');
 });
+test('V2 Fonts are loaded the working way (next/font, served from this site): Rajdhani for headings and labels, Geist for text, Geist Mono for numbers; system fonts stay as fallbacks', () => {
+  const L = R('src/app/layout.tsx');
+  assert(/from "next\/font\/google"/.test(L) && /Geist\(\{ subsets: \["latin"\], variable: "--font-geist", display: "swap" \}\)/.test(L) && /Geist_Mono\(/.test(L) && /Rajdhani\(\{ subsets: \["latin"\], weight: \["500", "600", "700"\]/.test(L), 'three fonts loaded with next/font');
+  assert(/<html lang="en" className=\{`\$\{geist\.variable\} \$\{geistMono\.variable\} \$\{rajdhani\.variable\}`\}>/.test(L), 'the font variables are set on <html>');
+  const tail = GCSS.slice(GCSS.indexOf('V2 Typography'));
+  assert(/--font-display: var\(--font-rajdhani\), 'Rajdhani', -apple-system/.test(tail) && /--font-body: var\(--font-geist\), 'Geist', -apple-system/.test(tail) && /--font-mono: var\(--font-geist-mono\)/.test(tail), 'the site-wide font variables point at the loaded fonts and keep system fallbacks');
+  assert(!/Inter/.test(tail.split('}')[0]), 'Inter is no longer the first choice');
+  assert(!/fonts\.googleapis\.com/.test(L), 'no runtime request to Google Fonts from the layout');
+});
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
 process.exit(failed ? 1 : 0);
