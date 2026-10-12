@@ -16,6 +16,7 @@ import { installOnlineForm } from "@/online/onlineForm";
 import { installStudentOnline } from "@/online/studentOnline";
 import { installStudentExtras } from "@/portal/studentExtras";
 import { installClientExtras } from "@/portal/clientExtras";
+import { installPermitCardLive } from "@/portal/permitCardLive";
 import { installSkeletons } from "@/portal/skeleton";
 import { installPolish } from "@/polish/polish";
 import { installStudentScoresheet } from "@/portal/studentScoresheet";
@@ -24,6 +25,8 @@ import { installHeaderProfile } from "@/portal/headerProfile";
 import { installAdminExtras } from "@/portal/adminExtras";
 import { installAdminAttention } from "@/portal/adminAttention";
 import "@/portal/portal.css";
+import "@/portal/dashboard.css";
+import "@/portal/start.css";
 import { DAY2_ACK_TEXT, DAY2_STATEMENT, DAY2_WHY, DAY2_WHY_TITLE, FEE_LABEL, IN_PERSON_NOTE, ONLINE_BENEFITS, ONLINE_NAME, ONLINE_PITCH_TITLE, TECH_REQUIREMENTS } from "@/online/onlineCopy";
 import Head from "next/head";
 import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
@@ -4187,7 +4190,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -4773,14 +4776,16 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </span>
                 </div>
               </div>
-              <button className="btn-sign-out" data-onclick="logoutStudent()" type="button">
-                
-            Sign Out
-          
-              </button>
-              <button className="btn-change-password" data-onclick="openChangePasswordModal('student')" onClick={() => { if (typeof window !== 'undefined' && (window as any).openChangePasswordModal) (window as any).openChangePasswordModal('student'); }} type="button" style={{"marginTop": "8px", "background": "rgba(0, 229, 255, 0.08)", "border": "1px solid rgba(0, 229, 255, 0.4)", "color": "var(--accent-cyan)", "padding": "6px 14px", "borderRadius": "6px", "fontSize": "0.82rem", "fontWeight": "600", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
-                🔑 Change Password
-              </button>
+              <div className="fi-acct-row">
+                <button className="btn-sign-out" data-onclick="logoutStudent()" type="button">
+                  
+              Sign Out
+            
+                </button>
+                <button className="btn-change-password" data-onclick="openChangePasswordModal('student')" onClick={() => { if (typeof window !== 'undefined' && (window as any).openChangePasswordModal) (window as any).openChangePasswordModal('student'); }} type="button" style={{"marginTop": "8px", "background": "rgba(0, 229, 255, 0.08)", "border": "1px solid rgba(0, 229, 255, 0.4)", "color": "var(--accent-cyan)", "padding": "6px 14px", "borderRadius": "6px", "fontSize": "0.82rem", "fontWeight": "600", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                  🔑 Change Password
+                </button>
+              </div>
             </div>
             {/* Priority Action Concierge Hero Card */}
             <div className="next-step-card">
@@ -4958,29 +4963,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     </p>
                   </div>
                 </div>
-              </div>
-            </div>
-            {/* ================= OFFICIAL MARYLAND QUALIFICATION SCORE SHEET ================= */}
-            <div className="portal-score-sheet-card" style={{"background": "#0d121a", "border": "1px solid rgba(0, 229, 255, 0.3)", "borderRadius": "14px", "padding": "20px", "marginBottom": "24px"}}>
-              <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "14px"}}>
-                <div>
-                  <span style={{"fontFamily": "var(--font-display)", "fontSize": "0.78rem", "fontWeight": "800", "color": "var(--accent-cyan)", "letterSpacing": "1px", "textTransform": "uppercase"}}>
-                    Official State Police Form
-                  </span>
-                  <h3 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "marginTop": "2px"}}>
-                    🎯 Maryland State Police Qualification Score Sheet (MSP Form 29-14)
-                  </h3>
-                  <p style={{"fontSize": "0.86rem", "color": "#cbd5e1", "marginTop": "4px", "maxWidth": "650px"}}>
-                    
-                Review the exact state qualification scorecard used on the firing line at Cindy's Hot Shots. Details the 25-round course of fire (3, 5, 7, and 15 yards), scoring criteria, and instructor certification.
-              
-                  </p>
-                </div>
-                <button type="button" className="btn-spark" data-onclick="openOfficialMspScoreSheet()" style={{"width": "auto", "padding": "10px 20px", "fontSize": "0.90rem", "display": "inline-flex", "alignItems": "center", "gap": "6px", "cursor": "pointer"}}>
-                  <span>
-                    📄 View / Download Official Score Sheet (PDF) ↗
-                  </span>
-                </button>
               </div>
             </div>
             {/* Student Documents & Resources */}
@@ -5438,50 +5420,18 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     </span>
                   </div>
                 </div>
-                <button className="btn-sign-out" data-onclick="fiLogoutClient()" type="button">
-                  
-              Sign Out
-            
-                </button>
-                <button className="btn-change-password" data-onclick="openChangePasswordModal('client')" onClick={() => { if (typeof window !== 'undefined' && (window as any).openChangePasswordModal) (window as any).openChangePasswordModal('client'); }} type="button" style={{"marginTop": "8px", "background": "rgba(245, 158, 11, 0.08)", "border": "1px solid rgba(245, 158, 11, 0.4)", "color": "var(--accent-amber)", "padding": "6px 14px", "borderRadius": "6px", "fontSize": "0.82rem", "fontWeight": "600", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
-                  🔑 Change Password
-                </button>
+                <div className="fi-acct-row">
+                  <button className="btn-sign-out" data-onclick="fiLogoutClient()" type="button">
+                    
+                Sign Out
+              
+                  </button>
+                  <button className="btn-change-password" data-onclick="openChangePasswordModal('client')" onClick={() => { if (typeof window !== 'undefined' && (window as any).openChangePasswordModal) (window as any).openChangePasswordModal('client'); }} type="button" style={{"background": "rgba(245, 158, 11, 0.08)", "border": "1px solid rgba(245, 158, 11, 0.4)", "color": "var(--accent-amber)", "padding": "6px 14px", "borderRadius": "6px", "fontSize": "0.82rem", "fontWeight": "600", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}}>
+                    🔑 Change Password
+                  </button>
+                </div>
               </div>
-              {/* CLIENT PORTAL STICKY SUBNAV */}
-              <nav aria-label="Client Portal Navigation" className="fi-portal-subnav">
-                <a className="fi-subnav-btn active" href="#fi-sec-dashboard">
-                  📊 Dashboard
-                </a>
-                <button className="fi-subnav-btn" data-onclick="toggleReciprocityHubModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleReciprocityHubModal) (window as any).toggleReciprocityHubModal(true); }} type="button">
-                  🗺️ 50-State Reciprocity Hub
-                </button>
-                <button className="fi-subnav-btn" data-onclick="toggleMultiPermitModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} type="button" style={{"borderColor": "rgba(245, 158, 11, 0.45)", "color": "#F59E0B"}}>
-                  ⭐ 34+ State System
-                </button>
-                <button className="fi-subnav-btn" data-onclick="openVehicleTravelModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openVehicleTravelModal) (window as any).openVehicleTravelModal(); }} type="button">
-                  🚗 Vehicle Travel
-                </button>
-                <button className="fi-subnav-btn" data-onclick="openFlyingWithFirearmModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openFlyingWithFirearmModal) (window as any).openFlyingWithFirearmModal(); }} type="button">
-                  ✈️ Flying With Firearms
-                </button>
-                <button className="fi-subnav-btn" data-onclick="openPermitRenewalModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openPermitRenewalModal) (window as any).openPermitRenewalModal(); }} type="button">
-                  ⏱️ Permit & Renewal
-                </button>
-                <button className="fi-subnav-btn" data-onclick="openClientProfileModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openClientProfileModal) (window as any).openClientProfileModal(); }} type="button">
-                  👤 Client Profile
-                </button>
-                <button className="fi-subnav-btn" data-onclick="openFutureServicesModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openFutureServicesModal) (window as any).openFutureServicesModal(); }} type="button">
-                  🛡️ Services & Booking
-                </button>
-                <button className="fi-subnav-btn" data-onclick="openClientFaqModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openClientFaqModal) (window as any).openClientFaqModal(); }} type="button">
-                  ❓ Client FAQ
-                </button>
-                <button className="fi-subnav-btn" data-onclick="switchTab('portal')" onClick={() => { if (typeof window !== 'undefined' && (window as any).switchTab) (window as any).switchTab('portal'); }} style={{"borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)"}} type="button">
-                  🎓 Switch to Student Portal
-                </button>
-              </nav>
               {/* PORTAL HERO BANNER */}
-              <section id="fi-client-extras" className="pextras" aria-label="Permit renewal" hidden></section>
               <div className="fi-banner-card" id="fi-sec-dashboard">
                 <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "flexWrap": "wrap", "gap": "16px"}}>
                   <div style={{"maxWidth": "780px"}}>
@@ -5565,8 +5515,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       
                       {/* LEFT: CARRIER PHOTO BADGE & SECURITY HOLOGRAM */}
                       <div style={{"display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "background": "linear-gradient(135deg, rgba(16, 24, 38, 0.9) 0%, rgba(8, 12, 18, 0.95) 100%)", "border": "1.5px solid rgba(0, 229, 255, 0.3)", "borderRadius": "12px", "padding": "16px", "textAlign": "center"}}>
-                        <div style={{"width": "100px", "height": "110px", "borderRadius": "8px", "background": "linear-gradient(180deg, #1e293b 0%, #0f172a 100%)", "border": "2px solid #F59E0B", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "position": "relative", "overflow": "hidden", "boxShadow": "0 4px 15px rgba(0,0,0,0.6)"}}>
-                          <span style={{"fontSize": "42px", "opacity": "0.9"}}>👤</span>
+                        <div id="wallet-photo-box" className="wallet-photo-box" style={{"width": "100px", "height": "110px", "borderRadius": "8px", "background": "linear-gradient(180deg, #1e293b 0%, #0f172a 100%)", "border": "2px solid #F59E0B", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "position": "relative", "overflow": "hidden", "boxShadow": "0 4px 15px rgba(0,0,0,0.6)"}}>
+                          <span className="wallet-photo-fallback" style={{"fontSize": "42px", "opacity": "0.9"}}>👤</span>
                           <div style={{"position": "absolute", "bottom": "0", "width": "100%", "background": "rgba(245, 158, 11, 0.85)", "color": "#030712", "fontSize": "0.62rem", "fontWeight": "900", "padding": "2px 0", "letterSpacing": "1px", "textTransform": "uppercase"}}>
                             VERIFIED
                           </div>
@@ -5663,10 +5613,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
                         <div style={{"gridColumn": "1 / -1", "paddingTop": "6px", "borderTop": "1px solid rgba(255, 255, 255, 0.06)", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "6px"}}>
                           <div style={{"fontSize": "0.72rem", "color": "#94a3b8"}}>
-                            <strong style={{"color": "#cbd5e1"}}>RESTRICTIONS:</strong> <span style={{"color": "var(--accent-green)", "fontWeight": "700"}}>NONE (Unrestricted Concealed Carry)</span>
+                            <strong style={{"color": "#cbd5e1"}}>RESTRICTIONS:</strong> <span id="wallet-restrictions" style={{"color": "var(--accent-green)", "fontWeight": "700"}}>NONE (Unrestricted Concealed Carry)</span>
                           </div>
                           <div style={{"fontSize": "0.72rem", "color": "#94a3b8"}}>
-                            <strong style={{"color": "#cbd5e1"}}>CLASS:</strong> STANDARD RESIDENT CCW
+                            <strong style={{"color": "#cbd5e1"}}>CLASS:</strong> <span id="wallet-class">STANDARD RESIDENT CCW</span>
                           </div>
                         </div>
                       </div>
@@ -5707,31 +5657,11 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
 
 
-                      <div style={{"display": "flex", "gap": "10px", "flexWrap": "wrap"}}>
-                        <button className="btn-spark" data-onclick="toggleReciprocityHubModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleReciprocityHubModal) (window as any).toggleReciprocityHubModal(true); }} style={{"width": "auto", "padding": "8px 16px", "fontSize": "0.85rem", "borderColor": "var(--accent-cyan)", "color": "var(--accent-cyan)"}} type="button">
-                          🗺️ Check 50-State Reciprocity Map ↗
-                        </button>
-                        <button className="btn-spark" data-onclick="toggleMultiPermitModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} style={{"width": "auto", "padding": "8px 16px", "fontSize": "0.85rem", "borderColor": "#F59E0B", "color": "#F59E0B"}} type="button">
-                          ⭐ 34+ State Expansion Guide ↗
-                        </button>
-                      </div>
                     </div>
                   </div></div>
-                <div style={{"display": "flex", "gap": "12px", "flexWrap": "wrap", "marginTop": "22px", "paddingTop": "18px", "borderTop": "1px solid rgba(255,255,255,0.08)"}}>
-                  <button className="btn-primary" data-onclick="openPermitRenewalModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openPermitRenewalModal) (window as any).openPermitRenewalModal(); }} style={{"width": "auto", "padding": "10px 20px", "fontSize": "0.88rem"}} type="button">
-                    ⏱️ Check Permit Expiration ↗
-                  </button>
-                  <button className="btn-spark" data-onclick="toggleReciprocityHubModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleReciprocityHubModal) (window as any).toggleReciprocityHubModal(true); }} style={{"width": "auto", "padding": "10px 20px", "fontSize": "0.88rem"}} type="button">
-                    🗺️ 50-State Reciprocity Engine ↗
-                  </button>
-                  <button className="btn-spark" data-onclick="toggleMultiPermitModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} style={{"width": "auto", "padding": "10px 20px", "fontSize": "0.88rem", "borderColor": "#F59E0B", "color": "#F59E0B"}} type="button">
-                    ⭐ 34+ State Expansion Field Guide ↗
-                  </button>
-                  <button className="btn-secondary" data-onclick="openFlyingWithFirearmModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openFlyingWithFirearmModal) (window as any).openFlyingWithFirearmModal(); }} style={{"width": "auto", "padding": "10px 20px", "fontSize": "0.88rem"}} type="button">
-                    ✈️ Flying With Firearms Guide ↗
-                  </button>
-                </div>
               </div>
+              {/* Permit renewal countdown: sits directly under the permit card (filled in by src/portal/clientExtras.ts) */}
+              <section id="fi-client-extras" className="pextras" aria-label="Permit renewal" hidden></section>
               {/* 8 PRIMARY RESOURCE CARDS (INTERACTIVE MODAL LAUNCHERS) */}
               <div className="fi-hub-cards-grid">
                 {/* CARD 1: 50-STATE RECIPROCITY HUB */}
@@ -5754,6 +5684,24 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
 
 
+
+                {/* CARD 2: DOCUMENT VAULT (opens the vault panel in src/portal/WalletPanel.tsx) */}
+                <div className="fi-feature-card fi-vault-card" id="fi-vault-launch" onClick={() => { if (typeof window !== 'undefined' && (window as any).openWallet) (window as any).openWallet(); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
+                  <div>
+                    <span className="fi-feature-icon">
+                      🔐
+                    </span>
+                    <h3 className="fi-feature-title">
+                      Your Document Vault
+                    </h3>
+                    <p className="fi-feature-desc">
+                      Your training. Your records. All together. Keep your permit card, class certificate or HQL approval in one private place. Only you can open them, and they are stored encrypted.
+                    </p>
+                  </div>
+                  <button className="btn-spark" data-onclick="openWallet()" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && (window as any).openWallet) (window as any).openWallet(); }} type="button" style={{"width": "100%", "marginTop": "14px", "borderColor": "#ffb703", "color": "#ffd166"}}>
+                    🔐 Open My Document Vault ↗
+                  </button>
+                </div>
 
                 {/* CARD 2: 34+ STATE MULTI-PERMIT EXPANSION SYSTEM */}
                 <div className="fi-feature-card highlight" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} style={{"borderColor": "rgba(245, 158, 11, 0.45)", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.98) 100%)", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
@@ -7440,6 +7388,93 @@ document.addEventListener('submit', handleDelegatedSubmit);
             Maryland firearms training designed to build knowledge, safety, and confidence without intimidation.
           </p>
         </div>
+        {/* Where to begin: four quick jumps in the order a first-timer needs them (buttons, so the page address and the site's hash links are untouched) */}
+        <nav className="start-jump" aria-label="Where to begin">
+          {[["start-goals","1","Pick your goal"],["start-steps","2","See the 8 steps"],["start-bring","3","What to bring"],["start-book","4","Book your class"]].map(([id,n,label]) => (
+            <button key={id} type="button" className="start-jump-btn" onClick={() => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }}>
+              <span className="start-jump-n" aria-hidden="true">{n}</span>{label}
+            </button>
+          ))}
+        </nav>
+        {/* Training Pathways Selector */}
+        <div className="pathway-selector-box" id="start-goals">
+          <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.25rem", "color": "#fff", "textAlign": "center"}}>
+            Not sure where to begin? Choose your goal!
+          </h4>
+          <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "textAlign": "center", "marginTop": "4px", "marginBottom": "16px"}}>
+            
+          Click any goal below to open an interactive breakdown and find the right path for your needs:
+        
+          </p>
+          <div className="pathway-grid">
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('new_to_firearms', this)" title="Learn more about starting with HQL" type="button">
+              <div className="pathway-intent">
+                Brand New to Firearms
+              </div>
+              <div className="pathway-rec">
+                Start Here: Information
+              </div>
+              <div className="pathway-cta">
+                Learn More & Free 50-Q Guide →
+              </div>
+            </button>
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_purchase', this)" title="Learn more about buying a handgun" type="button">
+              <div className="pathway-intent">
+                Looking to Buy a Pistol
+              </div>
+              <div className="pathway-rec">
+                Maryland HQL (Purchase License)
+              </div>
+              <div className="pathway-cta">
+                Learn More →
+              </div>
+            </button>
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_carry', this)" title="Learn more about concealed carry" type="button">
+              <div className="pathway-intent">
+                I Want to Carry in Public
+              </div>
+              <div className="pathway-rec">
+                Wear & Carry (CCW Permit)
+              </div>
+              <div className="pathway-cta">
+                Learn More →
+              </div>
+            </button>
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_both', this)" title="Learn more about CCW &amp; HQL combo" type="button">
+              <div className="pathway-intent">
+                I Want Both: Buy & Carry
+              </div>
+              <div className="pathway-rec">
+                CCW & HQL Combo (Best Value)
+              </div>
+              <div className="pathway-cta">
+                Learn More & Compare →
+              </div>
+            </button>
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('personalized_focus', this)" title="Learn more about 1-on-1 private coaching" type="button">
+              <div className="pathway-intent">
+                Personalized / Anxiety Relief
+              </div>
+              <div className="pathway-rec">
+                Private 1-on-1 Coaching
+              </div>
+              <div className="pathway-cta">
+                Learn More →
+              </div>
+            </button>
+            <button className="pathway-pill" data-onclick="openGoalSynopsis('need_multistate', this)" title="Learn more about multi-state carry" type="button">
+              <div className="pathway-intent" style={{"color": "var(--accent-amber)"}}>
+                Do I Need a Multi-State Permit?
+              </div>
+              <div className="pathway-rec">
+                Mid-Atlantic Mastery (MD+VA+FL+AZ+PA)
+              </div>
+              <div className="pathway-cta">
+                Learn More & Reciprocity Guide →
+              </div>
+            </button>
+          </div>
+        </div>
         {/* Core Zero-Intimidation Promise */}
         <div style={{"background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "border": "1.5px solid rgba(0, 229, 255, 0.45)", "borderRadius": "16px", "padding": "24px 26px", "marginBottom": "28px", "boxShadow": "0 8px 30px rgba(0, 229, 255, 0.12)"}}>
           <div style={{"display": "flex", "alignItems": "center", "justifyContent": "space-between", "flexWrap": "wrap", "gap": "10px", "marginBottom": "12px", "borderBottom": "1px solid rgba(0, 229, 255, 0.2)", "paddingBottom": "10px"}}>
@@ -7564,87 +7599,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
           </div>
         </div>
-        {/* Training Pathways Selector */}
-        <div className="pathway-selector-box">
-          <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.25rem", "color": "#fff", "textAlign": "center"}}>
-            Not sure where to begin? Choose your goal!
-          </h4>
-          <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "textAlign": "center", "marginTop": "4px", "marginBottom": "16px"}}>
-            
-          Click any goal below to open an interactive breakdown and find the right path for your needs:
-        
-          </p>
-          <div className="pathway-grid">
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('new_to_firearms', this)" title="Learn more about starting with HQL" type="button">
-              <div className="pathway-intent">
-                Brand New to Firearms
-              </div>
-              <div className="pathway-rec">
-                Start Here: Information
-              </div>
-              <div className="pathway-cta">
-                Learn More & Free 50-Q Guide →
-              </div>
-            </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_purchase', this)" title="Learn more about buying a handgun" type="button">
-              <div className="pathway-intent">
-                Looking to Buy a Pistol
-              </div>
-              <div className="pathway-rec">
-                Maryland HQL (Purchase License)
-              </div>
-              <div className="pathway-cta">
-                Learn More →
-              </div>
-            </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_to_carry', this)" title="Learn more about concealed carry" type="button">
-              <div className="pathway-intent">
-                I Want to Carry in Public
-              </div>
-              <div className="pathway-rec">
-                Wear & Carry (CCW Permit)
-              </div>
-              <div className="pathway-cta">
-                Learn More →
-              </div>
-            </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('want_both', this)" title="Learn more about CCW &amp; HQL combo" type="button">
-              <div className="pathway-intent">
-                I Want Both: Buy & Carry
-              </div>
-              <div className="pathway-rec">
-                CCW & HQL Combo (Best Value)
-              </div>
-              <div className="pathway-cta">
-                Learn More & Compare →
-              </div>
-            </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('personalized_focus', this)" title="Learn more about 1-on-1 private coaching" type="button">
-              <div className="pathway-intent">
-                Personalized / Anxiety Relief
-              </div>
-              <div className="pathway-rec">
-                Private 1-on-1 Coaching
-              </div>
-              <div className="pathway-cta">
-                Learn More →
-              </div>
-            </button>
-            <button className="pathway-pill" data-onclick="openGoalSynopsis('need_multistate', this)" title="Learn more about multi-state carry" type="button">
-              <div className="pathway-intent" style={{"color": "var(--accent-amber)"}}>
-                Do I Need a Multi-State Permit?
-              </div>
-              <div className="pathway-rec">
-                Mid-Atlantic Mastery (MD+VA+FL+AZ+PA)
-              </div>
-              <div className="pathway-cta">
-                Learn More & Reciprocity Guide →
-              </div>
-            </button>
-          </div>
-        </div>
         {/* The 8-Step FIFS Journey */}
-        <div style={{"marginBottom": "32px"}}>
+        <div id="start-steps" className="start-steps" style={{"marginBottom": "32px"}}>
           <div className="panel-header">
             <h3>
               Your 8-Step FIFS Journey <span className="neon-arrow-badge neon-mode-cyan" style={{"display": "inline-flex", "alignItems": "center", "gap": "6px", "padding": "4px 14px", "fontSize": "0.78rem", "fontWeight": "800", "letterSpacing": "1px", "textTransform": "uppercase", "verticalAlign": "middle", "marginLeft": "10px", "borderRadius": "50px", "background": "rgba(0, 229, 255, 0.14)", "border": "1px solid var(--accent-cyan)", "color": "#00e5ff", "boxShadow": "0 0 18px rgba(0, 229, 255, 0.45), inset 0 0 10px rgba(0, 229, 255, 0.2)", "cursor": "pointer"}} data-onclick="openStepDetailModal(1)" title="Click to explore the interactive 8-step journey"><span style={{"width": "7px", "height": "7px", "borderRadius": "50%", "background": "#00e5ff", "boxShadow": "0 0 8px #00e5ff"}}></span>Interactive</span>
@@ -7745,7 +7701,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
         {/* What to Bring & What to Expect Section */}
-        <section style={{"marginBottom": "30px"}}>
+        <section id="start-bring" style={{"marginBottom": "30px"}}>
           <div className="panel-header">
             <h3>
               What to Bring & What to Expect
@@ -7871,11 +7827,18 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
           </div>
         </section>
-        <div style={{"textAlign": "center", "margin": "28px 0 8px"}}>
-          <button className="btn-spark" data-onclick="openAndSwitch('booking')" style={{"padding": "13px 26px", "fontWeight": "800", "fontSize": "1rem"}} type="button">
-            Ready to book? Book Now →
-          </button>
-        </div>
+        {/* Ready to start: the last step of the page */}
+        <section id="start-book" className="start-book" aria-labelledby="start-book-title">
+          <span className="start-book-ico" aria-hidden="true">🚀</span>
+          <div className="start-book-copy">
+            <h3 id="start-book-title">Ready for step one?</h3>
+            <p>No experience needed. Pick a class, and Coach Kai will walk you through every step, one at a time.</p>
+          </div>
+          <div className="start-book-actions">
+            <button type="button" className="btn-primary" data-onclick="openAndSwitch('booking')">📅 Book my class</button>
+            <button type="button" className="btn-spark" onClick={() => { if (typeof window !== "undefined" && (window as any).openContactWidgetModal) (window as any).openContactWidgetModal(); }}>💬 Ask Kai a question</button>
+          </div>
+        </section>
       </section>
       {/* (Reservation form modalized into #courseBookingModal) */}
       {/* VIEW 4: ABOUT INSTRUCTOR KAI WADE */}

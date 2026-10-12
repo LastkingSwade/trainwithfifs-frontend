@@ -14,6 +14,11 @@ export function portalStates(getStudent?: () => unknown, getClient?: () => unkno
     { key: 'fi-portal', label: 'Client portal', signedIn: !!c, name: firstName(c && (c.fullName || c.name)) },
   ];
 }
+// One email signs in to one portal at a time, so the menu shows one account. If both records happen to be saved, the portal whose dashboard is open wins.
+export function activePortal(st: PortalState[], visibleKey?: string): PortalState | null {
+  const on = st.filter((x) => x.signedIn); if (!on.length) return null;
+  return on.find((x) => x.key === visibleKey) || on[0];
+}
 export const profileLabel = (st: PortalState[]): string => {
   const on = st.filter((x) => x.signedIn);
   return on.length ? 'Your profile. Signed in to the ' + on.map((x) => x.label.toLowerCase()).join(' and the ') + '.' : 'Your profile. Not signed in. Choose a portal to sign in.';
@@ -26,25 +31,31 @@ export function installHeaderProfile(): void {
   w.__fifsHeaderProfileInstalled = true;
   const states = () => portalStates(w.fifsGetStudentSession, w.fifsGetClientSession);
   const refreshBadge = () => { const st = states(); btn.setAttribute('aria-label', profileLabel(st)); if (dot) dot.style.display = st.some((x) => x.signedIn) ? 'block' : 'none'; };
+  const visibleKey = () => { const c = document.getElementById('view-fi-portal'); return c && !c.classList.contains('hidden') ? 'fi-portal' : 'portal'; };
   const close = (focusBtn = false) => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); if (focusBtn) btn.focus(); };
   const build = () => {
     menu.textContent = '';
-    for (const st of states()) {
-      const item = document.createElement('button'); item.type = 'button'; item.className = 'hb-item'; item.setAttribute('role', 'menuitem');
-      const t = document.createElement('span'); t.className = 'hb-item-t'; t.textContent = st.label;
-      const sub = document.createElement('span'); sub.className = 'hb-item-s' + (st.signedIn ? ' on' : ''); sub.textContent = st.signedIn ? (st.name ? 'Signed in as ' + st.name + '. Open it' : 'Signed in. Open it') : 'Sign in';
-      item.append(t, sub);
-      item.addEventListener('click', () => { close(); if (typeof w.openAndSwitch === 'function') w.openAndSwitch(st.key); });
-      menu.appendChild(item);
-      if (st.signedIn) {
-        // Always a way out: "Not you? Sign out" signs out of this portal and clears the saved login on this device.
-        const out = document.createElement('button'); out.type = 'button'; out.className = 'hb-item hb-out'; out.setAttribute('role', 'menuitem');
-        const ot = document.createElement('span'); ot.className = 'hb-item-t'; ot.textContent = 'Not you? Sign out';
-        const os = document.createElement('span'); os.className = 'hb-item-s'; os.textContent = st.label;
-        out.append(ot, os);
-        out.addEventListener('click', () => { close(); const fn = st.key === 'portal' ? w.logoutStudent : w.fiLogoutClient; if (typeof fn === 'function') fn(); setTimeout(refreshBadge, 300); });
-        menu.appendChild(out);
-      }
+    const st = states(); const on = activePortal(st, visibleKey());
+    const mk = (cls: string, title: string, sub: string, run: () => void) => {
+      const item = document.createElement('button'); item.type = 'button'; item.className = 'hb-item ' + cls; item.setAttribute('role', 'menuitem');
+      const t = document.createElement('span'); t.className = 'hb-item-t'; t.textContent = title; item.appendChild(t);
+      if (sub) { const x = document.createElement('span'); x.className = 'hb-item-s'; x.textContent = sub; item.appendChild(x); }
+      item.addEventListener('click', () => { close(); run(); setTimeout(refreshBadge, 300); }); return item;
+    };
+    const head = document.createElement('div'); head.className = 'hb-head'; head.setAttribute('role', 'none');
+    const av = document.createElement('span'); av.className = 'hb-avatar'; av.setAttribute('aria-hidden', 'true'); av.textContent = on ? (on.name.charAt(0) || '👤').toUpperCase() : '👤';
+    const who = document.createElement('span'); who.className = 'hb-who';
+    const nm = document.createElement('strong'); nm.textContent = on ? (on.name || 'Signed in') : 'Not signed in';
+    const pl = document.createElement('span'); pl.className = 'hb-portal' + (on ? ' on' : ''); pl.textContent = on ? (on.key === 'portal' ? '🎓 ' : '🛡️ ') + 'Signed in to the ' + on.label : 'Choose a portal to sign in';
+    who.append(nm, pl); head.append(av, who); menu.appendChild(head);
+    if (on) {
+      const key = on.key;
+      menu.appendChild(mk('hb-open', 'Open my ' + on.label.toLowerCase(), '', () => { if (typeof w.openAndSwitch === 'function') w.openAndSwitch(key); }));
+      menu.appendChild(mk('hb-pw', '🔑 Change password', '', () => { if (typeof w.openChangePasswordModal === 'function') w.openChangePasswordModal(key === 'portal' ? 'student' : 'client'); }));
+      // Always a way out: "Not you? Sign out" signs out of this portal and clears the saved login on this device.
+      menu.appendChild(mk('hb-out', 'Not you? Sign out', '', () => { const fn = key === 'portal' ? w.logoutStudent : w.fiLogoutClient; if (typeof fn === 'function') fn(); }));
+    } else {
+      for (const p of st) menu.appendChild(mk('hb-signin', (p.key === 'portal' ? '🎓 ' : '🛡️ ') + p.label, 'Sign in', () => { if (typeof w.openAndSwitch === 'function') w.openAndSwitch(p.key); }));
     }
   };
   const open = () => { build(); menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); (menu.querySelector('.hb-item') as HTMLElement | null)?.focus(); };

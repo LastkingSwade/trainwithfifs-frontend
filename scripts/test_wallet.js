@@ -81,7 +81,7 @@ function mem() {
     // No way to type a private title or note that gets stored: no text inputs or text areas. The only text box is the local search (type="search"); its words are never sent anywhere.
     assert(!/<textarea/.test(UI) && !/type="text"/.test(UI) && (UI.match(/type="search"/g) || []).length === 1, 'no free-text field (only the local search box)');
     assert(!/call\('[a-zA-Z]+',[^)]*query/.test(UI) && !/walletUpload[^;]*query/.test(UI), 'the search words are never sent to the server');
-    assert(/walletCard\(\)/.test(fs.readFileSync(path.join(ROOT, 'src/portal/clientExtras.ts'), 'utf8')) && /WalletPanel/.test(fs.readFileSync(path.join(ROOT, 'src/app/layout.tsx'), 'utf8')), 'the client portal keeps the wallet card');
+    assert(/id="fi-vault-launch"/.test(fs.readFileSync(path.join(ROOT, 'src/app/page.tsx'), 'utf8')) && /WalletPanel/.test(fs.readFileSync(path.join(ROOT, 'src/app/layout.tsx'), 'utf8')), 'the client portal keeps a Document Vault hub card next to the Reciprocity Hub');
     // Students have no documents yet (they come to the owner to get them), so the student portal no longer shows the wallet card.
     const STU = fs.readFileSync(path.join(ROOT, 'src/portal/studentExtras.ts'), 'utf8'); assert(!/walletCard/.test(STU) && !/document wallet/i.test(STU), 'the student portal must not show the wallet card');
   });
@@ -115,7 +115,7 @@ function mem() {
     assert(/Your Document Vault/.test(VUI) && /Your training\. Your records\. All together\./.test(VUI) && /Search your documents/.test(VUI) && /Add document/.test(VUI) && /View document/.test(VUI) && /Recently added/.test(VUI) && /Your document has been added to your vault\./.test(VUI), 'copy from the design');
     assert(/role="tablist"/.test(VUI) && /aria-selected/.test(VUI) && /\(\{c\[t\.key\]\}\)/.test(VUI), 'filter chips with counts');
     assert(/#ffd166/.test(VCSS) && /#ffb703/.test(VCSS) && /rgba\(0, 229, 255/.test(VCSS) && /#19e6ff/.test(VCSS), 'gold and cyan business colors');
-    assert(!/#fff\b;[^}]*font-size: 2/.test(VCSS) && /\.vault h2 \{[^}]*color: #ffd166/.test(VCSS), 'the title is gold, not plain white');
+    assert(/\.vault h2 \{[^}]*Georgia[^}]*color: #ffffff/.test(VCSS) && /\.vault-bar \{[^}]*background: #ffb703/.test(VCSS), 'the title is white serif over a short gold bar, as in the mockup');
   });
   await test('Vault screen keeps every safety rule: consent notice and checkbox first, "do not upload" gun records, owner-only calls, private open, delete needs a confirmation, and nothing is logged', () => {
     assert(/Do not upload/.test(VUI) && /serial numbers/.test(VUI) && /<input type="checkbox" checked=\{agree\}/.test(VUI) && /disabled=\{!agree\}/.test(VUI), 'consent first');

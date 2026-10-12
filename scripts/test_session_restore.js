@@ -97,7 +97,7 @@ const ok = (k, v) => ({ status: 200, body: { success: true, [k]: v } });
     assert(/openAndSwitch\(portal === 'student' \? 'portal' : 'fi-portal'\)/.test(SRC), 'opens the right portal');
   });
   await test('A way out stays visible: the header profile menu shows "Not you? Sign out" for any portal that is signed in, wired to the real sign-out buttons', () => {
-    const H = R('src/portal/headerProfile.ts'); assert(/Not you\? Sign out/.test(H) && /w\.logoutStudent/.test(H) && /w\.fiLogoutClient/.test(H) && /if \(st\.signedIn\)/.test(H), 'sign-out row for signed-in portals');
+    const H = R('src/portal/headerProfile.ts'); assert(/Not you\? Sign out/.test(H) && /w\.logoutStudent/.test(H) && /w\.fiLogoutClient/.test(H) && /if \(on\)/.test(H), 'sign-out row for signed-in portals');
     assert(/function fifsSignOutSupabase/.test(R('public/scripts/TrainWithFIFS_scripts.js')), 'and those sign-outs clear the saved login on this device');
   });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);

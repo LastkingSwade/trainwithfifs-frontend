@@ -57,7 +57,7 @@ export default function WalletPanel() {
     if (!file || !st) return;
     if (file.size > st.maxBytes) { setMsg('That file is larger than 3 MB. Choose a smaller PDF or photo.'); return; }
     setBusy(true); setMsg('Encrypting and saving…');
-    try { await call('walletUpload', { kind, expiresOn: expires || undefined, dataBase64: await toBase64(file) }); setMsg(''); showToast('Your document has been added to your vault.'); setExpires(''); setAddOpen(false); await load(); } catch (e: any) { setMsg(e?.message || 'Could not save that file.'); }
+    try { await call('walletUpload', { kind, expiresOn: expires || undefined, dataBase64: await toBase64(file) }); setMsg(''); showToast('Your document has been added to your vault.'); setExpires(''); setAddOpen(false); await load(); window.dispatchEvent(new Event('fifs-wallet-changed')); } catch (e: any) { setMsg(e?.message || 'Could not save that file.'); }
     setBusy(false);
   };
   const view = async (d: VaultDoc) => {
@@ -68,14 +68,14 @@ export default function WalletPanel() {
       const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.download = r.fileName; document.body.appendChild(a); a.click(); a.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (e: any) { setMsg(e?.message || 'Could not open that document.'); }
   };
-  const remove = async (d: VaultDoc) => { try { await call('walletDelete', { id: d.id }); setConfirmId(''); setMenuId(''); setMsg(''); showToast('The document was deleted from your vault.'); await load(); } catch (e: any) { setConfirmId(''); setMsg(e?.message || 'Could not delete.'); } };
+  const remove = async (d: VaultDoc) => { try { await call('walletDelete', { id: d.id }); setConfirmId(''); setMenuId(''); setMsg(''); showToast('The document was deleted from your vault.'); await load(); window.dispatchEvent(new Event('fifs-wallet-changed')); } catch (e: any) { setConfirmId(''); setMsg(e?.message || 'Could not delete.'); } };
 
   const docs = st?.docs || [];
   const c = counts(docs);
   const shown = filterDocs(docs, tab, query);
   const art = (d: VaultDoc, small = false) => { const a = artFor(d.kind); return (
     <div className={'vault-art' + (small ? ' small' : '') + (a.seal ? ' sealed' : '')} aria-hidden="true">
-      <img src="/icons/icon-192.png" alt="" width={small ? 14 : 26} height={small ? 14 : 26} />
+      <b className="vault-art-brand">FIFS</b>
       <span className="vault-art-label">{a.label}</span>
       <i /><i /><i className="short" />
       {a.seal && <b className="vault-seal" />}
@@ -173,6 +173,7 @@ export default function WalletPanel() {
             )}
 
             {docs.length > 0 && (
+              <div className="vault-lower">
               <section className="vault-recent" aria-label="Recently added">
                 <h3>Recently added</h3>
                 <ul>
@@ -186,6 +187,8 @@ export default function WalletPanel() {
                   ))}
                 </ul>
               </section>
+              <aside className="vault-keep"><h3>Keep your records close at hand</h3><p>All of your training documents in one secure place, whenever you need them.</p></aside>
+              </div>
             )}
           </>
         )}
