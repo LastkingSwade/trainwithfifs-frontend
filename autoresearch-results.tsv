@@ -218,3 +218,4 @@ R07	2026-10-12T00:53:15.548Z	Remove the unreachable earlier copies of showPortal
 R08	2026-10-12T00:53:23.989Z	Remove the unreachable earlier copies of lookupStudentAccount() (the last definition wins, so they never run)	SUCCESS	379383	378947	-436	script gzip bytes; 2095 raw bytes removed
 R09	2026-10-12T00:53:32.246Z	Remove the unreachable earlier copies of openStepDetailModal() (the last definition wins, so they never run)	SUCCESS	378947	378548	-399	script gzip bytes; 2067 raw bytes removed
 R10	2026-10-12T00:53:40.405Z	Remove the unreachable earlier copies of switchClientAuthTab() (the last definition wins, so they never run)	SUCCESS	378548	378311	-237	script gzip bytes; 2019 raw bytes removed
+R11	2026-10-12T00:53:50.049Z	Remove the unreachable earlier copies of openExpectationModal() (the last definition wins, so they never run)	SUCCESS	378311	377906	-405	script gzip bytes; 1860 raw bytes removed

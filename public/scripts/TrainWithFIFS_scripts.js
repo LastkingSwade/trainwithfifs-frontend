@@ -1280,22 +1280,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     /* Legacy head handleLiveChatSubmit replaced by authoritative body handler */
     window.appendTwoWayBubble = appendTwoWayBubble;
     window.handleTwoWayChatSend = handleTwoWayChatSend;
-    function generateCoachWadeReply(msg) {
-      var m = msg.toLowerCase();
-      if (m.includes('cost') || m.includes('price') || m.includes('tuition') || m.includes('how much')) {
-        return "Our courses start at $100 for Maryland HQL and $249.99 for the complete Wear & Carry + HQL Combo (which saves you $100). All classes include live-fire qualification shots conducted downrange at Cindy&#39;s Hot Shots. You can view full transparent pricing in our course catalog!";
-      }
-      if (m.includes('schedule') || m.includes('date') || m.includes('when') || m.includes('weekend') || m.includes('weekday')) {
-        return "We offer flexible scheduling: Standard courses run on Saturdays & Sundays, while VIP enrollments unlock 7-day flexible scheduling (Monday through Sunday anytime) to match your personal schedule!";
-      }
-      if (m.includes('range') || m.includes('location') || m.includes('where')) {
-        return "All live-fire marksmanship training and practical qualification shots are conducted at Cindy&#39;s Hot Shots (classroom instruction conducted by FIFS) (115 Holsum Way, Glen Burnie, MD 21060). It's a clean, safe, and professional certified indoor range facility.";
-      }
-      if (m.includes('gun') || m.includes('firearm') || m.includes('rent') || m.includes('ammo')) {
-        return "You do NOT need to own a handgun to start! Loaner 9mm firearms and factory target ammo can be provided or coordinated directly on-site at Cindy&#39;s Hot Shots for your live-fire shoot.";
-      }
-      return "Thank you for reaching out! I\'ve logged your inquiry on our priority dispatch ledger. For immediate scheduling assistance or range questions, you can also text or call me directly at (443) 990-1304.";
-    }
     window.generateCoachWadeReply = generateCoachWadeReply;
     // ==========================================================================
     // AUTHORITATIVE CALENDAR & TARGET MOUNTING ENGINE IN <HEAD> SCRIPT 0
