@@ -23,3 +23,18 @@
 :where(.btn-primary, button[type="submit"]:not(.btn-secondary)):where(:hover, :focus-visible) { box-shadow: 0 0 18px rgba(255, 183, 3, 0.42); }
 /* The pulsing square ring around the Chat link */
 html[data-hud] .hud-chat::after { display: none !important; }
+
+/* One sign-in in the header profile menu */
+.hb-form { display: grid; gap: 8px; padding: 6px 12px 12px; min-width: min(300px, calc(100vw - 48px)); }
+.hb-label { font-size: 0.8rem; font-weight: 700; color: #ffd166; }
+.hb-input { width: 100%; min-height: 44px; padding: 0 12px; border-radius: 10px; font: inherit; font-size: 1rem; color: #eaf6ff; background: #070d16; border: 1px solid rgba(0, 229, 255, 0.4); box-sizing: border-box; }
+.hb-input:focus-visible { outline: 2px solid #ffffff; outline-offset: 1px; }
+.hb-passrow { display: flex; gap: 8px; }
+.hb-passrow .hb-input { flex: 1; min-width: 0; }
+.hb-show { min-width: 64px; min-height: 44px; padding: 0 12px; border-radius: 10px; cursor: pointer; font: inherit; font-weight: 700; color: #e8faff; background: transparent; border: 1px solid rgba(0, 229, 255, 0.45); }
+.hb-status { padding: 8px 10px; border-radius: 10px; font-size: 0.88rem; color: #d3e9f8; background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.3); }
+.hb-status.bad { color: #ffd0d0; background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.55); }
+.hb-go { min-height: 48px; border: 0; border-radius: 12px; cursor: pointer; font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 1.05rem; color: #1a1100; background: linear-gradient(135deg, #ffd166, #ffb703); }
+.hb-go:disabled { opacity: 0.6; cursor: wait; }
+.hb-forgot { min-height: 44px; border: 0; background: none; cursor: pointer; font: inherit; font-size: 0.9rem; color: #7fe9ff; text-decoration: underline; }
+.hb-forgot:disabled { opacity: 0.5; }

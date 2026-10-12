@@ -33,7 +33,7 @@ export function installHeaderProfile(): void {
   const refreshBadge = () => { const st = states(); btn.setAttribute('aria-label', profileLabel(st)); if (dot) dot.style.display = st.some((x) => x.signedIn) ? 'block' : 'none'; };
   const visibleKey = () => { const c = document.getElementById('view-fi-portal'); return c && !c.classList.contains('hidden') ? 'fi-portal' : 'portal'; };
   const close = (focusBtn = false) => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); if (focusBtn) btn.focus(); };
-  const build = () => {
+  const build = (): HTMLElement | null => {
     menu.textContent = '';
     const st = states(); const on = activePortal(st, visibleKey());
     const mk = (cls: string, title: string, sub: string, run: () => void) => {
@@ -42,6 +42,11 @@ export function installHeaderProfile(): void {
       if (sub) { const x = document.createElement('span'); x.className = 'hb-item-s'; x.textContent = sub; item.appendChild(x); }
       item.addEventListener('click', () => { close(); run(); setTimeout(refreshBadge, 300); }); return item;
     };
+    if (!on && typeof w.fifsRenderSignInPanel === 'function') {
+      menu.setAttribute('role', 'dialog'); menu.setAttribute('aria-label', 'Sign in');
+      return w.fifsRenderSignInPanel(menu, () => close(), refreshBadge) as HTMLElement | null;
+    }
+    menu.setAttribute('role', 'menu'); menu.removeAttribute('aria-label');
     const head = document.createElement('div'); head.className = 'hb-head'; head.setAttribute('role', 'none');
     const av = document.createElement('span'); av.className = 'hb-avatar'; av.setAttribute('aria-hidden', 'true'); av.textContent = on ? (on.name.charAt(0) || '👤').toUpperCase() : '👤';
     const who = document.createElement('span'); who.className = 'hb-who';
@@ -57,13 +62,15 @@ export function installHeaderProfile(): void {
     } else {
       for (const p of st) menu.appendChild(mk('hb-signin', (p.key === 'portal' ? '🎓 ' : '🛡️ ') + p.label, 'Sign in', () => { if (typeof w.openAndSwitch === 'function') w.openAndSwitch(p.key); }));
     }
+    return menu.querySelector('.hb-item') as HTMLElement | null;
   };
-  const open = () => { build(); menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); (menu.querySelector('.hb-item') as HTMLElement | null)?.focus(); };
+  const open = () => { const first = build(); menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); first?.focus(); };
   btn.addEventListener('click', (e) => { e.stopPropagation(); if (menu.hidden) open(); else close(); });
   document.addEventListener('click', (e) => { if (!menu.hidden && !(e.target as Node && document.getElementById('hbProfileWrap')?.contains(e.target as Node))) close(); });
   document.addEventListener('keydown', (e) => { if (!menu.hidden && e.key === 'Escape') { e.preventDefault(); close(true); } });
   menu.addEventListener('keydown', (e) => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    if (!(e.target as HTMLElement).classList.contains('hb-item')) return; // typing in the sign-in form keeps its own arrow keys
     const items = Array.from(menu.querySelectorAll<HTMLElement>('.hb-item')); const i = items.indexOf(document.activeElement as HTMLElement);
     e.preventDefault(); items[(i + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length]?.focus();
   });
