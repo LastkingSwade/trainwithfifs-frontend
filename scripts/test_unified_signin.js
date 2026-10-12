@@ -59,7 +59,7 @@ const mk = (sess, statuses = {}) => { const calls = { fetch: [], signOut: 0, sig
   });
   await test('Header: signed out shows the single sign-in; signed in still shows the account panel; Escape and arrow keys behave; the page installs it', () => {
     const hp = read('src/portal/headerProfile.ts'); assert(/fifsRenderSignInPanel/.test(hp) && /Not you\? Sign out/.test(hp) && /classList\.contains\('hb-item'\)/.test(hp), 'header wiring');
-    assert(/installSignInPanel\(\);[^;]*;?\s*installHeaderProfile\(\)|installSignInPanel\(\); installPasswordPeek\(\); installHeaderProfile\(\)/.test(read('src/app/page.tsx')), 'installed before the header profile');
+    assert(/installSignInPanel\(\);( install\w+\(\);)* installHeaderProfile\(\)/.test(read('src/app/page.tsx')), 'installed before the header profile');
     const css = read('src/portal/dashboard.css'); assert(/\.hb-input \{[^}]*min-height: 44px/.test(css) && /\.hb-go \{[^}]*min-height: 48px/.test(css) && /\.hb-show \{[^}]*min-height: 44px/.test(css), '44px+ targets');
   });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`); process.exit(failed ? 1 : 0);

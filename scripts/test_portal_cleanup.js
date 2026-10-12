@@ -116,4 +116,8 @@ test('Sign-in boxes: password managers get username/current-password, phones get
   const pk = require(path.join(ROOT, 'src/portal/passwordPeek.ts')); eq(Array.from(pk.PEEK_IDS).join(','), 'studentAuthPassword,clientAuthPassword,adminStaffPassword'); eq(pk.peekText(false), 'Show password'); eq(pk.peekText(true), 'Hide password');
   assert(/installPasswordPeek\(\)/.test(PAGE) && /aria-pressed/.test(read('src/portal/passwordPeek.ts')) && !/localStorage|console\./.test(read('src/portal/passwordPeek.ts')), 'wired, accessible, nothing stored');
 });
+test('Student: the install banner is hidden once the app is installed or the X was tapped, remembered on this device only', () => {
+  const b = require(path.join(ROOT, 'src/portal/pwaBanner.ts')); eq(b.shouldHide(true, null), true); eq(b.shouldHide(false, '1'), true); eq(b.shouldHide(false, null), false); eq(b.shouldHide(false, '0'), false);
+  const src = read('src/portal/pwaBanner.ts'); assert(/try \{ dismissed = w\.localStorage/.test(src) && /catch/.test(src), 'storage failures are harmless'); assert(!/fetch\(|console\./.test(src), 'nothing sent or logged'); assert(/installPwaBanner\(\)/.test(PAGE), 'wired');
+});
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`); process.exit(failed ? 1 : 0);

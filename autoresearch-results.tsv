@@ -260,3 +260,4 @@ P1	2026-10-12T06:05:48Z	Client hub: Document Vault card moved above the 50-State
 P2	2026-10-12T06:11:50Z	One sign-in in the header user button: email + password, the right portal (student, client or staff) opens by itself; wrong email and wrong password look the same; each portal's own sign-in still runs; forgot-password and show/hide password included	SUCCESS	-	-	-
 P3	2026-10-12T06:13:47Z	Sign-in boxes (student, client, staff): username/current-password autocomplete, email keyboard on phones, Show/Hide password	SUCCESS	-	-	-
 P4	2026-10-12T06:13:47Z	Client dashboard: Your next step card (add date, renew now, book class, add permit card, turn on reminders, all set) from the permit date, reminders and vault	SUCCESS	-	-	-
+P5	2026-10-12T06:16:46Z	Student dashboard: the install-to-phone banner hides once the app is installed or the X was tapped (remembered on this device only)	SUCCESS	-	-	-
