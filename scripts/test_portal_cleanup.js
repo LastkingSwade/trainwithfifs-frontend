@@ -99,4 +99,21 @@ test('The vault looks like the mockup: parchment certificate cards with gold cor
   assert(/#f6eddb/.test(css) && /clip-path: polygon/.test(css) && /Georgia/.test(css), 'parchment + corners + serif'); assert(/Keep your records close at hand/.test(tsx) && /vault-art-brand/.test(tsx), 'note + brand');
   assert(/\.vault-chip \{ min-height: 44px/.test(css) && /\.vault-add \{[^}]*min-height: 48px/.test(css), 'touch targets');
 });
+test('Client "Your next step": one clear action chosen from the permit date, reminders and vault', () => {
+  const n = require(path.join(ROOT, 'src/portal/clientNextStep.ts')).nextStep; const f = (days, hasPermitDoc, optIn) => n({ days, hasPermitDoc, optIn }).key;
+  eq(f(null, false, null), 'add-date'); eq(f(-3, true, true), 'expired'); eq(f(0, true, true), 'renew-now'); eq(f(89, true, true), 'renew-now'); eq(f(90, true, true), 'renew-soon'); eq(f(120, true, true), 'renew-soon');
+  eq(f(121, false, true), 'add-card'); eq(f(300, true, false), 'turn-on-reminders'); eq(f(300, true, true), 'all-set'); eq(f(300, true, null), 'all-set');
+  assert(/opens in 180 days/.test(n({ days: 300, hasPermitDoc: true, optIn: true }).text), 'the renewal window countdown'); assert(/Renew now: 1 day left/.test(n({ days: 1, hasPermitDoc: true, optIn: true }).title), 'singular day');
+  const src = read('src/portal/clientNextStep.ts'); assert(!/innerHTML/.test(src), 'text only');
+  for (const k of ['openPermitRenewalModal', 'openClientProfileModal', 'openWallet', 'toggleReciprocityHubModal']) assert(new RegExp(k).test(src), k);
+  const pc = read('src/portal/permitCardLive.ts'); assert(/nextStep\(/.test(pc) && /renderNextStep\(/.test(pc), 'filled by the permit card refresh (one vault call)');
+  const c = PAGE.slice(PAGE.indexOf('id="client-active-dashboard"')); assert(c.indexOf('id="fi-client-next"') > c.indexOf('fi-acct-row') && c.indexOf('id="fi-client-next"') < c.indexOf('id="fi-sec-dashboard"'), 'sits between the welcome bar and the banner');
+  assert(/\.cns-btn \{[^}]*min-height: 48px/.test(read('src/portal/dashboard.css')), '44px+ button');
+});
+test('Sign-in boxes: password managers get username/current-password, phones get the email keyboard, and each password box has Show/Hide', () => {
+  for (const id of ['studentAuthInput', 'clientAuthInput', 'adminStaffEmail']) assert(new RegExp('id="' + id + '"[^>]*autoComplete="username"').test(PAGE) || new RegExp('id="' + id + '"[^>]*type="email"[^>]*autoComplete="username"').test(PAGE), id);
+  for (const id of ['studentAuthPassword', 'clientAuthPassword', 'adminStaffPassword']) assert(new RegExp('id="' + id + '"[^>]*autoComplete="current-password"').test(PAGE), id);
+  const pk = require(path.join(ROOT, 'src/portal/passwordPeek.ts')); eq(Array.from(pk.PEEK_IDS).join(','), 'studentAuthPassword,clientAuthPassword,adminStaffPassword'); eq(pk.peekText(false), 'Show password'); eq(pk.peekText(true), 'Hide password');
+  assert(/installPasswordPeek\(\)/.test(PAGE) && /aria-pressed/.test(read('src/portal/passwordPeek.ts')) && !/localStorage|console\./.test(read('src/portal/passwordPeek.ts')), 'wired, accessible, nothing stored');
+});
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`); process.exit(failed ? 1 : 0);

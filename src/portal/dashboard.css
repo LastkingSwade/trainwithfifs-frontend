@@ -38,3 +38,18 @@ html[data-hud] .hud-chat::after { display: none !important; }
 .hb-go:disabled { opacity: 0.6; cursor: wait; }
 .hb-forgot { min-height: 44px; border: 0; background: none; cursor: pointer; font: inherit; font-size: 0.9rem; color: #7fe9ff; text-decoration: underline; }
 .hb-forgot:disabled { opacity: 0.5; }
+
+/* "Show password" under the portal sign-in boxes */
+.pw-peek { display: inline-flex; align-items: center; min-height: 44px; margin-top: 4px; padding: 0 4px; border: 0; background: none; cursor: pointer; font: inherit; font-size: 0.85rem; font-weight: 700; color: #7fe9ff; text-decoration: underline; }
+.pw-peek:hover, .pw-peek:focus-visible { color: #ffd166; }
+
+/* Client dashboard: "Your next step" */
+.cns { display: flex; align-items: center; gap: 16px; margin: 0 0 24px; padding: 18px 20px; border-radius: 16px; background: linear-gradient(135deg, rgba(255, 183, 3, 0.1), rgba(13, 19, 27, 0.96)); border: 1.5px solid rgba(255, 183, 3, 0.55); }
+.cns[hidden] { display: none; }
+.cns-ico { flex: 0 0 auto; font-size: 2.2rem; line-height: 1; }
+.cns-copy { flex: 1; min-width: 0; }
+.cns-eyebrow { display: block; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #19e6ff; }
+.cns-title { margin: 2px 0 4px; font-family: var(--font-display, sans-serif); font-size: 1.35rem; color: #ffd166; }
+.cns-text { margin: 0; color: #d3e9f8; line-height: 1.5; }
+.cns-btn { flex: 0 0 auto; min-height: 48px; padding: 0 20px; border: 0; border-radius: 12px; cursor: pointer; font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 1rem; color: #1a1100; background: linear-gradient(135deg, #ffd166, #ffb703); }
+@media (max-width: 640px) { .cns { flex-direction: column; align-items: flex-start; } .cns-btn { width: 100%; } }

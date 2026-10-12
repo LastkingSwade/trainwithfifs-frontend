@@ -23,6 +23,7 @@ import { installStudentScoresheet } from "@/portal/studentScoresheet";
 import { installScoresheetPad } from "@/portal/scoresheetPad";
 import { installHeaderProfile } from "@/portal/headerProfile";
 import { installSignInPanel } from "@/portal/signInPanel";
+import { installPasswordPeek } from "@/portal/passwordPeek";
 import { installAdminExtras } from "@/portal/adminExtras";
 import { installAdminAttention } from "@/portal/adminAttention";
 import "@/portal/portal.css";
@@ -4191,7 +4192,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -4708,7 +4709,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input id="studentAuthInput" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupStudentAccount()" placeholder="e.g., student@example.com" type="text" />
+                <input id="studentAuthInput" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupStudentAccount()" placeholder="e.g., student@example.com" type="email" autoComplete="username" inputMode="email" />
               </div>
               <div className="form-group" style={{"marginTop": "14px"}}>
                 <label htmlFor="studentAuthPassword" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.85rem", "margin": "0 0 4px 0", "display": "block"}}>
@@ -4717,7 +4718,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input id="studentAuthPassword" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupStudentAccount()" placeholder="Enter your portal password" type="password" />
+                <input id="studentAuthPassword" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupStudentAccount()" placeholder="Enter your portal password" type="password" autoComplete="current-password" />
                 <div style={{"textAlign": "right", "marginTop": "6px"}}>
                   <button data-onclick="fifsRequestPasswordReset('student', this)" style={{"background": "none", "border": "none", "padding": "0", "color": "var(--text-muted)", "fontSize": "0.78rem", "textDecoration": "underline", "cursor": "pointer"}} type="button">
                     Forgot password?
@@ -5238,7 +5239,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         *
                       </span>
                     </label>
-                    <input id="clientAuthInput" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupClientAccount()" placeholder="e.g., client@example.com" type="email" />
+                    <input id="clientAuthInput" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupClientAccount()" placeholder="e.g., client@example.com" type="email" autoComplete="username" inputMode="email" />
                   </div>
                   <div className="form-group" style={{"marginTop": "14px"}}>
                     <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "4px"}}>
@@ -5252,7 +5253,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                         Forgot password?
                       </button>
                     </div>
-                    <input id="clientAuthPassword" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupClientAccount()" placeholder="Enter your portal password" type="password" />
+                    <input id="clientAuthPassword" data-onkeydown="if(event.key===&#x27;Enter&#x27;) lookupClientAccount()" placeholder="Enter your portal password" type="password" autoComplete="current-password" />
                   </div>
                   <button className="btn-primary" data-onclick="lookupClientAccount()" style={{"marginTop": "12px"}} type="button">
                     
@@ -5432,6 +5433,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </button>
                 </div>
               </div>
+              {/* Your next step (filled in by src/portal/clientNextStep.ts through permitCardLive.ts) */}
+              <section id="fi-client-next" className="cns" aria-label="Your next step" hidden></section>
               {/* PORTAL HERO BANNER */}
               <div className="fi-banner-card" id="fi-sec-dashboard">
                 <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "flexWrap": "wrap", "gap": "16px"}}>
@@ -5887,7 +5890,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   *
                 </span>
               </label>
-              <input id="adminStaffEmail" placeholder="staff@trainwithfifs.com" type="email" data-onkeydown="if(event.key===&#x27;Enter&#x27;) verifyAdminAccess()" />
+              <input id="adminStaffEmail" placeholder="staff@trainwithfifs.com" type="email" autoComplete="username" inputMode="email" data-onkeydown="if(event.key===&#x27;Enter&#x27;) verifyAdminAccess()" />
             </div>
             <div className="form-group" style={{"marginBottom": "18px"}}>
               <label htmlFor="adminStaffPassword" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "fontSize": "0.85rem"}}>
@@ -5896,7 +5899,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   *
                 </span>
               </label>
-              <input id="adminStaffPassword" placeholder="Enter Account Password" type="password" data-onkeydown="if(event.key===&#x27;Enter&#x27;) verifyAdminAccess()" />
+              <input id="adminStaffPassword" placeholder="Enter Account Password" type="password" autoComplete="current-password" data-onkeydown="if(event.key===&#x27;Enter&#x27;) verifyAdminAccess()" />
               <div style={{"textAlign": "right", "marginTop": "6px"}}>
                 <button data-onclick="fifsRequestPasswordReset('staff', this)" style={{"background": "none", "border": "none", "padding": "0", "color": "var(--text-muted)", "fontSize": "0.78rem", "textDecoration": "underline", "cursor": "pointer"}} type="button">
                   Forgot password?

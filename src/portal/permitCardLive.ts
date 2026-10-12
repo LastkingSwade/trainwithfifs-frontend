@@ -6,6 +6,7 @@
 // short-lived address made in this browser and removed again on sign-out.
 import { daysLeft, parseExpiry } from './ics';
 import { prettyDate, type VaultDoc } from './vaultLogic';
+import { nextStep, renderNextStep } from './clientNextStep';
 
 const w: any = typeof window === 'undefined' ? {} : window;
 const $ = (id: string) => document.getElementById(id);
@@ -62,7 +63,7 @@ async function refresh() {
   running = true;
   try {
     const dash = $('client-active-dashboard');
-    if (!dash || dash.classList.contains('hidden') || getComputedStyle(dash).display === 'none') { clearPhoto(); restoreDefaults(); return; }
+    if (!dash || dash.classList.contains('hidden') || getComputedStyle(dash).display === 'none') { clearPhoto(); restoreDefaults(); const h0 = $('fi-client-next'); if (h0) renderNextStep(h0, null); return; }
     const rec = w.__fifsClientPortalRecord || {};
     let docs: VaultDoc[] = [];
     try { if (typeof w.callFifsBackend === 'function') { const st = await w.callFifsBackend('walletStatus'); if (st && st.enabled && st.consented && Array.isArray(st.docs)) docs = st.docs; } } catch { /* the vault is optional; the card still fills from the profile */ }
@@ -70,6 +71,8 @@ async function refresh() {
     const badge = ($('dash-client-exp-badge')?.textContent || '').trim();
     const profileExpiry = rec.expirationDate || (/Expiration:\s*(.+)$/i.exec(badge)?.[1] || '');
     const f = cardFacts({ profileExpiry, docExpiry: doc ? doc.expiresOn : null, hasPermitDoc: !!doc, optIn: typeof rec.optInReminder === 'boolean' ? rec.optInReminder : null, permitState: rec.permitState || ($('dash-client-permit')?.textContent || '') });
+    const exp = parseExpiry(doc && doc.expiresOn ? doc.expiresOn : profileExpiry);
+    const host = $('fi-client-next'); if (host) renderNextStep(host, nextStep({ days: exp ? daysLeft(exp) : null, hasPermitDoc: !!doc, optIn: typeof rec.optInReminder === 'boolean' ? rec.optInReminder : null }));
     setText('wallet-exp-date', f.expiresText, f.expiresColor);
     setText('wallet-days-left', f.renewalText);
     setText('wallet-carry-reach', f.reach);

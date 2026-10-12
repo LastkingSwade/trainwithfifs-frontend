@@ -258,3 +258,5 @@ C8	2026-10-12T05:31:07Z	Outline boxes removed site-wide (1px glow ring on every 
 C9	2026-10-12T05:31:07Z	New-to-firearms Start Your Journey: goal picker first, 4 numbered quick jumps, 4x2 step grid with gold numbers, rounded goal buttons (were clipped circles), one closing Book / Ask Kai call to action replacing the duplicate Book Now	SUCCESS	-	-	-
 P1	2026-10-12T06:05:48Z	Client hub: Document Vault card moved above the 50-State Reciprocity Hub	SUCCESS	-	-	-
 P2	2026-10-12T06:11:50Z	One sign-in in the header user button: email + password, the right portal (student, client or staff) opens by itself; wrong email and wrong password look the same; each portal's own sign-in still runs; forgot-password and show/hide password included	SUCCESS	-	-	-
+P3	2026-10-12T06:13:47Z	Sign-in boxes (student, client, staff): username/current-password autocomplete, email keyboard on phones, Show/Hide password	SUCCESS	-	-	-
+P4	2026-10-12T06:13:47Z	Client dashboard: Your next step card (add date, renew now, book class, add permit card, turn on reminders, all set) from the permit date, reminders and vault	SUCCESS	-	-	-
