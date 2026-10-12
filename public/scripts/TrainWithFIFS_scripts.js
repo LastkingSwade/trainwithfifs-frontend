@@ -987,39 +987,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
     }
     window.closeStepDetailModal = closeStepDetailModal;
-    function openExpectationModal(type) {
-      var data = EXPECTATION_DATA[type];
-      if (!data) return;
-      var modal = document.getElementById('expectationModal');
-      var badge = document.getElementById('expectModalBadge');
-      var heading = document.getElementById('expectModalHeading');
-      var icon = document.getElementById('expectModalIcon');
-      var subtitle = document.getElementById('expectModalSubtitle');
-      var synopsis = document.getElementById('expectModalSynopsis');
-      var grid = document.getElementById('expectModalSectionsGrid');
-      if (badge) badge.textContent = data.badge;
-      if (heading) heading.textContent = data.title;
-      if (icon) icon.textContent = data.icon;
-      if (subtitle) subtitle.textContent = data.subtitle;
-      if (synopsis) synopsis.textContent = data.synopsis || data.subtitle;
-      if (grid && Array.isArray(data.sections)) {
-        grid.innerHTML = data.sections.map(s => `
-          <div style="background: #070b10; border: 1px solid var(--border-subtle); border-left: 3px solid var(--accent-cyan); border-radius: 8px; padding: 12px 14px;">
-            <strong style="font-family: var(--font-display); font-size: 1.05rem; color: #fff; display: block; margin-bottom: 3px;">${s.title}</strong>
-            <p style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.45; margin: 0;">${s.desc}</p>
-          </div>
-        `).join('');
-      }
-      if (modal) {
-        modal.classList.add('active');
-        modal.style.setProperty('display', 'flex', 'important');
-        modal.style.setProperty('opacity', '1', 'important');
-        modal.style.setProperty('visibility', 'visible', 'important');
-        modal.style.setProperty('pointer-events', 'auto', 'important');
-        document.body.classList.add('modal-open');
-        document.body.style.overflow = 'hidden';
-      }
-    }
     window.openExpectationModal = openExpectationModal;
     function closeExpectationModal() {
       var modal = document.getElementById('expectationModal');
