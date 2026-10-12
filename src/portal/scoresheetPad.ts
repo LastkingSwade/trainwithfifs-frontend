@@ -71,7 +71,7 @@ export function installScoresheetPad(): void {
 
   const box = el('div', undefined, 'ssp-box'); box.id = 'scoresheetPadBox';
   box.appendChild(el('div', 'Official MSP 29-14 score sheet', 'ssp-title'));
-  box.appendChild(el('p', 'Tap the form, fill it out with your Apple Pencil, tap Done, then press Save score sheet. It goes to this student only.', 'ssp-help'));
+  box.appendChild(el('p', 'Tap the form, fill it out with your Apple Pencil, then tap Done. It saves to this student only and closes.', 'ssp-help'));
   const thumbBtn = el('button', undefined, 'ssp-thumb'); thumbBtn.type = 'button'; thumbBtn.setAttribute('aria-label', 'Open the score sheet form to fill out');
   const thumb = el('img'); thumb.alt = 'The score sheet form'; thumb.width = 300; thumb.height = 386; thumb.style.display = 'none';
   const ph = el('div', 'Loading the form…', 'ssp-ph'); ph.setAttribute('role', 'status');
@@ -240,12 +240,20 @@ export function installScoresheetPad(): void {
     const close = (keep: boolean) => {
       if (!keep) { finishUi(); return; }
       // The pen layer becomes a transparent PNG. If it is large, only the ink layer is made smaller (the form underneath stays full quality).
-      let out = ''; for (const s of EXPORT_SCALES) { out = layerCanvas(s).toDataURL('image/png'); if (out.length <= MAX_LAYER_BASE64) break; }
-      if (out.length > MAX_LAYER_BASE64) { note.textContent = 'This page has too much ink to send. Clear some marks and try again.'; return; }
+      let out = '';
+      try { for (const s of EXPORT_SCALES) { out = layerCanvas(s).toDataURL('image/png'); if (out.length <= MAX_LAYER_BASE64) break; } }
+      catch { note.textContent = 'This device could not turn the page into a picture. Nothing was saved. Try Done again, or use "Upload a file instead".'; return; }
+      if (!out || out.length > MAX_LAYER_BASE64) { note.textContent = 'This page has too much ink to send. Clear some marks and try again.'; return; }
       pending = { inkLayerBase64: out, inkStrokes: inkToJson(strokes, items) };
       try { input.value = ''; } catch { /* ignore */ }
-      redrawThumb(); setStatus('Your filled-out form is ready. Press "Save score sheet" below to send it to this student.');
-      finishUi();
+      redrawThumb(); finishUi();
+      // Done now saves and closes in one tap: the same save the "Save score sheet" button runs. If a typed field is missing, its message shows in the Edit window, which is visible again now that the pad is closed.
+      const save = w.handleSaveScoresheetFromEdit;
+      if (typeof save === 'function') {
+        const started = save();
+        setStatus(started === false ? 'Your drawing is kept. Fix the message just above, then press "Save score sheet".' : 'Saving this form to the student…');
+      }
+      else setStatus('Your filled-out form is ready. Press "Save score sheet" below to send it to this student.');
     };
     buildPanel(); layout(); sync(); paint();
   };

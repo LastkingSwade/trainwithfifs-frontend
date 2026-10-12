@@ -60,5 +60,16 @@ test('Live online pitch: sells learning from home, and explains plainly why Day 
   assert(/ONLINE_BENEFITS\.map/.test(PAGE) && /online-day2-callout/.test(PAGE) && /Learn Day 1 From Home/.test(PAGE) && /Learn Day 1 from home\. Day 2 is hands-on at the range\./.test(R('src/online/onlineForm.ts')), 'shown on the form and on the class cards');
   assert(/DAY2_ACK_TEXT/.test(PAGE) && /onlineDay2Ack/.test(PAGE), 'the Day 2 box is still required');
 });
+test('Score sheet pad: Done saves and closes in one tap, a failed save keeps the drawing, and a missing typed field is shown in the Edit window (not hidden behind the pad)', () => {
+  const PAD = R('src/portal/scoresheetPad.ts'), SCRIPT = R('public/scripts/TrainWithFIFS_scripts.js');
+  const close = PAD.slice(PAD.indexOf('const close = (keep: boolean)'), PAD.indexOf('buildPanel(); layout(); sync(); paint();'));
+  assert(/finishUi\(\);[\s\S]*const save = w\.handleSaveScoresheetFromEdit;[\s\S]*save\(\)/.test(close), 'Done must close the pad and then run the same save as the Save button');
+  assert(/catch \{ note\.textContent = 'This device could not turn the page into a picture/.test(close), 'a failed export must say so inside the pad');
+  assert(/started === false \? 'Your drawing is kept/.test(close), 'when the save is refused the pad must say the drawing is kept');
+  assert(!/Press "Save score sheet" below to send it/.test(PAD.split('const save = w.handleSaveScoresheetFromEdit')[0]) , 'Done must no longer tell the owner to press a second button first');
+  const fn = SCRIPT.slice(SCRIPT.indexOf('function handleSaveScoresheetFromEdit()'), SCRIPT.indexOf('window.handleSaveScoresheetFromEdit = '));
+  assert(/if \(read\.error\) \{ fifsScoresheetFeedback\(read\.error, 'error'\); return false; \}/.test(fn) && /send\(ink\); return true;/.test(fn), 'the save must report whether it really started');
+  assert(/box\.scrollIntoView\(\{ block: 'nearest' \}\)/.test(SCRIPT.slice(SCRIPT.indexOf('function fifsScoresheetFeedback'), SCRIPT.indexOf('function fifsScoresheetFeedback') + 900)), 'the message must scroll into view');
+});
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
 process.exit(failed ? 1 : 0);

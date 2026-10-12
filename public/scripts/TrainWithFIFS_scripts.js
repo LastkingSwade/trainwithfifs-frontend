@@ -10249,6 +10249,7 @@ if (typeof window !== 'undefined') {
       box.textContent = text;
       box.style.display = 'block';
       box.style.color = kind === 'error' ? 'var(--accent-red, #ef4444)' : (kind === 'pending' ? 'var(--accent-amber, #f59e0b)' : 'var(--accent-green, #10b981)');
+      try { box.scrollIntoView({ block: 'nearest' }); } catch (e) { /* older browsers */ }
     }
     // The calculated percentage shown next to the rounds and hits boxes. Blank (never NaN, Infinity, or a guess)
     // unless both boxes hold whole numbers that the save would accept: rounds 1 to 500, hits 0 up to the rounds.
@@ -10364,9 +10365,9 @@ if (typeof window !== 'undefined') {
     function handleSaveScoresheetFromEdit() {
       var idBox = document.getElementById('editStudentId');
       var studentId = idBox ? idBox.value : '';
-      if (!studentId) return;
+      if (!studentId) return false;
       var read = fifsScoresheetReadForm();
-      if (read.error) { fifsScoresheetFeedback(read.error, 'error'); return; }
+      if (read.error) { fifsScoresheetFeedback(read.error, 'error'); return false; }
       var btn = document.getElementById('btnSaveScoresheetFromEdit');
       var fileInput = document.getElementById('editScoresheetFileInput');
       var file = fileInput && fileInput.files && fileInput.files[0];
@@ -10392,16 +10393,18 @@ if (typeof window !== 'undefined') {
       }
       // A page filled out with the pen (the pad hands over a transparent layer; the server lays it over the blank form).
       var ink = (typeof window !== 'undefined' && window && typeof window.fifsScoresheetInkPayload === 'function') ? window.fifsScoresheetInkPayload() : null;
-      if (ink && ink.inkLayerBase64 && !file) { send(ink); return; }
+      if (ink && ink.inkLayerBase64 && !file) { send(ink); return true; }
       if (file) {
-        if (file.size > FIFS_SCORESHEET_MAX_FILE_BYTES) { fifsScoresheetFeedback('That file is too large (limit 3 MB). Use a smaller scan or photo.', 'error'); return; }
-        if (['application/pdf', 'image/jpeg', 'image/png', 'image/webp'].indexOf(file.type) < 0) { fifsScoresheetFeedback('Use a PDF, JPEG, PNG, or WebP file.', 'error'); return; }
+        if (file.size > FIFS_SCORESHEET_MAX_FILE_BYTES) { fifsScoresheetFeedback('That file is too large (limit 3 MB). Use a smaller scan or photo.', 'error'); return false; }
+        if (['application/pdf', 'image/jpeg', 'image/png', 'image/webp'].indexOf(file.type) < 0) { fifsScoresheetFeedback('Use a PDF, JPEG, PNG, or WebP file.', 'error'); return false; }
         var reader = new FileReader();
         reader.onload = function(e) { send({ fileBase64: e.target.result, fileType: file.type }); };
         reader.onerror = function() { fifsScoresheetFeedback('The file could not be read. Nothing was saved.', 'error'); };
         reader.readAsDataURL(file);
+        return true;
       } else {
         send(null);
+        return true;
       }
     }
     window.handleSaveScoresheetFromEdit = handleSaveScoresheetFromEdit;
