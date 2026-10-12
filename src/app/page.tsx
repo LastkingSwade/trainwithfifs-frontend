@@ -2518,13 +2518,13 @@ export default function TrainWithFIFS(props: any) {
         return;
       }
 
-      if (!newPassword || newPassword.length < 12) {
+      if (!newPassword || newPassword.length < 8) {
         if (statusDiv) {
           statusDiv.style.display = 'block';
           statusDiv.style.background = 'rgba(239, 68, 68, 0.15)';
           statusDiv.style.border = '1px solid #ef4444';
           statusDiv.style.color = '#ef4444';
-          statusDiv.innerHTML = '⚠️ New password must be at least 12 characters long with uppercase, lowercase, number & symbol.';
+          statusDiv.innerHTML = '⚠️ New password must be at least 8 characters long (students: 12) with uppercase, lowercase, number & symbol.';
         }
         return;
       }
@@ -13224,7 +13224,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <input type="hidden" id="resetStudentIdHidden" />
             <div style={{"marginBottom": "14px"}}>
               <label style={{"display": "block", "fontSize": "0.82rem", "fontWeight": "700", "color": "#cbd5e1", "marginBottom": "6px"}}>
-                New Password (Min. 12 characters, mix of cases, numbers, symbols)
+                New Password (Min. 8 characters for clients, 12 for students; mix of cases, numbers, symbols)
               </label>
               <input type="password" id="forcedNewPassword" required style={{"width": "100%", "padding": "12px", "background": "#070b10", "border": "1px solid var(--accent-cyan)", "borderRadius": "8px", "color": "#fff", "fontSize": "0.95rem"}} />
             </div>
@@ -13338,7 +13338,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <label htmlFor="cpNewPassword" style={{"color": "#cbd5e1", "fontSize": "0.85rem", "fontWeight": "600", "display": "block", "marginBottom": "6px"}}>
                 New Password <span className="req">*</span>
               </label>
-              <input id="cpNewPassword" placeholder="Min 12 chars (Uppercase, lowercase, number & symbol)" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px 12px", "borderRadius": "6px", "width": "100%", "fontSize": "0.88rem"}} type="password" />
+              <input id="cpNewPassword" placeholder="Min 8 chars; students 12 (Uppercase, lowercase, number & symbol)" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "10px 12px", "borderRadius": "6px", "width": "100%", "fontSize": "0.88rem"}} type="password" />
               <span style={{"color": "var(--text-muted)", "fontSize": "0.72rem", "marginTop": "4px", "display": "block"}}>
                 Requirements: 12+ characters, 1 uppercase, 1 lowercase, 1 number, 1 special character.
               </span>

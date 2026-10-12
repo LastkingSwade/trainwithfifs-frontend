@@ -231,6 +231,8 @@ const mockSupabase = {
     }) },
     auth: {
       admin: {
+        // Records that a password was set, never the password itself.
+        updateUserById: async (id, attrs) => { (authCalls.pwUpdates = authCalls.pwUpdates || []).push({ id, hasPassword: typeof (attrs && attrs.password) === 'string' }); return { data: {}, error: null }; },
         createUser: async (params) => {
           authCalls.createUser.push(params);
           if (authFail === 'createUser') return { data: { user: null }, error: { status: 500, message: 'boom: internal auth detail' } };
@@ -3043,6 +3045,32 @@ async function main() {
       const at = ROUTE_SRC.indexOf("case '" + name + "': {"); assert(at > 0, name);
       assert(/^\s*if \(!allowPublicSubmit\(req, /.test(ROUTE_SRC.slice(at + ("case '" + name + "': {").length).replace(/^\n/, '')), name + ' must be throttled before anything else');
     }
+  });
+
+  console.log('\n[SECTION M: portal password length (clients 8, students 12)]');
+  const pw = async (token, newPassword) => { authCalls.pwUpdates = []; const r = await fifs('selfServicePasswordUpdate', { newPassword }, token); return { r, updated: (authCalls.pwUpdates || []).length }; };
+  const dropClientsStudentRow = () => { for (let i = db.students.length - 1; i >= 0; i--) if (db.students[i].user_id === 'uuid-client-1') db.students.splice(i, 1); }; // the seed gives this login a student record too; client-only tests drop it
+  await test('Someone who is both a client and a student keeps the stricter student rule (12): an 8-character password is refused', async () => {
+    assert(db.students.filter((x) => x.user_id === 'uuid-client-1').length === 1, 'expected the seeded student record on this login');
+    const x = await pw('client-marcus-token', 'Abcdef1!'); assert(x.r.status === 400 && /at least 12 characters/.test(x.r.body.error) && x.updated === 0, 'a dual-role login must keep the 12-character rule');
+  });
+  await test('Client portal: an 8-character password with upper, lower, a number and a symbol is accepted; 7 characters is refused', async () => {
+    dropClientsStudentRow();
+    const ok = await pw('client-marcus-token', 'Abcdef1!'); assert(ok.r.status === 200 && ok.r.body.success === true && ok.updated === 1, 'an 8-character client password must be accepted, got ' + JSON.stringify(ok.r.body));
+    const short = await pw('client-marcus-token', 'Abcde1!'); assert(short.r.status === 400 && /at least 8 characters/.test(short.r.body.error) && short.updated === 0, 'a 7-character client password must be refused with the 8-character message');
+  });
+  await test('Client portal: the other rules still apply (needs upper, lower, a number and a symbol)', async () => {
+    dropClientsStudentRow();
+    for (const bad of ['abcdef1!', 'ABCDEF1!', 'Abcdefg!', 'Abcdefg1']) { const x = await pw('client-marcus-token', bad); assert(x.r.status === 400 && x.updated === 0, bad.replace(/./g, '*') + ' must be refused'); }
+  });
+  await test('Student portal: still 12 characters. An 8-character password is refused and nothing is changed; 12 is accepted', async () => {
+    const short = await pw('student-alice-token', 'Abcdef1!'); assert(short.r.status === 400 && /at least 12 characters/.test(short.r.body.error) && short.updated === 0, 'a student 8-character password must still be refused');
+    const ok = await pw('student-alice-token', 'Abcdefghi12!'); assert(ok.r.status === 200 && ok.updated === 1, 'a 12-character student password must be accepted, got ' + JSON.stringify(ok.r.body));
+  });
+  await test('Password rules: no password text is ever echoed in a response, and staff are still sent to the staff workflow', async () => {
+    dropClientsStudentRow();
+    const x = await pw('client-marcus-token', 'Zz9-secret-NOT-echoed'); assert(!JSON.stringify(x.r.body).includes('secret-NOT-echoed'), 'password echoed');
+    const staff = await pw('instructor-token', 'Abcdef1!'); assert(staff.r.status === 403 && staff.updated === 0, 'staff must be refused');
   });
 
   console.log('\n================================================================');

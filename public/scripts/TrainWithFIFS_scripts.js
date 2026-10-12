@@ -2692,8 +2692,8 @@ function loadDemoStudent() {
         showStatus(statusDiv, 'Enter a valid email address.', 'error');
         return false;
       }
-      if (password.length < 12 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-        showStatus(statusDiv, 'Use at least 12 characters with uppercase and lowercase letters, a number, and a special character.', 'error');
+      if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+        showStatus(statusDiv, 'Use at least 8 characters with uppercase and lowercase letters, a number, and a special character.', 'error');
         return false;
       }
       if (password !== confirmPassword) {

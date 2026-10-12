@@ -51,9 +51,12 @@ function generateSecureTempPassword(): string {
 
 
 // --- Strict Password Validator ---
-function validateStrictPassword(password: string): { valid: boolean; error?: string } {
- if (!password || password.length < 12) {
-   return { valid: false, error: 'Password must be at least 12 characters long.' };
+// Student accounts need 12 characters; client portal accounts need 8. Every other rule (upper, lower, number, symbol) is the same for both.
+const STUDENT_PASSWORD_MIN = 12;
+const CLIENT_PASSWORD_MIN = 8;
+function validateStrictPassword(password: string, minLength: number = STUDENT_PASSWORD_MIN): { valid: boolean; error?: string } {
+ if (!password || password.length < minLength) {
+   return { valid: false, error: 'Password must be at least ' + minLength + ' characters long.' };
  }
  if (!/[A-Z]/.test(password)) {
    return { valid: false, error: 'Password must include at least one uppercase letter.' };
@@ -2011,7 +2014,7 @@ export async function POST(req: NextRequest) {
        const { user, error: authErr } = await getAuthenticatedUser(req);
        if (authErr || !user) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Authentication required.' }, { status: 401 });
        if (isStaffOrAdmin(user)) return NextResponse.json({ success: false, status: 'error', error: 'Use the staff password reset workflow.' }, { status: 403 });
-       const val = validateStrictPassword(newPassword);
+       const val = validateStrictPassword(newPassword, CLIENT_PASSWORD_MIN);
        if (!val.valid) return NextResponse.json({ success: false, status: 'error', error: val.error }, { status: 400 });
        supabase = getPrivilegedClient();
        const [studentResult, clientResult] = await Promise.all([
@@ -2021,6 +2024,10 @@ export async function POST(req: NextRequest) {
        const student = studentResult.data;
        const client = clientResult.data;
        if (!student && !client) return NextResponse.json({ success: false, status: 'error', error: 'Linked portal record not found.' }, { status: 404 });
+       if (student) {
+         const studentVal = validateStrictPassword(newPassword, STUDENT_PASSWORD_MIN);
+         if (!studentVal.valid) return NextResponse.json({ success: false, status: 'error', error: studentVal.error }, { status: 400 });
+       }
        const ownedRecord = student || client;
        const allowedTargets = [String(user.email || '').toLowerCase(), String(ownedRecord.email || '').toLowerCase(), String(ownedRecord.student_id || ownedRecord.client_id || '').toLowerCase(), String(ownedRecord.id || '').toLowerCase()];
        if (requestedTarget && !allowedTargets.includes(requestedTarget)) return NextResponse.json({ success: false, status: 'error', error: 'Forbidden: You can only update your own password.' }, { status: 403 });
