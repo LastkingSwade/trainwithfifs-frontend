@@ -6093,3 +6093,38 @@ header.app-header .btn-nav-profile { padding: 0 !important; width: 44px; positio
 /* ---- V7 Icons everywhere: emoji elsewhere on the site are swapped for the same thin-line icons (see src/ui/emojiToIcons.ts). The original text usually has a
    space after the emoji, so the icon needs only a little extra room. ---- */
 .fi-ico.fi-ico-rt { margin-right: 0.1em; }
+
+/* ---- C2 Color roles. The owner asked for the color back: text is no longer plain white and gray. Roles come from the business colors.
+   cyan = section headings and wayfinding; gold = card titles, labels and key words; amber = prices and the numbers that matter;
+   a cool blue-tinted tone replaces gray for body copy. Every pair is checked against the dark panels for WCAG AA (body >= 4.5:1; these are 9:1 or more). ---- */
+:root {
+  --ink-head: #19e6ff;
+  --ink-title: #ffd166;
+  --ink-price: #ffb703;
+  --ink-body: #d3e9f8;
+  --ink-soft: #aac3d6;
+  --text-muted: #aac3d6;
+}
+/* Section headings: the brand cyan (ones with their own colour, like the red or gold callouts, keep it). */
+:is(#app-container, .fi-portal-modal-card, .goal-modal-card, .modal-sticky-head, .fi-section-header, .panel-header) :is(h1, h2, h3):not([style*="color"]) { color: var(--ink-head); }
+:is(#app-container, .fi-portal-modal-card, .goal-modal-card, .modal-sticky-head, .fi-section-header, .panel-header) :is(h1, h2, h3):is([style*="color:#fff"], [style*="color: #fff"], [style*="color:#ffffff"], [style*="color: #ffffff"], [style*="color: rgb(255, 255, 255)"]) { color: var(--ink-head) !important; }
+/* Card titles and item headings: warm gold. */
+:is(#app-container, .fi-portal-modal-card, .goal-modal-card) h4:not([style*="color"]), .j-card h4, .faq-question span { color: var(--ink-title); }
+:is(#app-container, .fi-portal-modal-card, .goal-modal-card) h4:is([style*="color:#fff"], [style*="color: #fff"], [style*="color:#ffffff"], [style*="color: #ffffff"], [style*="color: rgb(255, 255, 255)"]), .tuition-title, .badge-pop { color: var(--ink-title) !important; }
+/* Prices and key numbers: amber. */
+.price-val { color: var(--ink-price) !important; }
+/* Bold words inside copy, and form labels: gold, so a paragraph has something to read first. */
+:is(p, li, .faq-answer, .tuition-desc) :is(strong, b):not([style*="color"]) { color: var(--ink-title); }
+:is(#app-container, .fi-portal-modal-card) label:not([style*="color"]) { color: var(--ink-title); }
+/* Benefit lines, review quotes, and anything else set to pure white inline becomes the cool body tone (buttons keep their own colours). */
+.tuition-bullets div, .review-quote-text { color: var(--ink-body); }
+:is(#app-container, .fi-portal-modal-card, .goal-modal-card) :is(p, li, div, span):is([style*="color:#fff"], [style*="color: #fff"], [style*="color:#ffffff"], [style*="color: #ffffff"], [style*="color: rgb(255, 255, 255)"]):not(button *):not(.price-val):not(.tuition-title) { color: var(--ink-body) !important; }
+/* Home screen: the journey button leads in cyan, the two side buttons split cyan and gold, the small links are the cool body tone. */
+/* The hero buttons are restyled again further up with !important, so these match that priority. */
+.start-journey-btn .prime-label { color: var(--ink-head) !important; }
+.start-journey-btn .prime-sub { color: var(--ink-title) !important; }
+.fifs-portal-btn .twin-title { color: var(--ink-head) !important; }
+button.lead-instructor-btn.btn-hero-twin .twin-title, .lead-instructor-btn .twin-title { color: var(--ink-title) !important; }
+.pwa-install-banner strong { color: var(--ink-title) !important; }
+.btn-hero-twin .twin-sub { color: var(--ink-body) !important; }
+.btn-hero-aux:not(.hud-chat) { color: var(--ink-body); }

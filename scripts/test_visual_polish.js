@@ -40,5 +40,16 @@ test('C1 Colorful emoji are back: the home screen and the floating chat button u
   for (const e of ['🛡️', '🎯', '⭐', '⚡', '👤', '❓', '💬']) assert(hero.includes(e), 'hero keeps ' + e);
   assert(!fs.existsSync(path.join(ROOT, 'src/ui/emojiToIcons.ts')) && !fs.existsSync(path.join(ROOT, 'src/ui/EmojiIcons.tsx')) && !/EmojiIcons|fi-ico/.test(R('src/app/layout.tsx') + PAGE), 'the icon swap is gone');
 });
+test('C2 Text has real color: headings cyan, card titles gold, prices amber, body copy a cool blue-tint instead of gray, and every pair stays at WCAG AA or better', () => {
+  const t = GCSS.slice(GCSS.indexOf('C2 Color roles'));
+  const tok = {}; for (const m of t.matchAll(/--(ink-[a-z]+|text-muted): (#[0-9a-f]{6});/g)) tok[m[1]] = m[2];
+  for (const k of ['ink-head', 'ink-title', 'ink-price', 'ink-body', 'ink-soft', 'text-muted']) assert(tok[k], k + ' defined');
+  const lum = (h) => { const c = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4))); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  for (const bg of ['#090d16', '#0d1622', '#101a28']) for (const k of Object.keys(tok)) assert(ratio(tok[k], bg) >= 7, k + ' ' + tok[k] + ' on ' + bg + ' is only ' + ratio(tok[k], bg).toFixed(1) + ':1');
+  assert(/\.price-val \{ color: var\(--ink-price\) !important; \}/.test(t) && /\.tuition-title/.test(t) && /var\(--ink-head\) !important/.test(t), 'headings, titles and prices are covered');
+  assert(/\.start-journey-btn \.prime-label \{ color: var\(--ink-head\) !important; \}/.test(t), 'the home journey button leads in cyan');
+  assert(!/linear-gradient|background-clip: text|-webkit-text-fill/.test(t), 'solid colours, not gradient text');
+});
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
 process.exit(failed ? 1 : 0);
