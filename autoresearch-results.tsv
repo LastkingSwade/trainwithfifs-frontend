@@ -212,6 +212,7 @@ R02	2026-10-12T00:50:12Z	Search engines get a sitemap.xml listing the home page 
 R03	2026-10-12T00:52:47Z	Remove the unreachable earlier copies of setCardTier() (the last definition wins, so they never run)	SUCCESS	386911	-	-	found: test_course_catalog_labels was passing on a dead copy; re-pointed it at the live card-title write (mutation-checked); 14544 raw bytes removed
 R04	2026-10-12T00:52:56.401Z	Remove the unreachable earlier copies of renderAdminClientTerminal() (the last definition wins, so they never run)	SUCCESS	382477	381056	-1421	script gzip bytes; 5990 raw bytes removed
 R05	2026-10-12T00:53:04.684Z	Remove the unreachable earlier copies of logAnalyticsEvent() (the last definition wins, so they never run)	SUCCESS	381056	379902	-1154	script gzip bytes; 3462 raw bytes removed
+R06	2026-10-11T00:00:00Z	Remove the unreachable earlier copies of openGoalSynopsis() (the last definition wins, so they never run)	SUCCESS	379902	379383	-519	reconstructed: the original log line was lost when the R07 revert rolled the log file back; numbers are from the run output and the commit exists
 R07	2026-10-12T00:53:15.548Z	Remove the unreachable earlier copies of showPortalConflictModal() (the last definition wins, so they never run)	FAIL	379383	379383	0	kept as is: test_roster_escaping_suite pins that this function is declared twice ("update this test if one is removed"); not changed to delete dead code
 [FIFS Route Discord] DISCORD_WEBHOOK_URL is not configured.
 [FIFS Route Discord] DISCORD_WEBHOO
