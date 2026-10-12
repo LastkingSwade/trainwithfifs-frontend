@@ -957,55 +957,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       elem.style.display = 'block';
     }
     window.showStatus = showStatus;
-    // ==========================================================================
-    // BULLETPROOF MODAL TRIGGER ENGINE (DISPLAYS WITH OPACITY & POINTER-EVENTS)
-    // ==========================================================================
-    function openGoalSynopsis(goalKey) {
-      var data = GOAL_SYNOPSIS_DATA[goalKey];
-      if (!data) return;
-      var modal = document.getElementById('goalSynopsisModal');
-      var badge = document.getElementById('goalModalBadge');
-      var title = document.getElementById('goalModalTitle');
-      var rec = document.getElementById('goalModalRec');
-      var synopsis = document.getElementById('goalModalSynopsis');
-      var whyList = document.getElementById('goalModalWhyList');
-      var whyNotList = document.getElementById('goalModalWhyNotList');
-      var acceptBtn = document.getElementById('goalModalAcceptBtn');
-      var guideBanner = document.getElementById('goalModalGuideBanner');
-      var mspPortalBanner = document.getElementById('goalModalMspPortalBanner');
-      if (badge) badge.textContent = data.badge;
-      if (title) title.textContent = data.title;
-      if (rec) rec.textContent = data.rec;
-      if (synopsis) synopsis.textContent = data.synopsis;
-      if (whyList && Array.isArray(data.why)) {
-        whyList.innerHTML = data.why.map(item => `<li><span class="bullet-icon-why">✔</span><span>${item}</span></li>`).join('');
-      }
-      if (whyNotList && Array.isArray(data.whyNot)) {
-        whyNotList.innerHTML = data.whyNot.map(item => `<li><span class="bullet-icon-why-not">⚡</span><span>${item}</span></li>`).join('');
-      }
-      if (guideBanner) guideBanner.style.display = data.showGuide ? 'flex' : 'none';
-      if (mspPortalBanner) mspPortalBanner.style.display = (goalKey === 'want_to_carry') ? 'flex' : 'none';
-      if (acceptBtn) {
-        if (goalKey === 'new_to_firearms') {
-          acceptBtn.style.display = 'none';
-        } else {
-          acceptBtn.style.display = 'inline-flex';
-          acceptBtn.onclick = function() {
-            closeGoalSynopsis();
-            selectCourse(data.courseValue);
-          };
-        }
-      }
-      if (modal) {
-        modal.classList.add('active');
-        modal.style.setProperty('display', 'flex', 'important');
-        modal.style.setProperty('opacity', '1', 'important');
-        modal.style.setProperty('visibility', 'visible', 'important');
-        modal.style.setProperty('pointer-events', 'auto', 'important');
-        document.body.classList.add('modal-open');
-        document.body.style.overflow = 'hidden';
-      }
-    }
     window.openGoalSynopsis = openGoalSynopsis;
     function closeGoalSynopsis() {
       var modal = document.getElementById('goalSynopsisModal');
