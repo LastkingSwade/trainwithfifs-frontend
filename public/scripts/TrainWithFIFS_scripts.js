@@ -3275,64 +3275,6 @@ function loadDemoStudent() {
       }
     }
     window.switchClientAuthTab = switchClientAuthTab;
-    function lookupStudentAccount() {
-      var input = document.getElementById('studentAuthInput');
-      var passInput = document.getElementById('studentAuthPassword');
-      var statusDiv = document.getElementById('student-login-status');
-      var query = input ? input.value.trim() : '';
-      var password = passInput ? passInput.value : ''; // passwords are used exactly as typed
-
-
-      if (!query) {
-        showStatus(statusDiv, 'Enter the email address linked to your student account.', 'error');
-        return;
-      }
-      
-
-
-      showStatus(statusDiv, 'Authenticating Student Operations credentials...', 'success');
-      callFifsBackend('getStudentPortalData', {
-        email: query.includes('@') ? query : '',
-        studentId: query.includes('@') ? '' : query,
-        password: password
-      }, function(res) {
-        if (!res) {
-          showStatus(statusDiv, 'Unable to verify credentials. Please try again.', 'error');
-          return;
-        }
-
-
-        if (res.status === 'needs_password_setup') {
-          showStatus(statusDiv, 'This account does not have a password yet. Use "Forgot password?" below to set one, or ask FIFS to send you a setup link.', 'info');
-          return;
-        }
-
-
-        if (res.status === 'password_required') {
-          showStatus(statusDiv, 'Please enter your portal password.', 'error');
-          if (passInput) passInput.focus();
-          return;
-        }
-
-
-        if (res.status === 'invalid_password') {
-          showStatus(statusDiv, 'Incorrect password. Please verify and try again.', 'error');
-          if (passInput) passInput.focus();
-          return;
-        }
-
-
-        if (res.status === 'success' && res.student) {
-          if (statusDiv) statusDiv.style.display = 'none';
-          fifsSetStudentSession(res.student);
-          renderStudentDashboard(res.student);
-        } else {
-          showStatus(statusDiv, res.message || 'Identifier not found in Student Roster.', 'error');
-        }
-      }, function(err) {
-        showStatus(statusDiv, 'Security verification error.', 'error');
-      });
-    }
 
 
     window.lookupStudentAccount = lookupStudentAccount;
