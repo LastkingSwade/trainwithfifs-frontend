@@ -1,4 +1,5 @@
 // Student Portal extras, drawn into #dash-extras once the signed-in dashboard is showing. All text is set with textContent (no HTML from data).
+import { courseSection } from './courseCards';
 import { BRING, EXPECT, GUIDE_DISCLAIMER, GUIDE_ITEMS, MAPS_URL, RANGE_CITY, RANGE_NAME } from './portalCopy';
 
 // window only exists in the browser; this module is also loaded while the page is rendered on the server.
@@ -90,6 +91,7 @@ export function installStudentExtras(): void {
     let receipts: Receipt[] | null = null;
     try { const d = await w.callFifsBackend('studentInvoices', {}); receipts = (d && d.invoices) || []; } catch { receipts = null; }
     host.textContent = '';
+    const mine = courseSection(); if (mine) host.appendChild(mine);
     host.appendChild(classDayCard());
     host.appendChild(rebookCard());
     host.appendChild(receiptsCard(receipts));
