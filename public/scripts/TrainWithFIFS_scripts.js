@@ -311,41 +311,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         .replace(/'/g, '&#039;');
     }
     window.escapeHtml = escapeHtml;
-    // ==========================================================================
-    // STREAMLINED TELEMETRY ENGINE IN <HEAD> SCRIPT 0
-    // ==========================================================================
-    // ==========================================================================
-    // STREAMLINED HIGH-VALUE BUSINESS MILESTONE LOGGER (ZERO MAIN-THREAD BLOCKING)
-    // ==========================================================================
-    function logAnalyticsEvent(category, action, label) {
-      // Strictly restricted exclusively to high-value business conversion milestones
-      var highValueActions = [
-        'Course Booking Confirmed',
-        'Client Profile Registered',
-        'Live Chat Initiated'
-      ];
-      if (!highValueActions.includes(action)) {
-        return; // Zero overhead and zero I/O for all micro-interactions
-      }
-      // Execute asynchronously in micro-task queue to eliminate main-thread blocking
-      setTimeout(function() {
-        try {
-          var entry = {
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            category: category,
-            action: action,
-            label: label || '',
-            device: (window.innerWidth <= 768 ? 'Mobile Phone' : (window.innerWidth <= 1024 ? 'Tablet / iPad' : 'Desktop / Laptop'))
-          };
-          var log = JSON.parse(_fifsMemStorage.getItem('fifs_analytics_events') || '[]');
-          log.unshift(entry);
-          if (log.length > 50) log.pop();
-          /* cloud only: zero browser storage */
-          // Background sync to GAS ledger if live
-          if (typeof callFifsBackend === 'function') { callFifsBackend('logAnalytics', { entry: entry }).catch(function() {}); }
-        } catch (e) {}
-      }, 20);
-    }
     window.logAnalyticsEvent = logAnalyticsEvent;
     // ==========================================================================
     // AUTHORITATIVE CORE NAVIGATION ENGINE (DEFINED IN <HEAD> FOR INSTANT TAP/CLICK)
@@ -3761,39 +3726,6 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
       }
     }
     window.sendClientDiscordAlert = sendClientDiscordAlert;
-    // ==========================================================================
-    // STREAMLINED TELEMETRY ENGINE (FOCUSED STRICTLY ON HIGH-VALUE MILESTONES)
-    // Eliminates micro-interaction I/O overhead while capturing business events
-    // ==========================================================================
-    function logAnalyticsEvent(category, action, label) {
-      // Strictly restricted exclusively to high-value business conversion milestones
-      var highValueActions = [
-        'Course Booking Confirmed',
-        'Client Profile Registered',
-        'Live Chat Initiated'
-      ];
-      if (!highValueActions.includes(action)) {
-        return; // Zero overhead and zero I/O for all micro-interactions
-      }
-      // Execute asynchronously in micro-task queue to eliminate main-thread blocking
-      setTimeout(function() {
-        try {
-          var entry = {
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            category: category,
-            action: action,
-            label: label || '',
-            device: (window.innerWidth <= 768 ? 'Mobile Phone' : (window.innerWidth <= 1024 ? 'Tablet / iPad' : 'Desktop / Laptop'))
-          };
-          var log = JSON.parse(_fifsMemStorage.getItem('fifs_analytics_events') || '[]');
-          log.unshift(entry);
-          if (log.length > 50) log.pop();
-          /* cloud only: zero browser storage */
-          // Background sync to GAS ledger if live
-          if (typeof callFifsBackend === 'function') { callFifsBackend('logAnalytics', { entry: entry }).catch(function() {}); }
-        } catch (e) {}
-      }, 20);
-    }
     window.logAnalyticsEvent = logAnalyticsEvent;
     function renderAdminAnalyticsDashboard() {
       var container = document.getElementById('admin-analytics-dashboard-container');
