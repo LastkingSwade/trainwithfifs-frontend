@@ -5,6 +5,7 @@ import { isLiveChatHours } from '@/Lib/server/chat-hours';
 import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/group-status';
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
+import { aggregate } from '@/Lib/server/site-visits';
 import { purgeWallet, walletConsent, walletDelete, walletOpen, walletStatus, walletUpload } from '@/Lib/server/wallet';
 import { adminDeletePayments, adminPayments } from '@/Lib/server/admin-payments';
 import { listTrash, restoreFromTrash, saveToTrash } from '@/Lib/server/admin-trash';
@@ -3174,6 +3175,27 @@ export async function POST(req: NextRequest) {
          : action === 'walletOpen' ? await walletOpen(supabase, uid, payload.id)
          : await walletDelete(supabase, uid, payload.id);
        return res.ok ? NextResponse.json({ success: true, ...res }) : NextResponse.json({ success: false, error: res.message }, { status: res.status });
+     }
+
+     // Website telemetry (staff only): the last 30 days of anonymous page loads, from the table made by scripts/sql/20261012_site_visits.sql.
+     case 'getSiteTelemetry': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       supabase = getPrivilegedClient();
+       const since = new Date(Date.now() - 30 * 86400000).toISOString();
+       const rows = await supabase.from('site_visits').select('created_at, device, browser, os, path, referrer_host, country, region, city, visitor_hash').gte('created_at', since).order('created_at', { ascending: false }).limit(20000);
+       if (rows.error) return NextResponse.json({ success: true, telemetry: { ready: false } });
+       const all = await supabase.from('site_visits').select('id', { count: 'exact', head: true });
+       return NextResponse.json({ success: true, telemetry: aggregate(rows.data || [], all.count || 0) });
+     }
+
+     // The admin "reset telemetry" button (it already asks for confirmation): clears the recorded visits.
+     case 'resetTelemetry': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       supabase = getPrivilegedClient();
+       const del = await supabase.from('site_visits').delete().gte('id', 0);
+       return NextResponse.json({ success: !del.error });
      }
 
      case 'adminTrashList':

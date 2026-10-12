@@ -3192,11 +3192,11 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 22px;">
             <div class="metric-card" style="border-color: var(--accent-cyan); background: rgba(0, 229, 255, 0.05);">
               <div class="metric-val" style="color: var(--accent-cyan);">${baseVisitors.toLocaleString()}</div>
-              <div class="metric-name">Verified Unique Visitors</div>
+              <div class="metric-name">Unique Visitors (30 days, per day)</div>
             </div>
             <div class="metric-card" style="border-color: #60a5fa; background: rgba(96, 165, 250, 0.05);">
               <div class="metric-val" style="color: #60a5fa;">${totalPageViews.toLocaleString()}</div>
-              <div class="metric-name">Verified Pageviews</div>
+              <div class="metric-name">Page Loads (30 days, refreshes count)</div>
             </div>
             <div class="metric-card" style="border-color: var(--accent-green); background: rgba(16, 185, 129, 0.05);">
               <div class="metric-val" style="color: var(--accent-green);">${conversionRate}</div>

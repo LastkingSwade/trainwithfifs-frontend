@@ -12,6 +12,7 @@ import OnlineAdminPanel from "../online/OnlineAdminPanel";
 import AdminPaymentsPanel from "../portal/AdminPaymentsPanel";
 import AdminTrashPanel from "../portal/AdminTrashPanel";
 import WalletPanel from "../portal/WalletPanel";
+import VisitBeacon from "../analytics/VisitBeacon";
 import ServiceWorkerRegister from "../pwa/ServiceWorkerRegister";
 import RestoreSession from "../portal/RestoreSession";
 import "../polish/polish.css";
@@ -69,6 +70,7 @@ export default function RootLayout({
         <AdminTrashPanel />
         <WalletPanel />
         <ServiceWorkerRegister />
+        <VisitBeacon />
         {children}
         <RestoreSession />
       </body>
