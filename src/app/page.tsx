@@ -4164,7 +4164,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           content="Maryland firearms training platform designed to build knowledge, safety, and confidence without intimidation. State-approved HQL, Wear &amp; Carry, and private coaching with Lead Instructor Kai Wade."
         />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-        <link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w128" />
+        <link rel="icon" type="image/png" href="/icons/icon-192.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
@@ -4628,7 +4628,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <div className="container" id="app-container">
         <header className="app-header">
           <div className="brand-identity-group" data-onclick="returnToHome()" style={{"cursor": "pointer"}} title="Return to Main Home">
-            <img alt="Future Initiative Logo" id="brand-logo" className="app-nav-logo" src="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&amp;sz=w500" />
+            <img alt="Future Initiative Logo" id="brand-logo" className="app-nav-logo" src="/icons/icon-192.png" />
             <div className="app-brand-text">
               <h2>
                 Train With FIFS
@@ -8927,7 +8927,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             {/* Brand HUD Header */}
             <header className="brand-hud-header" style={{"display": "flex", "alignItems": "center", "justifyContent": "space-between", "flexWrap": "wrap", "gap": "16px"}}>
               <div style={{"display": "flex", "alignItems": "center", "gap": "16px"}}>
-                <img alt="Future Initiative Firearm Services Logo" src="https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&amp;sz=w500" style={{"width": "52px", "height": "52px", "objectFit": "contain", "filter": "drop-shadow(0 0 10px rgba(0, 229, 255, 0.5))", "flexShrink": "0"}}  loading="lazy" decoding="async" />
+                <img alt="Future Initiative Firearm Services Logo" src="/icons/icon-192.png" style={{"width": "52px", "height": "52px", "objectFit": "contain", "filter": "drop-shadow(0 0 10px rgba(0, 229, 255, 0.5))", "flexShrink": "0"}}  loading="lazy" decoding="async" />
                   <div className="brand-info-block">
                     <div style={{"display": "flex", "alignItems": "center", "gap": "10px", "marginBottom": "4px"}}>
                       <span className="badge-instructor">
@@ -12433,7 +12433,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           <div style={{"padding": "14px 20px", "background": "#0d131b", "borderBottom": "1px solid var(--border-subtle)", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "10px"}}>
             <div style={{"display": "flex", "alignItems": "center", "gap": "12px"}}>
               <div style={{"position": "relative"}}>
-                <img src="https://lh3.googleusercontent.com/d/1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa" data-onerror="this.src=&#x27;https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&amp;sz=w128&#x27;" alt="Instructor Kai Wade" style={{"width": "44px", "height": "44px", "borderRadius": "50%", "objectFit": "cover", "border": "2px solid var(--accent-cyan)", "boxShadow": "0 0 10px var(--accent-cyan-glow)"}}  loading="lazy" decoding="async" />
+                <img src="https://lh3.googleusercontent.com/d/1u53IU5ttzcy8t5W4oLlB2H9q2pXaaExa" data-onerror="this.src=&#x27;/icons/icon-192.png&#x27;" alt="Instructor Kai Wade" style={{"width": "44px", "height": "44px", "borderRadius": "50%", "objectFit": "cover", "border": "2px solid var(--accent-cyan)", "boxShadow": "0 0 10px var(--accent-cyan-glow)"}}  loading="lazy" decoding="async" />
                 <span className="pulse-dot" style={{"position": "absolute", "bottom": "0", "right": "0", "width": "10px", "height": "10px", "border": "2px solid #0d131b", "background": "#10b981"}}>
                 </span>
               </div>
