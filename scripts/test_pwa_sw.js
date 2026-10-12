@@ -144,6 +144,41 @@ const bad = (status) => { const r = new Response('x', { status }); Object.define
     assert(/register\('\/sw\.js', \{ scope: '\/' \}\)/.test(REG) && !/localStorage|sessionStorage|fetch\(|pwa-offline/.test(REG) && /You are offline/.test(POL), 'no storage, no network calls of its own, and no second offline banner');
     assert(!/<script/i.test(OFF) && /href="\/"/.test(OFF) && /tel:4439901304/.test(OFF) && /<meta name="viewport"/.test(OFF) && /lang="en"/.test(OFF), 'offline page: no scripts, Try again link, phone link, viewport');
   });
+  console.log('\n[installable app: manifest, icons, page settings]');
+  const { execSync } = require('child_process');
+  const MS = ts.transpileModule(R('src/app/manifest.ts'), { compilerOptions: { target: 'ES2020', module: 'commonjs' } }).outputText; const mm = { exports: {} }; vm.runInNewContext(MS, { module: mm, exports: mm.exports });
+  const MAN = mm.exports.default(); const LAYOUT = R('src/app/layout.tsx');
+  const png = (rel) => { const b = fs.readFileSync(path.join(ROOT, rel)); assert(b.slice(0, 8).toString('hex') === '89504e470d0a1a0a', rel + ' must be a real PNG'); return { w: b.readUInt32BE(16), h: b.readUInt32BE(20), colorType: b[25], bytes: b.length }; };
+  await test('Manifest: name, short name, start page, standalone window, and the site\'s dark colours', () => {
+    assert(MAN.name === 'Train With FIFS' && MAN.short_name === 'FIFS' && MAN.short_name.length <= 12, 'names');
+    assert(MAN.start_url === '/' && MAN.scope === '/' && MAN.id === '/' && MAN.display === 'standalone', 'opens the home page in its own window and stays inside the site');
+    assert(MAN.theme_color === '#090d16' && MAN.background_color === '#090d16' && new RegExp('--bg-dark-core: ' + MAN.theme_color, 'i').test(R('src/app/globals.css')) && /themeColor: "#090d16"/.test(LAYOUT), 'colours match the site background and the page settings');
+  });
+  await test('Icons: 192 and 512 for every browser, a 512 maskable one with safe margin; the files exist, are real PNGs of the declared size, opaque and small', () => {
+    const want = [['/icons/icon-192.png', 192, 'any'], ['/icons/icon-512.png', 512, 'any'], ['/icons/icon-maskable-512.png', 512, 'maskable']];
+    assert(JSON.stringify(MAN.icons.map((i) => [i.src, parseInt(i.sizes, 10), i.purpose])) === JSON.stringify(want), 'icon list: ' + JSON.stringify(MAN.icons));
+    for (const [src, size] of want) { const i = png('public' + src); assert(i.w === size && i.h === size, src + ' is ' + i.w + 'x' + i.h); assert(i.colorType !== 4 && i.colorType !== 6, src + ' must have no transparency (some phones paint it black)'); assert(i.bytes < 150000, src + ' is ' + i.bytes + ' bytes'); }
+    assert(MAN.icons.every((i) => i.purpose !== 'any maskable'), 'no icon claims to be both: a maskable icon needs its own safe margin');
+  });
+  await test('iPhone and iPad: its own 180x180 icon, a short home-screen name, a solid status bar, and the page is never stretched under the notch', () => {
+    const i = png('public/icons/apple-touch-icon.png'); assert(i.w === 180 && i.h === 180 && i.colorType !== 4 && i.colorType !== 6, 'apple icon is 180x180 and opaque');
+    assert(/appleWebApp: \{ capable: true, title: "FIFS", statusBarStyle: "black" \}/.test(LAYOUT) && /url: "\/icons\/apple-touch-icon\.png"/.test(LAYOUT), 'apple settings');
+    assert(!/viewportFit|viewport-fit/.test(LAYOUT), 'no viewport-fit=cover (it would draw the page under the notch and home bar)');
+  });
+  await test('The saved offline copy includes the manifest and icons, so the installed app opens with no signal', async () => {
+    const w = makeWorker(); w.setFetch(async () => ok('offline')); await w.install();
+    for (const f of ['/manifest.webmanifest', '/icons/icon-192.png', '/icons/apple-touch-icon.png']) { w.setFetch(async () => ok('file ' + f)); await w.request(ORIGIN + f); }
+    w.setFetch(async () => { throw new TypeError('offline'); });
+    for (const f of ['/manifest.webmanifest', '/icons/icon-192.png', '/icons/apple-touch-icon.png']) assert((await (await w.request(ORIGIN + f)).text()) === 'file ' + f, f + ' must open offline');
+  });
+  await test('Install banner tells the truth: no promise of offline checklist access, and it says what needs a connection', () => {
+    const PAGE = R('src/app/page.tsx'); assert(!/instant, offline access/.test(PAGE) && /Pages you have already opened still load without a signal\. Signing in and your checklist need a connection\./.test(PAGE), 'banner wording');
+  });
+  await test('Locally installed agent skill folders are git-ignored, real project files are not', () => {
+    const ign = (p) => { try { execSync('git check-ignore -q ' + JSON.stringify(p), { cwd: ROOT, stdio: 'ignore' }); return true; } catch (_e) { return false; } };
+    for (const p of ['.agents/skills/x/SKILL.md', '.windsurf/rules/x.md', '.claude/skills/x/SKILL.md', 'skills/brandkit', 'skills-lock.json', '.github/skills/x', '.github/agents/x', '.kiro/steering/x']) assert(ign(p), p + ' must be ignored');
+    for (const p of ['src/app/page.tsx', 'public/sw.js', 'public/icons/icon-512.png', 'scripts/test_pwa_sw.js', '.github/workflows/production-deployment-verification.yml', 'CLAUDE.md', 'package.json']) assert(!ign(p), p + ' must NOT be ignored');
+  });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   process.exit(failed ? 1 : 0);
 })();

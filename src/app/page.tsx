@@ -4673,7 +4673,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Save Train With FIFS to Your Phone
                 </strong>
                 <p style={{"fontSize": "0.82rem", "color": "#cbd5e1", "marginTop": "2px"}}>
-                  Install as a web app for instant, offline access to your readiness checklist, Maryland transport laws, and range guides on class day.
+                  Install it as an app for one-tap access from your home screen. Pages you have already opened still load without a signal. Signing in and your checklist need a connection.
                 </p>
               </div>
             </div>

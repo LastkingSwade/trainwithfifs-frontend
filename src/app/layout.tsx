@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import "../delight/delight.css";
@@ -20,7 +20,13 @@ import { BOOT_GATE_SCRIPT } from "../boot/bootConfig";
 export const metadata: Metadata = {
   title: "Train With FIFS | Maryland Firearms Training & Concealed Carry Courses",
   description: "Premier Maryland Wear & Carry, HQL, and Concealed Carry Certification Courses with Lead Instructor Kai Wade at Cindy's Hot Shots.",
+  // Home-screen install on iPhone/iPad: its own icon and a short name. The status bar stays solid black so the page is never drawn underneath it.
+  appleWebApp: { capable: true, title: "FIFS", statusBarStyle: "black" },
+  icons: { apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }] },
 };
+
+// The browser bar and the installed app's title bar use the site's dark background colour.
+export const viewport: Viewport = { themeColor: "#090d16" };
 
 // Supabase recovery and invite links that land on the home page (for example when the project's Site URL
 // is used as the redirect) are forwarded to /reset-password before any sign-in code reads the tokens, so
