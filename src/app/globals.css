@@ -6089,3 +6089,7 @@ header.app-header .btn-nav-profile { padding: 0 !important; width: 44px; positio
 
 /* ---- V6 Icons: the thin-line icons that replace emoji on the home screen sit on the text baseline and take the text colour. ---- */
 .fi-ico { display: inline-block; vertical-align: -0.18em; margin-right: 0.4em; flex: 0 0 auto; }
+
+/* ---- V7 Icons everywhere: emoji elsewhere on the site are swapped for the same thin-line icons (see src/ui/emojiToIcons.ts). The original text usually has a
+   space after the emoji, so the icon needs only a little extra room. ---- */
+.fi-ico.fi-ico-rt { margin-right: 0.1em; }
