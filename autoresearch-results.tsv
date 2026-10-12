@@ -224,3 +224,4 @@ R13	2026-10-12T00:54:08.101Z	Remove the unreachable earlier copies of returnToHo
 R14	2026-10-12T00:54:16.345Z	Remove the unreachable earlier copies of triggerTopNavGunReload() (the last definition wins, so they never run)	SUCCESS	377219	376792	-427	script gzip bytes; 1711 raw bytes removed
 R15	2026-10-12T00:54:24.413Z	Remove the unreachable earlier copies of openAndSwitch() (the last definition wins, so they never run)	SUCCESS	376792	376563	-229	script gzip bytes; 1520 raw bytes removed
 R16	2026-10-12T00:54:32.557Z	Remove the unreachable earlier copies of mountStudentTargets() (the last definition wins, so they never run)	SUCCESS	376563	376135	-428	script gzip bytes; 1409 raw bytes removed
+R17	2026-10-12T00:54:40.687Z	Remove the unreachable earlier copies of openAdminEditClientModal() (the last definition wins, so they never run)	SUCCESS	376135	375884	-251	script gzip bytes; 1391 raw bytes removed

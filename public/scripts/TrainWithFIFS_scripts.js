@@ -377,18 +377,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
     }
     window.navigateBack = navigateBack;
-    function openPortalSelectionModal() {
-      var modal = document.getElementById('fiPortalSelectionModal');
-      if (modal) {
-        modal.classList.add('active');
-        modal.style.setProperty('display', 'flex', 'important');
-        modal.style.setProperty('visibility', 'visible', 'important');
-        modal.style.setProperty('opacity', '1', 'important');
-        modal.style.setProperty('pointer-events', 'auto', 'important');
-        document.body.classList.add('modal-open');
-        document.body.style.overflow = 'hidden';
-      }
-    }
     window.openPortalSelectionModal = openPortalSelectionModal;
     function closePortalSelectionModal() {
       var modal = document.getElementById('fiPortalSelectionModal');
@@ -6663,13 +6651,6 @@ function getStepNumberFromStatus(statusStr) {
       setCardTier(courseKey, isVip ? 'base' : 'vip', evt);
     }
     window.toggleCardTier = toggleCardTier;
-    function openPortalSelectionModal() {
-      var modal = document.getElementById('fiPortalSelectionModal');
-      if (modal) {
-        modal.style.display = 'flex';
-        modal.classList.add('active');
-      }
-    }
     window.openPortalSelectionModal = openPortalSelectionModal;
     function closePortalSelectionModal() {
       var modal = document.getElementById('fiPortalSelectionModal');
@@ -6708,18 +6689,6 @@ function getStepNumberFromStatus(statusStr) {
       }
     }
     window.syncBookingSchedule = syncBookingSchedule;
-    // ==========================================================================
-    // FUTURE INITIATIVE CLIENT PORTAL & ADMIN TELEMETRY ENGINE (fiPortal / fiAnalytics)
-    // ==========================================================================
-    // --- PORTAL SELECTION MODAL LOGIC ---
-    function openPortalSelectionModal() {
-      var modal = document.getElementById('fiPortalSelectionModal');
-      if (modal) {
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        if (window.fiAnalytics) fiAnalytics.track('portal_splash_open', {});
-      }
-    }
     window.openPortalSelectionModal = openPortalSelectionModal;
     function closePortalSelectionModal() {
       var modal = document.getElementById('fiPortalSelectionModal');
