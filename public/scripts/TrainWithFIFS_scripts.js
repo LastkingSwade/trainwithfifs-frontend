@@ -316,36 +316,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
     }
     window.closeAllOverlays = closeAllOverlays;
-    function rawSwitchTab(tab) {
-      if (!ALL_APP_TABS.includes(tab)) tab = 'booking';
-      ALL_APP_TABS.forEach(function(t) {
-        var panel = document.getElementById('view-' + t);
-        if (panel) {
-          if (t === tab) {
-            panel.classList.remove('hidden');
-            panel.style.setProperty('display', 'block', 'important');
-            panel.style.setProperty('visibility', 'visible', 'important');
-            panel.style.setProperty('opacity', '1', 'important');
-            panel.style.setProperty('pointer-events', 'auto', 'important');
-          } else {
-            panel.classList.add('hidden');
-            panel.style.setProperty('display', 'none', 'important');
-            panel.style.setProperty('pointer-events', 'none', 'important');
-          }
-        }
-      });
-      if (tab === 'testimonial' && typeof mountStudentTargets === 'function') {
-        try { mountStudentTargets(); } catch(e) {}
-      }
-      var userTag = document.getElementById('portal-user-tag');
-      var savedSession = fifsGetStudentSession();
-      if (tab !== 'portal' || !savedSession) {
-        if (userTag && SECTION_TITLES[tab]) {
-          userTag.textContent = SECTION_TITLES[tab];
-        }
-      }
-      try { window.scrollTo(0, 0); } catch (e) {}
-    }
     window.rawSwitchTab = rawSwitchTab;
     function switchTab(tab) {
       if (currentActiveView !== tab) {

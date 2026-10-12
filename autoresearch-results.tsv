@@ -226,3 +226,4 @@ R15	2026-10-12T00:54:24.413Z	Remove the unreachable earlier copies of openAndSwi
 R16	2026-10-12T00:54:32.557Z	Remove the unreachable earlier copies of mountStudentTargets() (the last definition wins, so they never run)	SUCCESS	376563	376135	-428	script gzip bytes; 1409 raw bytes removed
 R17	2026-10-12T00:54:40.687Z	Remove the unreachable earlier copies of openAdminEditClientModal() (the last definition wins, so they never run)	SUCCESS	376135	375884	-251	script gzip bytes; 1391 raw bytes removed
 R18	2026-10-12T00:54:48.836Z	Remove the unreachable earlier copies of openPortalSelectionModal() (the last definition wins, so they never run)	SUCCESS	375884	375766	-118	script gzip bytes; 1379 raw bytes removed
+R19	2026-10-12T00:54:56.960Z	Remove the unreachable earlier copies of triggerModalAdminRefresh() (the last definition wins, so they never run)	SUCCESS	375766	375577	-189	script gzip bytes; 1302 raw bytes removed
