@@ -23,6 +23,7 @@ import { installScoresheetPad } from "@/portal/scoresheetPad";
 import { installHeaderProfile } from "@/portal/headerProfile";
 import { IconTarget, IconBolt, IconUser, IconHelp, IconChat, IconShield, IconStar } from "@/ui/HeroIcons";
 import { installAdminExtras } from "@/portal/adminExtras";
+import { installAdminAttention } from "@/portal/adminAttention";
 import "@/portal/portal.css";
 import { DAY2_ACK_TEXT, DAY2_STATEMENT, DAY2_WHY, DAY2_WHY_TITLE, FEE_LABEL, IN_PERSON_NOTE, ONLINE_BENEFITS, ONLINE_NAME, ONLINE_PITCH_TITLE, TECH_REQUIREMENTS } from "@/online/onlineCopy";
 import Head from "next/head";
@@ -4187,7 +4188,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installAdminExtras(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -5983,6 +5984,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
 
 
+
+          {/* Needs attention: filled in by src/portal/adminAttention.ts once the hub is showing (staff only, read only) */}
+          <section className="an-panel" id="an-host" aria-label="Needs attention" />
 
           {/* 4 INTERACTIVE INTELLIGENCE CARDS (Primary Navigation Deck - MSP Portal Styling) */}
           <div className="admin-intel-cards-container msp-intel-deck-grid" style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(260px, 1fr))", "gap": "16px", "margin": "20px 0 24px"}}>

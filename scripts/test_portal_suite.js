@@ -3073,6 +3073,26 @@ async function main() {
     const staff = await pw('instructor-token', 'Abcdef1!'); assert(staff.r.status === 403 && staff.updated === 0, 'staff must be refused');
   });
 
+  console.log('\n[SECTION AA: admin "Needs attention" route]');
+  await test('Needs attention: only staff get it; logged-out, bad-token, student, client and spoofed-role callers are refused with nothing returned', async () => {
+    for (const token of [null, 'bad-token', 'student-alice-token', 'student-carol-token', 'client-marcus-token']) { const r = await fifs('adminNeedsAttention', {}, token); assert(r.status === 401 && r.body.success === false && !r.body.attention, 'must refuse ' + token + ', got ' + r.status); }
+  });
+  await test('Needs attention: instructor and staff logins get a read-only list with only the expected fields, and the request cannot change what is read', async () => {
+    for (const token of ['instructor-token', 'staff-token', 'coach2-token']) {
+      const r = await fifs('adminNeedsAttention', { studentId: 'FIFS-1001', status: 'PAID', limit: 99999 }, token);
+      assert(r.status === 200 && r.body.success === true && Array.isArray(r.body.attention.groups) && typeof r.body.attention.total === 'number' && Array.isArray(r.body.attention.unavailable), token + ': ' + JSON.stringify(r.body).slice(0, 200));
+      for (const g of r.body.attention.groups) { assert(['chats', 'balance', 'unpaid', 'scoresheets', 'renewals', 'confirm'].includes(g.key) && g.items.length <= 8 && g.items.every((i) => Object.keys(i).sort().join() === 'detail,ref,title,tone'), 'group shape ' + g.key); }
+      assert(!/password|token|secret|stripe|service_role|internal_notes|phone/i.test(JSON.stringify(r.body)), 'no secrets or private fields in the answer');
+    }
+  });
+  await test('Needs attention: it never writes (no insert, update, upsert or delete) and a database failure gives an honest partial answer, not a crash or a leak', async () => {
+    const before = JSON.stringify(db);
+    const ok = await fifs('adminNeedsAttention', {}, 'instructor-token'); assert(ok.status === 200, 'ok');
+    failOp = 'select'; const down = await fifs('adminNeedsAttention', {}, 'instructor-token'); failOp = null;
+    assert(down.status === 200 && down.body.success === true && down.body.attention.total === 0 && down.body.attention.unavailable.length >= 5 && !/boom|internal/.test(JSON.stringify(down.body)), 'partial answer, no detail leaked: ' + JSON.stringify(down.body).slice(0, 200));
+    assert(JSON.stringify(db) === before, 'the database is unchanged');
+  });
+
   console.log('\n================================================================');
   console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   console.log('================================================================');

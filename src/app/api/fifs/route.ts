@@ -11,6 +11,7 @@ import { listTrash, restoreFromTrash, saveToTrash } from '@/Lib/server/admin-tra
 import { adminDayRoster, adminMarkAttendance, adminOnlineOverview, adminSetMeetingLink, day2Pending, getDayModes, getOnlineOptions, studentOnlineClasses } from '@/Lib/server/online-classroom';
 import { createBookingCheckout, createPodInviteCode, GUEST_CHECKOUT_STUDENT_ID, isGuestCheckoutRecord, lookupPod, normalizePodCode } from '@/Lib/server/booking-checkout';
 import { maskCode } from '@/group/groupCode';
+import { loadAttention } from '@/Lib/server/admin-attention';
 import { MAX_INK_JSON_BYTES, MAX_INK_PNG_BYTES, MAX_STAMP_BYTES, TEMPLATE_PDF, TEMPLATE_PREVIEW, TEMPLATE_URL_SECONDS, flattenOntoTemplate, inkObjectPath, isInkPathFor, isStampKind, pngFromBase64, sanitizeInk, stampObjectPath } from '@/Lib/server/scoresheet-ink';
 import { ConfigurationError, resolveSiteUrl } from '@/Lib/config/environment';
 
@@ -2992,6 +2993,17 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ success: false, error: updErr.message }, { status: 500 });
        }
        return NextResponse.json({ success: true, message: 'Chat thread marked read.' });
+     }
+
+     // Staff: the "Needs attention" list for the admin hub. Read only; the role is checked on the server before anything is read.
+     case 'adminNeedsAttention': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) {
+         return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       }
+       supabase = getPrivilegedClient();
+       const attention = await loadAttention(supabase, new Date(), GUEST_CHECKOUT_STUDENT_ID);
+       return NextResponse.json({ success: true, status: 'success', attention });
      }
 
      case 'getAdminDashboardData': {
