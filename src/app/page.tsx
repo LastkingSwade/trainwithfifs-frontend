@@ -21,7 +21,6 @@ import { installPolish } from "@/polish/polish";
 import { installStudentScoresheet } from "@/portal/studentScoresheet";
 import { installScoresheetPad } from "@/portal/scoresheetPad";
 import { installHeaderProfile } from "@/portal/headerProfile";
-import { IconTarget, IconBolt, IconUser, IconHelp, IconChat, IconShield, IconStar } from "@/ui/HeroIcons";
 import { installAdminExtras } from "@/portal/adminExtras";
 import { installAdminAttention } from "@/portal/adminAttention";
 import "@/portal/portal.css";
@@ -4311,7 +4310,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           {/* SPECIALIZED 1-ON-1 INSTRUCTION CALLOUT BANNER */}
           <div className="hud-gold-card" style={{"background": "rgba(255, 183, 3, 0.08)", "border": "1px solid var(--accent-amber)", "borderRadius": "12px", "padding": "12px 18px", "marginBottom": "14px", "maxWidth": "540px", "margin": "0 auto 14px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.18)", "textAlign": "center"}}>
             <span style={{"color": "var(--accent-amber)", "fontWeight": "800", "fontSize": "0.95rem", "display": "block", "fontFamily": "var(--font-display)", "letterSpacing": "0.5px"}}>
-              <IconShield /> DEDICATED PRIVATE 1-ON-1 SPECIALIZATION
+              🛡️ DEDICATED PRIVATE 1-ON-1 SPECIALIZATION
             </span>
             <span style={{"color": "#e2e8f0", "fontSize": "0.82rem", "lineHeight": "1.4", "display": "block", "marginTop": "4px"}}>
               Never sit around a room of strangers. Learn at your own pace with Lead Instructor Kai Wade in an exclusive, judgment-free, private range environment.
@@ -4333,16 +4332,16 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
           <button aria-haspopup="dialog" className="btn-hero-booking-prime start-journey-btn" id="btn-hero-booking" data-onclick="openJourneySelectionModal()" type="button">
             <span className="prime-label">
-              <IconTarget /> START YOUR JOURNEY
+              🎯 START YOUR JOURNEY
             </span>
             <span className="prime-sub">
-              <IconStar /> Specialists in Private 1-on-1 Firearms Training • No Crowded Classrooms
+              ⭐ Specialists in Private 1-on-1 Firearms Training • No Crowded Classrooms
             </span>
           </button>
           <div className="hero-twin-grid">
             <button aria-haspopup="dialog" aria-label="Open Future Initiative Portal selector" className="btn-hero-twin fifs-portal-btn" id="btn-hero-portal" data-onclick="openPortalSelectionModal()" type="button">
               <span className="twin-title">
-                <IconBolt /> Future Initiative Portal
+                ⚡ Future Initiative Portal
               </span>
               <span className="twin-sub">
                 Student & Client Access
@@ -4350,7 +4349,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </button>
             <button className="btn-hero-twin lead-instructor-btn" id="btn-hero-about" data-onclick="openAndSwitch('about')" type="button">
               <span className="twin-title">
-                <IconUser /> Lead Instructor
+                👤 Lead Instructor
               </span>
               <span className="twin-sub">
                 Meet Kai Wade • Mission
@@ -4359,19 +4358,19 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
           <div className="hero-bottom-strip">
             <button className="btn-hero-aux" id="btn-hero-targets" data-onclick="openAndSwitch('testimonial')" type="button">
-              <IconTarget /> Range Highlights
+              🎯 Range Highlights
             </button>
             <span style={{"color": "var(--border-subtle)"}}>
               •
             </span>
             <button className="btn-hero-aux" id="btn-hero-faq" data-onclick="openAndSwitch('faq')" type="button">
-              <IconHelp /> Frequently Asked Questions
+              ❓ Frequently Asked Questions
             </button>
             <span style={{"color": "var(--border-subtle)"}}>
               •
             </span>
             <button className="btn-hero-aux hud-chat" id="btn-hero-contact" data-onclick="openContactWidgetModal()" type="button" style={{"color": "var(--accent-cyan)", "fontWeight": "700", "cursor": "pointer"}}>
-              <IconChat /> Chat
+              💬 Chat
             </button>
           </div>
         </div>
@@ -12687,8 +12686,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
       {/* Persistent Floating Contact & Live Chat Trigger Pill with Permanent Dismiss Handler */}
       <div className="floating-comm-bubble-wrapper" id="floatingCommWrapper" style={{"position": "fixed", "bottom": "24px", "right": "24px", "zIndex": "99999", "display": "flex", "alignItems": "center", "gap": "8px"}}>
         <div className="floating-comm-bubble" id="floatingCommPill" data-onclick="openContactWidgetModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openContactWidgetModal) (window as any).openContactWidgetModal(); }} role="button" tabIndex={0} title="Contact Coach Kai Wade • Call, Email or Live Chat" style={{"position": "relative", "bottom": "auto", "right": "auto", "margin": "0", "cursor": "pointer"}}>
-          <span style={{"fontSize": "1.25rem", "display": "inline-flex"}}>
-            <IconChat />
+          <span style={{"fontSize": "1.25rem"}}>
+            💬
           </span>
           <span style={{"fontFamily": "var(--font-display)", "fontSize": "0.90rem", "fontWeight": "800", "letterSpacing": "1px", "textTransform": "uppercase"}}>
             CHAT
