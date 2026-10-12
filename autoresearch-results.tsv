@@ -229,3 +229,4 @@ R17	2026-10-12T00:54:40.687Z	Remove the unreachable earlier copies of openAdminE
 R18	2026-10-12T00:54:48.836Z	Remove the unreachable earlier copies of openPortalSelectionModal() (the last definition wins, so they never run)	SUCCESS	375884	375766	-118	script gzip bytes; 1379 raw bytes removed
 R19	2026-10-12T00:54:56.960Z	Remove the unreachable earlier copies of triggerModalAdminRefresh() (the last definition wins, so they never run)	SUCCESS	375766	375577	-189	script gzip bytes; 1302 raw bytes removed
 R20	2026-10-12T00:55:05.031Z	Remove the unreachable earlier copies of rawSwitchTab() (the last definition wins, so they never run)	SUCCESS	375577	375352	-225	script gzip bytes; 1281 raw bytes removed
+R21	2026-10-12T01:06:54Z	Remove the unreachable earlier copy of renderAdminAnalyticsDashboard() (the last definition wins, so it never runs)	SUCCESS	-	-	-	7323 raw bytes removed; tests and tsc pass; run directly on main after the owner asked for it
