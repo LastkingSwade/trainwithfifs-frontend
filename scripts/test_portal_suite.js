@@ -3018,6 +3018,33 @@ async function main() {
     assert(/id="admin-active-chat-text-btn"/.test(page), 'page.tsx must define the text button');
   });
 
+  console.log('\n[SECTION K: public forms are throttled per connection]');
+  const postFrom = async (ip, action, payload) => { const r = await fifsRoute.POST(makeRequest({ action, ...payload }, { 'x-forwarded-for': ip })); return { status: r.status, body: r._body }; };
+  await test('Contact form: 6 messages from one connection pass, the 7th is refused with a plain 429, and another connection is unaffected', async () => {
+    const msg = { fullName: 'Pat Test', email: 'pat@example.com', message: 'hello' };
+    for (let i = 0; i < 6; i++) assert((await postFrom('203.0.113.10', 'submitContactInquiry', msg)).status !== 429, 'message ' + (i + 1) + ' must not be throttled');
+    const seventh = await postFrom('203.0.113.10', 'submitContactInquiry', msg);
+    assert(seventh.status === 429 && seventh.body.success === false && /wait a few minutes/i.test(seventh.body.error) && !/203\.0\.113/.test(JSON.stringify(seventh.body)), 'the 7th must be a plain 429 that does not echo the address');
+    assert((await postFrom('203.0.113.11', 'submitContactInquiry', msg)).status !== 429, 'a different connection must not be throttled');
+  });
+  await test('Free guide form: 8 per connection pass, the 9th is refused; each form has its own count (contact being full does not block chat)', async () => {
+    const lead = { fullName: 'Pat Test', email: 'lead@example.com' };
+    for (let i = 0; i < 8; i++) assert((await postFrom('203.0.113.20', 'handleLeadMagnetSubmission', lead)).status !== 429, 'lead ' + (i + 1));
+    assert((await postFrom('203.0.113.20', 'handleLeadMagnetSubmission', lead)).status === 429, 'the 9th lead must be refused');
+    for (let i = 0; i < 7; i++) await postFrom('203.0.113.21', 'submitContactInquiry', { fullName: 'A', email: 'a@example.com', message: 'x' });
+    assert((await postFrom('203.0.113.21', 'handleLiveChatMessage', { senderName: 'A', message: 'hi' })).status !== 429, 'chat has its own count');
+  });
+  await test('Live chat: a real conversation (40 messages) is never throttled, the 41st from one connection is', async () => {
+    for (let i = 0; i < 40; i++) assert((await postFrom('203.0.113.30', 'handleLiveChatMessage', { senderName: 'Pat', message: 'm' + i })).status !== 429, 'chat ' + (i + 1));
+    assert((await postFrom('203.0.113.30', 'handleLiveChatMessage', { senderName: 'Pat', message: 'one more' })).status === 429, 'the 41st must be refused');
+  });
+  await test('The throttle sits first in each of the three cases, before anything is read or written', async () => {
+    for (const name of ['handleLiveChatMessage', 'handleLeadMagnetSubmission', 'submitContactInquiry']) {
+      const at = ROUTE_SRC.indexOf("case '" + name + "': {"); assert(at > 0, name);
+      assert(/^\s*if \(!allowPublicSubmit\(req, /.test(ROUTE_SRC.slice(at + ("case '" + name + "': {").length).replace(/^\n/, '')), name + ' must be throttled before anything else');
+    }
+  });
+
   console.log('\n================================================================');
   console.log(`TEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   console.log('================================================================');

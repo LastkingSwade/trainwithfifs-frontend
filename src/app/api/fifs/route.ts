@@ -719,6 +719,23 @@ function allowPodCodeAttempt(key: string, limit = 20): boolean {
   return true;
 }
 
+// Per-instance spam throttle for the three public forms that write rows or send alerts (live chat, free guide, contact form).
+// Same limits as the pod code throttle: serverless instances do not share memory, so this slows a flood from one caller (and the
+// alert emails / Discord posts it would cause) rather than stopping a determined one. Limits are far above what a real visitor does.
+const publicSubmitAttempts = new Map<string, number[]>();
+function allowPublicSubmit(req: Request, kind: string, limit: number): boolean {
+  const caller = (req.headers.get('x-forwarded-for') || 'unknown').split(',')[0].trim().slice(0, 64);
+  const key = kind + ':' + caller;
+  const now = Date.now();
+  const recent = (publicSubmitAttempts.get(key) || []).filter((t) => now - t < 10 * 60 * 1000);
+  if (recent.length >= limit) { publicSubmitAttempts.set(key, recent); return false; }
+  recent.push(now);
+  publicSubmitAttempts.set(key, recent);
+  if (publicSubmitAttempts.size > 5000) publicSubmitAttempts.clear();
+  return true;
+}
+const TOO_MANY_SUBMITS = 'Too many messages from this connection. Please wait a few minutes and try again, or call us.';
+
 // Stores a contact-form inquiry in public.leads. Production's leads table has only full_name, email (NOT NULL), source and
 // captured_at, so the phone and message cannot be saved there yet: try the full row first (works once phone/notes columns exist),
 // then fall back to the columns that do exist. Returns whether a row was stored. Never throws; failures are logged without PII.
@@ -2632,6 +2649,7 @@ export async function POST(req: NextRequest) {
      // 9. Admin Dashboard Roster & History
           // 8a. Live Chat Visitor/Student Message Handler (Persists to Supabase & Dispatches Discord Alert)
      case 'handleLiveChatMessage': {
+       if (!allowPublicSubmit(req, 'chat', 40)) return NextResponse.json({ success: false, status: 'error', error: TOO_MANY_SUBMITS }, { status: 429 });
        // Server-side client: the thread credential is verified below, so visitors never need direct table access.
        supabase = getPrivilegedClient();
        const {
@@ -3222,6 +3240,7 @@ export async function POST(req: NextRequest) {
      }
 
      case 'handleLeadMagnetSubmission': {
+       if (!allowPublicSubmit(req, 'lead', 8)) return NextResponse.json({ success: false, status: 'error', error: TOO_MANY_SUBMITS }, { status: 429 });
        // Public form (free 50-state reciprocity guide). The visitor gets the download either way, so a storage problem is
        // logged and flagged in the staff alert but never shown as an error.
        supabase = getPrivilegedClient();
@@ -3264,6 +3283,7 @@ export async function POST(req: NextRequest) {
      }
 
      case 'submitContactInquiry': {
+       if (!allowPublicSubmit(req, 'contact', 6)) return NextResponse.json({ success: false, status: 'error', error: TOO_MANY_SUBMITS }, { status: 429 });
        supabase = getPrivilegedClient();
        const fullName = String(payload.fullName || payload.name || body.fullName || 'Inquiry Visitor').trim().slice(0, 100);
        const phone = String(payload.phone || body.phone || '').trim().slice(0, 30);
