@@ -1443,29 +1443,6 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       renderBookingCalendar();
     }
     window.selectBookingDate = selectBookingDate;
-    function mountStudentTargets() {
-      var container = document.getElementById('targets-grid-container');
-      if (!container) return;
-      container.innerHTML = TARGET_PHOTOS_DATA.map(p => `
-        <article class="target-card-student">
-          <div class="target-img-frame">
-            <img src="https://drive.google.com/thumbnail?id=${p.id}&amp;sz=w800"
-                 onerror="if(this.dataset.fb!=='1'){this.dataset.fb='1';this.src='https://lh3.googleusercontent.com/d/${p.id}=w800';}else{this.onerror=null;this.style.display='none';this.parentElement.classList.add('img-fallback');}"
-                 alt="${escapeHtml(p.title)}" loading="lazy">
-            <div class="img-fallback-badge">🎯 Range Qualification Verified</div>
-            <span class="badge-course">${escapeHtml(p.course)}</span>
-            <span class="badge-score">${escapeHtml(p.score)}</span>
-          </div>
-          <div class="target-content">
-            <div>
-              <h4 style="font-family: var(--font-display); font-size: 1.15rem; color: #fff; margin-bottom: 4px;">${escapeHtml(p.title)}</h4>
-              <p style="font-size: 0.82rem; color: var(--text-muted);">${escapeHtml(p.desc)}</p>
-            </div>
-            <div style="font-size: 0.78rem; color: var(--accent-cyan); margin-top: 10px; font-weight: 600;">${escapeHtml(p.loc)}</div>
-          </div>
-        </article>
-      `).join('');
-    }
     window.mountStudentTargets = mountStudentTargets;
     var OFFICIAL_GOOGLE_REVIEWS = [
       { text: "Mr. Kai is 100% excellent teaching and is extremely knowledgeable about using firearms and firearms safety.", author: "Verified Google Review" },
