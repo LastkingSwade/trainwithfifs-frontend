@@ -6128,3 +6128,6 @@ button.lead-instructor-btn.btn-hero-twin .twin-title, .lead-instructor-btn .twin
 .pwa-install-banner strong { color: var(--ink-title) !important; }
 .btn-hero-twin .twin-sub { color: var(--ink-body) !important; }
 .btn-hero-aux:not(.hud-chat) { color: var(--ink-body); }
+
+/* ---- Stay signed in: the "Not you? Sign out" row in the header profile menu reads as a quiet secondary action. ---- */
+.hb-item.hb-out .hb-item-t { color: #ffb4b4; font-weight: 700; }

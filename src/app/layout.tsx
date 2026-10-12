@@ -13,6 +13,7 @@ import AdminPaymentsPanel from "../portal/AdminPaymentsPanel";
 import AdminTrashPanel from "../portal/AdminTrashPanel";
 import WalletPanel from "../portal/WalletPanel";
 import ServiceWorkerRegister from "../pwa/ServiceWorkerRegister";
+import RestoreSession from "../portal/RestoreSession";
 import "../polish/polish.css";
 import "../experiments/site.css";
 import "../experiments/portals.css";
@@ -69,6 +70,7 @@ export default function RootLayout({
         <WalletPanel />
         <ServiceWorkerRegister />
         {children}
+        <RestoreSession />
       </body>
     </html>
   );

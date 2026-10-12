@@ -36,6 +36,15 @@ export function installHeaderProfile(): void {
       item.append(t, sub);
       item.addEventListener('click', () => { close(); if (typeof w.openAndSwitch === 'function') w.openAndSwitch(st.key); });
       menu.appendChild(item);
+      if (st.signedIn) {
+        // Always a way out: "Not you? Sign out" signs out of this portal and clears the saved login on this device.
+        const out = document.createElement('button'); out.type = 'button'; out.className = 'hb-item hb-out'; out.setAttribute('role', 'menuitem');
+        const ot = document.createElement('span'); ot.className = 'hb-item-t'; ot.textContent = 'Not you? Sign out';
+        const os = document.createElement('span'); os.className = 'hb-item-s'; os.textContent = st.label;
+        out.append(ot, os);
+        out.addEventListener('click', () => { close(); const fn = st.key === 'portal' ? w.logoutStudent : w.fiLogoutClient; if (typeof fn === 'function') fn(); setTimeout(refreshBadge, 300); });
+        menu.appendChild(out);
+      }
     }
   };
   const open = () => { build(); menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); (menu.querySelector('.hb-item') as HTMLElement | null)?.focus(); };
