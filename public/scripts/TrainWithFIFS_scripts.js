@@ -2611,30 +2611,6 @@ function loadDemoStudent() {
       renderAdminTerminal({ students: adminCachedStudents });
     }
     window.deleteStudentFromAdmin = deleteStudentFromAdmin;
-    function openAdminEditClientModal(clientId) {
-      var modal = document.getElementById('adminEditClientModal');
-      var c = (adminCachedClients || []).find(cli => cli.clientId === clientId);
-      if (!c || !modal) return;
-      var idInput = document.getElementById('editClientId');
-      var nameInput = document.getElementById('editClientName');
-      var emailInput = document.getElementById('editClientEmail');
-      var phoneInput = document.getElementById('editClientPhone');
-      var stateInput = document.getElementById('editClientPermitState');
-      var expInput = document.getElementById('editClientExpDate');
-      if (idInput) idInput.value = c.clientId;
-      if (nameInput) nameInput.value = c.fullName || '';
-      if (emailInput) emailInput.value = c.email || '';
-      if (phoneInput) phoneInput.value = c.phone || '';
-      if (stateInput) stateInput.value = c.permitState || 'Maryland Wear & Carry';
-      if (expInput) expInput.value = c.expirationDate || '';
-      modal.classList.add('active');
-      modal.style.setProperty('display', 'flex', 'important');
-      modal.style.setProperty('opacity', '1', 'important');
-      modal.style.setProperty('visibility', 'visible', 'important');
-      modal.style.setProperty('pointer-events', 'auto', 'important');
-      document.body.classList.add('modal-open');
-      document.body.style.overflow = 'hidden';
-    }
     window.openAdminEditClientModal = openAdminEditClientModal;
     function closeAdminEditClientModal() {
     var modal = document.getElementById('adminEditClientModal');
