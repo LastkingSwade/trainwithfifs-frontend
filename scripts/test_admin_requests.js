@@ -71,5 +71,30 @@ test('Score sheet pad: Done saves and closes in one tap, a failed save keeps the
   assert(/if \(read\.error\) \{ fifsScoresheetFeedback\(read\.error, 'error'\); return false; \}/.test(fn) && /send\(ink\); return true;/.test(fn), 'the save must report whether it really started');
   assert(/box\.scrollIntoView\(\{ block: 'nearest' \}\)/.test(SCRIPT.slice(SCRIPT.indexOf('function fifsScoresheetFeedback'), SCRIPT.indexOf('function fifsScoresheetFeedback') + 900)), 'the message must scroll into view');
 });
+test('Header profile icon: shows Student and Client portal with a sign-in or signed-in state, no staff sign-in, text only, keyboard and screen reader friendly', () => {
+  const SRC = R('src/portal/headerProfile.ts');
+  const m = { exports: {} }; vm.runInNewContext(ts.transpileModule(SRC, { compilerOptions: { target: 'ES2020', module: 'commonjs' } }).outputText, { module: m, exports: m.exports, window: undefined, document: undefined, JSON, String, setInterval: () => 0 });
+  const { portalStates, profileLabel } = m.exports;
+  let st = portalStates(() => null, () => null);
+  assert(st.length === 2 && st[0].label === 'Student portal' && st[1].label === 'Client portal' && st.every((x) => x.signedIn === false) && /Not signed in/.test(profileLabel(st)), 'signed out: two portals, nothing signed in');
+  st = portalStates(() => JSON.stringify({ fullName: 'Alice Student', studentId: 'FIFS-1001' }), () => null);
+  assert(st[0].signedIn && st[0].name === 'Alice' && !st[1].signedIn && /Signed in to the student portal\./.test(profileLabel(st)), 'student signed in, first name only');
+  assert(portalStates(() => 'not json', () => '{broken')[0].signedIn === false, 'a damaged saved session counts as signed out and never throws');
+  assert(!/admin/i.test(SRC.replace(/\/\/.*$/gm, '')) && !/innerHTML/.test(SRC) && /textContent/.test(SRC), 'no staff sign-in, and text is only set with textContent');
+  assert(/aria-expanded/.test(SRC) && /role', 'menuitem'/.test(SRC) && /key === 'Escape'/.test(SRC) && /ArrowDown/.test(SRC), 'menu is keyboard operable');
+  assert(/id="btnNavProfile"[^>]*aria-haspopup="menu"/.test(PAGE) && /id="hbProfileMenu" role="menu"/.test(PAGE) && (PAGE.match(/installHeaderProfile\(\);/g) || []).length === 1, 'button and menu are in the header and wired once');
+  assert(/id="btnNavBack"/.test(PAGE) && /id="topNavRefreshBtn"/.test(PAGE) && /id="btnNavHome"/.test(PAGE), 'Back, Refresh and Home are still there');
+});
+test('Owner CSS batch: no chat bubble on the homepage, admin buttons in one swipeable row on phones, header never overlaps pop-ups, glow is low priority and respects reduced motion', () => {
+  const GCSS = R('src/app/globals.css'); const tail = GCSS.slice(GCSS.indexOf('Owner request: no floating chat bubble on the homepage'));
+  assert(/body:has\(#hero-landing:not\(\.hidden-view\)\) #floatingCommWrapper \{ display: none !important; \}/.test(tail), 'bubble hidden only while the homepage hero is showing');
+  assert(/div\.admin-secondary-toolbar \{\s*flex-wrap: nowrap !important; overflow-x: auto;/.test(tail) && /div\.admin-secondary-toolbar > \* \{ flex: 0 0 auto !important; white-space: nowrap;/.test(tail), 'toolbar is one swipeable row on phones');
+  assert(/#admin-roster-tbody td > div > \.btn-spark[^{]*\{ flex: 0 0 auto; white-space: nowrap; min-height: 44px; \}/.test(tail), 'row action buttons stay on one line at 44px');
+  const hdr = tail.slice(tail.indexOf('header.app-header {'), tail.indexOf('header.app-header {') + 400);
+  assert(/z-index: 900;/.test(hdr), 'header sits above page content but below pop-ups (9999+)');
+  assert(/:where\(button:not\(:disabled\)/.test(tail) && /prefers-reduced-motion: reduce/.test(tail), 'glow is written with :where (lowest priority) and has a reduced-motion rule');
+  assert(/min-height: 44px; min-width: 44px;/.test(tail), '44px touch targets in the header');
+  assert(/@media \(max-width: 380px\)/.test(tail) && /@media \(max-width: 340px\)/.test(tail), 'very small phones are covered so the header never widens the page');
+});
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
 process.exit(failed ? 1 : 0);

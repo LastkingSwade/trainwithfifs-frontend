@@ -20,6 +20,7 @@ import { installSkeletons } from "@/portal/skeleton";
 import { installPolish } from "@/polish/polish";
 import { installStudentScoresheet } from "@/portal/studentScoresheet";
 import { installScoresheetPad } from "@/portal/scoresheetPad";
+import { installHeaderProfile } from "@/portal/headerProfile";
 import { installAdminExtras } from "@/portal/adminExtras";
 import "@/portal/portal.css";
 import { DAY2_ACK_TEXT, DAY2_STATEMENT, DAY2_WHY, DAY2_WHY_TITLE, FEE_LABEL, IN_PERSON_NOTE, ONLINE_BENEFITS, ONLINE_NAME, ONLINE_PITCH_TITLE, TECH_REQUIREMENTS } from "@/online/onlineCopy";
@@ -4185,7 +4186,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installAdminExtras(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installAdminExtras(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -4649,6 +4650,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <button aria-label="Return to landing screen" className="site-header-nav-btn btn-nav-home" id="btnNavHome" data-onclick="returnToHome()" onClick={() => { if (typeof window !== "undefined" && (window as any).returnToHome) (window as any).returnToHome(); }} style={{"background": "linear-gradient(135deg, #ffb703 0%, #fb8500 100%)", "border": "2px solid #ffffff", "color": "#030a14", "fontWeight": 900, "fontSize": "0.90rem", "letterSpacing": "1px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.75)", "minHeight": "44px", "padding": "8px 18px", "borderRadius": "8px", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "gap": "6px"}} type="button">
               🏠 HOME
             </button>
+            {/* Profile: shows whether you are signed in to a portal and takes you straight to its sign-in (menu is filled in by src/portal/headerProfile.ts) */}
+            <div className="hb-profile" id="hbProfileWrap">
+              <button type="button" className="site-header-nav-btn btn-nav-profile" id="btnNavProfile" aria-haspopup="menu" aria-expanded="false" aria-controls="hbProfileMenu" aria-label="Your profile and portal sign-in">
+                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.2 3.6-7 8-7s8 2.8 8 7" /></svg>
+                <span className="hb-dot" id="hbProfileDot" aria-hidden="true" />
+              </button>
+              <div className="hb-menu" id="hbProfileMenu" role="menu" aria-label="Portal sign-in" hidden />
+            </div>
           </div>
         </header>
         {/* VIEW 1: AUTHENTICATED STUDENT DASHBOARD */}

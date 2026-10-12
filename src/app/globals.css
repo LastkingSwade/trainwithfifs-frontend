@@ -5961,3 +5961,95 @@ button:focus-visible,
 @media (max-width: 480px) and (max-height: 790px) {
   #hero-landing .hero-logo-spacer { height: 226px; }
 }
+
+/* Owner request: no floating chat bubble on the homepage (the chat option is already on the page). Every other screen keeps it.
+   The hero section carries "hidden-view" whenever the visitor is on another screen, so this only matches while the homepage is showing. */
+body:has(#hero-landing:not(.hidden-view)) #floatingCommWrapper { display: none !important; }
+
+/* ==========================================================================
+   Owner request batch: modern header bar, profile menu, horizontal admin buttons on phones, and a soft business-color glow.
+   Appended (this file is append-only). Everything here respects prefers-reduced-motion and keeps 44px touch targets.
+   ========================================================================== */
+
+/* ---- Modern header bar (Back / Refresh / Home / Profile). The three existing buttons keep their ids and handlers; only their look changes. ---- */
+header.app-header {
+  position: sticky; top: 8px; z-index: 900; /* above page content (max 100) so the profile menu is never overlapped, below every pop-up window (9999+) */
+  background: rgba(8, 13, 20, 0.72) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(0, 229, 255, 0.22) !important; border-radius: 16px !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), 0 0 18px rgba(0, 229, 255, 0.08) !important;
+}
+header.app-header .site-header-nav-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 44px; min-width: 44px; padding: 8px 16px !important; border-radius: 999px !important;
+  font-family: var(--font-display); font-size: 0.8rem !important; font-weight: 800 !important; letter-spacing: 1.2px; text-transform: uppercase; white-space: nowrap;
+  background: rgba(255, 255, 255, 0.05) !important; color: #e8faff !important;
+  border: 1px solid rgba(0, 229, 255, 0.4) !important; box-shadow: 0 0 12px rgba(0, 229, 255, 0.16) !important;
+  cursor: pointer; transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+header.app-header .site-header-nav-btn.btn-nav-home { border-color: rgba(255, 183, 3, 0.6) !important; color: #ffe3a0 !important; box-shadow: 0 0 12px rgba(255, 183, 3, 0.2) !important; }
+header.app-header .site-header-nav-btn:hover, header.app-header .site-header-nav-btn:focus-visible {
+  background: rgba(0, 229, 255, 0.12) !important; border-color: rgba(0, 229, 255, 0.85) !important; box-shadow: 0 0 20px rgba(0, 229, 255, 0.42) !important;
+}
+header.app-header .site-header-nav-btn.btn-nav-home:hover, header.app-header .site-header-nav-btn.btn-nav-home:focus-visible {
+  background: rgba(255, 183, 3, 0.14) !important; border-color: rgba(255, 183, 3, 0.95) !important; box-shadow: 0 0 20px rgba(255, 183, 3, 0.45) !important;
+}
+header.app-header .site-header-nav-btn:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+header.app-header .btn-nav-profile { padding: 0 !important; width: 44px; position: relative; }
+.hb-profile { position: relative; display: inline-flex; }
+.hb-dot { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-radius: 50%; background: #22c55e; border: 2px solid #0b121b; display: none; }
+.hb-menu {
+  position: absolute; right: 0; top: calc(100% + 10px); min-width: 240px; padding: 6px; z-index: 100000;
+  background: #09111a; border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 14px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 0 18px rgba(0, 229, 255, 0.12);
+}
+.hb-menu[hidden] { display: none; }
+.hb-item { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; min-height: 44px; padding: 10px 12px; border: 0; border-radius: 10px; background: transparent; color: #ffffff; text-align: left; cursor: pointer; font-family: inherit; }
+.hb-item:hover, .hb-item:focus-visible { background: rgba(0, 229, 255, 0.1); outline: 2px solid rgba(0, 229, 255, 0.7); outline-offset: -2px; }
+.hb-item-t { font-weight: 800; font-size: 0.92rem; }
+.hb-item-s { font-size: 0.8rem; color: #9fb3c8; }
+.hb-item-s.on { color: #4ade80; }
+@media (max-width: 480px) {
+  header.app-header { padding: 8px 10px !important; gap: 8px !important; }
+  header.app-header .site-header-nav-btn { padding: 8px 10px !important; font-size: 0.7rem !important; letter-spacing: 0.4px; gap: 4px; }
+  header.app-header .btn-nav-profile { padding: 0 !important; }
+  header.app-header > div:last-child { gap: 5px !important; }
+  .hb-menu { right: -4px; min-width: min(260px, calc(100vw - 32px)); }
+}
+@media (max-width: 380px) {
+  /* Very small phones (360 px): tighter buttons so the header never widens the page. */
+  header.app-header .site-header-nav-btn { padding: 8px 7px !important; font-size: 0.64rem !important; letter-spacing: 0; gap: 3px; }
+  header.app-header > div:last-child { gap: 4px !important; }
+}
+@media (max-width: 340px) {
+  header.app-header .brand-identity-group { display: none !important; }
+  header.app-header > div:last-child { flex: 1 1 auto; justify-content: space-between !important; }
+}
+
+/* ---- Admin hub on phones: the action buttons sit in ONE row you can swipe sideways (they used to stack one per line) ---- */
+@media (max-width: 640px) {
+  div.admin-secondary-toolbar {
+    flex-wrap: nowrap !important; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity; gap: 8px; padding: 10px 12px;
+  }
+  div.admin-secondary-toolbar > * { flex: 0 0 auto !important; white-space: nowrap; scroll-snap-align: start; align-self: center; }
+  div.admin-secondary-toolbar > .btn-tactical-hud { min-height: 44px; }
+  /* Each student / client row keeps its action buttons in one line instead of squeezing them until the words stack. */
+  #admin-roster-tbody td > div > .btn-spark, #admin-client-tbody td > div > .btn-spark { flex: 0 0 auto; white-space: nowrap; min-height: 44px; }
+}
+
+/* ---- Soft business-color glow on anything interactive. Written at the lowest priority (:where), so any element that already has its own
+   shadow, or none on purpose, keeps it; this only fills in where there was nothing. Cyan for most things, gold for the main actions. ---- */
+:where(button:not(:disabled):not([class*="overlay"]), a[href]:where([class*="btn"], [role="button"]), [role="button"]:not([class*="overlay"]), summary, select,
+       textarea, input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), [data-onclick]:not([class*="overlay"]):not(body)) {
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.14), 0 0 10px rgba(0, 229, 255, 0.12);
+  transition: box-shadow 0.2s ease;
+}
+:where(button, a[href], [role="button"], summary, select, textarea, input, [data-onclick]):where(:hover, :focus-visible) {
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.4), 0 0 16px rgba(0, 229, 255, 0.34);
+}
+:where(.btn-primary, button[type="submit"]:not(.btn-secondary)) { box-shadow: 0 0 0 1px rgba(255, 183, 3, 0.28), 0 0 12px rgba(255, 183, 3, 0.24); }
+:where(.btn-primary, button[type="submit"]:not(.btn-secondary)):where(:hover, :focus-visible) { box-shadow: 0 0 0 1px rgba(255, 183, 3, 0.6), 0 0 18px rgba(255, 183, 3, 0.45); }
+@media (prefers-reduced-motion: reduce) {
+  header.app-header .site-header-nav-btn, :where(button, a[href], [role="button"], summary, select, textarea, input, [data-onclick]) { transition: none !important; }
+}
