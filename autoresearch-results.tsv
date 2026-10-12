@@ -212,7 +212,7 @@ R02	2026-10-12T00:50:12Z	Search engines get a sitemap.xml listing the home page 
 R03	2026-10-12T00:52:47Z	Remove the unreachable earlier copies of setCardTier() (the last definition wins, so they never run)	SUCCESS	386911	-	-	found: test_course_catalog_labels was passing on a dead copy; re-pointed it at the live card-title write (mutation-checked); 14544 raw bytes removed
 R04	2026-10-12T00:52:56.401Z	Remove the unreachable earlier copies of renderAdminClientTerminal() (the last definition wins, so they never run)	SUCCESS	382477	381056	-1421	script gzip bytes; 5990 raw bytes removed
 R05	2026-10-12T00:53:04.684Z	Remove the unreachable earlier copies of logAnalyticsEvent() (the last definition wins, so they never run)	SUCCESS	381056	379902	-1154	script gzip bytes; 3462 raw bytes removed
-R07	2026-10-12T00:53:15.548Z	Remove the unreachable earlier copies of showPortalConflictModal() (the last definition wins, so they never run)	FAIL	379383	379383	0	Command failed: npm test
+R07	2026-10-12T00:53:15.548Z	Remove the unreachable earlier copies of showPortalConflictModal() (the last definition wins, so they never run)	FAIL	379383	379383	0	kept as is: test_roster_escaping_suite pins that this function is declared twice ("update this test if one is removed"); not changed to delete dead code
 [FIFS Route Discord] DISCORD_WEBHOOK_URL is not configured.
 [FIFS Route Discord] DISCORD_WEBHOO
 R08	2026-10-12T00:53:23.989Z	Remove the unreachable earlier copies of lookupStudentAccount() (the last definition wins, so they never run)	SUCCESS	379383	378947	-436	script gzip bytes; 2095 raw bytes removed
@@ -227,3 +227,4 @@ R16	2026-10-12T00:54:32.557Z	Remove the unreachable earlier copies of mountStude
 R17	2026-10-12T00:54:40.687Z	Remove the unreachable earlier copies of openAdminEditClientModal() (the last definition wins, so they never run)	SUCCESS	376135	375884	-251	script gzip bytes; 1391 raw bytes removed
 R18	2026-10-12T00:54:48.836Z	Remove the unreachable earlier copies of openPortalSelectionModal() (the last definition wins, so they never run)	SUCCESS	375884	375766	-118	script gzip bytes; 1379 raw bytes removed
 R19	2026-10-12T00:54:56.960Z	Remove the unreachable earlier copies of triggerModalAdminRefresh() (the last definition wins, so they never run)	SUCCESS	375766	375577	-189	script gzip bytes; 1302 raw bytes removed
+R20	2026-10-12T00:55:05.031Z	Remove the unreachable earlier copies of rawSwitchTab() (the last definition wins, so they never run)	SUCCESS	375577	375352	-225	script gzip bytes; 1281 raw bytes removed
