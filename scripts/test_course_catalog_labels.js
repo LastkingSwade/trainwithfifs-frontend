@@ -184,7 +184,8 @@ test('The form card shows the correct combo prices ($249.99 base, $349.99 VIP)',
 });
 test('Source check: no raw template still builds "Reserve ${config.baseTitle}", and the script card-title write is guarded', () => {
   assert(!/Reserve (👑 VIP )?\$\{config\.baseTitle\}/.test(PAGE) && !/'Reserve (👑 VIP )?' \+ config\.baseTitle/.test(SCRIPT), 'a raw config.baseTitle reserve title is still present');
-  assert(/if \(titleElem && \(config\.vipTitle \|\| config\.baseTitle\)\)/.test(SCRIPT), 'the script setCardTier title write must be guarded');
+  // The live card-title write (the form card, not the unreachable earlier copy of setCardTier this check used to read) builds the name through tierText and only writes when the element exists.
+  assert(/var baseName = tierText\(config\.baseTitle, courseName\)/.test(SCRIPT) && /if \(titleElem\) \{\s*titleElem\.textContent = isVip \? vipName : baseName;/.test(SCRIPT), 'the script card-title write must go through tierText and be guarded');
 });
 
 console.log('\n[SECTION C: every VIP price is exactly 40% above its base price]');
