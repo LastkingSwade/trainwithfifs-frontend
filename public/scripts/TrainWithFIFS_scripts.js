@@ -2485,32 +2485,6 @@ function updateAdminChatBadgeCount() {
         refreshAdminTelemetry();
       }
     }
-    
-    function triggerModalAdminRefresh(evt) {
-      if (evt && evt.preventDefault) evt.preventDefault();
-      var btn = document.getElementById('btnAdminModalRefresh') || (evt ? (evt.target || evt.currentTarget) : null);
-      if (btn) {
-        btn.classList.add('tactical-recoil-active');
-        btn.innerHTML = '⚡ SYNCING INTEL...';
-        setTimeout(function() {
-          btn.classList.remove('tactical-recoil-active');
-          btn.innerHTML = '🔄 REFRESH INTEL';
-        }, 850);
-      }
-      var activeSubpanel = ['roster', 'clients', 'chat', 'telemetry', 'analytics'].find(function(t) {
-        var el = document.getElementById('admin-subpanel-' + t);
-        return el && el.style.display !== 'none';
-      });
-      if (activeSubpanel === 'clients' && typeof window.refreshAdminClients === 'function') {
-        window.refreshAdminClients();
-      } else if (activeSubpanel === 'chat' && typeof window.refreshAdminLiveChats === 'function') {
-        window.refreshAdminLiveChats();
-      } else if ((activeSubpanel === 'telemetry' || activeSubpanel === 'analytics') && typeof window.refreshAdminTelemetry === 'function') {
-        window.refreshAdminTelemetry();
-      } else if (typeof window.refreshAdminRoster === 'function') {
-        window.refreshAdminRoster();
-      }
-    }
     window.triggerModalAdminRefresh = triggerModalAdminRefresh;
 window.openAdminSubpanelModal = openAdminSubpanelModal;
 
