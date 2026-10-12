@@ -77,10 +77,57 @@ function mem() {
     assert(/const uid = String\(user\.id\)/.test(body) && !/payload\.(userId|user_id|ownerId|email)/.test(body) && /status: 401/.test(body) && body.indexOf('getAuthenticatedUser') < body.indexOf('getPrivilegedClient()'));
     assert((ROUTE.match(/purgeWallet\(supabase,/g) || []).length === 2, 'both delete paths purge');
     assert(!/console\.(log|warn|error)\([^)]*(base64|bytes|dataBase64)/i.test(SRV), 'file contents never logged');
-    const UI = fs.readFileSync(path.join(ROOT, 'src/portal/WalletPanel.tsx'), 'utf8'); assert(/Do not upload/.test(UI) && /serial numbers/.test(UI) && /type="checkbox"/.test(UI) && !/placeholder=/.test(UI), 'notice shown, no free-text field');
+    const UI = fs.readFileSync(path.join(ROOT, 'src/portal/WalletPanel.tsx'), 'utf8'); assert(/Do not upload/.test(UI) && /serial numbers/.test(UI) && /type="checkbox"/.test(UI), 'notice shown');
+    // No way to type a private title or note that gets stored: no text inputs or text areas. The only text box is the local search (type="search"); its words are never sent anywhere.
+    assert(!/<textarea/.test(UI) && !/type="text"/.test(UI) && (UI.match(/type="search"/g) || []).length === 1, 'no free-text field (only the local search box)');
+    assert(!/call\('[a-zA-Z]+',[^)]*query/.test(UI) && !/walletUpload[^;]*query/.test(UI), 'the search words are never sent to the server');
     assert(/walletCard\(\)/.test(fs.readFileSync(path.join(ROOT, 'src/portal/clientExtras.ts'), 'utf8')) && /WalletPanel/.test(fs.readFileSync(path.join(ROOT, 'src/app/layout.tsx'), 'utf8')), 'the client portal keeps the wallet card');
     // Students have no documents yet (they come to the owner to get them), so the student portal no longer shows the wallet card.
     const STU = fs.readFileSync(path.join(ROOT, 'src/portal/studentExtras.ts'), 'utf8'); assert(!/walletCard/.test(STU) && !/document wallet/i.test(STU), 'the student portal must not show the wallet card');
+  });
+  // ---- Document Vault screen: logic and structure (offline) ----
+  const VL = load('src/portal/vaultLogic.ts'); const VUI = fs.readFileSync(path.join(ROOT, 'src/portal/WalletPanel.tsx'), 'utf8'); const VCSS = fs.readFileSync(path.join(ROOT, 'src/portal/vault.css'), 'utf8');
+  const doc = (id, kind, created, expires) => ({ id, kind, kindLabel: { permit_card: 'Permit card', class_certificate: 'Class certificate', hql_approval: 'HQL approval', other_id: 'Other ID' }[kind], mime: 'application/pdf', sizeBytes: 150000, expiresOn: expires || null, createdAt: created });
+  const DOCS = [doc('1', 'class_certificate', '2026-05-12T10:00:00Z'), doc('2', 'permit_card', '2026-04-03T10:00:00Z', '2026-12-01'), doc('3', 'hql_approval', '2026-02-18T10:00:00Z'), doc('4', 'other_id', '2026-06-01T10:00:00Z', '2026-01-01')];
+  await test('Vault: tabs sort every document type (certificates = class certificate + HQL approval, permits, other) and the chip counts add up', () => {
+    assert(VL.tabOf('class_certificate') === 'certificates' && VL.tabOf('hql_approval') === 'certificates' && VL.tabOf('permit_card') === 'permits' && VL.tabOf('other_id') === 'other' && VL.tabOf('anything_new') === 'other', 'tab rules');
+    const c = VL.counts(DOCS); assert(c.all === 4 && c.certificates === 2 && c.permits === 1 && c.other === 1, JSON.stringify(c));
+    assert(VL.TABS.map((t) => t.label).join() === 'All documents,Certificates,Permits,Other records', 'tab names match the design');
+  });
+  await test('Vault: filtering by tab and by search words, case-insensitive, trimmed, capped; nothing matched gives an empty list, never an error', () => {
+    assert(VL.filterDocs(DOCS, 'all', '').length === 4 && VL.filterDocs(DOCS, 'certificates', '').map((d) => d.id).join() === '1,3' && VL.filterDocs(DOCS, 'permits', '').length === 1, 'tabs');
+    assert(VL.filterDocs(DOCS, 'all', '  PERMIT ').map((d) => d.id).join() === '2' && VL.filterDocs(DOCS, 'all', 'may 12').map((d) => d.id).join() === '1' && VL.filterDocs(DOCS, 'permits', 'certificate').length === 0, 'search by type and by date, within the tab');
+    assert(VL.filterDocs(DOCS, 'all', 'x'.repeat(500)).length === 0 && VL.filterDocs([], 'all', '').length === 0 && VL.filterDocs(DOCS, 'all', null).length === 4, 'odd input is safe');
+  });
+  await test('Vault: expiry wording is plain and honest: expired, today, within 90 days (soon), later, or nothing when no date was given', () => {
+    const now = new Date('2026-10-12T15:00:00Z');
+    assert(VL.expiryState(null, now).state === 'none' && VL.expiryState('', now).state === 'none' && VL.expiryState('garbage', now).state === 'none', 'no date, no label');
+    assert(VL.expiryState('2026-10-09', now).text === 'Expired 3 days ago' && VL.expiryState('2026-10-09', now).state === 'expired' && VL.expiryState('2026-10-11', now).text === 'Expired 1 day ago', 'expired');
+    assert(VL.expiryState('2026-10-12', now).text === 'Expires today' && VL.expiryState('2026-10-13', now).text === 'Expires in 1 day' && VL.expiryState('2026-12-01', now).text === 'Expires in 50 days' && VL.expiryState('2026-12-01', now).state === 'soon', 'soon');
+    assert(VL.expiryState('2027-02-10', now).state === 'ok' && VL.expiryState('2027-02-10', now).text === 'Expires Feb 10, 2027' && VL.expiryState('2027-01-10', now).state === 'soon', 'later, and exactly 90 days still counts as soon');
+  });
+  await test('Vault: recently added shows the newest three; the card picture depends only on the document type (never the file); titles are the type, so no private text can be typed into one', () => {
+    assert(VL.recent(DOCS).map((d) => d.id).join() === '4,1,2' && VL.recent(DOCS, 1)[0].id === '4' && VL.recent([]).length === 0, 'newest first');
+    assert(VL.artFor('class_certificate').seal === true && VL.artFor('permit_card').seal === false && VL.artFor('other_id').label === 'RECORD', 'art by type');
+    assert(VL.docTitle({ kindLabel: 'Permit card' }) === 'Permit card', 'title = type');
+  });
+  await test('Vault screen: it follows the mockup (title, tagline, search, four chips with counts, Add document, cards with View document and a menu, Recently added, a Done toast) in the business colors', () => {
+    assert(/Your Document Vault/.test(VUI) && /Your training\. Your records\. All together\./.test(VUI) && /Search your documents/.test(VUI) && /Add document/.test(VUI) && /View document/.test(VUI) && /Recently added/.test(VUI) && /Your document has been added to your vault\./.test(VUI), 'copy from the design');
+    assert(/role="tablist"/.test(VUI) && /aria-selected/.test(VUI) && /\(\{c\[t\.key\]\}\)/.test(VUI), 'filter chips with counts');
+    assert(/#ffd166/.test(VCSS) && /#ffb703/.test(VCSS) && /rgba\(0, 229, 255/.test(VCSS) && /#19e6ff/.test(VCSS), 'gold and cyan business colors');
+    assert(!/#fff\b;[^}]*font-size: 2/.test(VCSS) && /\.vault h2 \{[^}]*color: #ffd166/.test(VCSS), 'the title is gold, not plain white');
+  });
+  await test('Vault screen keeps every safety rule: consent notice and checkbox first, "do not upload" gun records, owner-only calls, private open, delete needs a confirmation, and nothing is logged', () => {
+    assert(/Do not upload/.test(VUI) && /serial numbers/.test(VUI) && /<input type="checkbox" checked=\{agree\}/.test(VUI) && /disabled=\{!agree\}/.test(VUI), 'consent first');
+    for (const a of ['walletStatus', 'walletConsent', 'walletUpload', 'walletOpen', 'walletDelete']) assert(new RegExp("call\\('" + a + "'").test(VUI), a + ' still used');
+    assert(/setConfirmId\(d\.id\)/.test(VUI) && /Delete this document\? This cannot be undone\./.test(VUI) && /role="alert"/.test(VUI) && /Yes, delete/.test(VUI), 'delete asks first');
+    assert(!/console\./.test(VUI) && !/localStorage|sessionStorage/.test(VUI), 'nothing logged or stored in the browser');
+    assert(/maxBytes/.test(VUI) && /accept="application\/pdf,image\/png,image\/jpeg,image\/webp"/.test(VUI), 'file type and size limits');
+  });
+  await test('Vault screen is accessible and phone-friendly: dialog semantics, Escape and focus trap, labelled buttons, 44px+ targets, a single-column layout on phones, reduced motion respected', () => {
+    assert(/role="dialog" aria-modal="true" aria-labelledby="vault-title"/.test(VUI) && /e\.key === 'Escape'/.test(VUI) && /e\.key !== 'Tab'/.test(VUI) && /aria-label="Close your vault"/.test(VUI) && /aria-haspopup="menu"/.test(VUI) && /aria-expanded/.test(VUI), 'dialog, keyboard, labels');
+    for (const sel of ['\\.vault-add', '\\.vault-close', '\\.vault-chip', '\\.vault-view', '\\.vault-dots']) assert(new RegExp(sel + ' \\{[^}]*min-(height|width): (4[4-9]|5\\d)px').test(VCSS), sel + ' is at least 44px');
+    assert(/@media \(max-width: 640px\)[\s\S]*\.vault-grid \{ grid-template-columns: 1fr;/.test(VCSS) && /prefers-reduced-motion: reduce/.test(VCSS), 'phone layout and reduced motion');
   });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   process.exit(failed ? 1 : 0);
