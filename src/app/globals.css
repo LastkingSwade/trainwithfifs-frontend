@@ -6066,3 +6066,10 @@ header.app-header .btn-nav-profile { padding: 0 !important; width: 44px; positio
   --font-body: var(--font-geist), 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: var(--font-geist-mono), 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
+
+/* ---- V3 Physical feel: a press on anything tappable squeezes it a hair (2%), like a real button. Uses the separate `scale` property, so it never clashes
+   with the hover lifts, animations or transforms other rules already use. Skipped for people who ask for reduced motion. ---- */
+@media (prefers-reduced-motion: no-preference) {
+  :where(button:not(:disabled), [role="button"], summary, a[href]:where([class*="btn"]), .cc-tile, .hb-item, .tuition-card, .j-card):active { scale: 0.98; }
+  :where(button, [role="button"], summary, a[href]:where([class*="btn"]), .cc-tile, .hb-item) { transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1); }
+}

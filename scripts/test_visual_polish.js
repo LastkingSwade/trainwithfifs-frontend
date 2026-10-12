@@ -20,5 +20,12 @@ test('V2 Fonts are loaded the working way (next/font, served from this site): Ra
   assert(!/Inter/.test(tail.split('}')[0]), 'Inter is no longer the first choice');
   assert(!/fonts\.googleapis\.com/.test(L), 'no runtime request to Google Fonts from the layout');
 });
+test('V3 Pressing a button or card squeezes it 2% using the separate scale property (never transform), and only when motion is allowed', () => {
+  const t = GCSS.slice(GCSS.indexOf('V3 Physical feel'));
+  assert(/@media \(prefers-reduced-motion: no-preference\) \{[\s\S]*:active \{ scale: 0\.98; \}/.test(t), 'press rule inside the motion-allowed media query');
+  assert(!/transform:\s*scale/.test(t.split('/* ---- V')[0]), 'it must not use transform, which other rules already use');
+  assert(/cubic-bezier\(0\.32, 0\.72, 0, 1\)/.test(t) && !/linear|ease-in-out/.test(t.split('/* ---- V')[0].replace(/\/\*[\s\S]*?\*\//g, '')), 'a weighted spring-like curve, not linear or ease-in-out');
+  assert(/:where\(button:not\(:disabled\)/.test(t), 'lowest priority, and disabled buttons never move');
+});
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
 process.exit(failed ? 1 : 0);
