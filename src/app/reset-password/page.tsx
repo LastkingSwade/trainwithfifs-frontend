@@ -44,7 +44,8 @@ export default function ResetPasswordPage() {
   const clientRef = useRef<ReturnType<typeof createRecoveryClient> | null>(null);
   const roleRef = useRef<string | undefined>(undefined);
   const [phase, setPhase] = useState<Phase>("checking");
-  const [reason, setReason] = useState<"expired" | "invalid">("invalid");
+  const [reason, setReason] = useState<"expired" | "invalid" | "other-device">("invalid");
+  const [detail, setDetail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
@@ -80,6 +81,7 @@ export default function ResetPasswordPage() {
         setPhase("ready");
       } else {
         setReason(outcome.reason);
+        setDetail(outcome.detail || "");
         setPhase("invalid");
       }
     });
@@ -134,7 +136,7 @@ export default function ResetPasswordPage() {
   return (
     <main style={{ minHeight: "100vh", background: "#070b10", color: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 16px", fontFamily: "system-ui, sans-serif" }}>
       <div style={card}>
-        <h1 style={{ margin: "0 0 6px", fontSize: "1.5rem", color: "#fff" }}>Train With FIFS</h1>
+        <h1 style={{ margin: "0 0 6px", fontSize: "1.5rem", color: "#19e6ff" }}>Train With FIFS</h1>
 
         {phase === "checking" && <p>Checking your reset link…</p>}
 
@@ -160,12 +162,18 @@ export default function ResetPasswordPage() {
         {phase === "invalid" && (
           <div>
             <p role="alert" style={{ color: "#f87171" }}>
-              {reason === "expired"
-                ? "This reset link has expired or was already used."
-                : "This reset link is not valid."}
+              {reason === "other-device"
+                ? "This link was requested from a different browser or device, so it cannot be opened here."
+                : reason === "expired"
+                  ? "This reset link has expired or was already used."
+                  : "This reset link is not valid."}
             </p>
             {error && <p role="alert" style={{ color: "#f87171" }}>{error}</p>}
-            <p style={{ color: "#94a3b8" }}>Enter your email address and we will send you a new link.</p>
+            {reason === "other-device" && (
+              <p style={{ color: "#d3e9f8" }}>Open the link in the same browser and on the same device where you asked for it, or request a new link below from this browser. New links work on any device.</p>
+            )}
+            <p style={{ color: "#aac3d6" }}>Enter your email address and we will send you a new link.</p>
+            {detail && <p style={{ color: "#8ba3b8", fontSize: "0.75rem", margin: "4px 0 0" }}>Reason code: {detail}. If this keeps happening, tell FIFS this code.</p>}
             <form onSubmit={onRequestNew} noValidate>
               <label htmlFor="resetEmail" style={label}>Email address</label>
               <input id="resetEmail" type="email" autoComplete="email" style={input} value={email} onChange={(e) => setEmail(e.target.value)} />

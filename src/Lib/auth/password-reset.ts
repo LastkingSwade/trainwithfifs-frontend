@@ -85,7 +85,19 @@ const ACCEPTED_LINK_TYPES = ['recovery', 'invite'];
 // Structural stand-in for the Supabase client so tests can pass a mock; only `.auth` is used.
 type AuthClient = { auth: any };
 
-export type RecoveryOutcome = { state: 'ready'; appRole?: string } | { state: 'invalid'; reason: 'expired' | 'invalid' };
+// 'other-device' = a link made by a different browser or device than the one opening it (an older-style link needs a one-time key kept by the
+// browser that asked for it). It is not an expired link, and the page says so.
+// `detail` is a short, harmless code for the step that failed (never a token, email or message from the server), shown in small print so a failure can be
+// diagnosed without guessing: link-error, exchange-<status>, tokens-<status>, no-link, no-session, verifier-missing, exception.
+export type RecoveryOutcome = { state: 'ready'; appRole?: string } | { state: 'invalid'; reason: 'expired' | 'invalid' | 'other-device'; detail?: string };
+
+const statusOf = (e: unknown): string => { const n = Number((e as any)?.status); return Number.isFinite(n) && n > 0 ? String(n) : 'error'; };
+
+/** True when an error means "this browser never saved the one-time key for this link" (the link was requested somewhere else). */
+export function isMissingVerifierError(error: unknown): boolean {
+  const e: any = error; if (!e) return false;
+  return String(e.name || '') === 'AuthPKCECodeVerifierMissingError' || /code verifier/i.test(String(e.message || ''));
+}
 
 /**
  * Turns the URL (or a recovery session already held by this isolated client) into a ready/invalid state.
@@ -93,18 +105,19 @@ export type RecoveryOutcome = { state: 'ready'; appRole?: string } | { state: 'i
  */
 export async function establishRecoverySession(client: AuthClient, params: RecoveryParams): Promise<RecoveryOutcome> {
   try {
-    if (params.kind === 'error') return { state: 'invalid', reason: 'expired' };
+    if (params.kind === 'error') return { state: 'invalid', reason: 'expired', detail: 'link-error' };
 
     if (params.kind === 'code') {
       const { data, error } = await client.auth.exchangeCodeForSession(params.code);
-      if (error || !data?.session) return { state: 'invalid', reason: 'expired' };
+      if (isMissingVerifierError(error)) return { state: 'invalid', reason: 'other-device', detail: 'verifier-missing' };
+      if (error || !data?.session) return { state: 'invalid', reason: 'expired', detail: 'exchange-' + statusOf(error) };
       return { state: 'ready', appRole: data.session.user?.app_metadata?.role };
     }
 
     if (params.kind === 'tokens') {
-      if (!params.type || !ACCEPTED_LINK_TYPES.includes(params.type)) return { state: 'invalid', reason: 'invalid' };
+      if (!params.type || !ACCEPTED_LINK_TYPES.includes(params.type)) return { state: 'invalid', reason: 'invalid', detail: 'link-type' };
       const { data, error } = await client.auth.setSession({ access_token: params.accessToken, refresh_token: params.refreshToken });
-      if (error || !data?.session) return { state: 'invalid', reason: 'expired' };
+      if (error || !data?.session) return { state: 'invalid', reason: 'expired', detail: 'tokens-' + statusOf(error) };
       return { state: 'ready', appRole: data.session.user?.app_metadata?.role };
     }
 
@@ -112,9 +125,9 @@ export async function establishRecoverySession(client: AuthClient, params: Recov
     // the recovery session it established earlier.
     const { data } = await client.auth.getSession();
     if (data?.session) return { state: 'ready', appRole: data.session.user?.app_metadata?.role };
-    return { state: 'invalid', reason: 'invalid' };
-  } catch {
-    return { state: 'invalid', reason: 'invalid' };
+    return { state: 'invalid', reason: 'invalid', detail: 'no-session' };
+  } catch (err) {
+    return { state: 'invalid', reason: isMissingVerifierError(err) ? 'other-device' : 'invalid', detail: isMissingVerifierError(err) ? 'verifier-missing' : 'exception' };
   }
 }
 

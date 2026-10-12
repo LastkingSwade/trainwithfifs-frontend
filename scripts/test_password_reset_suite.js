@@ -96,6 +96,17 @@ async function main() {
     const bad = mockClient({ exchange: { data: { session: null }, error: { message: 'bad' } } });
     eq((await pr.establishRecoverySession(bad, { kind: 'code', code: 'c2' })).state, 'invalid', 'bad code');
   });
+  await test('A link made by another browser or device (the one-time key is missing here) is reported as other-device, not as expired; a genuinely bad code is still expired', async () => {
+    const named = mockClient({ exchange: { data: { session: null }, error: { name: 'AuthPKCECodeVerifierMissingError', message: 'PKCE code verifier not found in storage.' } } });
+    let out = await pr.establishRecoverySession(named, { kind: 'code', code: 'c3' }); eq(out.state, 'invalid', 'state'); eq(out.reason, 'other-device', 'named error');
+    const messageOnly = mockClient({ exchange: { data: { session: null }, error: { message: 'Invalid code verifier' } } });
+    eq((await pr.establishRecoverySession(messageOnly, { kind: 'code', code: 'c4' })).reason, 'other-device', 'message only');
+    const thrown = mockClient(); thrown.auth.exchangeCodeForSession = async () => { const e = new Error('PKCE code verifier not found in storage'); e.name = 'AuthPKCECodeVerifierMissingError'; throw e; };
+    eq((await pr.establishRecoverySession(thrown, { kind: 'code', code: 'c5' })).reason, 'other-device', 'thrown');
+    const bad = mockClient({ exchange: { data: { session: null }, error: { name: 'AuthApiError', message: 'invalid flow state, no valid flow state found' } } });
+    eq((await pr.establishRecoverySession(bad, { kind: 'code', code: 'c6' })).reason, 'expired', 'a real bad or used code stays expired');
+    eq(pr.isMissingVerifierError(null), false, 'null'); eq(pr.isMissingVerifierError({ message: 'something else' }), false, 'unrelated');
+  });
   await test('A client error while establishing the session is invalid, not an exception', async () => {
     const c = mockClient(); c.auth.setSession = async () => { throw new Error('network'); };
     eq((await pr.establishRecoverySession(c, pr.parseRecoveryParams('', '#access_token=a&refresh_token=r&type=recovery'))).state, 'invalid', 'state');
@@ -184,6 +195,20 @@ async function main() {
     assert(!/updateUser\s*\(/.test(pageSrc), 'page calls updateUser directly');
     assert(!/console\.\w+\(/.test(pageSrc), 'page uses console');
     assert(/establishRecoverySession/.test(pageSrc) && /submitNewPassword/.test(pageSrc), 'page must use the gated helpers');
+  });
+  await test('Reset emails now use links that work in any browser: the recovery client uses the implicit link style (tokens after the #), still on its own storage key, never auto-reading the URL', async () => {
+    const src = read('src/Lib/supabase/recovery-client.ts');
+    assert(/flowType:\s*'implicit'/.test(src) && !/flowType:\s*'pkce'/.test(src), 'implicit link style');
+    assert(/storageKey:\s*RECOVERY_STORAGE_KEY/.test(src) && /detectSessionInUrl:\s*false/.test(src) && /autoRefreshToken:\s*false/.test(src), 'isolated, no auto-read of the URL');
+    assert(/never sent to any server/.test(src) && /removes\s*(\/\/\s*)?them from the address bar/.test(src), 'the trade-off is written down where the setting lives');
+  });
+  await test('The reset page tells a different-device visitor what happened and what to do, keeps the request-a-new-link form, and an implicit hash link is accepted by the same page', async () => {
+    const page = read('src/app/reset-password/page.tsx');
+    assert(/reason === "other-device"/.test(page) && /requested from a different browser or device/.test(page) && /same browser and on the same device/.test(page) && /New links work on any device/.test(page), 'clear message');
+    assert(/Send me a new link/.test(page) && /onRequestNew/.test(page), 'the form to ask again is still there');
+    const ok = mockClient(); const out = await pr.establishRecoverySession(ok, pr.parseRecoveryParams('', '#access_token=aaa.bbb.ccc&expires_in=3600&refresh_token=rrr&token_type=bearer&type=recovery'));
+    eq(out.state, 'ready', 'a hash link made by another device works here'); assert(ok.calls.some((x) => x.name === 'setSession'), 'session set from the tokens');
+    assert(!ok.calls.some((x) => x.name === 'exchangeCodeForSession'), 'no one-time key needed for a hash link');
   });
   await test('The recovery client keeps its session under its own storage key and does not auto-read the URL', async () => {
     const src = read('src/Lib/supabase/recovery-client.ts');
@@ -339,6 +364,25 @@ async function main() {
     const b = scriptSrc.indexOf('window.verifyAdminAccess = verifyAdminAccess;', a);
     const { attempts, status } = await runStaffSignIn(scriptSrc.slice(a, b) + '\nwindow.verifyAdminAccess = verifyAdminAccess;', { email: 'info@trainwithfifs.com', password: '' });
     eq(attempts.length, 0, 'sign-in attempts'); assert(/required/.test(status.textContent), status.textContent);
+  });
+
+  await test('The recovery client, built with the real supabase-js and the flow type from the source, asks for a reset with NO one-time key (so the emailed link works on any device); a pkce client would send one', async () => {
+    const src = read('src/Lib/supabase/recovery-client.ts');
+    const m = src.match(/flowType:\s*'(implicit|pkce)'/); assert(m, 'flowType not found'); eq(m[1], 'implicit', 'flowType in source');
+    const { createClient } = require('@supabase/supabase-js');
+    const sent = {};
+    for (const flowType of [m[1], 'pkce']) {
+      const mem = {}; let body = '';
+      const c = createClient('https://x.supabase.co', 'sb_publishable_x', { auth: { flowType, storageKey: 'k-' + flowType, persistSession: true, detectSessionInUrl: false, storage: { getItem: (k) => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = v; }, removeItem: (k) => { delete mem[k]; } } }, global: { fetch: async (_u, o) => { body = String((o && o.body) || ''); return { ok: true, status: 200, headers: new Map(), json: async () => ({}), text: async () => '{}' }; } } });
+      await c.auth.resetPasswordForEmail('a@b.co', { redirectTo: 'https://x/reset-password' });
+      sent[flowType === m[1] && flowType !== 'pkce' ? 'source' : 'pkce'] = /"code_challenge":"/.test(body);
+    }
+    eq(sent.source, false, 'the real client sends a code_challenge'); eq(sent.pkce, true, 'sanity: a pkce client does send one (test can fail)');
+  });
+  await test('A failed link reports a short harmless reason code (no tokens, emails or server text)', async () => {
+    const bad = { auth: { exchangeCodeForSession: async () => ({ data: null, error: { status: 404, message: 'secret server text a@b.co' } }) } };
+    const out = await pr.establishRecoverySession(bad, { kind: 'code', code: 'zz' });
+    eq(out.reason, 'expired', 'reason'); eq(out.detail, 'exchange-404', 'detail'); assert(!/secret|a@b\.co/.test(JSON.stringify(out)), 'leaked server text');
   });
 
   await test('No outbound network calls were attempted', async () => { eq(fetchCalls.length, 0, 'fetch calls'); });
