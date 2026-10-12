@@ -3184,53 +3184,6 @@ function loadDemoStudent() {
       try { window.scrollTo(0, 0); } catch (e) {}
     }
     window.renderClientDashboard = renderClientDashboard;
-    function switchClientAuthTab(tab) {
-      var pSignin = document.getElementById('panel-client-signin');
-      var pRegister = document.getElementById('panel-client-register');
-      var tSignin = document.getElementById('tab-client-signin');
-      var tRegister = document.getElementById('tab-client-register');
-      if (tab === 'signin') {
-        if (pSignin) {
-          pSignin.style.setProperty('display', 'block', 'important');
-          pSignin.style.setProperty('visibility', 'visible', 'important');
-          pSignin.style.setProperty('pointer-events', 'auto', 'important');
-        }
-        if (pRegister) {
-          pRegister.style.setProperty('display', 'none', 'important');
-          pRegister.style.setProperty('pointer-events', 'none', 'important');
-        }
-        if (tSignin) {
-          tSignin.classList.add('active');
-          tSignin.style.borderColor = 'var(--accent-cyan)';
-          tSignin.style.color = '#fff';
-        }
-        if (tRegister) {
-          tRegister.classList.remove('active');
-          tRegister.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-          tRegister.style.color = 'var(--text-muted)';
-        }
-      } else {
-        if (pSignin) {
-          pSignin.style.setProperty('display', 'none', 'important');
-          pSignin.style.setProperty('pointer-events', 'none', 'important');
-        }
-        if (pRegister) {
-          pRegister.style.setProperty('display', 'block', 'important');
-          pRegister.style.setProperty('visibility', 'visible', 'important');
-          pRegister.style.setProperty('pointer-events', 'auto', 'important');
-        }
-        if (tSignin) {
-          tSignin.classList.remove('active');
-          tSignin.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-          tSignin.style.color = 'var(--text-muted)';
-        }
-        if (tRegister) {
-          tRegister.classList.add('active');
-          tRegister.style.borderColor = 'var(--accent-cyan)';
-          tRegister.style.color = '#fff';
-        }
-      }
-    }
     window.switchClientAuthTab = switchClientAuthTab;
 
 

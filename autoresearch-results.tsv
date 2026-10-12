@@ -216,3 +216,4 @@ R07	2026-10-12T00:53:15.548Z	Remove the unreachable earlier copies of showPortal
 [FIFS Route Discord] DISCORD_WEBHOOK_URL is not configured.
 [FIFS Route Discord] DISCORD_WEBHOO
 R08	2026-10-12T00:53:23.989Z	Remove the unreachable earlier copies of lookupStudentAccount() (the last definition wins, so they never run)	SUCCESS	379383	378947	-436	script gzip bytes; 2095 raw bytes removed
+R09	2026-10-12T00:53:32.246Z	Remove the unreachable earlier copies of openStepDetailModal() (the last definition wins, so they never run)	SUCCESS	378947	378548	-399	script gzip bytes; 2067 raw bytes removed
