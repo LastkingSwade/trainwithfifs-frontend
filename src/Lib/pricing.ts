@@ -84,13 +84,16 @@ export function remoteFeePerPerson(baseTuitionPerPerson: number): number {
   return Math.round(baseTuitionPerPerson * ONLINE_PREMIUM_RATE * 100) / 100;
 }
 
-export function calculatePricingBreakdown(courseSelection: string, attendees: number, isPayFull: boolean, delivery: Delivery = 'in_person') {
+export function calculatePricingBreakdown(courseSelection: string, attendees: number, isPayFull: boolean, delivery: Delivery = 'in_person', rewardFraction = 0) {
   const isVip = /VIP/i.test(courseSelection || '');
   const baseTuitionPerPerson = baseTuitionFor(courseSelection || '', isVip);
   const discountPercent = GROUP_DISCOUNTS[attendees] ?? 0;
 
   const rawTuitionCents = toCents(baseTuitionPerPerson * attendees);
-  const discountCents = Math.round(rawTuitionCents * discountPercent);
+  // The Daily Range Quiz reward (a fraction of TUITION, set by the server from the signed-in client's own record; never the range fee or the tax). Only ever applied to a single renewal booking.
+  const safeReward = Number.isFinite(rewardFraction) && rewardFraction > 0 && rewardFraction <= 0.3 && attendees === 1 ? rewardFraction : 0;
+  const rewardCents = Math.round(rawTuitionCents * safeReward);
+  const discountCents = Math.round(rawTuitionCents * discountPercent) + rewardCents;
   const discountedTuitionCents = rawTuitionCents - discountCents;
   // Range lane fee: $45.00 per person on the Base track, included for VIP
   const rangeFeeCents = isVip ? 0 : toCents(RANGE_FEE_PER_PERSON * attendees);
@@ -108,6 +111,7 @@ export function calculatePricingBreakdown(courseSelection: string, attendees: nu
     baseTuitionPerPerson,
     discountPercent,
     discountedTuition: discountedTuitionCents / 100,
+    rewardDiscount: rewardCents / 100,
     rangeFee: rangeFeeCents / 100,
     remoteFee: remoteFeeCents / 100,
     delivery: remoteFeeCents > 0 ? 'live_online' as Delivery : 'in_person' as Delivery,

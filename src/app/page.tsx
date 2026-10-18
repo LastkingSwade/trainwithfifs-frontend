@@ -29,6 +29,7 @@ import { installBalanceReturn } from "@/portal/payBalance";
 import { installSiteTelemetry } from "@/portal/siteTelemetry";
 import { installMultiStateCard } from "@/multistate/card";
 import { installEngagement } from "@/portal/engage";
+import { installQuizCard, installQuizPricing } from "@/portal/quizCard";
 import { installAdminExtras } from "@/portal/adminExtras";
 import { installAdminAttention } from "@/portal/adminAttention";
 import "@/portal/portal.css";
@@ -3702,6 +3703,12 @@ export default function TrainWithFIFS(props: any) {
               <span style="color:#e2e8f0;">${p.courseSelection} (Tuition)</span>
               <strong style="color:#fff;">$${pricing.rawTuition.toFixed(2)}</strong>
             </div>
+            ${pricing.rewardDiscount > 0 ? `
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;color:#10b981;">
+                <div><span style="font-weight:700;">🎯 Daily Range Quiz reward (${pricing.rewardPercent}% off tuition)</span><br><span style="color:#6ee7b7;font-size:0.75rem;">Earned in your Client Portal. Not applied to the range fee or tax.</span></div>
+                <strong>-$${pricing.rewardDiscount.toFixed(2)}</strong>
+              </div>
+            ` : ''}
             ${pricing.discountAmount > 0 ? `
               <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;color:#10b981;">
                 <div><span style="font-weight:700;">Group / Format Tier Discount (${Math.round(pricing.discountPercent * 100)}% OFF)</span><br><span style="color:#6ee7b7;font-size:0.75rem;">${p.groupSize}</span></div>
@@ -4198,7 +4205,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installPwaBanner(); installBalanceReturn(); installSiteTelemetry(); installMultiStateCard(); installEngagement(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installPwaBanner(); installBalanceReturn(); installSiteTelemetry(); installMultiStateCard(); installEngagement(); installQuizCard(); installQuizPricing(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -5449,6 +5456,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
               {/* Your next step (filled in by src/portal/clientNextStep.ts through permitCardLive.ts) */}
               <section id="fi-client-next" className="cns" aria-label="Your next step" hidden></section>
+              {/* Daily Range Quiz (filled in by src/portal/quizCard.ts) */}
+              <section id="qz-client" className="qz" aria-label="Daily Range Quiz" hidden></section>
               {/* PORTAL HERO BANNER */}
               <div className="fi-banner-card" id="fi-sec-dashboard">
                 <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "flex-start", "flexWrap": "wrap", "gap": "16px"}}>

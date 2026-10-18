@@ -3,7 +3,8 @@ import Stripe from 'stripe';
 import { recordPodCodeOnInvoice } from './group-status';
 import { GROUP_CODE_PATTERN, normalizeGroupCode } from '../../group/groupCode';
 import { claimBookingDays, inPersonClaims, onlineClaims, planOnlineBooking, releaseDayClaims } from './online-classroom';
-import { calculatePricingBreakdown, displayCourseLabel, isAlumniCourse, parseAttendeeCount } from '../pricing';
+import { calculatePricingBreakdown, courseKeyFor, displayCourseLabel, isAlumniCourse, parseAttendeeCount } from '../pricing';
+import { releaseReward, reserveReward } from './quiz-progress';
 import { getAuthenticatedUser, getPrivilegedClient, hasBearerToken, resolveStripeSecretKey } from './supabase-admin';
 import { sendDiscordAlert } from './discord';
 import { ConfigurationError, resolveSiteUrl } from '../config/environment';
@@ -185,10 +186,12 @@ export async function createBookingCheckout(
   // Optional authenticated linking. An absent or invalid token simply means a guest checkout;
   // it never grants access to another student's record.
   let linkedUserId: string | null = null;
+  let authUserId = ''; // the verified login (student or client), used only for the quiz reward; never taken from the request
   let studentId = generateGuestStudentId();
   if (hasBearerToken(req)) {
     const { user } = await getAuthenticatedUser(req);
     if (user?.id) {
+      authUserId = String(user.id);
       try {
         const { data: student, error } = await getPrivilegedClient()
           .from('students')
@@ -230,18 +233,27 @@ export async function createBookingCheckout(
   }
 
   const invoiceId = generateInvoiceId();
-  const pricing = calculatePricingBreakdown(courseSelection, attendees, isPayFull, online ? 'live_online' : 'in_person');
+  // Daily Range Quiz reward: a signed-in CLIENT booking ONE renewal seat gets their earned percentage off TUITION (30% cap on the Base track, 20% on VIP). The server works it
+  // out from their own record; nothing about it comes from the request. It is reserved for this invoice and handed back if the booking does not go through.
+  let rewardFraction = 0;
+  if (authUserId && attendees === 1 && !podMember && courseKeyFor(courseSelection) === 'renewal') {
+    const f = await reserveReward(getPrivilegedClient(), authUserId, invoiceId, /VIP/i.test(courseSelection));
+    if (f) rewardFraction = f;
+  }
+  const giveRewardBack = async () => { if (rewardFraction > 0) { rewardFraction = 0; await releaseReward(getPrivilegedClient(), authUserId, invoiceId); } };
+  const pricing = calculatePricingBreakdown(courseSelection, attendees, isPayFull, online ? 'live_online' : 'in_person', rewardFraction);
 
   let podSeatClaimed = false;
   if (podMember) {
     const claim = await claimPodSeat(podMember.code);
-    if (!claim.ok) return { status: claim.status, body: { success: false, status: 'error', error: claim.message } };
+    if (!claim.ok) { await giveRewardBack(); return { status: claim.status, body: { success: false, status: 'error', error: claim.message } }; }
     podSeatClaimed = true;
   }
   let dayClaimsHeld = false;
   const releaseClaimedPodSeat = async () => {
     if (podMember && podSeatClaimed) { podSeatClaimed = false; await releasePodSeat(podMember.code); }
     if (dayClaimsHeld) { dayClaimsHeld = false; await releaseDayClaims(invoiceId); }
+    await giveRewardBack();
   };
   // The day rule: each calendar day is a web day or an in-person day, decided by whoever books it first. Group members joining a
   // leader's pod share the leader's days, so only the leader's booking claims them.
@@ -277,6 +289,7 @@ export async function createBookingCheckout(
         rangeFee: pricing.rangeFee.toFixed(2),
         mdTax: pricing.mdTax.toFixed(2),
         grandTotal: pricing.grandTotal.toFixed(2),
+        ...(pricing.rewardDiscount > 0 ? { quizReward: pricing.rewardDiscount.toFixed(2) } : {}),
         depositDueNow: pricing.depositDueNow.toFixed(2),
         balanceDueClass: pricing.balanceDueClass.toFixed(2),
         isDepositPayment: String(!isPayFull),

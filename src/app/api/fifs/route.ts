@@ -7,6 +7,7 @@ import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
 import { createBalanceCheckout } from '@/Lib/server/balance-checkout';
 import { scoresheetLock } from '@/Lib/server/scoresheet-lock';
+import { quizAnswer, quizToday } from '@/Lib/server/quiz-progress';
 import { adminMultiStateList, multiStateStatus, setStep, setTracking } from '@/Lib/server/multistate-progress';
 import { listInvoicePayments, recordManualPayment, voidManualPayment } from '@/Lib/server/manual-payments';
 import { aggregate } from '@/Lib/server/site-visits';
@@ -3287,6 +3288,17 @@ export async function POST(req: NextRequest) {
        const { user, error: authErr } = await getAuthenticatedUser(req);
        if (authErr || !isStaffOrAdmin(user)) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        const r: any = await adminMultiStateList(getPrivilegedClient());
+       return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
+     }
+
+     // Daily Range Quiz (Client Portal). Signed in only; each client reaches only their own progress; the questions and answers never leave the server until a question is answered.
+     case 'quizToday':
+     case 'quizAnswer': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user?.id) return NextResponse.json({ success: false, status: 'error', error: 'Please sign in to play the daily quiz.' }, { status: 401 });
+       if (action === 'quizAnswer' && !allowPublicSubmit(req, 'quiz', 60)) return NextResponse.json({ success: false, error: 'Too many answers. Please wait a few minutes and try again.' }, { status: 429 });
+       const sb = getPrivilegedClient();
+       const r: any = action === 'quizToday' ? await quizToday(sb, String(user.id)) : await quizAnswer(sb, String(user.id), payload.questionId, payload.choice);
        return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
      }
 
