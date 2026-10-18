@@ -4795,6 +4795,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </button>
               </div>
             </div>
+            {/* Payment received notice (filled in by src/portal/engage.ts) */}
+            <section id="eg-notice" className="eg" aria-label="Payment received" hidden></section>
             {/* Priority Action Concierge Hero Card */}
             <div className="next-step-card">
               <div className="next-step-badge">

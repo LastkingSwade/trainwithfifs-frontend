@@ -55,5 +55,13 @@ const PAGE = read('src/app/page.tsx');
     for (const [st, want] of [['PREP_PENDING', true], ['STEP_2_CONFIRMED', true], ['STEP_4_CLASSROOM', true], ['STEP_5_LIVE_FIRE', false], ['STEP_6_CERTIFICATE', false], ['LICENSED', false]]) eq(L.showReadiness(st), want, st);
     const ui = read('src/portal/engage.ts'); assert(/callFifsBackend\('studentInvoices'/.test(ui) && /display-mode: standalone/.test(ui) && /aria-valuenow/.test(ui), 'built from the record, accessible'); assert(/id="eg-ready"/.test(PAGE), 'host near the top of the student dashboard');
   });
+  await test('Payment-received notice: shown for a week after an in-person payment was recorded, says what was received and what is left, and is quiet otherwise', () => {
+    const now = new Date('2026-10-21T15:00:00Z'); const row = (o = {}) => ({ invoiceNumber: 'INV-1', status: 'Paid in full', balance: 0, inPerson: [{ amount: 175, method: 'Cash', date: '2026-10-20', recordedAt: '2026-10-20T16:00:00Z' }], ...o });
+    let n = L.paymentNotices([row()], now); eq(n.length, 1); assert(/\$175\.00 cash payment \(Oct 20, 2026\) was recorded/.test(n[0].text) && /paid in full/.test(n[0].text), n[0].text);
+    n = L.paymentNotices([row({ status: 'Deposit paid', balance: 75 })], now); assert(/remaining balance is \$75\.00/.test(n[0].text), n[0].text);
+    eq(L.paymentNotices([row({ inPerson: [{ amount: 175, method: 'Cash', date: '2026-10-01', recordedAt: '2026-10-01T16:00:00Z' }] })], now).length, 0, 'older than a week is quiet'); eq(L.paymentNotices([row({ inPerson: [] })], now).length, 0); eq(L.paymentNotices(null, now).length, 0); eq(L.paymentNotices([row({ inPerson: [{ amount: 1, method: 'Cash', date: '', recordedAt: 'junk' }] })], now).length, 0, 'bad dates are ignored');
+    eq(L.paymentNotices([row({ inPerson: [{ amount: 1, method: 'Cash', date: '', recordedAt: '2027-01-01T00:00:00Z' }] })], now).length, 0, 'a future time is ignored');
+    const ui = read('src/portal/engage.ts'); assert(/callFifsBackend\('studentInvoices'/.test(ui) && /id="eg-notice"/.test(PAGE) && /role', 'status'/.test(ui), 'wired and announced'); assert(!/localStorage|sessionStorage/.test(ui), 'nothing stored');
+  });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`); process.exit(failed ? 1 : 0);
 })();

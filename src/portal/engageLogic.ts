@@ -102,3 +102,19 @@ export function readiness(f: ReadyFacts): { items: ReadyItem[]; done: number; to
 }
 /** Only before the range day: after that the meter would just be noise. */
 export const showReadiness = (status: unknown): boolean => stepFromStatus(status) <= 4;
+
+// ---- "Payment received" notice: when Coach Kai records a payment in person, the student sees it in their portal for a week. Worked out from the receipts; nothing is stored. ----
+export interface NoticeReceipt { invoiceNumber: string; status: string; balance: number; inPerson?: { amount: number; method: string; date: string; recordedAt?: string }[] }
+export interface PaymentNotice { key: string; text: string }
+const money = (n: number) => '$' + Number(n).toFixed(2);
+export function paymentNotices(rows: readonly NoticeReceipt[] | null, now: Date = new Date(), days = 7): PaymentNotice[] {
+  const out: PaymentNotice[] = []; if (!rows) return out;
+  for (const r of rows) {
+    for (const p of r.inPerson || []) {
+      const t = Date.parse(String(p.recordedAt || '')); if (!Number.isFinite(t) || now.getTime() - t > days * 86400000 || t > now.getTime() + 3600000) continue;
+      const on = p.date ? new Date(p.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+      out.push({ key: `${r.invoiceNumber}|${p.recordedAt}`, text: `💵 Payment received: your ${money(p.amount)} ${String(p.method || '').toLowerCase()} payment${on ? ' (' + on + ')' : ''} was recorded. ${r.status === 'Paid in full' || r.balance <= 0 ? 'Your class is paid in full. Thank you!' : `Your remaining balance is ${money(r.balance)}. Thank you!`}` });
+    }
+  }
+  return out;
+}

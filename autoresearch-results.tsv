@@ -269,3 +269,5 @@ S1	2026-10-18T20:23:01Z	Mid-Atlantic Multi-State application guide card (student
 R1	2026-10-18T20:28:23Z	Help card at the bottom of both portals (call, text, email, chat; directions for students) + fix "Welcome back,Sam" missing space	SUCCESS	-	-	-
 R2	2026-10-18T20:31:44Z	Review ask card (students once certified, clients always; the existing Google review link) and Tell-a-friend card (native share, text, email, copy)	SUCCESS	-	-	-
 R3	2026-10-18T20:31:44Z	Tip of the week card (26 plain safety tips, changes each Monday ET) and the student Class-ready meter (date, checklist, payment, app saved; derived from their own record)	SUCCESS	-	-	-
+L1	2026-10-18T20:49:02Z	Score sheet locked until the class balance is paid (server withholds file, score, links, dossier fallback; staff never locked; unreadable invoices release nothing); locked card with Pay button	SUCCESS	-	-	-
+L2	2026-10-18T20:49:02Z	Student Payment received notice (7 days) when staff record an in-person payment, shown at the top of the student portal	SUCCESS	-	-	-

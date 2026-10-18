@@ -92,7 +92,7 @@ const inv = (db) => db.t.invoices[0];
   await test('Students see method, amount and date only: never the note, who recorded it, or voided entries; the receipt totals come from the invoice', async () => {
     const db = makeDb(); await rec(db, { amount: '100', method: 'cash', note: 'staff only: owes parking' }); await rec(db, { amount: '25', method: 'zelle' }); await mp.voidManualPayment(db, db.t.invoice_payments[1].id, 'wrong student', 'kai');
     const mine = await si.studentInvoices({ from: (t) => { const q = { f: [] }; q.select = () => q; q.eq = (c, v) => { q.f.push((r) => r[c] === v); return q; }; q.in = (c, vs) => { q.f.push((r) => vs.includes(r[c])); return q; }; q.is = (c, v) => { q.f.push((r) => (r[c] ?? null) === v); return q; }; q.order = () => q; q.limit = () => q; q.then = (res) => res({ data: (db.t[t] || []).filter((r) => q.f.every((f) => f(r))), error: null }); return q; } }, 'FIFS-1001');
-    eq(mine.length, 1); const s = mine[0]; eq(s.paid, 175); eq(s.balance, 75); eq(s.status, 'Deposit paid'); eq(s.inPerson, [{ amount: 100, method: 'Cash', date: s.inPerson[0].date }]);
+    eq(mine.length, 1); const s = mine[0]; eq(s.paid, 175); eq(s.balance, 75); eq(s.status, 'Deposit paid'); eq(s.inPerson, [{ amount: 100, method: 'Cash', date: s.inPerson[0].date, recordedAt: s.inPerson[0].recordedAt }]); assert(/^\d{4}-\d{2}-\d{2}T/.test(s.inPerson[0].recordedAt), 'when it was recorded (a time only: never who recorded it)');
     const blob = JSON.stringify(mine); assert(!/staff only|owes parking|kai@|recorded_by|wrong student|voided/i.test(blob), 'private details leaked: ' + blob);
   });
   await test('If the payment records are unavailable the student\'s receipt still shows the right totals (just without the extra lines)', async () => {

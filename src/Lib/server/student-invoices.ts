@@ -3,7 +3,7 @@ import { studentPaymentsFor } from './manual-payments';
 
 // Receipts for the Student Portal. Only the signed-in student's own PAID or DEPOSIT_PAID invoices (found by the verified student id),
 // and only the fields a receipt needs: never an email, a Stripe id or another person's row.
-export interface StudentInvoice { invoiceNumber: string; course: string; status: 'Paid in full' | 'Deposit paid'; total: number; paid: number; balance: number; date: string; inPerson: { amount: number; method: string; date: string }[] }
+export interface StudentInvoice { invoiceNumber: string; course: string; status: 'Paid in full' | 'Deposit paid'; total: number; paid: number; balance: number; date: string; inPerson: { amount: number; method: string; date: string; recordedAt: string }[] }
 
 const money = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0; };
 
@@ -19,7 +19,7 @@ export async function studentInvoices(supabase: any, studentId: string): Promise
     return data.map((r: any) => ({
       invoiceNumber: String(r.invoice_number), course: cleanCourse(r.course), status: r.status === 'PAID' ? 'Paid in full' as const : 'Deposit paid' as const,
       total: money(r.total_amount), paid: money(r.amount_paid), balance: money(r.balance_due), date: String(r.created_at || ''),
-      inPerson: inPerson.filter((p) => p.invoiceNumber === String(r.invoice_number)).map((p) => ({ amount: money(p.amount), method: p.methodLabel, date: p.receivedOn })),
+      inPerson: inPerson.filter((p) => p.invoiceNumber === String(r.invoice_number)).map((p) => ({ amount: money(p.amount), method: p.methodLabel, date: p.receivedOn, recordedAt: p.recordedAt })),
     }));
   } catch (err: any) { console.warn('[Student invoices] unavailable:', err?.message); return []; }
 }

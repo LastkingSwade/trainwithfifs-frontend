@@ -66,7 +66,7 @@ function guideCard(): HTMLElement {
   return box;
 }
 
-interface Receipt { invoiceNumber: string; course: string; status: string; total: number; paid: number; balance: number; date: string; inPerson?: { amount: number; method: string; date: string }[] }
+interface Receipt { invoiceNumber: string; course: string; status: string; total: number; paid: number; balance: number; date: string; inPerson?: { amount: number; method: string; date: string; recordedAt?: string }[] }
 function receiptsCard(rows: Receipt[] | null): HTMLElement {
   const { box, body } = card('Receipts and payments');
   if (rows === null) body.appendChild(el('p', 'Your receipts could not load right now. Please try again in a minute.'));

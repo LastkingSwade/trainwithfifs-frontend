@@ -92,3 +92,10 @@ html[data-hud] .hud-chat::after { display: none !important; }
 .eg-meter i { display: block; height: 100%; background: linear-gradient(90deg, #00e5ff, #ffb703); }
 .eg-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
 .eg-list li { display: flex; gap: 10px; line-height: 1.5; } .eg-list li.done { color: #bfe9cc; }
+
+/* Score sheet card: locked until the class balance is paid */
+.sheet-locked { padding: 16px; border-radius: 8px; background: rgba(255, 183, 3, 0.08); border: 1px dashed rgba(255, 183, 3, 0.55); color: #d3e9f8; }
+.sheet-locked strong { display: block; color: #ffd166; font-size: 1.02rem; }
+.sheet-locked p { margin: 8px 0 12px; line-height: 1.5; color: #d3e9f8; }
+.eg-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; color: #eaf6ff; background: #0b1c18; border: 1px solid rgba(34, 197, 94, 0.65); }
+.eg-notice-t { flex: 1 1 260px; } .eg-notice-t p { margin: 4px 0; line-height: 1.5; }

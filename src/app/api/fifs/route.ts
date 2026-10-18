@@ -6,6 +6,7 @@ import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
 import { createBalanceCheckout } from '@/Lib/server/balance-checkout';
+import { scoresheetLock } from '@/Lib/server/scoresheet-lock';
 import { adminMultiStateList, multiStateStatus, setStep, setTracking } from '@/Lib/server/multistate-progress';
 import { listInvoicePayments, recordManualPayment, voidManualPayment } from '@/Lib/server/manual-payments';
 import { aggregate } from '@/Lib/server/site-visits';
@@ -552,7 +553,7 @@ function savedChangeResponse(kind: 'cancelled' | 'rescheduled', enrollmentId: st
 
 // Helper to normalize student. Staff-only internal notes are included only when the caller asks for them
 // (staff views); the default view a student receives is built without them, so they cannot leak by omission.
-function normalizeStudent(s: any, opts: { includeInternalNotes?: boolean } = {}) {
+function normalizeStudent(s: any, opts: { includeInternalNotes?: boolean; hideScoresheet?: boolean } = {}) {
   if (!s) return null;
   const view: any = {
     studentId: s.student_id || s.id,
@@ -564,8 +565,9 @@ function normalizeStudent(s: any, opts: { includeInternalNotes?: boolean } = {})
     assignedDate: s.assigned_date || s.class_date || s.preferred_dates || s.dates || 'Upcoming Cohort',
     status: s.status || 'STEP_1_REGISTERED',
     // No recorded score means no score; never present an unverified qualification as passed.
-    qualificationScore: s.qualification_score || null,
-    profileDocUrl: s.profile_doc_url || s.scoresheet_url || s.msp_score_sheet_url || '#',
+    qualificationScore: opts.hideScoresheet ? null : (s.qualification_score || null),
+    // While a class balance is unpaid the score sheet links are withheld (see src/Lib/server/scoresheet-lock.ts); the training dossier link is unaffected.
+    profileDocUrl: opts.hideScoresheet ? (s.profile_doc_url || '#') : (s.profile_doc_url || s.scoresheet_url || s.msp_score_sheet_url || '#'),
     prepTasks: s.prep_tasks || { transport_law: false, ammo_acquired: false, eye_ear_pro: false, id_ready: false },
     mustChangePassword: Boolean(s.must_change_password)
   };
@@ -2474,6 +2476,10 @@ export async function POST(req: NextRequest) {
        const { data: srow, error: sErr } = await supabase.from('student_scoresheets').select('student_id, image_url, score, passed, notes, updated_at').eq('student_id', ownId).maybeSingle();
        if (sErr) return NextResponse.json({ success: false, status: 'error', error: 'Could not load your score sheet right now.' }, { status: 503 });
        if (!srow) return NextResponse.json({ success: true, status: 'success', scoresheet: null });
+       // Locked until the class balance is paid: the student learns the sheet is ready and what unlocks it, and gets no file, score or link. If the invoices cannot be read, nothing is released.
+       const lock = await scoresheetLock(supabase, ownId);
+       if (!lock.checked) return NextResponse.json({ success: false, status: 'error', error: 'We could not check your payment status right now. Please try again in a minute.' }, { status: 503 });
+       if (lock.locked) return NextResponse.json({ success: true, status: 'success', scoresheet: { locked: true, hasFile: false, ready: !!srow.image_url, balance: lock.balance, invoices: lock.invoices.map((i) => ({ invoiceNumber: i.invoiceNumber, course: i.course, balance: i.balance })) } });
        const sp = parseScoresheetNotes(srow.notes);
        const ownPath = typeof srow.image_url === 'string' && srow.image_url.startsWith(ownId + '/') && !srow.image_url.includes('..') ? srow.image_url : '';
        let ownUrl: string | null = null;
@@ -2546,7 +2552,9 @@ export async function POST(req: NextRequest) {
          materialsUrl: enrollment.classes?.materials_path ? await getSignedDocumentUrl(supabase, enrollment.classes.materials_path) : null
        })));
        // Staff-only notes are never part of the view a student receives (see normalizeStudent).
-       const studentView: any = normalizeStudent(student, { includeInternalNotes: isStaffOrAdmin(user) });
+       // A student's own view withholds the score sheet until their class balance is paid (staff always see everything).
+       const sheetLock = isStaffOrAdmin(user) ? null : await scoresheetLock(supabase, String(student.student_id || ''));
+       const studentView: any = normalizeStudent(student, { includeInternalNotes: isStaffOrAdmin(user), hideScoresheet: !!(sheetLock && sheetLock.locked) });
        return NextResponse.json({ success: true, status: 'success', student: {
          ...studentView, enrollments: enrollmentsWithUrls, mustChangePassword: Boolean(student.must_change_password)
        }});

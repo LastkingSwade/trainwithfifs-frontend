@@ -109,12 +109,12 @@ export async function voidManualPayment(supabase: any, paymentId: unknown, reaso
 }
 
 /** What a STUDENT sees on their own receipt: method, amount and date of each in-person payment. Never the note, who recorded it, or voided entries. */
-export interface StudentPayment { invoiceNumber: string; amount: number; methodLabel: string; receivedOn: string }
+export interface StudentPayment { invoiceNumber: string; amount: number; methodLabel: string; receivedOn: string; recordedAt: string }
 export async function studentPaymentsFor(supabase: any, invoiceNumbers: string[]): Promise<StudentPayment[]> {
   try {
     if (!invoiceNumbers.length) return [];
-    const r = await supabase.from('invoice_payments').select('invoice_number, amount, method, received_on, voided_at').in('invoice_number', invoiceNumbers).is('voided_at', null).order('received_on', { ascending: true });
+    const r = await supabase.from('invoice_payments').select('invoice_number, amount, method, received_on, created_at, voided_at').in('invoice_number', invoiceNumbers).is('voided_at', null).order('received_on', { ascending: true });
     if (r.error || !Array.isArray(r.data)) return [];
-    return r.data.map((x: any) => ({ invoiceNumber: String(x.invoice_number), amount: Number(x.amount), methodLabel: METHODS[x.method] || 'Other', receivedOn: String(x.received_on || '') }));
+    return r.data.map((x: any) => ({ invoiceNumber: String(x.invoice_number), amount: Number(x.amount), methodLabel: METHODS[x.method] || 'Other', receivedOn: String(x.received_on || ''), recordedAt: String(x.created_at || '') }));
   } catch { return []; }
 }

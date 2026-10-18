@@ -1,5 +1,5 @@
 // Cards at the bottom of the Student and Client dashboards that give people a reason to come back and make it easy to get help. Text only (textContent).
-import { REVIEW_URL, SHARE_TEXT, SHARE_TITLE, SITE, helpLinks, readiness, shareLinks, showReadiness, tipOfTheWeek, wantsReview, type Which } from './engageLogic';
+import { REVIEW_URL, SHARE_TEXT, SHARE_TITLE, SITE, helpLinks, paymentNotices, readiness, shareLinks, showReadiness, tipOfTheWeek, wantsReview, type Which } from './engageLogic';
 
 const w: any = typeof window === 'undefined' ? {} : window;
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, cls?: string): HTMLElementTagNameMap[K] { const e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; }
@@ -57,6 +57,15 @@ async function readyCard(): Promise<HTMLElement | null> {
   return box;
 }
 
+/** Shown at the top of the student dashboard for a week after Coach Kai records an in-person payment. Hiding it lasts until the page is reloaded (nothing is stored). */
+async function noticeCard(): Promise<HTMLElement | null> {
+  let rows: any[] | null = null; try { const d = await w.callFifsBackend('studentInvoices', {}); rows = (d && d.invoices) || []; } catch { rows = null; }
+  const list = paymentNotices(rows); if (!list.length) return null;
+  const box = el('section', undefined, 'eg-notice'); box.setAttribute('role', 'status'); box.setAttribute('aria-label', 'Payment received');
+  const t = el('div', undefined, 'eg-notice-t'); for (const n of list) t.appendChild(el('p', n.text)); box.appendChild(t);
+  const b = el('button', 'Got it', 'eg-btn'); b.type = 'button'; b.addEventListener('click', () => { const h = document.getElementById('eg-notice'); if (h) { h.textContent = ''; h.hidden = true; } }); box.appendChild(b); return box;
+}
+
 const HOSTS: Record<Which, { dash: string; host: string }> = { student: { dash: 'student-active-dashboard', host: 'eg-student' }, client: { dash: 'client-active-dashboard', host: 'eg-client' } };
 const BUILDERS: Array<(which: Which) => HTMLElement | null> = [() => tipCard(), reviewCard, () => shareCard(), helpCard];
 
@@ -73,6 +82,10 @@ export function installEngagement(): void {
     const d = document.getElementById(ids.dash); if (d) new MutationObserver(paint).observe(d, { attributes: true, attributeFilter: ['class', 'style', 'hidden'] });
     paint();
   }
+  const nd = document.getElementById('student-active-dashboard'); let ndone = false;
+  const paintNotice = async () => { const h = document.getElementById('eg-notice'); if (!nd || !h) return; const vis = !nd.classList.contains('hidden') && getComputedStyle(nd).display !== 'none'; if (!vis) { ndone = false; return; } if (ndone) return; ndone = true; const c = await noticeCard(); h.textContent = ''; if (c) { h.appendChild(c); h.hidden = false; } else h.hidden = true; };
+  if (nd) new MutationObserver(() => { void paintNotice(); }).observe(nd, { attributes: true, attributeFilter: ['class', 'style', 'hidden'] });
+  void paintNotice();
   // The class-ready meter sits near the top of the student dashboard.
   const rd = document.getElementById('student-active-dashboard'); let rdone = false;
   const paintReady = async () => { const h = document.getElementById('eg-ready'); if (!rd || !h) return; const vis = !rd.classList.contains('hidden') && getComputedStyle(rd).display !== 'none'; if (!vis) { rdone = false; return; } if (rdone) return; rdone = true; const c = await readyCard(); h.textContent = ''; if (c) { h.appendChild(c); h.hidden = false; } else h.hidden = true; };

@@ -66,6 +66,7 @@ function resetDb() {
     ],
     enrollments: [],
     clients: [],
+    invoices: [],
     student_scoresheets: []
   };
   db.clients.push(
@@ -1539,6 +1540,24 @@ async function main() {
     const trick = await fifs('studentScoresheet', {}, 'student-alice-token');
     assert(trick.body.scoresheet.hasFile === false && trick.body.scoresheet.fileUrl === null && storageCalls.sign.length === 0, 'a path outside the student\'s own folder is never signed');
     failOp = 'select'; const down = await fifs('studentScoresheet', {}, 'student-alice-token'); err(down, 503); assert(!/boom|internal/.test(JSON.stringify(down.body)), 'detail leaked');
+  });
+
+  await test('Score sheet is locked until the class balance is paid: ready-but-locked response with no file, score or link; staff are never locked; paying (online or recorded in person) unlocks it at once; unreadable invoices release nothing', async () => {
+    stageTemplate(); db.student_scoresheets.length = 0; db.student_scoresheets.push({ student_id: 'FIFS-1002', image_url: 'FIFS-1002/MSP-29-14-1-abcd1234.pdf', score: '24/25 (96%)', passed: true, notes: JSON.stringify({ v: 1, form: 'MSP-29-14', result: 'pass', qualificationDate: '2026-10-01' }) });
+    const inv = (o = {}) => ({ invoice_number: 'INV-FI-2026-BOB00001', student_id: 'FIFS-1002', course: 'Maryland CCW', status: 'DEPOSIT_PAID', total_amount: '250.00', amount_paid: '75.00', balance_due: '175.00', ...o });
+    db.invoices = [inv(), { invoice_number: 'INV-FI-2026-OTHER001', student_id: 'FIFS-1001', course: 'x', status: 'DEPOSIT_PAID', total_amount: '100.00', amount_paid: '30.00', balance_due: '70.00' }];
+    storageCalls.sign.length = 0;
+    const locked = await fifs('studentScoresheet', {}, 'student-bob-token'); assert(locked.status === 200 && locked.body.scoresheet.locked === true && locked.body.scoresheet.ready === true && locked.body.scoresheet.balance === 175, JSON.stringify(locked.body));
+    assert(locked.body.scoresheet.invoices.length === 1 && locked.body.scoresheet.invoices[0].invoiceNumber === 'INV-FI-2026-BOB00001', 'only Bob\'s own invoice, not Alice\'s');
+    assert(storageCalls.sign.length === 0 && !/signed|fileUrl|downloadUrl|24\/25|pass|FIFS-1002\/|MSP-29-14/.test(JSON.stringify(locked.body)), 'no link, file path, score or result while locked: ' + JSON.stringify(locked.body));
+    const portal = await fifs('getStudentPortalData', {}, 'student-bob-token'); assert(portal.status === 200 && portal.body.student.qualificationScore === null && portal.body.student.profileDocUrl === '#', 'the dossier link falls back to nothing, never to the score sheet: ' + JSON.stringify(portal.body.student.profileDocUrl));
+    const asStaff = await fifs('getStudentPortalData', { identifier: 'FIFS-1002' }, 'instructor-token'); assert(asStaff.body.student.qualificationScore === '24/25 (96%)', 'staff always see everything');
+    db.invoices[0].balance_due = '0.00'; db.invoices[0].amount_paid = '250.00'; db.invoices[0].status = 'PAID';
+    const open = await fifs('studentScoresheet', {}, 'student-bob-token'); assert(open.body.scoresheet.locked === undefined && open.body.scoresheet.hasFile === true && /signed\/FIFS-1002\//.test(open.body.scoresheet.fileUrl), 'paid in full: the sheet is released');
+    db.invoices = [inv({ status: 'PENDING', amount_paid: '0.00', balance_due: '250.00' })]; assert((await fifs('studentScoresheet', {}, 'student-bob-token')).body.scoresheet.hasFile === true, 'an invoice that was never paid online does not lock (only an unpaid BALANCE after a deposit does)');
+    db.invoices = []; assert((await fifs('studentScoresheet', {}, 'student-bob-token')).body.scoresheet.hasFile === true, 'no invoice on record: nothing to lock');
+    db.invoices = [inv({ balance_due: 'abc' })]; assert((await fifs('studentScoresheet', {}, 'student-bob-token')).body.scoresheet.locked === true, 'an unreadable balance counts as owing');
+    db.invoices = [inv({ status: 'PAID', balance_due: '0.00' })]; failOp = 'select'; failTable = 'invoices'; storageCalls.sign.length = 0; const broken = await fifs('studentScoresheet', {}, 'student-bob-token'); failOp = null; failTable = null; err(broken, 503); assert(storageCalls.sign.length === 0 && !/signed/.test(JSON.stringify(broken.body)), 'invoices unreadable: nothing is released'); db.invoices = [];
   });
 
   // ---- browser side ----
