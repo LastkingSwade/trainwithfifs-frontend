@@ -30,16 +30,17 @@ export function installOnlineForm(): void {
     if (!grid) return;
     grid.querySelectorAll<HTMLElement>('[data-date]').forEach((cell) => {
       const mode = state.modes[cell.getAttribute('data-date') || ''];
-      cell.querySelector('.fifs-day-mode')?.remove();
+      const existing = cell.querySelector('.fifs-day-mode');
       cell.removeAttribute('data-fifs-locked');
-      if (!mode) return;
+      if (!mode) { existing?.remove(); return; }
       const locked = !state.on && mode === 'online';          // an in-person booking cannot use a web day
-      const tag = document.createElement('span');
+      // Reuse the mark that is already there instead of removing and re-adding it: changing the page here is what the watcher below reacts to.
+      const tag = (existing as HTMLElement | null) || document.createElement('span');
       tag.className = 'fifs-day-mode';
       tag.textContent = mode === 'online' ? '💻' : '🏫';
       tag.title = mode === 'online' ? 'Live online classroom day (web day).' + (locked ? ' In-person bookings are not taken on this day.' : '') : 'In-person day. For a live online booking, use it as Day 2 (the range day).';
       tag.style.cssText = 'font-size:0.6rem;line-height:1;margin-top:1px;';
-      cell.appendChild(tag);
+      if (!existing) cell.appendChild(tag);
       if (locked) { cell.setAttribute('data-fifs-locked', '1'); cell.style.opacity = '0.5'; cell.style.cursor = 'not-allowed'; }
     });
     // A short explanation under the calendar, added once.
@@ -119,7 +120,11 @@ export function installOnlineForm(): void {
     const cell = (e.target as HTMLElement | null)?.closest?.('#bookingCalDaysGrid [data-fifs-locked]');
     if (cell) { e.stopImmediatePropagation(); e.preventDefault(); const st = $('formOnlineStatus'); if (st) st.textContent = ''; }
   }, true);
-  new MutationObserver(() => decorate()).observe(document.body, { childList: true, subtree: true, attributeFilter: ['data-date'] });
+  // Re-mark the days whenever the calendar is redrawn. The watcher is switched off while the marks are drawn: the marks are page changes too, and a watcher that
+  // reacts to its own marks never stops, which froze the whole page as soon as the first day was marked in the admin.
+  const watchOptions = { childList: true, subtree: true, attributeFilter: ['data-date'] };
+  const calendarWatcher = new MutationObserver(() => { calendarWatcher.disconnect(); try { decorate(); } finally { calendarWatcher.observe(document.body, watchOptions); } });
+  calendarWatcher.observe(document.body, watchOptions);
 
   // Run our part after the page's own price display, whichever copy of it is live.
   w.updateFormPriceDisplay = function (...args: unknown[]) { const r = typeof origUpdate === 'function' ? origUpdate.apply(this, args) : undefined; loadModes(); render(); return r; };
