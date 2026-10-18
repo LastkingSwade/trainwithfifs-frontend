@@ -28,6 +28,7 @@ export function payPlanHtml(pricing: any): string {
     <p class="pp-sub">Reserve your seat with at least <strong>30%</strong>, or pay any amount up to <strong>100%</strong>. The rest is due at class.</p>
     <div class="pp-chips" role="group" aria-label="Choose how much to pay today">${chips}
       <label class="pp-own">Other %<input id="fifs-pp-num" type="number" inputmode="numeric" min="30" max="100" step="1" value="30" aria-label="Percent to pay today, 30 to 100"></label></div>
+    <div class="pp-slide"><span aria-hidden="true">30%</span><input id="fifs-pp-range" type="range" min="30" max="100" step="1" value="30" aria-label="Slide to choose how much to pay today, 30 to 100 percent"><span aria-hidden="true">100%</span></div>
     ${multi ? `<div class="pp-bonus" id="fifs-pp-bonus">🎁 Pay <strong>100%</strong> today and take an <strong>extra 5% off</strong> tuition: you save <strong>${usd(Math.round(full.bonus * 100))}</strong> (total ${usd(Math.round(full.total * 100))}).</div>` : ''}
     <div class="pp-rows"><div><span>Total course investment</span><strong id="fifs-pp-total">${usd(Math.round(p.total * 100))}</strong></div>
       <div class="pp-now"><span id="fifs-pp-now-l">⚡ Due today (30%)</span><strong id="fifs-pp-now">${usd(Math.round(p.payNow * 100))}</strong></div>
@@ -45,11 +46,12 @@ function refresh(pct: number): void {
   const go = document.getElementById('btn-confirm-invoice-deposit'); if (go) go.innerHTML = p.percent >= 100 ? `💎 Confirm &amp; Pay in Full (${usd(Math.round(p.payNow * 100))}) &rarr;` : `⚡ Confirm &amp; Pay <span id="fifs-pp-go-n">${p.percent}</span>% (${usd(Math.round(p.payNow * 100))}) &rarr;`;
   document.querySelectorAll('#fifs-payplan .pp-chip').forEach((c) => { const on = Number((c as HTMLElement).dataset.pp) === p.percent; c.classList.toggle('on', on); c.setAttribute('aria-pressed', String(on)); });
   const num = document.getElementById('fifs-pp-num') as HTMLInputElement | null; if (num && document.activeElement !== num) num.value = String(p.percent);
+  const rng = document.getElementById('fifs-pp-range') as HTMLInputElement | null; if (rng) { rng.value = String(p.percent); rng.setAttribute('aria-valuetext', p.percent + ' percent, ' + usd(Math.round(p.payNow * 100)) + ' today'); }
 }
 export function installPayPlan(): void {
   if (w.__fifsPayPlanInstalled) return; w.__fifsPayPlanInstalled = true;
   w.fifsPayPlanHtml = payPlanHtml; w.fifsPayPercent = currentPercent;
   document.addEventListener('click', (e) => { const c = (e.target as HTMLElement | null)?.closest?.('#fifs-payplan [data-pp]') as HTMLElement | null; if (c) { const n = cleanPercent(c.dataset.pp); const num = document.getElementById('fifs-pp-num') as HTMLInputElement | null; if (num) num.value = String(n); refresh(n); } });
-  document.addEventListener('input', (e) => { if ((e.target as HTMLElement | null)?.id === 'fifs-pp-num') { const v = (e.target as HTMLInputElement).value; if (v !== '' && Number(v) >= MIN) refresh(cleanPercent(v)); } });
+  document.addEventListener('input', (e) => { if ((e.target as HTMLElement | null)?.id === 'fifs-pp-range') refresh(cleanPercent((e.target as HTMLInputElement).value)); if ((e.target as HTMLElement | null)?.id === 'fifs-pp-num') { const v = (e.target as HTMLInputElement).value; if (v !== '' && Number(v) >= MIN) refresh(cleanPercent(v)); } });
   document.addEventListener('change', (e) => { if ((e.target as HTMLElement | null)?.id === 'fifs-pp-num') { const n = cleanPercent((e.target as HTMLInputElement).value); (e.target as HTMLInputElement).value = String(n); refresh(n); } });
 }

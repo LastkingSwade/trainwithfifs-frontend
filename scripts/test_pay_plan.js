@@ -65,5 +65,10 @@ const calc = pr.calculatePricingBreakdown;
     for (const n of [30, 50, 75, 100]) assert(one.includes(`data-pp="${n}"`), 'chip ' + n); assert(/min="30" max="100"/.test(one), 'limits'); assert(!/extra 5% off/.test(one), 'bonus shown for one'); assert(/extra 5% off/.test(two), 'bonus missing for two');
     eq(pp.cleanPercent(10), 30); eq(pp.cleanPercent('abc'), 30); eq(pp.cleanPercent(500), 100);
   });
+  await test('the review has a slider from 30 to 100 that is kept in step with the chips and the box', () => {
+    const h = pp.payPlanHtml({ attendees: 1, subtotal: 244.99, discountedTuition: 199.99, discountAmount: 0 });
+    assert(/id="fifs-pp-range" type="range" min="30" max="100" step="1" value="30"/.test(h), 'slider missing or wrong limits'); assert(/aria-label="Slide to choose/.test(h), 'slider label');
+    const src = fs.readFileSync(path.join(ROOT, 'src/portal/payPlan.ts'), 'utf8'); assert(/'fifs-pp-range'\) refresh\(cleanPercent/.test(src) && /rng\.value = String\(p\.percent\)/.test(src), 'slider not wired both ways');
+  });
   console.log(`\nPay plan: ${passed} passed, ${failed} failed`); if (failed) process.exit(1);
 })();
