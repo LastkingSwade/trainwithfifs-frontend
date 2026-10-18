@@ -30,6 +30,7 @@ import { installSiteTelemetry } from "@/portal/siteTelemetry";
 import { installMultiStateCard } from "@/multistate/card";
 import { installEngagement } from "@/portal/engage";
 import { installQuizCard, installQuizPricing } from "@/portal/quizCard";
+import { installPayPlan } from "@/portal/payPlan";
 import { installAdminExtras } from "@/portal/adminExtras";
 import { installAdminAttention } from "@/portal/adminAttention";
 import "@/portal/portal.css";
@@ -3208,9 +3209,9 @@ export default function TrainWithFIFS(props: any) {
         count = 2;
         discountPercent = 0.05;
       } else if (/^[34]|[34] \(small/i.test(str)) {
-        // Must match src/Lib/pricing.ts: a group of 4 is charged for 4 attendees
+        // Must match src/Lib/pricing.ts: a group of 4 is charged for 4 attendees (15% off; a group of 3 is 10% off)
         count = /^4/.test(str) ? 4 : 3;
-        discountPercent = 0.10;
+        discountPercent = count === 4 ? 0.15 : 0.10;
       } else if (/5\+/i.test(str) || /^5/i.test(str)) {
         count = 5;
         discountPercent = 0.15;
@@ -3667,6 +3668,7 @@ export default function TrainWithFIFS(props: any) {
 
 
 
+      (window as any).__fifsCurrentBookingPayload = __fifsCurrentBookingPayload;
       const p = __fifsCurrentBookingPayload;
       const invoiceHtml = `
         <div id="fifs-invoice-step" style="animation: fadeIn 0.25s ease; text-align: left;">
@@ -3732,23 +3734,10 @@ export default function TrainWithFIFS(props: any) {
               <strong style="color:#fff;">Total Course Investment:</strong>
               <strong style="color:var(--accent-cyan);font-family:var(--font-display);font-size:1.35rem;">$${pricing.grandTotal.toFixed(2)}</strong>
             </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);border-radius:8px;margin-top:10px;">
-              <span style="color:#f59e0b;font-weight:800;font-size:0.95rem;">⚡ REQUIRED 30% DEPOSIT (DUE NOW TO RESERVE SEAT):</span>
-              <strong style="color:#f59e0b;font-size:1.35rem;font-family:var(--font-display);letter-spacing:0.5px;">$${pricing.depositDueNow.toFixed(2)}</strong>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px 2px;font-size:0.82rem;color:#94a3b8;">
-              <span>Remaining Balance (Due Upon Class Start):</span>
-              <span style="color:#cbd5e1;font-weight:600;">$${pricing.balanceDueClass.toFixed(2)}</span>
-            </div>
           </div>
+          ${typeof (window as any).fifsPayPlanHtml === 'function' ? (window as any).fifsPayPlanHtml(pricing) : ''}
           <div id="invoice-status-div" style="display:none;margin-bottom:14px;padding:10px;border-radius:8px;font-size:0.84rem;"></div>
           <div style="display:flex;flex-direction:column;gap:10px;">
-            <button type="button" id="btn-confirm-invoice-deposit" onclick="(window).confirmAndFinalizeBooking(false)" style="background:linear-gradient(135deg, #f59e0b, #d97706);color:#000;font-weight:800;padding:14px 20px;border-radius:8px;border:none;cursor:pointer;font-size:1rem;text-transform:uppercase;letter-spacing:1px;box-shadow:0 0 20px rgba(245,158,11,0.4);">
-              ⚡ Confirm &amp; Pay 30% Deposit ($${pricing.depositDueNow.toFixed(2)}) &rarr;
-            </button>
-            <button type="button" id="btn-confirm-invoice-full" onclick="(window).confirmAndFinalizeBooking(true)" style="background:rgba(0,229,255,0.12);color:var(--accent-cyan);border:1.5px solid var(--accent-cyan);font-weight:700;padding:12px 18px;border-radius:8px;cursor:pointer;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.5px;">
-              💳 Or Pay Full Course Tuition ($${pricing.grandTotal.toFixed(2)}) &rarr;
-            </button>
             <button type="button" onclick="(window).returnToBookingForm()" style="background:none;border:1px solid #334155;color:#94a3b8;padding:10px;border-radius:8px;cursor:pointer;font-size:0.84rem;">
               &larr; Back / Edit Details
             </button>
@@ -3932,9 +3921,12 @@ export default function TrainWithFIFS(props: any) {
       }
     } catch { /* the link is a convenience; the code can always be typed in */ }
 
-    (window as any).confirmAndFinalizeBooking = function(payInFull: boolean = false) {
+    (window as any).confirmAndFinalizeBooking = function(choice: boolean | number = false) {
       const p = __fifsCurrentBookingPayload;
       if (!p) return;
+      // The review passes the chosen percent (30 to 100); older callers pass true for pay in full.
+      const depositPercent = typeof choice === 'number' ? Math.min(100, Math.max(30, Math.round(choice))) : choice ? 100 : (typeof (window as any).fifsPayPercent === 'function' ? (window as any).fifsPayPercent() : 30);
+      const payInFull = depositPercent >= 100;
 
 
 
@@ -3979,7 +3971,8 @@ export default function TrainWithFIFS(props: any) {
         totalAmount: p.pricing.grandTotal,
         rangeFee: p.pricing.rangeFee,
         taxAmount: p.pricing.mdTax,
-        payInFull: Boolean(payInFull)
+        payInFull: Boolean(payInFull),
+        depositPercent
       };
 
 
@@ -4205,7 +4198,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installPwaBanner(); installBalanceReturn(); installSiteTelemetry(); installMultiStateCard(); installEngagement(); installQuizCard(); installQuizPricing(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installPwaBanner(); installBalanceReturn(); installSiteTelemetry(); installMultiStateCard(); installEngagement(); installQuizCard(); installQuizPricing(); installPayPlan(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -10348,7 +10341,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     <span>
                       📅
                     </span>
-                     Live Calendar & 30% Deposit To Reserve
+                     Live Calendar & Reserve From 30% Down
                   </li>
                 </ul>
               </div>
@@ -11382,8 +11375,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   <option value="3 (Small Group / Family — 10% Discount)">
                     3 People — Small Group (10% Discount)
                   </option>
-                  <option value="4 (Small Group / Family — 10% Discount)">
-                    4 People — Small Group (10% Discount)
+                  <option value="4 (Small Group / Family — 15% Discount)">
+                    4 People — Small Group (15% Discount)
                   </option>
                   <option value="5+ (Private Class Cohort — 15% Discount)">
                     5+ People — Private Class Cohort (15% Discount — Custom Scheduling)
@@ -11526,7 +11519,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <div id="booking-fee-notice" style={{"background": "rgba(245, 158, 11, 0.08)", "border": "1px solid rgba(245, 158, 11, 0.35)", "borderRadius": "8px", "padding": "12px 14px", "marginBottom": "18px", "fontSize": "0.82rem", "color": "#e2e8f0", "lineHeight": "1.5"}}>
               <strong style={{"color": "#f59e0b"}}>Before you confirm:</strong>
               <ul style={{"margin": "6px 0 0 18px", "padding": "0"}}>
-                <li>30% deposit due today to reserve your seat; remaining balance due at class.</li>
+                <li>30% deposit due today to reserve your seat; remaining balance due at class. You may pay more today, up to 100%, and classes of 2 or more who pay 100% today take an extra 5% off tuition.</li>
                 <li>Base track includes Cindy's Hot Shots range fee ($45/person); VIP includes all range fees.</li>
               </ul>
             </div>

@@ -917,8 +917,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         discountBadge = ' • 3 People (10% Group Discount)';
       } else if (/^4|4 \(small/i.test(groupVal)) {
         count = 4;
-        discountPercent = 0.10;
-        discountBadge = ' • 4 People (10% Group Discount)';
+        discountPercent = 0.15;
+        discountBadge = ' • 4 People (15% Group Discount)';
       } else if (/5\+/i.test(groupVal) || /^5/i.test(groupVal)) {
         count = 5;
         discountPercent = 0.15;
@@ -8315,7 +8315,7 @@ function calculateComprehensiveInvoice(baseTuition, isVip, groupSizeStr) {
     discountPercent = 0.10;
   } else if (/^4|4 \(small/i.test(str)) {
     count = 4;
-    discountPercent = 0.10;
+    discountPercent = 0.15;
   } else if (/5\+/i.test(str) || /^5/i.test(str)) {
     count = 5;
     discountPercent = 0.15;

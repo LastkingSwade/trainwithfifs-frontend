@@ -44,7 +44,7 @@ function memDb(seed = {}) {
   });
   await test('Courses with no classroom portion never get the fee; groups pay the fee per person and it is not discounted', () => {
     for (const c of ['Personal 1-on-1 Coaching', 'Gun Cleaning & Maintenance', 'FIFS Graduate Alumni Marksmanship Clinic', "Children's Safety Class"]) assert(pr.calculatePricingBreakdown(c, 1, true, 'live_online').remoteFee === 0, c);
-    const g = pr.calculatePricingBreakdown('Maryland Wear & Carry (CCW)', 3, true, 'live_online');
+    const g = pr.calculatePricingBreakdown('Maryland Wear & Carry (CCW)', 3, false, 'live_online');
     assert(g.remoteFee === 120 && g.discountPercent === 0.10 && g.discountedTuition === 539.97, JSON.stringify(g));
   });
   await test('Always on: all five classes are offered with no admin switch, and nothing else', () => {

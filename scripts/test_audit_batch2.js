@@ -143,7 +143,7 @@ test('The booking form shows both required statements before the submit button, 
 });
 test('The $45 range fee in the notice matches the server', () => {
   const pricing = fs.readFileSync(path.join(ROOT, 'src/Lib/pricing.ts'), 'utf-8');
-  assert(/RANGE_FEE_PER_PERSON = 45\.00/.test(pricing) && /DEPOSIT_RATE = 0\.30/.test(pricing), 'server fee or deposit rate differs from the notice');
+  assert(/RANGE_FEE_PER_PERSON = 45\.00/.test(pricing) && /MIN_DEPOSIT_PERCENT = 30/.test(pricing), 'server fee or deposit rate differs from the notice');
 });
 
 test('Every VIP range-fee perk quotes the same $45 as the Base fee (no "$25-$35")', () => {

@@ -337,10 +337,13 @@ async function main() {
     const p = pricing.calculatePricingBreakdown('Maryland CCW', 1, false);
     assert(p.grandTotal === 259.69 && p.depositDueNow === 77.91 && p.chargeCents === 7791, JSON.stringify(p));
   });
-  await test('Group of 4 is charged for 4 attendees with the 10% small-group discount', async () => {
+  await test('Group of 4 is charged for 4 attendees with the 15% small-group discount (and 20% in all when paid in full)', async () => {
+    const d = pricing.calculatePricingBreakdown('Maryland CCW', 4, false);
+    // 4 x 199.99 = 799.96, -15% = 679.97 (rounded), + 4 x $45 range = 859.97, + 6% tax 51.60 = 911.57; the 30% deposit is charged
+    assert(d.attendees === 4 && d.grandTotal === 911.57 && d.chargeCents === Math.round(91157 * 0.3), JSON.stringify(d));
     const p = pricing.calculatePricingBreakdown('Maryland CCW', 4, true);
-    // 4 x 199.99 = 799.96, -10% = 719.96 (rounded), + 4 x $45 range = 899.96, + 6% tax 54.00 = 953.96
-    assert(p.attendees === 4 && p.grandTotal === 953.96 && p.chargeCents === 95396, JSON.stringify(p));
+    // paid in full: a further 5% of 799.96 (= 40.00) off tuition: 639.97 + 180 = 819.97, + 49.20 tax = 869.17
+    assert(p.grandTotal === 869.17 && p.chargeCents === 86917, JSON.stringify(p));
   });
   await test('Checkout rejects an invalid group size with 400 and creates no Stripe session', async () => {
     lastCreateParams = null;

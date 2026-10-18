@@ -272,3 +272,4 @@ R3	2026-10-18T20:31:44Z	Tip of the week card (26 plain safety tips, changes each
 L1	2026-10-18T20:49:02Z	Score sheet locked until the class balance is paid (server withholds file, score, links, dossier fallback; staff never locked; unreadable invoices release nothing); locked card with Pay button	SUCCESS	-	-	-
 L2	2026-10-18T20:49:02Z	Student Payment received notice (7 days) when staff record an in-person payment, shown at the top of the student portal	SUCCESS	-	-	-
 quiz-rewards	2026-10-18T21:02:32Z	Daily Range Quiz: one question a day, reward 30% Base / 20% VIP off renewal tuition, reserved at checkout	SUCCESS	-	33 quiz tests; full suite, tsc, build pass	-
+pay-plan	2026-10-18T21:30:50Z	4-person discount 15%; extra 5% off for 2+ paying 100%; deposit any 30-100%	SUCCESS	-	12 new tests; full suite, tsc, build pass	-

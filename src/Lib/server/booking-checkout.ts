@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { recordPodCodeOnInvoice } from './group-status';
 import { GROUP_CODE_PATTERN, normalizeGroupCode } from '../../group/groupCode';
 import { claimBookingDays, inPersonClaims, onlineClaims, planOnlineBooking, releaseDayClaims } from './online-classroom';
-import { calculatePricingBreakdown, courseKeyFor, displayCourseLabel, isAlumniCourse, parseAttendeeCount } from '../pricing';
+import { calculatePricingBreakdown, cleanDepositPercent, courseKeyFor, displayCourseLabel, isAlumniCourse, parseAttendeeCount } from '../pricing';
 import { releaseReward, reserveReward } from './quiz-progress';
 import { getAuthenticatedUser, getPrivilegedClient, hasBearerToken, resolveStripeSecretKey } from './supabase-admin';
 import { sendDiscordAlert } from './discord';
@@ -123,6 +123,8 @@ export async function createBookingCheckout(
   const comments = text(input.comments, '', 400);
   const classId = text(input.classId, '', 64);
   const isPayFull = Boolean(input.payInFull || input.pay_in_full);
+  // How much to pay now: any whole percent from 30 to 100 (30 when not given; 100 means pay in full).
+  const depositPercent = cleanDepositPercent(input.depositPercent ?? input.deposit_percent);
 
   // Joining a leader's private pod: the pod decides the course, track and dates; the member books ONE seat at the normal
   // single-person price (no group discount), whatever group size or course the browser sent. The seat is claimed just before
@@ -241,7 +243,7 @@ export async function createBookingCheckout(
     if (f) rewardFraction = f;
   }
   const giveRewardBack = async () => { if (rewardFraction > 0) { rewardFraction = 0; await releaseReward(getPrivilegedClient(), authUserId, invoiceId); } };
-  const pricing = calculatePricingBreakdown(courseSelection, attendees, isPayFull, online ? 'live_online' : 'in_person', rewardFraction);
+  const pricing = calculatePricingBreakdown(courseSelection, attendees, isPayFull, online ? 'live_online' : 'in_person', rewardFraction, depositPercent);
 
   let podSeatClaimed = false;
   if (podMember) {
@@ -292,7 +294,8 @@ export async function createBookingCheckout(
         ...(pricing.rewardDiscount > 0 ? { quizReward: pricing.rewardDiscount.toFixed(2) } : {}),
         depositDueNow: pricing.depositDueNow.toFixed(2),
         balanceDueClass: pricing.balanceDueClass.toFixed(2),
-        isDepositPayment: String(!isPayFull),
+        depositPercent: String(pricing.depositPercent),
+        isDepositPayment: String(!pricing.payFull),
         ...(podMember ? { podCode: podMember.code, podRole: 'member' } : {}),
         ...(online ? { delivery: 'live_online', day1: online.day1, day2: online.day2, remoteFee: pricing.remoteFee.toFixed(2) } : {})
       },
@@ -302,8 +305,8 @@ export async function createBookingCheckout(
             currency: 'usd',
             unit_amount: pricing.chargeCents,
             product_data: {
-              name: `${displayCourseLabel(courseSelection)}${online ? ' (Live Online Classroom + In-Person Range Day)' : ''} — ${isPayFull ? 'Full Tuition & Range Fee' : '30% Reservation Deposit'}`,
-              description: `Invoice: ${invoiceId} • Total Course Investment: $${pricing.grandTotal.toFixed(2)} (Tuition + ${pricing.isVip ? 'VIP Range Perk' : "$45 Cindy's Range Fee"}${online ? ' + $' + pricing.remoteFee.toFixed(2) + ' remote-delivery fee' : ''} + 6% MD Tax) • ${isPayFull ? 'Paid in Full' : 'Deposit: $' + pricing.depositDueNow.toFixed(2) + ' (Remaining $' + pricing.balanceDueClass.toFixed(2) + ' due on class day)'}`,
+              name: `${displayCourseLabel(courseSelection)}${online ? ' (Live Online Classroom + In-Person Range Day)' : ''} — ${pricing.payFull ? 'Full Tuition & Range Fee' : pricing.depositPercent + '% Reservation Deposit'}`,
+              description: `Invoice: ${invoiceId} • Total Course Investment: $${pricing.grandTotal.toFixed(2)} (Tuition + ${pricing.isVip ? 'VIP Range Perk' : "$45 Cindy's Range Fee"}${online ? ' + $' + pricing.remoteFee.toFixed(2) + ' remote-delivery fee' : ''} + 6% MD Tax) • ${pricing.payFull ? 'Paid in Full' : 'Deposit: $' + pricing.depositDueNow.toFixed(2) + ' (Remaining $' + pricing.balanceDueClass.toFixed(2) + ' due on class day)'}`,
             },
           },
           quantity: 1,
@@ -417,7 +420,7 @@ export async function createBookingCheckout(
       { name: 'Phone', value: phone || 'Not provided', inline: true },
       { name: 'Course Track', value: courseSelection + (pricing.isVip ? ' (VIP)' : ' (Standard Base)'), inline: false },
       { name: 'Attendees', value: String(attendees), inline: true },
-      { name: isPayFull ? 'Charged Now (Full)' : 'Deposit Due Now', value: '$' + (pricing.chargeCents / 100).toFixed(2), inline: true },
+      { name: pricing.payFull ? 'Charged Now (Full)' : 'Deposit Due Now (' + pricing.depositPercent + '%)', value: '$' + (pricing.chargeCents / 100).toFixed(2), inline: true },
       { name: 'Total Investment', value: '$' + pricing.grandTotal.toFixed(2), inline: true },
       { name: 'Invoice', value: invoiceId, inline: true }
     ],
