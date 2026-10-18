@@ -28,6 +28,7 @@ import { installPwaBanner } from "@/portal/pwaBanner";
 import { installBalanceReturn } from "@/portal/payBalance";
 import { installSiteTelemetry } from "@/portal/siteTelemetry";
 import { installMultiStateCard } from "@/multistate/card";
+import { installEngagement } from "@/portal/engage";
 import { installAdminExtras } from "@/portal/adminExtras";
 import { installAdminAttention } from "@/portal/adminAttention";
 import "@/portal/portal.css";
@@ -4197,7 +4198,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installPwaBanner(); installBalanceReturn(); installSiteTelemetry(); installMultiStateCard(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installPwaBanner(); installBalanceReturn(); installSiteTelemetry(); installMultiStateCard(); installEngagement(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -4762,7 +4763,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <div className="student-badge-bar">
               <div className="student-meta-group">
                 <h2>
-                  Welcome back, 
+                  Welcome back,{" "}
                   <span id="dash-student-name">
                     Student
                   </span>
@@ -5201,6 +5202,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </div>
               </div>
             </div>
+            {/* Help, share and weekly-tip cards (filled in by src/portal/engage.ts) */}
+            <section id="eg-student" className="eg" aria-label="Help and more" hidden></section>
           </div>
         </section>
         {/* ================= FUTURE INITIATIVE CLIENT & PERMIT PORTAL ================= */}
@@ -5411,7 +5414,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div className="student-badge-bar" style={{"borderColor": "rgba(255, 183, 3, 0.4)", "marginBottom": "24px"}}>
                 <div>
                   <h2>
-                    Welcome back, 
+                    Welcome back,{" "}
                     <span id="dash-client-name" style={{"color": "#fff"}}>
                       Client
                     </span>
@@ -5867,6 +5870,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
 
 
+              {/* Help, share and weekly-tip cards (filled in by src/portal/engage.ts) */}
+              <section id="eg-client" className="eg" aria-label="Help and more" hidden></section>
               {/* ================= STATUTORY DISCLAIMER & CITATIONS ================= */}
               <div style={{"background": "rgba(0,0,0,0.4)", "border": "1px solid rgba(255,255,255,0.06)", "borderRadius": "12px", "padding": "18px 20px", "marginTop": "40px", "fontSize": "0.8rem", "color": "var(--text-muted)", "lineHeight": "1.5"}}>
                 <strong style={{"color": "#cbd5e1"}}>
