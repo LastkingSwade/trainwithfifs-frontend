@@ -4814,6 +4814,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
           
               </button>
             </div>
+            {/* Class-ready meter (filled in by src/portal/engage.ts) */}
+            <section id="eg-ready" className="eg" aria-label="Class-ready" hidden></section>
             {/* 8-Step Progress Tracker Roadmap */}
             
             <div id="dash-online-card" hidden></div>

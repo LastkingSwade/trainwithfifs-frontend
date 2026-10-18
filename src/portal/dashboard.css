@@ -86,3 +86,9 @@ html[data-hud] .hud-chat::after { display: none !important; }
 .eg-btn:hover, .eg-btn:focus-visible { background: rgba(255, 183, 3, 0.12); border-color: #ffb703; color: #ffd166; }
 .eg-btn.primary { color: #1a1100; background: linear-gradient(135deg, #ffd166, #ffb703); border-color: transparent; }
 @media (max-width: 640px) { .eg-btn { width: 100%; } }
+.eg-tip { margin: 0 0 6px; font-size: 1.08rem; line-height: 1.55; color: #ffffff; }
+.eg-live { margin-top: 8px; font-size: 0.9rem; color: #bfe9cc; min-height: 1.2em; }
+.eg-meter { height: 12px; margin: 4px 0 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.eg-meter i { display: block; height: 100%; background: linear-gradient(90deg, #00e5ff, #ffb703); }
+.eg-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.eg-list li { display: flex; gap: 10px; line-height: 1.5; } .eg-list li.done { color: #bfe9cc; }

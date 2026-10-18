@@ -27,5 +27,33 @@ const PAGE = read('src/app/page.tsx');
     const src = read('src/portal/engage.ts') + read('src/portal/engageLogic.ts'); assert(!/innerHTML/.test(src) && !/localStorage|sessionStorage|document\.cookie|fetch\(|XMLHttpRequest|sendBeacon/.test(src), 'text only; nothing stored, sent or tracked');
     const css = read('src/portal/dashboard.css'); assert(/\.eg-btn \{[^}]*min-height: 48px/.test(css), '44px+ targets');
   });
+  await test('Review ask: students only once they hold their certificate (step 6 on), clients always; the link is the site\'s own Google review link', () => {
+    for (const [st, want] of [['PREP_PENDING', false], ['STEP_3_PREPARATION', false], ['STEP_4_CLASSROOM', false], ['LIVE_FIRE_QUALIFICATION', false], ['STEP_6_CERTIFICATE_ISSUED', true], ['MSP_PORTAL_SUBMITTED', true], ['LICENSED_ACTIVE', true], ['COMPLETED', true], ['', false], [undefined, false]]) eq(L.wantsReview('student', st), want, String(st));
+    eq(L.wantsReview('client', undefined), true); eq(L.stepFromStatus('whatever'), 1);
+    assert(PAGE.includes(L.REVIEW_URL), 'the same review link the website already uses'); eq(L.REVIEW_URL, 'https://share.google/7bGi1FjainNaCUYIl');
+    const sc = read('public/scripts/TrainWithFIFS_scripts.js'); const fn = sc.slice(sc.indexOf('function getStepNumberFromStatus')); for (const x of ['STEP_8', 'LICENSED', 'STEP_7', 'CERTIF', 'LIVE_FIRE', 'STEP_3', 'CONFIRM']) assert(fn.slice(0, 700).includes(x) && read('src/portal/engageLogic.ts').includes(x), 'the step rules match the site: ' + x);
+  });
+  await test('Share: a friendly message with only the website address; sms and email links are encoded; no sender details are added; nothing is sent from the page', () => {
+    const s = L.shareLinks(); assert(/^sms:\?&body=/.test(s.sms) && /^mailto:\?subject=/.test(s.email), 'links'); assert(decodeURIComponent(s.sms).includes('https://trainwithfifs.com') && decodeURIComponent(s.email).includes('Coach Kai Wade'), 'content');
+    assert(!/[<>"]/.test(s.sms + s.email), 'encoded'); assert(!/discount|free|\$\d/i.test(L.SHARE_TEXT), 'no offers or prices are promised'); assert(!/@/.test(L.SHARE_TEXT), 'no personal details');
+    const ui = read('src/portal/engage.ts'); assert(/navigator as any\)\.share/.test(ui) && /clipboard\.writeText/.test(ui), 'native share with copy fallback');
+  });
+  await test('Tip of the week: the week is the ISO week in Eastern time, the tip changes each Monday and is the same all week, and the tips are plain, unique safety advice with no legal claims', () => {
+    const wk = (s) => L.isoWeek(new Date(s)); eq(wk('2026-01-01T17:00:00Z'), { year: 2026, week: 1 }); eq(wk('2026-10-19T17:00:00Z'), { year: 2026, week: 43 }); eq(wk('2026-12-31T17:00:00Z'), { year: 2026, week: 53 }); eq(wk('2027-01-01T17:00:00Z'), { year: 2026, week: 53 }); eq(wk('2027-01-04T17:00:00Z'), { year: 2027, week: 1 });
+    const mon = L.tipOfTheWeek(new Date('2026-10-19T14:00:00Z')), sun = L.tipOfTheWeek(new Date('2026-10-25T23:00:00Z')), next = L.tipOfTheWeek(new Date('2026-10-26T14:00:00Z')); eq(mon.tip, sun.tip, 'same all week'); assert(next.tip !== mon.tip, 'a new tip on Monday');
+    eq(L.tipOfTheWeek(new Date('2026-10-26T03:59:00Z')).tip, mon.tip, 'still last week before Monday midnight Eastern'); eq(L.tipOfTheWeek(new Date('2026-10-26T04:01:00Z')).tip, next.tip, 'new week right after Monday midnight Eastern');
+    eq(new Set(L.TIPS).size, L.TIPS.length, 'unique'); assert(L.TIPS.length >= 20, 'enough that they do not repeat for months'); for (const t of L.TIPS) { assert(t.length > 20 && t.length <= 230 && /[.!]$/.test(t), t); assert(!/felony|illegal|it is a crime|by law|must by|guarantee/i.test(t), 'no legal claims: ' + t); assert(!/serial|where you keep|home storage record/i.test(t), 'no storage record talk: ' + t); }
+    const seen = new Set(); for (let i = 0; i < 26; i++) seen.add(L.tipOfTheWeek(new Date(Date.UTC(2026, 0, 5 + i * 7, 15))).index); eq(seen.size, 26, 'a full cycle shows every tip once');
+  });
+  await test('Class-ready meter: date, preparation checklist, payment (only when there is a booking) and the saved app are worked out from the student\'s own record; shown only before the range day', () => {
+    const f = (o) => L.readiness({ classDate: 'Saturday, Nov 7 at 9:00 AM', prepTasks: { transport_law: true, ammo_acquired: true, eye_ear_pro: true, id_ready: true }, balanceOwed: 0, installed: true, ...o });
+    let r = f({}); eq(r.done, 4); eq(r.total, 4); eq(r.items.every((i) => i.done), true);
+    r = f({ classDate: 'To Be Scheduled' }); eq(r.items[0].done, false); eq(r.done, 3); assert(/Message Coach Kai/.test(r.items[0].hint), 'hint'); for (const d of ['Upcoming Cohort', '', undefined, null, 'TBD']) eq(f({ classDate: d }).items[0].done, false, String(d));
+    r = f({ prepTasks: { transport_law: true, ammo_acquired: false, eye_ear_pro: true, id_ready: true } }); eq(r.items[1].done, false); eq(f({ prepTasks: null }).items[1].done, false); eq(f({ prepTasks: {} }).items[1].done, false);
+    r = f({ balanceOwed: 74.2 }); eq(r.items.find((i) => i.key === 'payment').done, false); r = f({ balanceOwed: null }); eq(r.total, 3, 'no payment line when there is no booking on record'); assert(!r.items.some((i) => i.key === 'payment'));
+    r = f({ installed: false }); eq(r.items.find((i) => i.key === 'app').done, false);
+    for (const [st, want] of [['PREP_PENDING', true], ['STEP_2_CONFIRMED', true], ['STEP_4_CLASSROOM', true], ['STEP_5_LIVE_FIRE', false], ['STEP_6_CERTIFICATE', false], ['LICENSED', false]]) eq(L.showReadiness(st), want, st);
+    const ui = read('src/portal/engage.ts'); assert(/callFifsBackend\('studentInvoices'/.test(ui) && /display-mode: standalone/.test(ui) && /aria-valuenow/.test(ui), 'built from the record, accessible'); assert(/id="eg-ready"/.test(PAGE), 'host near the top of the student dashboard');
+  });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`); process.exit(failed ? 1 : 0);
 })();
