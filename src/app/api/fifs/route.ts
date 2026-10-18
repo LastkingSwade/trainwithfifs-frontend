@@ -6,6 +6,7 @@ import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
 import { createBalanceCheckout } from '@/Lib/server/balance-checkout';
+import { adminMultiStateList, multiStateStatus, setStep, setTracking } from '@/Lib/server/multistate-progress';
 import { listInvoicePayments, recordManualPayment, voidManualPayment } from '@/Lib/server/manual-payments';
 import { aggregate } from '@/Lib/server/site-visits';
 import { purgeWallet, walletConsent, walletDelete, walletOpen, walletStatus, walletUpload } from '@/Lib/server/wallet';
@@ -3257,6 +3258,27 @@ export async function POST(req: NextRequest) {
        const r: any = action === 'adminInvoicePayments' ? await listInvoicePayments(sb, payload.invoiceNumber)
          : action === 'adminRecordPayment' ? await recordManualPayment(sb, { invoiceNumber: payload.invoiceNumber, amount: payload.amount, method: payload.method, receivedOn: payload.receivedOn, note: payload.note }, by)
          : await voidManualPayment(sb, payload.id, payload.reason, by);
+       return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
+     }
+
+     // Mid-Atlantic Multi-State application guide. Signed-in students and clients reach ONLY their own row (found from the verified login); staff see the list.
+     case 'multiStateGet':
+     case 'multiStateSet':
+     case 'multiStateTracking': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user?.id) return NextResponse.json({ success: false, status: 'error', error: 'Please sign in to see your steps.' }, { status: 401 });
+       if (action !== 'multiStateGet' && !allowPublicSubmit(req, 'multistate', 120)) return NextResponse.json({ success: false, error: 'Too many changes. Please wait a few minutes and try again.' }, { status: 429 });
+       const sb = getPrivilegedClient();
+       const r: any = action === 'multiStateGet' ? await multiStateStatus(sb, String(user.id))
+         : action === 'multiStateSet' ? await setStep(sb, String(user.id), payload.stepId, payload.checked)
+         : await setTracking(sb, String(user.id), payload.key, payload.value);
+       return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
+     }
+
+     case 'adminMultiStateList': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       const r: any = await adminMultiStateList(getPrivilegedClient());
        return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
      }
 

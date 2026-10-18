@@ -10,6 +10,7 @@ import GroupCodePanel from "../group/GroupCodePanel";
 import GroupStatusPanel from "../group/GroupStatusPanel";
 import OnlineAdminPanel from "../online/OnlineAdminPanel";
 import AdminPaymentsPanel from "../portal/AdminPaymentsPanel";
+import AdminMultiStatePanel from "../multistate/AdminMultiStatePanel";
 import AdminTrashPanel from "../portal/AdminTrashPanel";
 import WalletPanel from "../portal/WalletPanel";
 import VisitBeacon from "../analytics/VisitBeacon";
@@ -67,6 +68,7 @@ export default function RootLayout({
         <GroupStatusPanel />
         <OnlineAdminPanel />
         <AdminPaymentsPanel />
+        <AdminMultiStatePanel />
         <AdminTrashPanel />
         <WalletPanel />
         <ServiceWorkerRegister />

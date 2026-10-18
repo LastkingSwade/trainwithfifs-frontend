@@ -27,11 +27,13 @@ import { installPasswordPeek } from "@/portal/passwordPeek";
 import { installPwaBanner } from "@/portal/pwaBanner";
 import { installBalanceReturn } from "@/portal/payBalance";
 import { installSiteTelemetry } from "@/portal/siteTelemetry";
+import { installMultiStateCard } from "@/multistate/card";
 import { installAdminExtras } from "@/portal/adminExtras";
 import { installAdminAttention } from "@/portal/adminAttention";
 import "@/portal/portal.css";
 import "@/portal/dashboard.css";
 import "@/portal/start.css";
+import "@/multistate/multistate.css";
 import { DAY2_ACK_TEXT, DAY2_STATEMENT, DAY2_WHY, DAY2_WHY_TITLE, FEE_LABEL, IN_PERSON_NOTE, ONLINE_BENEFITS, ONLINE_NAME, ONLINE_PITCH_TITLE, TECH_REQUIREMENTS } from "@/online/onlineCopy";
 import Head from "next/head";
 import { createClient as createSupabaseClient } from "@/Lib/supabase/client";
@@ -4195,7 +4197,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installPwaBanner(); installBalanceReturn(); installSiteTelemetry(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installPwaBanner(); installBalanceReturn(); installSiteTelemetry(); installMultiStateCard(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -4815,6 +4817,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
             
             <div id="dash-online-card" hidden></div>
             <section id="dash-extras" className="pextras" aria-label="Class day, receipts and guides" hidden></section>
+            {/* Mid-Atlantic Multi-State application guide (only for students in that class; filled in by src/multistate/card.ts) */}
+            <section id="ms-student" className="ms" aria-label="Multi-state application guide" hidden></section>
             {/* Official Maryland Qualification Scoresheet Card (MSP Form 29-14) */}
             <div className="fi-card" id="dash-scoresheet-card" style={{"marginBottom": "24px", "border": "1px solid rgba(0, 229, 255, 0.28)", "background": "linear-gradient(135deg, rgba(7,11,16,0.95), rgba(15,23,42,0.85))", "borderRadius": "12px", "padding": "20px"}}>
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "12px", "flexWrap": "wrap", "gap": "8px"}}>
@@ -5669,6 +5673,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
               {/* Permit renewal countdown: sits directly under the permit card (filled in by src/portal/clientExtras.ts) */}
               <section id="fi-client-extras" className="pextras" aria-label="Permit renewal" hidden></section>
+              <section id="ms-client" className="ms" aria-label="Multi-state application guide" hidden></section>
               {/* 8 PRIMARY RESOURCE CARDS (INTERACTIVE MODAL LAUNCHERS) */}
               <div className="fi-hub-cards-grid">
                 {/* CARD 1: DOCUMENT VAULT (opens the vault panel in src/portal/WalletPanel.tsx) */}
@@ -6067,6 +6072,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </button>
             <button className="btn-tactical-hud hud-purple" id="btn-admin-payments-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminPayments?.(); }} data-onclick="openAdminPayments()" title="Who has paid, who owes a balance (read only)" type="button">
               💵 Payments
+            </button>
+            <button className="btn-tactical-hud hud-purple" id="btn-admin-multistate-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminMultiState?.(); }} data-onclick="openAdminMultiState()" title="Who is where in the multi-state application (read only)" type="button">
+              🧭 Multi-State Progress
             </button>
             <button className="btn-tactical-hud hud-purple" id="btn-admin-trash-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminTrash?.(); }} data-onclick="openAdminTrash()" title="Put back a student or client deleted in the last 30 days" type="button">
               ↩ Recently Deleted
