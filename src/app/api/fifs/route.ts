@@ -6,6 +6,7 @@ import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
 import { createBalanceCheckout } from '@/Lib/server/balance-checkout';
+import { listInvoicePayments, recordManualPayment, voidManualPayment } from '@/Lib/server/manual-payments';
 import { aggregate } from '@/Lib/server/site-visits';
 import { purgeWallet, walletConsent, walletDelete, walletOpen, walletStatus, walletUpload } from '@/Lib/server/wallet';
 import { adminDeletePayments, adminPayments } from '@/Lib/server/admin-payments';
@@ -3244,6 +3245,19 @@ export async function POST(req: NextRequest) {
        if (!allowPublicSubmit(req, 'balance', 12)) return NextResponse.json({ success: false, error: 'Too many attempts. Please wait a few minutes and try again, or call us.' }, { status: 429 });
        const r = await createBalanceCheckout(req, payload.invoiceNumber);
        return NextResponse.json(r.body, { status: r.status });
+     }
+
+     // Payments received outside the website (cash, check...). STAFF ONLY: the role is checked on the server before the database is touched.
+     case 'adminInvoicePayments':
+     case 'adminRecordPayment':
+     case 'adminVoidPayment': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       const sb = getPrivilegedClient(); const by = String(user?.email || user?.id || 'staff');
+       const r: any = action === 'adminInvoicePayments' ? await listInvoicePayments(sb, payload.invoiceNumber)
+         : action === 'adminRecordPayment' ? await recordManualPayment(sb, { invoiceNumber: payload.invoiceNumber, amount: payload.amount, method: payload.method, receivedOn: payload.receivedOn, note: payload.note }, by)
+         : await voidManualPayment(sb, payload.id, payload.reason, by);
+       return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
      }
 
      case 'studentOnlineClass': {

@@ -1,7 +1,7 @@
 // Student Portal: pay the remaining balance online. The page only asks the server for a secure Stripe checkout link for the student's own invoice (the server
 // finds the amount on the invoice; nothing here sends or decides an amount) and then goes to Stripe. The payment is recorded by the server when Stripe confirms it.
 const w: any = typeof window === 'undefined' ? {} : window;
-export interface Receipt { invoiceNumber: string; course: string; status: string; total: number; paid: number; balance: number; date: string }
+export interface Receipt { invoiceNumber: string; course: string; status: string; total: number; paid: number; balance: number; date: string; inPerson?: { amount: number; method: string; date: string }[] }
 export const money = (n: number) => '$' + Number(n).toFixed(2);
 
 /** Invoices that can be paid online: the deposit is paid and a balance is left. */

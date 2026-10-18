@@ -66,7 +66,7 @@ function guideCard(): HTMLElement {
   return box;
 }
 
-interface Receipt { invoiceNumber: string; course: string; status: string; total: number; paid: number; balance: number; date: string }
+interface Receipt { invoiceNumber: string; course: string; status: string; total: number; paid: number; balance: number; date: string; inPerson?: { amount: number; method: string; date: string }[] }
 function receiptsCard(rows: Receipt[] | null): HTMLElement {
   const { box, body } = card('Receipts and payments');
   if (rows === null) body.appendChild(el('p', 'Your receipts could not load right now. Please try again in a minute.'));
@@ -75,6 +75,7 @@ function receiptsCard(rows: Receipt[] | null): HTMLElement {
     const line = el('div', undefined, 'preceipt');
     line.appendChild(el('strong', `${r.course} (${r.invoiceNumber})`));
     line.appendChild(el('span', `${when(r.date)} · ${r.status} · paid ${money(r.paid)} of ${money(r.total)}${r.balance > 0 ? ` · ${money(r.balance)} due on class day, or pay it online` : ''}`));
+    for (const p of r.inPerson || []) line.appendChild(el('span', `💵 ${money(p.amount)} paid in person (${p.method})${p.date ? ' on ' + when(p.date + 'T12:00:00') : ''}`, 'preceipt-extra'));
     body.appendChild(line);
     if (payable([r]).length) { const { button, note } = payButton(r); body.append(button, note); }
   }
