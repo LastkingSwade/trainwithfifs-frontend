@@ -4,7 +4,7 @@ const ROOT = path.resolve(__dirname, '..'); const R = (f) => fs.readFileSync(pat
 let fakeDb = null, sessions = {};
 class FakeStripe { constructor() { this.checkout = { sessions: { retrieve: async (id) => { if (!sessions[id]) throw new Error('no such session'); return sessions[id]; } } }; } }
 const load = (rel) => { if (cache[rel]) return cache[rel]; const m = { exports: {} };
-  const req = (id) => ({ './group-status': { recordPodCodeOnInvoice: async () => {} }, './online-classroom': {}, '../pricing': {}, './discord': { sendDiscordAlert: async () => {} }, '../config/environment': { resolveSiteUrl: () => 'https://trainwithfifs.com', ConfigurationError: class extends Error {} },
+  const req = (id) => ({ './group-status': { recordPodCodeOnInvoice: async () => {} }, './online-classroom': {}, './quiz-progress': { reserveReward: async () => null, releaseReward: async () => {} }, '../pricing': {}, './discord': { sendDiscordAlert: async () => {} }, '../config/environment': { resolveSiteUrl: () => 'https://trainwithfifs.com', ConfigurationError: class extends Error {} },
     './supabase-admin': { getPrivilegedClient: () => fakeDb, hasBearerToken: () => false, getAuthenticatedUser: async () => ({}), resolveStripeSecretKey: () => 'sk_test_x' }, 'stripe': FakeStripe, '../../group/groupCode': load('src/group/groupCode.ts'), 'node:crypto': require('crypto') }[id] || require(id));
   vm.runInNewContext(ts.transpileModule(R(rel), { compilerOptions: { target: 'ES2020', module: 'commonjs', esModuleInterop: true } }).outputText, { module: m, exports: m.exports, require: req, process, console, Date, Object, Array, String, Number, Math, Promise, JSON, RegExp, Buffer, URL, Map, Set, Error }); return (cache[rel] = m.exports); };
 let passed = 0, failed = 0;
