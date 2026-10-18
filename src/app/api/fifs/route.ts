@@ -5,6 +5,7 @@ import { isLiveChatHours } from '@/Lib/server/chat-hours';
 import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/group-status';
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
+import { createBalanceCheckout } from '@/Lib/server/balance-checkout';
 import { aggregate } from '@/Lib/server/site-visits';
 import { purgeWallet, walletConsent, walletDelete, walletOpen, walletStatus, walletUpload } from '@/Lib/server/wallet';
 import { adminDeletePayments, adminPayments } from '@/Lib/server/admin-payments';
@@ -3236,6 +3237,13 @@ export async function POST(req: NextRequest) {
        if (meErr) return NextResponse.json({ success: false, error: 'Could not load your receipts right now.' }, { status: 503 });
        if (!me?.student_id) return NextResponse.json({ success: true, invoices: [] });
        return NextResponse.json({ success: true, invoices: await studentInvoices(supabase, String(me.student_id)) });
+     }
+
+     case 'createBalanceCheckout': {
+       // The signed-in student pays the remaining balance on their OWN deposit-paid invoice. The amount comes from the invoice, never from the browser.
+       if (!allowPublicSubmit(req, 'balance', 12)) return NextResponse.json({ success: false, error: 'Too many attempts. Please wait a few minutes and try again, or call us.' }, { status: 429 });
+       const r = await createBalanceCheckout(req, payload.invoiceNumber);
+       return NextResponse.json(r.body, { status: r.status });
      }
 
      case 'studentOnlineClass': {

@@ -1,5 +1,6 @@
 // Student Portal extras, drawn into #dash-extras once the signed-in dashboard is showing. All text is set with textContent (no HTML from data).
 import { courseSection } from './courseCards';
+import { balanceBanner, payButton, payable } from './payBalance';
 import { BRING, EXPECT, GUIDE_DISCLAIMER, GUIDE_ITEMS, MAPS_URL, RANGE_CITY, RANGE_NAME } from './portalCopy';
 
 // window only exists in the browser; this module is also loaded while the page is rendered on the server.
@@ -73,8 +74,9 @@ function receiptsCard(rows: Receipt[] | null): HTMLElement {
   else for (const r of rows) {
     const line = el('div', undefined, 'preceipt');
     line.appendChild(el('strong', `${r.course} (${r.invoiceNumber})`));
-    line.appendChild(el('span', `${when(r.date)} · ${r.status} · paid ${money(r.paid)} of ${money(r.total)}${r.balance > 0 ? ` · ${money(r.balance)} due on class day` : ''}`));
+    line.appendChild(el('span', `${when(r.date)} · ${r.status} · paid ${money(r.paid)} of ${money(r.total)}${r.balance > 0 ? ` · ${money(r.balance)} due on class day, or pay it online` : ''}`));
     body.appendChild(line);
+    if (payable([r]).length) { const { button, note } = payButton(r); body.append(button, note); }
   }
   return box;
 }
@@ -91,6 +93,7 @@ export function installStudentExtras(): void {
     let receipts: Receipt[] | null = null;
     try { const d = await w.callFifsBackend('studentInvoices', {}); receipts = (d && d.invoices) || []; } catch { receipts = null; }
     host.textContent = '';
+    const owed = balanceBanner(receipts); if (owed) host.appendChild(owed);
     const mine = courseSection(); if (mine) host.appendChild(mine);
     host.appendChild(classDayCard());
     host.appendChild(rebookCard());

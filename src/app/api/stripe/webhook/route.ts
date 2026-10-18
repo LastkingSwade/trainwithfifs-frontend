@@ -49,11 +49,64 @@ async function findInvoice(supabase: any, sessionId: string, invoiceNumber?: str
   return byInvoiceNumber.data;
 }
 
+// A student paying the REMAINING BALANCE of a booking they already paid the deposit on (see src/Lib/server/balance-checkout.ts). This is deliberately a
+// separate path: the deposit/full-payment path above treats a DEPOSIT_PAID invoice as "already applied", and must not change. Applied only when the invoice is
+// DEPOSIT_PAID and the amount paid equals the balance recorded on the invoice; applied once (the update is conditional); a second payment is flagged for refund.
+async function handleBalancePayment(supabase: any, session: Stripe.Checkout.Session) {
+  const invoiceNumber = String(session.metadata?.invoiceId || '');
+  const paidCents = session.amount_total ?? 0;
+  const fields = [
+    { name: 'Stripe Session', value: session.id, inline: false },
+    { name: 'Invoice', value: invoiceNumber || 'N/A', inline: true },
+    { name: 'Amount Paid', value: `$${(paidCents / 100).toFixed(2)}`, inline: true },
+  ];
+  const found = invoiceNumber
+    ? await supabase.from('invoices').select(INVOICE_COLUMNS + ', payment_method').eq('invoice_number', invoiceNumber).maybeSingle()
+    : { data: null, error: null };
+  if (found.error) throw new RetryableWebhookError('Balance invoice lookup failed: ' + (found.error.message || 'unknown error'));
+  const invoice = found.data;
+  if (!invoice) {
+    await sendDiscordAlert('⚠️ Balance payment needs manual reconciliation', 'A paid balance checkout did not match any recorded invoice. Stripe will retry this delivery.', fields, 0xEF4444);
+    throw new RetryableWebhookError(`No invoice found for balance session ${session.id}.`);
+  }
+  if (String(invoice.status) === 'PAID') {
+    // The same delivery repeated (this session is already written on the invoice) is ignored; a DIFFERENT paid session means the student paid twice.
+    if (String(invoice.payment_method || '').includes(session.id)) return;
+    await sendDiscordAlert('⚠️ Balance paid twice: refund needed', `Invoice **${invoiceNumber}** was already paid in full when this second balance payment arrived. Refund it in Stripe.`, fields, 0xEF4444);
+    return;
+  }
+  const expectedCents = toCents(invoice.balance_due);
+  if (String(invoice.status) !== 'DEPOSIT_PAID' || !Number.isFinite(expectedCents) || expectedCents <= 0 || paidCents !== expectedCents || (session.currency || 'usd').toLowerCase() !== 'usd') {
+    await sendDiscordAlert('⚠️ Balance payment amount mismatch', 'The amount paid does not match the balance on the invoice, or the invoice is not waiting on a balance. The invoice was NOT changed.', [...fields, { name: 'Expected', value: `$${(Math.max(expectedCents, 0) / 100).toFixed(2)}`, inline: true }, { name: 'Invoice status', value: String(invoice.status), inline: true }], 0xEF4444);
+    return;
+  }
+  const { data: updated, error: updateErr } = await supabase
+    .from('invoices')
+    .update({
+      status: 'PAID',
+      amount_paid: (toCents(invoice.total_amount) / 100).toFixed(2),
+      balance_due: '0.00',
+      payment_method: `Stripe Checkout + balance ${session.id}`.slice(0, 200),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('invoice_number', invoiceNumber)
+    .eq('status', 'DEPOSIT_PAID')
+    .eq('balance_due', invoice.balance_due)
+    .select('invoice_number');
+  if (updateErr) throw new RetryableWebhookError('Balance payment update failed: ' + (updateErr.message || 'unknown error'));
+  if (!Array.isArray(updated) || updated.length === 0) return;
+  await sendDiscordAlert('💳 Remaining Balance Paid', `The remaining balance for invoice **${invoiceNumber}** (${session.customer_email || 'Student'}) was paid online. The invoice is now paid in full.`, [
+    { name: 'Amount Paid', value: `$${(paidCents / 100).toFixed(2)}`, inline: true },
+    { name: 'Total', value: `$${(toCents(invoice.total_amount) / 100).toFixed(2)}`, inline: true },
+  ], 0x10b981);
+}
+
 async function handlePaidSession(supabase: any, session: Stripe.Checkout.Session) {
   if (session.payment_status !== 'paid') {
     // Delayed payment methods report success later via checkout.session.async_payment_succeeded.
     return;
   }
+  if (session.metadata?.isBalancePayment === 'true') { await handleBalancePayment(supabase, session); return; }
 
   const metadataInvoiceNumber = session.metadata?.invoiceId || '';
   const isDeposit = session.metadata?.isDepositPayment === 'true';

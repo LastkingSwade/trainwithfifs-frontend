@@ -235,5 +235,34 @@ function sessionEvent(type, overrides = {}) {
     assert.equal(h.tables.students[1].status, 'CONFIRMED', 'verified linked user is confirmed');
   }
 
-  console.log('Stripe webhook regression tests passed (12 cases).');
+  {
+    // REMAINING BALANCE payments (a student who paid the deposit pays the rest online). Applied only to a DEPOSIT_PAID invoice, only for exactly the balance on the invoice, once.
+    const dep = (o = {}) => invoiceRow({ status: 'DEPOSIT_PAID', amount_paid: '75.00', balance_due: '175.00', payment_method: 'Stripe Checkout', ...o });
+    const bal = (o = {}) => sessionEvent('checkout.session.completed', { id: 'cs_bal_1', amount_total: 17500, currency: 'usd', metadata: { invoiceId: 'INV-1', isBalancePayment: 'true', linkedUserId: 'uuid-linked' }, ...o });
+    const students = [{ student_id: 'FIFS-1001', user_id: 'uuid-linked', status: 'CONFIRMED' }];
+    const ok = makeHarness({ event: bal(), invoices: [dep()], students });
+    assert.equal((await ok.post()).status, 200);
+    const inv = ok.tables.invoices[0];
+    assert.equal(inv.status, 'PAID', 'the balance payment completes the invoice'); assert.equal(inv.balance_due, '0.00'); assert.equal(inv.amount_paid, '250.00', 'paid-to-date becomes the total');
+    assert.ok(String(inv.payment_method).includes('cs_bal_1'), 'the session is written on the invoice so a repeat delivery can be recognised'); assert.equal(inv.stripe_session_id, 'cs_test_123', 'the original deposit session is left alone');
+    assert.ok(ok.alerts.some((t) => /Remaining Balance Paid/.test(t)), 'staff are told'); assert.equal(ok.accessCalls.length, 0, 'no portal-access emails for a balance payment'); assert.equal(ok.emails.length, 0, 'no booking emails for a balance payment');
+    // The same delivery again changes nothing and raises no false alarm.
+    ok.setEvent(bal()); const alertsBefore = ok.alerts.length; assert.equal((await ok.post()).status, 200); assert.equal(ok.alerts.length, alertsBefore, 'a repeated delivery is quiet'); assert.equal(ok.tables.invoices[0].status, 'PAID');
+    // A DIFFERENT paid session on an invoice that is already paid in full means a double payment: flagged for refund, invoice untouched.
+    ok.setEvent(bal({ id: 'cs_bal_2' })); assert.equal((await ok.post()).status, 200); assert.ok(ok.alerts.some((t) => /paid twice/i.test(t)), 'double payment flagged'); assert.ok(String(ok.tables.invoices[0].payment_method).includes('cs_bal_1') && !String(ok.tables.invoices[0].payment_method).includes('cs_bal_2'));
+    // Wrong amount: not applied.
+    const wrong = makeHarness({ event: bal({ amount_total: 17000 }), invoices: [dep()], students }); assert.equal((await wrong.post()).status, 200);
+    assert.equal(wrong.tables.invoices[0].status, 'DEPOSIT_PAID', 'a wrong amount never completes the invoice'); assert.ok(wrong.alerts.some((t) => /mismatch/i.test(t)));
+    // Deposit not paid yet (PENDING): not applied.
+    const pend = makeHarness({ event: bal(), invoices: [dep({ status: 'PENDING', amount_paid: '0.00', balance_due: '250.00' })], students }); await pend.post();
+    assert.equal(pend.tables.invoices[0].status, 'PENDING', 'a balance payment cannot confirm an unpaid booking'); assert.ok(pend.alerts.some((t) => /mismatch/i.test(t)));
+    // Unknown invoice: retryable, flagged. A failed write: retryable.
+    const none = makeHarness({ event: bal(), invoices: [], students }); assert.equal((await none.post()).status, 500); assert.ok(none.alerts.some((t) => /reconciliation/i.test(t)));
+    const fail = makeHarness({ event: bal(), invoices: [dep()], students, failUpdateTable: 'invoices' }); assert.equal((await fail.post()).status, 500, 'a failed write is retried');
+    // The normal paths are unchanged: a deposit-paid invoice hit by an ordinary (non-balance) paid event is still treated as already applied.
+    const normal = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [dep()], students }); assert.equal((await normal.post()).status, 200);
+    assert.equal(normal.tables.invoices[0].status, 'DEPOSIT_PAID', 'without the balance flag nothing changes'); assert.equal(normal.tables.invoices[0].balance_due, '175.00');
+  }
+
+  console.log('Stripe webhook regression tests passed (13 cases).');
 })().catch((err) => { console.error(err); process.exitCode = 1; });
