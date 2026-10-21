@@ -5369,7 +5369,9 @@ function getStepNumberFromStatus(statusStr) {
         p.depositDueNow = pricing.depositDueNow;
         p.balanceDueClass = pricing.balanceDueClass;
         p.isVipCourse = isVipCourse;
+        window.__fifsCurrentBookingPayload = p; // the pay-how-much block reads the numbers from here
       }
+      var payBlock = typeof window.fifsPayPlanHtml === 'function' ? window.fifsPayPlanHtml(pricing) : '';
       var invoiceHtml = '<div id="fifs-invoice-step" style="animation: fadeIn 0.25s ease; text-align: left;">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;padding-bottom:14px;margin-bottom:16px;">' +
           '<div>' +
@@ -5404,6 +5406,12 @@ function getStepNumberFromStatus(statusStr) {
             '<span style="color:#e2e8f0;">' + p.courseSelection + ' (Base Tuition)</span>' +
             '<strong style="color:#fff;">$' + pricing.baseTuition.toFixed(2) + '</strong>' +
           '</div>' +
+          (pricing.rewardDiscount > 0 ? (
+            '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;color:#fbbf24;">' +
+              '<div><span style="font-weight:700;">&#127919; Daily Range Quiz reward (' + pricing.rewardPercent + '% off tuition)</span></div>' +
+              '<strong>-$' + pricing.rewardDiscount.toFixed(2) + '</strong>' +
+            '</div>'
+          ) : '') +
           (pricing.discountAmount > 0 ? (
             '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;color:#10b981;">' +
               '<div><span style="font-weight:700;">Group / Format Tier Discount (' + Math.round(pricing.discountPercent * 100) + '% OFF)</span><br><span style="color:#6ee7b7;font-size:0.75rem;">' + p.groupSize + '</span></div>' +
@@ -5415,13 +5423,14 @@ function getStepNumberFromStatus(statusStr) {
             '<strong style="color:' + (isVipCourse ? '#10b981' : '#f59e0b') + ';">' + (isVipCourse ? 'INCLUDED (VIP Perk)' : '$' + pricing.rangeFee.toFixed(2)) + '</strong>' +
           '</div>' +
           (pricing.remoteFee > 0 ? ('<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;"><div><span style="color:#f8fafc;font-weight:600;">Remote-delivery fee</span><br><span style="color:#64748b;font-size:0.75rem;">Live online classroom. Day 2 range day is in person.</span></div><strong style="color:var(--accent-cyan);">+$' + pricing.remoteFee.toFixed(2) + '</strong></div>') : '') +
+          '<div id="fifs-inv-bonusrow" style="display:none;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;color:#6ee7b7;"><div><span style="font-weight:700;">&#127873; Pay-in-full discount (5% off tuition)</span></div><strong id="fifs-inv-bonus">-$0.00</strong></div>' +
           '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;color:#94a3b8;">' +
             '<span>Subtotal:</span>' +
-            '<strong style="color:#f8fafc;">$' + pricing.subtotal.toFixed(2) + '</strong>' +
+            '<strong id="fifs-inv-sub" style="color:#f8fafc;">$' + pricing.subtotal.toFixed(2) + '</strong>' +
           '</div>' +
           '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.84rem;color:#38bdf8;">' +
             '<span>Maryland State Sales Tax (6%):</span>' +
-            '<strong>+$' + pricing.mdTax.toFixed(2) + '</strong>' +
+            '<strong id="fifs-inv-tax">+$' + pricing.mdTax.toFixed(2) + '</strong>' +
           '</div>' +
           '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.82rem;color:#94a3b8;">' +
             '<span>Classroom Instruction &amp; Course Materials (FIFS)</span>' +
@@ -5431,6 +5440,7 @@ function getStepNumberFromStatus(statusStr) {
             '<span>Practical Qualification Shots (Cindy\&#39;s Hot Shots &mdash; Glen Burnie, MD)</span>' +
             '<span style="color:#10b981;font-weight:700;">VERIFIED</span>' +
           '</div>' +
+          (payBlock ? '' : (
           '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 6px;border-bottom:1px dashed #334155;font-size:1.15rem;">' +
             '<strong style="color:#fff;">Total Balance Due:</strong>' +
             '<strong style="color:var(--accent-cyan);font-family:var(--font-display);font-size:1.35rem;">' + totalBalanceStr + '</strong>' +
@@ -5442,18 +5452,21 @@ function getStepNumberFromStatus(statusStr) {
           '<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0 0;font-size:0.82rem;color:#94a3b8;">' +
             '<span>Remaining Balance (Due on Class Day):</span>' +
             '<strong style="color:#cbd5e1;">$' + pricing.balanceDueClass.toFixed(2) + '</strong>' +
-          '</div>' +
+          '</div>'
+          )) +
         '</div>' +
+        payBlock +
         '<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:0.80rem;color:#fcd34d;line-height:1.4;">' +
           '&#9888;&#65039; <strong>Payment &amp; Logistics Notice:</strong> Review your invoice carefully before confirming. Once authorized, Instructor Kai Wade will contact you directly to finalize payment coordination (Zelle, Card, Cash App, or Cash) and assign your range time.' +
         '</div>' +
         '<div style="display:flex;gap:12px;flex-wrap:wrap;">' +
           '<button type="button" onclick="returnToBookingForm()" style="flex:1;min-width:130px;background:#1e293b;color:#f1f5f9;border:1px solid #334155;padding:14px;border-radius:8px;font-weight:700;font-size:0.9rem;cursor:pointer;">&larr; Edit Information</button>' +
-          '<button type="button" id="btn-confirm-invoice" onclick="confirmAndFinalizeBooking()" style="flex:2;min-width:200px;background:linear-gradient(135deg,var(--accent-cyan) 0%,#0099cc 100%);color:#070b10;border:none;padding:14px;border-radius:8px;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 0 20px var(--accent-cyan-glow);text-transform:uppercase;">Confirm &amp; Authorize Enrollment &rarr;</button>' +
+          (payBlock ? '' : ('<button type="button" id="btn-confirm-invoice" onclick="confirmAndFinalizeBooking()" style="flex:2;min-width:200px;background:linear-gradient(135deg,var(--accent-cyan) 0%,#0099cc 100%);color:#070b10;border:none;padding:14px;border-radius:8px;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 0 20px var(--accent-cyan-glow);text-transform:uppercase;">Confirm &amp; Authorize Enrollment &rarr;</button>')) +
         '</div>' +
         '<div id="invoice-status-div" style="margin-top:12px;display:none;" class="status-msg"></div>' +
       '</div>';
       modalBox.innerHTML = invoiceHtml;
+      if (typeof window.fifsPayPlanRefresh === 'function') window.fifsPayPlanRefresh(); // shows the amount the customer already chose on the form
       modalBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return false;
     }
@@ -5482,8 +5495,11 @@ function getStepNumberFromStatus(statusStr) {
     function confirmAndFinalizeBooking() {
       var p = __fifsCurrentBookingPayload;
       if (!p) return;
-      var btn = document.getElementById('btn-confirm-invoice');
+      var btn = document.getElementById('btn-confirm-invoice') || document.getElementById('btn-confirm-invoice-deposit');
+      var btnLabel = btn ? btn.innerHTML : '';
       var statusDiv = document.getElementById('invoice-status-div');
+      // How much the customer chose to pay now (30 to 100). The server checks it again and never goes below 30.
+      var depositPercent = typeof window.fifsPayPercent === 'function' ? window.fifsPayPercent() : 30;
       if (btn) {
         btn.disabled = true;
         btn.innerHTML = '<span>&#9889; Initializing Stripe Checkout...</span>';
@@ -5495,7 +5511,7 @@ function getStepNumberFromStatus(statusStr) {
         if (!res || res.status === 'error') {
           if (btn) {
             btn.disabled = false;
-            btn.innerHTML = 'Confirm &amp; Authorize Enrollment &rarr;';
+            btn.innerHTML = btnLabel || 'Confirm &amp; Authorize Enrollment &rarr;';
           }
           if (statusDiv) {
             showStatus(statusDiv, (res && res.message) ? res.message : 'Unable to create payment session. Please check Stripe configuration.', 'error');
@@ -5527,7 +5543,7 @@ function getStepNumberFromStatus(statusStr) {
         } else {
           if (btn) {
             btn.disabled = false;
-            btn.innerHTML = 'Confirm &amp; Authorize Enrollment &rarr;';
+            btn.innerHTML = btnLabel || 'Confirm &amp; Authorize Enrollment &rarr;';
           }
           if (statusDiv) {
             showStatus(statusDiv, 'Seat reservation confirmed! Lead Instructor Kai Wade will contact you directly to confirm logistics and finalize payment.', 'success');
@@ -5537,7 +5553,7 @@ function getStepNumberFromStatus(statusStr) {
       var onError = function(err) {
         if (btn) {
           btn.disabled = false;
-          btn.innerHTML = 'Confirm &amp; Authorize Enrollment &rarr;';
+          btn.innerHTML = btnLabel || 'Confirm &amp; Authorize Enrollment &rarr;';
         }
         if (statusDiv) {
           showStatus(statusDiv, 'Connection failed: ' + (err && err.message ? err.message : 'Could not reach booking server.'), 'error');
@@ -5554,7 +5570,10 @@ function getStepNumberFromStatus(statusStr) {
         day1: p.date1Iso || '',
         day2: p.date2Iso || '',
         groupSize: p.groupSize,
-        comments: p.comments
+        comments: p.comments,
+        podCode: window.__fifsPodCode || '',
+        payInFull: depositPercent >= 100,
+        depositPercent: depositPercent
       };
       if (typeof callFifsBackend === 'function') {
         callFifsBackend('submitBooking', payload, onComplete, onError);

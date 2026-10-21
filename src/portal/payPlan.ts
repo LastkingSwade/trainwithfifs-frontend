@@ -7,7 +7,7 @@ const cents = (n: number) => Math.round(n * 100);
 const usd = (c: number) => '$' + (c / 100).toFixed(2);
 export const cleanPercent = (v: unknown): number => { const n = Number(v); return Number.isFinite(n) ? Math.min(100, Math.max(MIN, Math.round(n))) : MIN; };
 
-export interface Plan { percent: number; payNow: number; balance: number; total: number; bonus: number; attendees: number }
+export interface Plan { percent: number; payNow: number; balance: number; total: number; bonus: number; attendees: number; subtotal: number; tax: number }
 /** `pricing` is what the booking form already computed (the 30% view). Returns dollars for the chosen percent. */
 export function planFor(pricing: any, percent: unknown): Plan {
   const pct = cleanPercent(percent); const attendees = Number(pricing?.attendees) || 1;
@@ -16,7 +16,7 @@ export function planFor(pricing: any, percent: unknown): Plan {
   const bonusC = pct >= 100 ? Math.round(rawC * BONUS) : 0;
   const subC = cents(Number(pricing?.subtotal) || 0) - bonusC; const taxC = Math.round(subC * 0.06); const totalC = subC + taxC;
   const payC = pct >= 100 ? totalC : Math.round(totalC * (pct / 100));
-  return { percent: pct, payNow: payC / 100, balance: (totalC - payC) / 100, total: totalC / 100, bonus: bonusC / 100, attendees };
+  return { percent: pct, payNow: payC / 100, balance: (totalC - payC) / 100, total: totalC / 100, bonus: bonusC / 100, attendees, subtotal: subC / 100, tax: taxC / 100 };
 }
 
 const PRESETS = [30, 50, 75, 100];
@@ -61,6 +61,9 @@ function refresh(pct: number): void {
   const num = document.getElementById('fifs-pp-num') as HTMLInputElement | null; if (num && document.activeElement !== num) num.value = String(p.percent);
   const rng = document.getElementById('fifs-pp-range') as HTMLInputElement | null; if (rng) { rng.value = String(p.percent); rng.setAttribute('aria-valuetext', p.percent + ' percent, ' + usd(Math.round(p.payNow * 100)) + ' today'); paintSlider(rng, p.percent); }
   const box = document.getElementById('fifs-payplan'); if (box) box.style.setProperty('--pp-shade', shade(p.percent));
+  // The itemised lines above the block (script invoice) follow the choice: the 5% pay-in-full discount appears at 100%, and subtotal and tax change with it.
+  set('fifs-inv-sub', usd(Math.round(p.subtotal * 100))); set('fifs-inv-tax', '+' + usd(Math.round(p.tax * 100)));
+  const br = document.getElementById('fifs-inv-bonusrow'); if (br) { br.style.display = p.bonus > 0 ? 'flex' : 'none'; set('fifs-inv-bonus', '-' + usd(Math.round(p.bonus * 100))); }
 }
 
 // ---- The slider on the booking form itself (under the "Required 30% Deposit" line) ----
@@ -86,7 +89,7 @@ function formRefresh(): void {
 }
 export function installPayPlan(): void {
   if (w.__fifsPayPlanInstalled) return; w.__fifsPayPlanInstalled = true;
-  w.fifsPayPlanHtml = payPlanHtml; w.fifsPayPercent = currentPercent; w.fifsFormSliderRefresh = formRefresh;
+  w.fifsPayPlanHtml = payPlanHtml; w.fifsPayPercent = currentPercent; w.fifsFormSliderRefresh = formRefresh; w.fifsPayPlanRefresh = () => refresh(initialPercent());
   document.addEventListener('input', (e) => { const id = (e.target as HTMLElement | null)?.id; if (id === 'formPayRange') { w.__fifsPayPct = cleanPercent((e.target as HTMLInputElement).value); formRefresh(); } });
   document.addEventListener('click', (e) => { const c = (e.target as HTMLElement | null)?.closest?.('#fifs-payplan [data-pp]') as HTMLElement | null; if (c) { const n = cleanPercent(c.dataset.pp); const num = document.getElementById('fifs-pp-num') as HTMLInputElement | null; if (num) num.value = String(n); refresh(n); } });
   document.addEventListener('input', (e) => {

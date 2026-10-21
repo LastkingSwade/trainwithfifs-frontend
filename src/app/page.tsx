@@ -3749,6 +3749,7 @@ export default function TrainWithFIFS(props: any) {
 
 
       modalBox.innerHTML = invoiceHtml;
+      if (typeof (window as any).fifsPayPlanRefresh === 'function') (window as any).fifsPayPlanRefresh();
       return true;
     };
 

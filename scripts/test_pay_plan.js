@@ -86,5 +86,18 @@ const calc = pr.calculatePricingBreakdown;
     assert(/id="formBreakdownDepositLabel"/.test(page) && /id="formPaySlider"/.test(page), 'form host missing'); assert(page.indexOf('id="formPaySlider"') > page.indexOf('id="formBreakdownBalance"'), 'slider not below the deposit');
     assert(/w\.fifsFormPricing = /.test(of) && /fifsFormSliderRefresh/.test(of), 'price function not exposed'); eq(pp.shade(30), 'rgb(245,158,11)'); eq(pp.shade(100), 'rgb(0,229,255)'); assert(pp.shade(65) !== pp.shade(30) && pp.shade(65) !== pp.shade(100), 'no blend');
   });
+  await test('the invoice the site really shows (the classic script) carries the choice: pay block, itemised 5% row, reward row, and the percent and pod code go to the server', () => {
+    const sc = fs.readFileSync(path.join(ROOT, 'public/scripts/TrainWithFIFS_scripts.js'), 'utf8');
+    assert(/window\.__fifsCurrentBookingPayload = p;/.test(sc) && /var payBlock = typeof window\.fifsPayPlanHtml === 'function'/.test(sc) && /payBlock \+\s*'<div style="background:rgba\(245,158,11,0\.08\)/.test(sc), 'pay block not placed in the invoice');
+    assert(/\(payBlock \? '' : \(/.test(sc) && /\(payBlock \? '' : \(\s*'<button type="button" id="btn-confirm-invoice"/.test(sc), 'the old fixed 30% rows and button must be replaced, not duplicated');
+    assert(/id="fifs-inv-bonusrow"/.test(sc) && /id="fifs-inv-sub"/.test(sc) && /id="fifs-inv-tax"/.test(sc) && /pricing\.rewardDiscount > 0/.test(sc), 'itemised rows');
+    assert(/depositPercent = typeof window\.fifsPayPercent === 'function' \? window\.fifsPayPercent\(\) : 30/.test(sc) && /payInFull: depositPercent >= 100,\s*depositPercent: depositPercent/.test(sc) && /podCode: window\.__fifsPodCode \|\| ''/.test(sc), 'payload');
+    assert(/window\.fifsPayPlanRefresh\(\); \/\/ shows the amount the customer already chose/.test(sc), 'chosen percent shown when the invoice opens');
+    const ts = fs.readFileSync(path.join(ROOT, 'src/portal/payPlan.ts'), 'utf8'); assert(/fifsPayPlanRefresh = \(\) => refresh\(initialPercent\(\)\)/.test(ts) && /fifs-inv-bonusrow/.test(ts), 'refresh hooks');
+  });
+  await test('planFor also reports subtotal and tax that equal the server at every percent', () => {
+    const b = calc(C, 2, false), screen = { attendees: 2, subtotal: (b.discountedTuition * 100 + b.rangeFee * 100) / 100, discountedTuition: b.discountedTuition, discountAmount: Math.round(b.baseTuitionPerPerson * 2 * 100) * b.discountPercent / 100 };
+    for (const pct of [30, 100]) { const srv = calc(C, 2, false, 'in_person', 0, pct), plan = pp.planFor(screen, pct); eq(Math.round(plan.tax * 100), Math.round(srv.mdTax * 100), 'tax ' + pct); eq(Math.round(plan.subtotal * 100), srv.grandTotalCents - Math.round(srv.mdTax * 100), 'subtotal ' + pct); }
+  });
   console.log(`\nPay plan: ${passed} passed, ${failed} failed`); if (failed) process.exit(1);
 })();

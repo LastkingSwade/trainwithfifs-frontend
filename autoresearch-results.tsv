@@ -279,3 +279,4 @@ ux-2	2026-10-21T14:29:56Z	Badge contrast (flagship amber badge 1.21:1, alumni ba
 ux-3	2026-10-21T14:38:37Z	Portals on phone: compact chat bubble (was covering cards), larger checkboxes and chat close on touch	SUCCESS	small_targets student=5 client=5 admin=1	student=4 (28px checkboxes inside a fully clickable card) client=4 (remove-permit buttons, left alone) admin=1 (28px)	-
 ux-4	2026-10-21T14:50:05Z	Student pay card: stacked text had a 260px empty gap on phones (flex-basis in a column); balance line said Paid in full while owing	SUCCESS	gap=~200px	gap=0	-
 ux-5	2026-10-21T14:50:05Z	Booking form on phone: safety tick box squashed to 20px wide; placeholders used a made-up person (Jordan Vance)	SUCCESS	chk=20x44	chk=28x44	-
+fix-invoice	2026-10-21T15:13:46Z	The invoice shown on the site (classic script) ignored the chosen deposit: showed 30% and never sent it to the server	SUCCESS	charged=30%always	chosen% shown and sent	-
