@@ -21,6 +21,8 @@ import "../polish/polish.css";
 import "../experiments/site.css";
 import "../experiments/portals.css";
 import "../secrets/secrets.css";
+import "../design/organic.css";
+import OrganicSkin from "../design/OrganicSkin";
 import Secrets from "../secrets/Secrets";
 import { BOOT_GATE_SCRIPT } from "../boot/bootConfig";
 import { STARTUP_IMAGES } from "../pwa/splash";
@@ -79,6 +81,7 @@ export default function RootLayout({
         <AdminPushPanel />
         <WalletPanel />
         <Secrets />
+        <OrganicSkin />
         <ServiceWorkerRegister />
         <VisitBeacon />
         {children}
