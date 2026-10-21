@@ -282,3 +282,4 @@ ux-5	2026-10-21T14:50:05Z	Booking form on phone: safety tick box squashed to 20p
 fix-invoice	2026-10-21T15:13:46Z	The invoice shown on the site (classic script) ignored the chosen deposit: showed 30% and never sent it to the server	SUCCESS	charged=30%always	chosen% shown and sent	-
 vault-1	2026-10-21T15:24:44Z	Vault recolored to company colors (navy HUD panels, cyan wayfinding, amber actions, site heading font, colour per document type)	SUCCESS	off_palette_tokens=36	off_palette_tokens=0	-36
 vault-2	2026-10-21T15:28:09Z	Vault UX: summary strip with next expiry, sort menu, quick-add on empty vault, phone camera, friendlier consent, sticky phone header	SUCCESS	vault tests=15	vault tests=17 (+sort/expiry logic, UI wiring)	+2
+secrets-1	2026-10-21T15:52:42Z	Four FIFS secrets (Kernel console signature, Night-Ops HUD, Shot Timer, Off-Paper 404) plus reticle brackets on course cards	SUCCESS	secrets=0	13 secret tests; full suite, tsc, build, browser check pass	-

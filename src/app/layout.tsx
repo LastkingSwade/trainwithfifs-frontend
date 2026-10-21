@@ -19,6 +19,8 @@ import RestoreSession from "../portal/RestoreSession";
 import "../polish/polish.css";
 import "../experiments/site.css";
 import "../experiments/portals.css";
+import "../secrets/secrets.css";
+import Secrets from "../secrets/Secrets";
 import { BOOT_GATE_SCRIPT } from "../boot/bootConfig";
 
 // Fonts are downloaded once at build time and served from this site (no request to Google when someone visits, and they work offline).
@@ -71,6 +73,7 @@ export default function RootLayout({
         <AdminMultiStatePanel />
         <AdminTrashPanel />
         <WalletPanel />
+        <Secrets />
         <ServiceWorkerRegister />
         <VisitBeacon />
         {children}
