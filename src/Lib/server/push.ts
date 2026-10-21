@@ -61,7 +61,7 @@ export async function isSubscribed(supabase: any, userId: string, endpoint: unkn
 
 export interface SendReport { sent: number; failed: number; removed: number; skipped?: 'quiet-hours' | 'not-configured' | 'none' }
 /** Sends one notification to every device of the given people that wants this topic. Outside 8am to 8pm Eastern nothing is sent. Dead devices (the push service says gone) are deleted. */
-export async function sendToUsers(supabase: any, userIds: string[], payload: PushPayload, now: Date = new Date(), opts: { ignoreQuiet?: boolean } = {}): Promise<SendReport> {
+export async function sendToUsers(supabase: any, userIds: string[], payload: PushPayload, now: Date = new Date(), opts: { ignoreQuiet?: boolean; ignoreTopic?: boolean } = {}): Promise<SendReport> {
   const rep: SendReport = { sent: 0, failed: 0, removed: 0 };
   if (!ready()) return { ...rep, skipped: 'not-configured' };
   if (!opts.ignoreQuiet && !withinSendWindow(now)) return { ...rep, skipped: 'quiet-hours' };
@@ -70,7 +70,7 @@ export async function sendToUsers(supabase: any, userIds: string[], payload: Pus
   try { const r = await supabase.from('push_subscriptions').select('endpoint, p256dh, auth, topics, user_id').in('user_id', ids); if (r.error || !Array.isArray(r.data)) return { ...rep, skipped: 'none' }; rows = r.data; } catch { return { ...rep, skipped: 'none' }; }
   const body = JSON.stringify({ title: payload.title, body: payload.body, url: payload.url, tag: payload.tag });
   for (const row of rows) {
-    if (Array.isArray(row.topics) && !row.topics.includes(payload.topic)) continue;
+    if (!opts.ignoreTopic && Array.isArray(row.topics) && !row.topics.includes(payload.topic)) continue;   // a direct message from the instructor is not switched off by topic
     try { await webpush.sendNotification({ endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } }, body, { TTL: 12 * 3600, urgency: 'normal' }); rep.sent += 1; }
     catch (e: any) {
       if (e && (e.statusCode === 404 || e.statusCode === 410)) { rep.removed += 1; try { await supabase.from('push_subscriptions').delete().eq('endpoint', row.endpoint); } catch { /* retried next time */ } }

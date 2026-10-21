@@ -7,6 +7,7 @@ import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
 import { sendInvoice, payInfo, invoiceCheckout } from '@/Lib/server/sent-invoices';
 import { waiverStatus, saveWaiver } from '@/Lib/server/waivers';
+import { memberThread, memberSend, staffMembers, staffThread, staffSend } from '@/Lib/server/portal-chat';
 import { createBalanceCheckout } from '@/Lib/server/balance-checkout';
 import { scoresheetLock } from '@/Lib/server/scoresheet-lock';
 import { quizAnswer, quizToday } from '@/Lib/server/quiz-progress';
@@ -1225,6 +1226,33 @@ export async function POST(req: NextRequest) {
        if (!allowPublicSubmit(req, 'waiver', 10)) return NextResponse.json({ success: false, error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 });
        const saved = await saveWaiver(supabase, String(me.student_id), payload || {});
        return saved.ok ? NextResponse.json({ success: true, status: 'success', signed: true }) : NextResponse.json({ success: false, status: 'error', error: saved.error }, { status: saved.status });
+     }
+
+     case 'portalChatGet':
+     case 'portalChatSend': {
+       // A student or client's own chat with their instructor. Only their own thread; the login is verified and never taken from the request.
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user?.id) return NextResponse.json({ success: false, error: 'Please sign in to the portal to chat.' }, { status: 401 });
+       supabase = getPrivilegedClient();
+       if (action === 'portalChatGet') { const r = await memberThread(supabase, String(user.id)); return NextResponse.json(r.ok ? { success: true, messages: r.messages, instructor: r.instructor } : { success: false, error: r.error }, { status: r.ok ? 200 : r.status }); }
+       if (!allowPublicSubmit(req, 'portalchat', 20)) return NextResponse.json({ success: false, error: 'You are sending messages very quickly. Please wait a minute and try again.' }, { status: 429 });
+       const r = await memberSend(supabase, String(user.id), payload?.text ?? payload?.message);
+       return NextResponse.json(r.ok ? { success: true, message: r.message } : { success: false, error: r.error }, { status: r.ok ? 200 : r.status });
+     }
+
+     case 'adminPortalChatMembers':
+     case 'adminPortalChatThread':
+     case 'adminPortalChatReply': {
+       // Staff only: the members with push notifications on, and their chats with the instructor.
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       supabase = getPrivilegedClient();
+       if (action === 'adminPortalChatMembers') { const r = await staffMembers(supabase); return NextResponse.json(r.ok ? { success: true, members: r.members } : { success: false, error: r.error }, { status: r.ok ? 200 : r.status }); }
+       const memberId = String(payload?.userId || '');
+       if (!/^[0-9a-f-]{36}$/i.test(memberId)) return NextResponse.json({ success: false, error: 'Choose a member first.' }, { status: 400 });
+       if (action === 'adminPortalChatThread') { const r = await staffThread(supabase, memberId); return NextResponse.json(r.ok ? { success: true, messages: r.messages, name: r.name } : { success: false, error: r.error }, { status: r.ok ? 200 : r.status }); }
+       const r = await staffSend(supabase, memberId, payload?.text ?? payload?.message);
+       return NextResponse.json(r.ok ? { success: true, message: r.message, pushed: r.pushed, held: r.held } : { success: false, error: r.error }, { status: r.ok ? 200 : r.status });
      }
 
      case 'adminDirectInvite': {

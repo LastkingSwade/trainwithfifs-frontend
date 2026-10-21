@@ -39,6 +39,9 @@ import "@/animations/heroWide.css";
 import { installAdminExtras } from "@/portal/adminExtras";
 import { installAdminInvoice } from "@/portal/adminInvoice";
 import { installWaiverGate } from "@/portal/waiverGate";
+import { installPortalChat } from "@/portal/portalChat";
+import { installAdminPortalChat } from "@/portal/adminPortalChat";
+import "@/portal/portalChat.css";
 import { installAdminAttention } from "@/portal/adminAttention";
 import "@/portal/portal.css";
 import "@/portal/dashboard.css";
@@ -4208,7 +4211,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminInvoice(); installWaiverGate(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installPwaBanner(); installBalanceReturn(); installSiteTelemetry(); installMultiStateCard(); installEngagement(); installQuizCard(); installQuizPricing(); installPayPlan(); installViewHistory(); installPushCard(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminInvoice(); installWaiverGate(); installPortalChat(); installAdminPortalChat(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installPwaBanner(); installBalanceReturn(); installSiteTelemetry(); installMultiStateCard(); installEngagement(); installQuizCard(); installQuizPricing(); installPayPlan(); installViewHistory(); installPushCard(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -4685,6 +4688,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
         </header>
         {/* VIEW 1: AUTHENTICATED STUDENT DASHBOARD */}
         <section className="panel hidden" id="view-portal" role="tabpanel">
+          {/* Portal chat with the instructor (src/portal/portalChat.ts). Shown only when signed in as a student. */}
+          <div className="portal-chat-host" data-portal-chat="student" hidden></div>
           {/* PWA Mobile Home Screen Callout Banner */}
           <div className="pwa-install-banner" id="pwaStudentBanner" style={{"background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(16, 22, 31, 0.95) 100%)", "border": "1px solid rgba(0, 229, 255, 0.35)", "borderRadius": "12px", "padding": "14px 18px", "marginBottom": "20px", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "12px"}}>
             <div style={{"display": "flex", "alignItems": "center", "gap": "12px"}}>
@@ -5225,6 +5230,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
         {/* ================= FUTURE INITIATIVE CLIENT & PERMIT PORTAL ================= */}
         <section className="panel hidden" id="view-fi-portal" style={{"display": "none"}}>
           <div className="fi-portal-container">
+            {/* Portal chat with the instructor (src/portal/portalChat.ts). Shown only when signed in as a client. */}
+            <div className="portal-chat-host" data-portal-chat="client" hidden></div>
             {/* ================= CLIENT PORTAL AUTHENTICATION HUB ================= */}
             <div id="client-auth-box" style={{"marginBottom": "30px"}}>
               <div className="panel-header" style={{"textAlign": "center", "borderLeft": "none", "marginBottom": "24px"}}>
@@ -6541,6 +6548,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
           {/* ================= SUB-PANEL 4: INSTRUCTOR LIVE CHAT CONSOLE (EASIEST & NATIVE) ================= */}
           <div id="admin-subpanel-chat" style={{"display": "none", "position": "relative", "zIndex": "60"}}>
+            {/* Members with push notifications, and their chats with the instructor (src/portal/adminPortalChat.ts). */}
+            <div className="admin-member-chat" data-admin-member-chat></div>
             <div style={{"background": "#0d131b", "border": "1.5px solid var(--accent-cyan)", "borderRadius": "14px", "padding": "20px", "boxShadow": "0 12px 35px rgba(0,0,0,0.85), 0 0 24px rgba(0,229,255,0.18)"}}>
               {/* Top Bar: Channel Status & Quick Actions */}
               <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "12px", "marginBottom": "18px", "paddingBottom": "14px", "borderBottom": "1px solid var(--border-subtle)"}}>

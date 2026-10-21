@@ -116,7 +116,7 @@ function fakeDb(t, o = {}) {
   });
   await test('the daily jobs need the secret, run once a day inside the window, and the permit job still sends its emails first', () => {
     const c = read('src/app/api/cron/push-reminders/route.ts'), pr = read('src/app/api/cron/permit-reminders/route.ts'), v = JSON.parse(read('vercel.json'));
-    assert(/timingSafeEqual/.test(c) && /secret\.length >= 16/.test(c) && /sendClassReminders\(getPrivilegedClient\(\)\)/.test(c), 'authorised'); assert(v.crons.some((x) => x.path === '/api/cron/push-reminders' && x.schedule === '15 13 * * *') && v.crons.length === 3, 'scheduled at 13:15 UTC');
+    assert(/timingSafeEqual/.test(c) && /secret\.length >= 16/.test(c) && /sendClassReminders\(sb\)/.test(c) && /const sb = getPrivilegedClient\(\)/.test(c), 'authorised'); assert(v.crons.some((x) => x.path === '/api/cron/push-reminders' && x.schedule === '15 13 * * *') && v.crons.length === 3, 'scheduled at 13:15 UTC');
     assert(/sendOnlineEmail[\s\S]*sendPermitPushes\(supabase, pushIds\)/.test(pr) && /try \{ pushed = /.test(pr) && /\.select\('email, full_name, expiration_date, user_id'\)/.test(pr), 'push after email, and a push problem cannot undo the emails');
   });
   await test('the table holds no personal details, is server-only, and cascades with the account', () => {
