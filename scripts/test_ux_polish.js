@@ -41,7 +41,7 @@ test('Weight: the favicon is a small PNG (it was a 4.9 MB picture), the old file
 });
 test('No new dependency and no new network call: the polish module imports only the prefs helper and the experiments file', () => {
   assert(/^import [^\n]+ from '\.\.\/portal\/prefs';$/m.test(TS) && /^import \{ installQol \} from '\.\.\/experiments\/qol';$/m.test(TS) && (TS.match(/^import /gm) || []).length === 2 && !/fetch\(|XMLHttpRequest|new WebSocket/.test(TS));
-  const pkg = JSON.parse(R('package.json')); assert(Object.keys(pkg.dependencies).join() === '@supabase/ssr,@supabase/supabase-js,next,pdf-lib,postcss,react,react-dom,stripe', 'dependencies must not change (pdf-lib was approved by the owner for flattening the pen-filled score sheet)');
+  const pkg = JSON.parse(R('package.json')); assert(Object.keys(pkg.dependencies).join() === '@supabase/ssr,@supabase/supabase-js,next,pdf-lib,postcss,react,react-dom,stripe,web-push', 'dependencies must not change (pdf-lib was approved by the owner for flattening the pen-filled score sheet)');
 });
 test('UX pass: 44px taps on touch screens for the plan toggle, hero links and banner close; readable badges; no stray alt text; the terminal box has a name', () => {
   assert(/pointer: coarse\) \{[^}]*\.tier-sliding-switch \.tier-option-btn \{ min-height: 44px/.test(CSS) && /\.tier-sliding-pill[^{]*\{ height: 44px/.test(CSS), 'plan toggle');

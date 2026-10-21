@@ -27,17 +27,18 @@ async function test(n, f) { try { await f(); console.log('  ✓ PASS: ' + n); pa
     const src = fs.readFileSync(path.join(ROOT, 'src/app/api/cron/permit-reminders/route.ts'), 'utf8');
     assert(/secret\.length >= 16/.test(src) && /timingSafeEqual/.test(src) && src.indexOf('authorized(req)') < src.indexOf('getPrivilegedClient()'));
     assert(/\.eq\('opt_in_reminder', true\)/.test(src) && /\.eq\('expiration_date', day\)/.test(src), 'opted-in and exact date only');
-    const sentTo = []; const queries = [];
+    const sentTo = []; const queries = []; const pushedTo = [];
     const mk = (rows) => ({ getPrivilegedClient: () => ({ from: () => { const f = {}; const q = { select: () => q, eq: (c, v) => { f[c] = v; return q; }, then: (res) => { queries.push({ ...f }); return res({ data: rows.filter((r) => r.expiration_date === f.expiration_date && r.opt_in_reminder === f.opt_in_reminder), error: null }); } }; return q; } }) });
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-    const rows = [{ email: 'a@x.com', full_name: 'A', expiration_date: pe.addDays(today, 30), opt_in_reminder: true }, { email: 'b@x.com', full_name: 'B', expiration_date: pe.addDays(today, 30), opt_in_reminder: false }, { email: 'c@x.com', full_name: 'C', expiration_date: pe.addDays(today, 31), opt_in_reminder: true }, { email: '', full_name: 'D', expiration_date: pe.addDays(today, 7), opt_in_reminder: true }, { email: 'e@x.com', full_name: 'E', expiration_date: pe.addDays(today, 90), opt_in_reminder: true }];
-    const route = load('src/app/api/cron/permit-reminders/route.ts', { 'next/server': { NextResponse: { json: (b, i) => ({ body: b, status: (i && i.status) || 200 }) } }, '@/Lib/server/supabase-admin': mk(rows), '@/Lib/server/online-email': { sendOnlineEmail: async (to) => { sentTo.push(to); return true; } }, '@/Lib/server/permit-email': pe, crypto: require('crypto') });
+    const rows = [{ email: 'a@x.com', full_name: 'A', user_id: 'u-a', expiration_date: pe.addDays(today, 30), opt_in_reminder: true }, { email: 'b@x.com', full_name: 'B', expiration_date: pe.addDays(today, 30), opt_in_reminder: false }, { email: 'c@x.com', full_name: 'C', expiration_date: pe.addDays(today, 31), opt_in_reminder: true }, { email: '', full_name: 'D', expiration_date: pe.addDays(today, 7), opt_in_reminder: true }, { email: 'e@x.com', full_name: 'E', user_id: 'u-e', expiration_date: pe.addDays(today, 90), opt_in_reminder: true }];
+    const route = load('src/app/api/cron/permit-reminders/route.ts', { 'next/server': { NextResponse: { json: (b, i) => ({ body: b, status: (i && i.status) || 200 }) } }, '@/Lib/server/supabase-admin': mk(rows), '@/Lib/server/online-email': { sendOnlineEmail: async (to) => { sentTo.push(to); return true; } }, '@/Lib/server/permit-email': pe, '@/Lib/server/push': { sendPermitPushes: async (sb, m) => { pushedTo.push(Array.from(m.entries())); return { sent: 0, failed: 0, removed: 0 }; } }, crypto: require('crypto') });
     process.env.CRON_SECRET = 'x'.repeat(24);
     const call = (auth) => route.GET({ headers: { get: (k) => (k === 'authorization' ? auth : null) } });
     assert((await call('Bearer wrong')).status === 401 && (await call('')).status === 401 && sentTo.length === 0 && queries.length === 0, 'refused without the secret');
     const ok = await call('Bearer ' + 'x'.repeat(24));
     assert(ok.status === 200 && ok.body.sent === 2 && sentTo.sort().join() === 'a@x.com,e@x.com', JSON.stringify([ok.body, sentTo]));
     assert(queries.length === 4, 'one query per reminder date');
+    assert(JSON.stringify(pushedTo) === JSON.stringify([[[90, ['u-e']], [30, ['u-a']]]]), 'notifications are offered only to the clients due today, by login id: ' + JSON.stringify(pushedTo));
   });
   await test('Schedule is registered and no database change is needed', () => {
     const v = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));

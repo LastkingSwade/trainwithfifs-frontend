@@ -113,6 +113,32 @@ self.addEventListener('fetch', (event) => {
   if (isSiteAsset(url)) { event.respondWith(networkFirst(request)); return; }
 });
 
+// ---- Push notifications (sent by the website's server, src/Lib/server/push.ts). A notification shows a short generic line and nothing private. Tapping it opens, or brings forward,
+//      the site at the address inside it (only ever an address on this site). Every push shows a notification, as the browsers require. ----
+const NOTE_ICON = '/icons/icon-192.png';
+function safeNoteUrl(raw) {
+  try { const u = new URL(String(raw || '/'), self.location.origin); return u.origin === self.location.origin ? u.pathname + u.search : '/'; } catch (_e) { return '/'; }
+}
+self.addEventListener('push', (event) => {
+  let d = {};
+  try { d = event.data ? event.data.json() : {}; } catch (_e) { d = {}; }
+  const title = String((d && d.title) || 'Train With FIFS').slice(0, 80);
+  const body = String((d && d.body) || '').slice(0, 200);
+  event.waitUntil(self.registration.showNotification(title, { body, icon: NOTE_ICON, badge: NOTE_ICON, tag: String((d && d.tag) || 'fifs').slice(0, 40), data: { url: safeNoteUrl(d && d.url) } }));
+});
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = safeNoteUrl(event.notification.data && event.notification.data.url);
+  event.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of all) {
+      if (!c.url.startsWith(self.location.origin)) continue;
+      try { await c.focus(); if ('navigate' in c) await c.navigate(url); return; } catch (_e) { /* open a new window instead */ }
+    }
+    await self.clients.openWindow(url);
+  })());
+});
+
 // The page lists the build files it already loaded, so they are saved on the first visit too (the worker only sees requests made after it starts).
 self.addEventListener('message', (event) => {
   const data = event.data;

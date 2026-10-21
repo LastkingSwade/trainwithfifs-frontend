@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse, after } from 'next/server';
 import crypto from 'node:crypto';
 import { getAuthenticatedUser, getPrivilegedClient, getPublicClient } from '@/Lib/server/supabase-admin';
 import { isLiveChatHours } from '@/Lib/server/chat-hours';
@@ -11,6 +11,8 @@ import { quizAnswer, quizToday } from '@/Lib/server/quiz-progress';
 import { adminMultiStateList, multiStateStatus, setStep, setTracking } from '@/Lib/server/multistate-progress';
 import { listInvoicePayments, recordManualPayment, voidManualPayment } from '@/Lib/server/manual-payments';
 import { aggregate } from '@/Lib/server/site-visits';
+import { countSubscribers, isSubscribed, notifyPaymentReceived, pushConfigured, removeSubscription, roleOf, saveSubscription, sendToUsers, userIdsFor, vapidPublicKey } from '@/Lib/server/push';
+import { broadcastMessage, cleanBroadcast, withinSendWindow } from '@/Lib/server/push-logic';
 import { purgeWallet, walletConsent, walletDelete, walletOpen, walletStatus, walletUpload } from '@/Lib/server/wallet';
 import { adminDeletePayments, adminPayments } from '@/Lib/server/admin-payments';
 import { listTrash, restoreFromTrash, saveToTrash } from '@/Lib/server/admin-trash';
@@ -3267,6 +3269,8 @@ export async function POST(req: NextRequest) {
        const r: any = action === 'adminInvoicePayments' ? await listInvoicePayments(sb, payload.invoiceNumber)
          : action === 'adminRecordPayment' ? await recordManualPayment(sb, { invoiceNumber: payload.invoiceNumber, amount: payload.amount, method: payload.method, receivedOn: payload.receivedOn, note: payload.note }, by)
          : await voidManualPayment(sb, payload.id, payload.reason, by);
+       // A payment recorded in person: the student gets a short notification (if they turned notifications on). It says nothing about the amount, and never delays or blocks the answer.
+       if (r.ok && action === 'adminRecordPayment' && pushConfigured()) { const job = () => notifyPaymentReceived(sb, String(payload.invoiceNumber || '')).then(() => undefined, () => undefined); if (typeof after === 'function') after(job); else void job(); }
        return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
      }
 
@@ -3300,6 +3304,42 @@ export async function POST(req: NextRequest) {
        const sb = getPrivilegedClient();
        const r: any = action === 'quizToday' ? await quizToday(sb, String(user.id)) : await quizAnswer(sb, String(user.id), payload.questionId, payload.choice);
        return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
+     }
+
+     // Push notifications. The public key is public; everything else needs a verified login, and a person reaches only their own devices. Staff do not subscribe.
+     case 'pushStatus': {
+       if (!pushConfigured()) return NextResponse.json({ success: true, enabled: false });
+       const { user } = await getAuthenticatedUser(req);
+       const sb = getPrivilegedClient();
+       const subscribed = user?.id && typeof payload.endpoint === 'string' ? await isSubscribed(sb, String(user.id), payload.endpoint) : false;
+       return NextResponse.json({ success: true, enabled: true, publicKey: vapidPublicKey(), subscribed });
+     }
+     case 'pushSubscribe':
+     case 'pushUnsubscribe': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user?.id) return NextResponse.json({ success: false, status: 'error', error: 'Please sign in to manage reminders.' }, { status: 401 });
+       if (!allowPublicSubmit(req, 'push', 30)) return NextResponse.json({ success: false, error: 'Too many tries. Please wait a few minutes and try again.' }, { status: 429 });
+       const sb = getPrivilegedClient();
+       if (action === 'pushUnsubscribe') { const r: any = await removeSubscription(sb, String(user.id), payload.endpoint); return r.ok ? NextResponse.json({ success: true }) : NextResponse.json({ success: false, error: r.message }, { status: r.status }); }
+       const role = await roleOf(sb, String(user.id));
+       if (!role) return NextResponse.json({ success: false, error: 'Reminders are for student and client accounts.' }, { status: 403 });
+       const r: any = await saveSubscription(sb, String(user.id), role, payload.subscription);
+       return r.ok ? NextResponse.json({ success: true }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
+     }
+     case 'adminPushStatus':
+     case 'adminPushSend': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       const sb = getPrivilegedClient();
+       if (action === 'adminPushStatus') return NextResponse.json({ success: true, configured: pushConfigured(), students: await countSubscribers(sb, 'student'), clients: await countSubscribers(sb, 'client'), quietHours: !withinSendWindow(new Date()) });
+       if (!pushConfigured()) return NextResponse.json({ success: false, error: 'Notifications are not set up yet (the two keys are missing).' }, { status: 409 });
+       if (!allowPublicSubmit(req, 'pushadmin', 6)) return NextResponse.json({ success: false, error: 'Too many notices in a short time. Please wait a few minutes.' }, { status: 429 });
+       const audience = payload.audience === 'student' || payload.audience === 'client' ? payload.audience : 'all';
+       const text = cleanBroadcast(payload.text); if (!text) return NextResponse.json({ success: false, error: 'Write a short message first (plain text, up to 140 characters).' }, { status: 400 });
+       if (!withinSendWindow(new Date())) return NextResponse.json({ success: false, error: 'Notifications go out between 8am and 8pm Eastern only, so nobody is woken up. Please send it then.' }, { status: 409 });
+       const ids = await userIdsFor(sb, audience);
+       const rep = await sendToUsers(sb, ids, broadcastMessage(text, audience));
+       return NextResponse.json({ success: true, sent: rep.sent, failed: rep.failed, removed: rep.removed, people: ids.length });
      }
 
      case 'studentOnlineClass': {

@@ -33,6 +33,8 @@ import { installQuizCard, installQuizPricing } from "@/portal/quizCard";
 import { installPayPlan } from "@/portal/payPlan";
 import HeroWide from "@/animations/HeroWide";
 import { installViewHistory } from "@/pwa/viewHistory";
+import { installPushCard } from "@/portal/pushCard";
+import "@/pwa/pwa.css";
 import "@/animations/heroWide.css";
 import { installAdminExtras } from "@/portal/adminExtras";
 import { installAdminAttention } from "@/portal/adminAttention";
@@ -4204,7 +4206,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installPwaBanner(); installBalanceReturn(); installSiteTelemetry(); installMultiStateCard(); installEngagement(); installQuizCard(); installQuizPricing(); installPayPlan(); installViewHistory(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installPwaBanner(); installBalanceReturn(); installSiteTelemetry(); installMultiStateCard(); installEngagement(); installQuizCard(); installQuizPricing(); installPayPlan(); installViewHistory(); installPushCard(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
@@ -5214,6 +5216,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
             </div>
             {/* Help, share and weekly-tip cards (filled in by src/portal/engage.ts) */}
+            <section id="push-student" className="eg" aria-label="Reminders" hidden></section>
             <section id="eg-student" className="eg" aria-label="Help and more" hidden></section>
           </div>
         </section>
@@ -5884,6 +5887,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
 
               {/* Help, share and weekly-tip cards (filled in by src/portal/engage.ts) */}
+              <section id="push-client" className="eg" aria-label="Reminders" hidden></section>
               <section id="eg-client" className="eg" aria-label="Help and more" hidden></section>
               {/* ================= STATUTORY DISCLAIMER & CITATIONS ================= */}
               <div style={{"background": "rgba(0,0,0,0.4)", "border": "1px solid rgba(255,255,255,0.06)", "borderRadius": "12px", "padding": "18px 20px", "marginTop": "40px", "fontSize": "0.8rem", "color": "var(--text-muted)", "lineHeight": "1.5"}}>
@@ -6096,6 +6100,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </button>
             <button className="btn-tactical-hud hud-purple" id="btn-admin-trash-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminTrash?.(); }} data-onclick="openAdminTrash()" title="Put back a student or client deleted in the last 30 days" type="button">
               ↩ Recently Deleted
+            </button>
+            <button className="btn-tactical-hud hud-purple" id="btn-admin-push-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminPush?.(); }} data-onclick="openAdminPush()" title="Send a short notification to people who turned reminders on" type="button">
+              🔔 Notifications
             </button>
             <button className="btn-tactical-hud hud-purple" id="btn-admin-invite-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminInviteModal?.(); }} data-onclick="openAdminInviteModal()" title="Dispatch student/client portal onboarding invitation" type="button">
               <span>✉️</span> <span>SEND INVITE</span>

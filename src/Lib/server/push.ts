@@ -1,0 +1,108 @@
+import webpush from 'web-push';
+import { MAX_DEVICES_PER_PERSON, TOPICS, cleanSubscription, easternDay, addDays, classDaysFrom, classReminder, paymentReceived, permitReminder, withinSendWindow, type PushPayload, type Role, type Topic } from './push-logic';
+
+// Server side of push notifications (see docs/PUSH-SETUP.md). Everything is optional: without the two keys in the environment, or without the push_subscriptions table, nothing is
+// offered in the portals and nothing is sent. A person reaches only their own devices (found from the verified login). Nothing personal is ever put in a notification.
+export type Result<T = {}> = ({ ok: true } & T) | { ok: false; status: number; message: string };
+const isMissingTable = (e: any) => !!e && (e.code === '42P01' || /push_subscriptions|relation|does not exist|schema cache/i.test(String(e.message || '')));
+const SETUP = 'Notifications are not set up yet. Please check back soon.';
+
+export function pushConfigured(): boolean { return !!(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY && /^mailto:|^https:\/\//.test(process.env.VAPID_SUBJECT || '')); }
+export const vapidPublicKey = (): string => (pushConfigured() ? String(process.env.VAPID_PUBLIC_KEY) : '');
+let configured = false;
+function ready(): boolean { if (!pushConfigured()) return false; if (!configured) { webpush.setVapidDetails(String(process.env.VAPID_SUBJECT), String(process.env.VAPID_PUBLIC_KEY), String(process.env.VAPID_PRIVATE_KEY)); configured = true; } return true; }
+
+/** Which kind of account a verified login is. Staff are neither (they do not subscribe). */
+export async function roleOf(supabase: any, userId: string): Promise<Role | null> {
+  try {
+    const s = await supabase.from('students').select('student_id').eq('user_id', userId).maybeSingle(); if (!s.error && s.data) return 'student';
+    const c = await supabase.from('clients').select('user_id').eq('user_id', userId).maybeSingle(); if (!c.error && c.data) return 'client';
+  } catch { /* unknown */ }
+  return null;
+}
+
+export async function saveSubscription(supabase: any, userId: string, role: Role, input: unknown): Promise<Result> {
+  if (!pushConfigured()) return { ok: false, status: 409, message: SETUP };
+  const sub = cleanSubscription(input); if (!sub) return { ok: false, status: 400, message: 'That device could not be registered. Please try again.' };
+  try {
+    const up = await supabase.from('push_subscriptions').upsert({ user_id: userId, role, endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth, topics: TOPICS }, { onConflict: 'endpoint' });
+    if (up.error) return isMissingTable(up.error) ? { ok: false, status: 409, message: SETUP } : { ok: false, status: 503, message: 'Could not turn on reminders right now.' };
+    const mine = await supabase.from('push_subscriptions').select('endpoint, created_at').eq('user_id', userId).order('created_at', { ascending: false });
+    const rows: any[] = Array.isArray(mine.data) ? mine.data : [];
+    for (const old of rows.slice(MAX_DEVICES_PER_PERSON)) await supabase.from('push_subscriptions').delete().eq('endpoint', old.endpoint).eq('user_id', userId);
+    return { ok: true };
+  } catch { return { ok: false, status: 503, message: 'Could not turn on reminders right now.' }; }
+}
+export async function removeSubscription(supabase: any, userId: string, endpoint: unknown): Promise<Result> {
+  if (typeof endpoint !== 'string' || !endpoint) return { ok: false, status: 400, message: 'Nothing to turn off.' };
+  try { const r = await supabase.from('push_subscriptions').delete().eq('user_id', userId).eq('endpoint', endpoint); return r.error && !isMissingTable(r.error) ? { ok: false, status: 503, message: 'Could not turn off reminders right now.' } : { ok: true }; } catch { return { ok: false, status: 503, message: 'Could not turn off reminders right now.' }; }
+}
+/** True when this exact device is registered for this person. */
+export async function isSubscribed(supabase: any, userId: string, endpoint: unknown): Promise<boolean> {
+  if (typeof endpoint !== 'string' || !endpoint) return false;
+  try { const r = await supabase.from('push_subscriptions').select('endpoint').eq('user_id', userId).eq('endpoint', endpoint).maybeSingle(); return !r.error && !!r.data; } catch { return false; }
+}
+
+export interface SendReport { sent: number; failed: number; removed: number; skipped?: 'quiet-hours' | 'not-configured' | 'none' }
+/** Sends one notification to every device of the given people that wants this topic. Outside 8am to 8pm Eastern nothing is sent. Dead devices (the push service says gone) are deleted. */
+export async function sendToUsers(supabase: any, userIds: string[], payload: PushPayload, now: Date = new Date()): Promise<SendReport> {
+  const rep: SendReport = { sent: 0, failed: 0, removed: 0 };
+  if (!ready()) return { ...rep, skipped: 'not-configured' };
+  if (!withinSendWindow(now)) return { ...rep, skipped: 'quiet-hours' };
+  const ids = Array.from(new Set(userIds.filter(Boolean))); if (!ids.length) return { ...rep, skipped: 'none' };
+  let rows: any[] = [];
+  try { const r = await supabase.from('push_subscriptions').select('endpoint, p256dh, auth, topics, user_id').in('user_id', ids); if (r.error || !Array.isArray(r.data)) return { ...rep, skipped: 'none' }; rows = r.data; } catch { return { ...rep, skipped: 'none' }; }
+  const body = JSON.stringify({ title: payload.title, body: payload.body, url: payload.url, tag: payload.tag });
+  for (const row of rows) {
+    if (Array.isArray(row.topics) && !row.topics.includes(payload.topic)) continue;
+    try { await webpush.sendNotification({ endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } }, body, { TTL: 12 * 3600, urgency: 'normal' }); rep.sent += 1; }
+    catch (e: any) {
+      if (e && (e.statusCode === 404 || e.statusCode === 410)) { rep.removed += 1; try { await supabase.from('push_subscriptions').delete().eq('endpoint', row.endpoint); } catch { /* retried next time */ } }
+      else rep.failed += 1;
+    }
+  }
+  return rep;
+}
+export async function countSubscribers(supabase: any, audience: 'all' | Role): Promise<number> {
+  try { let q = supabase.from('push_subscriptions').select('user_id, topics'); if (audience !== 'all') q = q.eq('role', audience); const r = await q; return !r.error && Array.isArray(r.data) ? r.data.filter((x: any) => !Array.isArray(x.topics) || x.topics.includes('news')).length : 0; } catch { return 0; }
+}
+export async function userIdsFor(supabase: any, audience: 'all' | Role): Promise<string[]> {
+  try { let q = supabase.from('push_subscriptions').select('user_id'); if (audience !== 'all') q = q.eq('role', audience); const r = await q; return !r.error && Array.isArray(r.data) ? Array.from(new Set(r.data.map((x: any) => String(x.user_id)))) : []; } catch { return []; }
+}
+
+// ---- the triggers ----
+/** After staff record a payment: tell that student (if they turned notifications on). The message says nothing about the amount. */
+export async function notifyPaymentReceived(supabase: any, invoiceNumber: string): Promise<SendReport | null> {
+  try {
+    const inv = await supabase.from('invoices').select('student_id').eq('invoice_number', invoiceNumber).maybeSingle(); if (inv.error || !inv.data?.student_id) return null;
+    const stu = await supabase.from('students').select('user_id').eq('student_id', inv.data.student_id).maybeSingle(); if (stu.error || !stu.data?.user_id) return null;
+    return await sendToUsers(supabase, [String(stu.data.user_id)], paymentReceived());
+  } catch { return null; }
+}
+/** Daily: students whose class is tomorrow or today (days found in their saved date text) and who turned notifications on. */
+export async function sendClassReminders(supabase: any, now: Date = new Date()): Promise<{ tomorrow: SendReport; today: SendReport }> {
+  const empty: SendReport = { sent: 0, failed: 0, removed: 0 }; const out = { tomorrow: { ...empty }, today: { ...empty } };
+  if (!pushConfigured() || !withinSendWindow(now)) return out;
+  const today = easternDay(now), tomorrow = addDays(today, 1);
+  const subs = await supabase.from('push_subscriptions').select('user_id, topics').eq('role', 'student'); if (subs.error || !Array.isArray(subs.data)) return out;
+  const ids: string[] = Array.from(new Set<string>(subs.data.filter((x: any) => !Array.isArray(x.topics) || x.topics.includes('class')).map((x: any) => String(x.user_id))));
+  const add = (a: SendReport, b: SendReport) => { a.sent += b.sent; a.failed += b.failed; a.removed += b.removed; };
+  for (const uid of ids) {
+    try {
+      const st = await supabase.from('students').select('student_id, assigned_date, class_date, preferred_dates, status').eq('user_id', uid).maybeSingle(); if (st.error || !st.data) continue;
+      const days = classDaysFrom(st.data.assigned_date, st.data.class_date, st.data.preferred_dates);
+      const when = days.includes(tomorrow) ? 'tomorrow' : days.includes(today) ? 'today' : null; if (!when) continue;
+      let owing = false; if (when === 'tomorrow') { const inv = await supabase.from('invoices').select('balance_due').eq('student_id', st.data.student_id).eq('status', 'DEPOSIT_PAID'); owing = !inv.error && Array.isArray(inv.data) && inv.data.some((r: any) => Number(r.balance_due) > 0); }
+      add(out[when], await sendToUsers(supabase, [uid], classReminder(when, owing), now));
+    } catch { /* one person never stops the rest */ }
+  }
+  return out;
+}
+/** Used by the permit-renewal daily job: the clients (by login id) who are due a reminder today get a notification too, if they turned it on. */
+export async function sendPermitPushes(supabase: any, byDaysLeft: Map<number, string[]>, now: Date = new Date()): Promise<SendReport> {
+  const total: SendReport = { sent: 0, failed: 0, removed: 0 };
+  for (const [n, ids] of Array.from(byDaysLeft.entries()) as Array<[number, string[]]>) { const r = await sendToUsers(supabase, ids, permitReminder(n), now); total.sent += r.sent; total.failed += r.failed; total.removed += r.removed; }
+  return total;
+}
+export { classReminder };
+export type { Topic };

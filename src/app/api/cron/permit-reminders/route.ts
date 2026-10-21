@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrivilegedClient } from '@/Lib/server/supabase-admin';
 import { sendOnlineEmail } from '@/Lib/server/online-email';
 import { REMINDER_DAYS, addDays, buildPermitReminder } from '@/Lib/server/permit-email';
+import { sendPermitPushes } from '@/Lib/server/push';
 import { timingSafeEqual } from 'crypto';
 
 // Daily job (Vercel Cron, `Authorization: Bearer <CRON_SECRET>`): emails opted-in clients exactly 120, 90, 30 and 7 days before the permit
@@ -18,18 +19,20 @@ export async function GET(req: NextRequest) {
   try {
     const supabase = getPrivilegedClient();
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-    let sent = 0;
+    let sent = 0; const pushIds = new Map<number, string[]>(); // who is due a notification today (it goes out only to people who turned notifications on)
     for (const n of REMINDER_DAYS) {
       const day = addDays(today, n);
-      const { data, error } = await supabase.from('clients').select('email, full_name, expiration_date').eq('expiration_date', day).eq('opt_in_reminder', true);
+      const { data, error } = await supabase.from('clients').select('email, full_name, expiration_date, user_id').eq('expiration_date', day).eq('opt_in_reminder', true);
       if (error || !Array.isArray(data)) { console.warn('[Cron] permit reminders lookup failed:', error?.code || 'no code'); continue; }
+      const due = data.map((c: any) => String(c.user_id || '')).filter(Boolean); if (due.length) pushIds.set(n, due);
       for (const c of data) {
         const email = String(c.email || '').trim();
         if (!email) continue;
         if (await sendOnlineEmail(email, buildPermitReminder({ name: c.full_name, expiresOn: day, daysLeft: n }))) sent += 1;
       }
     }
-    return NextResponse.json({ success: true, sent });
+    let pushed = 0; try { pushed = (await sendPermitPushes(supabase, pushIds)).sent; } catch { /* the emails above already went out */ }
+    return NextResponse.json({ success: true, sent, pushed });
   } catch (err: any) {
     console.warn('[Cron] permit reminders:', err?.message);
     return NextResponse.json({ success: false, error: 'Reminder run failed' }, { status: 500 });

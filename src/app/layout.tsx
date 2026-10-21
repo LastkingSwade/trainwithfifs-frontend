@@ -12,6 +12,7 @@ import OnlineAdminPanel from "../online/OnlineAdminPanel";
 import AdminPaymentsPanel from "../portal/AdminPaymentsPanel";
 import AdminMultiStatePanel from "../multistate/AdminMultiStatePanel";
 import AdminTrashPanel from "../portal/AdminTrashPanel";
+import AdminPushPanel from "../portal/AdminPushPanel";
 import WalletPanel from "../portal/WalletPanel";
 import VisitBeacon from "../analytics/VisitBeacon";
 import ServiceWorkerRegister from "../pwa/ServiceWorkerRegister";
@@ -75,6 +76,7 @@ export default function RootLayout({
         <AdminPaymentsPanel />
         <AdminMultiStatePanel />
         <AdminTrashPanel />
+        <AdminPushPanel />
         <WalletPanel />
         <Secrets />
         <ServiceWorkerRegister />
