@@ -59,5 +59,11 @@ const CSS = read('src/design/organic.css');
     const sk = read('src/design/OrganicSkin.tsx'); assert(/'use client'/.test(sk) && /data-boot/.test(sk) && /readyState === 'complete'/.test(sk) && /installOrganic\(\)/.test(sk), 'starts after load and the boot intro');
     const d = read('DESIGN_SYSTEM.md'); for (const w of ['organic', 'data-organic="off"', '--og-r-lg', '--og-edge', '--og-reticle', 'og-s', 'og-pb', 'squircle', 'capsule', 'reticle', 'prefers-reduced-motion', '44px', 'data-organic="skip"']) assert(d.includes(w), 'DESIGN_SYSTEM.md mentions ' + w);
   });
+  await test('the hero background and its dark edge vignette are never given the glass film (it washed the whole home screen grey-blue)', () => {
+    const src = read('src/design/organic.ts');
+    const skip = src.slice(src.indexOf('export const SKIP'), src.indexOf(';', src.indexOf('export const SKIP')));
+    assert(/#hero-landing/.test(skip) && /\.hero-bg-vignette/.test(skip), 'hero layers must be in SKIP');
+    const css = read('src/design/organic.css'); assert(!/\.hero-bg-vignette/.test(css), 'the organic css must not restyle the vignette');
+  });
   console.log(`\nOrganic skin: ${passed} passed, ${failed} failed`); if (failed) process.exit(1);
 })();
