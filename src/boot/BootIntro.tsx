@@ -78,25 +78,8 @@ export default function BootIntro() {
         }, BOOT.glitchMs);
       }, BOOT.holdAfterWelcomeMs);
     };
-    if (resume) {
-      // A returning signed-in person: "Welcome Back Agent", then their own first name as soon as their portal record has arrived (the restore is loading it behind this screen), then the same glitch and CRT.
-      later(() => {
-        setPhase('welcome');
-        later(() => {
-          typeOut(BOOT_WELCOME_BACK, () => BOOT.welcomeMsPerChar, setWelcome, () => {
-            const waitedFrom = Date.now();
-            const addName = () => {
-              const name = nameFromPortals(window as any);
-              if (name) typeOut(' ' + name, () => BOOT.welcomeMsPerChar, setWho, afterWelcome);
-              else if (Date.now() - waitedFrom < BOOT.nameWaitMs) later(addName, BOOT.nameStepMs);
-              else afterWelcome(); // no name arrived (offline or refused): carry on without it
-            };
-            addName();
-          });
-        }, BOOT.clearMs);
-      }, BOOT.resumeBlankMs);
-    } else
-    later(() => {
+    // The normal intro: access granted, loading, then "Welcome Agent".
+    const normal = (delay: number) => later(() => {
       typeOut(accessText, (_c, i) => (i >= BOOT_ACCESS.length ? BOOT.dotMsPerChar : BOOT.accessMsPerChar), setAccess, () => {
         later(() => {
           typeOut(loadingText, () => BOOT.loadingMsPerChar, setLoading, () => {
@@ -111,7 +94,23 @@ export default function BootIntro() {
           });
         }, BOOT.holdAfterAccessMs);
       });
-    }, Math.max(BOOT.blankMs - elapsed, 0));
+    }, delay);
+    if (resume) {
+      // A returning signed-in person: stay blank until their portal record (loading behind this screen) gives their first name, then "Welcome Back Agent <name>", glitch, CRT.
+      // If no name arrives (the saved login was stale or refused, or offline) they were not really signed in, so they get the normal intro instead: never a "welcome back" for a stranger.
+      const waitedFrom = Date.now();
+      const look = () => {
+        const name = nameFromPortals(window as any);
+        if (name) {
+          setPhase('welcome');
+          later(() => typeOut(BOOT_WELCOME_BACK, () => BOOT.welcomeMsPerChar, setWelcome, () => {
+            later(() => typeOut(' ' + name, () => BOOT.welcomeMsPerChar, setWho, afterWelcome), 0);
+          }), BOOT.clearMs);
+        } else if (Date.now() - waitedFrom < BOOT.nameWaitMs) later(look, BOOT.nameStepMs);
+        else normal(0);
+      };
+      later(look, BOOT.resumeBlankMs);
+    } else normal(Math.max(BOOT.blankMs - elapsed, 0));
 
     return () => {
       timers.forEach((t) => window.clearTimeout(t));

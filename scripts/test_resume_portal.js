@@ -14,12 +14,12 @@ const eq = (a, b, m) => assert(JSON.stringify(a) === JSON.stringify(b), `${m || 
 const DAY = 86400000;
 
 // Runs the real gate script in a tiny fake page and returns what it did.
-function gate({ path: p = '/', hash = '', search = '', store = {}, reduced = false, ua = 'Mozilla/5.0 (iPhone)', throws = false } = {}) {
+function gate({ path: p = '/', hash = '', search = '', store = {}, reduced = false, reload = false, ua = 'Mozilla/5.0 (iPhone)', throws = false } = {}) {
   const attrs = {}; const timers = []; const events = [];
   const d = { setAttribute: (k, v) => { attrs[k] = v; }, removeAttribute: (k) => { delete attrs[k]; }, hasAttribute: (k) => k in attrs };
   const keys = Object.keys(store); const ls = { get length() { return keys.length; }, key: (i) => keys[i], getItem: (k) => store[k] };
   const win = { matchMedia: () => ({ matches: reduced }), dispatchEvent: (e) => events.push(e.type), Event: class { constructor(t) { this.type = t; } } };
-  const ctx = { document: { documentElement: d }, location: { pathname: p, hash, search }, navigator: { userAgent: ua }, window: win, matchMedia: win.matchMedia, setTimeout: (f, ms) => { timers.push([f, ms]); return timers.length; }, Event: win.Event, Date, JSON, String, isFinite, RegExp };
+  const ctx = { document: { documentElement: d }, location: { pathname: p, hash, search }, navigator: { userAgent: ua }, window: win, performance: { getEntriesByType: () => [{ type: reload ? 'reload' : 'navigate' }] }, matchMedia: win.matchMedia, setTimeout: (f, ms) => { timers.push([f, ms]); return timers.length; }, Event: win.Event, Date, JSON, String, isFinite, RegExp };
   Object.defineProperty(ctx, 'localStorage', { get() { if (throws) throw new Error('blocked'); return ls; } }); vm.runInNewContext(CFG.BOOT_GATE_SCRIPT, ctx);
   return { attrs, timers, events, fire: () => timers.forEach(([f]) => f()) };
 }
@@ -39,6 +39,10 @@ const store = (v, key = 'sb-abcdefg-auth-token') => ({ [key]: JSON.stringify(v),
     for (const role of ['admin', 'instructor', 'staff', 'ADMIN']) intro({ store: store(session(role, 1)) }); intro({ store: store(session('student', 1, { app_metadata: { role: 'student', is_admin: true } })) });
     intro({ store: store(session('student', 31)) }); intro({ store: store(session('student', -1)) }); intro({ store: store({ ...session('student', 3), access_token: '' }) }); intro({ store: store({ access_token: 't' }) }); intro({ store: store({ ...session('student', 3), user: { app_metadata: {}, last_sign_in_at: 'nonsense' } }) });
     intro({ store: { 'sb-x-auth-token': '{not json' } }); intro({ store: {} }); intro({ store: store(session('student', 3), 'some-other-key') }); intro({ store: store(session('student', 3), 'sb-x-auth-token-code-verifier') }); intro({ store: store(session('student', 3)), throws: true });
+  });
+  await test('a refresh or hard refresh is never a "return": a signed-in person who refreshes gets the normal intro, same as a first-time visitor', () => {
+    eq(gate({ store: store(session('student', 3)), reload: true }).attrs, { 'data-boot': 'on' }); eq(gate({ store: store(session('client', 3)), reload: true }).attrs, { 'data-boot': 'on' });
+    eq(gate({ store: store(session('student', 3)), reload: false }).attrs, { 'data-resume': 'on', 'data-boot': 'on' });
   });
   await test('the saved-login check changes nothing about when the intro is skipped for other reasons: other pages, deep links, reset links, group codes and bots never get either screen', () => {
     for (const o of [{ path: '/reset-password' }, { path: '/missed-the-target' }, { hash: '#enrollment' }, { search: '?code=abc' }, { search: '?gcode=FIFS-POD-AB12' }, { hash: '#access_token=x&type=recovery' }]) eq(gate({ ...o, store: store(session('student', 3)) }).attrs, {}, JSON.stringify(o));
@@ -70,7 +74,7 @@ const store = (v, key = 'sb-abcdefg-auth-token') => ({ [key]: JSON.stringify(v),
   await test('the returning-person intro types "Welcome Back Agent" then the name (as text, in the business colour), waits a bounded time for it, then shares the normal glitch, dissolve and CRT ending', () => {
     const bi = read('src/boot/BootIntro.tsx'), cfg = read('src/boot/bootConfig.ts');
     assert(/BOOT_WELCOME_BACK = 'Welcome Back Agent'/.test(cfg), 'text'); assert(/const resume = root\.hasAttribute\('data-resume'\)/.test(bi) && /typeOut\(BOOT_WELCOME_BACK/.test(bi) && /nameFromPortals\(window/.test(bi), 'wiring');
-    assert(/BOOT\.nameWaitMs/.test(bi) && /else afterWelcome\(\)/.test(bi), 'bounded wait, then carries on without a name'); assert(!/dangerouslySetInnerHTML|innerHTML/.test(bi), 'the name is only ever text');
+    assert(/BOOT\.nameWaitMs/.test(bi) && /else normal\(0\)/.test(bi), 'bounded wait, then the NORMAL intro if no name arrives (a stale login is never welcomed back)'); assert(!/dangerouslySetInnerHTML|innerHTML/.test(bi), 'the name is only ever text');
     assert(/i >= welcome\.length \? ' boot-brand'/.test(bi), 'the name is in the business colour');
   });
   console.log(`\nResume portal: ${passed} passed, ${failed} failed`); if (failed) process.exit(1);

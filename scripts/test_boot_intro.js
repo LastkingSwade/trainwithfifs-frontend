@@ -24,7 +24,7 @@ test('The order is exact: blinking cursor, Access Granted with dots, Loading lin
   // the shared ending (glitch, dissolve, CRT, finish) is one function both versions call, in this order
   const end = ["setPhase('glitch')", "setPhase('dissolve')", "setPhase('crt')", 'finish(BOOT.fadeMs)'];
   at = -1; for (const k of end) { const i = COMP.indexOf(k); assert(i > at, 'ending out of order or missing: ' + k); at = i; }
-  assert((COMP.match(/afterWelcome\(\)/g) || []).length >= 2, 'both the normal and the returning-person intro must end with the shared glitch, dissolve and CRT');
+  assert((COMP.match(/afterWelcome/g) || []).length >= 3, 'both the normal and the returning-person intro must end with the shared glitch, dissolve and CRT');
   assert(/loadingPlain/.test(COMP) && /className="boot-brand"/.test(COMP), 'only the business words get the brand class');
 });
 test('Colours: terminal text is plain light gray; only "Future Initiative Training Grounds" uses the business colour; the background is pure black; no green', () => {
