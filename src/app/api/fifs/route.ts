@@ -10,6 +10,7 @@ import { waiverStatus, saveWaiver } from '@/Lib/server/waivers';
 import { memberThread, memberSend, staffMembers, staffThread, staffSend } from '@/Lib/server/portal-chat';
 import { journalList, addSession, deleteSession, addGoal, setGoalDone, deleteGoal, deleteAll } from '@/Lib/server/range-journal';
 import { armoryList, armorySave, armoryDelete, armoryDeleteAll } from '@/Lib/server/armory';
+import { aiEnabled, askGuide } from '@/Lib/server/ai-guide';
 import { createBalanceCheckout } from '@/Lib/server/balance-checkout';
 import { scoresheetLock } from '@/Lib/server/scoresheet-lock';
 import { quizAnswer, quizToday } from '@/Lib/server/quiz-progress';
@@ -3297,6 +3298,19 @@ export async function POST(req: NextRequest) {
          : await armoryDeleteAll(supabase, uid);
        const noStore = { 'Cache-Control': 'no-store' };   // decrypted records are never cached by the browser or the network
        return res.ok ? NextResponse.json({ success: true, ...res }, { headers: noStore }) : NextResponse.json({ success: false, error: res.message }, { status: res.status, headers: noStore });
+     }
+
+     case 'aiGuideStatus':
+     case 'aiGuideAsk': {
+       // The FIFS Guide, for signed-in students and clients only. The member is the verified login. Only the typed question and a few earlier turns go to the AI provider: no name, email, id or record.
+       // Legal questions never reach the provider. Nothing is stored or logged. Answers are never cached.
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user?.id) return NextResponse.json({ success: false, error: 'Please sign in to your portal to use the FIFS Guide.' }, { status: 401 });
+       const noStore = { 'Cache-Control': 'no-store' };
+       if (action === 'aiGuideStatus') return NextResponse.json({ success: true, enabled: aiEnabled() }, { headers: noStore });
+       if (!allowPublicSubmit(req, 'aiguide', 20)) return NextResponse.json({ success: false, error: 'You are asking very quickly. Please wait a minute and try again.' }, { status: 429, headers: noStore });
+       const g = await askGuide(getPrivilegedClient(), String(user.id), { question: payload.question, history: payload.history });
+       return g.ok ? NextResponse.json({ success: true, answer: g.answer, sources: g.sources, redirected: g.redirected === true }, { headers: noStore }) : NextResponse.json({ success: false, error: g.message }, { status: g.status, headers: noStore });
      }
 
      // Website telemetry (staff only): the last 30 days of anonymous page loads, from the table made by scripts/sql/20261012_site_visits.sql.

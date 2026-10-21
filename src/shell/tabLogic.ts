@@ -18,6 +18,7 @@ export interface HubItem { key: string; emoji: string; label: string; hint: stri
 /** What the Hub menu offers. Every item opens something that already exists in the portals. */
 export const HUB_ITEMS: readonly HubItem[] = [
   { key: 'chat', emoji: '💬', label: 'Chat with me', hint: 'Message your instructor', scrollTo: 'chat', roles: ['student', 'client'] },
+  { key: 'guide', emoji: '🤖', label: 'Ask the FIFS Guide', hint: 'Quick answers about classes and your portal', call: 'openAiGuide', roles: ['student', 'client'] },
   { key: 'book', emoji: '📅', label: 'Book a class', hint: 'See dates and reserve a seat', call: 'openAndSwitch', arg: 'booking', roles: ['student', 'client'] },
   { key: 'permit', emoji: '🛡️', label: 'Permit & renewal', hint: 'Your permit date and renewal window', call: 'openPermitRenewalModal', roles: ['client'] },
   { key: 'profile', emoji: '👤', label: 'My profile', hint: 'Your details and reminder choices', call: 'openClientProfileModal', roles: ['client'] },

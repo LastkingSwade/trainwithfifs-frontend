@@ -16,6 +16,7 @@ import AdminPushPanel from "../portal/AdminPushPanel";
 import WalletPanel from "../portal/WalletPanel";
 import RangeJournalPanel from "../portal/RangeJournalPanel";
 import ArmoryPanel from "../portal/ArmoryPanel";
+import AiGuidePanel from "../portal/AiGuidePanel";
 import VisitBeacon from "../analytics/VisitBeacon";
 import ServiceWorkerRegister from "../pwa/ServiceWorkerRegister";
 import RestoreSession from "../portal/RestoreSession";
@@ -84,6 +85,7 @@ export default function RootLayout({
         <WalletPanel />
         <RangeJournalPanel />
         <ArmoryPanel />
+        <AiGuidePanel />
         <Secrets />
         <OrganicSkin />
         <ServiceWorkerRegister />

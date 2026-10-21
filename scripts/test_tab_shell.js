@@ -27,10 +27,10 @@ const eq = (a, b, m) => assert(JSON.stringify(a) === JSON.stringify(b), `${m || 
   console.log('\n[The Hub menu]');
   await test('the Hub offers what each person can really use: clients get permit and profile, everyone gets chat, booking, the reciprocity hub, travel pages and a call link', () => {
     const s = T.hubItemsFor('student').map((i) => i.key), c = T.hubItemsFor('client').map((i) => i.key);
-    for (const k of ['chat', 'book', 'recip', 'drive', 'fly', 'call']) assert(s.includes(k) && c.includes(k), k); assert(!s.includes('permit') && !s.includes('profile'), 'students do not get the permit and client profile items'); assert(c.includes('permit') && c.includes('profile'), 'clients do');
+    for (const k of ['chat', 'guide', 'book', 'recip', 'drive', 'fly', 'call']) assert(s.includes(k) && c.includes(k), k); assert(!s.includes('permit') && !s.includes('profile'), 'students do not get the permit and client profile items'); assert(c.includes('permit') && c.includes('profile'), 'clients do');
   });
   await test('every Hub item opens something: a function the page really defines, a chat scroll, or a call link, and a call link is a real phone number', () => {
-    const script = read('public/scripts/TrainWithFIFS_scripts.js') + read('src/app/page.tsx');
+    const script = read('public/scripts/TrainWithFIFS_scripts.js') + read('src/app/page.tsx') + read('src/portal/AiGuidePanel.tsx');
     for (const it of T.HUB_ITEMS) { assert(it.call || it.scrollTo || it.href, it.key + ' does nothing'); if (it.call) assert(new RegExp('window( as any\\))?\\.' + it.call + '\\s*=|function ' + it.call + '\\b').test(script), it.call + ' is not defined by the page'); if (it.href) assert(/^tel:\+1\d{10}$/.test(it.href), 'phone link'); if (it.label) assert(it.label.length > 3 && it.hint.length > 3, 'labels'); }
     eq(new Set(T.HUB_ITEMS.map((i) => i.key)).size, T.HUB_ITEMS.length, 'no duplicate keys');
   });

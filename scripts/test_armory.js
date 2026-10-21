@@ -116,7 +116,7 @@ const walk = (d) => fs.readdirSync(path.join(ROOT, d), { withFileTypes: true }).
     for (const f of ['src/Lib/server/push.ts', 'src/Lib/server/push-logic.ts', 'src/Lib/server/discord.ts', 'src/Lib/server/portal-chat.ts', 'src/Lib/server/site-visits.ts', 'src/analytics/VisitBeacon.tsx']) assert(!/armory/i.test(read(f)), f + ' must not mention the armory');
   });
   await test('the route: the owner is always the verified login, there is no staff path, saves are rate limited, and no request field names an owner', () => {
-    const r = read('src/app/api/fifs/route.ts'); const i = r.indexOf("case 'armoryList':"); assert(i > 0, 'actions exist'); const seg = r.slice(i, r.indexOf('// Website telemetry (staff only)', i));
+    const r = read('src/app/api/fifs/route.ts'); const i = r.indexOf("case 'armoryList':"); assert(i > 0, 'actions exist'); const seg = r.slice(i, r.indexOf("case 'aiGuideStatus':", i));
     assert(/getAuthenticatedUser\(req\)/.test(seg) && /const uid = String\(user\.id\)/.test(seg) && /allowPublicSubmit\(req, 'armory', 40\)/.test(seg), 'login, owner, limit'); assert(!/payload\??\.(userId|user_id|ownerId|memberId)/.test(seg) && !/isStaffOrAdmin/.test(seg), 'no owner from the request, no staff route');
     for (const a of ['armoryList', 'armorySave', 'armoryDelete', 'armoryDeleteAll']) assert(new RegExp(`case '${a}':`).test(seg), a); assert((seg.match(/'Cache-Control': 'no-store'/g) || []).length === 1 && /headers: noStore/.test(seg), 'answers carrying records are never cached');
   });

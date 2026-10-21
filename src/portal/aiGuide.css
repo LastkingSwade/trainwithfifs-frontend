@@ -1,0 +1,22 @@
+/* FIFS Guide window: extends the Range Journal / Armory look (dark navy, cyan hairlines, amber for the main action). 44px+ controls, 16px field text, visible focus, no animation. */
+.ai-log { list-style: none; margin: 0 0 12px; padding: 10px; min-height: 160px; max-height: 46vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; border-radius: 12px; background: #070b10; border: 1px solid rgba(255, 255, 255, 0.08); }
+.ai-hello p { margin: 0 0 8px; color: #d3e9f8; }
+.ai-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ai-chip { min-height: 44px; padding: 8px 14px; border-radius: 999px; cursor: pointer; text-align: left; font: inherit; font-weight: 700; color: #d9f4ff; background: rgba(0, 229, 255, 0.06); border: 1px solid rgba(0, 229, 255, 0.5); }
+.ai-chip:disabled { opacity: 0.5; cursor: default; }
+.ai-turn { max-width: 90%; padding: 9px 12px; border-radius: 14px; line-height: 1.45; }
+.ai-turn p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: #f8fafc; }
+.ai-turn.mine { align-self: flex-end; background: rgba(0, 229, 255, 0.14); border: 1px solid rgba(0, 229, 255, 0.45); }
+.ai-turn.guide { align-self: flex-start; background: rgba(255, 183, 3, 0.1); border: 1px solid rgba(255, 183, 3, 0.45); }
+.ai-who { display: block; margin-bottom: 2px; font-size: 0.78rem; font-weight: 800; color: #cbd5e1; }
+.ai-turn.mine .ai-who { color: #00e5ff; }
+.ai-turn.guide .ai-who { color: #ffb703; }
+.ai-src { margin-top: 6px !important; font-size: 0.82rem; color: #9fb8cc !important; }
+.ai-src a { display: inline-flex; align-items: center; min-height: 44px; color: #00e5ff; font-weight: 700; }
+.ai-form { display: flex; flex-direction: column; gap: 6px; }
+.ai-form label { font-size: 0.85rem; font-weight: 700; color: #cbe6f5; }
+.ai-form textarea { min-height: 44px; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.25); background: #070b10; color: #fff; font: inherit; font-size: 16px; resize: vertical; }
+.ai-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.ai-count { font-size: 0.78rem; color: #9fb8cc; }
+.ai-fine { margin: 10px 0 0; font-size: 0.8rem; color: #9fb8cc; }
+.ai ol:focus-visible, .ai-chip:focus-visible, .ai-form textarea:focus-visible, .ai-src a:focus-visible { outline: 3px solid #00e5ff; outline-offset: 2px; }
