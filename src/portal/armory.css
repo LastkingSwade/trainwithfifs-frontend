@@ -1,0 +1,24 @@
+/* Armory: extends the Range Journal look (rangeJournal.css): dark navy, cyan hairlines, amber for the main actions. 44px+ controls, 16px field text, visible focus, no animation. */
+.ar-soon { padding: 16px; border-radius: 16px; border: 1px solid rgba(255, 183, 3, 0.6); background: rgba(255, 183, 3, 0.07); }
+.ar-soon h3 { margin: 0 0 8px; color: #ffb703; }
+.ar-soon p { margin: 0; line-height: 1.5; }
+.ar-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 14px; }
+.ar-bar input[type="search"] { flex: 1 1 220px; min-height: 44px; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.25); background: #070b10; color: #fff; font: inherit; font-size: 16px; }
+.ar-grid { list-style: none; margin: 0 0 14px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.ar-card { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(0, 229, 255, 0.3); }
+.ar-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ar-top h3 { margin: 0; flex: 1 1 120px; font-size: 1.1rem; color: #fff; overflow-wrap: anywhere; }
+.ar-ico { font-size: 1.5rem; }
+.ar-desc { margin: 0; color: #d3e9f8; overflow-wrap: anywhere; }
+.ar-serial { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; color: #9fb8cc; }
+.ar-serial b { color: #ffd166; letter-spacing: 0.08em; overflow-wrap: anywhere; }
+.ar-meta { margin: 0; font-size: 0.88rem; color: #9fb8cc; }
+.ar-notes { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: #d3e9f8; font-size: 0.92rem; }
+.ar-actions { display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 6px; flex-wrap: wrap; }
+.ar-form h3 { margin: 0 0 8px; }
+.ar-sub { margin: 16px 0 8px; font-size: 1.05rem; }
+.ar-maint { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+.ar-maint select, .ar-form select { min-height: 44px; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.25); background: #070b10; color: #fff; font: inherit; font-size: 16px; }
+.ar-formactions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.ar-card .rj-ghost { min-height: 44px; }
+.ar input[type="search"]:focus-visible, .ar select:focus-visible { outline: 3px solid #00e5ff; outline-offset: 2px; }

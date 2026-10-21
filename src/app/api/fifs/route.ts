@@ -9,6 +9,7 @@ import { sendInvoice, payInfo, invoiceCheckout } from '@/Lib/server/sent-invoice
 import { waiverStatus, saveWaiver } from '@/Lib/server/waivers';
 import { memberThread, memberSend, staffMembers, staffThread, staffSend } from '@/Lib/server/portal-chat';
 import { journalList, addSession, deleteSession, addGoal, setGoalDone, deleteGoal, deleteAll } from '@/Lib/server/range-journal';
+import { armoryList, armorySave, armoryDelete, armoryDeleteAll } from '@/Lib/server/armory';
 import { createBalanceCheckout } from '@/Lib/server/balance-checkout';
 import { scoresheetLock } from '@/Lib/server/scoresheet-lock';
 import { quizAnswer, quizToday } from '@/Lib/server/quiz-progress';
@@ -3279,6 +3280,23 @@ export async function POST(req: NextRequest) {
          : action === 'journalDeleteGoal' ? await deleteGoal(supabase, uid, payload.id)
          : await deleteAll(supabase, uid);
        return res.ok ? NextResponse.json({ success: true, ...res }) : NextResponse.json({ success: false, error: res.message }, { status: res.status });
+     }
+
+     case 'armoryList':
+     case 'armorySave':
+     case 'armoryDelete':
+     case 'armoryDeleteAll': {
+       // A student's or client's own private, encrypted Armory. The owner is the verified login, never anything from the request; there is no staff route to these records. Nothing here is logged.
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user?.id) return NextResponse.json({ success: false, error: 'Please sign in to your portal to use the armory.' }, { status: 401 });
+       supabase = getPrivilegedClient(); const uid = String(user.id);
+       if (action !== 'armoryList' && !allowPublicSubmit(req, 'armory', 40)) return NextResponse.json({ success: false, error: 'You are saving very quickly. Please wait a minute and try again.' }, { status: 429 });
+       const res: any = action === 'armoryList' ? await armoryList(supabase, uid)
+         : action === 'armorySave' ? await armorySave(supabase, uid, { id: payload.id, nickname: payload.nickname, type: payload.type, make: payload.make, model: payload.model, caliber: payload.caliber, serial: payload.serial, purchasedOn: payload.purchasedOn, price: payload.price, notes: payload.notes, maintenance: payload.maintenance })
+         : action === 'armoryDelete' ? await armoryDelete(supabase, uid, payload.id)
+         : await armoryDeleteAll(supabase, uid);
+       const noStore = { 'Cache-Control': 'no-store' };   // decrypted records are never cached by the browser or the network
+       return res.ok ? NextResponse.json({ success: true, ...res }, { headers: noStore }) : NextResponse.json({ success: false, error: res.message }, { status: res.status, headers: noStore });
      }
 
      // Website telemetry (staff only): the last 30 days of anonymous page loads, from the table made by scripts/sql/20261012_site_visits.sql.

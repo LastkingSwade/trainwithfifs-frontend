@@ -47,9 +47,9 @@ export function installTabShell(): void {
     if (key !== 'hub' && key !== 'armory') closeSheet();
     if (key === 'home') { w.closeWallet?.(); document.querySelectorAll<HTMLElement>('.vault-close, .rj-close').forEach((b) => b.click()); window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); return; }
     if (key === 'wallet') { document.querySelectorAll<HTMLElement>('.rj-close').forEach((b) => b.click()); w.openWallet?.(); return; }
-    if (key === 'range') { document.querySelectorAll<HTMLElement>('.vault-close').forEach((b) => b.click()); w.openRangeJournal?.(); return; }
+    if (key === 'range') { document.querySelectorAll<HTMLElement>('.vault-close, .ar-overlay .rj-close').forEach((b) => b.click()); w.openRangeJournal?.(); return; }
     if (key === 'hub') { if (sheetKind === 'hub') closeSheet(); else openSheet('hub'); return; }
-    if (key === 'armory') { if (sheetKind === 'armory') closeSheet(); else openSheet('armory'); }
+    if (key === 'armory') { if (typeof w.openArmory === 'function') { closeSheet(); document.querySelectorAll<HTMLElement>('.vault-close, .rj-overlay:not(.ar-overlay) .rj-close').forEach((b) => b.click()); w.openArmory(); } else if (sheetKind === 'armory') closeSheet(); else openSheet('armory'); }
   }
 
   function refresh() {
@@ -59,7 +59,7 @@ export function installTabShell(): void {
     if (on) {
       const header = document.querySelector<HTMLElement>('.app-header'); const hb = header ? Math.max(0, Math.round(header.getBoundingClientRect().bottom)) : 0;
       document.documentElement.style.setProperty('--fts-rail-top', Math.min(hb, 160) + 'px');
-      const active = currentTab({ journalOpen: !!document.querySelector('.rj-overlay'), walletOpen: !!document.querySelector('.vault-overlay'), hubOpen: sheetKind === 'hub', armoryOpen: sheetKind === 'armory' });
+      const active = currentTab({ journalOpen: !!document.querySelector('.rj-overlay:not(.ar-overlay)'), walletOpen: !!document.querySelector('.vault-overlay'), hubOpen: sheetKind === 'hub', armoryOpen: sheetKind === 'armory' || !!document.querySelector('.ar-overlay') });
       buttons.forEach((b, k) => { if (k === active) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     }
   }
