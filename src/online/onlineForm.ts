@@ -127,7 +127,9 @@ export function installOnlineForm(): void {
   calendarWatcher.observe(document.body, watchOptions);
 
   // Run our part after the page's own price display, whichever copy of it is live.
-  w.updateFormPriceDisplay = function (...args: unknown[]) { const r = typeof origUpdate === 'function' ? origUpdate.apply(this, args) : undefined; loadModes(); render(); return r; };
+  w.updateFormPriceDisplay = function (...args: unknown[]) { const r = typeof origUpdate === 'function' ? origUpdate.apply(this, args) : undefined; loadModes(); render(); if (typeof w.fifsFormSliderRefresh === 'function') w.fifsFormSliderRefresh(); return r; };
+  // The booking form's pay-more slider asks for the price at a chosen share paid today; it is the server's own function, for the current course, group size and delivery.
+  w.fifsFormPricing = (percent: number, reward = 0) => calculatePricingBreakdown(courseValue(), attendees(), false, state.on && available() ? 'live_online' : 'in_person', reward, percent);
 
   // The review step reads this: it must carry the fee so the totals match what the server will charge.
   const origCalc = w.calculateComprehensiveInvoice;

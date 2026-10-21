@@ -26,7 +26,7 @@ const RANGE_FEE_PER_PERSON = 45.00;
 const MD_SALES_TAX_RATE = 0.06;
 /** The smallest share of the total a customer may pay up front (they may choose anything from this up to 100%). */
 export const MIN_DEPOSIT_PERCENT = 30;
-/** Extra off tuition for a class of 2 or more when the customer pays 100% when they book. */
+/** Extra off tuition (any class size) when the customer pays 100% when they book. */
 export const PAY_IN_FULL_BONUS = 0.05;
 
 /** A chosen deposit percentage as a whole number from 30 to 100; anything missing, odd or below 30 becomes 30. */
@@ -106,7 +106,7 @@ export function calculatePricingBreakdown(courseSelection: string, attendees: nu
   // The Daily Range Quiz reward (a fraction of TUITION, set by the server from the signed-in client's own record; never the range fee or the tax). Only ever applied to a single renewal booking.
   const safeReward = Number.isFinite(rewardFraction) && rewardFraction > 0 && rewardFraction <= 0.3 && attendees === 1 ? rewardFraction : 0;
   const rewardCents = Math.round(rawTuitionCents * safeReward);
-  const fullPayBonusCents = payFull && attendees >= 2 ? Math.round(rawTuitionCents * PAY_IN_FULL_BONUS) : 0;
+  const fullPayBonusCents = payFull ? Math.round(rawTuitionCents * PAY_IN_FULL_BONUS) : 0;
   const discountCents = Math.round(rawTuitionCents * discountPercent) + rewardCents + fullPayBonusCents;
   const discountedTuitionCents = rawTuitionCents - discountCents;
   // Range lane fee: $45.00 per person on the Base track, included for VIP

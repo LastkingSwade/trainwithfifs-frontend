@@ -11319,13 +11319,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   <strong>Total Course Investment:</strong>
                   <strong id="formBreakdownTotal" style={{"color": "var(--accent-cyan)", "fontFamily": "var(--font-display)", "fontSize": "1.15rem"}}>$498.19</strong>
                 </div>
-                <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "fontSize": "1.05rem", "background": "rgba(245, 158, 11, 0.16)", "padding": "8px 12px", "borderRadius": "8px", "border": "1px solid rgba(245, 158, 11, 0.4)"}}>
-                  <strong style={{"color": "#f59e0b"}}>⚡ Required 30% Deposit (Due Now to Reserve Seat):</strong>
+                <div id="formBreakdownDepositRow" style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "fontSize": "1.05rem", "background": "rgba(245, 158, 11, 0.16)", "padding": "8px 12px", "borderRadius": "8px", "border": "1px solid rgba(245, 158, 11, 0.4)"}}>
+                  <strong id="formBreakdownDepositLabel" style={{"color": "#f59e0b"}}>⚡ Required 30% Deposit (Due Now to Reserve Seat):</strong>
                   <strong id="formBreakdownDeposit" style={{"color": "#f59e0b", "fontFamily": "var(--font-display)", "fontSize": "1.3rem", "letterSpacing": "0.5px"}}>$149.46</strong>
                 </div>
                 <div style={{"textAlign": "right", "fontSize": "0.76rem", "color": "var(--text-muted)", "marginTop": "6px"}}>
                   Remaining balance (<span id="formBreakdownBalance" style={{"color": "#cbd5e1", "fontWeight": "600"}}>$348.73</span>) due upon class arrival.
                 </div>
+                <div id="formPaySlider" className="pp-form"></div>
               </div>
             </div>
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "14px"}}>

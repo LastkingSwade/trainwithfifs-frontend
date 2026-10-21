@@ -33,7 +33,7 @@ function memDb(seed = {}) {
     assert(pr.ONLINE_PREMIUM_RATE === 0.20);
     const table = { 'Maryland Multi-State Mastery': [509.99, 713.99], 'Maryland CCW & HQL Combo': [299.99, 419.99], 'Maryland Wear & Carry (CCW)': [239.99, 335.99], 'Maryland Wear & Carry (8-Hour Renewal)': [179.99, 251.99], 'Maryland HQL (Purchase License)': [120.0, 168.0] };
     for (const [name, [std, vip]] of Object.entries(table)) for (const [label, want, track] of [['std', std, ''], ['vip', vip, ' — VIP Turnkey']]) {
-      const p = pr.calculatePricingBreakdown(name + track, 1, true, 'live_online');
+      const p = pr.calculatePricingBreakdown(name + track, 1, false, 'live_online');
       assert(p.delivery === 'live_online' && Math.round((p.discountedTuition + p.remoteFee) * 100) === Math.round(want * 100), `${name} ${label}: ${p.discountedTuition} + ${p.remoteFee} != ${want}`);
     }
   });

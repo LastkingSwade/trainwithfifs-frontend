@@ -135,3 +135,16 @@ html[data-hud] .hud-chat::after { display: none !important; }
 .pp-slide{display:flex;align-items:center;gap:10px;margin:2px 0 12px;color:#fbbf24;font-weight:800;font-size:.82rem}
 .pp-slide input[type=range]{flex:1;min-height:44px;accent-color:#f59e0b;cursor:pointer}
 .pp-slide input[type=range]:focus-visible{outline:3px solid #00e5ff;outline-offset:2px}
+
+/* Pay-more slider: the track and the amounts shift from amber (30%) to cyan (100%) */
+.pp-slide input[type=range].pp-range{-webkit-appearance:none;appearance:none;height:44px;background:transparent;accent-color:var(--pp-shade,#f59e0b)}
+.pp-range::-webkit-slider-runnable-track{height:10px;border-radius:999px;background:linear-gradient(90deg,#f59e0b 0%,var(--pp-shade,#f59e0b) var(--pp-fill,0%),rgba(148,163,184,.25) var(--pp-fill,0%))}
+.pp-range::-moz-range-track{height:10px;border-radius:999px;background:linear-gradient(90deg,#f59e0b 0%,var(--pp-shade,#f59e0b) var(--pp-fill,0%),rgba(148,163,184,.25) var(--pp-fill,0%))}
+.pp-range::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;margin-top:-8px;border-radius:50%;background:var(--pp-shade,#f59e0b);border:3px solid #0a0f16;box-shadow:0 0 0 2px var(--pp-shade,#f59e0b),0 0 14px var(--pp-shade,#f59e0b)}
+.pp-range::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--pp-shade,#f59e0b);border:3px solid #0a0f16;box-shadow:0 0 0 2px var(--pp-shade,#f59e0b)}
+.pp{border-color:var(--pp-shade,rgba(245,158,11,.45))}
+.pp-form{margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.15)}
+.pp-form-h{color:#fbbf24;font-weight:800;font-size:.86rem}
+.pp-form-note{color:#6ee7b7;font-size:.8rem;margin-top:2px}
+#formBreakdownDepositRow{transition:border-color .2s ease}
+@media (prefers-reduced-motion:reduce){#formBreakdownDepositRow{transition:none}}
