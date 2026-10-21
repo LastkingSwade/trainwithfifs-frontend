@@ -1,5 +1,5 @@
 // Admin Hub > Live Chat Command: the members who have push notifications on (students and clients), and a direct chat with each one.
-// Staff see only what the server sends for this list. Message text is written with textContent only. A reply is sent as Coach Kai.
+// Staff see only what the server sends for this list. Message text is written with textContent only. A reply is sent as Kai.
 import { type ChatMsg, renderLog, callApi, describeError, panelVisible } from './portalChat';
 const w: any = typeof window === 'undefined' ? {} : window;
 interface MemberRow { userId: string; name: string; role: 'student' | 'client'; devices: number; unread: number; lastAt: string | null }
@@ -24,7 +24,7 @@ export function installAdminPortalChat(): void {
   const log = document.createElement('ol'); log.className = 'amc-log pc-log'; log.setAttribute('role', 'log'); log.setAttribute('aria-live', 'polite'); log.setAttribute('aria-relevant', 'additions'); log.setAttribute('aria-labelledby', 'amc-pane-title-id');
   paneTitle.id = 'amc-pane-title-id';
   const form = document.createElement('form'); form.className = 'amc-form'; form.noValidate = true;
-  const box = document.createElement('textarea'); box.className = 'pc-input'; box.rows = 2; box.maxLength = MAX; box.placeholder = 'Write a reply. It is sent as Coach Kai.'; box.setAttribute('aria-label', 'Reply to this member'); box.disabled = true;
+  const box = document.createElement('textarea'); box.className = 'pc-input'; box.rows = 2; box.maxLength = MAX; box.placeholder = 'Write a reply. It is sent as Kai.'; box.setAttribute('aria-label', 'Reply to this member'); box.disabled = true;
   const row = document.createElement('div'); row.className = 'pc-row';
   const status = document.createElement('p'); status.className = 'amc-status'; status.setAttribute('role', 'status');
   const send = document.createElement('button'); send.type = 'submit'; send.className = 'pc-send'; send.textContent = '✉️ Send reply'; send.disabled = true;

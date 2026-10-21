@@ -17,7 +17,7 @@ export function bubble(m: ChatMsg, viewer: Viewer): HTMLElement {
   const mine = (viewer === 'member') === (m.sender === 'member');
   const li = document.createElement('li'); li.className = 'pc-msg ' + (mine ? 'pc-mine' : 'pc-theirs'); li.dataset.id = m.id;
   const who = document.createElement('span'); who.className = 'pc-who';
-  who.textContent = mine ? (viewer === 'member' ? 'You' : 'Coach Kai') : (viewer === 'member' ? '🛡️ Coach Kai' : '🎓 Member');
+  who.textContent = mine ? (viewer === 'member' ? 'You' : 'Kai') : (viewer === 'member' ? '🛡️ Kai' : '🎓 Member');
   const body = document.createElement('div'); body.className = 'pc-body'; body.textContent = m.body;
   const when = document.createElement('time'); when.className = 'pc-time'; when.dateTime = m.at; when.textContent = timeLabel(m.at) + (mine && m.read ? ' · ✓✓ read' : '');
   li.append(who, body, when);
@@ -36,19 +36,19 @@ export function renderLog(log: HTMLElement, msgs: ChatMsg[], viewer: Viewer, emp
 export function describeError(e: any): string { return String((e && (e.message || e.error)) || 'Something went wrong. Please try again.'); }
 export const callApi = (action: string, payload: Record<string, unknown>): Promise<any> => (typeof w.callFifsBackend === 'function' ? w.callFifsBackend(action, payload) : Promise.reject(new Error('The site is still loading. Please try again in a moment.')));
 /** Is the portal panel this chat sits in on screen? (The chat area itself starts hidden until it has loaded, so its own size cannot tell us.) */
-export const panelVisible = (el: HTMLElement): boolean => { const p = el.closest('[id$="subpanel-chat"], section') as HTMLElement | null; return !!p && p.offsetParent !== null; };
+export const panelVisible = (el: HTMLElement): boolean => { const p = (el.closest('[id$="subpanel-chat"]') || el.parentElement) as HTMLElement | null; return !!p && p.offsetParent !== null; };
 
 /** Builds one portal's chat area inside its host. Returns a tick the installer calls. */
 function build(host: HTMLElement): { tick(): void } {
   const viewer: Viewer = 'member';
   const head = document.createElement('div'); head.className = 'pc-head';
-  const title = document.createElement('h3'); title.className = 'pc-title'; title.id = host.dataset.portalChat + '-chat-title'; title.textContent = '💬 Chat with Coach Kai';
+  const title = document.createElement('h3'); title.className = 'pc-title'; title.id = host.dataset.portalChat + '-chat-title'; title.textContent = '💬 Chat with me';
   const sub = document.createElement('p'); sub.className = 'pc-sub'; sub.textContent = 'Your private line to your instructor. Your messages stay in this chat, so you never need to type your name or number.';
   head.append(title, sub);
   const log = document.createElement('ol'); log.className = 'pc-log'; log.setAttribute('role', 'log'); log.setAttribute('aria-live', 'polite'); log.setAttribute('aria-relevant', 'additions'); log.setAttribute('aria-labelledby', title.id);
   const err = document.createElement('p'); err.className = 'pc-err'; err.setAttribute('role', 'alert'); err.hidden = true;
   const form = document.createElement('form'); form.className = 'pc-form'; form.noValidate = true;
-  const label = document.createElement('label'); label.className = 'pc-label'; label.htmlFor = host.dataset.portalChat + '-chat-text'; label.textContent = 'Message Coach Kai';
+  const label = document.createElement('label'); label.className = 'pc-label'; label.htmlFor = host.dataset.portalChat + '-chat-text'; label.textContent = 'Message me';
   const box = document.createElement('textarea'); box.id = label.htmlFor; box.className = 'pc-input'; box.rows = 2; box.maxLength = MAX; box.placeholder = 'Ask about your class, your permit or what to bring…';
   const row = document.createElement('div'); row.className = 'pc-row';
   const count = document.createElement('span'); count.className = 'pc-count'; count.setAttribute('aria-live', 'off');

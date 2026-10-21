@@ -4689,7 +4689,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
         {/* VIEW 1: AUTHENTICATED STUDENT DASHBOARD */}
         <section className="panel hidden" id="view-portal" role="tabpanel">
           {/* Portal chat with the instructor (src/portal/portalChat.ts). Shown only when signed in as a student. */}
-          <div className="portal-chat-host" data-portal-chat="student" hidden></div>
           {/* PWA Mobile Home Screen Callout Banner */}
           <div className="pwa-install-banner" id="pwaStudentBanner" style={{"background": "linear-gradient(135deg, rgba(0, 229, 255, 0.08) 0%, rgba(16, 22, 31, 0.95) 100%)", "border": "1px solid rgba(0, 229, 255, 0.35)", "borderRadius": "12px", "padding": "14px 18px", "marginBottom": "20px", "display": "flex", "justifyContent": "space-between", "alignItems": "center", "flexWrap": "wrap", "gap": "12px"}}>
             <div style={{"display": "flex", "alignItems": "center", "gap": "12px"}}>
@@ -4776,6 +4775,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
           {/* ACTIVE STUDENT DASHBOARD */}
           <div className="hidden" id="student-active-dashboard">
+            {/* Chat with me (src/portal/portalChat.ts). Lives inside the signed-in dashboard only. */}
+            <div className="portal-chat-host" data-portal-chat="student" hidden></div>
             <div className="student-badge-bar">
               <div className="student-meta-group">
                 <h2>
@@ -5231,7 +5232,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
         <section className="panel hidden" id="view-fi-portal" style={{"display": "none"}}>
           <div className="fi-portal-container">
             {/* Portal chat with the instructor (src/portal/portalChat.ts). Shown only when signed in as a client. */}
-            <div className="portal-chat-host" data-portal-chat="client" hidden></div>
             {/* ================= CLIENT PORTAL AUTHENTICATION HUB ================= */}
             <div id="client-auth-box" style={{"marginBottom": "30px"}}>
               <div className="panel-header" style={{"textAlign": "center", "borderLeft": "none", "marginBottom": "24px"}}>
@@ -5434,6 +5434,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             {/* ================= CLIENT ACTIVE DASHBOARD (HIDDEN UNTIL LOGIN) ================= */}
             <div id="client-active-dashboard" style={{"display": "none"}}>
+              {/* Chat with me (src/portal/portalChat.ts). Lives inside the signed-in dashboard only. */}
+              <div className="portal-chat-host" data-portal-chat="client" hidden></div>
               <div className="student-badge-bar" style={{"borderColor": "rgba(255, 183, 3, 0.4)", "marginBottom": "24px"}}>
                 <div>
                   <h2>

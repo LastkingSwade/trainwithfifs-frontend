@@ -4,7 +4,7 @@
 import { sendToUsers, notifyStaff } from './push';
 import { withinSendWindow, URL_FOR, type PersonRole } from './push-logic';
 
-export const CHAT_MAX = 1000, KEEP_DAYS = 365, THREAD_LIMIT = 200, INSTRUCTOR = 'Coach Kai';
+export const CHAT_MAX = 1000, KEEP_DAYS = 365, THREAD_LIMIT = 200, INSTRUCTOR = 'Kai';
 const DAY = 86400000;
 const likeEscape = (v: string) => v.replace(/[\\%_]/g, (c) => '\\' + c);
 
@@ -123,7 +123,7 @@ export async function staffSend(sb: any, memberUserId: string, input: unknown, n
   return { ok: true, message: shape(ins.data), pushed, held: !withinSendWindow(now) };
 }
 
-export const chatPayload = (role: PersonRole) => ({ title: '💬 New message from Coach Kai', body: 'Open your portal to read it.', url: URL_FOR[role], tag: 'portal-chat', topic: 'news' as const });
+export const chatPayload = (role: PersonRole) => ({ title: '💬 New message from Kai', body: 'Open your portal to read it.', url: URL_FOR[role], tag: 'portal-chat', topic: 'news' as const });
 
 /** The daily job: one generic nudge per member who has an unnotified staff message. Also removes messages older than 12 months. Never sends outside the send window. */
 export async function sendChatNudges(sb: any, now: Date = new Date()): Promise<{ nudged: number; purged: boolean }> {

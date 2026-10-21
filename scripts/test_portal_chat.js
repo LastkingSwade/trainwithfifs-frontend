@@ -116,7 +116,7 @@ const base = () => ({
   console.log('\n[Daily job: nudges and 12-month cleanup]');
   await test('inside the window: one generic nudge per member with an unnotified reply, then marked notified', async () => {
     const db = fakeDb(base()); db.t.portal_messages.push({ id: 'p9', member_user_id: A, sender: 'staff', body: 'Held reply', created_at: '2026-10-25T23:00:00Z', read_at: null, notified_at: null });
-    const r = await C.sendChatNudges(db, NOON); eq(r.nudged, 1); eq(pushCalls.length, 1); eq(pushCalls[0].ids, [A]); eq(pushCalls[0].payload.title, '💬 New message from Coach Kai');
+    const r = await C.sendChatNudges(db, NOON); eq(r.nudged, 1); eq(pushCalls.length, 1); eq(pushCalls[0].ids, [A]); eq(pushCalls[0].payload.title, '💬 New message from Kai');
     assert(db.t.portal_messages.find((m) => m.id === 'p9').notified_at, 'notified');
   });
   await test('outside the window: no nudge, but old messages are still cleared', async () => {
@@ -184,5 +184,20 @@ const base = () => ({
     const m = read('src/portal/portalChat.ts'); assert(/e\.key === 'Enter' && !e\.shiftKey/.test(m) && /maxLength = MAX/.test(m) && /const MAX = 1000|MAX = 1000/.test(m), 'keys and cap');
   });
 
+  console.log('\n[Placement]');
+  await test('the chat sits inside each signed-in dashboard, never above or beside the sign-in form', () => {
+    const p = read('src/app/page.tsx');
+    const at = (needle) => p.indexOf(needle);
+    const stud = at('id="student-active-dashboard"'), studChat = at('data-portal-chat="student"');
+    const cli = at('id="client-active-dashboard"'), cliChat = at('data-portal-chat="client"');
+    assert(stud > 0 && studChat > stud && studChat < p.indexOf('</section>', stud), 'student chat is inside the student dashboard');
+    assert(cli > 0 && cliChat > cli && cliChat < p.indexOf('fi-sec-dashboard', cli) + 1, 'client chat is inside the client dashboard');
+    assert(!/data-portal-chat="student"/.test(p.slice(at('id="student-login-box"'), stud)), 'not in the student sign-in box');
+    assert(!/data-portal-chat="client"/.test(p.slice(at('id="client-auth-box"'), cli)), 'not in the client sign-in box');
+  });
+  await test('the chat is titled "Chat with me" and the instructor is named Kai (no "Coach Kai" left in the chat)', () => {
+    const m = read('src/portal/portalChat.ts') + read('src/portal/adminPortalChat.ts') + read('src/Lib/server/portal-chat.ts');
+    assert(/Chat with me/.test(m) && !/Coach Kai/.test(m), 'wording');
+  });
   console.log(`\nPortal chat: ${passed} passed, ${failed} failed`); if (failed) process.exit(1);
 })();
