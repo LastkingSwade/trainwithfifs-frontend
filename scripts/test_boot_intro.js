@@ -19,8 +19,12 @@ test('Timing: every value is a constant in bootConfig.ts, the sequence always pl
   assert(!/\b\d{3,4}\b/.test(COMP.replace(/\d+px/g, '').replace(/SCATTER[\s\S]*?\];/, '')), 'BootIntro.tsx has a loose timing number');
 });
 test('The order is exact: blinking cursor, Access Granted with dots, Loading line, clear, Welcome Agent, glitch, dissolve, CRT switch-on, reveal', () => {
-  const order = ['typeOut(accessText', 'typeOut(loadingText', "setPhase('welcome')", 'typeOut(BOOT_WELCOME', "setPhase('glitch')", "setPhase('dissolve')", "setPhase('crt')", 'finish(BOOT.fadeMs)'];
-  let at = -1; for (const k of order) { const i = COMP.indexOf(k); assert(i > at, 'out of order or missing: ' + k); at = i; }
+  const order = ['typeOut(accessText', 'typeOut(loadingText', "setPhase('welcome')", 'typeOut(BOOT_WELCOME,'];
+  let at = -1; for (const k of order) { const i = COMP.indexOf(k, at + 1); assert(i > at, 'out of order or missing: ' + k); at = i; }
+  // the shared ending (glitch, dissolve, CRT, finish) is one function both versions call, in this order
+  const end = ["setPhase('glitch')", "setPhase('dissolve')", "setPhase('crt')", 'finish(BOOT.fadeMs)'];
+  at = -1; for (const k of end) { const i = COMP.indexOf(k); assert(i > at, 'ending out of order or missing: ' + k); at = i; }
+  assert((COMP.match(/afterWelcome\(\)/g) || []).length >= 2, 'both the normal and the returning-person intro must end with the shared glitch, dissolve and CRT');
   assert(/loadingPlain/.test(COMP) && /className="boot-brand"/.test(COMP), 'only the business words get the brand class');
 });
 test('Colours: terminal text is plain light gray; only "Future Initiative Training Grounds" uses the business colour; the background is pure black; no green', () => {

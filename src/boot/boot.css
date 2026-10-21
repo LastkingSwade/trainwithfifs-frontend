@@ -89,6 +89,8 @@
   @keyframes bootCrtLineOn { 0% { opacity: 0; transform: scale(0.01, 1.6); } 10% { opacity: 1; transform: scale(0.01, 1.6); } 40% { opacity: 1; transform: scale(1, 1); } 100% { opacity: 0; transform: scale(1, 6); } }
 }
 
-/* A returning signed-in person: no intro, and the home page is covered by a short "Opening your portal" screen until their portal is open (the page's first script sets data-resume;
-   the session restore removes it, and a timer removes it after 9 s whatever happens). The cover never takes a tap, and nothing on it moves. */
-html[data-resume]::after { content: "Opening your portal…"; position: fixed; inset: 0; z-index: 2147483000; display: grid; place-items: center; pointer-events: none; font-family: var(--font-display, system-ui, sans-serif); font-weight: 700; font-size: 1.05rem; letter-spacing: 0.14em; text-transform: uppercase; color: #19e6ff; background: radial-gradient(60% 40% at 50% 46%, rgba(0, 229, 255, 0.1), transparent 70%), #090d16; }
+/* A returning signed-in person who asked for reduced motion gets no intro: the home page is covered by a still "Opening your portal" screen until their portal is open (the page's first
+   script sets data-resume; the session restore removes it, and a timer removes it after 9 s whatever happens). Everyone else sees their own intro instead (BootIntro.tsx). The cover never takes a tap. */
+@media (prefers-reduced-motion: reduce) {
+  html[data-resume]:not([data-boot])::after { content: "Opening your portal…"; position: fixed; inset: 0; z-index: 2147483000; display: grid; place-items: center; pointer-events: none; font-family: var(--font-display, system-ui, sans-serif); font-weight: 700; font-size: 1.05rem; letter-spacing: 0.14em; text-transform: uppercase; color: #19e6ff; background: radial-gradient(60% 40% at 50% 46%, rgba(0, 229, 255, 0.1), transparent 70%), #090d16; }
+}

@@ -95,7 +95,7 @@ async function runSessionRestore(): Promise<Outcome | undefined> {
     apply: (portal, record) => { if (portal === 'student') { w.fifsSetStudentSession(record); w.renderStudentDashboard(record); } else { w.fifsSetClientSession(record); w.renderClientDashboard(record); } },
     autoOpen: (portal) => {
       const root = document.documentElement;
-      const input: AutoOpenInput = { standalone: standalone(), pathname: location.pathname, hash: location.hash, search: location.search, view: String(w.currentActiveView || 'home'), booting: root.hasAttribute('data-boot'), hacking: !!document.querySelector('.hack-layer') };
+      const input: AutoOpenInput = { standalone: standalone(), pathname: location.pathname, hash: location.hash, search: location.search, view: String(w.currentActiveView || 'home'), booting: root.hasAttribute('data-boot') && !root.hasAttribute('data-resume'), hacking: !!document.querySelector('.hack-layer') };
       if (!shouldAutoOpen(input) || typeof w.openAndSwitch !== 'function') return false;
       w.openAndSwitch(portal === 'student' ? 'portal' : 'fi-portal'); return true;
     },

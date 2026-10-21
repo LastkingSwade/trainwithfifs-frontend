@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BOOT, BOOT_ACCESS, BOOT_BRAND, BOOT_DONE_EVENT, BOOT_DOTS, BOOT_LOADING, BOOT_WELCOME } from './bootConfig';
+import { BOOT, BOOT_ACCESS, BOOT_BRAND, BOOT_DONE_EVENT, BOOT_DOTS, BOOT_LOADING, BOOT_WELCOME, BOOT_WELCOME_BACK } from './bootConfig';
+import { nameFromPortals } from './welcomeBack';
 import './boot.css';
 
 // Module-level: lives as long as this document. A full load or reload starts fresh (the intro plays again); client-side route changes keep it,
@@ -21,10 +22,12 @@ export default function BootIntro() {
   const [access, setAccess] = useState('');
   const [loading, setLoading] = useState('');
   const [welcome, setWelcome] = useState('');
+  const [who, setWho] = useState(''); // a returning signed-in person's first name, typed after "Welcome Back Agent"
 
   useEffect(() => {
     const root = document.documentElement;
     if (introFinished || !root.hasAttribute('data-boot')) { setActive(false); return; }
+    const resume = root.hasAttribute('data-resume'); // set by the page's first script for a returning signed-in student or client
 
     const timers: number[] = [];
     const later = (fn: () => void, ms: number) => { timers.push(window.setTimeout(fn, ms)); };
@@ -61,6 +64,38 @@ export default function BootIntro() {
     // The clock started when the page began loading, not when this component mounted: skip the blank beat if the page is already late.
     // There is no ceiling: the sequence always plays to the end, however long loading took (the gate script's fail-safe is the only backstop).
     const elapsed = Math.round(performance.now());
+    // After the welcome text: hold, glitch, dissolve, then the CRT switch-on reveals the page (the same finish for everyone).
+    const afterWelcome = () => {
+      later(() => {
+        setPhase('glitch');
+        later(() => {
+          setPhase('dissolve');
+          later(() => {
+            setPhase('crt');
+            root.setAttribute('data-boot', 'reveal');   // the page is visible behind the black curtains, which now open
+            later(() => finish(BOOT.fadeMs), BOOT.crtMs);
+          }, BOOT.dissolveMs);
+        }, BOOT.glitchMs);
+      }, BOOT.holdAfterWelcomeMs);
+    };
+    if (resume) {
+      // A returning signed-in person: "Welcome Back Agent", then their own first name as soon as their portal record has arrived (the restore is loading it behind this screen), then the same glitch and CRT.
+      later(() => {
+        setPhase('welcome');
+        later(() => {
+          typeOut(BOOT_WELCOME_BACK, () => BOOT.welcomeMsPerChar, setWelcome, () => {
+            const waitedFrom = Date.now();
+            const addName = () => {
+              const name = nameFromPortals(window as any);
+              if (name) typeOut(' ' + name, () => BOOT.welcomeMsPerChar, setWho, afterWelcome);
+              else if (Date.now() - waitedFrom < BOOT.nameWaitMs) later(addName, BOOT.nameStepMs);
+              else afterWelcome(); // no name arrived (offline or refused): carry on without it
+            };
+            addName();
+          });
+        }, BOOT.clearMs);
+      }, BOOT.resumeBlankMs);
+    } else
     later(() => {
       typeOut(accessText, (_c, i) => (i >= BOOT_ACCESS.length ? BOOT.dotMsPerChar : BOOT.accessMsPerChar), setAccess, () => {
         later(() => {
@@ -69,17 +104,7 @@ export default function BootIntro() {
               setPhase('welcome');                                   // the screen is cleared
               later(() => {
                 typeOut(BOOT_WELCOME, () => BOOT.welcomeMsPerChar, setWelcome, () => {
-                  later(() => {
-                    setPhase('glitch');
-                    later(() => {
-                      setPhase('dissolve');
-                      later(() => {
-                        setPhase('crt');
-                        root.setAttribute('data-boot', 'reveal');   // the page is visible behind the black curtains, which now open
-                        later(() => finish(BOOT.fadeMs), BOOT.crtMs);
-                      }, BOOT.dissolveMs);
-                    }, BOOT.glitchMs);
-                  }, BOOT.holdAfterWelcomeMs);
+                  afterWelcome();
                 });
               }, BOOT.clearMs);
             }, BOOT.holdAfterLoadingMs);
@@ -121,11 +146,11 @@ export default function BootIntro() {
             </>
           )}
           {cleared && (
-            <div className="boot-line boot-welcome" data-text={welcome}>
+            <div className="boot-line boot-welcome" data-text={welcome + who}>
               <span className="boot-welcome-text">
-                {welcome.split('').map((ch, i) => {
+                {(welcome + who).split('').map((ch, i) => {
                   const [x, y, d] = SCATTER[i % SCATTER.length];
-                  return <span key={i} className="boot-ch" style={{ ['--bx' as string]: `${x}px`, ['--by' as string]: `${y}px`, ['--bd' as string]: `${d}ms` }}>{ch === ' ' ? ' ' : ch}</span>;
+                  return <span key={i} className={'boot-ch' + (i >= welcome.length ? ' boot-brand' : '')} style={{ ['--bx' as string]: `${x}px`, ['--by' as string]: `${y}px`, ['--bd' as string]: `${d}ms` }}>{ch === ' ' ? ' ' : ch}</span>;
                 })}
               </span>
               {phase === 'welcome' && <span className="boot-cursor" aria-hidden="true" />}

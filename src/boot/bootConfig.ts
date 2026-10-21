@@ -18,6 +18,9 @@ export const BOOT = {
   fadeMs: 300,               // overlay fade-out that reveals the home page
   skipFadeMs: 150,           // fade-out when the visitor skips
   resumeFailsafeMs: 9000,    // a returning signed-in person: the "Opening your portal" cover is taken down after this long even if the portal never opened (offline, slow)
+  resumeBlankMs: 350,        // returning signed-in person: a short blank beat, then "Welcome Back Agent" and their first name
+  nameStepMs: 100,           // how often to look for it
+  nameWaitMs: 3500,          // how long to wait for their name to arrive from their portal record before carrying on without it
   failsafeMs: 24000,         // the page is released no matter what after this long (a CSS-only backup fires at 26 s). Far above the sequence, so it never cuts it short
 } as const;
 
@@ -26,6 +29,7 @@ export const BOOT_DOTS = ' .....';
 export const BOOT_LOADING = 'Loading ';
 export const BOOT_BRAND = 'Future Initiative Training Grounds';   // the only text in the business colours
 export const BOOT_WELCOME = 'Welcome Agent';
+export const BOOT_WELCOME_BACK = 'Welcome Back Agent'; // a returning student or client: followed by their own first name, in the business colours
 export const BOOT_DONE_EVENT = 'fifs:boot-complete';
 
 export const BOOT_TOTAL_MS = BOOT.blankMs + BOOT_ACCESS.length * BOOT.accessMsPerChar + BOOT_DOTS.length * BOOT.dotMsPerChar + BOOT.holdAfterAccessMs
@@ -35,7 +39,7 @@ export const BOOT_TOTAL_MS = BOOT.blankMs + BOOT_ACCESS.length * BOOT.accessMsPe
 // Runs in <head> before the first paint, so it runs on every full page load and reload (including hard refresh) and never on client-side route changes.
 // Marks the page as booting on the plain home page only. No boot for: other routes, links with a hash, a password-reset/sign-in token or a group code (gcode),
 // reduced motion, or search and speed-test bots. The timer here is the guarantee that the page can never stay hidden.
-// A returning student or client skips the intro: if this browser holds a saved portal login (not staff, not older than 30 days: the same rules as src/portal/sessionRestore.ts), the page
-// is marked data-resume (an "Opening your portal" cover, see boot.css) and the session restore takes them straight to their portal. Nothing is read except whether such a login exists.
-// Staff, expired logins and anyone else still see the intro. The cover is removed when the restore finishes, and by this timer if it never does.
-export const BOOT_GATE_SCRIPT = `(function(){function saved(){try{var s=localStorage,i,k,v,u,m,r,t;for(i=0;i<s.length;i++){k=s.key(i);if(/^sb-.+-auth-token$/.test(k)){v=JSON.parse(s.getItem(k));if(v&&v.access_token&&v.user){u=v.user;m=u.app_metadata||{};r=String(m.role||'').toLowerCase();if(r==='admin'||r==='instructor'||r==='staff'||m.is_admin===true)return false;t=Date.parse(u.last_sign_in_at||'');if(!isFinite(t)||t>Date.now()+3e5||Date.now()-t>2592e6)return false;return true}}}}catch(e){}return false}try{var d=document.documentElement,l=location;if(l.pathname!=='/')return;if((l.hash&&l.hash!=='#')||/access_token=|[?&]code=|[?&]gcode=|type=recovery/.test(l.search+l.hash))return;if(saved()){d.setAttribute('data-resume','on');setTimeout(function(){d.removeAttribute('data-resume')},${BOOT.resumeFailsafeMs});return;}if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;if(/bot|crawl|spider|slurp|lighthouse|headless|preview/i.test(navigator.userAgent))return;d.setAttribute('data-boot','on');setTimeout(function(){if(d.hasAttribute('data-boot')){d.removeAttribute('data-boot');try{window.dispatchEvent(new Event('${BOOT_DONE_EVENT}'))}catch(e){}}},${BOOT.failsafeMs});}catch(e){}})();`;
+// A returning student or client gets their own intro: if this browser holds a saved portal login (not staff, not older than 30 days: the same rules as src/portal/sessionRestore.ts), the page
+// is marked data-resume. The intro then plays its short "Welcome Back Agent <first name>" version while the session restore opens their portal behind it, and the CRT switch-on reveals the portal.
+// Nothing is read except whether such a login exists. Staff, expired logins and anyone else see the normal intro. With reduced motion there is no intro, only a still cover (boot.css).
+export const BOOT_GATE_SCRIPT = `(function(){function saved(){try{var s=localStorage,i,k,v,u,m,r,t;for(i=0;i<s.length;i++){k=s.key(i);if(/^sb-.+-auth-token$/.test(k)){v=JSON.parse(s.getItem(k));if(v&&v.access_token&&v.user){u=v.user;m=u.app_metadata||{};r=String(m.role||'').toLowerCase();if(r==='admin'||r==='instructor'||r==='staff'||m.is_admin===true)return false;t=Date.parse(u.last_sign_in_at||'');if(!isFinite(t)||t>Date.now()+3e5||Date.now()-t>2592e6)return false;return true}}}}catch(e){}return false}try{var d=document.documentElement,l=location;if(l.pathname!=='/')return;if((l.hash&&l.hash!=='#')||/access_token=|[?&]code=|[?&]gcode=|type=recovery/.test(l.search+l.hash))return;if(saved()){d.setAttribute('data-resume','on');setTimeout(function(){d.removeAttribute('data-resume')},${BOOT.resumeFailsafeMs});if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;d.setAttribute('data-boot','on');setTimeout(function(){if(d.hasAttribute('data-boot')){d.removeAttribute('data-boot');try{window.dispatchEvent(new Event('${BOOT_DONE_EVENT}'))}catch(e){}}},${BOOT.failsafeMs});return;}if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;if(/bot|crawl|spider|slurp|lighthouse|headless|preview/i.test(navigator.userAgent))return;d.setAttribute('data-boot','on');setTimeout(function(){if(d.hasAttribute('data-boot')){d.removeAttribute('data-boot');try{window.dispatchEvent(new Event('${BOOT_DONE_EVENT}'))}catch(e){}}},${BOOT.failsafeMs});}catch(e){}})();`;

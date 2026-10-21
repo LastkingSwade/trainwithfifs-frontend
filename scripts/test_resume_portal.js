@@ -28,10 +28,11 @@ const store = (v, key = 'sb-abcdefg-auth-token') => ({ [key]: JSON.stringify(v),
 
 (async () => {
   console.log('\n[Who skips the intro]');
-  await test('a student or client signed in within 30 days: no intro, the "Opening your portal" cover instead, and it comes down after 9 seconds whatever happens', () => {
-    for (const role of ['student', 'client', 'Student', null]) { const g = gate({ store: store(session(role, 3)) }); eq(g.attrs, { 'data-resume': 'on' }, String(role)); eq(g.timers.map((t) => t[1]), [9000]); g.fire(); eq(g.attrs, {}, 'the cover is removed by the timer'); }
-    eq(gate({ store: store(session('student', 29.5)) }).attrs, { 'data-resume': 'on' }); eq(gate({ store: store(session('student', 3), 'sb-localtest-auth-token') }).attrs, { 'data-resume': 'on' }, 'any project name');
-    eq(gate({ store: store(session('student', 3)), reduced: true }).attrs, { 'data-resume': 'on' }, 'reduced motion: no intro either way');
+  await test('a student or client signed in within 30 days: their own "Welcome Back Agent" intro (not the normal one); with reduced motion only a still cover; both safety timers are set', () => {
+    const own = { 'data-resume': 'on', 'data-boot': 'on' };
+    for (const role of ['student', 'client', 'Student', null]) { const g = gate({ store: store(session(role, 3)) }); eq(g.attrs, own, String(role)); eq(g.timers.map((t) => t[1]), [CFG.BOOT.resumeFailsafeMs, CFG.BOOT.failsafeMs]); g.fire(); eq(g.attrs, {}, 'both marks are removed by the timers'); eq(g.events, ['fifs:boot-complete'], 'the page is told the intro is over'); }
+    eq(gate({ store: store(session('student', 29.5)) }).attrs, own); eq(gate({ store: store(session('student', 3), 'sb-localtest-auth-token') }).attrs, own, 'any project name');
+    const calm = gate({ store: store(session('student', 3)), reduced: true }); eq(calm.attrs, { 'data-resume': 'on' }, 'reduced motion: no intro, only the still cover'); eq(calm.timers.map((t) => t[1]), [CFG.BOOT.resumeFailsafeMs]);
   });
   await test('everyone else still gets the intro: staff, an old login, a future date, no token, damaged data, blocked storage, a different key', () => {
     const intro = (o) => { const g = gate(o); eq(g.attrs, { 'data-boot': 'on' }); };
@@ -50,12 +51,27 @@ const store = (v, key = 'sb-abcdefg-auth-token') => ({ [key]: JSON.stringify(v),
     assert(/hasAttribute\('data-resume'\)\) \{ void installSessionRestore\(\)\.finally\(\(\) => \{ if \(!cancelled\) installLaunchTargets\(\); \}\); return; \}/.test(rs), 'starts at once');
     assert(/try \{ return await runSessionRestore\(\); \} finally \{ try \{ document\.documentElement\.removeAttribute\('data-resume'\)/.test(sr), 'always takes the cover down'); assert(/export function shouldAutoOpen\(i: AutoOpenInput\): boolean \{ return i\.pathname === '\/'/.test(sr) && !/i\.standalone && i\.pathname/.test(sr), 'a normal tab is sent too');
     assert(/i\.standalone && shouldAutoOpen\(i\)/.test(sr), 'the sign-in screen is still only opened by the installed app, never for a signed-out visitor in a normal tab');
-    assert(/html\[data-resume\]::after \{[^}]*pointer-events: none[^}]*\}/.test(css) && /Opening your portal/.test(css) && !/animation/.test(css.slice(css.indexOf('html[data-resume]'))), 'a still cover that never takes a tap');
+    const cover = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)', css.indexOf('Opening your portal') - 900));
+    assert(/@media \(prefers-reduced-motion: reduce\) \{\s*html\[data-resume\]:not\(\[data-boot\]\)::after \{[^}]*pointer-events: none[^}]*\}/.test(css) && /Opening your portal/.test(css) && !/animation/.test(cover), 'a still cover, only for reduced motion, that never takes a tap');
+    assert(/booting: root\.hasAttribute\('data-boot'\) && !root\.hasAttribute\('data-resume'\)/.test(sr), 'the portal opens behind the returning-person intro');
   });
   await test('staff are never sent anywhere automatically, a temporary-password student still goes through the first-login screen, a refused or old login is cleared, and nothing new is stored', () => {
     const sr = read('src/portal/sessionRestore.ts'); const code = sr.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
     assert(/STAFF_ROLES\.includes\(role\) \|\| meta\.is_admin === true\) return \{ action: 'none' \}/.test(sr) && /record\.mustChangePassword === true\) return 'skipped'/.test(sr) && /classify\(r\.status\)/.test(sr), 'the existing safeguards are untouched'); assert(!/localStorage\.setItem|sessionStorage|document\.cookie|indexedDB|console\./.test(code), 'nothing stored or logged');
     const gateCode = CFG.BOOT_GATE_SCRIPT; assert(!/setItem|fetch\(|XMLHttpRequest|sendBeacon|cookie/.test(gateCode), 'the first script only reads whether a login exists');
+  });
+  console.log('\n[Welcome Back Agent]');
+  await test('the name is the first word of the full name on their own record, plain text, capped, and empty when there is none', () => {
+    const { firstName, nameFromPortals } = require(path.join(ROOT, 'src/boot/welcomeBack.ts'));
+    eq(firstName({ fullName: 'Kai Wade' }), 'Kai'); eq(firstName({ fullName: '  maria   de la Cruz ' }), 'maria'); eq(firstName({ fullName: '<img src=x onerror=1>Bob' }), 'img'); eq(firstName({ fullName: 'A'.repeat(80) }).length, 24);
+    for (const bad of [null, undefined, 5, 'x', {}, { fullName: null }, { fullName: '   ' }]) eq(firstName(bad), '', String(bad));
+    eq(nameFromPortals({}), ''); eq(nameFromPortals({ __fifsClientPortalRecord: { fullName: 'Dana Lee' } }), 'Dana'); eq(nameFromPortals({ __fifsStudentPortalRecord: { fullName: 'Sam Roe' }, __fifsClientPortalRecord: { fullName: 'Dana Lee' } }), 'Sam');
+  });
+  await test('the returning-person intro types "Welcome Back Agent" then the name (as text, in the business colour), waits a bounded time for it, then shares the normal glitch, dissolve and CRT ending', () => {
+    const bi = read('src/boot/BootIntro.tsx'), cfg = read('src/boot/bootConfig.ts');
+    assert(/BOOT_WELCOME_BACK = 'Welcome Back Agent'/.test(cfg), 'text'); assert(/const resume = root\.hasAttribute\('data-resume'\)/.test(bi) && /typeOut\(BOOT_WELCOME_BACK/.test(bi) && /nameFromPortals\(window/.test(bi), 'wiring');
+    assert(/BOOT\.nameWaitMs/.test(bi) && /else afterWelcome\(\)/.test(bi), 'bounded wait, then carries on without a name'); assert(!/dangerouslySetInnerHTML|innerHTML/.test(bi), 'the name is only ever text');
+    assert(/i >= welcome\.length \? ' boot-brand'/.test(bi), 'the name is in the business colour');
   });
   console.log(`\nResume portal: ${passed} passed, ${failed} failed`); if (failed) process.exit(1);
 })();
