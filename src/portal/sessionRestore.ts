@@ -28,13 +28,13 @@ export function planRestore(session: any, now: Date): Plan {
 export function classify(status: number): 'ok' | 'clear' | 'next' | 'stop' { return status === 200 ? 'ok' : status === 401 || status === 403 ? 'clear' : status === 404 ? 'next' : 'stop'; }
 
 export interface AutoOpenInput { standalone: boolean; pathname: string; hash: string; search: string; view: string; booting: boolean; hacking: boolean }
-// Only the installed app jumps into the portal, and only from a plain home screen (never over a deep link, a reset link, the boot intro or a visitor already doing something).
-export function shouldAutoOpen(i: AutoOpenInput): boolean { return i.standalone && i.pathname === '/' && (!i.hash || i.hash === '#') && !i.search && (i.view === 'home' || i.view === '') && !i.booting && !i.hacking; }
+// A signed-in person (installed app or normal tab) goes straight to their portal, only from a plain home screen (never over a deep link, a reset link, the boot intro or a visitor already doing something).
+export function shouldAutoOpen(i: AutoOpenInput): boolean { return i.pathname === '/' && (!i.hash || i.hash === '#') && !i.search && (i.view === 'home' || i.view === '') && !i.booting && !i.hacking; }
 
 /** The installed app, with nobody signed in (no saved login, an expired one, or a staff one), on a plain home screen: open the portal sign-in, once per launch.
  *  Offline (login kept), "already signed in" and "already asked" never prompt. */
 export function shouldPromptSignIn(outcome: string | undefined, i: AutoOpenInput, alreadyPrompted: boolean): boolean {
-  return (outcome === 'none' || outcome === 'cleared') && !alreadyPrompted && shouldAutoOpen(i);
+  return (outcome === 'none' || outcome === 'cleared') && !alreadyPrompted && i.standalone && shouldAutoOpen(i); // only the installed app opens the sign-in by itself; a normal tab shows the home page
 }
 
 export interface Deps {
@@ -75,7 +75,7 @@ const w: any = typeof window === 'undefined' ? {} : window;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function until(cond: () => boolean, ms: number): Promise<boolean> { const end = Date.now() + ms; while (Date.now() < end) { if (cond()) return true; await sleep(250); } return cond(); }
 
-export async function installSessionRestore(): Promise<Outcome | undefined> {
+async function runSessionRestore(): Promise<Outcome | undefined> {
   if (w.__fifsSessionRestoreRan || w.__fifsNoRestore) return undefined;
   w.__fifsSessionRestoreRan = true;
   const ready = await until(() => !!w.supabaseClient?.auth && typeof w.renderStudentDashboard === 'function' && typeof w.renderClientDashboard === 'function' && typeof w.fifsSetStudentSession === 'function' && typeof w.fifsSetClientSession === 'function', 12000);
@@ -94,9 +94,8 @@ export async function installSessionRestore(): Promise<Outcome | undefined> {
     hasPortalRecord: () => !!(w.__fifsStudentPortalRecord || w.__fifsClientPortalRecord),
     apply: (portal, record) => { if (portal === 'student') { w.fifsSetStudentSession(record); w.renderStudentDashboard(record); } else { w.fifsSetClientSession(record); w.renderClientDashboard(record); } },
     autoOpen: (portal) => {
-      if (!standalone()) return false;
       const root = document.documentElement;
-      const input: AutoOpenInput = { standalone: true, pathname: location.pathname, hash: location.hash, search: location.search, view: String(w.currentActiveView || 'home'), booting: root.hasAttribute('data-boot'), hacking: !!document.querySelector('.hack-layer') };
+      const input: AutoOpenInput = { standalone: standalone(), pathname: location.pathname, hash: location.hash, search: location.search, view: String(w.currentActiveView || 'home'), booting: root.hasAttribute('data-boot'), hacking: !!document.querySelector('.hack-layer') };
       if (!shouldAutoOpen(input) || typeof w.openAndSwitch !== 'function') return false;
       w.openAndSwitch(portal === 'student' ? 'portal' : 'fi-portal'); return true;
     },
@@ -108,4 +107,9 @@ export async function installSessionRestore(): Promise<Outcome | undefined> {
     setTimeout(() => { const b = document.getElementById('btnNavProfile'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); }, 500);
   }
   return outcome;
+}
+
+/** Runs the restore. Whatever happens, the "Opening your portal" cover (data-resume, set by the page's first script for a returning signed-in person) is taken down afterwards. */
+export async function installSessionRestore(): Promise<Outcome | undefined> {
+  try { return await runSessionRestore(); } finally { try { document.documentElement.removeAttribute('data-resume'); } catch { /* nothing to remove */ } }
 }

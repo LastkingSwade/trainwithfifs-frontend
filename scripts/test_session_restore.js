@@ -42,10 +42,10 @@ const ok = (k, v) => ({ status: 200, body: { success: true, [k]: v } });
   await test('Server answers: 200 restores, 401/403 clear the saved login, 404 tries the next portal, anything else (offline, busy) stops quietly and keeps the login', () => {
     assert(S.classify(200) === 'ok' && S.classify(401) === 'clear' && S.classify(403) === 'clear' && S.classify(404) === 'next' && S.classify(500) === 'stop' && S.classify(503) === 'stop' && S.classify(0) === 'stop' && S.classify(429) === 'stop', 'classification');
   });
-  await test('Auto-open: only the installed app, only from a plain home screen; never over a deep link, a reset link, the boot intro, Hack Detected, or a visitor already somewhere else', () => {
+  await test('Auto-open: a signed-in person (installed app or normal tab) goes straight to their portal from a plain home screen; never over a deep link, a reset link, the boot intro, Hack Detected, or a visitor already somewhere else', () => {
     const base = { standalone: true, pathname: '/', hash: '', search: '', view: 'home', booting: false, hacking: false };
-    assert(S.shouldAutoOpen(base) === true && S.shouldAutoOpen({ ...base, hash: '#' }) === true && S.shouldAutoOpen({ ...base, view: '' }) === true, 'plain home in the installed app');
-    for (const [k, v] of [['standalone', false], ['pathname', '/reset-password'], ['hash', '#enrollment'], ['search', '?code=abc'], ['search', '?gcode=ABC'], ['view', 'booking'], ['booting', true], ['hacking', true]]) assert(S.shouldAutoOpen({ ...base, [k]: v }) === false, k + '=' + v + ' must not auto-open');
+    assert(S.shouldAutoOpen(base) === true && S.shouldAutoOpen({ ...base, hash: '#' }) === true && S.shouldAutoOpen({ ...base, view: '' }) === true && S.shouldAutoOpen({ ...base, standalone: false }) === true, 'plain home, installed app or normal tab');
+    for (const [k, v] of [['pathname', '/reset-password'], ['hash', '#enrollment'], ['search', '?code=abc'], ['search', '?gcode=ABC'], ['view', 'booking'], ['booting', true], ['hacking', true]]) assert(S.shouldAutoOpen({ ...base, [k]: v }) === false, k + '=' + v + ' must not auto-open');
   });
 
   console.log('\n[stay signed in: the whole flow]');

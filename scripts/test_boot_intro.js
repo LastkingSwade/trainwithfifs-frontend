@@ -47,7 +47,8 @@ test('The CRT look is tunable by CSS variables and uses only opacity and transfo
 });
 test('Plays on every full page load: no stored flag anywhere; the gate checks the route, hashes, tokens, reduced motion and bots; it is a plain inline <head> script; a module-level guard stops a replay on route changes', () => {
   for (const k of ["pathname!=='/'", 'prefers-reduced-motion', 'access_token', 'lighthouse']) assert(CFG.includes(k), 'gate missing: ' + k);
-  assert(!/localStorage|fifs_intro_seen|BOOT_FLAG/.test(CFG + COMP), 'the seen flag must be gone');
+  // No "intro already seen" flag is stored anywhere. The gate may READ whether a saved portal login exists (to skip the intro for a returning student or client) but never writes anything.
+  assert(!/fifs_intro_seen|BOOT_FLAG|setItem/.test(CFG + COMP) && !/localStorage/.test(COMP) && (CFG.match(/localStorage/g) || []).length === 1 && /getItem\(k\)/.test(CFG), 'the seen flag must be gone');
   assert(/^let introFinished = false;/m.test(COMP) && /introFinished \|\|/.test(COMP), 'module-level replay guard missing');
   assert(/<head>[\s\S]*<script dangerouslySetInnerHTML=\{\{ __html: BOOT_GATE_SCRIPT \}\} \/>[\s\S]*<\/head>/.test(LAYOUT), 'gate must be an inline script in <head>');
   assert(!/strategy="beforeInteractive"[^>]*>\s*\{BOOT_GATE_SCRIPT/.test(LAYOUT), 'next/script would run too late');
