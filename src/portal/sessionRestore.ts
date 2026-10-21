@@ -31,6 +31,12 @@ export interface AutoOpenInput { standalone: boolean; pathname: string; hash: st
 // Only the installed app jumps into the portal, and only from a plain home screen (never over a deep link, a reset link, the boot intro or a visitor already doing something).
 export function shouldAutoOpen(i: AutoOpenInput): boolean { return i.standalone && i.pathname === '/' && (!i.hash || i.hash === '#') && !i.search && (i.view === 'home' || i.view === '') && !i.booting && !i.hacking; }
 
+/** The installed app, with nobody signed in (no saved login, an expired one, or a staff one), on a plain home screen: open the portal sign-in, once per launch.
+ *  Offline (login kept), "already signed in" and "already asked" never prompt. */
+export function shouldPromptSignIn(outcome: string | undefined, i: AutoOpenInput, alreadyPrompted: boolean): boolean {
+  return (outcome === 'none' || outcome === 'cleared') && !alreadyPrompted && shouldAutoOpen(i);
+}
+
 export interface Deps {
   now: () => Date;
   getSession: () => Promise<any>;
@@ -95,5 +101,11 @@ export async function installSessionRestore(): Promise<Outcome | undefined> {
       w.openAndSwitch(portal === 'student' ? 'portal' : 'fi-portal'); return true;
     },
   });
+  // Nobody signed in: the installed app opens the portal and its one sign-in box (the header profile menu, which routes by email), once per launch.
+  const input2: AutoOpenInput = { standalone: standalone(), pathname: location.pathname, hash: location.hash, search: location.search, view: String(w.currentActiveView || 'home'), booting: document.documentElement.hasAttribute('data-boot'), hacking: !!document.querySelector('.hack-layer, [class*="hack-overlay"]') };
+  if (shouldPromptSignIn(outcome, input2, !!w.__fifsSignInPrompted) && typeof w.openAndSwitch === 'function') {
+    w.__fifsSignInPrompted = true; w.openAndSwitch('portal');
+    setTimeout(() => { const b = document.getElementById('btnNavProfile'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); }, 500);
+  }
   return outcome;
 }

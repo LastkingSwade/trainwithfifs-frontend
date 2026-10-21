@@ -9,7 +9,7 @@ export function offlineUrlsFrom(names: readonly string[], origin: string): strin
     if (u.origin !== origin) continue;
     if (/^\/(api|auth|reset-password)(\/|$)/.test(u.pathname)) continue;
     if (/(^|[?&])(code|token|access_token|refresh_token|type|error|_rsc)=/i.test(u.search)) continue;
-    if (u.pathname.startsWith('/_next/static/') || u.pathname.startsWith('/scripts/')) out.push(u.pathname + u.search);
+    if (u.pathname.startsWith('/_next/static/') || u.pathname.startsWith('/scripts/') || u.pathname.startsWith('/hero/')) out.push(u.pathname + u.search);
     if (out.length >= 80) break;
   }
   return Array.from(new Set(out));

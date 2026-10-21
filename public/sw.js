@@ -31,7 +31,7 @@ function isBuildAsset(url) { return url.pathname.startsWith('/_next/static/'); }
 function isSiteAsset(url) {
   const p = url.pathname;
   if (p === OFFLINE_URL) return false;
-  if (p.startsWith('/scripts/') || p.startsWith('/icons/')) return true;
+  if (p.startsWith('/scripts/') || p.startsWith('/icons/') || p.startsWith('/hero/')) return true;
   return /^\/[^/]+\.(?:png|jpg|jpeg|webp|svg|ico|css|js|woff2?|html|webmanifest)$/i.test(p);
 }
 function isCacheable(res) {
