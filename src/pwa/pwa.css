@@ -1,0 +1,8 @@
+/* Install button and its iPhone help card, in the footer */
+.fifs-install { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; margin-left: 10px; padding: 6px 18px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.04em; color: #1a1100; background: linear-gradient(135deg, #ffcf5a, #ffb703 55%, #f59e0b); border: 0; box-shadow: 0 4px 16px rgba(255, 183, 3, 0.3); }
+.fifs-install:focus-visible, .fifs-install-help button:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+#fifs-foot { flex-wrap: wrap; align-items: center; }
+.fifs-install-help { flex-basis: 100%; max-width: 420px; margin: 12px auto 0; padding: 14px 16px; text-align: left; border-radius: 14px; color: #d3e9f8; background: #0d141d; border: 1px solid rgba(0, 229, 255, 0.5); }
+.fifs-install-help strong { display: block; margin-bottom: 6px; color: #ffd166; } .fifs-install-help ol { margin: 0 0 10px; padding-left: 20px; line-height: 1.5; }
+.fifs-install-help button { min-height: 44px; padding: 0 22px; border-radius: 10px; cursor: pointer; font: inherit; font-weight: 700; color: #e8faff; background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.5); }
+@media (display-mode: standalone) { .fifs-install, .fifs-install-help { display: none; } }

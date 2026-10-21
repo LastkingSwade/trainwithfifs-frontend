@@ -40,5 +40,22 @@ const SCRIPT = read('public/scripts/TrainWithFIFS_scripts.js'), PAGE = read('src
       for (const bad of [undefined, 5, '', 'a b', '<x>']) { const n = entries.length; win.fifsViewChanged(bad); eq(entries.length, n, 'ignored: ' + bad); }
     } finally { delete global.window; delete global.history; delete global.location; delete require.cache[file]; }
   });
+  console.log('\n[Install button]');
+  const IP = require(path.join(ROOT, 'src/pwa/installPrompt.ts'));
+  await test('the button shows only when the browser can install it or on an iPhone/iPad, and never in the installed app', () => {
+    eq(IP.installOffer({ standalone: false, hasPrompt: true, ios: false }), 'prompt'); eq(IP.installOffer({ standalone: false, hasPrompt: false, ios: true }), 'ios'); eq(IP.installOffer({ standalone: false, hasPrompt: false, ios: false }), 'none', 'no install possible');
+    eq(IP.installOffer({ standalone: true, hasPrompt: true, ios: true }), 'none', 'already installed'); eq(IP.installOffer({ standalone: false, hasPrompt: true, ios: true }), 'prompt', 'the real prompt wins over the instructions');
+  });
+  await test('iPhone, iPod, iPad and touch-screen "Mac" iPads are recognised; Macs, Windows and Android are not', () => {
+    for (const [ua, pf, tp] of [['Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X)', 'iPhone', 5], ['Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X)', 'iPad', 5], ['Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 'MacIntel', 5]]) assert(IP.isIos(ua, pf, tp), ua);
+    for (const [ua, pf, tp] of [['Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 'MacIntel', 0], ['Mozilla/5.0 (Windows NT 10.0)', 'Win32', 0], ['Mozilla/5.0 (Linux; Android 14)', 'Linux armv8l', 5], ['', '', 0], [undefined, undefined, undefined]]) assert(!IP.isIos(ua, pf, tp), String(ua));
+    eq(IP.IOS_STEPS.length, 3); assert(/Share/.test(IP.IOS_STEPS[0]) && /Add to Home Screen/.test(IP.IOS_STEPS[1]), 'the two taps Apple needs');
+  });
+  await test('wiring: the browser prompt is captured and used on tap, the button and help card are real 44px+ controls drawn without innerHTML, hidden in the installed app, stores nothing', () => {
+    const src = read('src/pwa/installPrompt.ts'), css = read('src/pwa/pwa.css'), reg = read('src/pwa/ServiceWorkerRegister.tsx'); const code = src.replace(/\/\/.*$/gm, '');
+    assert(/'beforeinstallprompt'[\s\S]*e\.preventDefault\(\); deferred = e/.test(src) && /await p\.prompt\(\); await p\.userChoice/.test(src) && /'appinstalled'/.test(src), 'prompt captured, used, cleared'); assert(!/innerHTML/.test(code) && !/localStorage|sessionStorage|fetch\(/.test(code), 'safe DOM, nothing stored');
+    assert(/\.fifs-install \{[^}]*min-height: 44px/.test(css) && /\.fifs-install-help button \{ min-height: 44px/.test(css) && /display-mode: standalone\) \{ \.fifs-install, \.fifs-install-help \{ display: none; \}/.test(css), 'touch size + hidden when installed');
+    assert(/installInstallPrompt\(\)/.test(reg) && /import '\.\/pwa\.css'/.test(reg), 'mounted from the layout component'); assert(/key === 'Escape'|\.key === 'Escape'/.test(src), 'Escape closes the help card');
+  });
   console.log(`\nPWA polish: ${passed} passed, ${failed} failed`); if (failed) process.exit(1);
 })();

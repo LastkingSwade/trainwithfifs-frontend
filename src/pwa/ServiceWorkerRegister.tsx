@@ -2,10 +2,13 @@
 
 import { useEffect } from 'react';
 import { offlineUrlsFrom, shouldRegister } from './swPlan';
+import { installInstallPrompt } from './installPrompt';
+import './pwa.css';
 
 // Registers /sw.js (offline support for public pages). The "You are offline" banner already exists in src/polish/polish.ts, so none is added here.
 // Nothing here stores or sends any personal information.
 export default function ServiceWorkerRegister() {
+  useEffect(() => { installInstallPrompt(); }, []);
   useEffect(() => {
     const secure = window.isSecureContext;
     if (!shouldRegister(process.env.NEXT_PUBLIC_FIFS_DEPLOYMENT_ENV, 'serviceWorker' in navigator, secure)) return;
