@@ -50,7 +50,7 @@ export function isGuestCheckoutRecord(studentId?: unknown, email?: unknown): boo
 }
 
 /** Makes sure the guest-checkout system record exists. Fails closed: callers must not start payment if this is false. */
-async function ensureGuestCheckoutStudent(): Promise<{ ok: boolean; detail?: string }> {
+export async function ensureGuestCheckoutStudent(): Promise<{ ok: boolean; detail?: string }> {
   try {
     const supabase = getPrivilegedClient();
     const existing = await supabase.from('students').select('student_id').eq('student_id', GUEST_CHECKOUT_STUDENT_ID).maybeSingle();

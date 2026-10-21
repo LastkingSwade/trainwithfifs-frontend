@@ -5,6 +5,8 @@ import { isLiveChatHours } from '@/Lib/server/chat-hours';
 import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/group-status';
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
+import { sendInvoice, payInfo, invoiceCheckout } from '@/Lib/server/sent-invoices';
+import { waiverStatus, saveWaiver } from '@/Lib/server/waivers';
 import { createBalanceCheckout } from '@/Lib/server/balance-checkout';
 import { scoresheetLock } from '@/Lib/server/scoresheet-lock';
 import { quizAnswer, quizToday } from '@/Lib/server/quiz-progress';
@@ -85,9 +87,7 @@ function validateStrictPassword(password: string, minLength: number = STUDENT_PA
 
 // Actions the portal UI calls that have no server-side persistence yet. They fail explicitly
 // (501) so the UI cannot report a change as saved when nothing was stored.
-const NOT_IMPLEMENTED_ACTIONS: Record<string, string> = {
-  submitStudentWaiver: 'Online waiver submission'
-};
+const NOT_IMPLEMENTED_ACTIONS: Record<string, string> = {};
 
 // --- Student record edit validation (adminEditStudent, updateStudentStatus, updateStudentTask) ---
 const CERTIFICATE_AND_LATER = ['STEP_6_CERTIFIED', 'STEP_7_MSP_PORTAL', 'STEP_8_LICENSED'];
@@ -1193,6 +1193,40 @@ export async function POST(req: NextRequest) {
 
      // 2. Clean Intake & Single-Course Enrollment (Deprecates broken legacy invite handlers)
            // Direct Portal Invitation Dispatcher (used by Admin Hub Direct Access Dispatcher modal)
+     case 'adminSendInvoice': {
+       // Staff send an invoice for an agreed price, class and date. The price is worked out on the server (agreed price + 6% tax); the payer chooses only how much to pay now.
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) return NextResponse.json({ success: false, error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       const r = await sendInvoice({ fullName: payload?.fullName, email: payload?.email, phone: payload?.phone, course: payload?.course, classDate: payload?.classDate, price: payload?.price }, String(user?.email || user?.id || 'staff'), { supabase: getPrivilegedClient() });
+       if (!r.ok) return NextResponse.json({ success: false, error: r.error }, { status: r.status });
+       try { await sendServerDiscordAlert('🧾 Invoice sent', `An invoice was created in the Admin Hub (${r.invoiceNumber}).`, [{ name: 'Total', value: `$${(r.totalCents / 100).toFixed(2)}`, inline: true }, { name: 'Emailed', value: r.emailed ? 'Yes' : 'NO: copy the link and send it yourself', inline: true }], 0x10b981); } catch { /* alert only */ }
+       return NextResponse.json({ success: true, invoiceNumber: r.invoiceNumber, total: r.totalCents / 100, emailed: r.emailed, link: r.link });
+     }
+
+     case 'invoicePayInfo':
+     case 'invoicePayCheckout': {
+       // The person who got the emailed link. The link itself is signed and expires after 7 days; the amount is never taken from the browser.
+       if (!allowPublicSubmit(req, 'invoicepay', 30)) return NextResponse.json({ success: false, error: 'Too many attempts. Please wait a few minutes and try again, or call us.' }, { status: 429 });
+       const number = String(payload?.invoice || '').trim().slice(0, 60), nm = String(payload?.name || '').slice(0, 100);
+       const r: any = action === 'invoicePayInfo' ? await payInfo(number, payload?.token, { supabase: getPrivilegedClient() }, nm) : await invoiceCheckout(number, payload?.token, payload?.percent, { supabase: getPrivilegedClient() }, nm);
+       return r.ok ? NextResponse.json({ success: true, ...(r.info ? { info: r.info } : { url: r.url, amount: r.amount }) }) : NextResponse.json({ success: false, error: r.error }, { status: r.status });
+     }
+
+     case 'studentWaiverStatus':
+     case 'submitStudentWaiver': {
+       // The signed-in student's own waiver. The student is found only from the verified login.
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user?.id) return NextResponse.json({ success: false, status: 'error', error: 'Please sign in to the Student Portal.' }, { status: 401 });
+       supabase = getPrivilegedClient();
+       const { data: me, error: meErr } = await supabase.from('students').select('student_id').eq('user_id', user.id).maybeSingle();
+       if (meErr) return NextResponse.json({ success: false, error: 'Could not check your waiver right now.' }, { status: 503 });
+       if (!me?.student_id) return NextResponse.json({ success: true, available: false, signed: false });
+       if (action === 'studentWaiverStatus') return NextResponse.json({ success: true, ...(await waiverStatus(supabase, String(me.student_id))) });
+       if (!allowPublicSubmit(req, 'waiver', 10)) return NextResponse.json({ success: false, error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 });
+       const saved = await saveWaiver(supabase, String(me.student_id), payload || {});
+       return saved.ok ? NextResponse.json({ success: true, status: 'success', signed: true }) : NextResponse.json({ success: false, status: 'error', error: saved.error }, { status: saved.status });
+     }
+
      case 'adminDirectInvite': {
        const { user, error: authErr } = await getAuthenticatedUser(req);
        if (authErr || !isStaffOrAdmin(user)) {

@@ -362,7 +362,7 @@ async function test(name, fn) {
 }
 function assert(cond, msg) { if (!cond) throw new Error(msg); }
 
-const NOT_IMPLEMENTED = ['submitStudentWaiver'];
+const NOT_IMPLEMENTED = []; // the waiver is now really stored (student_waivers); see scripts/test_waiver_invoice.js
 
 async function main() {
   console.log('================================================================');
