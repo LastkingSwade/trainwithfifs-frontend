@@ -30,7 +30,7 @@ export function cardFacts(opts: { profileExpiry: string; docExpiry: string | nul
     expiresText = prettyDate(exp.toISOString().slice(0, 10));
     expiresColor = d < 0 ? '#ff8a8a' : d <= 90 ? '#ffd166' : '#34d399';
     const watch = opts.optIn !== false;
-    renewalText = !watch ? 'Not turned on' : d < 0 ? 'Permit expired ' + -d + ' day' + (d === -1 ? '' : 's') + ' ago' : d <= 90 ? d + ' day' + (d === 1 ? '' : 's') + ' left: renewal window open' : 'Active (' + d + ' days left)';
+    renewalText = !watch ? 'Not turned on' : d < 0 ? 'Permit expired ' + -d + ' day' + (d === -1 ? '' : 's') + ' ago' : d === 0 ? 'Expires today: renewal window open' : d <= 90 ? d + ' day' + (d === 1 ? '' : 's') + ' left: renewal window open' : 'Active (' + d + ' days left)';
   }
   const md = /maryland/i.test(opts.permitState || 'Maryland');
   return {

@@ -111,6 +111,7 @@ test('Client "Your next step": one clear action chosen from the permit date, rem
   assert(/opens in 180 days/.test(n({ days: 300, hasPermitDoc: true, optIn: true }).text), 'the renewal window countdown'); assert(/Renew now: 1 day left/.test(n({ days: 1, hasPermitDoc: true, optIn: true }).title), 'singular day');
   const src = read('src/portal/clientNextStep.ts'); assert(!/innerHTML/.test(src), 'text only');
   for (const k of ['openPermitRenewalModal', 'openClientProfileModal', 'openWallet', 'toggleReciprocityHubModal']) assert(new RegExp(k).test(src), k);
+  assert(/d === 0 \? 'Expires today: renewal window open'/.test(read('src/portal/permitCardLive.ts')), 'the permit card says expires today on the day, not 0 days left');
   const pc = read('src/portal/permitCardLive.ts'); assert(/nextStep\(/.test(pc) && /renderNextStep\(/.test(pc), 'filled by the permit card refresh (one vault call)');
   const c = PAGE.slice(PAGE.indexOf('id="client-active-dashboard"')); assert(c.indexOf('id="fi-client-next"') > c.indexOf('fi-acct-row') && c.indexOf('id="fi-client-next"') < c.indexOf('id="fi-sec-dashboard"'), 'sits between the welcome bar and the banner');
   assert(/\.cns-btn \{[^}]*min-height: 48px/.test(read('src/portal/dashboard.css')), '44px+ button');
