@@ -74,7 +74,8 @@ export default function WalletPanel() {
   const c = counts(docs);
   const shown = filterDocs(docs, tab, query);
   const art = (d: VaultDoc, small = false) => { const a = artFor(d.kind); return (
-    <div className={'vault-art' + (small ? ' small' : '') + (a.seal ? ' sealed' : '')} aria-hidden="true">
+    <div className={'vault-art' + (small ? ' small' : '') + (a.seal ? ' sealed' : '') + ' k-' + (EMOJI[d.kind] ? d.kind : 'other')} aria-hidden="true">
+      <span className="vault-art-emoji">{emojiFor(d.kind)}</span>
       <b className="vault-art-brand">FIFS</b>
       <span className="vault-art-label">{a.label}</span>
       <i /><i /><i className="short" />

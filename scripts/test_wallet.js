@@ -115,7 +115,7 @@ function mem() {
     assert(/Your Document Vault/.test(VUI) && /Your training\. Your records\. All together\./.test(VUI) && /Search your documents/.test(VUI) && /Add document/.test(VUI) && /View document/.test(VUI) && /Recently added/.test(VUI) && /Your document has been added to your vault\./.test(VUI), 'copy from the design');
     assert(/role="tablist"/.test(VUI) && /aria-selected/.test(VUI) && /\(\{c\[t\.key\]\}\)/.test(VUI), 'filter chips with counts');
     assert(/#ffd166/.test(VCSS) && /#ffb703/.test(VCSS) && /rgba\(0, 229, 255/.test(VCSS) && /#19e6ff/.test(VCSS), 'gold and cyan business colors');
-    assert(/\.vault h2 \{[^}]*Georgia[^}]*color: #ffffff/.test(VCSS) && /\.vault-bar \{[^}]*background: #ffb703/.test(VCSS), 'the title is white serif over a short gold bar, as in the mockup');
+    assert(/\.vault h2 \{[^}]*color: #ffffff/.test(VCSS) && !/Georgia/.test(VCSS) && /\.vault-bar \{[^}]*linear-gradient\(90deg, #00e5ff, #ffb703\)/.test(VCSS), 'the title is white in the site heading font over a short cyan-to-amber bar');
   });
   await test('Vault screen keeps every safety rule: consent notice and checkbox first, "do not upload" gun records, owner-only calls, private open, delete needs a confirmation, and nothing is logged', () => {
     assert(/Do not upload/.test(VUI) && /serial numbers/.test(VUI) && /<input type="checkbox" checked=\{agree\}/.test(VUI) && /disabled=\{!agree\}/.test(VUI), 'consent first');

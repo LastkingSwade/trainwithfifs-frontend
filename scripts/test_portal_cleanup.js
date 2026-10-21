@@ -94,9 +94,12 @@ test('Start Your Journey: goal picker comes first, four quick jumps, 8 steps, wh
   assert(/prefers-reduced-motion: reduce/.test(view), 'smooth scroll respects reduced motion');
   const css = read('src/portal/start.css'); assert(/#view-start \.pathway-pill \{ border-radius: 16px !important/.test(css), 'goal buttons are rounded rectangles, not clipped circles'); assert(/min-height: 44px/.test(css) && /repeat\(4, minmax\(0, 1fr\)\)/.test(css) && !/linear-gradient\([^)]*\)\s*;?\s*-webkit-background-clip|background-clip: text/.test(css), 'css rules');
 });
-test('The vault looks like the mockup: parchment certificate cards with gold corners, serif white title, "Keep your records close at hand" note', () => {
+test('The vault is in the company colors: navy HUD panels, cyan wayfinding, amber actions, the site heading font, a colour per document type, and the "Keep your records close at hand" note', () => {
   const css = read('src/portal/vault.css'), tsx = read('src/portal/WalletPanel.tsx');
-  assert(/#f6eddb/.test(css) && /clip-path: polygon/.test(css) && /Georgia/.test(css), 'parchment + corners + serif'); assert(/Keep your records close at hand/.test(tsx) && /vault-art-brand/.test(tsx), 'note + brand');
+  const off = [/Georgia/, /214, 178, 104/, /#f6eddb|#e9dcc0|#2a2112|#4a3a1c|#d9b25f|#b98a2f|#f0cd77|#c99a2e|#94700f|#f1ead9|#f1d48c/, /#121214|#0a0a0c|#151517/].reduce((n, r) => n + (css.match(new RegExp(r.source, 'g')) || []).length, 0);
+  assert(off === 0, 'off-palette (black-and-gold / serif / parchment) colours left in the vault: ' + off);
+  assert(/\.vault-art \{ --vk: #00e5ff;/.test(css) && /k-class_certificate \{ --vk: #ffb703;/.test(css) && /k-hql_approval \{ --vk: #10b981;/.test(css) && /' k-' \+/.test(tsx), 'a colour per document type');
+  assert(/Keep your records close at hand/.test(tsx) && /vault-art-brand/.test(tsx), 'note + brand');
   assert(/\.vault-chip \{ min-height: 44px/.test(css) && /\.vault-add \{[^}]*min-height: 48px/.test(css), 'touch targets');
 });
 test('Client "Your next step": one clear action chosen from the permit date, reminders and vault', () => {
