@@ -11,7 +11,7 @@ import { quizAnswer, quizToday } from '@/Lib/server/quiz-progress';
 import { adminMultiStateList, multiStateStatus, setStep, setTracking } from '@/Lib/server/multistate-progress';
 import { listInvoicePayments, recordManualPayment, voidManualPayment } from '@/Lib/server/manual-payments';
 import { aggregate } from '@/Lib/server/site-visits';
-import { countSubscribers, isSubscribed, notifyPaymentReceived, pushConfigured, removeSubscription, roleOf, saveSubscription, sendToUsers, userIdsFor, vapidPublicKey } from '@/Lib/server/push';
+import { countSubscribers, deviceTopics, notifyPaymentReceived, notifyStaffOfAlert, pushConfigured, removeSubscription, roleOf, saveSubscription, sendToUsers, setDeviceTopics, userIdsFor, vapidPublicKey } from '@/Lib/server/push';
 import { broadcastMessage, cleanBroadcast, withinSendWindow } from '@/Lib/server/push-logic';
 import { purgeWallet, walletConsent, walletDelete, walletOpen, walletStatus, walletUpload } from '@/Lib/server/wallet';
 import { adminDeletePayments, adminPayments } from '@/Lib/server/admin-payments';
@@ -603,6 +603,7 @@ async function sendServerDiscordAlert(
   color: number = 0x00E5FF,
   url: string = "https://trainwithfifs.com"
 ) {
+  notifyStaffOfAlert(title); // the same event as a short generic notification on staff phones (does nothing unless notifications are switched on)
   try {
     if (!DISCORD_WEBHOOK_URL || !DISCORD_WEBHOOK_URL.startsWith('http')) {
       console.warn('[FIFS Route Discord] DISCORD_WEBHOOK_URL is not configured.');
@@ -3311,18 +3312,21 @@ export async function POST(req: NextRequest) {
        if (!pushConfigured()) return NextResponse.json({ success: true, enabled: false });
        const { user } = await getAuthenticatedUser(req);
        const sb = getPrivilegedClient();
-       const subscribed = user?.id && typeof payload.endpoint === 'string' ? await isSubscribed(sb, String(user.id), payload.endpoint) : false;
-       return NextResponse.json({ success: true, enabled: true, publicKey: vapidPublicKey(), subscribed });
+       const dev = user?.id && typeof payload.endpoint === 'string' ? await deviceTopics(sb, String(user.id), payload.endpoint) : null;
+       return NextResponse.json({ success: true, enabled: true, publicKey: vapidPublicKey(), subscribed: !!dev, topics: dev ? dev.topics : [], role: dev ? dev.role : null });
      }
      case 'pushSubscribe':
-     case 'pushUnsubscribe': {
+     case 'pushUnsubscribe':
+     case 'pushSetTopics': {
        const { user, error: authErr } = await getAuthenticatedUser(req);
        if (authErr || !user?.id) return NextResponse.json({ success: false, status: 'error', error: 'Please sign in to manage reminders.' }, { status: 401 });
        if (!allowPublicSubmit(req, 'push', 30)) return NextResponse.json({ success: false, error: 'Too many tries. Please wait a few minutes and try again.' }, { status: 429 });
        const sb = getPrivilegedClient();
        if (action === 'pushUnsubscribe') { const r: any = await removeSubscription(sb, String(user.id), payload.endpoint); return r.ok ? NextResponse.json({ success: true }) : NextResponse.json({ success: false, error: r.message }, { status: r.status }); }
-       const role = await roleOf(sb, String(user.id));
-       if (!role) return NextResponse.json({ success: false, error: 'Reminders are for student and client accounts.' }, { status: 403 });
+       if (action === 'pushSetTopics') { const r: any = await setDeviceTopics(sb, String(user.id), payload.endpoint, payload.topics); return r.ok ? NextResponse.json({ success: true, topics: r.topics }) : NextResponse.json({ success: false, error: r.message }, { status: r.status }); }
+       // Staff (found from the verified login) register as staff and get the Admin Hub alerts; students and clients are found in their own tables.
+       const role = isStaffOrAdmin(user) ? 'staff' : await roleOf(sb, String(user.id));
+       if (!role) return NextResponse.json({ success: false, error: 'Reminders are for student, client and staff accounts.' }, { status: 403 });
        const r: any = await saveSubscription(sb, String(user.id), role, payload.subscription);
        return r.ok ? NextResponse.json({ success: true }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
      }

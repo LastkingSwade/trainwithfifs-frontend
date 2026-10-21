@@ -26,14 +26,14 @@ export function deviceSupport(): Support {
   try { ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1); standalone = !!(w.matchMedia && w.matchMedia('(display-mode: standalone)').matches) || (navigator as any).standalone === true; } catch { /* unknown */ }
   return supportFor({ serviceWorker: 'serviceWorker' in navigator, pushManager: 'PushManager' in w, notification: 'Notification' in w, ios, standalone });
 }
-export async function readState(call: Call): Promise<{ state: CardState; key: string }> {
-  const support = deviceSupport(); let status: any = null;
+export async function readState(call: Call): Promise<{ state: CardState; key: string; topics: string[]; endpoint: string }> {
+  const support = deviceSupport(); let status: any = null; let endpoint = '';
   try {
-    let endpoint = ''; if (support === 'ok') { const reg = await navigator.serviceWorker.getRegistration(); const sub = reg ? await reg.pushManager.getSubscription() : null; endpoint = sub ? sub.endpoint : ''; }
+    endpoint = ''; if (support === 'ok') { const reg = await navigator.serviceWorker.getRegistration(); const sub = reg ? await reg.pushManager.getSubscription() : null; endpoint = sub ? sub.endpoint : ''; }
     status = await call('pushStatus', endpoint ? { endpoint } : {});
-  } catch { return { state: 'hidden', key: '' }; }
+  } catch { return { state: 'hidden', key: '', topics: [], endpoint: '' }; }
   const permission = 'Notification' in w ? Notification.permission : 'default';
-  return { state: cardState({ enabled: !!(status && status.enabled), support, permission, subscribed: !!(status && status.subscribed) }), key: String((status && status.publicKey) || '') };
+  return { state: cardState({ enabled: !!(status && status.enabled), support, permission, subscribed: !!(status && status.subscribed) }), key: String((status && status.publicKey) || ''), topics: Array.isArray(status && status.topics) ? status.topics.map(String) : [], endpoint };
 }
 export async function turnOn(call: Call, key: string): Promise<{ ok: boolean; message: string }> {
   try {

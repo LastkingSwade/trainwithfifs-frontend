@@ -7,7 +7,7 @@ const fs = require('fs'); const path = require('path'); const vm = require('vm')
 const { installFetchStub } = require('./lib/ts-loader'); installFetchStub();
 const ROOT = path.resolve(__dirname, '..'); const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const sent = []; let nextError = null; const wp = { setVapidDetails: () => {}, sendNotification: async (sub, body, opts) => { if (nextError) { const e = nextError(sub); if (e) throw e; } sent.push({ sub, body: JSON.parse(body), opts }); } };
-const origLoad = Module._load; Module._load = function (request, parent, ...rest) { if (request === 'web-push') return { default: wp, ...wp }; return origLoad.call(this, request, parent, ...rest); };
+let currentDb = null; const origLoad = Module._load; Module._load = function (request, parent, ...rest) { if (request === 'web-push') return { default: wp, ...wp }; if (/(^|\/)supabase-admin$/.test(request)) return { getPrivilegedClient: () => currentDb }; return origLoad.call(this, request, parent, ...rest); };
 const L = require(path.join(ROOT, 'src/Lib/server/push-logic.ts')); const P = require(path.join(ROOT, 'src/Lib/server/push.ts')); const C = require(path.join(ROOT, 'src/pwa/pushClient.ts'));
 let passed = 0, failed = 0;
 const test = async (n, f) => { sent.length = 0; nextError = null; try { await f(); passed++; console.log(`  ✓ PASS: ${n}`); } catch (e) { failed++; console.log(`  ✗ FAIL: ${n}\n      ${e.message}`); } };
@@ -23,10 +23,11 @@ const NOKEYS = () => { delete process.env.VAPID_PUBLIC_KEY; delete process.env.V
 function fakeDb(t, o = {}) {
   const db = { t, missing: !!o.missing };
   db.from = (table) => { const f = []; let op = 'select', vals = null, ord = null, conflict = null;
-    const q = { select: () => q, eq: (c, v) => { f.push((r) => String(r[c]) === String(v)); return q; }, in: (c, vs) => { f.push((r) => vs.includes(r[c])); return q; }, order: (c, d) => { ord = [c, d && d.ascending === false]; return q; }, delete: () => { op = 'delete'; return q; }, upsert: (v, opts) => { op = 'upsert'; vals = v; conflict = opts && opts.onConflict; return q; } };
+    const q = { select: () => q, eq: (c, v) => { f.push((r) => String(r[c]) === String(v)); return q; }, in: (c, vs) => { f.push((r) => vs.includes(r[c])); return q; }, order: (c, d) => { ord = [c, d && d.ascending === false]; return q; }, delete: () => { op = 'delete'; return q; }, upsert: (v, opts) => { op = 'upsert'; vals = v; conflict = opts && opts.onConflict; return q; }, update: (v) => { op = 'update'; vals = v; return q; } };
     const run = async () => { if (db.missing && table === 'push_subscriptions') return { data: null, error: { code: '42P01', message: 'relation "push_subscriptions" does not exist' } };
       const rows = db.t[table] || (db.t[table] = []);
       if (op === 'upsert') { const i = rows.findIndex((r) => r[conflict] === vals[conflict]); const row = { created_at: new Date(Date.now() + rows.length).toISOString(), ...vals }; if (i >= 0) rows[i] = { ...rows[i], ...vals }; else rows.push(row); return { data: null, error: null }; }
+      if (op === 'update') { rows.filter((r) => f.every((g) => g(r))).forEach((r) => Object.assign(r, vals)); return { data: null, error: null }; }
       if (op === 'delete') { const keep = rows.filter((r) => !f.every((g) => g(r))); db.t[table] = keep; return { data: null, error: null }; }
       let hit = rows.filter((r) => f.every((g) => g(r))).map((r) => ({ ...r })); if (ord) hit.sort((a, b) => (a[ord[0]] < b[ord[0]] ? 1 : -1) * (ord[1] ? 1 : -1)); return { data: hit, error: null }; };
     q.maybeSingle = async () => { const r = await run(); return r.error ? r : { data: (r.data || [])[0] || null, error: null }; }; q.then = (res, rej) => run().then(res, rej); return q; };
@@ -108,7 +109,7 @@ function fakeDb(t, o = {}) {
   console.log('\n[Website actions and jobs]');
   await test('the actions: sign-in required, roles from the database, staff-only broadcast with rate limit, quiet hours and cleaned text; the payment hook never blocks or fails the answer', () => {
     const r = read('src/app/api/fifs/route.ts'); const i = r.indexOf("case 'pushStatus'"), j = r.indexOf("case 'studentOnlineClass'"); const blk = r.slice(i, j);
-    assert(i > 0 && j > i, 'actions exist'); assert(/getAuthenticatedUser\(req\)/.test(blk) && (blk.match(/getAuthenticatedUser/g) || []).length === 3, 'every action checks the login'); assert(/roleOf\(sb, String\(user\.id\)\)/.test(blk) && /Reminders are for student and client accounts/.test(blk), 'roles from the database');
+    assert(i > 0 && j > i, 'actions exist'); assert(/getAuthenticatedUser\(req\)/.test(blk) && (blk.match(/getAuthenticatedUser/g) || []).length === 3, 'every action checks the login'); assert(/roleOf\(sb, String\(user\.id\)\)/.test(blk) && /Reminders are for student, client and staff accounts/.test(blk), 'roles from the database');
     assert(/isStaffOrAdmin\(user\)/.test(blk) && /allowPublicSubmit\(req, 'pushadmin', 6\)/.test(blk) && /allowPublicSubmit\(req, 'push', 30\)/.test(blk), 'staff-only + limits'); assert(/cleanBroadcast\(payload\.text\)/.test(blk) && /withinSendWindow\(new Date\(\)\)/.test(blk) && /8am and 8pm Eastern/.test(blk), 'cleaned text + quiet hours');
     assert(!/payload\.(userId|user_id|email)/.test(blk), 'nobody names another person in a request'); assert(/payload\.subscription/.test(blk) && /payload\.endpoint/.test(blk), 'only the device itself is passed');
     assert(/if \(r\.ok && action === 'adminRecordPayment' && pushConfigured\(\)\)[\s\S]{0,300}after\(job\)/.test(r) && /notifyPaymentReceived\(sb, String\(payload\.invoiceNumber/.test(r), 'payment hook runs after the answer');
@@ -121,6 +122,48 @@ function fakeDb(t, o = {}) {
   await test('the table holds no personal details, is server-only, and cascades with the account', () => {
     const q = read('scripts/sql/20261022_push_subscriptions.sql'); assert(/create table if not exists public\.push_subscriptions/.test(q) && /references auth\.users\(id\) on delete cascade/.test(q), 'table + cascade'); assert(!/\b(email|phone|name|address|amount|permit|serial)\b\s+(text|numeric|date)/i.test(q.replace(/--.*$/gm, '')), 'no personal columns');
     assert(/enable row level security/.test(q) && /revoke all on public\.push_subscriptions from anon, authenticated/.test(q) && /grant select, insert, update, delete on public\.push_subscriptions to service_role/.test(q), 'server only'); assert(/endpoint like 'https:\/\/%'/.test(q) && /unique/.test(q), 'https only, one row per device');
+  });
+
+  console.log('\n[Admin Hub alerts]');
+  await test('every alert the site posts to Discord becomes a short generic notification; the alert\'s own text (names, emails, invoices) is never used', () => {
+    const real = [['🚨 New Guest Checkout: Sam Student', 'bookings'], ['🎯 New Course Enrollment Checkout: Sam Student', 'bookings'], ['🎯 Authorized Seat Booking: Sam Student', 'bookings'], ['⚠️ Checkout Session Abandoned / Expired', 'bookings'],
+      ['💳 Reservation Deposit Received', 'payments'], ['💳 Payment in Full Received', 'payments'], ['💳 Remaining Balance Paid', 'payments'], ['💵 Payment recorded in person', 'payments'], ['↩️ In-person payment voided', 'payments'],
+      ['💬 Live Chat Inquiry: Sam Student', 'messages'], ['📩 New Contact Form Inquiry: Sam Student', 'messages'], ['📥 New Free Guide Lead: Sam Student', 'messages'],
+      ['🧭 Multi-state application progress', 'progress'], ['🎉 Multi-state application: all steps done', 'progress'], ['🎯 Quiz reward applied to a booking', 'progress'], ['🌐 Someone is visiting trainwithfifs.com', 'visits'],
+      ['⚠️ Balance paid twice: refund needed', 'problems'], ['⚠️ Balance payment amount mismatch', 'problems'], ['⚠️ Payment amount mismatch', 'problems'], ['⚠️ Payment needs manual reconciliation', 'problems'], ['⚠️ Balance payment needs manual reconciliation', 'problems'], ['⚠️ Checkout blocked: invoice could not be recorded', 'problems'], ['⚠️ Checkout blocked: guest checkout record unavailable', 'problems']];
+    for (const [title, topic] of real) { const a = L.classifyAlert(title); eq(a.topic, topic, title); assert(L.STAFF_TOPICS.includes(a.topic), 'a real topic'); assert(a.title.length <= 40 && a.body.length <= 120, 'short: ' + title); assert(!/Sam|Student|@|INV-|\$|\d{3}/.test(a.title + a.body), 'private text leaked for ' + title + ' -> ' + a.title + ' | ' + a.body); assert(a.urgent === (topic === 'problems'), 'only problems are urgent: ' + title); }
+    eq(L.classifyAlert('something new').topic, 'progress'); eq(L.classifyAlert(null).title, '🔔 FIFS alert'); eq(L.alertPayload(L.classifyAlert('💳 Payment in Full Received')).url, '/');
+    const src = read('src/Lib/server/discord.ts'), rt = read('src/app/api/fifs/route.ts'); for (const body of [src, rt]) assert(!/classifyAlert\([^)]*(description|fields)/.test(body), 'only the title is ever looked at');
+  });
+  await test('topics: staff get six, people four; a device keeps only real topics for its kind of account', () => {
+    eq(L.STAFF_TOPICS.length, 6); eq(L.defaultTopicsFor('staff').length, 6); eq(L.defaultTopicsFor('student').length, 4); eq(L.cleanTopics('staff', ['visits', 'payments', 'class', 'junk', 'visits', 5]), ['visits', 'payments']); eq(L.cleanTopics('student', ['class', 'visits', 'news']), ['class', 'news']); eq(L.cleanTopics('staff', 'x'), []); eq(L.cleanTopics('staff', null), []);
+    for (const t of L.STAFF_TOPICS) assert(L.STAFF_TOPIC_LABELS[t] && /^\p{Extended_Pictographic}/u.test(L.STAFF_TOPIC_LABELS[t]), 'label with emoji for ' + t);
+  });
+  await test('a staff device registers as staff with every alert on; turning it on again keeps the choices; choices can be changed for that device only', async () => {
+    KEYS(); const db = newDb(); assert((await P.saveSubscription(db, 'u-staff', 'staff', goodSub(1))).ok, 'saved'); eq(db.t.push_subscriptions[0].role, 'staff'); eq(db.t.push_subscriptions[0].topics, ['bookings', 'payments', 'messages', 'progress', 'visits', 'problems']);
+    const r = await P.setDeviceTopics(db, 'u-staff', EP(1), ['payments', 'problems', 'class', 'x']); assert(r.ok && JSON.stringify(r.topics) === JSON.stringify(['payments', 'problems']), JSON.stringify(r)); eq(db.t.push_subscriptions[0].topics, ['payments', 'problems']);
+    await P.saveSubscription(db, 'u-staff', 'staff', goodSub(1)); eq(db.t.push_subscriptions[0].topics, ['payments', 'problems'], 'turning it on again keeps the choices'); eq((await P.setDeviceTopics(db, 'someone-else', EP(1), ['visits'])).status, 404); eq(db.t.push_subscriptions[0].topics, ['payments', 'problems'], 'another person cannot change it');
+    eq((await P.deviceTopics(db, 'u-staff', EP(1))).role, 'staff'); eq(await P.deviceTopics(db, 'u-staff', 'https://fcm.googleapis.com/none'), null);
+  });
+  await test('staff alerts go only to staff devices that chose that topic; problems are sent at any hour, everything else only 8am to 8pm Eastern; broadcasts to students and clients never reach staff', async () => {
+    KEYS(); const db = newDb(); await P.saveSubscription(db, 'u-staff', 'staff', goodSub(1)); await P.saveSubscription(db, 'u-staff2', 'staff', goodSub(2)); await P.setDeviceTopics(db, 'u-staff2', EP(2), ['problems']); await P.saveSubscription(db, 'u-stu', 'student', goodSub(3));
+    const NIGHT = new Date('2026-10-22T05:00:00Z');
+    let r = await P.notifyStaff(db, '💳 Payment in Full Received', NOON); eq(r.sent, 1, 'only the staff device that chose payments'); eq(sent[0].sub.endpoint, EP(1)); eq(sent[0].body.title, '💳 Payment in full received'); sent.length = 0;
+    r = await P.notifyStaff(db, '🌐 Someone is visiting trainwithfifs.com', NIGHT); eq([r.sent, r.skipped], [0, 'quiet-hours']);
+    r = await P.notifyStaff(db, '⚠️ Payment amount mismatch', NIGHT); eq(r.sent, 2, 'a problem goes to both staff devices at night'); assert(!sent.some((x) => x.sub.endpoint === EP(3)), 'the student never gets staff alerts'); sent.length = 0;
+    await P.notifyStaff(newDb(), '💳 Deposit received', NOON); eq(sent.length, 0, 'no staff devices, nothing to send'); const ids = await P.userIdsFor(db, 'all'); assert(!ids.includes('u-staff') && ids.includes('u-stu'), 'notes to everyone skip staff');
+  });
+  await test('the site\'s alerts also reach staff phones: both Discord senders call it first, it does nothing without the keys, runs after the answer and never throws', async () => {
+    const d = read('src/Lib/server/discord.ts'), rt = read('src/app/api/fifs/route.ts'); assert(/import \{ notifyStaffOfAlert \} from '\.\/push'/.test(d) && /notifyStaffOfAlert\(title\);[^\n]*\n  const webhookUrl/.test(d), 'Discord helper'); assert(/\) \{\n  notifyStaffOfAlert\(title\);[^\n]*\n  try \{\n    if \(!DISCORD_WEBHOOK_URL/.test(rt), 'route helper');
+    NOKEYS(); currentDb = newDb(); await P.saveSubscription(currentDb, 'u-staff', 'staff', goodSub(1)); P.notifyStaffOfAlert('💳 Payment in Full Received'); await new Promise((r) => setTimeout(r, 30)); eq(sent.length, 0, 'no keys, nothing sent');
+    KEYS(); currentDb = newDb(); currentDb.t.push_subscriptions.push({ user_id: 'u-staff', role: 'staff', endpoint: EP(1), p256dh: P256, auth: AUTH, topics: ['payments'] }); P.notifyStaffOfAlert('💳 Payment in Full Received'); await new Promise((r) => setTimeout(r, 30)); const inHours = L.withinSendWindow(new Date()); eq(sent.length, inHours ? 1 : 0, 'sent only inside the window right now');
+    currentDb = null; P.notifyStaffOfAlert('⚠️ Payment amount mismatch'); await new Promise((r) => setTimeout(r, 30)); // a broken database must not throw
+    const B = require(path.join(ROOT, 'src/Lib/server/background.ts')); let ran = 0; B.runAfterResponse(async () => { ran++; }); B.runAfterResponse(async () => { throw new Error('boom'); }); B.runAfterResponse(() => { throw new Error('sync boom'); }); await new Promise((r) => setTimeout(r, 30)); eq(ran, 1);
+  });
+  await test('Admin Hub: the device section turns alerts on and off, lists the six kinds with emoji and 44px-high rows, saves each choice, and says you do not need to stay signed in; the new SQL only widens the role rule', () => {
+    const adm = read('src/portal/AdminPushPanel.tsx'), rt = read('src/app/api/fifs/route.ts'), q = read('scripts/sql/20261023_push_staff_role.sql'), q0 = read('scripts/sql/20261022_push_subscriptions.sql');
+    assert(/Alert this device/.test(adm) && /Turn off alerts on this device/.test(adm) && /pushSetTopics/.test(adm) && /STAFF_TOPICS\.map/.test(adm) && /minHeight: 44/.test(adm) && /do not need to stay signed in/.test(adm), 'device section');
+    assert(/isStaffOrAdmin\(user\) \? 'staff' : await roleOf/.test(rt) && /action === 'pushSetTopics'/.test(rt), 'staff role comes from the verified login'); assert(/drop constraint if exists push_subscriptions_role_check/.test(q) && /role in \('student', 'client', 'staff'\)/.test(q) && !/drop table|delete from|truncate/i.test(q), 'only widens one rule'); assert(/constraint push_subscriptions_role_check check \(role in \('student', 'client', 'staff'\)\)/.test(q0), 'new installs get it too');
   });
 
   console.log('\n[Phone and computer side]');

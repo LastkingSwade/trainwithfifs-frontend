@@ -5,7 +5,7 @@
 create table if not exists public.push_subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  role text not null check (role in ('student', 'client')),
+  role text not null constraint push_subscriptions_role_check check (role in ('student', 'client', 'staff')),
   endpoint text not null unique check (endpoint like 'https://%' and char_length(endpoint) <= 600),
   p256dh text not null check (char_length(p256dh) between 80 and 100),
   auth text not null check (char_length(auth) between 20 and 30),

@@ -1,6 +1,8 @@
 // Server-only Discord operational alerts. The webhook URL must come from the
 // DISCORD_WEBHOOK_URL environment variable; there is deliberately no fallback.
 
+import { notifyStaffOfAlert } from './push';
+
 export interface DiscordField {
   name: string;
   value: string;
@@ -13,6 +15,7 @@ export async function sendDiscordAlert(
   fields: DiscordField[] = [],
   color: number = 0x00E5FF
 ): Promise<boolean> {
+  notifyStaffOfAlert(title); // the same event as a short generic notification on staff phones (does nothing unless notifications are switched on)
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
   if (!webhookUrl || !webhookUrl.startsWith('https://')) {
     console.warn('[FIFS Discord] DISCORD_WEBHOOK_URL is not configured; skipping alert.');

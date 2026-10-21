@@ -1,9 +1,18 @@
 // Pure rules for push notifications (no network, no database), so they can be tested on their own.
 // What a notification may contain: a short generic line. Never a name, an amount, a permit number, a date of birth, or anything about a firearm.
 
-export type Role = 'student' | 'client';
-export type Topic = 'class' | 'permit' | 'payment' | 'news';
+export type Role = 'student' | 'client' | 'staff';
+export type PersonRole = 'student' | 'client';
+import { STAFF_TOPICS, STAFF_TOPIC_LABELS, type StaffTopic } from '../../pwa/staffTopics';
+export { STAFF_TOPICS, STAFF_TOPIC_LABELS };
+export type { StaffTopic };
+export type Topic = 'class' | 'permit' | 'payment' | 'news' | StaffTopic;
 export const TOPICS: readonly Topic[] = ['class', 'permit', 'payment', 'news'];
+export const defaultTopicsFor = (role: Role): readonly Topic[] => (role === 'staff' ? STAFF_TOPICS : TOPICS);
+/** The topics a person asked for, kept only if they are real topics for that kind of account. */
+export function cleanTopics(role: Role, input: unknown): Topic[] {
+  const allowed = defaultTopicsFor(role) as readonly string[]; return Array.isArray(input) ? Array.from(new Set(input.map(String))).filter((t) => allowed.includes(t)) as Topic[] : [];
+}
 export interface PushPayload { title: string; body: string; url: string; tag: string; topic: Topic }
 
 // ---- the device's push address: only the push services the browsers use, over https (so the server can never be pointed at an internal address) ----
@@ -51,7 +60,7 @@ export function classDaysFrom(...texts: unknown[]): string[] {
 }
 
 // ---- the messages ----
-export const URL_FOR: Record<Role, string> = { student: '/?open=student', client: '/?open=client' };
+export const URL_FOR: Record<Role, string> = { student: '/?open=student', client: '/?open=client', staff: '/' };
 export function classReminder(when: 'tomorrow' | 'today', balanceDue: boolean): PushPayload {
   return when === 'tomorrow'
     ? { title: '📅 Your class is tomorrow', body: 'Open your Student Portal for what to bring and where to go.' + (balanceDue ? ' 💳 You can pay the rest online there too.' : ''), url: URL_FOR.student, tag: 'class-tomorrow', topic: 'class' }
@@ -67,4 +76,34 @@ export const paymentReceived = (): PushPayload => ({ title: '💵 Payment receiv
 export function cleanBroadcast(text: unknown): string {
   return String(text ?? '').replace(/[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁦-⁩]/g, ' ').replace(/https?:\/\/\S+|www\.\S+/gi, '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 140);
 }
-export const broadcastMessage = (text: string, audience: 'all' | Role): PushPayload => ({ title: '📣 FIFS update', body: text, url: audience === 'client' ? URL_FOR.client : URL_FOR.student, tag: 'news', topic: 'news' });
+export const broadcastMessage = (text: string, audience: 'all' | PersonRole): PushPayload => ({ title: '📣 FIFS update', body: text, url: audience === 'client' ? URL_FOR.client : URL_FOR.student, tag: 'news', topic: 'news' });
+
+// ---- Alerts for staff: the same events that go to Discord, as short generic notifications. The alert's own text (it has names, emails and invoice numbers) is NEVER used:
+//      the event is recognised from its title and a fixed line is sent instead. Problems are urgent and are sent at any hour; everything else waits for 8am to 8pm Eastern. ----
+export interface StaffAlert { topic: StaffTopic; title: string; body: string; urgent: boolean; tag: string }
+const HINT = 'Open the Admin Hub for details.';
+export function classifyAlert(title: unknown): StaffAlert {
+  const t = String(title ?? '');
+  const a = (topic: StaffTopic, head: string, body: string, tag: string, urgent = false): StaffAlert => ({ topic, title: head, body, urgent, tag });
+  if (/refund/i.test(t)) return a('problems', '⚠️ Refund needed', 'A student paid twice. ' + HINT, 'problem-refund', true);
+  if (/amount mismatch/i.test(t)) return a('problems', '⚠️ Payment amount mismatch', 'An invoice was not marked paid. ' + HINT, 'problem-mismatch', true);
+  if (/reconcil/i.test(t)) return a('problems', '⚠️ A payment needs checking', HINT, 'problem-reconcile', true);
+  if (/checkout blocked/i.test(t)) return a('problems', '⚠️ A checkout was blocked', 'Someone could not start paying. ' + HINT, 'problem-checkout', true);
+  if (/abandoned|expired/i.test(t)) return a('bookings', '⏳ Checkout abandoned', 'Someone left before paying. ' + HINT, 'checkout-abandoned');
+  if (/^\s*⚠️/.test(t)) return a('problems', '⚠️ Needs your attention', HINT, 'problem', true);
+  if (/deposit received/i.test(t)) return a('payments', '💳 Deposit received', HINT, 'pay-deposit');
+  if (/payment in full received/i.test(t)) return a('payments', '💳 Payment in full received', HINT, 'pay-full');
+  if (/remaining balance paid/i.test(t)) return a('payments', '💳 Balance paid', HINT, 'pay-balance');
+  if (/payment recorded in person/i.test(t)) return a('payments', '💵 Payment recorded', HINT, 'pay-inperson');
+  if (/voided/i.test(t)) return a('payments', '↩️ Payment voided', HINT, 'pay-void');
+  if (/guest checkout|enrollment checkout|seat booking/i.test(t)) return a('bookings', '🎯 New booking started', 'Someone started checkout. ' + HINT, 'booking');
+  if (/live chat/i.test(t)) return a('messages', '💬 New chat message', HINT, 'msg-chat');
+  if (/contact form/i.test(t)) return a('messages', '📩 New contact inquiry', HINT, 'msg-contact');
+  if (/guide lead/i.test(t)) return a('messages', '📥 New guide download', HINT, 'msg-guide');
+  if (/multi-state.*all steps/i.test(t)) return a('progress', '🎉 Multi-state: all steps done', HINT, 'progress-complete');
+  if (/multi-state/i.test(t)) return a('progress', '🧭 Multi-state progress', HINT, 'progress-ms');
+  if (/quiz reward/i.test(t)) return a('progress', '🎯 Quiz reward used', HINT, 'progress-quiz');
+  if (/visiting/i.test(t)) return a('visits', '🌐 Someone is on the website', HINT, 'visit');
+  return a('progress', '🔔 FIFS alert', HINT, 'alert');
+}
+export const alertPayload = (al: StaffAlert): PushPayload => ({ title: al.title, body: al.body, url: URL_FOR.staff, tag: al.tag, topic: al.topic });
