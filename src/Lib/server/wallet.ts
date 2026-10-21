@@ -113,6 +113,20 @@ export async function walletOpen(supabase: any, userId: string, id: unknown): Pr
   } catch (err: any) { console.warn('[Wallet] open failed:', err?.message); return { ok: false, status: 500, message: 'Could not open that document.' }; }
 }
 
+/** Change (or clear) the expiry date of one of THIS person's documents, for example after a renewal. Only the date changes; the stored file is untouched. */
+export async function walletSetExpiry(supabase: any, userId: string, id: unknown, expiresOn: unknown): Promise<WalletResult> {
+  if (!walletEnabled()) return { ok: false, status: 503, message: 'The document wallet is not available yet.' };
+  const docId = String(id ?? ''); if (!UUID.test(docId)) return { ok: false, status: 400, message: 'That document could not be found.' };
+  const raw = expiresOn === null || expiresOn === undefined || expiresOn === '' ? null : String(expiresOn);
+  if (raw !== null) { const t = Date.parse(raw + 'T12:00:00Z'); if (!DAY.test(raw) || Number.isNaN(t) || raw < '1990-01-01' || raw > '2100-12-31') return { ok: false, status: 400, message: 'The expiration date is not valid.' }; }
+  try {
+    const up = await supabase.from('wallet_documents').update({ expires_on: raw }).eq('id', docId).eq('user_id', userId).select('id');
+    if (up.error) return { ok: false, status: 500, message: 'The date could not be saved. Nothing was changed.' };
+    if (!Array.isArray(up.data) || up.data.length === 0) return { ok: false, status: 404, message: 'That document could not be found.' };
+    return { ok: true };
+  } catch (err: any) { console.warn('[Wallet] expiry update failed:', err?.message); return { ok: false, status: 500, message: 'The date could not be saved. Nothing was changed.' }; }
+}
+
 export async function walletDelete(supabase: any, userId: string, id: unknown): Promise<WalletResult> {
   if (!UUID.test(String(id ?? ''))) return { ok: false, status: 400, message: 'Choose a document.' };
   try {

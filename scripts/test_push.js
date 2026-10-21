@@ -104,6 +104,15 @@ function fakeDb(t, o = {}) {
   await test('permit renewal pushes go to the clients due today who turned notifications on, one message per milestone', async () => {
     KEYS(); const db = newDb(); await P.saveSubscription(db, 'u-cli', 'client', goodSub(2)); const r = await P.sendPermitPushes(db, new Map([[90, ['u-cli']], [30, ['u-nobody']]]), NOON); eq(r.sent, 1); eq(sent[0].body.tag, 'permit-90'); eq(sent[0].body.url, '/?open=client');
   });
+  await test('wallet documents: a generic push 90, 30 and 7 days before the date the owner entered, once per day, and never twice with the permit reminder', async () => {
+    eq(Array.from(L.DOC_REMINDER_DAYS), [90, 30, 7], 'the document milestones');     KEYS(); const day = (n) => L.addDays(L.easternDay(NOON), n); const docs = [{ user_id: 'u-stu', expires_on: day(30) }, { user_id: 'u-cli', expires_on: day(90) }, { user_id: 'u-cli', expires_on: day(7) }, { user_id: 'u-stu2', expires_on: day(31) }, { user_id: 'u-nobody', expires_on: day(30) }];
+    const db = newDb({ wallet_documents: docs }); await P.saveSubscription(db, 'u-stu', 'student', goodSub(1)); await P.saveSubscription(db, 'u-cli', 'client', goodSub(2)); await P.saveSubscription(db, 'u-stu2', 'student', goodSub(3));
+    const r = await P.sendDocumentExpiryPushes(db, NOON); eq(r.sent, 3, 'student at 30, client at 90 and 7; the day-31 document, and a person with no device, get nothing');
+    eq(sent.map((x) => x.body.tag).sort(), ['doc-30', 'doc-7', 'doc-90']); const stu = sent.find((x) => x.body.tag === 'doc-30'); eq(stu.body.url, '/?open=student'); eq(sent.find((x) => x.body.tag === 'doc-90').body.url, '/?open=client');
+    for (const x of sent) { assert(!/permit|card|certificate|hql|passport|license|\$|@|\d{4}/i.test(x.body.title + ' ' + x.body.body.replace(/\d+ days/, '')), 'generic: never names the document'); assert(x.body.title === '📄 Document expiring soon', 'title'); }
+    sent.length = 0; const skipped = await P.sendDocumentExpiryPushes(db, NOON, new Map([[90, ['u-cli']]])); eq(skipped.sent, 2, 'the client who already got the permit reminder for 90 days is skipped');
+    sent.length = 0; eq((await P.sendDocumentExpiryPushes(newDb({ wallet_documents: [] }), NOON)).sent, 0); NOKEYS(); eq((await P.sendDocumentExpiryPushes(db, NOON)).sent, 0, 'no keys, nothing sent'); KEYS();
+  });
   await test('subscriber counts for the Admin Hub are numbers only (no names)', async () => { KEYS(); const db = newDb(); await P.saveSubscription(db, 'u-stu', 'student', goodSub(1)); await P.saveSubscription(db, 'u-cli', 'client', goodSub(2)); eq([await P.countSubscribers(db, 'student'), await P.countSubscribers(db, 'client'), await P.countSubscribers(db, 'all')], [1, 1, 2]); eq((await P.userIdsFor(db, 'client')), ['u-cli']); });
 
   console.log('\n[Website actions and jobs]');

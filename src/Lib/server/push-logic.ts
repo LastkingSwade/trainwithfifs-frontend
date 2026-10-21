@@ -71,6 +71,13 @@ export function permitReminder(daysLeft: number): PushPayload {
   const body = d <= 7 ? 'Your permit expires in about a week. Open your Client Portal for the next step.' : `About ${d} days until your permit expires. Open your Client Portal to book your renewal class.`;
   return { title: '🛡️ Permit renewal', body, url: URL_FOR.client, tag: 'permit-' + d, topic: 'permit' };
 }
+/** Wallet documents: reminded 90, 30 and 7 days before the date the owner entered. Generic on purpose: it never says which document or what it is. */
+export const DOC_REMINDER_DAYS = [90, 30, 7] as const;
+export function documentReminder(daysLeft: number, role: PersonRole): PushPayload {
+  const d = Math.round(daysLeft);
+  const body = d <= 7 ? 'One of your wallet documents expires in about a week. Open your portal to review it.' : `One of your wallet documents expires in about ${d} days. Open your portal to review it.`;
+  return { title: '📄 Document expiring soon', body, url: URL_FOR[role], tag: 'doc-' + d, topic: 'permit' };
+}
 export const paymentReceived = (): PushPayload => ({ title: '💵 Payment received', body: 'Coach Kai recorded a payment on your account. Open your Student Portal to see your receipt.', url: URL_FOR.student, tag: 'payment', topic: 'payment' });
 /** A short note from Coach Kai: plain text only, control characters and links removed, 140 characters at most. Returns '' if nothing is left. */
 export function cleanBroadcast(text: unknown): string {

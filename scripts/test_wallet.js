@@ -10,11 +10,11 @@ const PNG = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a
 function mem() {
   const t = { wallet_consent: [], wallet_documents: [] }; const files = {};
   const from = (table) => { const f = []; let op = 'select', vals = null;
-    const q = { select: () => q, eq: (c, v) => { f.push((r) => r[c] === v); return q; }, order: () => q, limit: () => q, upsert: (v) => { op = 'upsert'; vals = v; return q; }, insert: (v) => { op = 'insert'; vals = v; return q; }, delete: () => { op = 'delete'; return q; },
+    const q = { select: () => q, eq: (c, v) => { f.push((r) => r[c] === v); return q; }, order: () => q, limit: () => q, upsert: (v) => { op = 'upsert'; vals = v; return q; }, update: (v) => { op = 'update'; vals = v; return q; }, insert: (v) => { op = 'insert'; vals = v; return q; }, delete: () => { op = 'delete'; return q; },
       maybeSingle: async () => ({ data: t[table].filter((r) => f.every((x) => x(r)))[0] ? { ...t[table].filter((r) => f.every((x) => x(r)))[0] } : null, error: null }),
       then: (res) => { if (op === 'upsert') { const i = t[table].findIndex((r) => r.user_id === vals.user_id); if (i >= 0) Object.assign(t[table][i], vals); else t[table].push({ ...vals }); return res({ error: null }); }
         if (op === 'insert') { t[table].push({ created_at: new Date().toISOString(), ...vals }); return res({ error: null }); }
-        const hit = t[table].filter((r) => f.every((x) => x(r))); if (op === 'delete') { t[table] = t[table].filter((r) => !hit.includes(r)); return res({ error: null }); }
+        const hit = t[table].filter((r) => f.every((x) => x(r))); if (op === 'update') { hit.forEach((r) => Object.assign(r, vals)); return res({ data: hit.map((r) => ({ ...r })), error: null }); } if (op === 'delete') { t[table] = t[table].filter((r) => !hit.includes(r)); return res({ error: null }); }
         return res({ data: hit.map((r) => ({ ...r })), error: null }); } }; return q; };
   const storage = { from: () => ({ upload: async (p, b) => { files[p] = Buffer.from(b); return { error: null }; }, download: async (p) => (files[p] ? { data: { arrayBuffer: async () => files[p].buffer.slice(files[p].byteOffset, files[p].byteOffset + files[p].length) }, error: null } : { data: null, error: { m: 'none' } }), remove: async (ps) => { ps.forEach((p) => delete files[p]); return { error: null }; } }) };
   return { t, files, from, storage };
@@ -119,7 +119,7 @@ function mem() {
   });
   await test('Vault screen keeps every safety rule: consent notice and checkbox first, "do not upload" gun records, owner-only calls, private open, delete needs a confirmation, and nothing is logged', () => {
     assert(/Do not upload/.test(VUI) && /serial numbers/.test(VUI) && /<input type="checkbox" checked=\{agree\}/.test(VUI) && /disabled=\{!agree\}/.test(VUI), 'consent first');
-    for (const a of ['walletStatus', 'walletConsent', 'walletUpload', 'walletOpen', 'walletDelete']) assert(new RegExp("call\\('" + a + "'").test(VUI), a + ' still used');
+    for (const a of ['walletStatus', 'walletConsent', 'walletUpload', 'walletOpen', 'walletSetExpiry', 'walletDelete']) assert(new RegExp("call\\('" + a + "'").test(VUI), a + ' still used');
     assert(/setConfirmId\(d\.id\)/.test(VUI) && /Delete this document\? This cannot be undone\./.test(VUI) && /role="alert"/.test(VUI) && /Yes, delete/.test(VUI), 'delete asks first');
     assert(!/console\./.test(VUI) && !/localStorage|sessionStorage/.test(VUI), 'nothing logged or stored in the browser');
     assert(/maxBytes/.test(VUI) && /accept="application\/pdf,image\/png,image\/jpeg,image\/webp"/.test(VUI), 'file type and size limits');
@@ -143,5 +143,23 @@ function mem() {
     assert(/\.vault \.vault-sort select \{ width: auto !important; min-width: 190px; \}/.test(VCSS), 'the sort menu is compact, not a full-width bar'); assert(/\.vault-pill\.due \{ min-height: 44px/.test(VCSS) && /\.vault-sort select \{ min-height: 44px/.test(VCSS) && /\.vault-quickbtn \{ min-height: 48px/.test(VCSS) && /pointer: coarse\) \{ \.vault-camera \{ display: flex/.test(VCSS), 'touch sizes'); assert(!/walletUpload[^;]*capture/.test(VUI) && (VUI.match(/call\('walletUpload'/g) || []).length === 1, 'the camera uses the same single upload path');
   });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
+
+  await test('Change expiry: only the owner can change a document\'s date, only real dates are accepted, the date can be cleared, and the stored file is never touched', async () => {
+    const db = mem(); await w.walletConsent(db, A); const r = await w.walletUpload(db, A, { kind: 'permit_card', dataBase64: PDF.toString('base64'), expiresOn: '2026-12-01' });
+    const before = JSON.stringify(db.files), row = () => db.t.wallet_documents[0];
+    assert((await w.walletSetExpiry(db, A, r.id, '2027-12-01')).ok && row().expires_on === '2027-12-01', 'owner changes it');
+    const other = await w.walletSetExpiry(db, B, r.id, '2030-01-01'), missing = await w.walletSetExpiry(db, B, '33333333-3333-4333-8333-333333333333', '2030-01-01');
+    assert(other.status === 404 && missing.status === 404 && other.message === missing.message && row().expires_on === '2027-12-01', 'another person cannot, and gets the same answer as for a missing document');
+    for (const bad of ['tomorrow', '2027-13-45', '1980-01-01', '2101-01-01', '12/01/2027', '2027-12-01T00:00:00Z']) assert((await w.walletSetExpiry(db, A, r.id, bad)).status === 400 && row().expires_on === '2027-12-01', 'refuses ' + bad);
+    assert((await w.walletSetExpiry(db, A, 'not-a-uuid', '2027-12-01')).status === 400, 'bad id');
+    assert((await w.walletSetExpiry(db, A, r.id, '')).ok && row().expires_on === null, 'cleared'); assert(JSON.stringify(db.files) === before, 'the encrypted file is untouched');
+    delete process.env.WALLET_KEY; assert((await w.walletSetExpiry(db, A, r.id, '2028-01-01')).status === 503 && row().expires_on === null, 'wallet off: refuses'); process.env.WALLET_KEY = crypto.randomBytes(32).toString('hex');
+  });
+  await test('Change expiry on screen: a "Expiry date" menu item opens a 44px date field with Save, No expiry and Cancel, in the company colours', () => {
+    assert(/📅 Expiry date/.test(VUI) && /walletSetExpiry/.test(VUI) && /Save date/.test(VUI) && /No expiry/.test(VUI) && /type="date"/.test(VUI), 'menu and form');
+    assert(/\.vault-edit input\[type="date"\] \{ min-height: 44px/.test(VCSS) && /\.vault-edit button \{ min-height: 44px/.test(VCSS) && /#ffb703/.test(VCSS.slice(VCSS.indexOf('.vault-edit'))), '44px and amber');
+    const route = fs.readFileSync(path.join(ROOT, 'src/app/api/fifs/route.ts'), 'utf8'); const seg = route.slice(route.indexOf("case 'walletStatus':"), route.indexOf("case 'walletStatus':") + 1500);
+    assert(/case 'walletSetExpiry':/.test(seg) && /walletSetExpiry\(supabase, uid, payload\.id, payload\.expiresOn\)/.test(seg) && /getAuthenticatedUser\(req\)/.test(seg), 'route uses the verified login as owner');
+  });
   process.exit(failed ? 1 : 0);
 })();

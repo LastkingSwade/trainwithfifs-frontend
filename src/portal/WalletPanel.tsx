@@ -27,6 +27,8 @@ export default function WalletPanel() {
   const [addOpen, setAddOpen] = useState(false);
   const [sort, setSort] = useState<VaultSort>('newest');
   const [drag, setDrag] = useState(false);
+  const [editId, setEditId] = useState('');
+  const [editDate, setEditDate] = useState('');
   const panel = useRef<HTMLElement | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -38,7 +40,7 @@ export default function WalletPanel() {
   const load = useCallback(async () => { try { setSt(await call('walletStatus')); } catch (e: any) { setMsg(e?.message || 'Could not load your vault.'); } }, [call]);
   const showToast = (t: string) => { setToast(t); if (toastTimer.current) clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(''), 4500); };
 
-  useEffect(() => { (window as any).openWallet = () => { setOpen(true); setMsg(''); setToast(''); setConfirmId(''); setMenuId(''); setAgree(false); setTab('all'); setQuery(''); setSort('newest'); setAddOpen(false); load(); }; return () => { delete (window as any).openWallet; if (toastTimer.current) clearTimeout(toastTimer.current); }; }, [load]);
+  useEffect(() => { (window as any).openWallet = () => { setOpen(true); setMsg(''); setToast(''); setConfirmId(''); setMenuId(''); setAgree(false); setTab('all'); setQuery(''); setSort('newest'); setAddOpen(false); setEditId(''); load(); }; return () => { delete (window as any).openWallet; if (toastTimer.current) clearTimeout(toastTimer.current); }; }, [load]);
   useEffect(() => {
     if (!open) return;
     const key = (e: KeyboardEvent) => {
@@ -53,6 +55,12 @@ export default function WalletPanel() {
   useEffect(() => { if (open) window.setTimeout(() => panel.current?.querySelector<HTMLElement>('.vault-close')?.focus(), 60); }, [open]);
   if (!open) return null;
 
+  const saveExpiry = async (d: VaultDoc, clear = false) => {
+    setBusy(true);
+    try { await call('walletSetExpiry', { id: d.id, expiresOn: clear ? '' : editDate }); setEditId(''); setMsg(''); showToast(clear ? 'Expiry date removed.' : 'Expiry date saved.'); await load(); }
+    catch (e: any) { setMsg(e?.message || 'Could not save the date.'); }
+    finally { setBusy(false); }
+  };
   const accept = async () => { try { await call('walletConsent'); setMsg(''); await load(); } catch (e: any) { setMsg(e?.message || 'Could not save your choice.'); } };
   const upload = async (file: File | undefined) => {
     if (!file || !st) return;
@@ -173,11 +181,17 @@ export default function WalletPanel() {
                         <h3>{docTitle(d)}</h3>
                         <div className="vault-menu">
                           <button type="button" className="vault-dots" aria-haspopup="menu" aria-expanded={menuId === d.id} aria-label={`More actions for ${docTitle(d)}`} onClick={() => { setMenuId(menuId === d.id ? '' : d.id); setConfirmId(''); }}>⋮</button>
-                          {menuId === d.id && <div className="vault-pop" role="menu"><button type="button" role="menuitem" onClick={() => { setConfirmId(d.id); setMenuId(''); }}>🗑️ Delete</button></div>}
+                          {menuId === d.id && <div className="vault-pop" role="menu"><button type="button" role="menuitem" onClick={() => { setEditId(d.id); setEditDate(d.expiresOn || ''); setConfirmId(''); setMenuId(''); }}>📅 Expiry date</button><button type="button" role="menuitem" onClick={() => { setConfirmId(d.id); setEditId(''); setMenuId(''); }}>🗑️ Delete</button></div>}
                         </div>
                       </div>
                       <p className="vault-meta">Added by you · {prettyDate(d.createdAt)} · {sizeText(d.sizeBytes)}</p>
                       {ex.state !== 'none' && <span className={'vault-exp ' + ex.state}>{ex.text}</span>}
+                      {editId === d.id && (
+                        <div className="vault-edit">
+                          <label>New expiry date<input type="date" aria-label={`Expiry date for ${docTitle(d)}`} value={editDate} onChange={(e) => setEditDate(e.target.value)} /></label>
+                          <span className="vault-confirm-row"><button type="button" className="primary" disabled={busy || !editDate} onClick={() => saveExpiry(d)}>Save date</button>{d.expiresOn && <button type="button" disabled={busy} onClick={() => saveExpiry(d, true)}>No expiry</button>}<button type="button" onClick={() => setEditId('')}>Cancel</button></span>
+                        </div>
+                      )}
                       {confirmId === d.id ? (
                         <div className="vault-confirm" role="alert"><span>Delete this document? This cannot be undone.</span><span className="vault-confirm-row"><button type="button" className="danger" onClick={() => remove(d)}>Yes, delete</button><button type="button" onClick={() => setConfirmId('')}>Cancel</button></span></div>
                       ) : <button type="button" className="vault-view" onClick={() => view(d)}>View document <span aria-hidden="true">→</span></button>}

@@ -149,3 +149,12 @@
 @media (max-width: 640px) { .vault-head { position: sticky; top: 0; z-index: 4; margin: -20px -16px 16px; padding: 14px 16px; background: #0b1119; border-bottom: 1px solid rgba(0, 229, 255, 0.25); } }
 .vault-chips { order: 2; } .vault-sort { order: 3; }
 .vault .vault-sort { justify-self: start; } .vault-sort span { white-space: nowrap; } .vault .vault-sort select { width: auto !important; min-width: 190px; }
+
+/* Change a document's expiry date (for example after a renewal). Inline under the card, 44px controls. */
+.vault-edit { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255, 183, 3, 0.55); background: rgba(255, 183, 3, 0.07); }
+.vault-edit label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; font-weight: 700; color: #ffd166; }
+.vault-edit input[type="date"] { min-height: 44px; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.25); background: #070b10; color: #fff; font: inherit; font-size: 16px; }
+.vault-edit button { min-height: 44px; min-width: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(0, 229, 255, 0.55); background: rgba(255, 255, 255, 0.05); color: #e8faff; font-weight: 700; cursor: pointer; }
+.vault-edit button.primary { background: linear-gradient(135deg, #ffb703, #fb8500); border-color: transparent; color: #111; }
+.vault-edit button:disabled { opacity: 0.55; cursor: default; }
+.vault-edit input:focus-visible, .vault-edit button:focus-visible { outline: 3px solid #00e5ff; outline-offset: 2px; }

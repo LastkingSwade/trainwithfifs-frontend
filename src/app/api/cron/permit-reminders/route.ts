@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrivilegedClient } from '@/Lib/server/supabase-admin';
 import { sendOnlineEmail } from '@/Lib/server/online-email';
 import { REMINDER_DAYS, addDays, buildPermitReminder } from '@/Lib/server/permit-email';
-import { sendPermitPushes } from '@/Lib/server/push';
+import { sendDocumentExpiryPushes, sendPermitPushes } from '@/Lib/server/push';
 import { timingSafeEqual } from 'crypto';
 
 // Daily job (Vercel Cron, `Authorization: Bearer <CRON_SECRET>`): emails opted-in clients exactly 120, 90, 30 and 7 days before the permit
-// expiration date they entered. No record is stored: a client matches each reminder date on one day only, so nobody gets the same one twice.
+// expiration date they entered, and sends a generic push for wallet documents about to expire. No record is stored: a client matches each reminder date on one day only, so nobody gets the same one twice.
 function authorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET || '';
   const got = req.headers.get('authorization') || '';
@@ -32,7 +32,9 @@ export async function GET(req: NextRequest) {
       }
     }
     let pushed = 0; try { pushed = (await sendPermitPushes(supabase, pushIds)).sent; } catch { /* the emails above already went out */ }
-    return NextResponse.json({ success: true, sent, pushed });
+    // Wallet documents with an expiry date entered by their owner: a generic push 90, 30 and 7 days ahead (not twice on a day the permit reminder already went out).
+    let docPushed = 0; try { docPushed = (await sendDocumentExpiryPushes(supabase, new Date(), pushIds)).sent; } catch { /* optional */ }
+    return NextResponse.json({ success: true, sent, pushed, docPushed });
   } catch (err: any) {
     console.warn('[Cron] permit reminders:', err?.message);
     return NextResponse.json({ success: false, error: 'Reminder run failed' }, { status: 500 });

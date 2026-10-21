@@ -16,7 +16,7 @@ import { listInvoicePayments, recordManualPayment, voidManualPayment } from '@/L
 import { aggregate } from '@/Lib/server/site-visits';
 import { countSubscribers, deviceTopics, notifyPaymentReceived, notifyStaffOfAlert, pushConfigured, removeSubscription, roleOf, saveSubscription, sendToUsers, setDeviceTopics, userIdsFor, vapidPublicKey } from '@/Lib/server/push';
 import { broadcastMessage, cleanBroadcast, withinSendWindow } from '@/Lib/server/push-logic';
-import { purgeWallet, walletConsent, walletDelete, walletOpen, walletStatus, walletUpload } from '@/Lib/server/wallet';
+import { purgeWallet, walletConsent, walletDelete, walletOpen, walletSetExpiry, walletStatus, walletUpload } from '@/Lib/server/wallet';
 import { adminDeletePayments, adminPayments } from '@/Lib/server/admin-payments';
 import { listTrash, restoreFromTrash, saveToTrash } from '@/Lib/server/admin-trash';
 import { adminDayRoster, adminMarkAttendance, adminOnlineOverview, adminSetMeetingLink, day2Pending, getDayModes, getOnlineOptions, studentOnlineClasses } from '@/Lib/server/online-classroom';
@@ -3240,6 +3240,7 @@ export async function POST(req: NextRequest) {
      case 'walletConsent':
      case 'walletUpload':
      case 'walletOpen':
+     case 'walletSetExpiry':
      case 'walletDelete': {
        // Any signed-in person, for THEIR OWN documents only: the owner id is the verified token's user id, never anything from the request.
        const { user, error: authErr } = await getAuthenticatedUser(req);
@@ -3252,6 +3253,7 @@ export async function POST(req: NextRequest) {
          : action === 'walletConsent' ? await walletConsent(supabase, uid)
          : action === 'walletUpload' ? await walletUpload(supabase, uid, { kind: payload.kind, dataBase64: payload.dataBase64, expiresOn: payload.expiresOn })
          : action === 'walletOpen' ? await walletOpen(supabase, uid, payload.id)
+         : action === 'walletSetExpiry' ? await walletSetExpiry(supabase, uid, payload.id, payload.expiresOn)
          : await walletDelete(supabase, uid, payload.id);
        return res.ok ? NextResponse.json({ success: true, ...res }) : NextResponse.json({ success: false, error: res.message }, { status: res.status });
      }

@@ -1,5 +1,5 @@
 import webpush from 'web-push';
-import { MAX_DEVICES_PER_PERSON, isAllowedEndpoint, alertPayload, classifyAlert, cleanSubscription, cleanTopics, defaultTopicsFor, easternDay, addDays, classDaysFrom, classReminder, paymentReceived, permitReminder, withinSendWindow, type PersonRole, type PushPayload, type Role, type Topic } from './push-logic';
+import { MAX_DEVICES_PER_PERSON, DOC_REMINDER_DAYS, documentReminder, isAllowedEndpoint, alertPayload, classifyAlert, cleanSubscription, cleanTopics, defaultTopicsFor, easternDay, addDays, classDaysFrom, classReminder, paymentReceived, permitReminder, withinSendWindow, type PersonRole, type PushPayload, type Role, type Topic } from './push-logic';
 import { getPrivilegedClient } from './supabase-admin';
 import { runAfterResponse } from './background';
 
@@ -135,6 +135,20 @@ export async function sendClassReminders(supabase: any, now: Date = new Date()):
   return out;
 }
 /** Used by the permit-renewal daily job: the clients (by login id) who are due a reminder today get a notification too, if they turned it on. */
+/** Wallet documents due 90, 30 or 7 days out (matched on the exact day, so a daily job never repeats one). `skip` holds the people who already got the permit reminder for the same milestone today. */
+export async function sendDocumentExpiryPushes(supabase: any, now: Date = new Date(), skip: Map<number, string[]> = new Map()): Promise<SendReport> {
+  const total: SendReport = { sent: 0, failed: 0, removed: 0 }; const today = easternDay(now);
+  for (const n of DOC_REMINDER_DAYS) {
+    try {
+      const r = await supabase.from('wallet_documents').select('user_id').eq('expires_on', addDays(today, n)); if (r.error || !Array.isArray(r.data)) continue;
+      const already = new Set(skip.get(n) || []); const ids = Array.from(new Set<string>(r.data.map((x: any) => String(x.user_id || '')))).filter((id) => id && !already.has(id));
+      const groups: Record<PersonRole, string[]> = { student: [], client: [] };
+      for (const id of ids) { const role = await roleOf(supabase, id); if (role) groups[role].push(id); }
+      for (const role of ['student', 'client'] as PersonRole[]) { if (!groups[role].length) continue; const rep = await sendToUsers(supabase, groups[role], documentReminder(n, role), now); total.sent += rep.sent; total.failed += rep.failed; total.removed += rep.removed; }
+    } catch { /* one milestone failing never stops the others */ }
+  }
+  return total;
+}
 export async function sendPermitPushes(supabase: any, byDaysLeft: Map<number, string[]>, now: Date = new Date()): Promise<SendReport> {
   const total: SendReport = { sent: 0, failed: 0, removed: 0 };
   for (const [n, ids] of Array.from(byDaysLeft.entries()) as Array<[number, string[]]>) { const r = await sendToUsers(supabase, ids, permitReminder(n), now); total.sent += r.sent; total.failed += r.failed; total.removed += r.removed; }
