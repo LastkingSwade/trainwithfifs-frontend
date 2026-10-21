@@ -31,6 +31,8 @@ import { installMultiStateCard } from "@/multistate/card";
 import { installEngagement } from "@/portal/engage";
 import { installQuizCard, installQuizPricing } from "@/portal/quizCard";
 import { installPayPlan } from "@/portal/payPlan";
+import HeroWide from "@/animations/HeroWide";
+import "@/animations/heroWide.css";
 import { installAdminExtras } from "@/portal/adminExtras";
 import { installAdminAttention } from "@/portal/adminAttention";
 import "@/portal/portal.css";
@@ -4296,6 +4298,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <line x1="560" y1="781" x2="670" y2="781" stroke="#00e5ff" strokeWidth="1.5" strokeDasharray="6 4" opacity="0.8" />
             </g>
           </svg>
+          <HeroWide />
           <img alt="Future Initiative Firearms Training Background" className="hero-bg-artwork" data-onerror="this.src=&#x27;https://drive.google.com/thumbnail?id=1lG_LMJ9gBJ3e_DZAkuivaEp-sKH2c0wW&amp;sz=w1920&#x27;" src="https://lh3.googleusercontent.com/d/1lG_LMJ9gBJ3e_DZAkuivaEp-sKH2c0wW" />
           <HudIntro />
           <div className="hero-bg-vignette">

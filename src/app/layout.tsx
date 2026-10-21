@@ -58,6 +58,8 @@ export default function RootLayout({
       <head>
         {/* A plain inline script (not next/script, which waits for the app bundle): it must run before the first paint. */}
         <script dangerouslySetInnerHTML={{ __html: BOOT_GATE_SCRIPT }} />
+        {/* Wide screens start loading the wide hero picture right away (phones never download it). */}
+        <link rel="preload" as="image" href="/hero/fifs-hero-wide.webp" media="(min-width: 900px)" />
       </head>
       <body>
         <Script id="fifs-recovery-redirect" strategy="beforeInteractive">
