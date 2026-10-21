@@ -22,6 +22,7 @@ import "../experiments/portals.css";
 import "../secrets/secrets.css";
 import Secrets from "../secrets/Secrets";
 import { BOOT_GATE_SCRIPT } from "../boot/bootConfig";
+import { STARTUP_IMAGES } from "../pwa/splash";
 
 // Fonts are downloaded once at build time and served from this site (no request to Google when someone visits, and they work offline).
 // Rajdhani gives headings and tactical labels their HUD character; Geist is the calm body face; Geist Mono is for numbers and codes.
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
   title: "Train With FIFS | Maryland Firearms Training & Concealed Carry Courses",
   description: "Premier Maryland Wear & Carry, HQL, and Concealed Carry Certification Courses with Lead Instructor Kai Wade at Cindy's Hot Shots.",
   // Home-screen install on iPhone/iPad: its own icon and a short name. The status bar stays solid black so the page is never drawn underneath it.
-  appleWebApp: { capable: true, title: "FIFS", statusBarStyle: "black" },
+  appleWebApp: { capable: true, title: "FIFS", statusBarStyle: "black", startupImage: STARTUP_IMAGES },
   icons: { apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }] },
 };
 

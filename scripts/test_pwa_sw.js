@@ -145,7 +145,7 @@ const bad = (status) => { const r = new Response('x', { status }); Object.define
     assert((L.match(/<ServiceWorkerRegister \/>/g) || []).length === 1, 'registered once');
     assert(/source: "\/sw\.js"[\s\S]{0,200}no-cache, no-store, must-revalidate/.test(C), 'sw.js is served with no-cache');
     assert(/register\('\/sw\.js', \{ scope: '\/' \}\)/.test(REG) && !/localStorage|sessionStorage|fetch\(|pwa-offline/.test(REG) && /You are offline/.test(POL), 'no storage, no network calls of its own, and no second offline banner');
-    assert(!/<script/i.test(OFF) && /href="\/"/.test(OFF) && /tel:4439901304/.test(OFF) && /<meta name="viewport"/.test(OFF) && /lang="en"/.test(OFF), 'offline page: no scripts, Try again link, phone link, viewport');
+    assert((OFF.match(/<script/gi) || []).length === 1 && !/<script[^>]+src=/i.test(OFF) && /<script>\s*(\/\/[^\n]*\n\s*)?window\.addEventListener\('online', function \(\) \{ location\.replace\('\/'\); \}\);\s*<\/script>/.test(OFF) && /href="\/"/.test(OFF) && /tel:4439901304/.test(OFF) && /<meta name="viewport"/.test(OFF) && /lang="en"/.test(OFF), 'offline page: only the one tiny "back online" script (no external file), Try again link, phone link, viewport');
   });
   console.log('\n[installable app: manifest, icons, page settings]');
   const { execSync } = require('child_process');
@@ -165,7 +165,7 @@ const bad = (status) => { const r = new Response('x', { status }); Object.define
   });
   await test('iPhone and iPad: its own 180x180 icon, a short home-screen name, a solid status bar, and the page is never stretched under the notch', () => {
     const i = png('public/icons/apple-touch-icon.png'); assert(i.w === 180 && i.h === 180 && i.colorType !== 4 && i.colorType !== 6, 'apple icon is 180x180 and opaque');
-    assert(/appleWebApp: \{ capable: true, title: "FIFS", statusBarStyle: "black" \}/.test(LAYOUT) && /url: "\/icons\/apple-touch-icon\.png"/.test(LAYOUT), 'apple settings');
+    assert(/appleWebApp: \{ capable: true, title: "FIFS", statusBarStyle: "black", startupImage: STARTUP_IMAGES \}/.test(LAYOUT) && /url: "\/icons\/apple-touch-icon\.png"/.test(LAYOUT), 'apple settings');
     assert(!/viewportFit|viewport-fit/.test(LAYOUT), 'no viewport-fit=cover (it would draw the page under the notch and home bar)');
   });
   await test('The saved offline copy includes the manifest and icons, so the installed app opens with no signal', async () => {

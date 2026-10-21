@@ -16,6 +16,7 @@
   .brand { margin: 0 0 14px; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; color: #00e5ff; }
   .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; margin-top: 14px; padding: 0 26px; border-radius: 999px; font-weight: 800; font-size: 1rem; text-decoration: none; color: #030a14; background: linear-gradient(135deg, #ffb703, #fb8500); box-shadow: 0 0 16px rgba(255, 183, 3, 0.4); }
   .btn:focus-visible { outline: 3px solid #ffffff; outline-offset: 3px; }
+  .wait { margin: 14px 0 0; font-weight: 700; color: #6ee7b7; }
   .small { font-size: 0.9rem; color: #9fb3c8; }
   a.tel { color: #ffe3a0; font-weight: 700; }
 </style>
@@ -23,11 +24,16 @@
 <body>
 <main>
   <p class="brand">Train With FIFS</p>
-  <h1>You're offline</h1>
+  <h1>📡 You're offline</h1>
   <p>This page isn't saved on your phone yet, and there's no signal right now.</p>
   <p>Pages you've already opened on this device still work. Signing in, booking a class and paying need a connection, so that no one else can see your information.</p>
+  <p class="wait" role="status" aria-live="polite">⏳ Waiting for a signal. The site opens by itself when you're back online.</p>
   <a class="btn" href="/">Try again</a>
   <p class="small">Need us? Call <a class="tel" href="tel:4439901304">443-990-1304</a> when you're back in range.</p>
 </main>
+<script>
+  // Back online: open the site again without the person having to tap anything.
+  window.addEventListener('online', function () { location.replace('/'); });
+</script>
 </body>
 </html>

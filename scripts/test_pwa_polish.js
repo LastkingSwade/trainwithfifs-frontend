@@ -70,5 +70,23 @@ const SCRIPT = read('public/scripts/TrainWithFIFS_scripts.js'), PAGE = read('src
     assert(!/innerHTML/.test(code) && /role', 'status'/.test(un) && /\.fifs-update button \{ min-height: 44px/.test(css), 'safe DOM, announced, 44px');
     assert(/registered\.addEventListener\('updatefound'/.test(reg) && /registered\.waiting && shouldOffer/.test(reg) && /visibilityState === 'visible' && dueForCheck/.test(reg), 'detects a new version at load, while open, and when the app is brought back');
   });
+  console.log('\n[iPhone and iPad launch screens]');
+  const SP = require(path.join(ROOT, 'src/pwa/splash.ts'));
+  await test('every listed iPhone/iPad size has its launch picture: a real JPEG of exactly that pixel size, small, and listed once in the page head', () => {
+    assert(SP.SPLASH_DEVICES.length >= 15, 'devices'); const seen = new Set(); let total = 0;
+    for (const [cw, ch, dpr] of SP.SPLASH_DEVICES) {
+      const rel = SP.splashFile(cw, ch, dpr); const key = rel + '|' + SP.splashMedia(cw, ch, dpr); assert(!seen.has(key), 'duplicate ' + rel); seen.add(key);
+      const f = path.join(ROOT, 'public', rel); assert(fs.existsSync(f), 'missing ' + rel); const b = fs.readFileSync(f); total += b.length; assert(b[0] === 0xff && b[1] === 0xd8, rel + ' is not a JPEG'); assert(b.length < 120 * 1024, rel + ' is too heavy: ' + b.length);
+      let i = 2, w = 0, h = 0; while (i < b.length) { if (b[i] !== 0xff) { i++; continue; } const m = b[i + 1]; if (m >= 0xc0 && m <= 0xc3) { h = b.readUInt16BE(i + 5); w = b.readUInt16BE(i + 7); break; } i += 2 + b.readUInt16BE(i + 2); } assert(w === cw * dpr && h === ch * dpr, `${rel} is ${w}x${h}`);
+    }
+    assert(total < 1000 * 1024, 'all launch pictures together: ' + total); assert(SP.splashMedia(390, 844, 3) === '(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)', 'media query format');
+    const lay = read('src/app/layout.tsx'); assert(/startupImage: STARTUP_IMAGES/.test(lay) && /from "\.\.\/pwa\/splash"/.test(lay), 'wired into the page head');
+  });
+  console.log('\n[Offline page]');
+  await test('the offline page tells people it is waiting, opens the site by itself when the connection returns, stays accessible, and loads nothing from the network', () => {
+    const h = read('public/offline.html'); assert(/role="status" aria-live="polite"/.test(h) && /Waiting for a signal/.test(h), 'waiting message'); assert(/addEventListener\('online', function \(\) \{ location\.replace\('\/'\); \}\)/.test(h), 'returns by itself');
+    assert(!/<script[^>]+src=|<link[^>]+href=["']https?:|@import|url\(https?:/.test(h), 'nothing external (it has to work with no signal)'); assert(/min-height: 48px/.test(h) && /<html lang="en">/.test(h), 'big button, language');
+    assert(/📡/.test(h) && /⏳/.test(h), 'colourful emoji');
+  });
   console.log(`\nPWA polish: ${passed} passed, ${failed} failed`); if (failed) process.exit(1);
 })();
