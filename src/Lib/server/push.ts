@@ -1,5 +1,5 @@
 import webpush from 'web-push';
-import { MAX_DEVICES_PER_PERSON, alertPayload, classifyAlert, cleanSubscription, cleanTopics, defaultTopicsFor, easternDay, addDays, classDaysFrom, classReminder, paymentReceived, permitReminder, withinSendWindow, type PersonRole, type PushPayload, type Role, type Topic } from './push-logic';
+import { MAX_DEVICES_PER_PERSON, isAllowedEndpoint, alertPayload, classifyAlert, cleanSubscription, cleanTopics, defaultTopicsFor, easternDay, addDays, classDaysFrom, classReminder, paymentReceived, permitReminder, withinSendWindow, type PersonRole, type PushPayload, type Role, type Topic } from './push-logic';
 import { getPrivilegedClient } from './supabase-admin';
 import { runAfterResponse } from './background';
 
@@ -97,6 +97,11 @@ export async function notifyStaff(supabase: any, alertTitle: unknown, now: Date 
   return ids.length ? sendToUsers(supabase, ids, alertPayload(al), now, { ignoreQuiet: al.urgent }) : { sent: 0, failed: 0, removed: 0, skipped: 'none' };
 }
 /** Called whenever the site posts an operational alert to Discord. Does nothing unless notifications are switched on; runs after the answer; never throws. */
+/** Is this push address one of the staff devices (Admin Hub alerts on)? The visit route uses it so a staff member's own visit from that device is not counted or alerted. Never throws; a failed check counts the visit as normal. */
+export async function isStaffEndpoint(supabase: any, endpoint: unknown): Promise<boolean> {
+  if (!isAllowedEndpoint(endpoint)) return false;
+  try { const r = await supabase.from('push_subscriptions').select('role').eq('endpoint', String(endpoint)).eq('role', 'staff').maybeSingle(); return !r.error && !!r.data; } catch { return false; }
+}
 export function notifyStaffOfAlert(alertTitle: unknown): void {
   if (!pushConfigured()) return;
   runAfterResponse(async () => { await notifyStaff(getPrivilegedClient(), alertTitle); });

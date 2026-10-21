@@ -12,9 +12,17 @@ export default function VisitBeacon() {
     try {
       let r = ''; try { r = document.referrer ? new URL(document.referrer).hostname : ''; } catch { /* no referrer */ }
       if (r === window.location.hostname) r = ''; // our own site is not a referrer
-      const body = JSON.stringify({ p: window.location.pathname, w: window.innerWidth, t: navigator.maxTouchPoints > 0, r });
-      if (navigator.sendBeacon) navigator.sendBeacon('/api/visit', new Blob([body], { type: 'application/json' }));
-      else void fetch('/api/visit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true });
+      // This device's push address (only if alerts are on here), so the server can tell a staff device apart. The address is not a secret and is never shown.
+      const send = (e: string) => {
+        const body = JSON.stringify({ p: window.location.pathname, w: window.innerWidth, t: navigator.maxTouchPoints > 0, r, e });
+        if (navigator.sendBeacon) navigator.sendBeacon('/api/visit', new Blob([body], { type: 'application/json' }));
+        else void fetch('/api/visit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true });
+      };
+      void (async () => {
+        let e = '';
+        try { const reg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null; const sub = reg ? await reg.pushManager.getSubscription() : null; e = sub ? sub.endpoint : ''; } catch { /* no push on this device */ }
+        send(e);
+      })();
     } catch { /* never get in the way of the page */ }
   }, []);
   return null;

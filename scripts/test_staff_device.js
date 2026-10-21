@@ -41,8 +41,20 @@ const mem = () => { const m = {}; return { getItem: (k) => (k in m ? m[k] : null
   });
   await test('the marker is never sent to the server or written by anything else', () => {
     const h = read('src/analytics/staffDevice.ts'); assert(!/fetch\(|sendBeacon|callFifsBackend/.test(h), 'local only');
-    const srv = read('src/app/api/visit/route.ts'); assert(!/staff|fifs_staff/i.test(srv), 'the server is unchanged for this');
+    const srv = read('src/app/api/visit/route.ts'); assert(!/fifs_staff|localStorage/i.test(srv), 'the server never reads the local marker');
   });
 
+  await test('the server skips a visit from a staff device: it checks the push address against the staff devices, before anything is stored or alerted', () => {
+    const srv = read('src/app/api/visit/route.ts');
+    const check = srv.indexOf('isStaffEndpoint(getPrivilegedClient(), body && body.e)'); const store = srv.indexOf('buildRow({');
+    assert(check > 0 && store > check, 'the staff check comes before the row is built, so nothing is stored or alerted');
+    const p = read('src/Lib/server/push.ts');
+    assert(/export async function isStaffEndpoint/.test(p) && /\.eq\('role', 'staff'\)/.test(p) && /isAllowedEndpoint\(endpoint\)/.test(p), 'the check is staff-only and only for real push addresses');
+  });
+  await test('the visit beacon sends this device\'s push address (only the address, never the keys)', () => {
+    const b = read('src/analytics/VisitBeacon.tsx');
+    assert(/e: endpoint/.test(b) || /, e\)|e: e|\be\b.*sub\.endpoint/.test(b) && /sub\.endpoint/.test(b), 'address sent');
+    assert(!/keys|p256dh|auth:/.test(b), 'no keys');
+  });
   console.log(`\nStaff device: ${passed} passed, ${failed} failed`); if (failed) process.exit(1);
 })();
