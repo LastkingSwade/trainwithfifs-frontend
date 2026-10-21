@@ -8,6 +8,7 @@ import { studentInvoices } from '@/Lib/server/student-invoices';
 import { sendInvoice, payInfo, invoiceCheckout } from '@/Lib/server/sent-invoices';
 import { waiverStatus, saveWaiver } from '@/Lib/server/waivers';
 import { memberThread, memberSend, staffMembers, staffThread, staffSend } from '@/Lib/server/portal-chat';
+import { journalList, addSession, deleteSession, addGoal, setGoalDone, deleteGoal, deleteAll } from '@/Lib/server/range-journal';
 import { createBalanceCheckout } from '@/Lib/server/balance-checkout';
 import { scoresheetLock } from '@/Lib/server/scoresheet-lock';
 import { quizAnswer, quizToday } from '@/Lib/server/quiz-progress';
@@ -3255,6 +3256,28 @@ export async function POST(req: NextRequest) {
          : action === 'walletOpen' ? await walletOpen(supabase, uid, payload.id)
          : action === 'walletSetExpiry' ? await walletSetExpiry(supabase, uid, payload.id, payload.expiresOn)
          : await walletDelete(supabase, uid, payload.id);
+       return res.ok ? NextResponse.json({ success: true, ...res }) : NextResponse.json({ success: false, error: res.message }, { status: res.status });
+     }
+
+     case 'journalList':
+     case 'journalAddSession':
+     case 'journalDeleteSession':
+     case 'journalAddGoal':
+     case 'journalSetGoal':
+     case 'journalDeleteGoal':
+     case 'journalDeleteAll': {
+       // A student's or client's own private range journal. The owner is the verified login, never anything from the request; staff have no route to these rows.
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user?.id) return NextResponse.json({ success: false, error: 'Please sign in to your portal to use the range journal.' }, { status: 401 });
+       supabase = getPrivilegedClient(); const uid = String(user.id);
+       if (action !== 'journalList' && !allowPublicSubmit(req, 'journal', 60)) return NextResponse.json({ success: false, error: 'You are saving very quickly. Please wait a minute and try again.' }, { status: 429 });
+       const res: any = action === 'journalList' ? await journalList(supabase, uid)
+         : action === 'journalAddSession' ? await addSession(supabase, uid, { on: payload.on, range: payload.range, rounds: payload.rounds, focus: payload.focus, score: payload.score, notes: payload.notes })
+         : action === 'journalDeleteSession' ? await deleteSession(supabase, uid, payload.id)
+         : action === 'journalAddGoal' ? await addGoal(supabase, uid, { goal: payload.goal, targetOn: payload.targetOn })
+         : action === 'journalSetGoal' ? await setGoalDone(supabase, uid, payload.id, payload.done === true)
+         : action === 'journalDeleteGoal' ? await deleteGoal(supabase, uid, payload.id)
+         : await deleteAll(supabase, uid);
        return res.ok ? NextResponse.json({ success: true, ...res }) : NextResponse.json({ success: false, error: res.message }, { status: res.status });
      }
 

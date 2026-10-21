@@ -14,6 +14,7 @@ import AdminMultiStatePanel from "../multistate/AdminMultiStatePanel";
 import AdminTrashPanel from "../portal/AdminTrashPanel";
 import AdminPushPanel from "../portal/AdminPushPanel";
 import WalletPanel from "../portal/WalletPanel";
+import RangeJournalPanel from "../portal/RangeJournalPanel";
 import VisitBeacon from "../analytics/VisitBeacon";
 import ServiceWorkerRegister from "../pwa/ServiceWorkerRegister";
 import RestoreSession from "../portal/RestoreSession";
@@ -80,6 +81,7 @@ export default function RootLayout({
         <AdminTrashPanel />
         <AdminPushPanel />
         <WalletPanel />
+        <RangeJournalPanel />
         <Secrets />
         <OrganicSkin />
         <ServiceWorkerRegister />

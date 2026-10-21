@@ -63,6 +63,7 @@ const CSS = read('src/design/organic.css');
     const src = read('src/design/organic.ts');
     const skip = src.slice(src.indexOf('export const SKIP'), src.indexOf(';', src.indexOf('export const SKIP')));
     assert(/#hero-landing/.test(skip) && /\.hero-bg-vignette/.test(skip), 'hero layers must be in SKIP');
+    assert(/\.vault-overlay/.test(skip), 'the Document Vault panel must keep its own solid background (the glass film made it see-through)');
     const css = read('src/design/organic.css'); assert(!/\.hero-bg-vignette/.test(css), 'the organic css must not restyle the vignette');
   });
   console.log(`\nOrganic skin: ${passed} passed, ${failed} failed`); if (failed) process.exit(1);

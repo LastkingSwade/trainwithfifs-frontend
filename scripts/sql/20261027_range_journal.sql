@@ -1,4 +1,4 @@
--- Private range journal (students and clients). NOT RUN YET: waiting for the owner's approval. Run once in the Supabase SQL editor for the PRODUCTION project.
+-- Private range journal (students and clients). Approved by the owner. Run once in the Supabase SQL editor for the PRODUCTION project.
 -- It only adds two new tables; nothing existing changes. Each row belongs to one login. It holds what the member typed: the day, an optional range name, round count, a short focus,
 -- an optional score they wrote down, and notes. No firearm make, model or serial number, and no storage or home-security details (the screen says so). Deleting an account deletes its rows.
 create table if not exists public.range_sessions (

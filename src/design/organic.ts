@@ -16,7 +16,7 @@ export function classify(m: Metrics): Kind {
   return null;
 }
 /** Parts of the page the skin must never touch. */
-export const SKIP = '#hero-landing, .hero-bg-vignette, #terminalGatewayOverlay, .hack-lay, [class*="hack-"], [class*="boot"], .hw, .hud-layer, .hud-svg, .hero-holo-overlay-svg, #bookingCalDaysGrid, .cal-day-cell, .tier-sliding-switch, #fifs-ops-tint, #fifs-ops-bar, #fifs-shot, svg, [data-organic="skip"]';
+export const SKIP = '#hero-landing, .hero-bg-vignette, .vault-overlay, #terminalGatewayOverlay, .hack-lay, [class*="hack-"], [class*="boot"], .hw, .hud-layer, .hud-svg, .hero-holo-overlay-svg, #bookingCalDaysGrid, .cal-day-cell, .tier-sliding-switch, #fifs-ops-tint, #fifs-ops-bar, #fifs-shot, svg, [data-organic="skip"]';
 
 const w: any = typeof window === 'undefined' ? {} : window;
 const CLS: Record<Exclude<Kind, null>, string> = { surface: 'og-s', pill: 'og-p', pillbtn: 'og-pb', cta: 'og-c' };
