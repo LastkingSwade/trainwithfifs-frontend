@@ -7325,7 +7325,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             👑 VIP MODE
           
             </div>
-            <span className="badge-pop" style={{"background": "#0284c7", "color": "#fff"}}>
+            <span className="badge-pop badge-pop-alumni" style={{"background": "#0284c7", "color": "#fff"}}>
               🎯 ALUMNI EXCLUSIVE CLINIC
             </span>
             <div className="tuition-title" style={{"fontSize": "1.35rem", "color": "#fff"}}>

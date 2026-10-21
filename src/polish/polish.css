@@ -95,3 +95,16 @@ body.modal-open .fifs-float, .goal-modal-overlay.active ~ .fifs-float { display:
 
 /* Chat bubble: when any pop-up is open the whole bubble (chat pill AND its close button) steps aside, so the red ✕ is never left floating alone */
 body.modal-open #floatingCommWrapper { display: none !important; }
+
+/* UX pass: easier taps on touch screens, readable badges, no stray alt text when the hero photo is slow */
+@media (pointer: coarse) {
+  .tier-sliding-switch .tier-option-btn { min-height: 44px; padding-top: 10px; padding-bottom: 10px; }
+  .tier-sliding-pill, .tier-sliding-switch.vip-active .tier-sliding-pill { height: 44px; }
+  .btn-hero-aux { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .pwa-install-banner button[data-onclick] { min-width: 44px; min-height: 44px; }
+  .neon-arrow-guide-wrap { min-height: 44px; }
+}
+.hero-bg-artwork { color: transparent; }
+#pop-course-mastery.badge-pop { color: #070b10 !important; }
+.badge-pop[style*="rgba(0, 229, 255, 0.15)"] { color: #7df3ff !important; }
+.badge-pop-alumni { background: #0369a1 !important; color: #fff !important; }

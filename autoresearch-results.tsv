@@ -274,3 +274,5 @@ L2	2026-10-18T20:49:02Z	Student Payment received notice (7 days) when staff reco
 quiz-rewards	2026-10-18T21:02:32Z	Daily Range Quiz: one question a day, reward 30% Base / 20% VIP off renewal tuition, reserved at checkout	SUCCESS	-	33 quiz tests; full suite, tsc, build pass	-
 pay-plan	2026-10-18T21:30:50Z	4-person discount 15%; extra 5% off for 2+ paying 100%; deposit any 30-100%	SUCCESS	-	12 new tests; full suite, tsc, build pass	-
 form-slider	2026-10-21T14:16:50Z	Pay-more slider on the booking form price panel (amber to cyan); 5% off at 100% for everyone	SUCCESS	-	15 pay-plan tests; full suite, tsc, build pass	-
+ux-1	2026-10-21T14:29:56Z	Touch targets at least 44px on touch screens (plan toggle, hero links, banner close)	SUCCESS	small_targets=21	small_targets=0	-21
+ux-2	2026-10-21T14:29:56Z	Badge contrast (flagship amber badge 1.21:1, alumni badge 2.84:1) and no stray hero alt text; terminal box named	SUCCESS	low_contrast=11,unlabeled=1	low_contrast=8 (all remaining are the Standard-button false reading),unlabeled=0	-3/-1

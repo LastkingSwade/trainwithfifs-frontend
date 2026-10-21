@@ -10640,7 +10640,7 @@ if (typeof window !== 'undefined') {
             </div>
             <form class="terminal-prompt-line" id="terminalForm" autocomplete="off">
               <span class="terminal-prompt-label">OPERATOR@ROOT:~#</span>
-              <input type="text" class="terminal-input" id="terminalInput" autocomplete="off" spellcheck="false" autofocus />
+              <input type="text" class="terminal-input" id="terminalInput" aria-label="Terminal command" autocomplete="off" spellcheck="false" autofocus />
             </form>
           </div>
         `;

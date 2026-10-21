@@ -43,5 +43,12 @@ test('No new dependency and no new network call: the polish module imports only 
   assert(/^import [^\n]+ from '\.\.\/portal\/prefs';$/m.test(TS) && /^import \{ installQol \} from '\.\.\/experiments\/qol';$/m.test(TS) && (TS.match(/^import /gm) || []).length === 2 && !/fetch\(|XMLHttpRequest|new WebSocket/.test(TS));
   const pkg = JSON.parse(R('package.json')); assert(Object.keys(pkg.dependencies).join() === '@supabase/ssr,@supabase/supabase-js,next,pdf-lib,postcss,react,react-dom,stripe', 'dependencies must not change (pdf-lib was approved by the owner for flattening the pen-filled score sheet)');
 });
+test('UX pass: 44px taps on touch screens for the plan toggle, hero links and banner close; readable badges; no stray alt text; the terminal box has a name', () => {
+  assert(/pointer: coarse\) \{[^}]*\.tier-sliding-switch \.tier-option-btn \{ min-height: 44px/.test(CSS) && /\.tier-sliding-pill[^{]*\{ height: 44px/.test(CSS), 'plan toggle');
+  assert(/\.btn-hero-aux \{ min-height: 44px; min-width: 44px/.test(CSS) && /\.pwa-install-banner button\[data-onclick\] \{ min-width: 44px/.test(CSS), 'hero links and banner close');
+  assert(/#pop-course-mastery\.badge-pop \{ color: #070b10 !important/.test(CSS) && /\.badge-pop-alumni \{ background: #0369a1 !important; color: #fff !important/.test(CSS) && /badge-pop badge-pop-alumni/.test(PAGE), 'badges');
+  assert(/\.hero-bg-artwork \{ color: transparent; \}/.test(CSS), 'hero alt text');
+  assert(/id="terminalInput" aria-label="Terminal command"/.test(R('public/scripts/TrainWithFIFS_scripts.js')), 'terminal input name');
+});
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
 process.exit(failed ? 1 : 0);
