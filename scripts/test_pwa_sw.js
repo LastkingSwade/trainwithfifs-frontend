@@ -47,7 +47,10 @@ const bad = (status) => { const r = new Response('x', { status }); Object.define
   await test('Install saves the offline page; update takes over on the next open (no skipWaiting), and old fifs- caches are removed on activate', async () => {
     const w = makeWorker(); w.setFetch(async () => ok('<html>offline</html>')); await w.install();
     assert(w.cacheKeys('fifs-shell-v1').includes(ORIGIN + '/offline.html'), 'offline page saved');
-    assert(!/skipWaiting/.test(SW.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')), 'a new version must wait for the next open');
+    // A new version waits for the next open. The one exception is the person tapping "Reload now" on the update notice: skipWaiting is allowed only inside the SKIP_WAITING message handler.
+    const code = SW.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, ''); const calls = code.match(/skipWaiting\(/g) || [];
+    assert(calls.length === 1 && /data\.type === 'SKIP_WAITING'\) \{ self\.skipWaiting\(\); return; \}/.test(code), 'a new version must wait for the next open unless the person asks for it');
+    assert(!/addEventListener\('install'[\s\S]{0,400}skipWaiting/.test(code) && !/addEventListener\('activate'[\s\S]{0,400}skipWaiting/.test(code), 'never on install or activate');
     w.store.set('fifs-static-v0', new Map([[ORIGIN + '/old.js', ok('old')]])); w.store.set('someone-elses-cache', new Map([['k', ok('keep')]]));
     await w.activate();
     assert(!w.store.has('fifs-static-v0') && w.store.has('someone-elses-cache') && w.isClaimed(), 'only our own old caches are deleted');

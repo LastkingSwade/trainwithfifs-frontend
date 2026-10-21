@@ -57,5 +57,18 @@ const SCRIPT = read('public/scripts/TrainWithFIFS_scripts.js'), PAGE = read('src
     assert(/\.fifs-install \{[^}]*min-height: 44px/.test(css) && /\.fifs-install-help button \{ min-height: 44px/.test(css) && /display-mode: standalone\) \{ \.fifs-install, \.fifs-install-help \{ display: none; \}/.test(css), 'touch size + hidden when installed');
     assert(/installInstallPrompt\(\)/.test(reg) && /import '\.\/pwa\.css'/.test(reg), 'mounted from the layout component'); assert(/key === 'Escape'|\.key === 'Escape'/.test(src), 'Escape closes the help card');
   });
+  console.log('\n[New version notice]');
+  const UN = require(path.join(ROOT, 'src/pwa/updateNotice.ts'));
+  await test('the notice is offered only when an older version is already running and a newer one is installed or waiting; checks are at most every 30 minutes', () => {
+    assert(UN.shouldOffer(true, 'installed') && UN.shouldOffer(true, 'waiting'), 'offered'); assert(!UN.shouldOffer(false, 'installed') && !UN.shouldOffer(true, 'installing') && !UN.shouldOffer(true, 'activated') && !UN.shouldOffer(true, 'redundant'), 'first install and other states stay quiet');
+    eq(UN.CHECK_EVERY_MS, 1800000); assert(UN.dueForCheck(0, 1800000) && !UN.dueForCheck(1000, 1800999) && UN.dueForCheck(1000, 1801000) && UN.dueForCheck(NaN, 5), 'timing');
+  });
+  await test('nothing reloads by itself: the worker only takes over on the person\'s tap (SKIP_WAITING), the notice can be dismissed, it is a real 44px control, and it is drawn without innerHTML', () => {
+    const un = read('src/pwa/updateNotice.ts'), reg = read('src/pwa/ServiceWorkerRegister.tsx'), sw = read('public/sw.js'), css = read('src/pwa/pwa.css'); const code = un.replace(/\/\/.*$/gm, '');
+    assert(/go\.addEventListener\('click'[\s\S]*postMessage\(\{ type: 'SKIP_WAITING' \}\)/.test(un) && /controllerchange', \(\) => location\.reload\(\), \{ once: true \}/.test(un), 'reload only after the tap'); assert(!/skipWaiting/.test(reg) && !/location\.reload/.test(reg), 'the register code never forces it');
+    assert(/data\.type === 'SKIP_WAITING'\) \{ self\.skipWaiting\(\); return; \}/.test(sw), 'worker waits for the message'); assert(!/self\.skipWaiting\(\);\s*\n?\}\);?\s*\nself\.addEventListener\('activate'/.test(sw) && (sw.match(/skipWaiting/g) || []).length === 1, 'skipWaiting only inside the message handler');
+    assert(!/innerHTML/.test(code) && /role', 'status'/.test(un) && /\.fifs-update button \{ min-height: 44px/.test(css), 'safe DOM, announced, 44px');
+    assert(/registered\.addEventListener\('updatefound'/.test(reg) && /registered\.waiting && shouldOffer/.test(reg) && /visibilityState === 'visible' && dueForCheck/.test(reg), 'detects a new version at load, while open, and when the app is brought back');
+  });
   console.log(`\nPWA polish: ${passed} passed, ${failed} failed`); if (failed) process.exit(1);
 })();

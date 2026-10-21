@@ -5,7 +5,8 @@
  * What it NEVER does: touch the API, sign-in, password reset, payments, Stripe, Supabase, uploads, or any URL that carries a token or code.
  *                Those requests are not intercepted at all, so the browser handles them exactly as if this file did not exist. Nothing a
  *                signed-in person sees (records, receipts, score sheets, documents) is ever stored here.
- * Updates:       a new version waits until every open tab is closed, then takes over on the next open (no mixing old and new code mid-visit).
+ * Updates:       a new version waits until every open tab is closed, then takes over on the next open (no mixing old and new code mid-visit), unless the person taps
+ *                "Reload now" on the update notice (then it takes over at once and the page reloads).
  * To switch it off: deploy a sw.js that unregisters itself (self.registration.unregister()) and deletes caches whose names start with "fifs-".
  */
 const VERSION = 'v1';
@@ -115,6 +116,7 @@ self.addEventListener('fetch', (event) => {
 // The page lists the build files it already loaded, so they are saved on the first visit too (the worker only sees requests made after it starts).
 self.addEventListener('message', (event) => {
   const data = event.data;
+  if (data && data.type === 'SKIP_WAITING') { self.skipWaiting(); return; } // the person tapped "Reload now" on the update notice
   if (!data || data.type !== 'CACHE_URLS' || !Array.isArray(data.urls)) return;
   const wanted = [];
   for (const raw of data.urls.slice(0, MAX_PRECACHE_URLS)) {

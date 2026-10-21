@@ -6,3 +6,9 @@
 .fifs-install-help strong { display: block; margin-bottom: 6px; color: #ffd166; } .fifs-install-help ol { margin: 0 0 10px; padding-left: 20px; line-height: 1.5; }
 .fifs-install-help button { min-height: 44px; padding: 0 22px; border-radius: 10px; cursor: pointer; font: inherit; font-weight: 700; color: #e8faff; background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.5); }
 @media (display-mode: standalone) { .fifs-install, .fifs-install-help { display: none; } }
+
+/* "A new version is ready" notice */
+.fifs-update { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 2147482600; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; max-width: 520px; margin: 0 auto; padding: 12px 14px; border-radius: 14px; color: #e8faff; background: #0d141d; border: 1px solid rgba(0, 229, 255, 0.6); box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6); font-weight: 700; }
+.fifs-update button { min-height: 44px; padding: 0 18px; border-radius: 10px; cursor: pointer; font: inherit; font-weight: 800; }
+.fifs-update-go { color: #1a1100; background: linear-gradient(135deg, #ffcf5a, #ffb703); border: 0; } .fifs-update-later { color: #e8faff; background: transparent; border: 1px solid rgba(0, 229, 255, 0.5); }
+.fifs-update button:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; } .fifs-update button:disabled { opacity: 0.7; cursor: wait; }
