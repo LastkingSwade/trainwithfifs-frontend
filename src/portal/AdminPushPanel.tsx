@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import '../online/online.css';
 import { readState, turnOff, turnOn, type CardState } from '../pwa/pushClient';
+import { setStaffDevice } from '../analytics/staffDevice';
 import { STAFF_TOPICS, STAFF_TOPIC_LABELS } from '../pwa/staffTopics';
 
 // Admin Hub: send a short note to everyone who turned notifications on. Plain text up to 140 characters; the server checks the staff role, strips links, and only sends between 8am and 8pm
@@ -23,13 +24,13 @@ export default function AdminPushPanel() {
     if (typeof fn !== 'function') throw new Error('The page is still loading.');
     return fn(action, payload);
   }, []);
-  const load = useCallback(async () => { try { setSt(await call('adminPushStatus')); setMsg(''); } catch (e: any) { setMsg(e?.message || 'Could not load.'); } try { setDev(await readState(call)); } catch { setDev(null); } }, [call]);
+  const load = useCallback(async () => { try { setSt(await call('adminPushStatus')); setMsg(''); } catch (e: any) { setMsg(e?.message || 'Could not load.'); } try { const d = await readState(call); setDev(d); setStaffDevice(d.state === 'on'); } catch { setDev(null); } }, [call]);
   useEffect(() => { (window as any).openAdminPush = () => { setOpen(true); setText(''); setMsg(''); load(); }; return () => { delete (window as any).openAdminPush; }; }, [load]);
   useEffect(() => { if (!open) return; const k = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [open]);
   if (!open) return null;
 
-  const alertOn = async () => { if (!dev) return; setBusy(true); const r = await turnOn(call, dev.key); setMsg(r.ok ? '✅ This device will now get the Admin Hub alerts you choose below.' : r.message); await load(); setBusy(false); };
-  const alertOff = async () => { setBusy(true); const r = await turnOff(call); setMsg(r.ok ? 'Alerts are off for this device.' : r.message); await load(); setBusy(false); };
+  const alertOn = async () => { if (!dev) return; setBusy(true); const r = await turnOn(call, dev.key); if (r.ok) setStaffDevice(true); setMsg(r.ok ? '✅ This device will now get the Admin Hub alerts you choose below.' : r.message); await load(); setBusy(false); };
+  const alertOff = async () => { setBusy(true); const r = await turnOff(call); if (r.ok) setStaffDevice(false); setMsg(r.ok ? 'Alerts are off for this device.' : r.message); await load(); setBusy(false); };
   const toggle = async (topic: string, on: boolean) => { if (!dev) return; const next = on ? Array.from(new Set([...dev.topics, topic])) : dev.topics.filter((t) => t !== topic); setDev({ ...dev, topics: next }); try { await call('pushSetTopics', { endpoint: dev.endpoint, topics: next }); } catch (e: any) { setMsg(e?.message || 'Could not save that choice.'); load(); } };
   const count = !st ? 0 : audience === 'student' ? st.students : audience === 'client' ? st.clients : st.students + st.clients;
   const send = async () => {
