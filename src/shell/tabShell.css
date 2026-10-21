@@ -1,0 +1,42 @@
+/* FIFS ONE tabs. Company colours: dark navy, cyan hairlines, amber for the current tab. Every tab is at least 56px tall and 44px wide, text is high contrast, focus is always visible,
+   and nothing moves (no animation, so reduced motion needs no special case). Phones: a bar along the bottom. 900px and wider: a rail down the left, under the site header. */
+.fts-nav[hidden] { display: none; }
+.fts-nav { position: fixed; z-index: 99985; display: grid; background: #080c12; border: 0 solid rgba(0, 229, 255, 0.45); font-family: var(--font-body, system-ui, sans-serif); }
+.fts-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 44px; min-height: 56px; padding: 6px 2px; cursor: pointer; color: #cfe8f6; background: transparent; border: 0; font: inherit; }
+.fts-ico { font-size: 1.4rem; line-height: 1; }
+.fts-lab { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.02em; }
+.fts-tab[aria-current="page"] { color: #ffb703; background: rgba(255, 183, 3, 0.1); }
+.fts-tab[aria-current="page"] .fts-lab { text-decoration: underline; text-underline-offset: 3px; }
+.fts-tab:focus-visible, .fts-item:focus-visible, .fts-close:focus-visible, .fts-primary:focus-visible { outline: 3px solid #00e5ff; outline-offset: -3px; }
+
+/* Phone and small tablet: bottom bar */
+@media (max-width: 899px) {
+  .fts-nav { left: 0; right: 0; bottom: 0; grid-template-columns: repeat(5, 1fr); border-top-width: 1px; padding-bottom: env(safe-area-inset-bottom, 0px); }
+  body.fifs-tabs-on { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
+  /* the floating chat button and the text-size / back-to-top buttons ride above the bar */
+  body.fifs-tabs-on #floatingCommWrapper, body.fifs-tabs-on .fifs-float { transform: translateY(calc(-62px - env(safe-area-inset-bottom, 0px))); }
+}
+/* Larger screens: rail on the left, below the header */
+@media (min-width: 900px) {
+  .fts-nav { top: var(--fts-rail-top, 72px); bottom: 0; left: 0; width: 84px; grid-template-rows: repeat(5, 76px); align-content: start; border-right-width: 1px; padding-top: 8px; }
+  .fts-tab { min-height: 72px; }
+  body.fifs-tabs-on { padding-left: 84px; }
+  body.fifs-tabs-on .fifs-float { transform: translateX(84px); }
+}
+
+/* Hub and Armory sheets */
+.fts-overlay { position: fixed; inset: 0; z-index: 100010; display: flex; align-items: flex-end; justify-content: center; background: rgba(3, 7, 12, 0.82); }
+@media (min-width: 900px) { .fts-overlay { align-items: center; } }
+.fts-sheet { width: 100%; max-width: 520px; max-height: 86vh; overflow-y: auto; padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px)); border-radius: 22px 22px 0 0; color: #d3e9f8; background: linear-gradient(180deg, #0d141d 0%, #080c12 100%); border: 1px solid rgba(0, 229, 255, 0.4); }
+@media (min-width: 900px) { .fts-sheet { border-radius: 22px; } }
+.fts-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.fts-title { margin: 0; font-family: var(--font-display, sans-serif); font-size: 1.4rem; color: #fff; }
+.fts-close { min-width: 48px; min-height: 48px; border-radius: 14px; cursor: pointer; font-size: 1.05rem; color: #e8faff; background: rgba(0, 229, 255, 0.06); border: 1px solid rgba(0, 229, 255, 0.5); }
+.fts-text { margin: 0 0 14px; line-height: 1.5; color: #d3e9f8; }
+.fts-primary { min-height: 48px; padding: 0 20px; border: 0; border-radius: 14px; cursor: pointer; font-weight: 800; font-size: 1rem; color: #111; background: linear-gradient(135deg, #ffb703, #fb8500); }
+.fts-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.fts-item { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 8px 14px; text-align: left; cursor: pointer; text-decoration: none; color: #eaf6ff; font: inherit; border-radius: 14px; background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.3); }
+.fts-item-ico { font-size: 1.5rem; }
+.fts-item-text { display: flex; flex-direction: column; min-width: 0; }
+.fts-item-text b { color: #fff; }
+.fts-item-text small { color: #9fb8cc; font-size: 0.82rem; }

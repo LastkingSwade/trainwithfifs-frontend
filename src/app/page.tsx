@@ -41,6 +41,7 @@ import { installAdminInvoice } from "@/portal/adminInvoice";
 import { installWaiverGate } from "@/portal/waiverGate";
 import { installPortalChat } from "@/portal/portalChat";
 import { installRangeLauncher } from "@/portal/rangeLauncher";
+import { installTabShell } from "@/shell/tabShell";
 import { installReciprocitySources } from "@/portal/reciprocitySources";
 import { installAdminPortalChat } from "@/portal/adminPortalChat";
 import "@/portal/portalChat.css";
@@ -4213,7 +4214,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       <Script 
       src="/scripts/TrainWithFIFS_scripts.js"
         strategy="afterInteractive"
-        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminInvoice(); installWaiverGate(); installPortalChat(); installAdminPortalChat(); installRangeLauncher(); installReciprocitySources(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installPwaBanner(); installBalanceReturn(); installSiteTelemetry(); installMultiStateCard(); installEngagement(); installQuizCard(); installQuizPricing(); installPayPlan(); installViewHistory(); installPushCard(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
+        onLoad={() => { console.log("FIFS: TrainWithFIFS_scripts.js loaded successfully. openAndSwitch:", typeof (window as any).openAndSwitch); const panels = (window as any).ALL_APP_TABS; if (Array.isArray(panels) && !panels.includes("start")) panels.push("start"); if ((window as any).SECTION_TITLES && !(window as any).SECTION_TITLES.start) (window as any).SECTION_TITLES.start = "New To Firearms: Start Your Journey"; installOnlineForm(); installStudentOnline(); installStudentExtras(); installClientExtras(); installPermitCardLive(); installAdminExtras(); installAdminInvoice(); installWaiverGate(); installPortalChat(); installAdminPortalChat(); installRangeLauncher(); installTabShell(); installReciprocitySources(); installAdminAttention(); installSkeletons(); installPolish(); installStudentScoresheet(); installScoresheetPad(); installSignInPanel(); installPasswordPeek(); installPwaBanner(); installBalanceReturn(); installSiteTelemetry(); installMultiStateCard(); installEngagement(); installQuizCard(); installQuizPricing(); installPayPlan(); installViewHistory(); installPushCard(); installHeaderProfile(); if (typeof (window as any).fifsOpenFromHash === "function") (window as any).fifsOpenFromHash(); }}
         onError={(e) => console.error("FIFS: Failed to load /Scripts/TrainWithFIFS_scripts.js. Check that the file is in public/scripts/", e)}
       />
 
