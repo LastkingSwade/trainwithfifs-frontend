@@ -50,5 +50,10 @@ test('UX pass: 44px taps on touch screens for the plan toggle, hero links and ba
   assert(/\.hero-bg-artwork \{ color: transparent; \}/.test(CSS), 'hero alt text');
   assert(/id="terminalInput" aria-label="Terminal command"/.test(R('public/scripts/TrainWithFIFS_scripts.js')), 'terminal input name');
 });
+test('UX pass 2: bigger checkboxes and chat close on touch screens; compact, named chat bubble on phones', () => {
+  assert(/input\.task-checkbox, \.online-admin table input\[type="checkbox"\] \{ width: 28px !important; height: 28px !important/.test(CSS) && /#floatingChatCloseBtn \{ min-width: 44px; min-height: 44px; \}/.test(CSS), 'touch sizes');
+  assert(/max-width: 640px\) \{\s*#floatingCommPill \{ padding: 0; width: 52px; height: 52px/.test(CSS) && /#floatingCommPill > span:not\(:first-child\) \{ display: none; \}/.test(CSS), 'compact bubble');
+  assert(/id="floatingCommPill"[\s\S]{0,600}aria-label="Chat with Coach Kai/.test(PAGE), 'the bubble keeps an accessible name when its text is hidden');
+});
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
 process.exit(failed ? 1 : 0);

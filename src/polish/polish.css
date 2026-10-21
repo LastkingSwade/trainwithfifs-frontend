@@ -108,3 +108,13 @@ body.modal-open #floatingCommWrapper { display: none !important; }
 #pop-course-mastery.badge-pop { color: #070b10 !important; }
 .badge-pop[style*="rgba(0, 229, 255, 0.15)"] { color: #7df3ff !important; }
 .badge-pop-alumni { background: #0369a1 !important; color: #fff !important; }
+
+/* UX pass 2 (portals): roomier checkboxes and chat close on touch screens, and a compact chat bubble on phones so it stops covering the cards */
+@media (pointer: coarse) {
+  input.task-checkbox, .online-admin table input[type="checkbox"] { width: 28px !important; height: 28px !important; flex: none; margin: 8px; }
+  #floatingChatCloseBtn { min-width: 44px; min-height: 44px; }
+}
+@media (max-width: 640px) {
+  #floatingCommPill { padding: 0; width: 52px; height: 52px; justify-content: center; gap: 0; }
+  #floatingCommPill > span:not(:first-child) { display: none; }
+}

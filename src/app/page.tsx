@@ -12675,7 +12675,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
       </div>
       {/* Persistent Floating Contact & Live Chat Trigger Pill with Permanent Dismiss Handler */}
       <div className="floating-comm-bubble-wrapper" id="floatingCommWrapper" style={{"position": "fixed", "bottom": "24px", "right": "24px", "zIndex": "99999", "display": "flex", "alignItems": "center", "gap": "8px"}}>
-        <div className="floating-comm-bubble" id="floatingCommPill" data-onclick="openContactWidgetModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openContactWidgetModal) (window as any).openContactWidgetModal(); }} role="button" tabIndex={0} title="Contact Coach Kai Wade • Call, Email or Live Chat" style={{"position": "relative", "bottom": "auto", "right": "auto", "margin": "0", "cursor": "pointer"}}>
+        <div className="floating-comm-bubble" id="floatingCommPill" data-onclick="openContactWidgetModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).openContactWidgetModal) (window as any).openContactWidgetModal(); }} role="button" tabIndex={0} aria-label="Chat with Coach Kai: call, email or live chat" title="Contact Coach Kai Wade • Call, Email or Live Chat" style={{"position": "relative", "bottom": "auto", "right": "auto", "margin": "0", "cursor": "pointer"}}>
           <span style={{"fontSize": "1.25rem"}}>
             💬
           </span>
