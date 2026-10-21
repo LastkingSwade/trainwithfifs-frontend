@@ -2979,6 +2979,7 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
           app.classList.add('active-view');
         }
         rawSwitchTab(tabId);
+        if (typeof window.fifsViewChanged === 'function') window.fifsViewChanged(tabId); // one Back-button step per screen (src/pwa/viewHistory.ts)
         } catch (err) {
         console.error('Error in openAndSwitch:', err);
       }
@@ -3015,12 +3016,15 @@ var ALL_APP_TABS = window.ALL_APP_TABS || ['booking', 'portal', 'fi-portal', 'ab
           }
         });
         try { window.scrollTo(0, 0); } catch (e) {}
+        if (typeof window.fifsViewChanged === 'function') window.fifsViewChanged('home');
       } catch (err) {
         console.error('Error in returnToHome:', err);
       }
     }
     window.returnToHome = returnToHome;
     function navigateBack() {
+      // With the Back-button steps in place, the in-app Back is the same as the phone's Back (src/pwa/viewHistory.ts).
+      if (window.fifsViewHistory && window.fifsViewHistory.canGoBack()) { window.fifsViewHistory.back(); return; }
       if (contextualHistoryStack.length > 0) {
         var previousView = contextualHistoryStack.pop();
         if (previousView === 'home') {
