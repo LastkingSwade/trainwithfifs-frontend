@@ -35,20 +35,37 @@ function note(container: HTMLElement, t: Tel | null) {
   container.appendChild(box);
 }
 
+/** Where the panel is shown; the live refresh only runs while it is on screen. */
+const panelOf = (): HTMLElement | null => document.getElementById('admin-analytics-dashboard-container');
+const panelShown = (el: HTMLElement | null): boolean => !!el && el.getClientRects().length > 0;
+const REFRESH_MS = 30000;
+
 export function installSiteTelemetry(): void {
-  if (w.__fifsSiteTelemetryInstalled) return;
-  const orig = w.renderAdminAnalyticsDashboard; if (typeof orig !== 'function') return;
-  w.__fifsSiteTelemetryInstalled = true; let busy = false;
+  if (typeof document === 'undefined' || w.__fifsSiteTelemetryInstalled) return;
+  const redraw = w.renderAdminAnalyticsDashboard; if (typeof redraw !== 'function') return;
+  w.__fifsSiteTelemetryInstalled = true;
+  let busy = false;
+
+  /** Fetch the server's real numbers, put them where the panel reads them, redraw, then add the latest-visits list. */
+  const load = (): Promise<void> => {
+    const c = panelOf();
+    if (busy || !c || typeof w.callFifsBackend !== 'function' || !w._fifsMemStorage) return Promise.resolve();
+    busy = true;
+    return Promise.resolve(w.callFifsBackend('getSiteTelemetry', {})).then((r: any) => {
+      const t: Tel | null = r && r.telemetry ? r.telemetry : null;
+      if (t && applyTelemetry(t, w._fifsMemStorage)) redraw.call(w, {});
+      const now = panelOf(); if (now) note(now, t);
+    }).catch(() => { const now = panelOf(); if (now) note(now, null); }).finally(() => { busy = false; });
+  };
+
+  // The page's own redraw (it reads the stored numbers), then the server refresh.
   w.renderAdminAnalyticsDashboard = function (...args: any[]) {
-    const out = orig.apply(this, args);
-    if (!busy && typeof w.callFifsBackend === 'function' && w._fifsMemStorage) {
-      busy = true;
-      Promise.resolve(w.callFifsBackend('getSiteTelemetry', {})).then((r: any) => {
-        const t: Tel | null = r && r.telemetry ? r.telemetry : null; const c = document.getElementById('admin-analytics-dashboard-container');
-        if (t && applyTelemetry(t, w._fifsMemStorage)) orig.apply(this, args);
-        const again = document.getElementById('admin-analytics-dashboard-container'); if (again || c) note((again || c) as HTMLElement, t);
-      }).catch(() => { const c = document.getElementById('admin-analytics-dashboard-container'); if (c) note(c, null); }).finally(() => { busy = false; });
-    }
+    const out = redraw.apply(this, args);
+    void load();
     return out;
   };
+  // The admin tab calls this when the Telemetry tab is opened.
+  w.refreshAdminTelemetry = () => { void load(); };
+  // While the panel is on screen, keep it current.
+  window.setInterval(() => { if (document.visibilityState === 'visible' && panelShown(panelOf())) void load(); }, REFRESH_MS);
 }

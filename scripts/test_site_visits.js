@@ -92,5 +92,14 @@ const UA = { iphone: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) App
     eq(st.applyTelemetry({ ready: true, visits30: 12, unique30: 7, devices: { 'Mobile Phone': 9, 'Desktop / Laptop': 3 } }, store), true); eq(mem.fifs_pageviews_count, '12'); eq(mem.fifs_unique_visitors_count, '7'); eq(JSON.parse(mem.fifs_device_counts)['Mobile Phone'], 9);
     eq(st.applyTelemetry({ ready: false }, store), false); eq(st.applyTelemetry(null, store), false); assert(/Page Loads \(30 days, refreshes count\)/.test(read('public/scripts/TrainWithFIFS_scripts.js')), 'label says refreshes count');
   });
+  await test('Telemetry refresh: the admin tab can reach a function that really exists, fetches the server numbers, and keeps them current while shown', () => {
+    const st = read('src/portal/siteTelemetry.ts');
+    assert(/w\.refreshAdminTelemetry = \(\) => \{ void load\(\); \};/.test(st), 'refreshAdminTelemetry must be defined: the admin tab calls it, and a missing function means no numbers ever load');
+    assert(/const redraw = w\.renderAdminAnalyticsDashboard/.test(st) && /redraw\.call\(w, \{\}\)/.test(st) && !/orig\.apply\(this/.test(st), 'redraw uses the original page function, so the wrapper cannot call itself');
+    assert(/getSiteTelemetry/.test(st) && /applyTelemetry\(t, w\._fifsMemStorage\)/.test(st), 'fetches and stores the server numbers');
+    assert(/window\.setInterval\(\(\) => \{ if \(document\.visibilityState === 'visible' && panelShown\(panelOf\(\)\)\) void load\(\); \}, REFRESH_MS\)/.test(st), 'refreshes every 30 seconds while shown, never in the background');
+    const tab = read('public/scripts/TrainWithFIFS_scripts.js');
+    assert(/tab === 'telemetry' \|\| tab === 'analytics'\) && typeof refreshAdminTelemetry === 'function'/.test(tab), 'the admin tab still calls it');
+  });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`); process.exit(failed ? 1 : 0);
 })();
