@@ -297,3 +297,4 @@ resume-1	2026-10-21T17:50:56Z	Signed-in student/client sees the 9s intro before 
 welcome-back	2026-10-21T18:01:22Z	Returning signed-in student/client gets Welcome Back Agent <name> boot instead of plain cover	SUCCESS	-	-	tests+tsc+build pass; browser: name typed, glitch, CRT, portal open behind
 waiver-invoice	2026-10-21T19:09:43Z	Required stored waiver + Send Invite/Send Invoice from Admin Hub (agreed price +6%, 30-100% slider, 7-day signed link)	SUCCESS	-	-	tests+tsc+build pass; 4 mutations caught; browser: gate locks/unlocks, pay page works
 1	2026-10-21T19:55:05Z	permit expires today says "Your permit expires today" not "0 days left"	SUCCESS	1234	1234	0 (copy fix, +1 assertion, mutation caught)
+2	2026-10-21T19:55:48Z	copy: 91-120 day window says book soon, not 120 days ahead	SUCCESS	1234	1234	0 (copy fix, +1 assertion, mutation caught)

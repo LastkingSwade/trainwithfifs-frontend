@@ -107,6 +107,7 @@ test('Client "Your next step": one clear action chosen from the permit date, rem
   eq(f(null, false, null), 'add-date'); eq(f(-3, true, true), 'expired'); eq(f(0, true, true), 'renew-now'); eq(f(89, true, true), 'renew-now'); eq(f(90, true, true), 'renew-soon'); eq(f(120, true, true), 'renew-soon');
   eq(f(121, false, true), 'add-card'); eq(f(300, true, false), 'turn-on-reminders'); eq(f(300, true, true), 'all-set'); eq(f(300, true, null), 'all-set');
   assert(/expires today/.test(n({ days: 0, hasPermitDoc: true, optIn: true }).title) && !/0 days/.test(n({ days: 0, hasPermitDoc: true, optIn: true }).title), 'a permit that expires today says so, not "0 days left"');
+  assert(!/120 days ahead/.test(n({ days: 100, hasPermitDoc: true, optIn: true }).text) && /book soon/.test(n({ days: 100, hasPermitDoc: true, optIn: true }).text), 'a window already open says book soon, not 120 days ahead');
   assert(/opens in 180 days/.test(n({ days: 300, hasPermitDoc: true, optIn: true }).text), 'the renewal window countdown'); assert(/Renew now: 1 day left/.test(n({ days: 1, hasPermitDoc: true, optIn: true }).title), 'singular day');
   const src = read('src/portal/clientNextStep.ts'); assert(!/innerHTML/.test(src), 'text only');
   for (const k of ['openPermitRenewalModal', 'openClientProfileModal', 'openWallet', 'toggleReciprocityHubModal']) assert(new RegExp(k).test(src), k);
