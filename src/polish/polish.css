@@ -118,3 +118,6 @@ body.modal-open #floatingCommWrapper { display: none !important; }
   #floatingCommPill { padding: 0; width: 52px; height: 52px; justify-content: center; gap: 0; }
   #floatingCommPill > span:not(:first-child) { display: none; }
 }
+
+/* UX pass 3: the range-safety tick box on the booking form keeps a real tap size next to its long sentence */
+@media (pointer: coarse) { #safety-check { flex: none; width: 28px !important; height: 28px !important; margin: 8px 6px 0 0 !important; } }

@@ -11337,7 +11337,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input autoComplete="name" id="fullName" name="fullName" placeholder="e.g., Jordan Vance" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}} type="text" />
+                <input autoComplete="name" id="fullName" name="fullName" placeholder="First and last name, as on your ID" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}} type="text" />
               </div>
               <div className="form-group" style={{"marginBottom": "0"}}>
                 <label htmlFor="email">
@@ -11346,7 +11346,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                     *
                   </span>
                 </label>
-                <input autoComplete="email" id="email" name="email" placeholder="jordan@example.com" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}} type="email" />
+                <input autoComplete="email" id="email" name="email" placeholder="you@example.com" required style={{"background": "#070b10", "border": "1px solid var(--border-subtle)", "color": "#fff", "padding": "12px", "borderRadius": "8px", "width": "100%"}} type="email" />
               </div>
             </div>
             <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "12px", "marginBottom": "14px"}}>

@@ -55,5 +55,9 @@ test('UX pass 2: bigger checkboxes and chat close on touch screens; compact, nam
   assert(/max-width: 640px\) \{\s*#floatingCommPill \{ padding: 0; width: 52px; height: 52px/.test(CSS) && /#floatingCommPill > span:not\(:first-child\) \{ display: none; \}/.test(CSS), 'compact bubble');
   assert(/id="floatingCommPill"[\s\S]{0,600}aria-label="Chat with Coach Kai/.test(PAGE), 'the bubble keeps an accessible name when its text is hidden');
 });
+test('UX pass 3: the booking safety tick box keeps a tap size; no made-up person in the form placeholders', () => {
+  assert(/#safety-check \{ flex: none; width: 28px !important; height: 28px !important/.test(CSS), 'safety checkbox');
+  assert(!/Jordan Vance|jordan@example/.test(PAGE) && /placeholder="First and last name, as on your ID"/.test(PAGE) && /placeholder="you@example\.com"/.test(PAGE), 'placeholders');
+});
 console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
 process.exit(failed ? 1 : 0);

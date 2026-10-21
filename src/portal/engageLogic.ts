@@ -96,7 +96,7 @@ export function readiness(f: ReadyFacts): { items: ReadyItem[]; done: number; to
     { key: 'date', emoji: '📅', label: 'Class date locked in', done: !!date && !/to be scheduled|upcoming cohort|\btbd\b|not scheduled/i.test(date), hint: 'Message Coach Kai to pick your date.' },
     { key: 'prep', emoji: '✅', label: 'Preparation checklist finished', done: PREP_KEYS.every((k) => prep[k] === true), hint: 'Tick the four items in your preparation checklist.' },
   ];
-  if (f.balanceOwed !== null) items.push({ key: 'payment', emoji: '💳', label: 'Paid in full', done: f.balanceOwed <= 0, hint: 'Pay the rest online below, or on class day.' });
+  if (f.balanceOwed !== null) items.push({ key: 'payment', emoji: '💳', label: 'Class balance paid', done: f.balanceOwed <= 0, hint: 'Pay the rest online below, or on class day.' });
   items.push({ key: 'app', emoji: '📱', label: 'App saved to your phone', done: f.installed, hint: 'Add it to your home screen for one-tap access.' });
   return { items, done: items.filter((i) => i.done).length, total: items.length };
 }

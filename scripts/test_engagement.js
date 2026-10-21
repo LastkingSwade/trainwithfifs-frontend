@@ -63,5 +63,10 @@ const PAGE = read('src/app/page.tsx');
     eq(L.paymentNotices([row({ inPerson: [{ amount: 1, method: 'Cash', date: '', recordedAt: '2027-01-01T00:00:00Z' }] })], now).length, 0, 'a future time is ignored');
     const ui = read('src/portal/engage.ts'); assert(/callFifsBackend\('studentInvoices'/.test(ui) && /id="eg-notice"/.test(PAGE) && /role', 'status'/.test(ui), 'wired and announced'); assert(!/localStorage|sessionStorage/.test(ui), 'nothing stored');
   });
+  await test('The balance line never says "Paid in full" while money is still owed, and the pay card has no tall empty gap on phones', async () => {
+    const f = (o) => L.readiness(Object.assign({ hasDate: true, tasksDone: 0, tasksTotal: 4, balanceOwed: 175, appInstalled: false }, o));
+    const owing = f({}).items.find((i) => i.key === 'payment'); assert(owing && owing.done === false && !/^paid in full/i.test(owing.label), 'label says paid while owing: ' + (owing && owing.label));
+    assert(/@media \(max-width: 640px\) \{ \.pay-banner \{[^}]*\} \.pay-copy \{ flex: 0 0 auto; \}/.test(read('src/portal/dashboard.css')), 'the stacked pay card must not give its text a 260px height');
+  });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`); process.exit(failed ? 1 : 0);
 })();
