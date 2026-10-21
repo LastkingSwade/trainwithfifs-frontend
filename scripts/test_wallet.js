@@ -129,6 +129,19 @@ function mem() {
     for (const sel of ['\\.vault-add', '\\.vault-close', '\\.vault-chip', '\\.vault-view', '\\.vault-dots']) assert(new RegExp(sel + ' \\{[^}]*min-(height|width): (4[4-9]|5\\d)px').test(VCSS), sel + ' is at least 44px');
     assert(/@media \(max-width: 640px\)[\s\S]*\.vault-grid \{ grid-template-columns: 1fr;/.test(VCSS) && /prefers-reduced-motion: reduce/.test(VCSS), 'phone layout and reduced motion');
   });
+  await test('Vault: sorting (newest, expiring soonest with no-expiry last, by type) never loses or invents a document, and the next-expiry notice picks the most urgent one', () => {
+    const ids = (a) => a.map((d) => d.id).join();
+    assert(ids(VL.sortDocs(DOCS, 'newest')) === '4,1,2,3' && ids(VL.sortDocs(DOCS, 'expiring')) === '4,2,1,3' && ids(VL.sortDocs(DOCS, 'type')) === '1,3,4,2', 'orders: ' + ids(VL.sortDocs(DOCS, 'newest')) + ' / ' + ids(VL.sortDocs(DOCS, 'expiring')) + ' / ' + ids(VL.sortDocs(DOCS, 'type')));
+    assert(VL.sortDocs(DOCS, 'newest') !== DOCS && ids(DOCS) === '1,2,3,4', 'the input is never changed'); assert(VL.sortDocs([], 'expiring').length === 0 && VL.sortDocs(DOCS, 'bogus').length === 4, 'odd input is safe');
+    const now = new Date('2026-10-21T12:00:00Z'); const n = VL.nextExpiry(DOCS, now); assert(n && n.doc.id === '4' && n.state === 'expired' && /Expired \d+ days? ago/.test(n.text), 'the already-expired one comes first: ' + JSON.stringify(n));
+    assert(VL.nextExpiry([doc('9', 'permit_card', '2026-01-01T00:00:00Z', '2027-06-01'), doc('8', 'hql_approval', '2026-01-01T00:00:00Z')], now) === null, 'nothing due -> no notice');
+    const soon = VL.nextExpiry([doc('7', 'permit_card', '2026-01-01T00:00:00Z', '2026-12-01'), doc('6', 'class_certificate', '2026-01-01T00:00:00Z', '2026-11-15')], now); assert(soon && soon.doc.id === '6' && soon.state === 'soon', 'soonest of two upcoming: ' + JSON.stringify(soon));
+  });
+  await test('Vault screen UX: summary strip with the next expiry, a sort menu, quick-add buttons on an empty vault, a phone camera option, a friendlier consent screen with the gun-records rule kept', () => {
+    assert(/className="vault-strip"/.test(VUI) && /Encrypted · only you can open these/.test(VUI) && /nextExpiry\(docs\)/.test(VUI), 'summary strip'); assert(/aria-label="Sort documents"/.test(VUI) && /sortDocs\(filterDocs\(docs, tab, query\), sort\)/.test(VUI), 'sort');
+    assert(/vault-quickbtn/.test(VUI) && /capture="environment"/.test(VUI) && /accept="image\/\*"/.test(VUI), 'quick add + camera'); assert(/className="no"/.test(VUI) && /<strong>Do not upload<\/strong> firearm serial numbers/.test(VUI), 'the do-not-upload rule is kept and stands out');
+    assert(/\.vault \.vault-sort select \{ width: auto !important; min-width: 190px; \}/.test(VCSS), 'the sort menu is compact, not a full-width bar'); assert(/\.vault-pill\.due \{ min-height: 44px/.test(VCSS) && /\.vault-sort select \{ min-height: 44px/.test(VCSS) && /\.vault-quickbtn \{ min-height: 48px/.test(VCSS) && /pointer: coarse\) \{ \.vault-camera \{ display: flex/.test(VCSS), 'touch sizes'); assert(!/walletUpload[^;]*capture/.test(VUI) && (VUI.match(/call\('walletUpload'/g) || []).length === 1, 'the camera uses the same single upload path');
+  });
   console.log(`\nTEST SUMMARY: ${passed} PASSED, ${failed} FAILED out of ${passed + failed} total tests.`);
   process.exit(failed ? 1 : 0);
 })();

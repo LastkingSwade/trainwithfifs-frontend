@@ -128,3 +128,24 @@
 .wallet-photo-box.has-photo { background: #0b1118 !important; }
 .wallet-photo-box > img.wallet-photo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .wallet-photo-box.has-photo > div { display: none; }
+
+/* UX pass: summary strip, sort, quick add, camera, friendlier consent, sticky header on phones */
+.vault-strip { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; }
+.vault-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border-radius: 999px; font: inherit; font-size: 0.86rem; font-weight: 700; color: #d9f4ff; background: rgba(0, 229, 255, 0.07); border: 1px solid rgba(0, 229, 255, 0.35); }
+.vault-pill.count { color: #ffe4b0; background: rgba(255, 183, 3, 0.07); border-color: rgba(255, 183, 3, 0.4); }
+.vault-pill.due { min-height: 44px; cursor: pointer; } .vault-pill.due.soon { color: #ffd166; background: rgba(255, 183, 3, 0.12); border-color: rgba(255, 183, 3, 0.7); } .vault-pill.due.expired { color: #ffb4b4; background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.7); }
+.vault-sort { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-weight: 700; color: #b9d6e8; }
+.vault-sort select { min-height: 44px; padding: 0 12px; border-radius: 12px; color: #eaf6ff; font: inherit; background: #070d16; border: 1px solid rgba(0, 229, 255, 0.35); }
+.vault-camera { position: relative; display: none; align-items: center; justify-content: center; gap: 8px; min-height: 48px; margin-top: 12px; border-radius: 12px; cursor: pointer; font-weight: 700; color: #e8faff; background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.5); }
+.vault-camera input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+@media (pointer: coarse) { .vault-camera { display: flex; } }
+.vault-quick { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+.vault-quickbtn { min-height: 48px; padding: 0 18px; border-radius: 12px; cursor: pointer; font: inherit; font-weight: 700; color: #e8faff; background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.5); }
+.vault-quickbtn:hover { background: rgba(0, 229, 255, 0.2); }
+.vault-consent ul { list-style: none; padding-left: 0; }
+.vault-consent li { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.22); }
+.vault-consent li > span:first-child { font-size: 1.4rem; line-height: 1.2; }
+.vault-consent li.no { background: rgba(239, 68, 68, 0.09); border-color: rgba(239, 68, 68, 0.55); } .vault-consent li.no strong { color: #ffb4b4; }
+@media (max-width: 640px) { .vault-head { position: sticky; top: 0; z-index: 4; margin: -20px -16px 16px; padding: 14px 16px; background: #0b1119; border-bottom: 1px solid rgba(0, 229, 255, 0.25); } }
+.vault-chips { order: 2; } .vault-sort { order: 3; }
+.vault .vault-sort { justify-self: start; } .vault-sort span { white-space: nowrap; } .vault .vault-sort select { width: auto !important; min-width: 190px; }

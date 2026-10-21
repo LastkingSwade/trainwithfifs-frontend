@@ -32,3 +32,20 @@ export const sizeText = (n: number) => (n >= 1048576 ? (n / 1048576).toFixed(1) 
 export const docTitle = (d: Pick<VaultDoc, 'kindLabel'>) => d.kindLabel;
 // The small picture on each card: a different look per type, using only the type (never the file).
 export const artFor = (kind: string): { label: string; seal: boolean } => kind === 'permit_card' ? { label: 'PERMIT CARD', seal: false } : kind === 'class_certificate' ? { label: 'CERTIFICATE', seal: true } : kind === 'hql_approval' ? { label: 'HQL APPROVAL', seal: true } : { label: 'RECORD', seal: false };
+
+export type VaultSort = 'newest' | 'expiring' | 'type';
+export const SORTS: ReadonlyArray<{ key: VaultSort; label: string }> = [{ key: 'newest', label: 'Newest first' }, { key: 'expiring', label: 'Expiring soonest' }, { key: 'type', label: 'By type' }];
+/** Sorts a copy: newest first; soonest expiry first (documents with no expiry last); or grouped by type name. */
+export function sortDocs(docs: readonly VaultDoc[], key: VaultSort): VaultDoc[] {
+  const added = (d: VaultDoc) => Date.parse(d.createdAt) || 0, exp = (d: VaultDoc) => { const t = Date.parse(String(d.expiresOn || '').slice(0, 10) + 'T12:00:00Z'); return Number.isFinite(t) ? t : Infinity; };
+  const a = docs.slice();
+  if (key === 'expiring') return a.sort((x, y) => exp(x) - exp(y) || added(y) - added(x));
+  if (key === 'type') return a.sort((x, y) => x.kindLabel.localeCompare(y.kindLabel) || added(y) - added(x));
+  return a.sort((x, y) => added(y) - added(x));
+}
+/** The one document that needs attention first: expired, or expiring within 90 days (the same window as the renewal reminders). Null when nothing is due. */
+export function nextExpiry(docs: readonly VaultDoc[], now: Date = new Date()): { doc: VaultDoc; state: 'soon' | 'expired'; text: string } | null {
+  let best: { doc: VaultDoc; days: number; state: 'soon' | 'expired'; text: string } | null = null;
+  for (const d of docs) { const e = expiryState(d.expiresOn, now); if ((e.state === 'soon' || e.state === 'expired') && e.days !== null && (!best || e.days < best.days)) best = { doc: d, days: e.days, state: e.state, text: e.text }; }
+  return best ? { doc: best.doc, state: best.state, text: best.text } : null;
+}

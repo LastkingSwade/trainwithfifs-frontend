@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import './vault.css';
-import { TABS, artFor, counts, docTitle, expiryState, filterDocs, prettyDate, recent, sizeText, tabOf, type VaultDoc, type VaultTab } from './vaultLogic';
+import { SORTS, TABS, artFor, counts, docTitle, expiryState, filterDocs, nextExpiry, prettyDate, recent, sizeText, sortDocs, tabOf, type VaultDoc, type VaultSort, type VaultTab } from './vaultLogic';
 
 interface Status { enabled: boolean; consented: boolean; docs: VaultDoc[]; maxBytes: number; kinds: Record<string, string> }
 const toBase64 = (file: File) => new Promise<string>((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(String(r.result).split(',')[1] || ''); r.onerror = () => reject(new Error('Could not read that file.')); r.readAsDataURL(file); });
@@ -25,6 +25,7 @@ export default function WalletPanel() {
   const [tab, setTab] = useState<VaultTab>('all');
   const [query, setQuery] = useState('');
   const [addOpen, setAddOpen] = useState(false);
+  const [sort, setSort] = useState<VaultSort>('newest');
   const [drag, setDrag] = useState(false);
   const panel = useRef<HTMLElement | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -37,7 +38,7 @@ export default function WalletPanel() {
   const load = useCallback(async () => { try { setSt(await call('walletStatus')); } catch (e: any) { setMsg(e?.message || 'Could not load your vault.'); } }, [call]);
   const showToast = (t: string) => { setToast(t); if (toastTimer.current) clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(''), 4500); };
 
-  useEffect(() => { (window as any).openWallet = () => { setOpen(true); setMsg(''); setToast(''); setConfirmId(''); setMenuId(''); setAgree(false); setTab('all'); setQuery(''); setAddOpen(false); load(); }; return () => { delete (window as any).openWallet; if (toastTimer.current) clearTimeout(toastTimer.current); }; }, [load]);
+  useEffect(() => { (window as any).openWallet = () => { setOpen(true); setMsg(''); setToast(''); setConfirmId(''); setMenuId(''); setAgree(false); setTab('all'); setQuery(''); setSort('newest'); setAddOpen(false); load(); }; return () => { delete (window as any).openWallet; if (toastTimer.current) clearTimeout(toastTimer.current); }; }, [load]);
   useEffect(() => {
     if (!open) return;
     const key = (e: KeyboardEvent) => {
@@ -72,7 +73,9 @@ export default function WalletPanel() {
 
   const docs = st?.docs || [];
   const c = counts(docs);
-  const shown = filterDocs(docs, tab, query);
+  const shown = sortDocs(filterDocs(docs, tab, query), sort);
+  const due = nextExpiry(docs);
+  const quickAdd = (k: string) => { setKind(k); setAddOpen(true); setMsg(''); };
   const art = (d: VaultDoc, small = false) => { const a = artFor(d.kind); return (
     <div className={'vault-art' + (small ? ' small' : '') + (a.seal ? ' sealed' : '') + ' k-' + (EMOJI[d.kind] ? d.kind : 'other')} aria-hidden="true">
       <span className="vault-art-emoji">{emojiFor(d.kind)}</span>
@@ -98,6 +101,14 @@ export default function WalletPanel() {
           </div>
         </header>
 
+        {st && st.enabled && st.consented && (
+          <div className="vault-strip" role="group" aria-label="Vault summary">
+            <span className="vault-pill lock">🔒 Encrypted · only you can open these</span>
+            <span className="vault-pill count">🗂️ {docs.length} document{docs.length === 1 ? '' : 's'}</span>
+            {due && <button type="button" className={'vault-pill due ' + due.state} onClick={() => { setTab('all'); setQuery(''); setSort('expiring'); }}>{due.state === 'expired' ? '⚠️' : '🔔'} {docTitle(due.doc)}: {due.text}</button>}
+          </div>
+        )}
+
         {!st && !msg && <div className="vault-skel" aria-label="Loading your vault"><i /><i /><i /></div>}
         {st && !st.enabled && <p className="vault-note">The document vault is not available yet. Please check back soon.</p>}
 
@@ -105,10 +116,10 @@ export default function WalletPanel() {
           <div className="vault-consent">
             <p className="vault-lead">🔐 Before you start, please read this:</p>
             <ul>
-              <li>This is a private place for <strong>your own</strong> permit card, class certificate, HQL approval or other ID.</li>
-              <li>Only you can open your files. Staff cannot see them. Files are encrypted before they are stored.</li>
-              <li><strong>Do not upload</strong> firearm serial numbers, photos of firearms, where you keep them at home, or any gun registry-style records. This vault is not for those.</li>
-              <li>You can delete any file at any time. If your account is removed, your files are removed too.</li>
+              <li><span aria-hidden="true">🪪</span> <span>This is a private place for <strong>your own</strong> permit card, class certificate, HQL approval or other ID.</span></li>
+              <li><span aria-hidden="true">🔒</span> <span>Only you can open your files. Staff cannot see them. Files are encrypted before they are stored.</span></li>
+              <li className="no"><span aria-hidden="true">🚫</span> <span><strong>Do not upload</strong> firearm serial numbers, photos of firearms, where you keep them at home, or any gun registry-style records. This vault is not for those.</span></li>
+              <li><span aria-hidden="true">🗑️</span> <span>You can delete any file at any time. If your account is removed, your files are removed too.</span></li>
             </ul>
             <label className="vault-check"><input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} /> <span>I understand and want to turn on my document vault.</span></label>
             <button type="button" className="vault-add" disabled={!agree} onClick={accept}>Turn on my vault</button>
@@ -119,6 +130,7 @@ export default function WalletPanel() {
           <>
             <div className="vault-tools">
               <label className="vault-search"><span aria-hidden="true">🔍</span><input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search your documents…" aria-label="Search your documents" maxLength={60} /></label>
+              <label className="vault-sort"><span>↕️ Sort</span><select aria-label="Sort documents" value={sort} onChange={(e) => setSort(e.target.value as VaultSort)}>{SORTS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}</select></label>
               <div className="vault-chips" role="tablist" aria-label="Filter documents">
                 {TABS.map((t) => <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} className={'vault-chip' + (tab === t.key ? ' on' : '')} onClick={() => setTab(t.key)}>{t.label} ({c[t.key]})</button>)}
               </div>
@@ -141,11 +153,13 @@ export default function WalletPanel() {
                   <span>PDF, PNG, JPG or WEBP, up to 3 MB. No firearm serial numbers, gun photos or storage details.</span>
                   <input type="file" accept="application/pdf,image/png,image/jpeg,image/webp" disabled={busy} onChange={(e) => { upload(e.target.files?.[0]); e.target.value = ''; }} />
                 </label>
+                <label className="vault-camera"><span aria-hidden="true">📷</span> Take a photo with your phone<input type="file" accept="image/*" capture="environment" disabled={busy} onChange={(e) => { upload(e.target.files?.[0]); e.target.value = ''; }} /></label>
               </div>
             )}
 
             {docs.length === 0 ? (
-              <div className="vault-empty"><span aria-hidden="true">🗂️</span><h3>Your vault is empty</h3><p>Keep your permit card, class certificate or HQL approval close at hand. Only you can open them.</p><button type="button" className="vault-add" onClick={() => setAddOpen(true)}><span aria-hidden="true">＋</span> Add your first document</button></div>
+              <div className="vault-empty"><span aria-hidden="true">🗂️</span><h3>Your vault is empty</h3><p>Keep your permit card, class certificate or HQL approval close at hand. Only you can open them. Start with one:</p>
+                <div className="vault-quick">{Object.entries(st.kinds).slice(0, 4).map(([k, v]) => <button type="button" key={k} className="vault-quickbtn" onClick={() => quickAdd(k)}><span aria-hidden="true">{emojiFor(k)}</span> {v}</button>)}</div></div>
             ) : shown.length === 0 ? (
               <div className="vault-empty"><span aria-hidden="true">🔍</span><h3>No documents match</h3><p>Try a different word, or choose All documents.</p><button type="button" className="vault-chip on" onClick={() => { setQuery(''); setTab('all'); }}>Show everything</button></div>
             ) : (
