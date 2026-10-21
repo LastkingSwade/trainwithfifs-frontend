@@ -1322,6 +1322,7 @@ export async function POST(req: NextRequest) {
          // prep_tasks is NOT NULL but has a database default, so it is left to that default.
          user_id: authUserId, student_id: generatedId, full_name: fullName, email, phone: phone || '',
          course_name: courseName, course_selection: courseName, preferred_dates: dates, status: 'STEP_1_REGISTERED',
+         qualification_score: null, // a score exists only once the instructor records one (never a placeholder)
          must_change_password: true, temp_password_reset: true, created_at: now, updated_at: now
        };
        const { error: profileErr } = await supabase.from(profileTable).insert(profile);
@@ -1763,6 +1764,7 @@ export async function POST(req: NextRequest) {
            course_selection: classTitle,
            preferred_dates: scheduledDate.toISOString(),
            status: 'STEP_1_REGISTERED',
+           qualification_score: null, // a score exists only once the instructor records one (never a placeholder)
            created_at: new Date().toISOString()
          });
          if (insertErr) {

@@ -71,7 +71,7 @@ export async function ensurePortalAccessAfterPayment(supabase: any, session: { c
     const now = new Date().toISOString(); let studentId = ''; let inserted = false;
     for (let attempt = 0; attempt < 5 && !inserted; attempt += 1) {
       studentId = newStudentId();
-      const ins = await supabase.from('students').insert({ user_id: userId, student_id: studentId, full_name: fullName, email, phone: phone || '', course_name: courseName, course_selection: courseName, preferred_dates: dates, status: 'CONFIRMED', must_change_password: true, temp_password_reset: true, created_at: now, updated_at: now });
+      const ins = await supabase.from('students').insert({ user_id: userId, student_id: studentId, full_name: fullName, email, phone: phone || '', course_name: courseName, course_selection: courseName, preferred_dates: dates, status: 'CONFIRMED', qualification_score: null, must_change_password: true, temp_password_reset: true, created_at: now, updated_at: now });
       if (!ins.error) inserted = true; else if (ins.error.code !== '23505') break;
     }
     if (!inserted) {

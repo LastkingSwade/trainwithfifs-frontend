@@ -62,6 +62,7 @@ export async function ensureGuestCheckoutStudent(): Promise<{ ok: boolean; detai
       email: GUEST_CHECKOUT_STUDENT_EMAIL,
       phone: 'N/A',
       course_name: 'Guest checkout',
+      qualification_score: null,
       internal_notes: 'System record that holds the invoices of visitors who book without signing in. Do not edit or delete: deleting it deletes those invoices.'
     });
     if (created.error) {
