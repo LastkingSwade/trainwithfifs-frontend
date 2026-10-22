@@ -5028,6 +5028,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </a>
                 </div>
               </div>
+              {/* Range Journal card (moved up, between the Dossier and MSP MyLicense cards) */}
+              <div data-range-journal-launch="student"></div>
               {/* Card 2: Maryland State Police MyLicense Portal */}
               <div className="portal-feature-launcher-card" style={{"border": "2px solid var(--accent-amber)", "background": "linear-gradient(135deg, rgba(255, 183, 3, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(255, 183, 3, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
                 <div>
@@ -5170,7 +5172,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             {/* Chat with me and the Range Journal sit after the main content, so the portal opens on classes, checklist and documents (src/portal/portalChat.ts). */}
             <div className="portal-chat-host" data-portal-chat="student" hidden></div>
-            <div data-range-journal-launch="student"></div>
             {/* State Dossier Details Modal */}
             <div className="state-dossier-modal-overlay" id="stateDossierModal" data-onclick="if(event.target===this) closeStateDossier()" style={{"display": "none"}}>
               <div aria-labelledby="dossierStateTitle" aria-modal="true" className="state-dossier-card" data-onclick="event.stopPropagation()" role="dialog">
@@ -5570,7 +5571,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                           </div>
                         </div>
                         <div style={{"marginTop": "10px", "fontFamily": "var(--font-display)", "fontSize": "0.78rem", "color": "var(--accent-amber)", "fontWeight": "800", "letterSpacing": "1px", "textTransform": "uppercase"}}>
-                          Shows the copy you upload to your Wallet
+                          Shows the copy you upload
                         </div>
                         <div style={{"fontSize": "0.72rem", "color": "var(--text-muted)", "marginTop": "2px"}}>
                           Not on file yet
@@ -5713,23 +5714,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <section id="ms-client" className="ms" aria-label="Multi-state application guide" hidden></section>
               {/* 8 PRIMARY RESOURCE CARDS (INTERACTIVE MODAL LAUNCHERS) */}
               <div className="fi-hub-cards-grid">
-                {/* CARD 1: DOCUMENT VAULT (opens the vault panel in src/portal/WalletPanel.tsx) */}
-                <div className="fi-feature-card fi-vault-card" id="fi-vault-launch" onClick={() => { if (typeof window !== 'undefined' && (window as any).openWallet) (window as any).openWallet(); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
-                  <div>
-                    <span className="fi-feature-icon">
-                      🔐
-                    </span>
-                    <h3 className="fi-feature-title">
-                      Your Document Vault
-                    </h3>
-                    <p className="fi-feature-desc">
-                      Your training. Your records. All together. Keep your permit card, class certificate or HQL approval in one private place. Only you can open them, and they are stored encrypted.
-                    </p>
-                  </div>
-                  <button className="btn-spark" data-onclick="openWallet()" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && (window as any).openWallet) (window as any).openWallet(); }} type="button" style={{"width": "100%", "marginTop": "14px", "borderColor": "#ffb703", "color": "#ffd166"}}>
-                    🔐 Open My Document Vault ↗
-                  </button>
-                </div>
+                {/* Range Journal card (first in the hub; the Vault lives on the bottom tab bar, so it no longer needs its own card here) */}
+                <div data-range-journal-launch="client"></div>
 
                 {/* CARD 2: 50-STATE RECIPROCITY HUB */}
                 <div className="fi-feature-card" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleReciprocityHubModal) (window as any).toggleReciprocityHubModal(true); }} style={{"cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
@@ -5909,7 +5895,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <section id="eg-client" className="eg" aria-label="Help and more" hidden></section>
               {/* Chat with me (src/portal/portalChat.ts) and the Range Journal come after the main content, so the portal opens on the greeting and next step. */}
               <div className="portal-chat-host" data-portal-chat="client" hidden></div>
-              <div data-range-journal-launch="client"></div>
               {/* ================= STATUTORY DISCLAIMER & CITATIONS ================= */}
               <div style={{"background": "rgba(0,0,0,0.4)", "border": "1px solid rgba(255,255,255,0.06)", "borderRadius": "12px", "padding": "18px 20px", "marginTop": "40px", "fontSize": "0.8rem", "color": "var(--text-muted)", "lineHeight": "1.5"}}>
                 <strong style={{"color": "#cbd5e1"}}>

@@ -81,7 +81,7 @@ function mem() {
     // No way to type a private title or note that gets stored: no text inputs or text areas. The only text box is the local search (type="search"); its words are never sent anywhere.
     assert(!/<textarea/.test(UI) && !/type="text"/.test(UI) && (UI.match(/type="search"/g) || []).length === 1, 'no free-text field (only the local search box)');
     assert(!/call\('[a-zA-Z]+',[^)]*query/.test(UI) && !/walletUpload[^;]*query/.test(UI), 'the search words are never sent to the server');
-    assert(/id="fi-vault-launch"/.test(fs.readFileSync(path.join(ROOT, 'src/app/page.tsx'), 'utf8')) && /WalletPanel/.test(fs.readFileSync(path.join(ROOT, 'src/app/layout.tsx'), 'utf8')), 'the client portal keeps a Document Vault hub card next to the Reciprocity Hub');
+    assert(!/id="fi-vault-launch"/.test(fs.readFileSync(path.join(ROOT, 'src/app/page.tsx'), 'utf8')) && /WalletPanel/.test(fs.readFileSync(path.join(ROOT, 'src/app/layout.tsx'), 'utf8')), 'the Vault is reached from the bottom tab bar (no duplicate hub card), and its panel is still mounted'); assert(/key === 'wallet'\) \{[^}]*w\.openWallet\?\.\(\)/.test(fs.readFileSync(path.join(ROOT, 'src/shell/tabShell.ts'), 'utf8')), 'the Vault tab opens the panel');
     // Students have no documents yet (they come to the owner to get them), so the student portal no longer shows the wallet card.
     const STU = fs.readFileSync(path.join(ROOT, 'src/portal/studentExtras.ts'), 'utf8'); assert(!/walletCard/.test(STU) && !/document wallet/i.test(STU), 'the student portal must not show the wallet card');
   });
