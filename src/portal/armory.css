@@ -22,3 +22,27 @@
 .ar-formactions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
 .ar-card .rj-ghost { min-height: 44px; }
 .ar input[type="search"]:focus-visible, .ar select:focus-visible { outline: 3px solid #00e5ff; outline-offset: 2px; }
+/* Parts view (generic handgun): a drawn illustration with numbered callouts. Dark navy, cyan outlines, amber for the chosen part. 44px controls, no animation. */
+.ad { margin: 12px 0; padding: 12px; border-radius: 14px; background: #070b10; border: 1px solid rgba(0, 229, 255, 0.35); }
+.ad h4 { margin: 0 0 6px; color: #fff; font-size: 1.05rem; }
+.ad-notice { margin: 0 0 8px; font-size: 0.86rem; color: #ffe29a; }
+.ad-svg { display: block; width: 100%; height: auto; background: #04070b; border-radius: 10px; }
+.ad-shape { fill: rgba(0, 229, 255, 0.08); stroke: #00e5ff; stroke-width: 2; }
+.ad-shape.on { fill: rgba(255, 183, 3, 0.22); stroke: #ffb703; stroke-width: 3; }
+.ad-line { fill: none; stroke-dasharray: 4 4; }
+.ad-part { cursor: pointer; }
+.ad-part:focus-visible { outline: none; }
+.ad-part:focus-visible .ad-shape { stroke: #ffffff; stroke-width: 3; }
+.ad-badge { fill: #0d141d; stroke: #00e5ff; stroke-width: 2; }
+.ad-badge.on { fill: #ffb703; stroke: #ffb703; }
+.ad-num { fill: #e8faff; font-size: 26px; font-weight: 800; font-family: var(--font-body, system-ui, sans-serif); }
+.ad-badge.on + .ad-num { fill: #111; }
+.ad-detail { min-height: 48px; margin: 8px 0; color: #e6f3fb; line-height: 1.5; }
+.ad-detail p { margin: 0; }
+.ad-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 6px; }
+@media (min-width: 600px) { .ad-list { grid-template-columns: 1fr 1fr; } }
+.ad-item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 6px 10px; border-radius: 10px; cursor: pointer; font: inherit; font-weight: 700; color: #e8faff; background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.3); text-align: left; }
+.ad-item[aria-pressed="true"] { color: #111; background: #ffb703; border-color: #ffb703; }
+.ad-n { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-weight: 800; background: rgba(0, 229, 255, 0.15); flex: none; }
+.ad-item[aria-pressed="true"] .ad-n { background: #111; color: #ffb703; }
+.ad-item:focus-visible, .ad-part:focus-visible { outline: 3px solid #00e5ff; outline-offset: 2px; }

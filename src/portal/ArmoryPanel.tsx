@@ -6,6 +6,7 @@ import './armory.css';
 import { ARMORY_TEXT } from '../shell/tabLogic';
 import { MAINT_LABEL, TYPE_INFO, describe, filterItems, lastService, maskSerial, money, toCsv, type AItem, type ItemType, type Maint, type MaintKind } from './armoryLogic';
 import { prettyDay, todayISO } from './rangeLogic';
+import ArmoryDiagram from './ArmoryDiagram';
 
 interface State { enabled: boolean; available: boolean; items: AItem[] }
 interface Form { id: string; nickname: string; type: ItemType; make: string; model: string; caliber: string; serial: string; purchasedOn: string; price: string; notes: string; maintenance: Maint[] }
@@ -24,6 +25,7 @@ export default function ArmoryPanel() {
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [confirm, setConfirm] = useState('');
   const [query, setQuery] = useState('');
+  const [partsFor, setPartsFor] = useState('');
   const panel = useRef<HTMLElement | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -97,6 +99,8 @@ export default function ArmoryPanel() {
                         {i.notes && <p className="ar-notes">{i.notes}</p>}
                       </>
                     )}
+                    {!i.unreadable && i.type === 'handgun' && <button type="button" className="rj-secondary ar-parts-btn" aria-expanded={partsFor === i.id} aria-controls={`ar-parts-${i.id}`} onClick={() => setPartsFor(partsFor === i.id ? '' : i.id)}>{partsFor === i.id ? '🔼 Hide parts view' : '🔍 Parts view'}</button>}
+                    {partsFor === i.id && <div id={`ar-parts-${i.id}`}><ArmoryDiagram /></div>}
                     <div className="ar-actions">
                       {!i.unreadable && <button type="button" className="rj-secondary" onClick={() => { setForm(fromItem(i)); setMsg(''); }}>✏️ Edit</button>}
                       {confirm === 'i' + i.id ? <span className="rj-confirm"><button type="button" className="danger" onClick={() => del(i.id)}>Yes, delete</button><button type="button" onClick={() => setConfirm('')}>Cancel</button></span>
