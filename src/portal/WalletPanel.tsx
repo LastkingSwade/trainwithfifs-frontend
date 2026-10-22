@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import './vault.css';
 import { SORTS, TABS, artFor, counts, docTitle, expiryState, filterDocs, nextExpiry, prettyDate, recent, sizeText, sortDocs, tabOf, type VaultDoc, type VaultSort, type VaultTab } from './vaultLogic';
+import { prepPhoto } from './photoShrink';
 
 interface Status { enabled: boolean; consented: boolean; docs: VaultDoc[]; maxBytes: number; kinds: Record<string, string> }
 const toBase64 = (file: File) => new Promise<string>((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(String(r.result).split(',')[1] || ''); r.onerror = () => reject(new Error('Could not read that file.')); r.readAsDataURL(file); });
@@ -64,9 +65,12 @@ export default function WalletPanel() {
   const accept = async () => { try { await call('walletConsent'); setMsg(''); await load(); } catch (e: any) { setMsg(e?.message || 'Could not save your choice.'); } };
   const upload = async (file: File | undefined) => {
     if (!file || !st) return;
-    if (file.size > st.maxBytes) { setMsg('That file is larger than 3 MB. Choose a smaller PDF or photo.'); return; }
-    setBusy(true); setMsg('Encrypting and saving…');
-    try { await call('walletUpload', { kind, expiresOn: expires || undefined, dataBase64: await toBase64(file) }); setMsg(''); showToast('Your document has been added to your vault.'); setExpires(''); setAddOpen(false); await load(); window.dispatchEvent(new Event('fifs-wallet-changed')); } catch (e: any) { setMsg(e?.message || 'Could not save that file.'); }
+    // A photo that is too big (or an iPhone HEIC) is shrunk to a plain JPEG here on the phone first; PDFs and small photos go through unchanged.
+    setBusy(true); setMsg('Preparing your file…');
+    const prep = await prepPhoto(file, st.maxBytes); if (!prep.ok) { setBusy(false); setMsg(prep.message); return; } const send = prep.file;
+    if (send.size > st.maxBytes) { setBusy(false); setMsg('That file is larger than 3 MB. Choose a smaller PDF.'); return; }
+    setMsg('Encrypting and saving…');
+    try { await call('walletUpload', { kind, expiresOn: expires || undefined, dataBase64: await toBase64(send) }); setMsg(''); showToast('Your document has been added to your vault.'); setExpires(''); setAddOpen(false); await load(); window.dispatchEvent(new Event('fifs-wallet-changed')); } catch (e: any) { setMsg(e?.message || 'Could not save that file.'); }
     setBusy(false);
   };
   const view = async (d: VaultDoc) => {
@@ -158,7 +162,7 @@ export default function WalletPanel() {
                 <label className={'vault-drop' + (drag ? ' on' : '')} onDragOver={(e) => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)} onDrop={(e) => { e.preventDefault(); setDrag(false); upload(e.dataTransfer.files?.[0]); }}>
                   <span className="vault-drop-ico" aria-hidden="true">📥</span>
                   <strong>{busy ? 'Saving…' : 'Choose a file or drop it here'}</strong>
-                  <span>PDF, PNG, JPG or WEBP, up to 3 MB. No firearm serial numbers, gun photos or storage details.</span>
+                  <span>PDF (up to 3 MB), or a photo of any size: photos are shrunk automatically. Everything is encrypted. No firearm serial numbers, gun photos or storage details.</span>
                   <input type="file" accept="application/pdf,image/png,image/jpeg,image/webp" disabled={busy} onChange={(e) => { upload(e.target.files?.[0]); e.target.value = ''; }} />
                 </label>
                 <label className="vault-camera"><span aria-hidden="true">📷</span> Take a photo with your phone<input type="file" accept="image/*" capture="environment" disabled={busy} onChange={(e) => { upload(e.target.files?.[0]); e.target.value = ''; }} /></label>
