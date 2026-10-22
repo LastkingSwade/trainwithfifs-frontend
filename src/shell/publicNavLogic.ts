@@ -1,11 +1,11 @@
-// The public bottom navigation (phones): Home, Classes, Book Now, Permits, My FIFS. Pure decisions live here so they can be tested without a browser.
-export type NavKey = 'home' | 'classes' | 'book' | 'permits' | 'myfifs';
+// The public bottom navigation (phones): Home, Start, Book Now, Permits, My FIFS. Pure decisions live here so they can be tested without a browser.
+export type NavKey = 'home' | 'start' | 'book' | 'permits' | 'myfifs';
 export interface NavItem { key: NavKey; label: string; href: string; icon: readonly string[] }
 
 // Simple line icons (24px grid), drawn inline so no icon library is needed. Colours come from the stylesheet.
 export const ITEMS: readonly NavItem[] = [
   { key: 'home', label: 'Home', href: '/', icon: ['M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z'] },
-  { key: 'classes', label: 'Classes', href: '/?open=classes', icon: ['M2 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H2z', 'M22 5h-7a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h8z'] },
+  { key: 'start', label: 'Start', href: '/?open=start', icon: ['M5 21V4', 'M5 4h11l-2 4 2 4H5', 'M5 13h8'] },
   { key: 'book', label: 'Book Now', href: '/?open=booking', icon: ['M3 5h18v16H3z', 'M3 10h18', 'M8 3v4', 'M16 3v4', 'M9 15l2 2 4-4'] },
   { key: 'permits', label: 'Permits', href: '/permits', icon: ['M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', 'M9 12l2 2 4-4'] },
   { key: 'myfifs', label: 'My FIFS', href: '/?open=student', icon: ['M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', 'M4 21c0-4 3.6-6 8-6s8 2 8 6'] },
@@ -18,13 +18,14 @@ export interface ShowInput { pathname: string; view: string; dashboardOpen: bool
 /** Hidden inside a signed-in dashboard (the signed-in five-tab bar is there instead), in the admin screen, and during the intro. The two bars are never on screen together. */
 export const navVisible = (s: ShowInput): boolean => isPublicPath(s.pathname) && !s.dashboardOpen && s.view !== 'admin' && !s.booting;
 
-export interface ActiveInput { pathname: string; view: string; classesTab: boolean }
-/** Which tab looks current. Classes and Book Now are two doors into the same booking screen; "classes" remembers which door was used. */
+export interface ActiveInput { pathname: string; view: string }
+/** Which tab looks current. Start is the Start Here screen; Book Now is the booking screen. */
 export function activeFor(i: ActiveInput): NavKey | null {
   if (i.pathname === '/permits' || i.pathname.startsWith('/permits/')) return 'permits';
   if (i.pathname !== '/') return null;
   if (i.view === 'home' || i.view === '') return 'home';
-  if (i.view === 'booking') return i.classesTab ? 'classes' : 'book';
+  if (i.view === 'start') return 'start';
+  if (i.view === 'booking') return 'book';
   if (i.view === 'portal' || i.view === 'fi-portal') return 'myfifs';
   return null;
 }

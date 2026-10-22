@@ -2,9 +2,9 @@
 // student and client open that portal (their own dashboard if they are signed in, the portal sign-in if not); booking and classes open the existing booking screen (classes scrolls to
 // the course catalog); reciprocity opens the existing Reciprocity Hub; renewal opens the existing Permit Renewal Center (information only). Only these exact words are accepted, nothing
 // else is read from the address, and the extra bit is removed afterward. Nothing is stored or sent.
-export type LaunchTarget = 'student' | 'client' | 'booking' | 'classes' | 'reciprocity' | 'renewal' | null;
+export type LaunchTarget = 'student' | 'client' | 'booking' | 'classes' | 'start' | 'reciprocity' | 'renewal' | null;
 export const VIEW_FOR: Record<'student' | 'client', string> = { student: 'portal', client: 'fi-portal' };
-export const TARGETS: readonly string[] = ['student', 'client', 'booking', 'classes', 'reciprocity', 'renewal'];
+export const TARGETS: readonly string[] = ['student', 'client', 'booking', 'classes', 'start', 'reciprocity', 'renewal'];
 
 export function launchTarget(search: string): LaunchTarget {
   try { const v = new URLSearchParams(String(search || '')).get('open'); return v !== null && TARGETS.includes(v) ? (v as LaunchTarget) : null; } catch { return null; }
@@ -22,7 +22,8 @@ export function installLaunchTargets(): boolean {
   try { history.replaceState(null, '', location.pathname + withoutLaunch(location.search) + location.hash); } catch { /* the address just keeps the extra bit */ }
   if (t === 'student' || t === 'client') w.openAndSwitch(VIEW_FOR[t]);
   else if (t === 'booking') w.openAndSwitch('booking');
-  else if (t === 'classes') { w.__fifsClassesTab = true; w.openAndSwitch('booking'); scrollToCatalog(); }
+  else if (t === 'classes') { w.openAndSwitch('booking'); scrollToCatalog(); }
+  else if (t === 'start') { w.openAndSwitch('start'); }
   else if (t === 'reciprocity') { if (typeof w.toggleReciprocityHubModal === 'function') w.toggleReciprocityHubModal(true); }
   else if (t === 'renewal') { if (typeof w.openPermitRenewalModal === 'function') w.openPermitRenewalModal(); }
   return true;

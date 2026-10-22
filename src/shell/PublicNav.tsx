@@ -22,7 +22,7 @@ export default function PublicNav() {
       const view = String(w.currentActiveView || 'home');
       const visible = navVisible({ pathname, view, dashboardOpen: shown('student-active-dashboard') || shown('client-active-dashboard') || document.body.classList.contains('fifs-tabs-on'), booting: root.hasAttribute('data-boot') || root.hasAttribute('data-resume') });
       let portal: Snap['portal'] = null; try { portal = savedPortal(window.localStorage, new Date()); } catch { /* storage blocked: treated as signed out */ }
-      return { visible, active: visible ? activeFor({ pathname, view, classesTab: !!w.__fifsClassesTab && view === 'booking' }) : null, portal };
+      return { visible, active: visible ? activeFor({ pathname, view }) : null, portal };
     };
     const update = () => { const n = read(); setSnap((o) => (o.visible === n.visible && o.active === n.active && o.portal === n.portal ? o : n)); };
     update(); const t = window.setInterval(update, 600);
@@ -37,9 +37,9 @@ export default function PublicNav() {
   const click = (item: NavItem) => (e: React.MouseEvent) => {
     if (!onHome || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return; // new tab / modified clicks keep the real link
     if (item.key === 'permits') return; // a real page: let the link load it
-    e.preventDefault(); w.__fifsClassesTab = item.key === 'classes';
+    e.preventDefault();
     if (item.key === 'home') { if (typeof w.returnToHome === 'function') w.returnToHome(); else w.openAndSwitch('home'); window.scrollTo({ top: 0 }); }
-    else if (item.key === 'classes') { w.openAndSwitch('booking'); const go = () => document.getElementById('course-catalog-section')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); requestAnimationFrame(() => requestAnimationFrame(go)); }
+    else if (item.key === 'start') { w.openAndSwitch('start'); window.scrollTo({ top: 0 }); }
     else if (item.key === 'book') { w.openAndSwitch('booking'); window.scrollTo({ top: 0 }); }
     else if (item.key === 'myfifs') {
       if (snap.portal === 'student') w.openAndSwitch('portal'); else if (snap.portal === 'client') w.openAndSwitch('fi-portal');

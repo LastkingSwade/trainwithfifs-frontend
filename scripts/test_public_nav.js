@@ -1,5 +1,5 @@
 /**
- * TrainWithFIFS - public bottom navigation: Home, Classes, Book Now, Permits, My FIFS (offline)
+ * TrainWithFIFS - public bottom navigation: Home, Start, Book Now, Permits, My FIFS (offline)
  * Exactly five tabs; every link goes somewhere real; never on screen with the signed-in tab bar; staff are never sent into the Admin Hub; nothing stored or sent; 44px+ tabs.
  */
 const fs = require('fs'); const path = require('path');
@@ -17,12 +17,13 @@ const login = (role, signedIn = '2026-10-20T12:00:00Z', extra = {}) => JSON.stri
 (async () => {
   console.log('\n[The five tabs]');
   await test('exactly five tabs in this order, each with a label and a drawn icon, and every link is real', () => {
-    eq(N.ITEMS.map((i) => i.key), ['home', 'classes', 'book', 'permits', 'myfifs']); eq(N.ITEMS.map((i) => i.label), ['Home', 'Classes', 'Book Now', 'Permits', 'My FIFS']); assert(N.ITEMS.every((i) => i.icon.length >= 1 && i.icon.every((d) => /^M/.test(d))), 'icons');
+    eq(N.ITEMS.map((i) => i.key), ['home', 'start', 'book', 'permits', 'myfifs']); eq(N.ITEMS.map((i) => i.label), ['Home', 'Start', 'Book Now', 'Permits', 'My FIFS']); assert(N.ITEMS.every((i) => i.icon.length >= 1 && i.icon.every((d) => /^M/.test(d))), 'icons');
     for (const i of N.ITEMS) assert(i.href === '/' || i.href === '/permits' || /^\/\?open=[a-z]+$/.test(i.href), i.href);
   });
   await test('every ?open= word the bar uses is one the site\'s deep-link handler accepts, for every kind of visitor', () => {
     const words = [...N.ITEMS.map((i) => i.href), N.myFifsHref('student'), N.myFifsHref('client'), N.myFifsHref(null)].map((h) => (h.match(/open=([a-z]+)/) || [])[1]).filter(Boolean);
     for (const w of words) assert(LA.TARGETS.includes(w), w); eq(N.myFifsHref('client'), '/?open=client'); eq(N.myFifsHref('student'), '/?open=student'); eq(N.myFifsHref(null), '/?open=student');
+    eq(N.ITEMS.find((i) => i.key === 'start').href, '/?open=start', 'Start opens the Start Here screen, not booking'); assert(LA.TARGETS.includes('start'), 'start is a deep-link word');
     assert(!words.includes('admin') && !words.includes('staff'), 'never an admin door');
   });
 
@@ -34,10 +35,10 @@ const login = (role, signedIn = '2026-10-20T12:00:00Z', extra = {}) => JSON.stri
     const base = { pathname: '/', view: 'home', dashboardOpen: false, booting: false }; assert(N.navVisible(base), 'home'); assert(N.navVisible({ ...base, view: 'portal' }), 'the portal sign-in screen keeps the bar'); assert(N.navVisible({ ...base, pathname: '/permits' }), 'permits');
     assert(!N.navVisible({ ...base, dashboardOpen: true }), 'dashboard'); assert(!N.navVisible({ ...base, view: 'admin' }), 'admin'); assert(!N.navVisible({ ...base, booting: true }), 'intro'); assert(!N.navVisible({ ...base, pathname: '/pay-invoice' }), 'pay page');
   });
-  await test('the current tab follows the screen or the address; Classes and Book Now share the booking screen and remember which door was used; unlisted screens highlight nothing', () => {
-    const a = (pathname, view, classesTab = false) => N.activeFor({ pathname, view, classesTab });
-    eq(a('/', 'home'), 'home'); eq(a('/', ''), 'home'); eq(a('/', 'booking'), 'book'); eq(a('/', 'booking', true), 'classes'); eq(a('/', 'portal'), 'myfifs'); eq(a('/', 'fi-portal'), 'myfifs'); eq(a('/permits', 'home'), 'permits'); eq(a('/permits/maryland', 'home'), 'permits');
-    for (const v of ['faq', 'about', 'testimonial', 'start', 'admin']) eq(a('/', v), null, v); eq(a('/pay-invoice', 'home'), null);
+  await test('the current tab follows the screen or the address; Start is the Start Here screen; Book Now is the booking screen; unlisted screens highlight nothing', () => {
+    const a = (pathname, view) => N.activeFor({ pathname, view });
+    eq(a('/', 'home'), 'home'); eq(a('/', ''), 'home'); eq(a('/', 'booking'), 'book'); eq(a('/', 'start'), 'start'); assert(!N.ITEMS.some((i) => i.key === 'classes'), 'no Classes tab any more'); eq(a('/', 'portal'), 'myfifs'); eq(a('/', 'fi-portal'), 'myfifs'); eq(a('/permits', 'home'), 'permits'); eq(a('/permits/maryland', 'home'), 'permits');
+    for (const v of ['faq', 'about', 'testimonial', 'admin']) eq(a('/', v), null, v); eq(a('/pay-invoice', 'home'), null);
   });
 
   console.log('\n[My FIFS and the saved login]');
