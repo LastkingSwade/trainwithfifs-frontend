@@ -7,6 +7,7 @@ import { ARMORY_TEXT } from '../shell/tabLogic';
 import { MAINT_LABEL, TYPE_INFO, describe, filterItems, lastService, maskSerial, money, toCsv, type AItem, type ItemType, type Maint, type MaintKind } from './armoryLogic';
 import { prettyDay, todayISO } from './rangeLogic';
 import ArmoryDiagram from './ArmoryDiagram';
+import { buildInsurancePackage, type PackageDoc } from './insurancePackage';
 
 interface State { enabled: boolean; available: boolean; items: AItem[] }
 interface Form { id: string; nickname: string; type: ItemType; make: string; model: string; caliber: string; serial: string; purchasedOn: string; price: string; notes: string; maintenance: Maint[] }
@@ -26,6 +27,7 @@ export default function ArmoryPanel() {
   const [confirm, setConfirm] = useState('');
   const [query, setQuery] = useState('');
   const [partsFor, setPartsFor] = useState('');
+  const [withSerials, setWithSerials] = useState(false);
   const panel = useRef<HTMLElement | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -111,6 +113,13 @@ export default function ArmoryPanel() {
               </ul>
             )}
             <footer className="rj-foot">
+              <label className="ar-pkg-check"><input type="checkbox" checked={withSerials} onChange={(e) => setWithSerials(e.target.checked)} /> Include serial numbers in the insurance package (off unless you tick this)</label>
+              <button type="button" className="rj-secondary" disabled={!items.length || busy} onClick={() => run(async () => {
+                let docs: PackageDoc[] = [];
+                try { const st = await call('walletStatus'); if (st && st.enabled && st.consented && Array.isArray(st.docs)) docs = st.docs.map((d: any) => ({ kindLabel: String(d.kindLabel || 'Document'), createdAt: String(d.createdAt || ''), expiresOn: d.expiresOn || null })); } catch { /* the package lists the armory only */ }
+                const url = URL.createObjectURL(new Blob([buildInsurancePackage({ items, docs, includeSerials: withSerials, today: todayISO() })], { type: 'text/csv;charset=utf-8' }));
+                const a = document.createElement('a'); a.href = url; a.download = `fifs-insurance-package-${todayISO()}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); say('🧾 Insurance package downloaded. Keep that file private.');
+              })}>🧾 Insurance package (CSV)</button>
               <button type="button" className="rj-secondary" onClick={exportCsv} disabled={!items.length}>⬇️ Export my records (CSV)</button>
               {confirm === 'all' ? <span className="rj-confirm" role="alert"><span>Delete your whole armory? This cannot be undone.</span><button type="button" className="danger" onClick={wipe}>Yes, delete everything</button><button type="button" onClick={() => setConfirm('')}>Cancel</button></span>
                 : <button type="button" className="rj-ghost wide" onClick={() => setConfirm('all')} disabled={!items.length}>🗑️ Delete my armory</button>}

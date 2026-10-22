@@ -46,3 +46,6 @@
 .ad-n { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-weight: 800; background: rgba(0, 229, 255, 0.15); flex: none; }
 .ad-item[aria-pressed="true"] .ad-n { background: #111; color: #ffb703; }
 .ad-item:focus-visible, .ad-part:focus-visible { outline: 3px solid #00e5ff; outline-offset: 2px; }
+
+.ar-pkg-check { display: flex; gap: 8px; align-items: flex-start; min-height: 44px; margin: 8px 0; color: #e6f3fb; }
+.ar-pkg-check input { width: 24px; height: 24px; flex: none; accent-color: #ffb703; }
