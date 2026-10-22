@@ -36,7 +36,7 @@ function paint(): void {
 function row(dl: HTMLElement, label: string, value: string) { if (!value) return; dl.append(el('dt', undefined, label), el('dd', undefined, value)); }
 async function openWaiver(studentId: string): Promise<void> {
   const prev = document.activeElement as HTMLElement | null;
-  const overlay = el('div', 'fwv-overlay'); const box = el('div', 'fwv-box'); box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', 'fwvTitle');
+  const overlay = el('div', 'fwv-overlay'); overlay.setAttribute('data-organic', 'skip'); const box = el('div', 'fwv-box'); box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', 'fwvTitle');
   const head = el('div', 'fwv-head'); const title = el('h2', undefined, '✍️ Signed safety waiver'); title.id = 'fwvTitle';
   const close = el('button', 'fwv-close', '✕'); close.type = 'button'; close.setAttribute('aria-label', 'Close waiver'); head.append(title, close);
   const body = el('div', 'fwv-body', 'Loading…'); body.setAttribute('role', 'status'); box.append(head, body); overlay.append(box); document.body.append(overlay);
