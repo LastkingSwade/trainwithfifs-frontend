@@ -18,6 +18,11 @@ export function needsPrep(type: string, size: number, maxBytes: number): boolean
 }
 
 const toBlob = (c: HTMLCanvasElement, q: number): Promise<Blob | null> => new Promise((res) => c.toBlob((b) => res(b), 'image/jpeg', q));
+/** Draws the picture at most `side` pixels on its longest side (white behind any transparent part) and encodes it as a plain JPEG. */
+async function encode(pic: { src: CanvasImageSource; w: number; h: number }, side: number, quality: number): Promise<Blob | null> {
+  const d = fitSize(pic.w, pic.h, side); const c = document.createElement('canvas'); c.width = d.w; c.height = d.h; const x = c.getContext('2d'); if (!x) return null;
+  x.fillStyle = '#fff'; x.fillRect(0, 0, d.w, d.h); x.drawImage(pic.src, 0, 0, d.w, d.h); const b = await toBlob(c, quality); c.width = 0; c.height = 0; return b && b.size > 0 ? b : null;
+}
 async function decode(file: File): Promise<{ src: CanvasImageSource; w: number; h: number; close: () => void } | null> {
   try { const b = await createImageBitmap(file, { imageOrientation: 'from-image' } as ImageBitmapOptions); return { src: b, w: b.width, h: b.height, close: () => b.close() }; } catch { /* try the older way */ }
   try {
@@ -40,3 +45,21 @@ export async function prepPhoto(file: File, maxBytes: number): Promise<PrepResul
   } finally { pic.close(); }
   return { ok: false, message: 'That photo could not be made small enough. Try taking it again a little closer, or choose a smaller photo.' };
 }
+
+// ---- Armory photos: ALWAYS re-drawn (even a small photo), so no location, camera or text details travel with it; plus a small preview for the list. ----
+export const ARMORY_MAX_BYTES = 1_500_000, ARMORY_THUMB_MAX = 40_000;
+export const ARMORY_ATTEMPTS: readonly { side: number; quality: number }[] = [{ side: 2000, quality: 0.82 }, { side: 2000, quality: 0.7 }, { side: 1600, quality: 0.7 }, { side: 1600, quality: 0.55 }, { side: 1200, quality: 0.55 }];
+export const THUMB_ATTEMPTS: readonly { side: number; quality: number }[] = [{ side: 320, quality: 0.7 }, { side: 320, quality: 0.55 }, { side: 240, quality: 0.5 }, { side: 200, quality: 0.4 }];
+export type ArmoryPrep = { ok: true; main: Blob; thumb: Blob } | { ok: false; message: string };
+export async function prepArmoryPhoto(file: File): Promise<ArmoryPrep> {
+  if (!/^image\//i.test(String(file && file.type))) return { ok: false, message: 'Please choose a photo (a picture file).' };
+  const pic = await decode(file); if (!pic || !pic.w || !pic.h) return { ok: false, message: 'This browser cannot open that photo. Take the photo again, or choose a JPG or PNG.' };
+  try {
+    let main: Blob | null = null; for (const a of ARMORY_ATTEMPTS) { const b = await encode(pic, a.side, a.quality); if (b && b.size <= ARMORY_MAX_BYTES * TARGET_FRACTION) { main = b; break; } }
+    if (!main) return { ok: false, message: 'That photo could not be made small enough. Try taking it again a little closer, or choose a smaller photo.' };
+    let thumb: Blob | null = null; for (const a of THUMB_ATTEMPTS) { const b = await encode(pic, a.side, a.quality); if (b && b.size <= ARMORY_THUMB_MAX) { thumb = b; break; } }
+    if (!thumb) return { ok: false, message: 'That photo could not be prepared. Please choose another.' };
+    return { ok: true, main, thumb };
+  } finally { pic.close(); }
+}
+export const blobToBase64 = (b: Blob): Promise<string> => new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(String(r.result).split(',')[1] || ''); r.onerror = () => reject(new Error('Could not read that photo.')); r.readAsDataURL(b); });

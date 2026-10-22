@@ -116,6 +116,11 @@ export async function armorySave(sb: any, uid: string, input: any, now: Date = n
   } catch { return { ok: false, status: 503, message: FAIL }; }
 }
 
+/** Does this item belong to this person? (Used by the photo code, so this file stays the only one that touches the armory table.) */
+export async function armoryOwnsItem(sb: any, uid: string, itemId: string): Promise<AResult<{ owned: boolean }>> {
+  try { const f = await sb.from('armory_items').select('id').eq('id', itemId).eq('user_id', uid).maybeSingle(); if (f.error) return { ok: false, status: 503, message: missingTable(f.error) ? NOT_READY : FAIL }; return { ok: true, owned: !!f.data }; }
+  catch { return { ok: false, status: 503, message: FAIL }; }
+}
 export async function armoryDelete(sb: any, uid: string, id: unknown): Promise<AResult> {
   const itemId = String(id ?? ''); if (!UUID.test(itemId)) return { ok: false, status: 400, message: 'That item could not be found.' };
   const g = await guard(sb, uid); if (!g.ok) return g;

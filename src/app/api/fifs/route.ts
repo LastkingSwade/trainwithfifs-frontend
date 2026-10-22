@@ -7,6 +7,7 @@ import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
 import { sendInvoice, payInfo, invoiceCheckout } from '@/Lib/server/sent-invoices';
 import { waiverStatus, saveWaiver, listWaivers, getWaiver, remindToSignWaiver } from '@/Lib/server/waivers';
+import { photoAdd, photoList, photoOpen, photoDelete, photoPaths, removePhotoFiles } from '@/Lib/server/armory-photos';
 import { memberThread, memberSend, staffMembers, staffThread, staffSend } from '@/Lib/server/portal-chat';
 import { journalList, addSession, deleteSession, addGoal, setGoalDone, deleteGoal, deleteAll } from '@/Lib/server/range-journal';
 import { armoryList, armorySave, armoryDelete, armoryDeleteAll } from '@/Lib/server/armory';
@@ -784,6 +785,11 @@ async function storeContactLead(client: any, lead: { fullName: string; email: st
     console.warn('[FIFS] Contact lead not stored:', err?.message || err);
     return false;
   }
+}
+
+/** Deleting an Armory item (or the whole Armory) also removes its stored, encrypted photo files. The file names are read first, because deleting the item removes the rows that list them. */
+async function withPhotoCleanup(sb: any, uid: string, itemId: unknown, del: () => Promise<any>): Promise<any> {
+  const paths = await photoPaths(sb, uid, itemId); const r = await del(); if (r && r.ok) await removePhotoFiles(sb, paths); return r;
 }
 
 export async function POST(req: NextRequest) {
@@ -3295,9 +3301,26 @@ export async function POST(req: NextRequest) {
        if (action !== 'armoryList' && !allowPublicSubmit(req, 'armory', 40)) return NextResponse.json({ success: false, error: 'You are saving very quickly. Please wait a minute and try again.' }, { status: 429 });
        const res: any = action === 'armoryList' ? await armoryList(supabase, uid)
          : action === 'armorySave' ? await armorySave(supabase, uid, { id: payload.id, nickname: payload.nickname, type: payload.type, make: payload.make, model: payload.model, caliber: payload.caliber, serial: payload.serial, purchasedOn: payload.purchasedOn, price: payload.price, notes: payload.notes, maintenance: payload.maintenance, serviceEveryMonths: payload.serviceEveryMonths })
-         : action === 'armoryDelete' ? await armoryDelete(supabase, uid, payload.id)
-         : await armoryDeleteAll(supabase, uid);
+         : action === 'armoryDelete' ? await withPhotoCleanup(supabase, uid, payload.id, () => armoryDelete(supabase, uid, payload.id))
+         : await withPhotoCleanup(supabase, uid, undefined, () => armoryDeleteAll(supabase, uid));
        const noStore = { 'Cache-Control': 'no-store' };   // decrypted records are never cached by the browser or the network
+       return res.ok ? NextResponse.json({ success: true, ...res }, { headers: noStore }) : NextResponse.json({ success: false, error: res.message }, { status: res.status, headers: noStore });
+     }
+
+     // Armory photos: encrypted on the server, owner only, no staff route, nothing logged. The owner is the verified login, never anything from the request.
+     case 'armoryPhotos':
+     case 'armoryPhotoAdd':
+     case 'armoryPhotoOpen':
+     case 'armoryPhotoDelete': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user?.id) return NextResponse.json({ success: false, error: 'Please sign in to your portal to use the armory.' }, { status: 401 });
+       supabase = getPrivilegedClient(); const uid = String(user.id);
+       if (action === 'armoryPhotoAdd' && !allowPublicSubmit(req, 'armoryPhoto', 30)) return NextResponse.json({ success: false, error: 'You are saving very quickly. Please wait a minute and try again.' }, { status: 429 });
+       const res: any = action === 'armoryPhotos' ? await photoList(supabase, uid)
+         : action === 'armoryPhotoAdd' ? await photoAdd(supabase, uid, { itemId: payload.itemId, dataBase64: payload.dataBase64, thumbBase64: payload.thumbBase64 })
+         : action === 'armoryPhotoOpen' ? await photoOpen(supabase, uid, payload.id)
+         : await photoDelete(supabase, uid, payload.id);
+       const noStore = { 'Cache-Control': 'no-store' };   // decrypted photos are never cached by the browser or the network
        return res.ok ? NextResponse.json({ success: true, ...res }, { headers: noStore }) : NextResponse.json({ success: false, error: res.message }, { status: res.status, headers: noStore });
      }
 

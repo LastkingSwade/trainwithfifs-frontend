@@ -8,6 +8,14 @@ The Armory is each member's private place for their own equipment records (nickn
 3. **Add it in Vercel.** Project → Settings → Environment Variables → add `ARMORY_KEY` (Production) with that value, then redeploy.
 4. **Run the SQL.** In the Supabase SQL editor (production project) run `scripts/sql/20261028_armory_items.sql`. It only adds one new table.
 
+## Photos (optional second step)
+Members can attach up to **4 photos to each item (25 in all)**. This needs one more SQL script and no new key.
+1. **Run the SQL.** In the Supabase SQL editor (production project) run `scripts/sql/20261029_armory_photos.sql`. It adds one table (`armory_photos`) and one **private** storage area (`armory`, 2 MB per file). Nothing existing changes. It is safe to run twice.
+2. **Nothing else.** Photos use the same `ARMORY_KEY` and the same per-member keys as the records, so there is no new secret.
+3. Until step 1 is done, the Armory works exactly as before and photo buttons simply say photos are not set up yet.
+
+How photos are protected: each photo is shrunk and re-drawn on the member's phone (which removes any location or camera details inside it), then **encrypted on the server (AES-256-GCM, a different key per member, tied to its owner and item)** before it is stored. The server also refuses any JPEG that still carries location, camera or text details. A small encrypted preview is kept in the table so the list is quick. Only the owner can see, open or delete a photo; there is no staff screen or API, and photos are never logged, sent in notifications, shown to the AI guide, or put in the insurance package or the CSV exports. Deleting an item deletes its photos; deleting an account deletes the photo records.
+
 ## What is protected, and how
 - Every item is **one encrypted blob** (AES-256-GCM). The make, model, caliber, serial number, notes and maintenance log are all inside it. The database holds only an id, the member's login id, a key version, the blob and two dates.
 - Each member has a **different key**, derived from `ARMORY_KEY`. A blob is tied to its owner and item, so it cannot be moved to another person, and any change to it is detected.

@@ -8,8 +8,11 @@ import { MAINT_LABEL, TYPE_INFO, describe, filterItems, lastService, maskSerial,
 import { prettyDay, todayISO } from './rangeLogic';
 import ArmoryDiagram from './ArmoryDiagram';
 import { buildInsurancePackage, type PackageDoc } from './insurancePackage';
+import { prepArmoryPhoto, blobToBase64 } from './photoShrink';
 
 interface State { enabled: boolean; available: boolean; items: AItem[] }
+interface Photo { id: string; itemId: string; thumbBase64: string }
+const PER_ITEM = 4, PER_MEMBER = 25;
 interface Form { id: string; nickname: string; type: ItemType; make: string; model: string; caliber: string; serial: string; purchasedOn: string; price: string; notes: string; maintenance: Maint[]; serviceEveryMonths: string }
 const EMPTY = (): Form => ({ id: '', nickname: '', type: 'handgun', make: '', model: '', caliber: '', serial: '', purchasedOn: '', price: '', notes: '', maintenance: [], serviceEveryMonths: '' });
 const fromItem = (i: AItem): Form => ({ id: i.id, nickname: i.nickname, type: i.type, make: i.make, model: i.model, caliber: i.caliber, serial: i.serial, purchasedOn: i.purchasedOn, price: i.price === null ? '' : String(i.price), notes: i.notes, maintenance: i.maintenance.map((m) => ({ ...m })) , serviceEveryMonths: i.serviceEveryMonths ? String(i.serviceEveryMonths) : '' });
@@ -28,6 +31,8 @@ export default function ArmoryPanel() {
   const [query, setQuery] = useState('');
   const [partsFor, setPartsFor] = useState('');
   const [withSerials, setWithSerials] = useState(false);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [viewer, setViewer] = useState<{ id: string; url: string; name: string } | null>(null);
   const panel = useRef<HTMLElement | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -36,22 +41,24 @@ export default function ArmoryPanel() {
     if (typeof fn !== 'function') throw new Error('The page is still loading.');
     return fn(action, payload);
   }, []);
-  const load = useCallback(async () => { try { const d = await call('armoryList'); setData({ enabled: d.enabled !== false, available: d.available !== false, items: d.items || [] }); setMsg(''); } catch (e: any) { setMsg(e?.message || 'Could not load your armory.'); } }, [call]);
+  const loadPhotos = useCallback(async () => { try { const d = await call('armoryPhotos'); setPhotos(d && d.available !== false && Array.isArray(d.photos) ? d.photos : []); } catch { setPhotos([]); } }, [call]);
+  const load = useCallback(async () => { try { const d = await call('armoryList'); setData({ enabled: d.enabled !== false, available: d.available !== false, items: d.items || [] }); setMsg(''); void loadPhotos(); } catch (e: any) { setMsg(e?.message || 'Could not load your armory.'); } }, [call]);
   const say = (t: string) => { setToast(t); if (toastTimer.current) clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(''), 4000); };
-  const close = useCallback(() => { setOpen(false); setData(null); setForm(null); setRevealed({}); setConfirm(''); setQuery(''); }, []);
+  const closeViewer = useCallback(() => { setViewer((v) => { if (v) URL.revokeObjectURL(v.url); return null; }); }, []);
+  const close = useCallback(() => { closeViewer(); setOpen(false); setData(null); setForm(null); setRevealed({}); setConfirm(''); setQuery(''); setPhotos([]); }, [closeViewer]);
 
   useEffect(() => { (window as any).openArmory = () => { setOpen(true); setMsg(''); setToast(''); setForm(null); setRevealed({}); setConfirm(''); setQuery(''); setData(null); load(); }; return () => { delete (window as any).openArmory; }; }, [load]);
   useEffect(() => {
     if (!open) return;
     const key = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { if (confirm) setConfirm(''); else if (form) setForm(null); else close(); return; }
+      if (e.key === 'Escape') { if (viewer) closeViewer(); else if (confirm) setConfirm(''); else if (form) setForm(null); else close(); return; }
       if (e.key !== 'Tab' || !panel.current) return;
       const f = Array.from(panel.current.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href]')).filter((x) => x.offsetParent !== null);
       if (!f.length) return; const first = f[0], last = f[f.length - 1];
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     };
     window.addEventListener('keydown', key); return () => window.removeEventListener('keydown', key);
-  }, [open, confirm, form, close]);
+  }, [open, confirm, form, close, viewer, closeViewer]);
   useEffect(() => { if (open) window.setTimeout(() => panel.current?.querySelector<HTMLElement>('.rj-close')?.focus(), 60); }, [open]);
   if (!open) return null;
 
@@ -61,6 +68,11 @@ export default function ArmoryPanel() {
   const save = (e: React.FormEvent) => { e.preventDefault(); if (!form) return; void run(async () => { await call('armorySave', { ...form }); setForm(null); setMsg(''); say('✅ Saved and encrypted.'); await load(); }); };
   const del = (id: string) => run(async () => { await call('armoryDelete', { id }); setConfirm(''); say('Item deleted.'); await load(); });
   const wipe = () => run(async () => { await call('armoryDeleteAll'); setConfirm(''); say('Your armory was deleted.'); await load(); });
+  const addPhoto = (itemId: string, file: File | undefined) => { if (!file) return; void run(async () => {
+    setMsg('Preparing your photo…'); const prep = await prepArmoryPhoto(file); if (!prep.ok) { setMsg(prep.message); return; }
+    setMsg('Encrypting and saving…'); await call('armoryPhotoAdd', { itemId, dataBase64: await blobToBase64(prep.main), thumbBase64: await blobToBase64(prep.thumb) }); setMsg(''); say('✅ Photo saved and encrypted.'); await loadPhotos(); }); };
+  const openPhoto = (p: Photo, name: string) => run(async () => { const d = await call('armoryPhotoOpen', { id: p.id }); const bin = atob(String(d.dataBase64 || '')); const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); closeViewer(); setViewer({ id: p.id, url: URL.createObjectURL(new Blob([bytes], { type: 'image/jpeg' })), name }); });
+  const delPhoto = (id: string) => run(async () => { await call('armoryPhotoDelete', { id }); setConfirm(''); closeViewer(); say('Photo deleted.'); await loadPhotos(); });
   const exportCsv = () => { const url = URL.createObjectURL(new Blob([toCsv(items)], { type: 'text/csv;charset=utf-8' })); const a = document.createElement('a'); a.href = url; a.download = `fifs-armory-${todayISO()}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); say('⬇️ Your records were exported. Keep that file private.'); };
   const addMaint = () => setForm((f) => (f ? { ...f, maintenance: [...f.maintenance, { id: '', on: todayISO(), kind: 'cleaning', note: '' }] } : f));
   const setMaint = (idx: number, patch: Partial<Maint>) => setForm((f) => (f ? { ...f, maintenance: f.maintenance.map((m, i) => (i === idx ? { ...m, ...patch } : m)) } : f));
@@ -83,6 +95,7 @@ export default function ArmoryPanel() {
         {data && data.enabled && data.available && !form && (
           <>
             <p className="rj-note" role="note">🔒 Every record here is encrypted. Please do not enter where you store firearms, safe combinations or home-security details.</p>
+            <p className="rj-note" role="note">📷 Photos are encrypted too. Please do not photograph where you store firearms, safe combinations or home-security details.</p>
             <div className="ar-bar">
               <input type="search" aria-label="Search your armory" placeholder="Search name, make, model or caliber" value={query} onChange={(e) => setQuery(e.target.value)} />
               <button type="button" className="rj-primary" onClick={() => { setForm(EMPTY()); setMsg(''); }} disabled={items.length >= 50}>＋ Add item</button>
@@ -106,6 +119,16 @@ export default function ArmoryPanel() {
                     )}
                     {!i.unreadable && i.type === 'handgun' && <button type="button" className="rj-secondary ar-parts-btn" aria-expanded={partsFor === i.id} aria-controls={`ar-parts-${i.id}`} onClick={() => setPartsFor(partsFor === i.id ? '' : i.id)}>{partsFor === i.id ? '🔼 Hide parts view' : '🔍 Parts view'}</button>}
                     {partsFor === i.id && <div id={`ar-parts-${i.id}`}><ArmoryDiagram /></div>}
+                    {!i.unreadable && (() => { const mine = photos.filter((p) => p.itemId === i.id); const canAdd = mine.length < PER_ITEM && photos.length < PER_MEMBER;
+                      return (
+                        <div className="ar-photos" aria-label={`Photos of ${i.nickname}`}>
+                          <p className="ar-meta"><span aria-hidden="true">📷 </span>Photos ({mine.length} of {PER_ITEM})</p>
+                          {mine.length > 0 && <ul className="ar-thumbs">{mine.map((p, k) => <li key={p.id}><button type="button" className="ar-thumb" aria-label={`Open photo ${k + 1} of ${mine.length} of ${i.nickname}`} onClick={() => void openPhoto(p, i.nickname)} disabled={busy}><img alt="" src={`data:image/jpeg;base64,${p.thumbBase64}`} /></button></li>)}</ul>}
+                          {canAdd ? (<div className="ar-photo-add">
+                            <label className="rj-secondary ar-photo-btn"><span aria-hidden="true">📷</span> Take a photo<input type="file" accept="image/*" capture="environment" disabled={busy} onChange={(e) => { addPhoto(i.id, e.target.files?.[0]); e.target.value = ''; }} /></label>
+                            <label className="rj-secondary ar-photo-btn"><span aria-hidden="true">🖼️</span> Choose a photo<input type="file" accept="image/*" disabled={busy} onChange={(e) => { addPhoto(i.id, e.target.files?.[0]); e.target.value = ''; }} /></label>
+                          </div>) : <p className="ar-meta">{mine.length >= PER_ITEM ? `This item has the most photos (${PER_ITEM}).` : `You have the most photos (${PER_MEMBER}) in all.`} Delete one to add another.</p>}
+                        </div>); })()}
                     <div className="ar-actions">
                       {!i.unreadable && <button type="button" className="rj-secondary" onClick={() => { setForm(fromItem(i)); setMsg(''); }}>✏️ Edit</button>}
                       {confirm === 'i' + i.id ? <span className="rj-confirm"><button type="button" className="danger" onClick={() => del(i.id)}>Yes, delete</button><button type="button" onClick={() => setConfirm('')}>Cancel</button></span>
@@ -166,6 +189,16 @@ export default function ArmoryPanel() {
           </form>
         )}
       </section>
+      {viewer && (
+        <div className="ar-viewer" data-organic="skip" role="dialog" aria-modal="true" aria-label={`Photo of ${viewer.name}`} onClick={(e) => { if (e.target === e.currentTarget) closeViewer(); }}>
+          <img src={viewer.url} alt={`Photo of ${viewer.name}`} />
+          <div className="ar-viewer-bar">
+            {confirm === 'p' + viewer.id ? <span className="rj-confirm" role="alert"><span>Delete this photo?</span><button type="button" className="danger" onClick={() => void delPhoto(viewer.id)} disabled={busy}>Yes, delete</button><button type="button" onClick={() => setConfirm('')}>Cancel</button></span>
+              : <button type="button" className="rj-ghost" onClick={() => setConfirm('p' + viewer.id)}>🗑️ Delete photo</button>}
+            <button type="button" className="rj-primary" onClick={closeViewer} autoFocus>Close</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

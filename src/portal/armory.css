@@ -53,3 +53,16 @@
 .ar-reminders h3 { margin: 0 0 6px; color: #ffb703; }
 .ar-rem.due { color: #fff; font-weight: 800; }
 .ar-rem.soon { color: #ffe29a; font-weight: 700; }
+
+/* Armory photos: a thumbnail strip on each item, two big add buttons, and a full-screen viewer. Every control is at least 44px, focus is always visible, nothing moves. */
+.ar-photos { margin-top: 8px; }
+.ar-thumbs { list-style: none; margin: 6px 0 8px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.ar-thumb { display: block; width: 88px; height: 88px; padding: 0; overflow: hidden; border-radius: 12px; cursor: pointer; background: #0a1018; border: 2px solid rgba(0, 229, 255, 0.45); }
+.ar-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ar-thumb:focus-visible, .ar-photo-btn:focus-within { outline: 3px solid #00e5ff; outline-offset: 2px; }
+.ar-photo-add { display: flex; flex-wrap: wrap; gap: 8px; }
+.ar-photo-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 16px; cursor: pointer; }
+.ar-photo-btn input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px; }
+.ar-viewer { position: fixed; inset: 0; z-index: 100040; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 14px; background: rgba(3, 7, 12, 0.94); }
+.ar-viewer img { max-width: 100%; max-height: calc(100vh - 130px); object-fit: contain; border-radius: 12px; border: 1px solid rgba(0, 229, 255, 0.45); background: #05080d; }
+.ar-viewer-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
