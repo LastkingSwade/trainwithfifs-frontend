@@ -1,5 +1,6 @@
 // The signed safety & liability waiver, one record per student (scripts/sql/20261024_student_waivers.sql). Server only; a student reaches only their own record.
 // If the table has not been created yet the portal is never locked: status says "unavailable" and the waiver is not required until it can be saved.
+import { staffSend } from './portal-chat';
 export const WAIVER_VERSION = '2026';
 export type WaiverStatus = { available: boolean; signed: boolean; signedAt?: string };
 const missingTable = (e: any) => !!e && (e.code === '42P01' || e.code === 'PGRST205' || /does not exist|schema cache/i.test(String(e.message || '')));
@@ -50,4 +51,35 @@ export async function getWaiver(supabase: any, studentId: unknown): Promise<{ ok
     const d = r.data;
     return { ok: true, waiver: { ...summary(d), initials: String(d.initials || ''), signature: String(d.signature || ''), emergencyName: String(d.emergency_name || ''), emergencyRelation: String(d.emergency_relation || ''), emergencyPhone: String(d.emergency_phone || ''), phone: String(d.phone || ''), email: String(d.email || ''), under18: d.under_18 === true } };
   } catch { return { ok: false, status: 503, message: 'This waiver could not be loaded right now.' }; }
+}
+
+// ---- Staff: remind a student to sign. One tap in the Admin Hub sends a short note into that student's portal chat (and, when they have phone alerts on, the usual generic "New message from Kai"
+// alert, which never shows the text). Staff only; the route checks the role first. Never more than one reminder per student per 24 hours. The text is fixed: it carries no names or details. ----
+export const REMIND_PREFIX = '✍️ Waiver reminder:';
+export const REMIND_TEXT = `${REMIND_PREFIX} please complete your safety waiver before class. Open your Student Portal and tap "Complete Digital Waiver". It takes about two minutes. Thank you! - Kai`;
+export const REMIND_EVERY_MS = 24 * 3600 * 1000;
+export type RemindResult =
+  | { ok: true; sent: false; reason: 'signed' }
+  | { ok: true; sent: false; reason: 'recent'; at: string }
+  | { ok: true; sent: true; pushed: boolean; held: boolean }
+  | { ok: false; status: number; message: string };
+
+export async function remindToSignWaiver(supabase: any, studentId: unknown, now: Date = new Date()): Promise<RemindResult> {
+  const id = clean(studentId, 80); if (!id) return { ok: false, status: 400, message: 'Choose a student first.' };
+  const FAIL = { ok: false as const, status: 503, message: 'The reminder could not be sent right now. Nothing was sent.' };
+  let student: any;
+  try { const r = await supabase.from('students').select('student_id, user_id').eq('student_id', id).maybeSingle(); if (r.error) return FAIL; student = r.data; } catch { return FAIL; }
+  if (!student) return { ok: false, status: 404, message: 'That student was not found.' };
+  const st = await waiverStatus(supabase, id);
+  if (!st.available) return { ok: false, status: 409, message: 'Waiver records are not set up yet, so no waiver is required right now.' };
+  if (st.signed) return { ok: true, sent: false, reason: 'signed' };
+  if (!student.user_id) return { ok: false, status: 409, message: 'This student has not set up their portal login yet, so there is nowhere to send a reminder. Please email or call them.' };
+  const since = new Date(now.getTime() - REMIND_EVERY_MS).toISOString();
+  try {
+    const r = await supabase.from('portal_messages').select('created_at').eq('member_user_id', String(student.user_id)).eq('sender', 'staff').like('body', REMIND_PREFIX + '%').gte('created_at', since).order('created_at', { ascending: false }).limit(1);
+    if (r.error) return FAIL; if (Array.isArray(r.data) && r.data.length) return { ok: true, sent: false, reason: 'recent', at: String(r.data[0].created_at) };
+  } catch { return FAIL; }
+  const sent = await staffSend(supabase, String(student.user_id), REMIND_TEXT, now);
+  if (!sent.ok) return { ok: false, status: sent.status, message: sent.error };
+  return { ok: true, sent: true, pushed: sent.pushed, held: sent.held };
 }
