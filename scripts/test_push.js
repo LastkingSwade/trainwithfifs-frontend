@@ -98,8 +98,8 @@ function fakeDb(t, o = {}) {
     sent.length = 0; const q = await P.sendClassReminders(db, new Date('2026-10-22T05:00:00Z')); eq([q.tomorrow.sent, q.today.sent, sent.length], [0, 0, 0], 'quiet hours'); db.t.students[0].preferred_dates = 'To Be Scheduled'; db.t.students[1].assigned_date = null; eq((await P.sendClassReminders(db, NOON)).tomorrow.sent, 0);
   });
   await test('payment received: the student of that invoice is told (nothing about the amount); an unknown invoice or a student without notifications sends nothing', async () => {
-    KEYS(); const db = newDb({ invoices: [{ invoice_number: 'INV-1', student_id: 'FIFS-1' }] }); await P.saveSubscription(db, 'u-stu', 'student', goodSub(1)); const r = await P.notifyPaymentReceived(db, 'INV-1'); eq(r.sent, 1); assert(!/\d/.test(sent[0].body.body), 'no numbers'); eq(sent[0].body.tag, 'payment');
-    sent.length = 0; eq(await P.notifyPaymentReceived(db, 'INV-NOPE'), null); eq((await P.notifyPaymentReceived(newDb({ invoices: [{ invoice_number: 'INV-1', student_id: 'FIFS-2' }] }), 'INV-1')).sent, 0);
+    KEYS(); const db = newDb({ invoices: [{ invoice_number: 'INV-1', student_id: 'FIFS-1' }] }); await P.saveSubscription(db, 'u-stu', 'student', goodSub(1)); const r = await P.notifyPaymentReceived(db, 'INV-1', NOON); eq(r.sent, 1); assert(!/\d/.test(sent[0].body.body), 'no numbers'); eq(sent[0].body.tag, 'payment');
+    sent.length = 0; eq(await P.notifyPaymentReceived(db, 'INV-NOPE', NOON), null); eq((await P.notifyPaymentReceived(newDb({ invoices: [{ invoice_number: 'INV-1', student_id: 'FIFS-2' }] }), 'INV-1', NOON)).sent, 0);
   });
   await test('permit renewal pushes go to the clients due today who turned notifications on, one message per milestone', async () => {
     KEYS(); const db = newDb(); await P.saveSubscription(db, 'u-cli', 'client', goodSub(2)); const r = await P.sendPermitPushes(db, new Map([[90, ['u-cli']], [30, ['u-nobody']]]), NOON); eq(r.sent, 1); eq(sent[0].body.tag, 'permit-90'); eq(sent[0].body.url, '/?open=client');

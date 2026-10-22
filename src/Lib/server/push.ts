@@ -108,11 +108,11 @@ export function notifyStaffOfAlert(alertTitle: unknown): void {
 }
 
 /** After staff record a payment: tell that student (if they turned notifications on). The message says nothing about the amount. */
-export async function notifyPaymentReceived(supabase: any, invoiceNumber: string): Promise<SendReport | null> {
+export async function notifyPaymentReceived(supabase: any, invoiceNumber: string, now: Date = new Date()): Promise<SendReport | null> {
   try {
     const inv = await supabase.from('invoices').select('student_id').eq('invoice_number', invoiceNumber).maybeSingle(); if (inv.error || !inv.data?.student_id) return null;
     const stu = await supabase.from('students').select('user_id').eq('student_id', inv.data.student_id).maybeSingle(); if (stu.error || !stu.data?.user_id) return null;
-    return await sendToUsers(supabase, [String(stu.data.user_id)], paymentReceived());
+    return await sendToUsers(supabase, [String(stu.data.user_id)], paymentReceived(), now);
   } catch { return null; }
 }
 /** Daily: students whose class is tomorrow or today (days found in their saved date text) and who turned notifications on. */

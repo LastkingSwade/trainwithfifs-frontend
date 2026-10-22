@@ -1,5 +1,5 @@
 // The FIFS Guide: a signed-in member's question is answered from the approved reference in src/ai/knowledge.ts and nothing else. The AI provider is called only from here (the key is never in browser
-// code). Nothing about the member is sent: no name, email, id or record, only their typed question, a few earlier turns, and the matching reference snippets. It has no tools and no database access.
+// code). Two providers are supported: Google Gemini (GEMINI_API_KEY, used first when set) or Anthropic (ANTHROPIC_API_KEY). Nothing about the member is sent: no name, email, id or record, only their typed question, a few earlier turns, and the matching reference snippets. It has no tools and no database access.
 // Legal questions never reach the provider: they get a fixed redirect. The answer is cleaned (no links except approved ones, no markup) before it is shown. Nothing is stored or logged.
 import { ALLOWED_URLS, PHONE, SNIPPETS, type Snippet } from '../../ai/knowledge';
 import { memberRole } from './portal-chat';
@@ -7,7 +7,12 @@ import { memberRole } from './portal-chat';
 export const MAX_QUESTION = 500, MAX_TURNS = 6, MAX_TURN_CHARS = 600, MAX_ANSWER = 1400, DAILY_PER_PERSON = 30, TOP_K = 6, TIMEOUT_MS = 20000;
 export const DEFAULT_MODEL = 'claude-haiku-5-5';
 const API_URL = 'https://api.anthropic.com/v1/messages';
-export const aiEnabled = (): boolean => /^sk-ant-[A-Za-z0-9_-]{20,}$/.test(process.env.ANTHROPIC_API_KEY || '');
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/';
+export const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash-lite';
+const anthropicOn = (): boolean => /^sk-ant-[A-Za-z0-9_-]{20,}$/.test(process.env.ANTHROPIC_API_KEY || '');
+const geminiOn = (): boolean => /^AIza[A-Za-z0-9_-]{30,}$/.test(process.env.GEMINI_API_KEY || '');
+export const aiEnabled = (): boolean => geminiOn() || anthropicOn();
+export const geminiModel = (): string => { const m = process.env.GEMINI_MODEL || ''; return /^[a-z0-9][a-z0-9.-]{2,60}$/.test(m) ? m : DEFAULT_GEMINI_MODEL; };
 
 export const SYSTEM_PROMPT = [
   'You are the FIFS Guide, a helpful assistant inside the Train With FIFS member portal for Future Initiative Firearm Services (Coach Kai Wade, Glen Burnie, Maryland).',
@@ -37,6 +42,12 @@ const LEGAL = [/\b(is it|am i|are we|would it be|will it be)\b[^.?!]{0,60}\b(leg
 export const isLegalQuestion = (q: string): boolean => LEGAL.some((r) => r.test(q));
 export const LEGAL_REDIRECT = 'That is a legal question, and I cannot answer it: I am not able to say what is legal or allowed in any situation. Please use the Reciprocity Hub in your portal as a general guide, check the official Maryland State Police page, and ask Coach Kai directly. You can call ' + PHONE + ' or use "Chat with me" in your portal.';
 export const LEGAL_SOURCES = SNIPPETS.filter((s) => s.id === 'md-guide-1' || s.id === 'recip' || s.id === 'contact');
+
+// --- a person who says they are in crisis gets a fixed, caring message with 988; it never goes to an AI provider ---
+const CRISIS = [/\b(kill(ing)? myself|end(ing)? my (own )?life|take my (own )?life|want(ed)? to die|wanna die|commit(ting)? suicide|suicidal|hurt(ing)? myself|harm(ing)? myself|better off dead|(don'?t|do not) want to (be here|live))\b/i, /\bthinking (about|of) suicide(?!\s+prevention)/i];
+export const isCrisis = (q: string): boolean => CRISIS.some((r) => r.test(q));
+export const CRISIS_REDIRECT = 'I am really sorry you are going through this, and I am glad you said something. You do not have to handle it alone. Please call or text 988 (the Suicide & Crisis Lifeline) right now: it is free, confidential and open 24/7. If you are in immediate danger, call 911. You can also reach Coach Kai at ' + PHONE + '.';
+export const CRISIS_SOURCES = SNIPPETS.filter((s) => s.id === 'crisis' || s.id === 'contact');
 
 // --- building the request ---
 const clean = (v: unknown, max: number) => String(v ?? '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -83,15 +94,28 @@ async function callProvider(req: ProviderRequest): Promise<string> {
     const d: any = await r.json(); const text = Array.isArray(d?.content) ? d.content.filter((c: any) => c?.type === 'text').map((c: any) => String(c.text || '')).join(' ') : ''; return text;
   } finally { clearTimeout(timer); }
 }
+/** Google Gemini: same fixed instructions and the same single user message, in Gemini's request shape. The key goes in a header, never in the address. */
+async function callGemini(req: ProviderRequest): Promise<string> {
+  const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+  try {
+    const body = { systemInstruction: { parts: [{ text: req.system }] }, contents: [{ role: 'user', parts: [{ text: req.messages[0].content }] }], generationConfig: { maxOutputTokens: 1024 } };
+    const r = await fetch(GEMINI_URL + geminiModel() + ':generateContent', { method: 'POST', signal: ctl.signal, headers: { 'x-goog-api-key': String(process.env.GEMINI_API_KEY), 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error('provider ' + r.status);
+    const d: any = await r.json(); const parts = d?.candidates?.[0]?.content?.parts;
+    return Array.isArray(parts) ? parts.filter((p: any) => p && !p.thought && typeof p.text === 'string').map((p: any) => p.text).join(' ') : '';
+  } finally { clearTimeout(timer); }
+}
+const callProviderChosen = (req: ProviderRequest): Promise<string> => (geminiOn() ? callGemini(req) : callProvider(req));
 const UNAVAILABLE = `The FIFS Guide is not available right now. Please call Coach Kai at ${PHONE} or use "Chat with me" in your portal.`;
 
 export async function askGuide(sb: any, userId: string, input: { question?: unknown; history?: unknown }, deps: Deps = {}): Promise<GuideResult> {
   const question = clean(input?.question, MAX_QUESTION + 50); if (!question) return { ok: false, status: 400, message: 'Type a question first.' }; if (question.length > MAX_QUESTION) return { ok: false, status: 400, message: `Please keep your question under ${MAX_QUESTION} characters.` };
   if (!aiEnabled() && !deps.complete) return { ok: false, status: 503, message: 'The FIFS Guide is coming soon.' };
   try { if (!(await memberRole(sb, userId))) return { ok: false, status: 403, message: 'The FIFS Guide is for students and clients.' }; } catch { return { ok: false, status: 503, message: UNAVAILABLE }; }
+  if (isCrisis(question)) return { ok: true, answer: CRISIS_REDIRECT, sources: CRISIS_SOURCES.map((s) => ({ title: s.title, ...(s.url ? { url: s.url, label: s.label } : {}) })), redirected: true };
   if (isLegalQuestion(question)) return { ok: true, answer: LEGAL_REDIRECT, sources: LEGAL_SOURCES.map((s) => ({ title: s.title, ...(s.url ? { url: s.url, label: s.label } : {}) })), redirected: true };
   if (!underDailyLimit(userId, deps.now)) return { ok: false, status: 429, message: 'You have reached today\'s limit for the FIFS Guide. Please try again tomorrow, or call Coach Kai at ' + PHONE + '.' };
   const snippets = retrieve(question); const req = buildRequest(question, cleanHistory(input?.history), snippets);
-  try { const raw = await (deps.complete || callProvider)(req); const out = cleanAnswer(raw, snippets); if (!out.answer) return { ok: false, status: 502, message: UNAVAILABLE }; return { ok: true, ...out }; }
+  try { const raw = await (deps.complete || callProviderChosen)(req); const out = cleanAnswer(raw, snippets); if (!out.answer) return { ok: false, status: 502, message: UNAVAILABLE }; return { ok: true, ...out }; }
   catch { return { ok: false, status: 502, message: UNAVAILABLE }; }
 }
