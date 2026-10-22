@@ -29,10 +29,19 @@ const home = { standalone: true, pathname: '/', hash: '', search: '', view: 'hom
 
   console.log('\n[Home-screen shortcuts]');
   await test('?open=student and ?open=client are recognised; anything else is ignored; the extra bit is removed and the rest of the address kept', () => {
-    eq(LA.launchTarget('?open=student'), 'student'); eq(LA.launchTarget('?x=1&open=client'), 'client'); for (const bad of ['', '?open=admin', '?open=', '?open=student%20', '?open=booking', null, undefined, '?OPEN=student']) eq(LA.launchTarget(bad), null, String(bad));
+    eq(LA.launchTarget('?open=student'), 'student'); eq(LA.launchTarget('?x=1&open=client'), 'client'); for (const bad of ['', '?open=admin', '?open=', '?open=student%20', '?open=staff', '?open=Booking', '?open=booking%20', '?open=__proto__', '?open=constructor', null, undefined, '?OPEN=student']) eq(LA.launchTarget(bad), null, String(bad));
     eq(LA.withoutLaunch('?open=student'), ''); eq(LA.withoutLaunch('?a=1&open=client&b=2'), '?a=1&b=2'); eq(LA.withoutLaunch('?a=1'), '?a=1'); eq(LA.VIEW_FOR, { student: 'portal', client: 'fi-portal' });
   });
-  await test('shortcuts open only the two portals (never admin), run once the page is ready, after the saved login is restored', () => {
+  await test('the public Permit Center deep links are recognised by exact word only: booking, classes, reciprocity, renewal; the list is exactly six words', () => {
+    for (const t of ['booking', 'classes', 'reciprocity', 'renewal']) { eq(LA.launchTarget('?open=' + t), t); eq(LA.launchTarget('?a=1&open=' + t + '&b=2'), t); eq(LA.withoutLaunch('?a=1&open=' + t + '&b=2'), '?a=1&b=2'); }
+    eq([...LA.TARGETS].sort(), ['booking', 'classes', 'client', 'reciprocity', 'renewal', 'student']);
+  });
+  await test('each deep link calls the matching existing function once, only when it exists, cleans the address, and "classes" scrolls the catalog into view without animation when motion is reduced', () => {
+    const src = read('src/pwa/launch.ts'); assert(/t === 'booking'\) w\.openAndSwitch\('booking'\)/.test(src) && /t === 'classes'\) \{ w\.__fifsClassesTab = true; w\.openAndSwitch\('booking'\); scrollToCatalog\(\)/.test(src), 'booking and classes'); assert(/typeof w\.toggleReciprocityHubModal === 'function'\) w\.toggleReciprocityHubModal\(true\)/.test(src) && /typeof w\.openPermitRenewalModal === 'function'\) w\.openPermitRenewalModal\(\)/.test(src), 'hub and renewal, guarded');
+    assert(/course-catalog-section/.test(src) && /prefers-reduced-motion: reduce/.test(src), 'catalog scroll honours reduced motion'); assert(/id="course-catalog-section"/.test(read('src/app/page.tsx')), 'the catalog anchor exists on the page');
+    const page = read('src/app/page.tsx') + read('public/scripts/TrainWithFIFS_scripts.js'); assert(/window\.toggleReciprocityHubModal =/.test(page) && /openPermitRenewalModal = function/.test(page) && /window\.openAndSwitch = openAndSwitch/.test(page), 'the functions it calls exist');
+  });
+  await test('shortcuts open only the portals and public screens (never admin), run once the page is ready, after the saved login is restored', () => {
     const src = read('src/pwa/launch.ts'), rs = read('src/portal/RestoreSession.tsx'); assert(!/admin|staff/.test(src.replace(/\/\/.*$/gm, '')), 'no staff route'); assert(/installSessionRestore\(\)\.finally\(\(\) => \{ if \(!cancelled\) installLaunchTargets\(\); \}\)/.test(rs), 'after the restore');
     assert(/__fifsLaunchRan/.test(src) && /history\.replaceState/.test(src) && !/localStorage|sessionStorage|fetch\(/.test(src), 'once, cleans the address, stores and sends nothing');
   });

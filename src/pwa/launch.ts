@@ -1,10 +1,13 @@
-// Home-screen shortcuts: long-pressing the installed icon offers "Student Portal" and "Client Portal". Those open the site with ?open=student or ?open=client; this opens the
-// matching portal (their own dashboard if they are signed in, the portal sign-in if not) and then removes the extra bit from the address. Nothing is stored or sent.
-export type LaunchTarget = 'student' | 'client' | null;
+// Deep links into the one-page site. Home-screen shortcuts ("Student Portal", "Client Portal") and the public Permit Center pages (/permits) open the site with ?open=<target>:
+// student and client open that portal (their own dashboard if they are signed in, the portal sign-in if not); booking and classes open the existing booking screen (classes scrolls to
+// the course catalog); reciprocity opens the existing Reciprocity Hub; renewal opens the existing Permit Renewal Center (information only). Only these exact words are accepted, nothing
+// else is read from the address, and the extra bit is removed afterward. Nothing is stored or sent.
+export type LaunchTarget = 'student' | 'client' | 'booking' | 'classes' | 'reciprocity' | 'renewal' | null;
 export const VIEW_FOR: Record<'student' | 'client', string> = { student: 'portal', client: 'fi-portal' };
+export const TARGETS: readonly string[] = ['student', 'client', 'booking', 'classes', 'reciprocity', 'renewal'];
 
 export function launchTarget(search: string): LaunchTarget {
-  try { const v = new URLSearchParams(String(search || '')).get('open'); return v === 'student' || v === 'client' ? v : null; } catch { return null; }
+  try { const v = new URLSearchParams(String(search || '')).get('open'); return v !== null && TARGETS.includes(v) ? (v as LaunchTarget) : null; } catch { return null; }
 }
 /** The address without the ?open= part (other parts, and the #hash, are kept). */
 export function withoutLaunch(search: string): string {
@@ -17,5 +20,15 @@ export function installLaunchTargets(): boolean {
   if (w.__fifsLaunchRan) return false; w.__fifsLaunchRan = true;
   const t = launchTarget(location.search); if (!t || typeof w.openAndSwitch !== 'function') return false;
   try { history.replaceState(null, '', location.pathname + withoutLaunch(location.search) + location.hash); } catch { /* the address just keeps the extra bit */ }
-  w.openAndSwitch(VIEW_FOR[t]); return true;
+  if (t === 'student' || t === 'client') w.openAndSwitch(VIEW_FOR[t]);
+  else if (t === 'booking') w.openAndSwitch('booking');
+  else if (t === 'classes') { w.__fifsClassesTab = true; w.openAndSwitch('booking'); scrollToCatalog(); }
+  else if (t === 'reciprocity') { if (typeof w.toggleReciprocityHubModal === 'function') w.toggleReciprocityHubModal(true); }
+  else if (t === 'renewal') { if (typeof w.openPermitRenewalModal === 'function') w.openPermitRenewalModal(); }
+  return true;
+}
+/** The booking screen starts at the top; "classes" brings the course catalog into view (the same place the site's /#enrollment link goes). */
+function scrollToCatalog(): void {
+  const go = () => { const el = document.getElementById('course-catalog-section'); if (el) el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); };
+  try { requestAnimationFrame(() => requestAnimationFrame(go)); } catch { go(); }
 }
