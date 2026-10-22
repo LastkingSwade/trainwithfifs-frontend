@@ -11,9 +11,9 @@ test('V1 The brand logo (header, favicon, portal logos) comes from the site itse
   assert(/id="brand-logo"[^>]*src="\/icons\/icon-192\.png"/.test(PAGE) && /rel="icon" type="image\/png" href="\/icons\/icon-192\.png"/.test(PAGE), 'header logo and favicon use the local emblem');
   assert(fs.existsSync(path.join(ROOT, 'public/icons/icon-192.png')), 'the emblem file exists');
 });
-test('V2 Fonts are loaded the working way (next/font, served from this site): Rajdhani for headings and labels, Geist for text, Geist Mono for numbers; system fonts stay as fallbacks', () => {
+test('V2 Fonts are loaded the working way (next/font/local, files kept in this project and served from this site, nothing fetched from Google): Rajdhani for headings and labels, Geist for text, Geist Mono for numbers; system fonts stay as fallbacks', () => {
   const L = R('src/app/layout.tsx');
-  assert(/from "next\/font\/google"/.test(L) && /Geist\(\{ subsets: \["latin"\], variable: "--font-geist", display: "swap" \}\)/.test(L) && /Geist_Mono\(/.test(L) && /Rajdhani\(\{ subsets: \["latin"\], weight: \["500", "600", "700"\]/.test(L), 'three fonts loaded with next/font');
+  assert(/from "next\/font\/local"/.test(L) && !/next\/font\/google/.test(L) && /variable: "--font-geist", display: "swap"/.test(L) && /variable: "--font-geist-mono"/.test(L) && /variable: "--font-rajdhani"/.test(L) && /weight: "500", style: "normal"/.test(L) && /weight: "600", style: "normal"/.test(L) && /weight: "700", style: "normal"/.test(L), 'three fonts loaded from local files');
   assert(/<html lang="en" data-noir=\{process\.env\.NEXT_PUBLIC_NOIR === "on" \? "on" : "off"\} className=\{`\$\{geist\.variable\} \$\{geistMono\.variable\} \$\{rajdhani\.variable\} \$\{noirDisplay\.variable\}`\}>/.test(L), 'the font variables (the three originals plus the NOIR display font) are set on <html>');
   const tail = GCSS.slice(GCSS.indexOf('V2 Typography'));
   assert(/--font-display: var\(--font-rajdhani\), 'Rajdhani', -apple-system/.test(tail) && /--font-body: var\(--font-geist\), 'Geist', -apple-system/.test(tail) && /--font-mono: var\(--font-geist-mono\)/.test(tail), 'the site-wide font variables point at the loaded fonts and keep system fallbacks');

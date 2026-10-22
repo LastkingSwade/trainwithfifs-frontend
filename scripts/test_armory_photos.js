@@ -49,7 +49,7 @@ const add = (db, uid, itemId, full = jpeg(), thumb = jpeg({ size: 1500 })) => P.
   console.log('\n[Encryption]');
   await test('a photo is encrypted before it is stored: the stored file is not a JPEG, contains none of the picture, and the thumbnail in the table is encrypted too', async () => {
     const db = fakeDb(base()); const full = jpeg({ size: 4000 }); const r = await add(db, A, ITEM_A, full); assert(r.ok, JSON.stringify(r)); const stored = [...db.store.values()][0];
-    assert(stored[0] === 1 && stored[1] !== 0xd8 && !stored.includes(Buffer.from('JFIF')) && !stored.includes(Buffer.alloc(200, 0x55)), 'stored bytes are ciphertext'); const row = db.t.armory_photos[0]; const th = Buffer.from(row.thumb, 'base64'); assert(!th.includes(Buffer.from('JFIF')) && th[0] === 1, 'thumbnail is ciphertext');
+    assert(stored[0] === 1 && !stored.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff])) && !stored.includes(Buffer.from('JFIF')) && !stored.includes(Buffer.alloc(200, 0x55)), 'stored bytes are ciphertext (version byte first, never a JPEG header)'); assert(stored.length === full.length + 29, 'exactly 29 bytes added: version, random nonce, authentication tag'); const row = db.t.armory_photos[0]; const th = Buffer.from(row.thumb, 'base64'); assert(!th.includes(Buffer.from('JFIF')) && th[0] === 1, 'thumbnail is ciphertext');
     eq([row.user_id, row.item_id, row.key_version], [A, ITEM_A, 1]); assert(/^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.bin$/.test(row.storage_path) && row.storage_path.startsWith(A + '/' + ITEM_A + '/'), 'path is owner/item/photo');
     const open = await P.photoOpen(db, A, r.id); assert(open.ok && Buffer.from(open.dataBase64, 'base64').equals(full), 'the owner gets the exact picture back');
   });

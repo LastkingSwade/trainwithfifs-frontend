@@ -31,7 +31,9 @@ jobs:
 
   verify-deployment:
     name: Verify exact Vercel deployment before promotion
-    if: github.event_name == 'repository_dispatch'
+    # Parked until the release gate is fully set up (docs/vercel-deployment-check-setup.md, steps 1-6): without the Vercel secrets this job could only fail, which buried real failures among false alarms.
+    # To switch it on: finish the runbook, add the four secrets, then set the repository variable RELEASE_GATE_ENABLED to true (Settings > Secrets and variables > Actions > Variables).
+    if: github.event_name == 'repository_dispatch' && vars.RELEASE_GATE_ENABLED == 'true'
     needs: gate-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
