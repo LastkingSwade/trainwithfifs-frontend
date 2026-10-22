@@ -39,7 +39,7 @@ function fakeDb(o = {}) { const calls = []; return { calls, from: (t) => { const
   await test('the roster shows each student\'s waiver status, drawn as text only, and the window is a labelled, closable dialog', () => {
     const m = read('src/portal/adminWaivers.ts').replace(/\/\/.*$/gm, ''); assert(!/innerHTML|insertAdjacentHTML|dangerouslySetInnerHTML|document\.write/.test(m), 'text only'); assert(/overlay\.setAttribute\('data-organic', 'skip'\)/.test(m), 'the site glass script is told to skip this window'); assert(/role', 'dialog'/.test(m) && /aria-modal/.test(m) && /aria-labelledby/.test(m) && /Escape/.test(m), 'dialog');
     const page = read('src/app/page.tsx'); assert(/data-admin-waiver="\$\{escHtml\(s\.studentId \|\| ''\)\}"/.test(page), 'roster cell escaped'); assert(/installAdminWaivers\(\)/.test(page), 'installed');
-    assert((m.match(/callFifsBackend\('([a-zA-Z]+)'/g) || []).every((c) => /adminWaiver(List|Get)/.test(c)), 'only the two read actions are called');
+    assert((m.match(/callFifsBackend\('([a-zA-Z]+)'/g) || []).every((c) => /adminWaiver(List|Get|Remind)/.test(c)), 'only the two read actions and the reminder action are called (the reminder is tested in test_waiver_reminder.js)');
   });
   await test('NOT SIGNED is red, signed is green, actions are 44px with a visible focus ring', () => {
     const c = read('src/portal/adminWaivers.css'); assert(/\.fwv-no \{[^}]*#ff6b6b/.test(c) && /\.fwv-yes \{[^}]*#34d399/.test(c), 'colours'); assert(/\.fwv-view \{[^}]*min-height: 44px/.test(c) && /\.fwv-close \{[^}]*min-height: 48px/.test(c), 'targets'); assert(/:focus-visible \{ outline: 3px solid/.test(c), 'focus');

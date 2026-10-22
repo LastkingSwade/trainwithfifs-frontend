@@ -6,7 +6,7 @@ import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
 import { sendInvoice, payInfo, invoiceCheckout } from '@/Lib/server/sent-invoices';
-import { waiverStatus, saveWaiver, listWaivers, getWaiver } from '@/Lib/server/waivers';
+import { waiverStatus, saveWaiver, listWaivers, getWaiver, remindToSignWaiver } from '@/Lib/server/waivers';
 import { memberThread, memberSend, staffMembers, staffThread, staffSend } from '@/Lib/server/portal-chat';
 import { journalList, addSession, deleteSession, addGoal, setGoalDone, deleteGoal, deleteAll } from '@/Lib/server/range-journal';
 import { armoryList, armorySave, armoryDelete, armoryDeleteAll } from '@/Lib/server/armory';
@@ -3404,6 +3404,15 @@ export async function POST(req: NextRequest) {
        if (authErr || !isStaffOrAdmin(user)) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        const sb = getPrivilegedClient();
        const r: any = action === 'adminWaiverList' ? await listWaivers(sb) : await getWaiver(sb, payload?.studentId);
+       return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
+     }
+
+     // Staff: remind one student to sign their waiver (a note in their portal chat, plus the usual generic phone alert). STAFF ONLY: the role is checked before the database is touched.
+     case 'adminWaiverRemind': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       if (!allowPublicSubmit(req, 'waiverRemind', 60)) return NextResponse.json({ success: false, error: 'Too many reminders in a short time. Please wait a few minutes.' }, { status: 429 });
+       const r: any = await remindToSignWaiver(getPrivilegedClient(), payload?.studentId);
        return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
      }
 

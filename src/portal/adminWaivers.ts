@@ -27,10 +27,32 @@ function paint(): void {
     if (failed || !cache) { host.append(el('span', 'fwv-note', '✍️ Waiver: could not load')); return; }
     if (!available) { host.append(el('span', 'fwv-note', '✍️ Waiver records are not set up yet')); return; }
     const s = cache.get(id);
-    if (!s) { host.append(el('span', 'fwv-no', '✍️ Waiver: NOT SIGNED')); return; }
+    if (!s) {
+      host.append(el('span', 'fwv-no', '✍️ Waiver: NOT SIGNED'));
+      const b = el('button', 'fwv-view fwv-remind', '🔔 Remind to sign'); b.type = 'button'; const say = el('span', 'fwv-said'); say.id = 'fwv-said-' + id.replace(/[^A-Za-z0-9_-]/g, '-'); say.setAttribute('role', 'status'); say.setAttribute('aria-live', 'polite'); b.setAttribute('aria-describedby', say.id);
+      b.addEventListener('click', () => { void remind(id, b, say); }); host.append(b, say); return;
+    }
     host.append(el('span', 'fwv-yes', '✍️ Waiver signed ' + (fmtWhen(s.signedAt) || '')));
     const b = el('button', 'fwv-view', 'View waiver'); b.type = 'button'; b.addEventListener('click', () => { void openWaiver(id); }); host.append(b);
   });
+}
+
+/** What the owner is told after pressing "Remind to sign". Plain words; nothing about the student is repeated back. */
+export function remindMessage(r: any): { text: string; done: boolean; refresh: boolean } {
+  if (!r || r.success === false) return { text: (r && r.error) || 'The reminder could not be sent. Nothing was sent.', done: false, refresh: false };
+  if (r.sent === false && r.reason === 'signed') return { text: '✅ They have already signed. Refreshing the list.', done: true, refresh: true };
+  if (r.sent === false && r.reason === 'recent') return { text: '⏳ A reminder was already sent in the last 24 hours' + (fmtWhen(String(r.at || '')) ? ' (' + fmtWhen(String(r.at)) + ')' : '') + '. Try again tomorrow.', done: true, refresh: false };
+  if (r.pushed) return { text: '✅ Reminder sent. It is in their portal chat and their phone was notified.', done: true, refresh: false };
+  if (r.held) return { text: '✅ Reminder saved in their portal chat. It is outside 8 am to 8 pm, so any phone alert goes out in the morning.', done: true, refresh: false };
+  return { text: '✅ Reminder saved in their portal chat. They have not turned on phone alerts, so they will see it when they open their portal.', done: true, refresh: false };
+}
+async function remind(studentId: string, btn: HTMLButtonElement, say: HTMLElement): Promise<void> {
+  btn.disabled = true; say.textContent = 'Sending…';
+  let out: ReturnType<typeof remindMessage>;
+  try { out = remindMessage(await w.callFifsBackend('adminWaiverRemind', { studentId })); }
+  catch (e: any) { out = remindMessage({ success: false, error: e && e.message ? String(e.message) : '' }); }
+  say.textContent = out.text; btn.disabled = out.done;
+  if (out.refresh) { loadedAt = 0; cache = null; void load().then(paint); }
 }
 
 function row(dl: HTMLElement, label: string, value: string) { if (!value) return; dl.append(el('dt', undefined, label), el('dd', undefined, value)); }
