@@ -1,0 +1,40 @@
+/* FIFS NOIR 1.0 tokens. Scoped to [data-noir="on"], so nothing changes for anyone while the flag is off.
+   globals.css is append-only, so the NOIR layer lives in this file. Colours are a design starting point; every text pairing is checked in scripts/test_noir_n1.js. */
+:root[data-noir="on"] {
+  --noir-void: #080c12;
+  --noir-obsidian: #0e141d;
+  --noir-titanium: #17212e;
+  --noir-elevated: #202b39;
+  --noir-amber: #cca35a;
+  --noir-cyan: #29bed3;
+  --noir-ivory: #f0eee8;
+  --noir-muted: #aab7c7;
+  --noir-border: #344354;
+
+  --noir-radius-sm: 8px;
+  --noir-radius-md: 12px;
+  --noir-radius-lg: 18px;
+  --noir-radius-xl: 24px;
+
+  --noir-motion-fast: 160ms;
+  --noir-motion-standard: 240ms;
+  --noir-motion-panel: 340ms;
+  --noir-motion-ceremony: 650ms;
+
+  --noir-font-display: var(--font-noir-display), Georgia, serif;
+}
+
+/* Elevation: L0 canvas, L1 panels, L2 interactive cards, L3 protected overlays. */
+:root[data-noir="on"] .noir-panel { background: var(--noir-titanium); border: 1px solid var(--noir-border); border-radius: var(--noir-radius-lg); padding: 20px; color: var(--noir-ivory); }
+:root[data-noir="on"] .noir-panel--raised { background: var(--noir-elevated); }
+:root[data-noir="on"] .noir-title { font-family: var(--noir-font-display); font-weight: 600; font-size: clamp(1.6rem, 4vw, 2.4rem); line-height: 1.1; color: var(--noir-ivory); margin: 0 0 8px; }
+:root[data-noir="on"] .noir-eyebrow { font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--noir-amber); margin: 0 0 6px; }
+:root[data-noir="on"] .noir-lead { color: var(--noir-muted); max-width: 62ch; }
+
+/* Focus is always visible, whatever the flag. */
+:root[data-noir="on"] :focus-visible { outline: 3px solid var(--noir-cyan); outline-offset: 2px; }
+
+/* Reduced motion: decorative motion stops; focus and state stay visible. */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-noir="on"] * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
