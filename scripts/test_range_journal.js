@@ -131,7 +131,7 @@ const ok = { on: '2026-10-20', range: "Cindy's Hot Shots", rounds: 100, focus: '
   });
   await test('the screen: text only, the "no serial numbers or storage details" notice, private for you, export and delete with a confirmation, in the company colours with 44px controls and no animation', () => {
     const p = read('src/portal/RangeJournalPanel.tsx'), c = read('src/portal/rangeJournal.css').replace(/\/\*[\s\S]*?\*\//g, '');
-    assert(!/innerHTML|dangerouslySetInnerHTML/.test(p), 'text only'); assert(/data-organic="skip"/.test(p), 'the design layer\'s glass film must not turn the panel see-through'); assert(/do not enter firearm serial numbers, where you store firearms, or home-security details/.test(p) && /Staff cannot see it/.test(p), 'notice and privacy');
+    assert(!/innerHTML|dangerouslySetInnerHTML/.test(p), 'text only'); assert(/do not enter firearm serial numbers, where you store firearms, or home-security details/.test(p) && /Staff cannot see it/.test(p), 'notice and privacy');
     assert(/Yes, delete everything/.test(p) && /Delete your whole journal\? This cannot be undone\./.test(p) && /Export my journal \(CSV\)/.test(p) && /role="dialog"/.test(p) && /aria-modal="true"/.test(p) && /role="img"/.test(p) && /aria-live="polite"/.test(p), 'controls and accessibility');
     assert(/\.rj-close \{ min-width: 48px; min-height: 48px/.test(c) && /\.rj-ghost \{ min-width: 44px; min-height: 44px/.test(c) && /\.rj input\[type="text"\][^{]*\{ min-height: 44px[^}]*font-size: 16px/.test(c) && /#ffb703/.test(c) && /#00e5ff/.test(c), 'sizes and colours');
     assert(!/animation|transition|@keyframes/.test(c), 'no animation'); assert(/:focus-visible \{ outline: 3px solid #00e5ff/.test(c), 'focus');

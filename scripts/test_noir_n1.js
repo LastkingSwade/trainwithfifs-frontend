@@ -14,8 +14,8 @@ const css = read('src/noir/noir.css'); const layout = read('src/app/layout.tsx')
 const tok = (name) => { const m = new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`).exec(css); assert(m, 'token ' + name); return m[1]; };
 
 (async () => {
-  await test('the NOIR layer is off unless NEXT_PUBLIC_NOIR is exactly "on", and the page is marked on or off accordingly', () => {
-    assert(/data-noir=\{process\.env\.NEXT_PUBLIC_NOIR === "on" \? "on" : "off"\}/.test(layout), 'flag wiring');
+  await test('the NOIR layer is the site\'s one design layer: on unless NEXT_PUBLIC_NOIR is exactly "off" (a kill switch), and the page is marked accordingly', () => {
+    assert(/data-noir=\{process\.env\.NEXT_PUBLIC_NOIR === "off" \? "off" : "on"\}/.test(layout), 'flag wiring');
   });
   await test('every colour is scoped to [data-noir="on"]; nothing outside that selector sets a NOIR colour', () => {
     const lines = css.split('\n').filter((l) => /--noir-[a-z-]+:\s*#/.test(l)); const scoped = css.slice(0, css.indexOf('}') + 1); assert(/:root\[data-noir="on"\]/.test(scoped), 'the token block is scoped');

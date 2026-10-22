@@ -8,7 +8,7 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
 export function openMyFifsLogin(): void {
   if (typeof document === 'undefined' || document.getElementById('fifsMyLogin')) return;
   const prev = document.activeElement as HTMLElement | null;
-  const overlay = el('div', 'fml-overlay'); overlay.id = 'fifsMyLogin'; overlay.setAttribute('data-organic', 'skip'); // the site's glass-styling script leaves this window alone
+  const overlay = el('div', 'fml-overlay'); overlay.id = 'fifsMyLogin'; // the site's glass-styling script leaves this window alone
   const box = el('div', 'fml-box'); box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Sign in to My FIFS');
   const close = el('button', 'fml-close', '✕'); close.type = 'button'; close.setAttribute('aria-label', 'Close sign in');
   const brand = el('p', 'fml-brand', 'My FIFS'); const panel = el('div', 'fml-panel');

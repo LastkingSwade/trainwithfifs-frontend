@@ -79,7 +79,7 @@ export default function ArmoryPanel() {
   const delMaint = (idx: number) => setForm((f) => (f ? { ...f, maintenance: f.maintenance.filter((_, i) => i !== idx) } : f));
 
   return (
-    <div className="rj-overlay ar-overlay" data-organic="skip" onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
+    <div className="rj-overlay ar-overlay" onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
       <section className="rj ar" role="dialog" aria-modal="true" aria-labelledby="ar-title" ref={panel}>
         <header className="rj-head">
           <div><span className="rj-bar" aria-hidden="true" /><h2 id="ar-title">🛡️ Armory</h2><p className="rj-tag">Encrypted. Private to you. Staff cannot see it.</p></div>
@@ -190,7 +190,7 @@ export default function ArmoryPanel() {
         )}
       </section>
       {viewer && (
-        <div className="ar-viewer" data-organic="skip" role="dialog" aria-modal="true" aria-label={`Photo of ${viewer.name}`} onClick={(e) => { if (e.target === e.currentTarget) closeViewer(); }}>
+        <div className="ar-viewer" role="dialog" aria-modal="true" aria-label={`Photo of ${viewer.name}`} onClick={(e) => { if (e.target === e.currentTarget) closeViewer(); }}>
           <img src={viewer.url} alt={`Photo of ${viewer.name}`} />
           <div className="ar-viewer-bar">
             {confirm === 'p' + viewer.id ? <span className="rj-confirm" role="alert"><span>Delete this photo?</span><button type="button" className="danger" onClick={() => void delPhoto(viewer.id)} disabled={busy}>Yes, delete</button><button type="button" onClick={() => setConfirm('')}>Cancel</button></span>

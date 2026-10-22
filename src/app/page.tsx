@@ -5049,7 +5049,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </div>
               {/* Card 3: Official MSP Wear & Carry Portal User's Guide (MSP Media 474) */}
               {/* DIGITIZED 2022 FIFS WAIVER & LIABILITY AGREEMENT CARD */}
-              <div id="portalWaiverCard" data-organic="skip" className="portal-feature-launcher-card waiver-card-pending-blink" style={{"background": "linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "transition": "all 0.3s ease"}}>
+              <div id="portalWaiverCard" className="portal-feature-launcher-card waiver-card-pending-blink" style={{"background": "linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "transition": "all 0.3s ease"}}>
                 <div>
                   <span id="waiverStatusBadge" className="next-step-badge" style={{"color": "#ef4444", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                     ⚠️ MANDATORY PREREQUISITE — ACTION REQUIRED

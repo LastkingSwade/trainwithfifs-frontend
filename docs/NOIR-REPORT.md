@@ -1,9 +1,8 @@
 # FIFS NOIR: how to turn it on, what was measured, and how to turn it off
 
-NOIR is a visual layer that is **off by default**. It turns on only when the environment variable `NEXT_PUBLIC_NOIR` is exactly `on`. Set it in a Vercel **Preview** environment first; leave Production unset until you have looked at it.
-To turn it off, remove the variable (or set anything other than `on`) and redeploy. Nothing is stored and no data changes, so there is nothing to clean up.
+NOIR is the site's **one and only design layer** (the older "organic" skin was retired). It is **on for everyone**. To switch it off in an emergency, set the environment variable `NEXT_PUBLIC_NOIR` to exactly `off` and redeploy. Nothing is stored and no data changes, so there is nothing to clean up. Leaving the variable as `on` (as it is today) or unset gives the same result.
 
-## What each stage added (all behind the flag)
+## What each stage added (all scoped to the NOIR switch)
 - N1: colour tokens, a display font for titles (Cormorant Garamond, loaded at build time), a shared panel and heading.
 - N2: bottom bars and the Hub and Armory sheets; the existing panels get the NOIR surface (text colours and accents untouched); hover, pressed, current-tab and focus states.
 - N3: a once-per-session arrival settle, a vault entrance, screen motion, a gold ring on earned badges, a still ambient light.

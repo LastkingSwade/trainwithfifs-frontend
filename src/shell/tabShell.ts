@@ -8,7 +8,7 @@ const shown = (id: string): boolean => { const e = document.getElementById(id); 
 
 export function installTabShell(): void {
   if (typeof document === 'undefined' || w.__fifsTabShell) return; w.__fifsTabShell = true;
-  const nav = el('nav', 'fts-nav'); nav.id = 'fifs-tabs'; nav.setAttribute('aria-label', 'Main tabs'); nav.setAttribute('data-organic', 'skip'); nav.hidden = true;
+  const nav = el('nav', 'fts-nav'); nav.id = 'fifs-tabs'; nav.setAttribute('aria-label', 'Main tabs'); nav.hidden = true;
   const buttons = new Map<TabKey, HTMLButtonElement>();
   for (const t of TABS) {
     const b = el('button', 'fts-tab'); b.type = 'button'; b.dataset.tab = t.key;
@@ -23,7 +23,7 @@ export function installTabShell(): void {
   function closeSheet() { if (sheet) { sheet.remove(); sheet = null; sheetKind = ''; refresh(); } }
   function openSheet(kind: 'hub' | 'armory') {
     closeSheet(); sheetKind = kind;
-    const overlay = el('div', 'fts-overlay'); overlay.setAttribute('data-organic', 'skip'); overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSheet(); });
+    const overlay = el('div', 'fts-overlay'); overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSheet(); });
     const box = el('section', 'fts-sheet'); box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true');
     const head = el('div', 'fts-head'); const title = el('h2', 'fts-title', kind === 'hub' ? '🧭 Hub' : ARMORY_TEXT.title); title.id = 'fts-sheet-title'; box.setAttribute('aria-labelledby', title.id);
     const close = el('button', 'fts-close', '✕'); close.type = 'button'; close.setAttribute('aria-label', 'Close'); close.addEventListener('click', closeSheet); head.append(title, close); box.append(head);

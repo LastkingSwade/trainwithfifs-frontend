@@ -52,7 +52,7 @@ const login = (role, signedIn = '2026-10-20T12:00:00Z', extra = {}) => JSON.stri
   console.log('\n[Wiring and look]');
   await test('it is mounted for every page, is a labelled navigation with real links and a marked current tab, and stores and sends nothing (it only reads the saved login)', () => {
     assert(/<PublicNav \/>/.test(read('src/app/layout.tsx')) && /import PublicNav from "\.\.\/shell\/PublicNav"/.test(read('src/app/layout.tsx')), 'mounted');
-    const c = read('src/shell/PublicNav.tsx'); assert(/<nav className="fpn" aria-label="Main sections"/.test(c) && /<a key=\{it\.key\} className="fpn-tab" href=/.test(c) && /aria-current=\{snap\.active === it\.key \? 'page' : undefined\}/.test(c) && /aria-hidden="true"/.test(c) && /data-organic="skip"/.test(c), 'markup');
+    const c = read('src/shell/PublicNav.tsx'); assert(/<nav className="fpn" aria-label="Main sections"/.test(c) && /<a key=\{it\.key\} className="fpn-tab" href=/.test(c) && /aria-current=\{snap\.active === it\.key \? 'page' : undefined\}/.test(c) && /aria-hidden="true"/.test(c), 'markup');
     const code = c.replace(/\/\/.*$/gm, ''); assert(!/innerHTML|dangerouslySetInnerHTML|setItem|removeItem|sessionStorage|document\.cookie|fetch\(|console\.|XMLHttpRequest|sendBeacon/.test(code), 'stores and sends nothing'); assert(/savedPortal\(window\.localStorage/.test(code), 'only reads the saved login');
     assert(/modified clicks keep the real link|e\.metaKey/.test(c) && /item\.key === 'permits'\) return/.test(c), 'real links stay real');
   });

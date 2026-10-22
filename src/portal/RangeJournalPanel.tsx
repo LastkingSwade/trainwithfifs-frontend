@@ -60,7 +60,7 @@ export default function RangeJournalPanel() {
   const exportCsv = () => { const url = URL.createObjectURL(new Blob([toCsv(sessions, goals)], { type: 'text/csv;charset=utf-8' })); const a = document.createElement('a'); a.href = url; a.download = `fifs-range-journal-${todayISO()}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); say('⬇️ Your journal was exported.'); };
 
   return (
-    <div className="rj-overlay" data-organic="skip" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
+    <div className="rj-overlay" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
       <section className="rj" role="dialog" aria-modal="true" aria-labelledby="rj-title" ref={panel}>
         <header className="rj-head">
           <div><span className="rj-bar" aria-hidden="true" /><h2 id="rj-title">📓 Range Journal</h2><p className="rj-tag">Private to you. Staff cannot see it.</p></div>

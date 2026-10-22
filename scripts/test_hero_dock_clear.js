@@ -21,7 +21,7 @@ const css = read('src/polish/heroDockClear.css').replace(/\/\*[\s\S]*?\*\//g, ''
     assert(!/(width|height|padding|margin|position|display|color|font|border|gap|transform)\s*:/.test(css.replace(/background[^;]*;|box-shadow[^;]*;/g, '')), 'only the glass properties'); assert(!/blur\(/.test(css), 'no blur added');
   });
   await test('the stylesheet is loaded after the main one (and wins on strength regardless of order), and the older panel rules were not edited', () => {
-    const lay = read('src/app/layout.tsx'); assert(lay.indexOf('heroDockClear.css') > lay.indexOf('globals.css'), 'loads after the main stylesheet'); assert(!/heroDockClear/.test(read('src/app/globals.css') + read('src/design/organic.css') + read('src/animations/heroWide.css')), 'older files untouched');
+    const lay = read('src/app/layout.tsx'); assert(lay.indexOf('heroDockClear.css') > lay.indexOf('globals.css'), 'loads after the main stylesheet'); assert(!/heroDockClear/.test(read('src/app/globals.css') + read('src/animations/heroWide.css')), 'older files untouched');
   });
   console.log(`\nHome dock without frosted glass: ${passed} passed, ${failed} failed`); if (failed) process.exit(1);
 })();
