@@ -32,9 +32,9 @@ const home = { standalone: true, pathname: '/', hash: '', search: '', view: 'hom
     eq(LA.launchTarget('?open=student'), 'student'); eq(LA.launchTarget('?x=1&open=client'), 'client'); for (const bad of ['', '?open=admin', '?open=', '?open=student%20', '?open=staff', '?open=Booking', '?open=booking%20', '?open=__proto__', '?open=constructor', null, undefined, '?OPEN=student']) eq(LA.launchTarget(bad), null, String(bad));
     eq(LA.withoutLaunch('?open=student'), ''); eq(LA.withoutLaunch('?a=1&open=client&b=2'), '?a=1&b=2'); eq(LA.withoutLaunch('?a=1'), '?a=1'); eq(LA.VIEW_FOR, { student: 'portal', client: 'fi-portal' });
   });
-  await test('the public Permit Center deep links are recognised by exact word only: booking, classes, reciprocity, renewal; the list is exactly six words', () => {
+  await test('the public Permit Center deep links are recognised by exact word only: booking, classes, reciprocity, renewal, start, login (the stand-alone My FIFS sign-in); the list is exactly these words', () => {
     for (const t of ['booking', 'classes', 'reciprocity', 'renewal']) { eq(LA.launchTarget('?open=' + t), t); eq(LA.launchTarget('?a=1&open=' + t + '&b=2'), t); eq(LA.withoutLaunch('?a=1&open=' + t + '&b=2'), '?a=1&b=2'); }
-    eq([...LA.TARGETS].sort(), ['booking', 'classes', 'client', 'reciprocity', 'renewal', 'start', 'student']);
+    eq([...LA.TARGETS].sort(), ['booking', 'classes', 'client', 'login', 'reciprocity', 'renewal', 'start', 'student']);
   });
   await test('each deep link calls the matching existing function once, only when it exists, cleans the address, and "classes" scrolls the catalog into view without animation when motion is reduced', () => {
     const src = read('src/pwa/launch.ts'); assert(/t === 'booking'\) w\.openAndSwitch\('booking'\)/.test(src) && /t === 'classes'\) \{ w\.openAndSwitch\('booking'\); scrollToCatalog\(\)/.test(src) && /t === 'start'\) \{ w\.openAndSwitch\('start'\)/.test(src), 'booking, classes and start'); assert(/typeof w\.toggleReciprocityHubModal === 'function'\) w\.toggleReciprocityHubModal\(true\)/.test(src) && /typeof w\.openPermitRenewalModal === 'function'\) w\.openPermitRenewalModal\(\)/.test(src), 'hub and renewal, guarded');

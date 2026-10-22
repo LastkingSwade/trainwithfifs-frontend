@@ -22,7 +22,7 @@ const login = (role, signedIn = '2026-10-20T12:00:00Z', extra = {}) => JSON.stri
   });
   await test('every ?open= word the bar uses is one the site\'s deep-link handler accepts, for every kind of visitor', () => {
     const words = [...N.ITEMS.map((i) => i.href), N.myFifsHref('student'), N.myFifsHref('client'), N.myFifsHref(null)].map((h) => (h.match(/open=([a-z]+)/) || [])[1]).filter(Boolean);
-    for (const w of words) assert(LA.TARGETS.includes(w), w); eq(N.myFifsHref('client'), '/?open=client'); eq(N.myFifsHref('student'), '/?open=student'); eq(N.myFifsHref(null), '/?open=student');
+    for (const w of words) assert(LA.TARGETS.includes(w), w); eq(N.myFifsHref('client'), '/?open=client'); eq(N.myFifsHref('student'), '/?open=student'); eq(N.myFifsHref(null), '/?open=login');
     eq(N.ITEMS.find((i) => i.key === 'start').href, '/?open=start', 'Start opens the Start Here screen, not booking'); assert(LA.TARGETS.includes('start'), 'start is a deep-link word');
     assert(!words.includes('admin') && !words.includes('staff'), 'never an admin door');
   });

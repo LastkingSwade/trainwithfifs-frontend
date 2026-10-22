@@ -5,7 +5,7 @@ export interface Tab { key: TabKey; emoji: string; label: string }
 /** Exactly five, in this order, on every screen size. */
 export const TABS: readonly Tab[] = [
   { key: 'home', emoji: '🏠', label: 'Home' },
-  { key: 'wallet', emoji: '🗂️', label: 'Wallet' },
+  { key: 'wallet', emoji: '🗂️', label: 'Vault' },
   { key: 'armory', emoji: '🛡️', label: 'Armory' },
   { key: 'range', emoji: '🎯', label: 'Range' },
   { key: 'hub', emoji: '🧭', label: 'Hub' },
@@ -35,4 +35,4 @@ export const hubItemsFor = (role: Role): HubItem[] => HUB_ITEMS.filter((i) => i.
 export function currentTab(s: { journalOpen: boolean; walletOpen: boolean; hubOpen: boolean; armoryOpen: boolean }): TabKey {
   return s.journalOpen ? 'range' : s.walletOpen ? 'wallet' : s.armoryOpen ? 'armory' : s.hubOpen ? 'hub' : 'home';
 }
-export const ARMORY_TEXT = { title: '🛡️ Armory: coming soon', body: 'A private place for your own equipment records is on its way. We will let you know when it is ready. Until then, your Wallet keeps your permit, certificates and approvals safe.' } as const;
+export const ARMORY_TEXT = { title: '🛡️ Armory: coming soon', body: 'A private place for your own equipment records is on its way. We will let you know when it is ready. Until then, your Vault keeps your permit, certificates and approvals safe.' } as const;

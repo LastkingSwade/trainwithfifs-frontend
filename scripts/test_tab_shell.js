@@ -14,7 +14,7 @@ const eq = (a, b, m) => assert(JSON.stringify(a) === JSON.stringify(b), `${m || 
 (async () => {
   console.log('\n[The five tabs]');
   await test('there are exactly five tabs, in this order, each with an emoji and a plain label', () => {
-    eq(T.TABS.map((t) => t.key), ['home', 'wallet', 'armory', 'range', 'hub']); eq(T.TABS.map((t) => t.label), ['Home', 'Wallet', 'Armory', 'Range', 'Hub']); assert(T.TABS.every((t) => t.emoji.length >= 1 && /\S/.test(t.emoji)), 'emoji');
+    eq(T.TABS.map((t) => t.key), ['home', 'wallet', 'armory', 'range', 'hub']); eq(T.TABS.map((t) => t.label), ['Home', 'Vault', 'Armory', 'Range', 'Hub']); assert(T.TABS.every((t) => t.emoji.length >= 1 && /\S/.test(t.emoji)), 'emoji');
   });
   await test('tabs show only for a signed-in student or client: a student dashboard, a client dashboard, or nothing', () => {
     eq(T.roleFrom(true, false), 'student'); eq(T.roleFrom(false, true), 'client'); eq(T.roleFrom(false, false), null, 'signed out: no tabs'); eq(T.roleFrom(true, true), 'student');
