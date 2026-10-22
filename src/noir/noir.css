@@ -38,3 +38,37 @@
 @media (prefers-reduced-motion: reduce) {
   :root[data-noir="on"] * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* ---- Stage N2: navigation and component polish. Still scoped to [data-noir="on"]; with the flag off none of this applies. ----
+   Only colour, border, opacity and transform change (never size, position or display), so every tab keeps its 56px height, its place and its link. */
+:root[data-noir="on"] .fpn, :root[data-noir="on"] .fts-nav { background: var(--noir-obsidian); border-color: var(--noir-border); }
+:root[data-noir="on"] .fpn-tab, :root[data-noir="on"] .fts-tab { position: relative; color: var(--noir-muted); transition: color var(--noir-motion-fast) ease, background-color var(--noir-motion-fast) ease, transform var(--noir-motion-fast) ease; }
+:root[data-noir="on"] .fpn-ico { color: var(--noir-muted); transition: color var(--noir-motion-fast) ease; }
+:root[data-noir="on"] .fpn-tab[aria-current="page"], :root[data-noir="on"] .fts-tab[aria-current="page"] { color: var(--noir-amber); background: rgba(204, 163, 90, 0.1); }
+:root[data-noir="on"] .fpn-tab[aria-current="page"] .fpn-ico { color: var(--noir-amber); }
+/* The current tab gets a short amber line (top on the phone bar, left on the desktop rail). It is part of the tab, so it moves with it and needs no script. */
+:root[data-noir="on"] .fpn-tab[aria-current="page"]::before, :root[data-noir="on"] .fts-tab[aria-current="page"]::before { content: ""; position: absolute; top: 0; left: 30%; right: 30%; height: 2px; border-radius: 0 0 2px 2px; background: var(--noir-amber); }
+@media (min-width: 900px) { :root[data-noir="on"] .fts-tab[aria-current="page"]::before { top: 22%; bottom: 22%; left: 0; right: auto; width: 2px; height: auto; border-radius: 0 2px 2px 0; } }
+/* Pressed gives instant feedback; hover only where there is a pointer. */
+:root[data-noir="on"] .fpn-tab:active, :root[data-noir="on"] .fts-tab:active, :root[data-noir="on"] .fts-item:active, :root[data-noir="on"] .fts-primary:active, :root[data-noir="on"] .fts-close:active, :root[data-noir="on"] .noir-interactive:active { transform: scale(0.97); }
+@media (hover: hover) {
+  :root[data-noir="on"] .fpn-tab:hover, :root[data-noir="on"] .fts-tab:hover { color: var(--noir-ivory); }
+  :root[data-noir="on"] .fts-item:hover, :root[data-noir="on"] .noir-interactive:hover { border-color: var(--noir-cyan); background-color: var(--noir-elevated); }
+}
+/* Hub and Armory sheets are the protected overlay level (L3); list rows and buttons are L2. */
+:root[data-noir="on"] .fts-overlay { background: rgba(8, 12, 18, 0.88); }
+:root[data-noir="on"] .fts-sheet { background: var(--noir-obsidian); border: 1px solid var(--noir-border); color: var(--noir-ivory); }
+:root[data-noir="on"] .fts-title { font-family: var(--noir-font-display); font-weight: 600; color: var(--noir-ivory); }
+:root[data-noir="on"] .fts-item { background-color: var(--noir-titanium); border-color: var(--noir-border); color: var(--noir-ivory); transition: border-color var(--noir-motion-fast) ease, background-color var(--noir-motion-fast) ease, transform var(--noir-motion-fast) ease; }
+:root[data-noir="on"] .fts-item-text small { color: var(--noir-muted); }
+:root[data-noir="on"] .fts-close { background-color: var(--noir-titanium); border-color: var(--noir-border); color: var(--noir-ivory); }
+:root[data-noir="on"] .fts-primary { color: var(--noir-void); background: var(--noir-amber); transition: transform var(--noir-motion-fast) ease; }
+:root[data-noir="on"] .noir-interactive { border: 1px solid var(--noir-border); background-color: var(--noir-titanium); transition: border-color var(--noir-motion-fast) ease, background-color var(--noir-motion-fast) ease, transform var(--noir-motion-fast) ease; }
+/* Reduced motion: the colour change is instant and nothing scales; the amber line and focus ring stay, so state is still visible. */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-noir="on"] .fpn-tab:active, :root[data-noir="on"] .fts-tab:active, :root[data-noir="on"] .fts-item:active, :root[data-noir="on"] .fts-primary:active, :root[data-noir="on"] .fts-close:active, :root[data-noir="on"] .noir-interactive:active { transform: none; }
+}
+/* High-contrast mode: keep the outline and the current-tab marker visible whatever colours the system forces. */
+@media (forced-colors: active) {
+  :root[data-noir="on"] .fpn-tab[aria-current="page"], :root[data-noir="on"] .fts-tab[aria-current="page"] { outline: 2px solid Highlight; outline-offset: -4px; }
+}
