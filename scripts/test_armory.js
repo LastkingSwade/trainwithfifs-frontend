@@ -64,7 +64,7 @@ const walk = (d) => fs.readdirSync(path.join(ROOT, d), { withFileTypes: true }).
   console.log('\n[Saving and listing]');
   await test('the database holds only the id, owner, key version, encrypted blob and timestamps; the owner gets the item back exactly', async () => {
     const db = fakeDb(base()); const r = await AR.armorySave(db, A, ITEM, NOW); assert(r.ok, JSON.stringify(r)); const row = db.t.armory_items[0];
-    eq(Object.keys(row).sort(), ['created_at', 'id', 'key_version', 'payload', 'updated_at', 'user_id']); assert(!JSON.stringify(row).match(/Glock|ABCD|9mm|pistol|cleaning/), 'nothing readable in the row');
+    eq(Object.keys(row).sort(), ['created_at', 'id', 'key_version', 'payload', 'updated_at', 'user_id']); assert(!JSON.stringify({ ...row, payload: '' }).match(/Glock|ABCD|9mm|pistol|cleaning/) && !Buffer.from(row.payload, 'base64').toString('latin1').match(/Glock|ABCD|9mm|pistol|cleaning/), 'nothing readable in the row');
     const l = await AR.armoryList(db, A); eq(l.items.length, 1); const it = l.items[0]; eq([it.nickname, it.make, it.model, it.caliber, it.serial, it.purchasedOn, it.price, it.type], ['Range pistol', 'Glock', '19 Gen5', '9mm', 'ABCD123456', '2024-03-01', 549.99, 'handgun']); eq(it.maintenance[0].note, 'Full strip and clean'); assert(/^[0-9a-f-]{36}$/.test(it.maintenance[0].id), 'maintenance id');
   });
   await test('editing keeps the same id and created time, re-encrypts with a new nonce, and moves the updated time', async () => {
