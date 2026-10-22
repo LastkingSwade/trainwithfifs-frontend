@@ -1,13 +1,14 @@
-// The five main tabs for a signed-in student or client. Pure decisions (which tabs, which Hub items, which tab is current) so they can be tested without a browser.
-export type TabKey = 'home' | 'wallet' | 'armory' | 'range' | 'hub';
+// The six main tabs for a signed-in student or client. Pure decisions (which tabs, which Hub items, which tab is current) so they can be tested without a browser.
+export type TabKey = 'home' | 'wallet' | 'armory' | 'range' | 'reciprocity' | 'hub';
 export type Role = 'student' | 'client';
-export interface Tab { key: TabKey; emoji: string; label: string }
-/** Exactly five, in this order, on every screen size. */
+export interface Tab { key: TabKey; emoji: string; label: string; aria?: string }
+/** Exactly six, in this order, on every screen size. The States tab opens the 50-State Reciprocity Hub; its label is short so six tabs fit a 320px phone, and its full name is read out by screen readers. */
 export const TABS: readonly Tab[] = [
   { key: 'home', emoji: '🏠', label: 'Home' },
   { key: 'wallet', emoji: '🗂️', label: 'Vault' },
   { key: 'armory', emoji: '🛡️', label: 'Armory' },
   { key: 'range', emoji: '🎯', label: 'Range' },
+  { key: 'reciprocity', emoji: '🗺️', label: 'States', aria: 'Reciprocity Hub' },
   { key: 'hub', emoji: '🧭', label: 'Hub' },
 ];
 
@@ -32,7 +33,7 @@ export const HUB_ITEMS: readonly HubItem[] = [
 export const hubItemsFor = (role: Role): HubItem[] => HUB_ITEMS.filter((i) => i.roles.includes(role));
 
 /** Which tab looks current: a panel that is open wins, then the Hub sheet, otherwise Home. */
-export function currentTab(s: { journalOpen: boolean; walletOpen: boolean; hubOpen: boolean; armoryOpen: boolean }): TabKey {
-  return s.journalOpen ? 'range' : s.walletOpen ? 'wallet' : s.armoryOpen ? 'armory' : s.hubOpen ? 'hub' : 'home';
+export function currentTab(s: { journalOpen: boolean; walletOpen: boolean; hubOpen: boolean; armoryOpen: boolean; reciprocityOpen?: boolean }): TabKey {
+  return s.journalOpen ? 'range' : s.reciprocityOpen ? 'reciprocity' : s.walletOpen ? 'wallet' : s.armoryOpen ? 'armory' : s.hubOpen ? 'hub' : 'home';
 }
 export const ARMORY_TEXT = { title: '🛡️ Armory: coming soon', body: 'A private place for your own equipment records is on its way. We will let you know when it is ready. Until then, your Vault keeps your permit, certificates and approvals safe.' } as const;
