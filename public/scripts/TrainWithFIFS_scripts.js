@@ -1537,6 +1537,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       try {
         fifsRemoveStudentSession();
         fifsRemoveStudentSession();
+        fifsSignOutSupabase();
         purgeAllSessionCookies();
         var dash = document.getElementById('student-active-dashboard');
         var login = document.getElementById('student-login-box');
@@ -1551,6 +1552,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           login.style.setProperty('display', 'block', 'important');
         }
         if (input) input.value = '';
+        var passEl = document.getElementById('studentAuthPassword'); if (passEl) passEl.value = '';
         if (statusDiv) statusDiv.style.display = 'none';
         var userTag = document.getElementById('portal-user-tag');
         if (userTag) userTag.textContent = "Public Training Portal";
@@ -1579,6 +1581,7 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
           authBox.style.setProperty('display', 'block', 'important');
         }
         if (input) input.value = '';
+        var passEl = document.getElementById('clientAuthPassword'); if (passEl) passEl.value = '';
         if (statusDiv) statusDiv.style.display = 'none';
         var userTag = document.getElementById('portal-user-tag');
         if (userTag) userTag.textContent = "Public Training Portal";
@@ -5139,8 +5142,14 @@ function openAdminEditStudentModal(studentId) {
       var login = document.getElementById('student-login-box');
       if (dash) dash.classList.add('hidden');
       if (login) login.classList.remove('hidden');
+      // Nothing typed is left behind on a shared device, and the person lands back on the home page (not parked on the student sign-in screen),
+      // so the My FIFS button there opens the one universal sign-in again.
+      var email = document.getElementById('studentAuthInput'); if (email) email.value = '';
+      var pass = document.getElementById('studentAuthPassword'); if (pass) pass.value = '';
+      var status = document.getElementById('student-login-status'); if (status) status.style.display = 'none';
       var userTag = document.getElementById('portal-user-tag');
       if (userTag) userTag.textContent = "Public Training Portal";
+      if (typeof window.returnToHome === 'function') window.returnToHome();
     }
     // moved to top
     /* neutralized legacy duplicate verifyAdminAccess */
@@ -7134,8 +7143,13 @@ function getStepNumberFromStatus(statusStr) {
       var dashBox = document.getElementById('client-active-dashboard');
       if (dashBox) dashBox.style.display = 'none';
       if (authBox) authBox.style.display = 'block';
+      // Same as the student sign-out: clear what was typed and go back to the home page.
+      var email = document.getElementById('clientAuthInput'); if (email) email.value = '';
+      var pass = document.getElementById('clientAuthPassword'); if (pass) pass.value = '';
+      var status = document.getElementById('client-login-status'); if (status) status.style.display = 'none';
       var userTag = document.getElementById('portal-user-tag');
       if (userTag) userTag.textContent = "Public Training Portal";
+      if (typeof window.returnToHome === 'function') window.returnToHome();
     }
     window.fiLogoutClient = fiLogoutClient;
     window.logoutStudent = logoutStudent;
