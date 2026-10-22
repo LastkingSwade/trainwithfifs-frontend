@@ -47,3 +47,10 @@
 @media (min-width: 900px) { .pc-nav { display: flex; } .pc-main { padding-top: 32px; } .pc-states { grid-template-columns: repeat(3, 1fr); } }
 /* on phones the bottom bar is the navigation; give the page room above it */
 @media (max-width: 899px) { .pc-foot { padding-bottom: 96px; } }
+
+/* Safe storage checklist rows: the whole row is the tap target (44px+), with the habit in bold and the reason beneath. */
+.ss-row { display: flex; gap: 12px; align-items: flex-start; min-height: 52px; cursor: pointer; }
+.ss-row input[type="checkbox"] { width: 24px; height: 24px; margin-top: 2px; flex: none; accent-color: #ffb703; cursor: pointer; }
+.ss-row b { display: block; color: #fff; }
+.ss-row small { display: block; color: #9fb8cc; margin-top: 2px; }
+.ss-row input:focus-visible { outline: 3px solid #00e5ff; outline-offset: 2px; }
