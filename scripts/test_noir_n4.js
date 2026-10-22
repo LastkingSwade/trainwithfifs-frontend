@@ -10,13 +10,13 @@ const C = require(path.join(ROOT, 'src/noir/contrast.ts'));
 let passed = 0, failed = 0;
 const test = async (n, f) => { try { await f(); passed++; console.log(`  ✓ PASS: ${n}`); } catch (e) { failed++; console.log(`  ✗ FAIL: ${n}\n      ${e.message}`); } };
 const assert = (c, m) => { if (!c) throw new Error(m || 'assertion failed'); };
-const full = read('src/noir/noir.css'); const at = full.indexOf('/* ---- Stage N4'); assert(at > 0, 'stage N4 section present'); const n4 = full.slice(at).replace(/\/\*[\s\S]*?\*\//g, '');
+const full = read('src/noir/noir.css'); const at = full.indexOf('/* ---- Stage N4'); assert(at > 0, 'stage N4 section present'); const c1At = full.indexOf('/* ---- Stage C1'); const n4 = full.slice(at, c1At === -1 ? undefined : c1At).replace(/\/\*[\s\S]*?\*\//g, '');
 const nocomment = full.replace(/\/\*[\s\S]*?\*\//g, '');
 const tok = (name) => { const m = new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`).exec(full); assert(m, 'token ' + name); return m[1]; };
 
 (async () => {
   await test('performance budget: the NOIR stylesheet stays under 16 KB and uses no blur, filter, backdrop, will-change, images, remote URLs or imports', () => {
-    assert(Buffer.byteLength(full) <= 16384, 'noir.css is ' + Buffer.byteLength(full) + ' bytes'); assert(!/blur\(|backdrop-filter|(^|[;{\s])filter\s*:|will-change|url\(|@import|image-set/.test(nocomment), 'expensive or remote feature used');
+    assert(Buffer.byteLength(full) <= 16384, 'noir.css is ' + Buffer.byteLength(full) + ' bytes'); assert(!/blur\(|backdrop-filter\s*:(?!\s*none)|(^|[;{\s])filter\s*:|will-change|url\(|@import|image-set/.test(nocomment), 'expensive or remote feature used');
   });
   await test('the only keyframes are the five N3 moments, and every animation uses one of them (no stray motion)', () => {
     const names = [...nocomment.matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1]).sort(); assert(JSON.stringify(names) === JSON.stringify(['noir-fade-in', 'noir-gold-ring', 'noir-settle', 'noir-sheet-in', 'noir-vault-in']), 'keyframes: ' + names);

@@ -75,10 +75,10 @@
 
 /* ---- Stage N2, part 2: the site's existing panels (Wallet, Armory, Range, Home cards, Permit Center). Surface only: background, border, corner radius and shadow.
    Text colours, emoji and the cyan/amber accents are left exactly as they are. Highlighted cards (.next-step-card, .fi-vault-card) keep their own accent treatment. ---- */
-:root[data-noir="on"] .vault-card, :root[data-noir="on"] .ar-card, :root[data-noir="on"] .rj-card, :root[data-noir="on"] .eg-card, :root[data-noir="on"] .pc-card { background: var(--noir-obsidian); border-color: var(--noir-border); border-radius: var(--noir-radius-lg); box-shadow: none; }
-:root[data-noir="on"] .vault-addpanel, :root[data-noir="on"] .student-badge-bar { background: var(--noir-titanium); border-color: var(--noir-border); border-radius: var(--noir-radius-lg); }
+:root[data-noir="on"][data-noir="on"] .vault-card, :root[data-noir="on"][data-noir="on"] .ar-card, :root[data-noir="on"][data-noir="on"] .rj-card, :root[data-noir="on"][data-noir="on"] .eg-card, :root[data-noir="on"][data-noir="on"] .pc-card { background: var(--noir-obsidian); border-color: var(--noir-border); border-radius: var(--noir-radius-lg); box-shadow: none; }
+:root[data-noir="on"][data-noir="on"] .vault-addpanel, :root[data-noir="on"][data-noir="on"] .student-badge-bar { background: var(--noir-titanium); border-color: var(--noir-border); border-radius: var(--noir-radius-lg); box-shadow: none; }
 @media (hover: hover) {
-  :root[data-noir="on"] .vault-card:hover, :root[data-noir="on"] .ar-card:hover, :root[data-noir="on"] .rj-card:hover, :root[data-noir="on"] .eg-card:hover { border-color: rgba(204, 163, 90, 0.55); }
+  :root[data-noir="on"][data-noir="on"] .vault-card:hover, :root[data-noir="on"][data-noir="on"] .ar-card:hover, :root[data-noir="on"][data-noir="on"] .rj-card:hover, :root[data-noir="on"][data-noir="on"] .eg-card:hover { border-color: rgba(204, 163, 90, 0.55); }
 }
 
 /* ---- Stage N3: identity moments. All scoped to the flag, all short (160-650ms), all transform/opacity only, none loops, none waits (no delays), and none can hide content:
@@ -116,4 +116,15 @@
 }
 @media print {
   :root[data-noir="on"] body.fifs-tabs-on::before, :root[data-noir="on"] .rj-badge-list li.earned::after { display: none; }
+}
+
+/* ---- Stage C1: the main site's cards (course cards, FAQ, instructor, range targets, checklists, pathway chooser, promise cards, view panels). Surface only: background, border, corner radius, shadow.
+   The site's "organic" skin and its card rules use !important and load after this file, so the selector repeats the flag attribute to outrank them and uses !important only where the card rules do.
+   Text colours, emoji and accents are left alone, and the highlighted cards (featured / combo / VIP course cards, the amber call-to-action boxes, the next-step card) keep their own accent treatment. ---- */
+:root[data-noir="on"][data-noir="on"] :is(.tuition-card:not(.featured):not(.highlight-combo):not(.vip-mode-active), .instructor-hero-card, .target-card-student, .faq-item, .checklist-box, .pathway-selector-box, .interactive-promise-card) { background: var(--noir-obsidian) !important; border: 1px solid var(--noir-border) !important; border-radius: var(--noir-radius-lg) !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+:root[data-noir="on"][data-noir="on"] .panel { border-color: var(--noir-border); border-radius: var(--noir-radius-lg); }
+/* The Standard / VIP / Live Online cards keep their tier colour and glow (they carry the tier); only the surface and corners change. */
+:root[data-noir="on"][data-noir="on"] .catalog-chip { background: var(--noir-obsidian); border-radius: var(--noir-radius-md); }
+@media (hover: hover) {
+  :root[data-noir="on"][data-noir="on"] :is(.tuition-card:not(.featured):not(.highlight-combo):not(.vip-mode-active), .target-card-student, .faq-item, .interactive-promise-card):hover { border-color: rgba(204, 163, 90, 0.55) !important; }
 }

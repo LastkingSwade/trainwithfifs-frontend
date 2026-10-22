@@ -11,7 +11,7 @@ let passed = 0, failed = 0;
 const test = async (n, f) => { try { await f(); passed++; console.log(`  ✓ PASS: ${n}`); } catch (e) { failed++; console.log(`  ✗ FAIL: ${n}\n      ${e.message}`); } };
 const assert = (c, m) => { if (!c) throw new Error(m || 'assertion failed'); };
 const full = read('src/noir/noir.css'); const at = full.indexOf('/* ---- Stage N3'); assert(at > 0, 'stage N3 section present');
-const n3 = full.slice(at).replace(/\/\*[\s\S]*?\*\//g, '');
+const n4At = full.indexOf('/* ---- Stage N4'); const n3 = full.slice(at, n4At === -1 ? undefined : n4At).replace(/\/\*[\s\S]*?\*\//g, '');
 const css = n3.replace(/@keyframes[^{]+\{(?:[^{}]*\{[^}]*\})+\s*\}/g, '');
 const frames = {}; { const re = /@keyframes\s+([\w-]+)\s*\{((?:[^{}]*\{[^}]*\})+)\s*\}/g; let m; while ((m = re.exec(n3))) frames[m[1]] = m[2]; }
 const rules = []; { const re = /([^{}@][^{}]*)\{([^{}]*)\}/g; let m; while ((m = re.exec(css))) rules.push({ sel: m[1].trim(), body: m[2] }); }
