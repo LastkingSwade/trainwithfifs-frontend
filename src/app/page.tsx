@@ -724,9 +724,9 @@ export default function TrainWithFIFS(props: any) {
         vipPrice: "$594.99",
         baseTitle: "Mid-Atlantic Multi-State Mastery",
         vipTitle: "👑 VIP Mid-Atlantic Multi-State Mastery Concierge",
-        baseBadge: "5-STATE EXPANSION (MD+VA+FL+AZ+PA) — 34+ STATES LEGAL CARRY",
+        baseBadge: "5-STATE EXPANSION (MD+VA+FL+AZ+PA) — RECIPROCITY CHECKED STATE BY STATE",
         vipBadge: "👑 ALL-INCLUSIVE VIP 5-STATE CONCIERGE EXPERIENCE",
-        baseDesc: "Full 16-hour Maryland Wear & Carry qualification + application dossiers for Virginia, Florida, Arizona, and Pennsylvania (34+ state legal carry reciprocity). Self-equipped track: bring own firearm and ammo.",
+        baseDesc: "Full 16-hour Maryland Wear & Carry qualification + application dossiers for Virginia, Florida, Arizona, and Pennsylvania (reciprocity checked state by state). Self-equipped track: bring own firearm and ammo.",
         vipDesc: "👑 All-Inclusive VIP Concierge. 5-state application packets, Livescan fingerprint guidance, priority range lane, loaner firearm, ammunition, photo compliance passport prints, and full notary certification included.",
         baseValue: "Mid-Atlantic Multi-State Mastery — Base Track ($424.99)",
         vipValue: "Mid-Atlantic Multi-State Mastery — VIP Turnkey ($594.99)"
@@ -2240,7 +2240,7 @@ export default function TrainWithFIFS(props: any) {
 
 
 
-    // 34+ State Multi-Permit Expansion System Modal Controller
+    // Multi-Permit Field Guide Modal Controller
     (window as any).toggleMultiPermitModal = function(show: boolean) {
       const modal = document.getElementById('multiPermitModal');
       if (modal) {
@@ -2743,7 +2743,7 @@ export default function TrainWithFIFS(props: any) {
           },
           {
             title: "Alumni Marksmanship & Multi-State Expansion",
-            desc: "Exclusive access to FIFS Graduate marksmanship tune-ups, advanced low-light defensive clinics, and multi-state permit expansion cohorts (UT, FL, AZ, VA, PA) granting carry freedom across 34+ states."
+            desc: "Exclusive access to FIFS Graduate marksmanship tune-ups, advanced low-light defensive clinics, and multi-state permit expansion cohorts (UT, FL, AZ, VA, PA) with reciprocity checked state by state, not a blanket carry claim."
           }
         ]
       }
@@ -5120,14 +5120,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
 
 
-              {/* Card 6: 34+ State Multi-Permit Expansion System Field Guide */}
-              <div className="portal-feature-launcher-card" onClick={(e) => { if ((e.target as HTMLElement).tagName !== 'BUTTON' && typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} style={{"border": "2px solid #F59E0B", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "display": "flex", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer"}}>
+              {/* Card 6: Multi-Permit Field Guide Field Guide */}
+              <div className="portal-feature-launcher-card" onClick={(e) => { if ((e.target as HTMLElement).tagName !== 'BUTTON' && typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} style={{"border": "2px solid #F59E0B", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.95) 100%)", "borderRadius": "14px", "padding": "22px 20px", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "display": "none", "flexDirection": "column", "justifyContent": "space-between", "cursor": "pointer"}}>
                 <div>
                   <span className="next-step-badge" style={{"color": "#F59E0B", "marginBottom": "4px", "display": "block", "fontFamily": "var(--font-display)", "fontSize": "0.80rem", "fontWeight": "800", "letterSpacing": "1.5px", "textTransform": "uppercase"}}>
                     TACTICAL COMPLIANCE FIELD GUIDE
                   </span>
                   <h3 className="portal-feature-title" style={{"fontFamily": "var(--font-display)", "fontSize": "1.4rem", "color": "#fff", "marginBottom": "6px"}}>
-                    ⭐ 34+ State Multi-Permit Expansion System
+                    ⭐ Multi-Permit Field Guide
                   </h3>
                   <p style={{"fontSize": "0.88rem", "color": "var(--text-muted)", "lineHeight": "1.5", "marginBottom": "16px"}}>
                     Authorized FIFS SOP &amp; Field Guide by Lead Coach Kai Wade. Master the chronological multi-state dispatch sequence (MD resident anchor, parallel VA/FL/AZ packets, and rapid 5-minute PA border pickup), avoid clerical rejections, and unlock your $0 free MD HQL exemption.
@@ -5136,7 +5136,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <div>
                   <button type="button" data-onclick="toggleMultiPermitModal(true)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} className="btn-spark" style={{"width": "100%", "padding": "12px 18px", "fontSize": "0.95rem", "fontWeight": "800", "textTransform": "uppercase", "letterSpacing": "1px", "borderColor": "#F59E0B", "color": "#F59E0B", "cursor": "pointer", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "gap": "8px", "boxShadow": "0 0 16px rgba(245, 158, 11, 0.2)"}}>
                     <span>⭐</span>
-                    <span>OPEN 34+ STATE FIELD GUIDE ↗</span>
+                    <span>OPEN FIELD GUIDE ↗</span>
                   </button>
                 </div>
               </div>
@@ -5748,8 +5748,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
 
 
-                {/* CARD 3: 34+ STATE MULTI-PERMIT EXPANSION SYSTEM */}
-                <div className="fi-feature-card highlight" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} style={{"borderColor": "rgba(245, 158, 11, 0.45)", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.98) 100%)", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "cursor": "pointer", "display": "flex", "flexDirection": "column", "justifyContent": "space-between"}}>
+                {/* CARD 3: MULTI-PERMIT FIELD GUIDE */}
+                <div className="fi-feature-card highlight" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} style={{"borderColor": "rgba(245, 158, 11, 0.45)", "background": "linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(13, 19, 27, 0.98) 100%)", "boxShadow": "0 0 20px rgba(245, 158, 11, 0.15)", "cursor": "pointer", "display": "none", "flexDirection": "column", "justifyContent": "space-between"}}>
                   <div>
                     <span className="fi-feature-icon" style={{"color": "#F59E0B"}}>
                       ⭐
@@ -5758,14 +5758,14 @@ document.addEventListener('submit', handleDelegatedSubmit);
                       SOP &amp; FIELD GUIDE
                     </span>
                     <h3 className="fi-feature-title" style={{"color": "#fff", "marginTop": "4px"}}>
-                      34+ State Multi-Permit Expansion System
+                      Multi-Permit Field Guide
                     </h3>
                     <p className="fi-feature-desc">
                       Lead Coach Kai Wade's authorized field guide. Master the chronological multi-state dispatch sequence (MD resident anchor, parallel VA/FL/AZ non-resident packets, and 5-minute PA border pickup), avoid clerical rejections, and unlock your $0 free MD HQL exemption.
                     </p>
                   </div>
                   <button className="btn-spark" data-onclick="toggleMultiPermitModal(true)" onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(true); }} type="button" style={{"borderColor": "#F59E0B", "color": "#F59E0B", "boxShadow": "0 0 16px rgba(245, 158, 11, 0.2)", "width": "100%", "marginTop": "14px", "fontWeight": "800"}}>
-                    ⭐ Open 34+ State Field Guide ↗
+                    ⭐ Open Field Guide ↗
                   </button>
                 </div>
 
@@ -6732,7 +6732,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <span>
                 ⭐
               </span>
-               5-STATE EXPANSION (MD+VA+FL+AZ+PA) — 34+ STATES LEGAL CARRY
+               5-STATE EXPANSION (MD+VA+FL+AZ+PA) — RECIPROCITY CHECKED STATE BY STATE
           
             </div>
             {/* Interactive Tier Toggle Switch */}
@@ -8762,7 +8762,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
         <div style={{"maxWidth": "1140px", "margin": "0 auto", "position": "relative"}}>
           <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "18px", "paddingBottom": "12px", "borderBottom": "1px solid var(--border-subtle)"}}>
             <h2 style={{"fontFamily": "var(--font-display)", "fontSize": "1.65rem", "color": "#fff", "letterSpacing": "1px"}}>
-              Mid-Atlantic Multi-State Mastery (34+ State Reciprocity)
+              Mid-Atlantic Multi-State Mastery (State-by-State Reciprocity)
             </h2>
             <button className="btn-return-home" aria-label="Close" title="Close" data-onclick="closeMultistateMasteryModal()" onClick={() => { if (typeof window !== 'undefined' && (window as any).closeMultistateMasteryModal) (window as any).closeMultistateMasteryModal(); }} style={{"padding": "8px 18px", "fontSize": "0.95rem", "minHeight": "40px", "cursor": "pointer"}} type="button">
               ✕
@@ -8901,7 +8901,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               <div>
                 <span className="badge-pop" style={{"background": "var(--accent-amber)", "color": "#070b10", "fontWeight": "800"}}>FLAGSHIP MULTI-STATE</span>
                 <h4 style={{"fontFamily": "var(--font-display)", "fontSize": "1.35rem", "color": "#fff", "margin": "10px 0 6px"}}>Mid-Atlantic Multi-State Mastery</h4>
-                <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "marginBottom": "14px"}}>16-hr Maryland Wear & Carry + reciprocal affidavits for VA, FL, AZ, and PA (34+ states total).</p>
+                <p style={{"fontSize": "0.85rem", "color": "var(--text-muted)", "marginBottom": "14px"}}>16-hr Maryland Wear & Carry + reciprocal affidavits for VA, FL, AZ, and PA (reciprocity checked state by state).</p>
                 <div style={{"fontFamily": "var(--font-display)", "fontSize": "1.5rem", "fontWeight": "800", "color": "#fff", "marginBottom": "14px"}}>$424.99 <span style={{"fontSize": "0.85rem", "color": "var(--text-muted)"}}>Base</span> / $594.99 <span style={{"fontSize": "0.85rem", "color": "var(--accent-amber)"}}>VIP</span></div>
               </div>
               <button type="button" className="btn-primary" data-onclick="closeFutureServicesModal(); selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($424.99)');" onClick={() => { if (typeof window !== 'undefined') { if ((window as any).closeFutureServicesModal) (window as any).closeFutureServicesModal(); if ((window as any).selectCourse) (window as any).selectCourse('Mid-Atlantic Multi-State Mastery — Base Track ($424.99)'); } }}>Select Multi-State →</button>
@@ -9874,7 +9874,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
               </h3>
               <p style={{"color": "#cbd5e1", "fontSize": "0.92rem", "maxWidth": "780px", "margin": "6px auto 18px", "lineHeight": "1.55"}}>
                 
-        Train with Lead Instructor Kai Wade (Certified MSP Qualified Handgun Instructor § 5-101 and NRA Certified) at Cindy's Hot Shots. Build real confidence, master Maryland self-defense law, and obtain multi-state carry authorization across 34+ states.
+        Train with Lead Instructor Kai Wade (Certified MSP Qualified Handgun Instructor § 5-101 and NRA Certified) at Cindy's Hot Shots. Build real confidence, master Maryland self-defense law, and work through multi-state carry applications one state at a time.
       
               </p>
               <div style={{"display": "flex", "gap": "12px", "justifyContent": "center", "flexWrap": "wrap"}}>
@@ -10019,16 +10019,16 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
         </div>
       </div>
-            {/* ================= 34+ STATE MULTI-PERMIT EXPANSION SYSTEM FULL-SCREEN MODAL ================= */}
+            {/* ================= MULTI-PERMIT FIELD GUIDE FULL-SCREEN MODAL ================= */}
       <div className="reciprocity-hub-modal-overlay" id="multiPermitModal" data-onclick="if(event.target===this) toggleMultiPermitModal(false)" onClick={(e) => { if (e.target === e.currentTarget && typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(false); }} style={{"display": "none", "position": "fixed", "inset": "0", "width": "100%", "height": "100%", "background": "rgba(4, 7, 11, 0.96)", "backdropFilter": "blur(16px)", "WebkitBackdropFilter": "blur(16px)", "zIndex": "999999", "overflowY": "auto", "padding": "24px 16px"}}>
         <div style={{"maxWidth": "1240px", "margin": "0 auto", "position": "relative"}}>
           <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "18px", "paddingBottom": "12px", "borderBottom": "1px solid var(--border-subtle)", "flexWrap": "wrap", "gap": "10px"}}>
             <h2 style={{"fontFamily": "var(--font-display)", "fontSize": "1.65rem", "color": "#fff", "letterSpacing": "1px", "display": "flex", "alignItems": "center", "gap": "10px"}}>
               <span>⭐</span>
-              <span>34+ State Multi-Permit Expansion System | FIFS SOP &amp; Field Guide</span>
+              <span>Multi-Permit Field Guide | FIFS SOP &amp; Field Guide</span>
             </h2>
             <div style={{"display": "flex", "gap": "10px", "alignItems": "center", "flexWrap": "wrap"}}>
-              <a href="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html" target="_blank" rel="noopener noreferrer" className="btn-spark" style={{"textDecoration": "none", "padding": "8px 16px", "fontSize": "0.85rem", "minHeight": "40px", "display": "inline-flex", "alignItems": "center", "gap": "6px", "borderColor": "#F59E0B", "color": "#F59E0B"}}>
+              <a href="/docs/archive/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html" target="_blank" rel="noopener noreferrer" className="btn-spark" style={{"textDecoration": "none", "padding": "8px 16px", "fontSize": "0.85rem", "minHeight": "40px", "display": "inline-flex", "alignItems": "center", "gap": "6px", "borderColor": "#F59E0B", "color": "#F59E0B"}}>
                 <span>↗ Open in New Window</span>
               </a>
               <button className="btn-return-home" data-onclick="toggleMultiPermitModal(false)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(false); }} style={{"padding": "8px 18px", "fontSize": "0.95rem", "minHeight": "40px", "cursor": "pointer"}} type="button">
@@ -10038,8 +10038,8 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </div>
           <div style={{"background": "#070A11", "borderRadius": "16px", "border": "1px solid rgba(245, 158, 11, 0.35)", "overflow": "hidden", "boxShadow": "0 25px 60px rgba(0,0,0,0.95), 0 0 35px rgba(245, 158, 11, 0.2)"}}>
             <iframe
-              src="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
-              title="34+ State Multi-Permit Expansion System | FIFS SOP & Field Guide"
+              src="/docs/archive/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html"
+              title="Multi-Permit Field Guide | FIFS SOP & Field Guide"
               style={{"width": "100%", "height": "85vh", "border": "none", "display": "block", "background": "#070A11"}}
             />
           </div>
@@ -10048,7 +10048,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <button className="btn-return-home" data-onclick="toggleMultiPermitModal(false)" onClick={() => { if (typeof window !== 'undefined' && (window as any).toggleMultiPermitModal) (window as any).toggleMultiPermitModal(false); }} style={{"minHeight": "48px", "padding": "12px 28px", "fontSize": "1.05rem", "cursor": "pointer"}} type="button">
               ← RETURN TO STUDENT PORTAL
             </button>
-            <a href="/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html" target="_blank" rel="noopener noreferrer" className="btn-spark" style={{"textDecoration": "none", "padding": "12px 24px", "fontSize": "0.95rem", "minHeight": "48px", "display": "inline-flex", "alignItems": "center", "gap": "8px", "borderColor": "#F59E0B", "color": "#F59E0B"}}>
+            <a href="/docs/archive/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html" target="_blank" rel="noopener noreferrer" className="btn-spark" style={{"textDecoration": "none", "padding": "12px 24px", "fontSize": "0.95rem", "minHeight": "48px", "display": "inline-flex", "alignItems": "center", "gap": "8px", "borderColor": "#F59E0B", "color": "#F59E0B"}}>
               <span>↗ Open in Standalone Tab</span>
             </a>
           </div>
@@ -11328,7 +11328,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 <div id="formOnlineStatus" role="status" style={{"color": "#f87171", "fontSize": "0.8rem", "marginTop": "6px"}}></div>
               </div>
               <p id="formCardTierDesc" style={{"fontSize": "0.82rem", "color": "#cbd5e1", "marginTop": "12px", "lineHeight": "1.5", "borderLeft": "2px solid var(--accent-cyan)", "paddingLeft": "10px"}}>
-                Full 16-hour Maryland Wear & Carry qualification + application dossiers for Virginia, Florida, Arizona, and Pennsylvania (34+ state legal carry reciprocity). Self-equipped track: bring own firearm and ammo. Range fee ($45.00) & 6% MD tax calculated automatically.
+                Full 16-hour Maryland Wear & Carry qualification + application dossiers for Virginia, Florida, Arizona, and Pennsylvania (reciprocity checked state by state). Self-equipped track: bring own firearm and ammo. Range fee ($45.00) & 6% MD tax calculated automatically.
               </p>
               {/* Comprehensive Deposit Breakdown Card */}
               <div id="formDepositBreakdownBox" style={{"background": "rgba(245, 158, 11, 0.08)", "border": "1px solid rgba(245, 158, 11, 0.35)", "borderRadius": "10px", "padding": "14px 16px", "marginTop": "14px"}}>

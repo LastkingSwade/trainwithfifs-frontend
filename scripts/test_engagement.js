@@ -18,7 +18,7 @@ const PAGE = read('src/app/page.tsx');
     const s = L.helpLinks('student'), c = L.helpLinks('client');
     eq(s.map((x) => x.label.split(' ')[0]), ['Call', 'Text', 'Email', 'Chat', 'Directions']); eq(c.length, 4, 'clients get no range directions');
     eq(s[0].href, 'tel:+14439901304'); eq(s[1].href, 'sms:+14439901304'); assert(/^mailto:info@trainwithfifs\.com\?subject=/.test(s[2].href), 'mailto'); eq(s[3].action, 'chat'); assert(s[4].external && /google\.com\/maps/.test(s[4].href), 'maps'); eq(L.PHONE, '(443) 990-1304');
-    const guide = read('public/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html'); assert(/\(443\) 990-1304/.test(guide) && /info@trainwithfifs\.com/.test(guide), 'same contact details as the Field Guide');
+    const guide = read('docs/archive/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html'); assert(/\(443\) 990-1304/.test(guide) && /info@trainwithfifs\.com/.test(guide), 'same contact details as the Field Guide');
   });
   await test('Wiring: both dashboards have a place for the cards, the greeting reads "Welcome back, Name", it installs once, and nothing is stored or sent', () => {
     assert(/id="eg-student"/.test(PAGE) && /id="eg-client"/.test(PAGE) && /installEngagement\(\)/.test(PAGE), 'hosts + install');

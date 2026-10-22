@@ -19,11 +19,11 @@ const OWN_GEAR = ['Your own handgun', 'A holster', '50 rounds of factory ammunit
 
 export const COURSES: Record<string, Course> = {
   mastery: {
-    key: 'mastery', name: 'Mid-Atlantic Multi-State Mastery', badge: '5-STATE EXPANSION (MD+VA+FL+AZ+PA) — 34+ STATES LEGAL CARRY',
-    about: 'Full 16-hour Maryland Wear & Carry qualification + application dossiers for Virginia, Florida, Arizona, and Pennsylvania (34+ state legal carry reciprocity). Self-equipped track: bring own firearm and ammo.',
+    key: 'mastery', name: 'Mid-Atlantic Multi-State Mastery', badge: '5-STATE EXPANSION (MD+VA+FL+AZ+PA) — RECIPROCITY CHECKED STATE BY STATE',
+    about: 'Full 16-hour Maryland Wear & Carry qualification + application dossiers for Virginia, Florida, Arizona, and Pennsylvania (reciprocity checked state by state). Self-equipped track: bring own firearm and ammo.',
     vipAbout: 'All-Inclusive VIP Concierge. 5-state application packets, Livescan fingerprint guidance, priority range lane, loaner firearm, ammunition, photo compliance passport prints, and full notary certification included.',
     length: '16 hours (the Maryland Wear & Carry qualification)',
-    covers: ['The full 16-hour Maryland Wear & Carry qualification', 'Application dossiers for Virginia, Florida, Arizona and Pennsylvania', '34+ state legal carry reciprocity'],
+    covers: ['The full 16-hour Maryland Wear & Carry qualification', 'Application dossiers for Virginia, Florida, Arizona and Pennsylvania', 'Reciprocity checked state by state, not a blanket claim'],
     standardGear: ['Your own firearm', 'Your own ammunition'],
     vipProvides: ['5-state application packets', 'Livescan fingerprint guidance', 'Priority range lane', 'A loaner firearm', 'Ammunition', 'Photo compliance passport prints', 'Full notary certification'],
     range: true, law: ['wc', 'other'],

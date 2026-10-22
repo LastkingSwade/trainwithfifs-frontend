@@ -20,7 +20,7 @@ const NOW = '2026-10-20T12:00:00.000Z';
 const doneOf = (...ids) => Object.fromEntries(ids.map((i) => [i, NOW]));
 const ALL_MD = ['md_livescan', 'md_photo', 'md_refs', 'md_scoresheet', 'md_submit', 'md_tracking', 'md_card'];
 const ALL_MAIL = ['aff_received', 'fd258', 'va_form', 'va_packet', 'va_payment', 'va_mailed', 'fl_portal', 'fl_mailed', 'az_packet', 'az_payment', 'az_mailed'];
-const GUIDE = read('public/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html').replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ');
+const GUIDE = read('docs/archive/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html').replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ');
 
 function makeDb(over = {}) {
   const t = { students: [{ user_id: 'u-sam', student_id: 'FIFS-1001', full_name: 'Sam Student', email: 'sam@x.co', course: 'Mid-Atlantic Multi-State Mastery (MD+VA+FL+AZ+PA)' }, { user_id: 'u-lee', student_id: 'FIFS-2002', full_name: 'Lee Other', email: 'lee@x.co', course: 'Maryland HQL' }, { user_id: 'u-pat', student_id: 'FIFS-3003', full_name: 'Pat Paid', email: 'pat@x.co', course: 'Maryland HQL' }],

@@ -61,7 +61,7 @@ async function main() {
   }
 
   console.log('\n[SECTION B: Styling does not depend on the blocked script]');
-  const guide = fs.readFileSync(path.join(PUBLIC, 'FIFS-34-State-Multi-Permit-SOP-Field-Guide.html'), 'utf-8');
+  const guide = fs.readFileSync(path.join(__dirname, '..', 'docs', 'archive', 'FIFS-34-State-Multi-Permit-SOP-Field-Guide.html'), 'utf-8');
   const styles = [...guide.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map((m) => m[1]);
   const compiled = styles.find((css) => css.includes('--tw-border-spacing-x') && css.includes('.hidden{display:none}')) || '';
   await test('The compiled Tailwind CSS (preflight, utilities, brand colors, responsive and hover variants) is embedded', async () => {

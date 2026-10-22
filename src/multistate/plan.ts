@@ -1,4 +1,4 @@
-// The Mid-Atlantic Multi-State application plan, from the FIFS SOP Field Guide (public/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html). Pure data and rules:
+// The Mid-Atlantic Multi-State application plan, from the FIFS SOP Field Guide (docs/archive/FIFS-34-State-Multi-Permit-SOP-Field-Guide.html). Pure data and rules:
 // the same file drives the student's card, the printable sheets and the server's checks, so they can never disagree. Nothing here is an official form, and
 // nothing here submits anything to an agency: it tells the student what to do, in what order, with what, and keeps their place.
 export type PhaseKey = 'md' | 'mail' | 'pa';
