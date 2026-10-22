@@ -3,6 +3,7 @@ import { badgesFor, progressText } from './badges';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import './rangeJournal.css';
+import ShotTimer from './ShotTimer';
 import { PRESET_FOCUS, barPct, monthlySeries, prettyDay, toCsv, todayISO, totals, type Goal, type Session } from './rangeLogic';
 
 interface Data { available: boolean; sessions: Session[]; goals: Goal[] }
@@ -30,7 +31,7 @@ export default function RangeJournalPanel() {
   const load = useCallback(async () => { try { const d = await call('journalList'); setData({ available: d.available !== false, sessions: d.sessions || [], goals: d.goals || [] }); setMsg(''); } catch (e: any) { setMsg(e?.message || 'Could not load your journal.'); } }, [call]);
   const say = (t: string) => { setToast(t); if (toastTimer.current) clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(''), 4000); };
 
-  useEffect(() => { (window as any).openRangeJournal = () => { setOpen(true); setMsg(''); setToast(''); setConfirm(''); setForm(EMPTY_FORM()); load(); }; return () => { delete (window as any).openRangeJournal; }; }, [load]);
+  useEffect(() => { (window as any).openRangeJournal = (opts?: { section?: string }) => { setOpen(true); setMsg(''); setToast(''); setConfirm(''); setForm(EMPTY_FORM()); load(); if (opts && opts.section === 'timer') window.setTimeout(() => document.getElementById('rj-timer-start')?.focus(), 120); }; return () => { delete (window as any).openRangeJournal; }; }, [load]);
   useEffect(() => {
     if (!open) return;
     const key = (e: KeyboardEvent) => {
@@ -68,6 +69,8 @@ export default function RangeJournalPanel() {
 
         {msg && <p className="rj-msg" role="alert">⚠️ {msg}</p>}
         <div className="rj-toast" role="status" aria-live="polite">{toast}</div>
+
+        <ShotTimer onAddNote={(line) => { if (!line) return; setForm((f) => ({ ...f, notes: (f.notes ? f.notes.trim() + '\n' : '') + line })); say('📝 Added to the notes of the session you are logging below.'); }} />
 
         {!data && !msg && <p className="rj-empty">Loading your journal…</p>}
         {data && !data.available && <p className="rj-empty">The range journal is not set up yet. Please check back soon.</p>}
