@@ -16,7 +16,7 @@ export const TABS: readonly Tab[] = [
 export const roleFrom = (studentDashboardShown: boolean, clientDashboardShown: boolean): Role | null => (studentDashboardShown ? 'student' : clientDashboardShown ? 'client' : null);
 
 export interface HubItem { key: string; emoji: string; label: string; hint: string; call?: string; arg?: string | boolean; scrollTo?: 'chat'; href?: string; roles: readonly Role[] }
-/** What the Hub menu offers. Every item opens something that already exists in the portals. */
+/** What the Hub menu offers. Every item opens something that already exists in the portals. (The Reciprocity Hub is not listed here: it has its own States tab.) */
 export const HUB_ITEMS: readonly HubItem[] = [
   { key: 'chat', emoji: '💬', label: 'Chat with me', hint: 'Message your instructor', scrollTo: 'chat', roles: ['student', 'client'] },
   { key: 'guide', emoji: '🤖', label: 'Ask the FIFS Guide', hint: 'Quick answers about classes and your portal', call: 'openAiGuide', roles: ['student', 'client'] },
@@ -25,7 +25,6 @@ export const HUB_ITEMS: readonly HubItem[] = [
   { key: 'profile', emoji: '👤', label: 'My profile', hint: 'Your details and reminder choices', call: 'openClientProfileModal', roles: ['client'] },
   { key: 'emergency', emoji: '🆘', label: 'Emergency info', hint: '911, 988 and reporting help', href: '/emergency', roles: ['student', 'client'] },
   { key: 'storage', emoji: '🔒', label: 'Storage checklist', hint: 'Simple safe-storage habits', href: '/safe-storage', roles: ['student', 'client'] },
-  { key: 'recip', emoji: '🗺️', label: 'Reciprocity Hub', hint: 'Where your permit is honored', call: 'toggleReciprocityHubModal', arg: true, roles: ['student', 'client'] },
   { key: 'drive', emoji: '🚗', label: 'Driving with a firearm', hint: 'Mid-Atlantic transport basics', call: 'openVehicleTravelModal', roles: ['student', 'client'] },
   { key: 'fly', emoji: '✈️', label: 'Flying with a firearm', hint: 'Airline and TSA basics', call: 'openFlyingWithFirearmModal', roles: ['student', 'client'] },
   { key: 'call', emoji: '📞', label: 'Call Coach Kai', hint: '443-990-1304', href: 'tel:+14439901304', roles: ['student', 'client'] },

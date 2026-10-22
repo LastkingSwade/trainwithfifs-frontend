@@ -38,7 +38,7 @@ export default function PermitCenter() {
 
       <section className="pc-grid" aria-label="More tools">
         <div className="pc-card"><h2><span aria-hidden="true">🗺️ </span>Reciprocity Explorer</h2><p>See which states recognize a Maryland permit, with sources and what to check before you travel. Recognition is never permission to carry anywhere.</p><a className="pc-btn pc-btn-ghost" href="/?open=reciprocity">Open the Explorer</a></div>
-        <div className="pc-card"><h2><span aria-hidden="true">⏱️ </span>Renewal Center</h2><p>When to start your renewal and what the class involves. Your own dates and documents stay private in your portal Wallet.</p><a className="pc-btn pc-btn-ghost" href="/?open=renewal">Open the Renewal Center</a></div>
+        <div className="pc-card"><h2><span aria-hidden="true">⏱️ </span>Renewal Center</h2><p>When to start your renewal and what the class involves. Your own dates and documents stay private in your portal Vault.</p><a className="pc-btn pc-btn-ghost" href="/?open=renewal">Open the Renewal Center</a></div>
         <div className="pc-card"><h2><span aria-hidden="true">🎓 </span>Train with FIFS</h2><p>The 16-hour Wear &amp; Carry class, the 8-hour renewal, the HQL class and Multi-State Mastery, with Lead Instructor Kai Wade.</p><a className="pc-btn" href="/?open=classes">See classes and prices</a></div>
         <div className="pc-card"><h2><span aria-hidden="true">👤 </span>My FIFS</h2><p>Sign in to your student or client portal: your documents, reminders and class details.</p><AccountLink className="pc-btn pc-btn-ghost">Go to my portal</AccountLink></div>
       </section>

@@ -30,8 +30,8 @@ const code = (p) => read(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*
     assert(/closeSheet\(\)/.test(h) && /\.vault-close, \.rj-close/.test(h) && /toggleReciprocityHubModal\?\.\(!reciprocityOpen\(\)\)/.test(h), 'closes others, then toggles'); assert(/key !== 'reciprocity' && reciprocityOpen\(\)\) w\.toggleReciprocityHubModal\?\.\(false\)/.test(c), 'other tabs close it');
     assert(/getElementById\('reciprocityHubModal'\)/.test(c) && /display !== 'none'/.test(c), 'knows whether it is open from the page'); assert(/reciprocityOpen: reciprocityOpen\(\) \}\)/.test(c), 'the highlight is fed by the real open state');
   });
-  await test('it only opens something that already exists (the site\'s own Reciprocity Hub), adds no new screen, request, storage or HTML, and the Hub menu still has its own Reciprocity item', () => {
-    const c = code('src/shell/tabShell.ts'); assert(!/fetch\(|localStorage|sessionStorage|innerHTML|callFifsBackend/.test(c), 'nothing sensitive'); assert(T.HUB_ITEMS.some((i) => i.key === 'recip'), 'Hub entry unchanged');
+  await test('it only opens something that already exists (the site\'s own Reciprocity Hub), adds no new screen, request, storage or HTML, and the Hub menu no longer repeats it', () => {
+    const c = code('src/shell/tabShell.ts'); assert(!/fetch\(|localStorage|sessionStorage|innerHTML|callFifsBackend/.test(c), 'nothing sensitive'); assert(!T.HUB_ITEMS.some((i) => i.key === 'recip' || /toggleReciprocityHubModal/.test(i.call || '')), 'the Hub menu has no duplicate Reciprocity entry (it is the States tab)'); assert(T.TABS.some((t) => t.key === 'reciprocity'), 'the States tab is the one way in from the bar');
     assert(/aria-label', t\.aria|setAttribute\('aria-label', t\.aria\)/.test(c), 'spoken name applied'); assert(/getComputedStyle\(m\)/.test(c), 'reads state, does not guess');
   });
   await test('the public bottom bar (signed out) is untouched: still five tabs', () => {

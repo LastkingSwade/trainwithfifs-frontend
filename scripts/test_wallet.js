@@ -1,7 +1,7 @@
 // Document wallet: opt-in, owner-only, encrypted before storage, file checks, limits, purge on delete (offline).
 const fs = require('fs'); const path = require('path'); const vm = require('vm'); const assert = require('assert'); const ts = require('typescript'); const crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
-const load = (rel) => { const m = { exports: {} }; vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(ROOT, rel), 'utf8'), { compilerOptions: { target: 'ES2020', module: 'commonjs', esModuleInterop: true } }).outputText, { module: m, exports: m.exports, require, process, console, Date, Object, Array, String, Number, Math, Promise, JSON, Buffer, RegExp }); return m.exports; };
+const load = (rel) => { const m = { exports: {} }; const req = (r) => (r.startsWith('./') ? load(path.join(path.dirname(rel), r + '.ts')) : require(r)); vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(ROOT, rel), 'utf8'), { compilerOptions: { target: 'ES2020', module: 'commonjs', esModuleInterop: true } }).outputText, { module: m, exports: m.exports, require: req, process, console, Date, Object, Array, String, Number, Math, Promise, JSON, Buffer, RegExp }); return m.exports; };
 let passed = 0, failed = 0;
 async function test(n, f) { try { await f(); console.log('  ✓ PASS: ' + n); passed++; } catch (e) { console.log('  ✗ FAIL: ' + n + '\n    -> ' + e.message); failed++; } }
 const A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';

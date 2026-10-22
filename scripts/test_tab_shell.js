@@ -25,9 +25,9 @@ const eq = (a, b, m) => assert(JSON.stringify(a) === JSON.stringify(b), `${m || 
   });
 
   console.log('\n[The Hub menu]');
-  await test('the Hub offers what each person can really use: clients get permit and profile, everyone gets chat, booking, the reciprocity hub, travel pages and a call link', () => {
+  await test('the Hub offers what each person can really use: clients get permit and profile, everyone gets chat, booking, travel pages and a call link (the reciprocity hub has its own States tab, so it is not repeated here)', () => {
     const s = T.hubItemsFor('student').map((i) => i.key), c = T.hubItemsFor('client').map((i) => i.key);
-    for (const k of ['chat', 'guide', 'book', 'recip', 'drive', 'fly', 'call']) assert(s.includes(k) && c.includes(k), k); assert(!s.includes('permit') && !s.includes('profile'), 'students do not get the permit and client profile items'); assert(c.includes('permit') && c.includes('profile'), 'clients do');
+    for (const k of ['chat', 'guide', 'book', 'drive', 'fly', 'call']) assert(s.includes(k) && c.includes(k), k); assert(!s.includes('recip') && !c.includes('recip'), 'the Reciprocity Hub is a tab, so the Hub menu does not repeat it'); assert(!s.includes('permit') && !s.includes('profile'), 'students do not get the permit and client profile items'); assert(c.includes('permit') && c.includes('profile'), 'clients do');
   });
   await test('every Hub item opens something: a function the page really defines, a chat scroll, or a call link, and a call link is a real phone number', () => {
     const script = read('public/scripts/TrainWithFIFS_scripts.js') + read('src/app/page.tsx') + read('src/portal/AiGuidePanel.tsx');
