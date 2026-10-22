@@ -7,6 +7,7 @@ import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
 import { sendInvoice, payInfo, invoiceCheckout } from '@/Lib/server/sent-invoices';
 import { waiverStatus, saveWaiver, listWaivers, getWaiver, remindToSignWaiver } from '@/Lib/server/waivers';
+import { logStaffAccess, outcomeOf, listAccessLog } from '@/Lib/server/access-log';
 import { photoAdd, photoList, photoOpen, photoDelete, photoPaths, removePhotoFiles, purgeArmory } from '@/Lib/server/armory-photos';
 import { memberThread, memberSend, staffMembers, staffThread, staffSend } from '@/Lib/server/portal-chat';
 import { journalList, addSession, deleteSession, addGoal, setGoalDone, deleteGoal, deleteAll } from '@/Lib/server/range-journal';
@@ -3429,6 +3430,7 @@ export async function POST(req: NextRequest) {
        if (authErr || !isStaffOrAdmin(user)) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        const sb = getPrivilegedClient();
        const r: any = action === 'adminWaiverList' ? await listWaivers(sb) : await getWaiver(sb, payload?.studentId);
+       await logStaffAccess(sb, { staffId: user?.id, staffLabel: user?.email, action: action === 'adminWaiverList' ? 'waiver_list' : 'waiver_view', studentId: action === 'adminWaiverGet' ? payload?.studentId : null, outcome: outcomeOf(r) });
        return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
      }
 
@@ -3437,7 +3439,17 @@ export async function POST(req: NextRequest) {
        const { user, error: authErr } = await getAuthenticatedUser(req);
        if (authErr || !isStaffOrAdmin(user)) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
        if (!allowPublicSubmit(req, 'waiverRemind', 60)) return NextResponse.json({ success: false, error: 'Too many reminders in a short time. Please wait a few minutes.' }, { status: 429 });
-       const r: any = await remindToSignWaiver(getPrivilegedClient(), payload?.studentId);
+       const sbRemind = getPrivilegedClient();
+       const r: any = await remindToSignWaiver(sbRemind, payload?.studentId);
+       await logStaffAccess(sbRemind, { staffId: user?.id, staffLabel: user?.email, action: 'waiver_remind', studentId: payload?.studentId, outcome: outcomeOf(r) });
+       return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
+     }
+
+     // Staff access log (who opened waivers or sent reminders, and when). ADMINISTRATOR ONLY, read only: the role is checked on the server before the database is touched.
+     case 'adminAccessLogList': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isAdmin(user)) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: administrator authentication required.' }, { status: 401 });
+       const r: any = await listAccessLog(getPrivilegedClient());
        return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
      }
 

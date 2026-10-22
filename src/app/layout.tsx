@@ -13,6 +13,7 @@ import OnlineAdminPanel from "../online/OnlineAdminPanel";
 import AdminPaymentsPanel from "../portal/AdminPaymentsPanel";
 import AdminMultiStatePanel from "../multistate/AdminMultiStatePanel";
 import AdminTrashPanel from "../portal/AdminTrashPanel";
+import AdminAccessLogPanel from "../portal/AdminAccessLogPanel";
 import AdminPushPanel from "../portal/AdminPushPanel";
 import WalletPanel from "../portal/WalletPanel";
 import RangeJournalPanel from "../portal/RangeJournalPanel";
@@ -86,6 +87,7 @@ export default function RootLayout({
         <AdminPaymentsPanel />
         <AdminMultiStatePanel />
         <AdminTrashPanel />
+        <AdminAccessLogPanel />
         <AdminPushPanel />
         <WalletPanel />
         <RangeJournalPanel />
