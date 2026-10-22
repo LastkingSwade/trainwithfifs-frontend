@@ -26,6 +26,7 @@ import RestoreSession from "../portal/RestoreSession";
 import "../polish/polish.css";
 import "../experiments/site.css";
 import "../experiments/portals.css";
+import "../portal/waiverCard.css";
 import "../secrets/secrets.css";
 import "../design/organic.css";
 import OrganicSkin from "../design/OrganicSkin";

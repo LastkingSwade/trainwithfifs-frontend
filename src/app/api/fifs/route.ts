@@ -6,7 +6,7 @@ import { getGroupStatus, remindGroup, verifyGroupLinkToken } from '@/Lib/server/
 import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
 import { sendInvoice, payInfo, invoiceCheckout } from '@/Lib/server/sent-invoices';
-import { waiverStatus, saveWaiver } from '@/Lib/server/waivers';
+import { waiverStatus, saveWaiver, listWaivers, getWaiver } from '@/Lib/server/waivers';
 import { memberThread, memberSend, staffMembers, staffThread, staffSend } from '@/Lib/server/portal-chat';
 import { journalList, addSession, deleteSession, addGoal, setGoalDone, deleteGoal, deleteAll } from '@/Lib/server/range-journal';
 import { armoryList, armorySave, armoryDelete, armoryDeleteAll } from '@/Lib/server/armory';
@@ -3393,6 +3393,16 @@ export async function POST(req: NextRequest) {
          : await voidManualPayment(sb, payload.id, payload.reason, by);
        // A payment recorded in person: the student gets a short notification (if they turned notifications on). It says nothing about the amount, and never delays or blocks the answer.
        if (r.ok && action === 'adminRecordPayment' && pushConfigured()) { const job = () => notifyPaymentReceived(sb, String(payload.invoiceNumber || '')).then(() => undefined, () => undefined); if (typeof after === 'function') after(job); else void job(); }
+       return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
+     }
+
+     // Signed safety waivers, read only. STAFF ONLY: the role is checked on the server before the database is touched, and nothing here writes or logs waiver contents.
+     case 'adminWaiverList':
+     case 'adminWaiverGet': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       const sb = getPrivilegedClient();
+       const r: any = action === 'adminWaiverList' ? await listWaivers(sb) : await getWaiver(sb, payload?.studentId);
        return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
      }
 

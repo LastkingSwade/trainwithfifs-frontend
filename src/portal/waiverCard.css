@@ -1,0 +1,11 @@
+/* Student Portal waiver card: pulses RED while the waiver still needs to be signed, and is gone once it is. The old red blink could not run (its colour animation carried !important, which browsers
+   ignore inside animations, and the border was forced), and the "completed" state ran a pulse forever. Now the red pulse is a glow around the card, and a signed card is hidden. */
+@keyframes waiverNeedsAttention {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55), 0 0 10px rgba(239, 68, 68, 0.25); }
+  50% { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.22), 0 0 26px 6px rgba(239, 68, 68, 0.6); }
+}
+#portalWaiverCard.waiver-card-pending-blink { animation: waiverNeedsAttention 1.4s ease-in-out infinite !important; }
+#portalWaiverCard.waiver-card-completed { display: none !important; animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  #portalWaiverCard.waiver-card-pending-blink { animation: none !important; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.6); }
+}

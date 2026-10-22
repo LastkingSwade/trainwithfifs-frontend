@@ -27,3 +27,27 @@ export async function saveWaiver(supabase: any, studentId: string, w: WaiverInpu
     return { ok: true };
   } catch { return { ok: false, status: 503, error: 'Your waiver could not be saved right now, so it was NOT recorded. Please try again or call 443-990-1304.' }; }
 }
+
+// ---- Staff view. The Admin Hub lists who has signed and opens one signed waiver, read only. The route checks the staff role before calling these; they never write. ----
+export type WaiverSummary = { studentId: string; signedName: string; signedAt: string; version: string };
+export type WaiverRecord = WaiverSummary & { initials: string; signature: string; emergencyName: string; emergencyRelation: string; emergencyPhone: string; phone: string; email: string; under18: boolean };
+const summary = (r: any): WaiverSummary => ({ studentId: String(r.student_id || ''), signedName: String(r.signed_name || ''), signedAt: String(r.signed_at || ''), version: String(r.waiver_version || '') });
+
+export async function listWaivers(supabase: any): Promise<{ ok: true; available: boolean; waivers: WaiverSummary[] } | { ok: false; status: number; message: string }> {
+  try {
+    const r = await supabase.from('student_waivers').select('student_id, signed_name, signed_at, waiver_version').order('signed_at', { ascending: false }).limit(2000);
+    if (r.error) { if (missingTable(r.error)) return { ok: true, available: false, waivers: [] }; return { ok: false, status: 503, message: 'Waivers could not be loaded right now.' }; }
+    return { ok: true, available: true, waivers: (r.data || []).map(summary) };
+  } catch { return { ok: false, status: 503, message: 'Waivers could not be loaded right now.' }; }
+}
+
+export async function getWaiver(supabase: any, studentId: unknown): Promise<{ ok: true; waiver: WaiverRecord | null } | { ok: false; status: number; message: string }> {
+  const id = clean(studentId, 80); if (!id) return { ok: false, status: 400, message: 'Choose a student first.' };
+  try {
+    const r = await supabase.from('student_waivers').select('*').eq('student_id', id).maybeSingle();
+    if (r.error) return { ok: false, status: 503, message: 'This waiver could not be loaded right now.' };
+    if (!r.data) return { ok: true, waiver: null };
+    const d = r.data;
+    return { ok: true, waiver: { ...summary(d), initials: String(d.initials || ''), signature: String(d.signature || ''), emergencyName: String(d.emergency_name || ''), emergencyRelation: String(d.emergency_relation || ''), emergencyPhone: String(d.emergency_phone || ''), phone: String(d.phone || ''), email: String(d.email || ''), under18: d.under_18 === true } };
+  } catch { return { ok: false, status: 503, message: 'This waiver could not be loaded right now.' }; }
+}
