@@ -6101,6 +6101,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <button className="btn-tactical-hud hud-purple" id="btn-admin-trash-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminTrash?.(); }} data-onclick="openAdminTrash()" title="Put back a student or client deleted in the last 30 days" type="button">
               ↩ Recently Deleted
             </button>
+            <button className="btn-tactical-hud hud-purple" id="btn-admin-accesslog-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminAccessLog?.(); }} data-onclick="openAdminAccessLog()" title="Who on the staff opened waivers or sent reminders, and when (administrator only)" type="button">
+              🕵️ Access Log
+            </button>
             <button className="btn-tactical-hud hud-purple" id="btn-admin-push-hdr" onClick={(e) => { e.preventDefault(); (window as any).openAdminPush?.(); }} data-onclick="openAdminPush()" title="Send a short notification to people who turned reminders on" type="button">
               🔔 Notifications
             </button>
