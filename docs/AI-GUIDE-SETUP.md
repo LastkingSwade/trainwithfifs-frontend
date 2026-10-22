@@ -4,7 +4,7 @@ The FIFS Guide is a "🤖 Ask the FIFS Guide" window in the Hub menu for **signe
 
 ## Setup (owner): free option with Google Gemini (recommended)
 1. In Google AI Studio (aistudio.google.com) create an API key. **Do not link a billing account to it**, so it can never charge you.
-2. In Vercel add `GEMINI_API_KEY` (Production, Sensitive) with that key, then redeploy. If it is set, the Guide uses Gemini first. The model is `gemini-3.5-flash-lite` unless you set `GEMINI_MODEL`.
+2. In Vercel add `GEMINI_API_KEY` (Production, Sensitive) with that key (Google now issues keys starting `AIza` or `AQ.`; both work), then redeploy. If it is set, the Guide uses Gemini first. The model is `gemini-3.5-flash-lite` unless you set `GEMINI_MODEL`.
 3. **What the free tier means:** Google's free tier may use the questions sent to it to improve Google's products, and its limits can change without notice. Only the typed question, a few earlier turns and the matching approved passages are sent, and the window tells members not to enter personal details. If the free limit runs out the Guide shows the friendly "call Coach Kai" message.
 
 ## Setup (owner): paid option with Anthropic
