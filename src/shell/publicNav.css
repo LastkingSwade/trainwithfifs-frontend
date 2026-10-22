@@ -1,0 +1,16 @@
+/* Public bottom bar (phones, up to 899px). Company colours: dark navy, cyan line icons and hairline, amber for the current tab. Tabs are 56px tall (44px+ minimum), text is high
+   contrast, focus is always visible, and nothing moves (no animation, so reduced motion needs no special case). Larger screens keep the site's own header. */
+.fpn { display: none; }
+@media (max-width: 899px) {
+  .fpn { position: fixed; left: 0; right: 0; bottom: 0; z-index: 99985; display: grid; grid-template-columns: repeat(5, 1fr); background: #080c12; border-top: 1px solid rgba(0, 229, 255, 0.45); padding-bottom: env(safe-area-inset-bottom, 0px); font-family: var(--font-body, system-ui, sans-serif); }
+  .fpn-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 44px; min-height: 56px; padding: 6px 2px; color: #cfe8f6; text-decoration: none; background: transparent; -webkit-tap-highlight-color: transparent; }
+  .fpn-ico { color: #00e5ff; flex: none; }
+  .fpn-lab { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.02em; text-align: center; }
+  .fpn-tab[aria-current="page"] { color: #ffb703; background: rgba(255, 183, 3, 0.1); }
+  .fpn-tab[aria-current="page"] .fpn-ico { color: #ffb703; }
+  .fpn-tab[aria-current="page"] .fpn-lab { text-decoration: underline; text-underline-offset: 3px; }
+  .fpn-tab:focus-visible { outline: 3px solid #00e5ff; outline-offset: -3px; }
+  /* room for the bar, and the floating chat and text-size buttons ride above it */
+  body.fifs-pubnav-on { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
+  body.fifs-pubnav-on #floatingCommWrapper, body.fifs-pubnav-on .fifs-float { transform: translateY(calc(-62px - env(safe-area-inset-bottom, 0px))); }
+}

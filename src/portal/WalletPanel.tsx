@@ -151,7 +151,7 @@ export default function WalletPanel() {
                   <label>Type
                     <select aria-label="Document type" value={kind} onChange={(e) => setKind(e.target.value)}>{Object.entries(st.kinds).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
                   </label>
-                  <label>Expires (optional)
+                  <label>Expires (optional, self-reported)
                     <input type="date" aria-label="Expiration date (optional)" value={expires} onChange={(e) => setExpires(e.target.value)} />
                   </label>
                 </div>
@@ -185,10 +185,10 @@ export default function WalletPanel() {
                         </div>
                       </div>
                       <p className="vault-meta">Added by you · {prettyDate(d.createdAt)} · {sizeText(d.sizeBytes)}</p>
-                      {ex.state !== 'none' && <span className={'vault-exp ' + ex.state}>{ex.text}</span>}
+                      {ex.state !== 'none' && <><span className={'vault-exp ' + ex.state}>{ex.text}</span><span className="vault-self">Self-reported</span></>}
                       {editId === d.id && (
                         <div className="vault-edit">
-                          <label>New expiry date<input type="date" aria-label={`Expiry date for ${docTitle(d)}`} value={editDate} onChange={(e) => setEditDate(e.target.value)} /></label>
+                          <label>New expiry date (self-reported)<input type="date" aria-label={`Expiry date for ${docTitle(d)}`} value={editDate} onChange={(e) => setEditDate(e.target.value)} /></label>
                           <span className="vault-confirm-row"><button type="button" className="primary" disabled={busy || !editDate} onClick={() => saveExpiry(d)}>Save date</button>{d.expiresOn && <button type="button" disabled={busy} onClick={() => saveExpiry(d, true)}>No expiry</button>}<button type="button" onClick={() => setEditId('')}>Cancel</button></span>
                         </div>
                       )}

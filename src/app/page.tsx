@@ -8747,7 +8747,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
           </button>
           <div className="faq-answer">
             
-          HQL applications are typically processed within 14 to 30 days. Wear & Carry (CCW) applications take approximately 45 to 90 days. We provide step-by-step follow-up guides inside your Student Portal to ensure your application has zero shortages in the MSP portal.
+          The Maryland State Police say they will decide an HQL application within 30 days of receiving the completed application and fee, and a Wear & Carry (CCW) application within 90 days. We provide step-by-step follow-up guides inside your Student Portal to ensure your application has zero shortages in the MSP portal.
         
           </div>
         </div>
@@ -8837,7 +8837,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   Biennial Recertification & Expiration Countdown
                 </h3>
                 <p style={{"color": "var(--text-muted)", "fontSize": "0.95rem", "maxWidth": "760px"}}>
-                  Maryland Wear & Carry permits expire every 2 to 3 years. State Police require submission at least 90 days prior to expiration. Complete your 8-hour refresher and 25-round live-fire qualification at Cindy's Hot Shots.
+                  A first Maryland Wear & Carry permit is valid for 2 years, and a renewal for 3 more. The State Police ask you to start your renewal 90 days before it expires. Complete your 8-hour refresher class and live-fire qualification at Cindy's Hot Shots.
                 </p>
               </div>
               <div style={{"background": "rgba(0, 229, 255, 0.10)", "border": "1px solid var(--accent-cyan)", "borderRadius": "12px", "padding": "16px 20px", "textAlign": "right"}}>
@@ -8853,10 +8853,10 @@ document.addEventListener('submit', handleDelegatedSubmit);
             <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(280px, 1fr))", "gap": "16px", "marginBottom": "24px"}}>
               <div style={{"background": "rgba(16, 22, 31, 0.7)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "18px"}}>
                 <strong style={{"color": "var(--accent-amber)", "fontFamily": "var(--font-display)", "fontSize": "1.1rem", "display": "block", "marginBottom": "8px"}}>
-                  ⚠️ 90-Day Legal Window Reminder
+                  ⚠️ Renewal Window Reminder
                 </strong>
                 <p style={{"fontSize": "0.85rem", "color": "#cbd5e1", "lineHeight": "1.5"}}>
-                  If your permit expires before your renewal is processed, your concealed carry privileges are completely suspended until the new card arrives. Complete your training 90–120 days out.
+                  The State Police say: renew at least 14 days before your permit expires and you can keep carrying until a decision is made. If it expires, you must apply again as a new applicant. Start 90 days before expiration, and complete your training 90–120 days out.
                 </p>
               </div>
               <div style={{"background": "rgba(16, 22, 31, 0.7)", "border": "1px solid var(--border-subtle)", "borderRadius": "12px", "padding": "18px"}}>
@@ -8864,7 +8864,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   🎯 Range Qualification Standards
                 </strong>
                 <p style={{"fontSize": "0.85rem", "color": "#cbd5e1", "lineHeight": "1.5"}}>
-                  25-round Civilian BPHC course of fire on B-27 silhouette targets at 3, 5, 7, and 15 yards. Minimum 70% passing score (175/250 pts) with official signed Form MSP 29-14 scoresheet.
+                  25-round Civilian BPHC course of fire on B-27 silhouette targets at 3, 5, 7, and 15 yards. Minimum passing score is 90 of 125 points (72%), recorded on the official signed MSP 29-14 score sheet.
                 </p>
               </div>
             </div>

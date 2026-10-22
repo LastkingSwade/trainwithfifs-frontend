@@ -158,3 +158,6 @@
 .vault-edit button.primary { background: linear-gradient(135deg, #ffb703, #fb8500); border-color: transparent; color: #111; }
 .vault-edit button:disabled { opacity: 0.55; cursor: default; }
 .vault-edit input:focus-visible, .vault-edit button:focus-visible { outline: 3px solid #00e5ff; outline-offset: 2px; }
+
+/* Dates a member types in are labelled as self-reported: they are not checked against any agency record. */
+.vault-self { display: inline-block; margin-left: 8px; font-size: 0.78rem; font-weight: 700; color: #9fb8cc; }
