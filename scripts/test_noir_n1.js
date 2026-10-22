@@ -30,7 +30,7 @@ const tok = (name) => { const m = new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`).
   });
   await test('focus is always visible, and reduced motion stops decorative motion but keeps focus and state visible', () => {
     assert(/:root\[data-noir="on"\] :focus-visible \{ outline: 3px solid var\(--noir-cyan\)/.test(css), 'focus ring');
-    const rm = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)')); assert(/animation-duration: 0\.01ms !important/.test(rm) && /transition-duration: 0\.01ms !important/.test(rm), 'motion stops'); assert(!/outline:\s*none|display:\s*none/.test(rm), 'focus and state are not hidden');
+    const rm = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'), css.indexOf('/* ---- Stage N2')); assert(/animation-duration: 0\.01ms !important/.test(rm) && /transition-duration: 0\.01ms !important/.test(rm), 'motion stops'); assert(!/outline:\s*none|display:\s*none/.test(rm), 'focus and state are not hidden');
   });
   await test('the display font loads only through the platform font loader, is scoped to the NOIR flag, and no third-party script or stylesheet is added', () => {
     assert(/Cormorant_Garamond/.test(layout) && /--font-noir-display/.test(layout), 'font loaded'); assert(/--noir-font-display: var\(--font-noir-display\)/.test(css), 'font used only through the flagged token');

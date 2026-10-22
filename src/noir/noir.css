@@ -105,3 +105,15 @@
 
 /* 5. Ambient light: one still, soft wash behind a signed-in member's screens (cyan top, amber corner). No animation, no blur, behind everything, and it cannot be clicked. */
 :root[data-noir="on"] body.fifs-tabs-on::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(60% 40% at 50% 0%, rgba(41, 190, 211, 0.10), transparent 70%), radial-gradient(50% 35% at 100% 100%, rgba(204, 163, 90, 0.07), transparent 70%); }
+
+/* ---- Stage N4: hardening. Lighter lighting on phones, no ambient wash for people who ask for more contrast, and nothing decorative in print. ---- */
+@media (max-width: 899px) {
+  :root[data-noir="on"] body.fifs-tabs-on::before { background: radial-gradient(60% 40% at 50% 0%, rgba(41, 190, 211, 0.10), transparent 70%); }
+}
+@media (prefers-contrast: more) {
+  :root[data-noir="on"] body.fifs-tabs-on::before { display: none; }
+  :root[data-noir="on"] { --noir-border: #aab7c7; }
+}
+@media print {
+  :root[data-noir="on"] body.fifs-tabs-on::before, :root[data-noir="on"] .rj-badge-list li.earned::after { display: none; }
+}
