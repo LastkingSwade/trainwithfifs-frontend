@@ -1,0 +1,4 @@
+/* Home page: the group of action buttons at the bottom of the first screen (Start Your Journey, the two portal buttons, Range Highlights, FAQ, Chat) no longer sits on a frosted-glass panel.
+   The panel's blur and its see-through fill are removed, so the buttons sit straight on the hero picture. The buttons themselves, their colours and their size are unchanged.
+   The selector is deliberately strong: the site's older and newer card rules mark this panel !important. */
+html body #hero-landing .hero-command-dock { background: transparent !important; background-image: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: none !important; }
