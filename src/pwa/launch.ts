@@ -1,10 +1,10 @@
 // Deep links into the one-page site. Home-screen shortcuts ("Student Portal", "Client Portal") and the public Permit Center pages (/permits) open the site with ?open=<target>:
 // student and client open that portal (their own dashboard if they are signed in, the portal sign-in if not); booking and classes open the existing booking screen (classes scrolls to
-// the course catalog); reciprocity opens the existing Reciprocity Hub; renewal opens the existing Permit Renewal Center (information only). Only these exact words are accepted, nothing
+// the course catalog); reciprocity opens the existing Reciprocity Hub; renewal opens the existing Permit Renewal Center (information only); login opens the stand-alone My FIFS sign-in. Only these exact words are accepted, nothing
 // else is read from the address, and the extra bit is removed afterward. Nothing is stored or sent.
-export type LaunchTarget = 'student' | 'client' | 'booking' | 'classes' | 'start' | 'reciprocity' | 'renewal' | null;
+export type LaunchTarget = 'student' | 'client' | 'booking' | 'classes' | 'start' | 'reciprocity' | 'renewal' | 'login' | null;
 export const VIEW_FOR: Record<'student' | 'client', string> = { student: 'portal', client: 'fi-portal' };
-export const TARGETS: readonly string[] = ['student', 'client', 'booking', 'classes', 'start', 'reciprocity', 'renewal'];
+export const TARGETS: readonly string[] = ['student', 'client', 'booking', 'classes', 'start', 'reciprocity', 'renewal', 'login'];
 
 export function launchTarget(search: string): LaunchTarget {
   try { const v = new URLSearchParams(String(search || '')).get('open'); return v !== null && TARGETS.includes(v) ? (v as LaunchTarget) : null; } catch { return null; }
@@ -26,6 +26,7 @@ export function installLaunchTargets(): boolean {
   else if (t === 'start') { w.openAndSwitch('start'); }
   else if (t === 'reciprocity') { if (typeof w.toggleReciprocityHubModal === 'function') w.toggleReciprocityHubModal(true); }
   else if (t === 'renewal') { if (typeof w.openPermitRenewalModal === 'function') w.openPermitRenewalModal(); }
+  else if (t === 'login') { if (!document.body.classList.contains('fifs-tabs-on') && typeof w.openMyFifsLogin === 'function') w.openMyFifsLogin(); }
   return true;
 }
 /** The booking screen starts at the top; "classes" brings the course catalog into view (the same place the site's /#enrollment link goes). */

@@ -43,7 +43,7 @@ export default function PublicNav() {
     else if (item.key === 'book') { w.openAndSwitch('booking'); window.scrollTo({ top: 0 }); }
     else if (item.key === 'myfifs') {
       if (snap.portal === 'student') w.openAndSwitch('portal'); else if (snap.portal === 'client') w.openAndSwitch('fi-portal');
-      else if (typeof w.openPortalSelectionModal === 'function') w.openPortalSelectionModal(); else w.openAndSwitch('portal');
+      else if (typeof w.openMyFifsLogin === 'function') w.openMyFifsLogin(); else if (typeof w.openPortalSelectionModal === 'function') w.openPortalSelectionModal(); else w.openAndSwitch('portal');
     }
   };
 

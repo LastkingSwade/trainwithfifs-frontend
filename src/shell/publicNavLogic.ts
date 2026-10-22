@@ -49,4 +49,4 @@ export function savedPortal(store: Store | null | undefined, now: Date): 'studen
   return null;
 }
 /** Where "My FIFS" goes when the person is not on the one-page site. A known portal goes straight there; otherwise the site's own portal chooser. */
-export const myFifsHref = (p: 'student' | 'client' | null): string => (p === 'client' ? '/?open=client' : '/?open=student');
+export const myFifsHref = (p: 'student' | 'client' | null): string => (p === 'client' ? '/?open=client' : p === 'student' ? '/?open=student' : '/?open=login');
