@@ -37,13 +37,16 @@ export function cleanSession(input: any, now: Date = new Date()): { ok: true; ro
 const toSession = (r: any): JSession => ({ id: String(r.id), on: String(r.session_on), range: r.range_name ?? null, rounds: Number(r.rounds) || 0, focus: r.focus ?? null, score: r.score_text ?? null, notes: r.notes ?? null });
 const toGoal = (r: any): JGoal => ({ id: String(r.id), goal: String(r.goal), targetOn: r.target_on ?? null, doneAt: r.done_at ?? null });
 
-async function guard(sb: any, uid: string): Promise<JResult> {
-  try { const role = await memberRole(sb, uid); return role ? { ok: true } : { ok: false, status: 403, message: 'The range journal is for students and clients.' }; }
+// `staff` is true only when the route has verified from the login itself that this is a staff or admin account. Staff then keep their OWN journal (every query below is still
+// limited to their own login id); a student's or client's journal is still reached only by that person.
+async function guard(sb: any, uid: string, staff = false): Promise<JResult> {
+  if (staff) return { ok: true };
+  try { const role = await memberRole(sb, uid); return role ? { ok: true } : { ok: false, status: 403, message: 'The range journal is for students, clients and staff.' }; }
   catch { return { ok: false, status: 503, message: 'The journal is unavailable right now. Please try again in a minute.' }; }
 }
 
-export async function journalList(sb: any, uid: string): Promise<JResult<{ available: boolean; sessions: JSession[]; goals: JGoal[] }>> {
-  const g = await guard(sb, uid); if (!g.ok) return g;
+export async function journalList(sb: any, uid: string, staff = false): Promise<JResult<{ available: boolean; sessions: JSession[]; goals: JGoal[] }>> {
+  const g = await guard(sb, uid, staff); if (!g.ok) return g;
   try {
     const s = await sb.from('range_sessions').select('id, session_on, range_name, rounds, focus, score_text, notes').eq('user_id', uid).order('session_on', { ascending: false }).limit(LIST_LIMIT);
     if (s.error) return missingTable(s.error) ? { ok: true, available: false, sessions: [], goals: [] } : { ok: false, status: 503, message: 'Could not load your journal right now.' };
@@ -53,9 +56,9 @@ export async function journalList(sb: any, uid: string): Promise<JResult<{ avail
   } catch { return { ok: false, status: 503, message: 'Could not load your journal right now.' }; }
 }
 
-export async function addSession(sb: any, uid: string, input: unknown, now: Date = new Date()): Promise<JResult<{ session: JSession }>> {
+export async function addSession(sb: any, uid: string, input: unknown, now: Date = new Date(), staff = false): Promise<JResult<{ session: JSession }>> {
   const v = cleanSession(input, now); if (!v.ok) return { ok: false, status: 400, message: v.message };
-  const g = await guard(sb, uid); if (!g.ok) return g;
+  const g = await guard(sb, uid, staff); if (!g.ok) return g;
   try {
     const have = await sb.from('range_sessions').select('id').eq('user_id', uid).limit(MAX_SESSIONS + 1);
     if (have.error) return { ok: false, status: 503, message: missingTable(have.error) ? NOT_READY : FAIL };
@@ -66,9 +69,9 @@ export async function addSession(sb: any, uid: string, input: unknown, now: Date
   } catch { return { ok: false, status: 503, message: FAIL }; }
 }
 
-async function removeOne(sb: any, uid: string, table: 'range_sessions' | 'range_goals', id: unknown): Promise<JResult> {
+async function removeOne(sb: any, uid: string, table: 'range_sessions' | 'range_goals', id: unknown, staff = false): Promise<JResult> {
   const docId = String(id ?? ''); if (!UUID.test(docId)) return { ok: false, status: 400, message: 'That item could not be found.' };
-  const g = await guard(sb, uid); if (!g.ok) return g;
+  const g = await guard(sb, uid, staff); if (!g.ok) return g;
   try {
     const f = await sb.from(table).select('id').eq('id', docId).eq('user_id', uid).maybeSingle();
     if (f.error) return { ok: false, status: 503, message: missingTable(f.error) ? NOT_READY : FAIL };
@@ -77,13 +80,13 @@ async function removeOne(sb: any, uid: string, table: 'range_sessions' | 'range_
     return d.error ? { ok: false, status: 503, message: FAIL } : { ok: true };
   } catch { return { ok: false, status: 503, message: FAIL }; }
 }
-export const deleteSession = (sb: any, uid: string, id: unknown) => removeOne(sb, uid, 'range_sessions', id);
-export const deleteGoal = (sb: any, uid: string, id: unknown) => removeOne(sb, uid, 'range_goals', id);
+export const deleteSession = (sb: any, uid: string, id: unknown, staff = false) => removeOne(sb, uid, 'range_sessions', id, staff);
+export const deleteGoal = (sb: any, uid: string, id: unknown, staff = false) => removeOne(sb, uid, 'range_goals', id, staff);
 
-export async function addGoal(sb: any, uid: string, input: any): Promise<JResult<{ goal: JGoal }>> {
+export async function addGoal(sb: any, uid: string, input: any, staff = false): Promise<JResult<{ goal: JGoal }>> {
   const goal = clean(input?.goal); if (!goal || goal.length > 140) return { ok: false, status: 400, message: 'Write your goal in up to 140 characters.' };
   const target = clean(input?.targetOn); if (target && (!validDay(target) || target < '2000-01-01' || target > '2100-12-31')) return { ok: false, status: 400, message: 'The target date is not valid.' };
-  const g = await guard(sb, uid); if (!g.ok) return g;
+  const g = await guard(sb, uid, staff); if (!g.ok) return g;
   try {
     const have = await sb.from('range_goals').select('id').eq('user_id', uid).limit(MAX_GOALS + 1);
     if (have.error) return { ok: false, status: 503, message: missingTable(have.error) ? NOT_READY : FAIL };
@@ -94,9 +97,9 @@ export async function addGoal(sb: any, uid: string, input: any): Promise<JResult
   } catch { return { ok: false, status: 503, message: FAIL }; }
 }
 
-export async function setGoalDone(sb: any, uid: string, id: unknown, done: unknown, now: Date = new Date()): Promise<JResult> {
+export async function setGoalDone(sb: any, uid: string, id: unknown, done: unknown, now: Date = new Date(), staff = false): Promise<JResult> {
   const goalId = String(id ?? ''); if (!UUID.test(goalId)) return { ok: false, status: 400, message: 'That goal could not be found.' };
-  const g = await guard(sb, uid); if (!g.ok) return g;
+  const g = await guard(sb, uid, staff); if (!g.ok) return g;
   try {
     const up = await sb.from('range_goals').update({ done_at: done === true ? now.toISOString() : null }).eq('id', goalId).eq('user_id', uid).select('id');
     if (up.error) return { ok: false, status: 503, message: missingTable(up.error) ? NOT_READY : FAIL };
@@ -105,8 +108,8 @@ export async function setGoalDone(sb: any, uid: string, id: unknown, done: unkno
 }
 
 /** Delete everything this person keeps in the journal. */
-export async function deleteAll(sb: any, uid: string): Promise<JResult> {
-  const g = await guard(sb, uid); if (!g.ok) return g;
+export async function deleteAll(sb: any, uid: string, staff = false): Promise<JResult> {
+  const g = await guard(sb, uid, staff); if (!g.ok) return g;
   try {
     const a = await sb.from('range_sessions').delete().eq('user_id', uid); const b = await sb.from('range_goals').delete().eq('user_id', uid);
     if (a.error || b.error) return { ok: false, status: 503, message: missingTable(a.error) || missingTable(b.error) ? NOT_READY : FAIL };

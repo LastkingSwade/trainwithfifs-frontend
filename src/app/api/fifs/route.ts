@@ -3268,18 +3268,19 @@ export async function POST(req: NextRequest) {
      case 'journalSetGoal':
      case 'journalDeleteGoal':
      case 'journalDeleteAll': {
-       // A student's or client's own private range journal. The owner is the verified login, never anything from the request; staff have no route to these rows.
+       // A private range journal for a student, a client, or a staff member's OWN use. The owner is the verified login, never anything from the request. Staff get a journal of their own
+       // (found from the login's own role, never from the request); every query is limited to the caller's own login id, so nobody can reach anyone else's journal, staff included.
        const { user, error: authErr } = await getAuthenticatedUser(req);
        if (authErr || !user?.id) return NextResponse.json({ success: false, error: 'Please sign in to your portal to use the range journal.' }, { status: 401 });
-       supabase = getPrivilegedClient(); const uid = String(user.id);
+       supabase = getPrivilegedClient(); const uid = String(user.id); const staff = isStaffOrAdmin(user);
        if (action !== 'journalList' && !allowPublicSubmit(req, 'journal', 60)) return NextResponse.json({ success: false, error: 'You are saving very quickly. Please wait a minute and try again.' }, { status: 429 });
-       const res: any = action === 'journalList' ? await journalList(supabase, uid)
-         : action === 'journalAddSession' ? await addSession(supabase, uid, { on: payload.on, range: payload.range, rounds: payload.rounds, focus: payload.focus, score: payload.score, notes: payload.notes })
-         : action === 'journalDeleteSession' ? await deleteSession(supabase, uid, payload.id)
-         : action === 'journalAddGoal' ? await addGoal(supabase, uid, { goal: payload.goal, targetOn: payload.targetOn })
-         : action === 'journalSetGoal' ? await setGoalDone(supabase, uid, payload.id, payload.done === true)
-         : action === 'journalDeleteGoal' ? await deleteGoal(supabase, uid, payload.id)
-         : await deleteAll(supabase, uid);
+       const res: any = action === 'journalList' ? await journalList(supabase, uid, staff)
+         : action === 'journalAddSession' ? await addSession(supabase, uid, { on: payload.on, range: payload.range, rounds: payload.rounds, focus: payload.focus, score: payload.score, notes: payload.notes }, undefined, staff)
+         : action === 'journalDeleteSession' ? await deleteSession(supabase, uid, payload.id, staff)
+         : action === 'journalAddGoal' ? await addGoal(supabase, uid, { goal: payload.goal, targetOn: payload.targetOn }, staff)
+         : action === 'journalSetGoal' ? await setGoalDone(supabase, uid, payload.id, payload.done === true, undefined, staff)
+         : action === 'journalDeleteGoal' ? await deleteGoal(supabase, uid, payload.id, staff)
+         : await deleteAll(supabase, uid, staff);
        return res.ok ? NextResponse.json({ success: true, ...res }) : NextResponse.json({ success: false, error: res.message }, { status: res.status });
      }
 

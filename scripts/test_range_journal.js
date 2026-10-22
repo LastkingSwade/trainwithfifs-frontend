@@ -103,11 +103,30 @@ const ok = { on: '2026-10-20', range: "Cindy's Hot Shots", rounds: 100, focus: '
   });
   await test('"today" is the person\'s own calendar day, so an evening session is not dated tomorrow', () => { eq(L.todayISO(new Date(2026, 9, 22, 21, 30)), '2026-10-22'); eq(L.todayISO(new Date(2026, 0, 1, 0, 5)), '2026-01-01'); });
 
+  console.log('\n[Staff keep their own journal]');
+  const STAFF = '44444444-4444-4444-8444-444444444444', STAFF2 = '55555555-5555-4555-8555-555555555555';
+  await test('a staff or admin login (no student or client record) can keep its own journal: list, add, goal, tick, delete', async () => {
+    const db = fakeDb(base()); const r0 = await J.journalList(db, STAFF, true); assert(r0.ok && r0.sessions.length === 0, 'opens empty, no error');
+    const add = await J.addSession(db, STAFF, ok, NOW, true); assert(add.ok, JSON.stringify(add)); const g = await J.addGoal(db, STAFF, { goal: 'Shoot sub-2 draw' }, true); assert(g.ok, JSON.stringify(g));
+    const l = await J.journalList(db, STAFF, true); eq([l.sessions.length, l.goals.length], [1, 1]); assert((await J.setGoalDone(db, STAFF, l.goals[0].id, true, NOW, true)).ok, 'tick'); assert((await J.deleteSession(db, STAFF, l.sessions[0].id, true)).ok, 'delete session'); assert((await J.deleteGoal(db, STAFF, l.goals[0].id, true)).ok, 'delete goal'); assert((await J.deleteAll(db, STAFF, true)).ok, 'delete all');
+  });
+  await test('without the staff flag the old rule still holds: a login that is not a student, client or verified staff gets 403 on every call', async () => {
+    const db = fakeDb(base()); for (const r of [await J.journalList(db, STAFF), await J.addSession(db, STAFF, ok, NOW), await J.addGoal(db, STAFF, { goal: 'x' }), await J.deleteAll(db, STAFF), await J.deleteSession(db, STAFF, '00000000-0000-4000-8000-000000000001'), await J.setGoalDone(db, STAFF, '00000000-0000-4000-8000-000000000001', true, NOW)]) eq([r.ok, r.status], [false, 403]);
+    eq([(await J.journalList(db, STAFF, false)).ok, (await J.journalList(db, STAFF, undefined)).ok], [false, false]);
+  });
+  await test('staff reach ONLY their own rows: a staff journal is invisible to students, clients and other staff, and theirs to nobody else; a student\'s journal is invisible to staff', async () => {
+    const db = fakeDb(base()); await J.addSession(db, A, { ...ok, notes: 'student A private' }, NOW); await J.addSession(db, STAFF, { ...ok, notes: 'staff private' }, NOW, true); await J.addGoal(db, STAFF, { goal: 'staff goal' }, true);
+    const staffView = await J.journalList(db, STAFF, true); const other = await J.journalList(db, STAFF2, true); const student = await J.journalList(db, A); const client = await J.journalList(db, B);
+    assert(!JSON.stringify(staffView).includes('student A private'), 'staff cannot read a student\'s journal'); assert(JSON.stringify(staffView).includes('staff private'), 'staff see their own');
+    eq([other.sessions.length, other.goals.length], [0, 0], 'a second staff login sees nothing of the first'); assert(!JSON.stringify(student).includes('staff private') && !JSON.stringify(client).includes('staff private'), 'members cannot read staff journals');
+    const sid = staffView.sessions[0].id; const del = await J.deleteSession(db, STAFF2, sid, true); eq([del.ok, del.status], [false, 404], 'another login gets "not found" for someone else\'s item'); eq((await J.journalList(db, STAFF, true)).sessions.length, 1, 'staff row untouched by another login');
+    const guess = await J.deleteSession(db, STAFF, (await J.journalList(db, A)).sessions[0].id, true); eq([guess.ok, guess.status], [false, 404], 'staff guessing a student\'s item id gets not found'); eq((await J.journalList(db, A)).sessions.length, 1, 'staff cannot delete a student\'s session by guessing its id');
+  });
   console.log('\n[Wiring and security]');
   await test('the route: the owner is always the verified login, only sign-in is needed (no staff path), saves are rate limited, and no request field names an owner', () => {
     const r = read('src/app/api/fifs/route.ts'); const i = r.indexOf("case 'journalList':"); const seg = r.slice(i, r.indexOf('// Website telemetry (staff only)', i));
     assert(/getAuthenticatedUser\(req\)/.test(seg) && /const uid = String\(user\.id\)/.test(seg) && /allowPublicSubmit\(req, 'journal', 60\)/.test(seg), 'login, owner, limit'); assert(!/payload\??\.(userId|user_id|ownerId|memberId)/.test(seg), 'no owner from the request');
-    for (const a of ['journalList', 'journalAddSession', 'journalDeleteSession', 'journalAddGoal', 'journalSetGoal', 'journalDeleteGoal', 'journalDeleteAll']) assert(new RegExp(`case '${a}':`).test(seg), a); assert(!/isStaffOrAdmin|adminJournal/.test(seg), 'no staff route to journals');
+    for (const a of ['journalList', 'journalAddSession', 'journalDeleteSession', 'journalAddGoal', 'journalSetGoal', 'journalDeleteGoal', 'journalDeleteAll']) assert(new RegExp(`case '${a}':`).test(seg), a); assert(!/adminJournal/.test(seg), 'no staff action that reaches other people\'s journals'); assert((seg.match(/isStaffOrAdmin/g) || []).length === 1 && /const staff = isStaffOrAdmin\(user\);/.test(seg), 'the staff flag comes only from the verified login, in exactly one place'); assert(!/payload\??\.(staff|isStaff|role|admin)/.test(seg), 'the staff flag never comes from the request'); for (const call of ['journalList(supabase, uid, staff)', ', undefined, staff)', 'deleteSession(supabase, uid, payload.id, staff)', 'deleteGoal(supabase, uid, payload.id, staff)', 'deleteAll(supabase, uid, staff)', '}, staff)']) assert(seg.includes(call), 'the staff flag is passed on: ' + call); assert((seg.match(/staff\)/g) || []).length >= 7, 'all seven journal calls pass the staff flag');
     for (const f of walk('src')) { const s = read(f); if (/range_sessions|range_goals/.test(s)) assert(/range-journal\.ts$/.test(f), f + ' must not touch the journal tables directly'); }
   });
   await test('the screen: text only, the "no serial numbers or storage details" notice, private for you, export and delete with a confirmation, in the company colours with 44px controls and no animation', () => {
