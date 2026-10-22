@@ -19,6 +19,7 @@ import RangeJournalPanel from "../portal/RangeJournalPanel";
 import ArmoryPanel from "../portal/ArmoryPanel";
 import AiGuidePanel from "../portal/AiGuidePanel";
 import PublicNav from "../shell/PublicNav";
+import NoirMoments from "../noir/NoirMoments";
 import VisitBeacon from "../analytics/VisitBeacon";
 import ServiceWorkerRegister from "../pwa/ServiceWorkerRegister";
 import RestoreSession from "../portal/RestoreSession";
@@ -91,6 +92,7 @@ export default function RootLayout({
         <ArmoryPanel />
         <AiGuidePanel />
         <PublicNav />
+        {process.env.NEXT_PUBLIC_NOIR === "on" && <NoirMoments />}
         <Secrets />
         <OrganicSkin />
         <ServiceWorkerRegister />

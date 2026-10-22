@@ -10,7 +10,7 @@ const C = require(path.join(ROOT, 'src/noir/contrast.ts'));
 let passed = 0, failed = 0;
 const test = async (n, f) => { try { await f(); passed++; console.log(`  ✓ PASS: ${n}`); } catch (e) { failed++; console.log(`  ✗ FAIL: ${n}\n      ${e.message}`); } };
 const assert = (c, m) => { if (!c) throw new Error(m || 'assertion failed'); };
-const full = read('src/noir/noir.css'); const n2 = full.slice(full.indexOf('/* ---- Stage N2')); assert(n2.length > 500, 'stage N2 section present');
+const full = read('src/noir/noir.css'); const n3At = full.indexOf('/* ---- Stage N3'); const n2 = full.slice(full.indexOf('/* ---- Stage N2'), n3At === -1 ? undefined : n3At); assert(n2.length > 500, 'stage N2 section present');
 const tok = (name) => { const m = new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`).exec(full); assert(m, 'token ' + name); return m[1]; };
 // Every rule (including those inside @media blocks) as { sel, body }.
 const rules = []; { const n2c = n2.replace(/\/\*[\s\S]*?\*\//g, ''); const re = /([^{}@][^{}]*)\{([^{}]*)\}/g; let m; while ((m = re.exec(n2c))) rules.push({ sel: m[1].trim(), body: m[2] }); }
