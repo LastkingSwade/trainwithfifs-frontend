@@ -82,7 +82,8 @@ const nextConfig: NextConfig = {
           // 6. Permissions Policy
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            // The microphone is allowed for this site only, so the Range Journal's shot timer can hear shots. The camera and location stay blocked.
+            value: "camera=(), microphone=(self), geolocation=()",
           },
         ],
       },

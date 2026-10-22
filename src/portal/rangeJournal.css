@@ -80,3 +80,41 @@
 :root:root .pcard.rj-launch .rj-launch-btn { grid-column: 1 / -1; width: 100%; min-height: 56px; padding: 0 22px; border: 0; border-radius: 14px; cursor: pointer; font: inherit; font-size: 1.1rem; font-weight: 800; letter-spacing: 0.02em; color: #111 !important; background: linear-gradient(135deg, #ffb703, #fb8500); }
 :root:root .pcard.rj-launch .rj-launch-btn:focus-visible { outline: 3px solid #00e5ff; outline-offset: 3px; }
 @media (min-width: 700px) { :root:root .pcard.rj-launch { grid-template-columns: auto 1fr auto; padding: 26px 28px; } :root:root .pcard.rj-launch .rj-launch-btn { grid-column: auto; width: auto; } }
+
+/* Shot timer inside the Range Journal. Big readout, big buttons (all at least 48px), clear red/green/amber states, visible focus, and nothing moves (the GO cue is an instant colour change plus the words, so reduced motion needs no special case). */
+.rj-timer .rj-note { margin-bottom: 12px; }
+.rj-t-screen { padding: 18px 14px 14px; border-radius: 16px; text-align: center; background: linear-gradient(180deg, #0a1018 0%, #070b10 100%); border: 2px solid rgba(0, 229, 255, 0.4); }
+.rj-t-wait { border-color: #ffb703; }
+.rj-t-go { border-color: #34d399; background: linear-gradient(180deg, rgba(52, 211, 153, 0.22) 0%, #07120e 100%); }
+.rj-t-time { display: block; font-family: var(--font-mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; font-size: clamp(3.2rem, 18vw, 5.4rem); line-height: 1; font-weight: 800; color: #ffb703; }
+.rj-t-time small { font-size: 0.35em; margin-left: 6px; color: #cfe8f6; }
+.rj-t-status { margin: 10px 0 0; font-size: 1.1rem; font-weight: 700; color: #e8faff; min-height: 1.6em; }
+.rj-t-go .rj-t-status { color: #34d399; font-size: 1.4rem; }
+.rj-t-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+.rj-t-actions button, .rj-t-ghost { min-height: 52px; padding: 0 20px; border-radius: 14px; cursor: pointer; font: inherit; font-size: 1.05rem; font-weight: 800; }
+.rj-t-start { flex: 1 1 160px; }
+.rj-t-stop { flex: 1 1 140px; color: #fff; background: #b91c1c; border: 1px solid #ff6b6b; }
+.rj-t-tap { flex: 2 1 200px; color: #111; background: linear-gradient(135deg, #ffb703, #fb8500); border: 0; }
+.rj-t-ghost, .rj-t-actions .rj-t-ghost { color: #e8faff; background: rgba(0, 229, 255, 0.06); border: 1px solid rgba(0, 229, 255, 0.5); }
+.rj-t-actions button:focus-visible, .rj-t-ghost:focus-visible, .rj-t-settings input:focus-visible { outline: 3px solid #00e5ff; outline-offset: 2px; }
+.rj-t-settings { display: grid; gap: 8px; }
+.rj-t-settings label { display: grid; gap: 6px; font-weight: 700; color: #cfe8f6; }
+.rj-t-settings input[type="text"] { min-height: 48px; font-size: 16px; }
+.rj-t-settings input[type="range"] { min-height: 44px; }
+.rj-t-check { display: flex !important; align-items: center; gap: 10px; min-height: 44px; }
+.rj-t-check input { width: 24px; height: 24px; }
+.rj-t-help { margin: 0; font-size: 0.85rem; color: #9fb8cc; }
+.rj-t-meter { position: relative; height: 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.rj-t-meter i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #34d399, #ffb703); }
+.rj-t-meter b { position: absolute; top: 0; bottom: 0; width: 3px; background: #ff6b6b; }
+.rj-t-results { margin-top: 14px; }
+.rj-t-list { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; max-height: 260px; overflow-y: auto; }
+.rj-t-list li { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: baseline; padding: 8px 12px; border-radius: 10px; background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.25); font-variant-numeric: tabular-nums; }
+.rj-t-list li b { color: #fff; } .rj-t-list li span { color: #ffb703; font-weight: 800; } .rj-t-list li small { color: #9fb8cc; min-width: 84px; text-align: right; }
+.rj-t-sum { margin: 0 0 10px; color: #d3e9f8; font-weight: 700; }
+
+/* The second button on the dashboard card opens the journal at the shot timer. Same size as the first; cyan outline so the amber button stays the main action. */
+:root:root .pcard.rj-launch .rj-launch-actions { grid-column: 1 / -1; display: grid; gap: 10px; }
+:root:root .pcard.rj-launch .rj-launch-timer { width: 100%; min-height: 52px; padding: 0 22px; border-radius: 14px; cursor: pointer; font: inherit; font-size: 1.05rem; font-weight: 800; color: #e8faff !important; background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.6); }
+:root:root .pcard.rj-launch .rj-launch-timer:focus-visible { outline: 3px solid #00e5ff; outline-offset: 3px; }
+@media (min-width: 700px) { :root:root .pcard.rj-launch .rj-launch-actions { grid-column: auto; } }
