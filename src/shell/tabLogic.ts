@@ -22,11 +22,8 @@ export const HUB_ITEMS: readonly HubItem[] = [
   { key: 'book', emoji: '📅', label: 'Book a class', hint: 'See dates and reserve a seat', call: 'openAndSwitch', arg: 'booking', roles: ['student', 'client'] },
   { key: 'permit', emoji: '🛡️', label: 'Permit & renewal', hint: 'Your permit date and renewal window', call: 'openPermitRenewalModal', roles: ['client'] },
   { key: 'profile', emoji: '👤', label: 'My profile', hint: 'Your details and reminder choices', call: 'openClientProfileModal', roles: ['client'] },
-<<<<<<< HEAD
   { key: 'emergency', emoji: '🆘', label: 'Emergency info', hint: '911, 988 and reporting help', href: '/emergency', roles: ['student', 'client'] },
-=======
   { key: 'storage', emoji: '🔒', label: 'Storage checklist', hint: 'Simple safe-storage habits', href: '/safe-storage', roles: ['student', 'client'] },
->>>>>>> feature/storage-checklist
   { key: 'recip', emoji: '🗺️', label: 'Reciprocity Hub', hint: 'Where your permit is honored', call: 'toggleReciprocityHubModal', arg: true, roles: ['student', 'client'] },
   { key: 'drive', emoji: '🚗', label: 'Driving with a firearm', hint: 'Mid-Atlantic transport basics', call: 'openVehicleTravelModal', roles: ['student', 'client'] },
   { key: 'fly', emoji: '✈️', label: 'Flying with a firearm', hint: 'Airline and TSA basics', call: 'openFlyingWithFirearmModal', roles: ['student', 'client'] },
