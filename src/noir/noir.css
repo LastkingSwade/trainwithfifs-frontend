@@ -72,3 +72,11 @@
 @media (forced-colors: active) {
   :root[data-noir="on"] .fpn-tab[aria-current="page"], :root[data-noir="on"] .fts-tab[aria-current="page"] { outline: 2px solid Highlight; outline-offset: -4px; }
 }
+
+/* ---- Stage N2, part 2: the site's existing panels (Wallet, Armory, Range, Home cards, Permit Center). Surface only: background, border, corner radius and shadow.
+   Text colours, emoji and the cyan/amber accents are left exactly as they are. Highlighted cards (.next-step-card, .fi-vault-card) keep their own accent treatment. ---- */
+:root[data-noir="on"] .vault-card, :root[data-noir="on"] .ar-card, :root[data-noir="on"] .rj-card, :root[data-noir="on"] .eg-card, :root[data-noir="on"] .pc-card { background: var(--noir-obsidian); border-color: var(--noir-border); border-radius: var(--noir-radius-lg); box-shadow: none; }
+:root[data-noir="on"] .vault-addpanel, :root[data-noir="on"] .student-badge-bar { background: var(--noir-titanium); border-color: var(--noir-border); border-radius: var(--noir-radius-lg); }
+@media (hover: hover) {
+  :root[data-noir="on"] .vault-card:hover, :root[data-noir="on"] .ar-card:hover, :root[data-noir="on"] .rj-card:hover, :root[data-noir="on"] .eg-card:hover { border-color: rgba(204, 163, 90, 0.55); }
+}

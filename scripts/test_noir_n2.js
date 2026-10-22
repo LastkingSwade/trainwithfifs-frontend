@@ -44,6 +44,11 @@ const blend = (fg, bg, a) => { const h = (s) => [1, 3, 5].map((i) => parseInt(s.
     const pairs = [[muted, obs, 'muted on bar'], [ivory, obs, 'ivory hover on bar'], [amber, cur, 'amber on current tab'], [ivory, tit, 'ivory on row'], [muted, tit, 'muted note on row'], [ivory, elev, 'ivory on hovered row'], [muted, elev, 'muted on hovered row'], [void_, amber, 'dark on amber button']];
     for (const [f, b, n] of pairs) assert(C.contrast(f, b) >= 4.5, n + ' is ' + C.contrast(f, b).toFixed(2) + ':1');
   });
+  await test('the existing panels change surface only (background, border, radius, shadow): text colours and accents are left alone, and the highlighted cards are not restyled', () => {
+    const panels = rules.filter((r) => /\.(vault-card|ar-card|rj-card|eg-card|pc-card|vault-addpanel|student-badge-bar)\b/.test(r.sel)); assert(panels.length >= 3, 'panel rules present');
+    for (const r of panels) for (const d of r.body.split(';').map((x) => x.trim()).filter(Boolean)) assert(/^(background|background-color|border-color|border-radius|box-shadow)\s*:/.test(d), 'panel rule changes more than the surface: ' + d + ' in ' + r.sel);
+    assert(!/next-step-card|fi-vault-card/.test(n2.replace(/\/\*[\s\S]*?\*\//g, '')), 'highlighted cards are left with their accent treatment');
+  });
   await test('stage N2 adds no script, import or dependency, and globals.css is still untouched', () => {
     assert(!/<script|@import|url\(/i.test(n2), 'CSS only'); assert(!/noir/i.test(read('src/app/globals.css')), 'globals.css untouched');
   });
