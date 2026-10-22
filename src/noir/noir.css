@@ -1,4 +1,4 @@
-/* FIFS NOIR 1.0 tokens. Scoped to [data-noir="on"], so nothing changes for anyone while the flag is off.
+/* FIFS NOIR 1.0: the site's one design layer. On unless NEXT_PUBLIC_NOIR is exactly "off" (a kill switch). Scoped to [data-noir="on"].
    globals.css is append-only, so the NOIR layer lives in this file. Colours are a design starting point; every text pairing is checked in scripts/test_noir_n1.js. */
 :root[data-noir="on"] {
   --noir-void: #080c12;
@@ -119,7 +119,7 @@
 }
 
 /* ---- Stage C1: the main site's cards (course cards, FAQ, instructor, range targets, checklists, pathway chooser, promise cards, view panels). Surface only: background, border, corner radius, shadow.
-   The site's "organic" skin and its card rules use !important and load after this file, so the selector repeats the flag attribute to outrank them and uses !important only where the card rules do.
+   The site's own card rules use !important and load after this file, so the selector repeats the flag attribute to outrank them and uses !important only where the card rules do.
    Text colours, emoji and accents are left alone, and the highlighted cards (featured / combo / VIP course cards, the amber call-to-action boxes, the next-step card) keep their own accent treatment. ---- */
 :root[data-noir="on"][data-noir="on"] :is(.tuition-card:not(.featured):not(.highlight-combo):not(.vip-mode-active), .instructor-hero-card, .target-card-student, .faq-item, .checklist-box, .pathway-selector-box, .interactive-promise-card) { background: var(--noir-obsidian) !important; border: 1px solid var(--noir-border) !important; border-radius: var(--noir-radius-lg) !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
 :root[data-noir="on"][data-noir="on"] .panel { border-color: var(--noir-border); border-radius: var(--noir-radius-lg); }
@@ -128,3 +128,6 @@
 @media (hover: hover) {
   :root[data-noir="on"][data-noir="on"] :is(.tuition-card:not(.featured):not(.highlight-combo):not(.vip-mode-active), .target-card-student, .faq-item, .interactive-promise-card):hover { border-color: rgba(204, 163, 90, 0.55) !important; }
 }
+
+/* ---- The old skin is gone: tags and labels keep a small, even corner (they used to be capsules). Corner radius only; colours, text and size are untouched. ---- */
+:root[data-noir="on"][data-noir="on"] :is(.meta-chip, .badge-course, .badge-score, .pathway-pill, .badge-pop, .badge-instructor, .combo-savings-badge, .range-live-ticker, .hb-portal, .vault-chip, .vault-exp, .vault-r-tag, .neon-arrow-badge) { border-radius: var(--noir-radius-sm); }

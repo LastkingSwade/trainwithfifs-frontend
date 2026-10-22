@@ -28,7 +28,7 @@ const base = { flagOn: true, reducedMotion: false, alreadyArrived: false, tabsOn
   });
   await test('the arrival is one short, self-removing attribute: set once per session, removed in under a second, and the component is only mounted when the flag is on', () => {
     const c = read('src/noir/NoirMoments.tsx'); assert(/sessionStorage\.setItem\(ARRIVE_KEY/.test(c) && /removeAttribute\('data-noir-arrive'\)/.test(c), 'once and self-removing'); assert(L.ARRIVE_MS <= 1000, 'under a second');
-    assert(/process\.env\.NEXT_PUBLIC_NOIR === "on" && <NoirMoments \/>/.test(read('src/app/layout.tsx')), 'mounted only with the flag');
+    assert(/process\.env\.NEXT_PUBLIC_NOIR !== "off" && <NoirMoments \/>/.test(read('src/app/layout.tsx')), 'mounted unless the kill switch is set');
     const code = c.replace(/\/\/.*$/gm, ''); assert(!/fetch\(|callFifsBackend|localStorage|innerHTML|document\.cookie|console\./.test(code), 'reads and sends nothing');
     assert(/\[data-noir-arrive\][^{]*\{[^}]*animation/.test(n3), 'the settle only exists while the attribute is present');
   });

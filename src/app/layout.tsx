@@ -29,8 +29,6 @@ import "../experiments/portals.css";
 import "../portal/waiverCard.css";
 import "../polish/heroDockClear.css";
 import "../secrets/secrets.css";
-import "../design/organic.css";
-import OrganicSkin from "../design/OrganicSkin";
 import Secrets from "../secrets/Secrets";
 import { BOOT_GATE_SCRIPT } from "../boot/bootConfig";
 import { STARTUP_IMAGES } from "../pwa/splash";
@@ -40,7 +38,7 @@ import { STARTUP_IMAGES } from "../pwa/splash";
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap" });
 const rajdhani = Rajdhani({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-rajdhani", display: "swap" });
-// NOIR display font: used only when the NOIR flag is on (see src/noir/noir.css). Loaded at build time, not from a third-party script.
+// NOIR display font (see src/noir/noir.css). Loaded at build time, not from a third-party script.
 const noirDisplay = Cormorant_Garamond({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-noir-display", display: "swap" });
 
 export const metadata: Metadata = {
@@ -68,7 +66,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-noir={process.env.NEXT_PUBLIC_NOIR === "on" ? "on" : "off"} className={`${geist.variable} ${geistMono.variable} ${rajdhani.variable} ${noirDisplay.variable}`}>
+    <html lang="en" data-noir={process.env.NEXT_PUBLIC_NOIR === "off" ? "off" : "on"} className={`${geist.variable} ${geistMono.variable} ${rajdhani.variable} ${noirDisplay.variable}`}>
       <head>
         {/* A plain inline script (not next/script, which waits for the app bundle): it must run before the first paint. */}
         <script dangerouslySetInnerHTML={{ __html: BOOT_GATE_SCRIPT }} />
@@ -94,9 +92,8 @@ export default function RootLayout({
         <ArmoryPanel />
         <AiGuidePanel />
         <PublicNav />
-        {process.env.NEXT_PUBLIC_NOIR === "on" && <NoirMoments />}
+        {process.env.NEXT_PUBLIC_NOIR !== "off" && <NoirMoments />}
         <Secrets />
-        <OrganicSkin />
         <ServiceWorkerRegister />
         <VisitBeacon />
         {children}

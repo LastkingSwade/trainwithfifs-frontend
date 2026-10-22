@@ -48,7 +48,7 @@ export default function PublicNav() {
   };
 
   return (
-    <nav className="fpn" aria-label="Main sections" data-organic="skip">
+    <nav className="fpn" aria-label="Main sections">
       {ITEMS.map((it) => (
         <a key={it.key} className="fpn-tab" href={it.key === 'myfifs' ? myFifsHref(snap.portal) : it.href} aria-current={snap.active === it.key ? 'page' : undefined} onClick={click(it)}>
           <svg className="fpn-ico" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{it.icon.map((d, i) => <path key={i} d={d} />)}</svg>

@@ -3,7 +3,7 @@ export function installRangeLauncher(): void {
   if (typeof document === 'undefined') return;
   document.querySelectorAll<HTMLElement>('[data-range-journal-launch]').forEach((host) => {
     if (host.childElementCount) return;
-    const box = document.createElement('div'); box.className = 'pcard rj-launch'; box.setAttribute('data-organic', 'skip');
+    const box = document.createElement('div'); box.className = 'pcard rj-launch';
     const ico = document.createElement('span'); ico.className = 'rj-launch-ico'; ico.setAttribute('aria-hidden', 'true'); ico.textContent = '📓';
     const text = document.createElement('div'); text.className = 'rj-launch-text';
     const h = document.createElement('h3'); h.textContent = 'Your Range Journal'; text.appendChild(h);

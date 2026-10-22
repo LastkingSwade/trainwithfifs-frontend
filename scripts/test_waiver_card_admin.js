@@ -37,7 +37,7 @@ function fakeDb(o = {}) { const calls = []; return { calls, from: (t) => { const
     assert(/isStaffOrAdmin\(user\)/.test(blk) && /status: 401/.test(blk), 'staff check and 401'); assert(blk.indexOf('isStaffOrAdmin') < blk.indexOf('getPrivilegedClient'), 'check comes first'); assert(!/console\./.test(blk), 'nothing logged');
   });
   await test('the roster shows each student\'s waiver status, drawn as text only, and the window is a labelled, closable dialog', () => {
-    const m = read('src/portal/adminWaivers.ts').replace(/\/\/.*$/gm, ''); assert(!/innerHTML|insertAdjacentHTML|dangerouslySetInnerHTML|document\.write/.test(m), 'text only'); assert(/overlay\.setAttribute\('data-organic', 'skip'\)/.test(m), 'the site glass script is told to skip this window'); assert(/role', 'dialog'/.test(m) && /aria-modal/.test(m) && /aria-labelledby/.test(m) && /Escape/.test(m), 'dialog');
+    const m = read('src/portal/adminWaivers.ts').replace(/\/\/.*$/gm, ''); assert(!/innerHTML|insertAdjacentHTML|dangerouslySetInnerHTML|document\.write/.test(m), 'text only'); assert(/role', 'dialog'/.test(m) && /aria-modal/.test(m) && /aria-labelledby/.test(m) && /Escape/.test(m), 'dialog');
     const page = read('src/app/page.tsx'); assert(/data-admin-waiver="\$\{escHtml\(s\.studentId \|\| ''\)\}"/.test(page), 'roster cell escaped'); assert(/installAdminWaivers\(\)/.test(page), 'installed');
     assert((m.match(/callFifsBackend\('([a-zA-Z]+)'/g) || []).every((c) => /adminWaiver(List|Get|Remind)/.test(c)), 'only the two read actions and the reminder action are called (the reminder is tested in test_waiver_reminder.js)');
   });
@@ -48,8 +48,8 @@ function fakeDb(o = {}) { const calls = []; return { calls, from: (t) => { const
     const c = read('src/portal/waiverCard.css'); const kf = /@keyframes waiverNeedsAttention \{([\s\S]*?)\n\}/.exec(c); assert(kf, 'keyframes'); assert(!/!important/.test(kf[1]), '!important is ignored in keyframes'); assert(/rgba\(239, 68, 68/.test(kf[1]) && !/16, 185, 129|10b981|34d399/.test(kf[1]), 'red, not green');
     assert(/#portalWaiverCard\.waiver-card-pending-blink \{ animation: waiverNeedsAttention [\d.]+s ease-in-out infinite !important; \}/.test(c), 'pending pulses'); assert(/box-shadow/.test(kf[1]) && !/border/.test(kf[1]) && !/transform|scale/.test(kf[1]), 'glow only, no resizing');
   });
-  await test('the card is marked so the site\'s glass-styling script leaves it alone (it used to restyle the card a moment after it appeared, which hid the red border and the pulse)', () => {
-    const page = read('src/app/page.tsx'); assert(/<div id="portalWaiverCard" data-organic="skip" className="portal-feature-launcher-card waiver-card-pending-blink"/.test(page), 'card is skipped by the skin script'); assert(/\[data-organic="skip"\]/.test(read('src/design/organic.ts')), 'the skin script honours the marker');
+  await test('the card keeps its red border and pulse: nothing restyles it after it appears (the old skin script that did so is gone)', () => {
+    const page = read('src/app/page.tsx'); assert(/<div id="portalWaiverCard" className="portal-feature-launcher-card waiver-card-pending-blink"/.test(page), 'card markup'); assert(!fs.existsSync(path.join(ROOT, 'src/design/organic.ts')), 'the skin script is gone');
   });
   await test('a signed card disappears (display none, no animation), and reduced motion keeps a steady red ring instead of the pulse', () => {
     const c = read('src/portal/waiverCard.css'); assert(/#portalWaiverCard\.waiver-card-completed \{ display: none !important; animation: none !important; \}/.test(c), 'completed hidden'); const rm = c.slice(c.indexOf('prefers-reduced-motion')); assert(/animation: none !important; box-shadow: 0 0 0 4px rgba\(239, 68, 68/.test(rm), 'reduced motion');

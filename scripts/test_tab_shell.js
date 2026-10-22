@@ -40,10 +40,10 @@ const eq = (a, b, m) => assert(JSON.stringify(a) === JSON.stringify(b), `${m || 
   });
 
   console.log('\n[Wiring and look]');
-  await test('it is installed on page load, text only, a labelled navigation landmark with the current tab marked, and excluded from the design layer\'s glass film', () => {
+  await test('it is installed on page load, text only, a labelled navigation landmark with the current tab marked', () => {
     assert(/installTabShell\(\)/.test(read('src/app/page.tsx')) && /import \{ installTabShell \} from "@\/shell\/tabShell"/.test(read('src/app/page.tsx')), 'installed');
     const m = read('src/shell/tabShell.ts'); assert(!/innerHTML|insertAdjacentHTML/.test(m), 'text only'); assert(/aria-label', 'Main tabs'/.test(m) && /aria-current', 'page'/.test(m) && /role', 'dialog'/.test(m) && /aria-modal', 'true'/.test(m), 'accessibility');
-    assert((m.match(/data-organic', 'skip'/g) || []).length >= 2, 'the bar and the sheets are skipped by the glass film'); assert(!/localStorage|sessionStorage|document\.cookie|fetch\(/.test(m), 'stores and sends nothing');
+    assert(!/localStorage|sessionStorage|document\.cookie|fetch\(/.test(m), 'stores and sends nothing');
   });
   await test('it only appears while a signed-in dashboard is on screen and hides itself again', () => {
     const m = read('src/shell/tabShell.ts'); assert(/shown\('student-active-dashboard'\)/.test(m) && /shown\('client-active-dashboard'\)/.test(m) && /nav\.hidden = !on/.test(m) && /closeSheet\(\)/.test(m), 'follows sign-in');

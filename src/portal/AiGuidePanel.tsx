@@ -55,7 +55,7 @@ export default function AiGuidePanel() {
   };
 
   return (
-    <div className="rj-overlay ai-overlay" data-organic="skip" onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
+    <div className="rj-overlay ai-overlay" onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
       <section className="rj ai" role="dialog" aria-modal="true" aria-labelledby="ai-title" ref={panel}>
         <header className="rj-head">
           <div><span className="rj-bar" aria-hidden="true" /><h2 id="ai-title">🤖 FIFS Guide</h2><p className="rj-tag">Quick answers about classes and your portal.</p></div>
