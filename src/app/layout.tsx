@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Cormorant_Garamond, Geist, Geist_Mono, Rajdhani } from "next/font/google";
+import localFont from "next/font/local";
 import "../noir/noir.css";
 import "./globals.css";
 import "../delight/delight.css";
@@ -35,13 +35,13 @@ import Secrets from "../secrets/Secrets";
 import { BOOT_GATE_SCRIPT } from "../boot/bootConfig";
 import { STARTUP_IMAGES } from "../pwa/splash";
 
-// Fonts are downloaded once at build time and served from this site (no request to Google when someone visits, and they work offline).
-// Rajdhani gives headings and tactical labels their HUD character; Geist is the calm body face; Geist Mono is for numbers and codes.
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
-const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap" });
-const rajdhani = Rajdhani({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-rajdhani", display: "swap" });
-// NOIR display font: used only when the NOIR flag is on (see src/noir/noir.css). Loaded at build time, not from a third-party script.
-const noirDisplay = Cormorant_Garamond({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-noir-display", display: "swap" });
+// Fonts live in this project (src/fonts) and are served from this site: nothing is downloaded from Google, neither when the site is built nor when someone visits, and they work offline.
+// (They are the same font files the site used before, so nothing looks different.) Rajdhani gives headings and tactical labels their HUD character; Geist is the calm body face; Geist Mono is for numbers
+// and codes; Cormorant Garamond is the NOIR display face (see src/noir/noir.css).
+const geist = localFont({ src: "../fonts/geist-latin.woff2", weight: "100 900", variable: "--font-geist", display: "swap", fallback: ["system-ui", "arial"] });
+const geistMono = localFont({ src: "../fonts/geist-mono-latin.woff2", weight: "100 900", variable: "--font-geist-mono", display: "swap", fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"] });
+const rajdhani = localFont({ src: [{ path: "../fonts/rajdhani-500-latin.woff2", weight: "500", style: "normal" }, { path: "../fonts/rajdhani-600-latin.woff2", weight: "600", style: "normal" }, { path: "../fonts/rajdhani-700-latin.woff2", weight: "700", style: "normal" }], variable: "--font-rajdhani", display: "swap", fallback: ["system-ui", "arial"] });
+const noirDisplay = localFont({ src: "../fonts/cormorant-garamond-latin.woff2", weight: "500 600", variable: "--font-noir-display", display: "swap", adjustFontFallback: "Times New Roman", fallback: ["Georgia", "serif"] });
 
 export const metadata: Metadata = {
   title: "Train With FIFS | Maryland Firearms Training & Concealed Carry Courses",

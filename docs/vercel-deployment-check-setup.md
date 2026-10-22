@@ -185,3 +185,9 @@ A successful run without the named registration E2E and release-gate test steps 
 `npm run test:release-gate` verifies the fail-closed evidence validator rejects a missing deployment SHA, an absent CI run, a CI run for a different PR head, and absent/failed required steps (including registration E2E). It also verifies that an unavailable, incomplete, or wrong Vercel check-update response is not accepted as confirmation. Run it alongside `npm run test:e2e`; CI requires both named steps.
 
 The deployment workflow reports the Vercel check as successful only after the API response confirms the same check-run ID, deployment ID, configured check ID, completed status, and expected conclusion. If the update cannot be confirmed, the GitHub run fails and the deployment check must be treated as pending/blocked. Never bypass the block manually.
+
+## Status of the GitHub check (2026-10-22): parked until set up
+The workflow `production-deployment-verification.yml` was added before the Vercel side was finished (runbook steps 1-6 above were never completed, and the four secrets `VERCEL_TOKEN`, `VERCEL_CHECK_ID`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` were never added). It was therefore failing on every push, which hid real problems. Production deployments were never blocked by it (no required Vercel check exists).
+- The **gate tests** job still runs on pull requests (it only tests the gate's own logic and needs no secrets).
+- The **verify-deployment** job now runs only when the repository variable `RELEASE_GATE_ENABLED` is `true`. Until then it shows as skipped (grey), not failed (red).
+- **To switch it on:** finish steps 1 to 6 above, add the four secrets, then set `RELEASE_GATE_ENABLED` = `true` (GitHub: Settings > Secrets and variables > Actions > Variables). The check stays fail-closed once it is on.
