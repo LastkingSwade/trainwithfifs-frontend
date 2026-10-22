@@ -7,7 +7,7 @@ import { sendGroupReminderEmail } from '@/Lib/server/group-email';
 import { studentInvoices } from '@/Lib/server/student-invoices';
 import { sendInvoice, payInfo, invoiceCheckout } from '@/Lib/server/sent-invoices';
 import { waiverStatus, saveWaiver, listWaivers, getWaiver, remindToSignWaiver } from '@/Lib/server/waivers';
-import { photoAdd, photoList, photoOpen, photoDelete, photoPaths, removePhotoFiles } from '@/Lib/server/armory-photos';
+import { photoAdd, photoList, photoOpen, photoDelete, photoPaths, removePhotoFiles, purgeArmory } from '@/Lib/server/armory-photos';
 import { memberThread, memberSend, staffMembers, staffThread, staffSend } from '@/Lib/server/portal-chat';
 import { journalList, addSession, deleteSession, addGoal, setGoalDone, deleteGoal, deleteAll } from '@/Lib/server/range-journal';
 import { armoryList, armorySave, armoryDelete, armoryDeleteAll } from '@/Lib/server/armory';
@@ -1007,6 +1007,7 @@ export async function POST(req: NextRequest) {
        }
 
        if (foundStudent?.user_id && Array.isArray(removedRows) && removedRows.length > 0) await purgeWallet(supabase, foundStudent.user_id);
+       if (foundStudent?.user_id && Array.isArray(removedRows) && removedRows.length > 0) await purgeArmory(supabase, foundStudent.user_id);
        // The record is gone; now remove its sign-in (best effort, see removeLinkedAuthUser).
        const authCleanup = foundStudent && Array.isArray(removedRows) && removedRows.length > 0
          ? await removeLinkedAuthUser(supabase, foundStudent.user_id, user?.id) : 'none';
@@ -1124,6 +1125,7 @@ export async function POST(req: NextRequest) {
        }
 
        if (foundClient?.user_id && Array.isArray(removedRows) && removedRows.length > 0) await purgeWallet(supabase, foundClient.user_id);
+       if (foundClient?.user_id && Array.isArray(removedRows) && removedRows.length > 0) await purgeArmory(supabase, foundClient.user_id);
        // The record is gone; now remove its sign-in (best effort, see removeLinkedAuthUser).
        const authCleanup = foundClient && Array.isArray(removedRows) && removedRows.length > 0
          ? await removeLinkedAuthUser(supabase, foundClient.user_id, user?.id) : 'none';

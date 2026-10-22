@@ -5,7 +5,7 @@
 // analytics or the AI guide. A photo must be a plain JPEG that carries no location, camera or text details (the browser re-draws every photo first; this checks it again).
 // Honest limit: server-side encryption, like the Document Vault and the Armory records. Someone holding BOTH the server secret and the data could decrypt; if the secret is lost the photos cannot be recovered.
 import crypto from 'crypto';
-import { armoryEnabled, memberKey, armoryOwnsItem, KEY_VERSION } from './armory';
+import { armoryEnabled, memberKey, armoryOwnsItem, armoryPurgeRows, KEY_VERSION } from './armory';
 import { memberRole } from './portal-chat';
 
 export const PHOTO_BUCKET = 'armory';
@@ -123,3 +123,14 @@ export async function photoPaths(sb: any, uid: string, itemId?: unknown): Promis
   try { let q = sb.from('armory_photos').select('storage_path').eq('user_id', uid); if (itemId !== undefined) { const i = String(itemId ?? ''); if (!UUID.test(i)) return []; q = q.eq('item_id', i); } const r = await q.limit(MAX_PER_MEMBER + 5); return r.error ? [] : (r.data || []).map((x: any) => String(x.storage_path)).filter(Boolean); } catch { return []; }
 }
 export async function removePhotoFiles(sb: any, paths: string[]): Promise<void> { if (!paths.length) return; try { await sb.storage.from(PHOTO_BUCKET).remove(paths); } catch { /* the files are encrypted and no longer reachable */ } }
+
+/** When staff permanently delete a person, ALL of their Armory goes: the encrypted photo files first (their names are read before the rows disappear), then the photo rows, then the item rows.
+ *  Best effort, never throws. Runs before the person's sign-in is removed (removing the sign-in deletes the rows that list the files). Only that person's files and rows are touched. */
+export async function purgeArmory(sb: any, userId: unknown): Promise<void> {
+  try {
+    const uid = String(userId ?? ''); if (!UUID.test(uid)) return;
+    const paths = await photoPaths(sb, uid); await removePhotoFiles(sb, paths);
+    try { await sb.from('armory_photos').delete().eq('user_id', uid); } catch { /* removed with the item rows below */ }
+    await armoryPurgeRows(sb, uid);
+  } catch { /* nothing more can be done here */ }
+}

@@ -130,6 +130,10 @@ export async function armoryDelete(sb: any, uid: string, id: unknown): Promise<A
     const d = await sb.from('armory_items').delete().eq('id', itemId).eq('user_id', uid); return d.error ? { ok: false, status: 503, message: FAIL } : { ok: true };
   } catch { return { ok: false, status: 503, message: FAIL }; }
 }
+/** When staff permanently delete a person, their Armory records go too. Best effort, never throws, and no membership check (the person's record is already gone by then). Only that person's rows are touched. */
+export async function armoryPurgeRows(sb: any, uid: unknown): Promise<void> {
+  try { const id = String(uid ?? ''); if (!UUID.test(id)) return; await sb.from('armory_items').delete().eq('user_id', id); } catch { /* the rows are removed with the sign-in anyway */ }
+}
 export async function armoryDeleteAll(sb: any, uid: string): Promise<AResult> {
   const g = await guard(sb, uid); if (!g.ok) return g;
   try { const d = await sb.from('armory_items').delete().eq('user_id', uid); return d.error ? { ok: false, status: 503, message: missingTable(d.error) ? NOT_READY : FAIL } : { ok: true }; } catch { return { ok: false, status: 503, message: FAIL }; }
