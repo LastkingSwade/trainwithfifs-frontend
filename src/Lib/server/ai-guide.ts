@@ -10,7 +10,8 @@ const API_URL = 'https://api.anthropic.com/v1/messages';
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/';
 export const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash-lite';
 const anthropicOn = (): boolean => /^sk-ant-[A-Za-z0-9_-]{20,}$/.test(process.env.ANTHROPIC_API_KEY || '');
-const geminiOn = (): boolean => /^AIza[A-Za-z0-9_-]{30,}$/.test(process.env.GEMINI_API_KEY || '');
+// Google issues two key shapes: the older "AIza..." and the newer "AQ." followed by letters, digits, dots, dashes and underscores. Anything else (spaces, quotes, other prefixes) counts as no key.
+const geminiOn = (): boolean => /^(AIza[A-Za-z0-9_-]{30,}|AQ\.[A-Za-z0-9._-]{30,})$/.test(process.env.GEMINI_API_KEY || '');
 export const aiEnabled = (): boolean => geminiOn() || anthropicOn();
 export const geminiModel = (): string => { const m = process.env.GEMINI_MODEL || ''; return /^[a-z0-9][a-z0-9.-]{2,60}$/.test(m) ? m : DEFAULT_GEMINI_MODEL; };
 
