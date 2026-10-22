@@ -32,21 +32,43 @@ export function cardFacts(opts: { profileExpiry: string; docExpiry: string | nul
     const watch = opts.optIn !== false;
     renewalText = !watch ? 'Not turned on' : d < 0 ? 'Permit expired ' + -d + ' day' + (d === -1 ? '' : 's') + ' ago' : d === 0 ? 'Expires today: renewal window open' : d <= 90 ? d + ' day' + (d === 1 ? '' : 's') + ' left: renewal window open' : 'Active (' + d + ' days left)';
   }
-  const md = /maryland/i.test(opts.permitState || 'Maryland');
   return {
     expiresText, expiresColor, renewalText,
     restrictions: opts.hasPermitDoc ? 'As printed on your permit card' : 'See your permit card',
     klass: opts.hasPermitDoc ? 'As printed on your permit card' : 'See your permit card',
-    reach: md ? '34+ States Recognized' : 'Open the Reciprocity Hub to check',
+    reach: 'See the Reciprocity Hub for each state',
   };
 }
 
 let shownId = '', shownUrl = '', running = false, again = false;
+// A PDF permit cannot be drawn on the card, so the card offers a button that opens the client's own copy in a new tab. The file is fetched only when the client presses the button.
+// The caption says it is the client's own copy: the card never claims an agency checked it.
+function showPdfOpener(id: string) {
+  const box = $('wallet-photo-box'); if (!box) return;
+  const fb = box.querySelector<HTMLElement>('.wallet-photo-fallback'); if (fb) { fb.textContent = '📄'; fb.hidden = false; }
+  const host = box.parentElement; if (!host) return;
+  if (host.querySelector('.wallet-open-pdf')?.getAttribute('data-doc') === id) return;
+  host.querySelectorAll('.wallet-open-pdf,.wallet-self-note').forEach((n) => n.remove());
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'wallet-open-pdf'; btn.setAttribute('data-doc', id); btn.textContent = 'Open my uploaded permit (PDF)';
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    try {
+      const r = await w.callFifsBackend('walletOpen', { id });
+      const bytes = Uint8Array.from(atob(r.dataBase64), (c) => c.charCodeAt(0));
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+      window.open(url, '_blank', 'noopener'); setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch { btn.textContent = 'Could not open the file. Try again.'; }
+    finally { btn.disabled = false; }
+  });
+  const note = document.createElement('div'); note.className = 'wallet-self-note'; note.textContent = 'Your uploaded copy · self-reported';
+  box.insertAdjacentElement('afterend', note); note.insertAdjacentElement('beforebegin', btn);
+}
 function setText(id: string, text: string, color?: string) { const e = $(id); if (!e) return; if (!(id in DEFAULTS)) DEFAULTS[id] = e.textContent || ''; e.textContent = text; if (color) e.style.color = color; }
 function restoreDefaults() { for (const id of Object.keys(DEFAULTS)) { const e = $(id); if (e) { e.textContent = DEFAULTS[id]; e.style.color = ''; } } }
 function clearPhoto() {
   const box = $('wallet-photo-box'); if (box) box.classList.remove('has-photo'); box?.querySelectorAll('img.wallet-photo-img').forEach((n) => n.remove());
   const fallback = box?.querySelector<HTMLElement>('.wallet-photo-fallback'); if (fallback) fallback.hidden = false;
+  box?.parentElement?.querySelectorAll('.wallet-open-pdf,.wallet-self-note').forEach((n) => n.remove());
   if (shownUrl) { URL.revokeObjectURL(shownUrl); shownUrl = ''; } shownId = '';
 }
 function showPhoto(url: string, id: string) {
@@ -86,7 +108,7 @@ async function refresh() {
       const r = await w.callFifsBackend('walletOpen', { id: doc.id });
       const bytes = Uint8Array.from(atob(r.dataBase64), (c) => c.charCodeAt(0));
       showPhoto(URL.createObjectURL(new Blob([bytes], { type: r.mime })), doc.id);
-    } else { clearPhoto(); const fb = $('wallet-photo-box')?.querySelector<HTMLElement>('.wallet-photo-fallback'); if (fb) fb.textContent = '📄'; }
+    } else { clearPhoto(); showPdfOpener(doc.id); }
   } catch { /* leave the card as it is; nothing here is worth interrupting the client for */ }
   finally { running = false; if (again) { again = false; void refresh(); } }
 }

@@ -190,8 +190,8 @@ const base = () => ({
     const at = (needle) => p.indexOf(needle);
     const stud = at('id="student-active-dashboard"'), studChat = at('data-portal-chat="student"');
     const cli = at('id="client-active-dashboard"'), cliChat = at('data-portal-chat="client"');
-    assert(stud > 0 && studChat > stud && studChat < p.indexOf('</section>', stud), 'student chat is inside the student dashboard');
-    assert(cli > 0 && cliChat > cli && cliChat < p.indexOf('fi-sec-dashboard', cli) + 1, 'client chat is inside the client dashboard');
+    assert(stud > 0 && studChat > stud && studChat < p.indexOf('State Dossier Details Modal', stud), 'student chat is inside the student dashboard (after the main content since the portal flow fix)');
+    assert(cli > 0 && cliChat > cli && cliChat < p.indexOf('Legal & Regulatory Notice:', cli), 'client chat is inside the client dashboard, before the legal notice');
     assert(!/data-portal-chat="student"/.test(p.slice(at('id="student-login-box"'), stud)), 'not in the student sign-in box');
     assert(!/data-portal-chat="client"/.test(p.slice(at('id="client-auth-box"'), cli)), 'not in the client sign-in box');
   });

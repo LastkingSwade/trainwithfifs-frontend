@@ -4779,8 +4779,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
           {/* ACTIVE STUDENT DASHBOARD */}
           <div className="hidden" id="student-active-dashboard">
             {/* Chat with me (src/portal/portalChat.ts). Lives inside the signed-in dashboard only. */}
-            <div className="portal-chat-host" data-portal-chat="student" hidden></div>
-            <div data-range-journal-launch="student"></div>
             <div className="student-badge-bar">
               <div className="student-meta-group">
                 <h2>
@@ -5166,6 +5164,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
                 </a>
               </div>
             </div>
+            {/* Chat with me and the Range Journal sit after the main content, so the portal opens on classes, checklist and documents (src/portal/portalChat.ts). */}
+            <div className="portal-chat-host" data-portal-chat="student" hidden></div>
+            <div data-range-journal-launch="student"></div>
             {/* State Dossier Details Modal */}
             <div className="state-dossier-modal-overlay" id="stateDossierModal" data-onclick="if(event.target===this) closeStateDossier()" style={{"display": "none"}}>
               <div aria-labelledby="dossierStateTitle" aria-modal="true" className="state-dossier-card" data-onclick="event.stopPropagation()" role="dialog">
@@ -5438,9 +5439,6 @@ document.addEventListener('submit', handleDelegatedSubmit);
             </div>
             {/* ================= CLIENT ACTIVE DASHBOARD (HIDDEN UNTIL LOGIN) ================= */}
             <div id="client-active-dashboard" style={{"display": "none"}}>
-              {/* Chat with me (src/portal/portalChat.ts). Lives inside the signed-in dashboard only. */}
-              <div className="portal-chat-host" data-portal-chat="client" hidden></div>
-              <div data-range-journal-launch="client"></div>
               <div className="student-badge-bar" style={{"borderColor": "rgba(255, 183, 3, 0.4)", "marginBottom": "24px"}}>
                 <div>
                   <h2>
@@ -5452,13 +5450,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
                   </h2>
                   <div className="student-meta-chips" style={{"marginTop": "6px"}}>
                     <span className="meta-chip" id="dash-client-id" style={{"color": "var(--accent-amber)", "borderColor": "var(--accent-amber)"}}>
-                      ID: FI-CLIENT-1042
+                      ID: Registered client
                     </span>
                     <span className="meta-chip" id="dash-client-permit">
                       Maryland Wear & Carry
                     </span>
                     <span className="meta-chip chip-status" id="dash-client-exp-badge">
-                      Expiration: Oct 15, 2026
+                      Expiration: not on file yet
                     </span>
                   </div>
                 </div>
@@ -5557,25 +5555,25 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
 
                     {/* PERMIT MAIN BODY: PHOTO ID BOX + OFFICIAL CREDENTIAL DATA */}
-                    <div style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(280px, 1fr))", "gap": "20px", "background": "rgba(11, 17, 26, 0.8)", "border": "1px solid rgba(255, 255, 255, 0.08)", "borderRadius": "14px", "padding": "18px 20px", "marginBottom": "18px"}}>
+                    <div className="wallet-permit-body" style={{"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(280px, 1fr))", "gap": "20px", "background": "rgba(11, 17, 26, 0.8)", "border": "1px solid rgba(255, 255, 255, 0.08)", "borderRadius": "14px", "padding": "18px 20px", "marginBottom": "18px"}}>
                       
                       {/* LEFT: CARRIER PHOTO BADGE & SECURITY HOLOGRAM */}
                       <div style={{"display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "background": "linear-gradient(135deg, rgba(16, 24, 38, 0.9) 0%, rgba(8, 12, 18, 0.95) 100%)", "border": "1.5px solid rgba(0, 229, 255, 0.3)", "borderRadius": "12px", "padding": "16px", "textAlign": "center"}}>
                         <div id="wallet-photo-box" className="wallet-photo-box" style={{"width": "100px", "height": "110px", "borderRadius": "8px", "background": "linear-gradient(180deg, #1e293b 0%, #0f172a 100%)", "border": "2px solid #F59E0B", "display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "position": "relative", "overflow": "hidden", "boxShadow": "0 4px 15px rgba(0,0,0,0.6)"}}>
                           <span className="wallet-photo-fallback" style={{"fontSize": "42px", "opacity": "0.9"}}>👤</span>
                           <div style={{"position": "absolute", "bottom": "0", "width": "100%", "background": "rgba(245, 158, 11, 0.85)", "color": "#030712", "fontSize": "0.62rem", "fontWeight": "900", "padding": "2px 0", "letterSpacing": "1px", "textTransform": "uppercase"}}>
-                            VERIFIED
+                            YOUR PERMIT CARD
                           </div>
                         </div>
                         <div style={{"marginTop": "10px", "fontFamily": "var(--font-display)", "fontSize": "0.78rem", "color": "var(--accent-amber)", "fontWeight": "800", "letterSpacing": "1px", "textTransform": "uppercase"}}>
-                          MSP § 5-101 QUALIFIED
+                          Shows the copy you upload to your Wallet
                         </div>
                         <div style={{"fontSize": "0.72rem", "color": "var(--text-muted)", "marginTop": "2px"}}>
-                          Certified Lead Instructor: Kai Wade
+                          Not on file yet
                         </div>
                         <div style={{"marginTop": "8px"}}>
                           <span className="meta-chip chip-status" id="wallet-status-badge" style={{"fontSize": "0.78rem", "padding": "4px 12px", "fontWeight": "800"}}>
-                            ACTIVE CARRIER
+                            NOT ON FILE
                           </span>
                         </div>
                       </div>
@@ -5584,13 +5582,13 @@ document.addEventListener('submit', handleDelegatedSubmit);
 
 
                       {/* RIGHT: STRUCTURED PERMIT CREDENTIAL FIELDS */}
-                      <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "14px"}}>
+                      <div className="wallet-permit-fields" style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "14px"}}>
                         <div>
                           <span style={{"fontSize": "0.70rem", "textTransform": "uppercase", "color": "#94a3b8", "fontWeight": "800", "letterSpacing": "0.8px", "display": "block"}}>
                             PERMIT NUMBER
                           </span>
                           <div id="wallet-permit-number" style={{"fontFamily": "monospace", "fontSize": "1.1rem", "fontWeight": "900", "color": "var(--accent-amber)", "letterSpacing": "1px"}}>
-                            MD-WCP-1042-88
+                            Not on file yet
                           </div>
                         </div>
 
@@ -5602,7 +5600,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                             CARDHOLDER NAME
                           </span>
                           <div id="wallet-cardholder-name" style={{"fontFamily": "var(--font-display)", "fontSize": "1.15rem", "fontWeight": "900", "color": "#ffffff", "letterSpacing": "0.5px"}}>
-                            MARCUS VANCE
+                            Your name appears here
                           </div>
                         </div>
 
@@ -5626,7 +5624,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                             PERMIT EXPIRATION DATE
                           </span>
                           <div id="wallet-exp-date" style={{"fontFamily": "monospace", "fontSize": "1.05rem", "fontWeight": "900", "color": "#ef4444"}}>
-                            Oct 15, 2026
+                            Not on file yet
                           </div>
                         </div>
 
@@ -5638,7 +5636,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                             LEGAL CARRY FOOTPRINT
                           </span>
                           <div id="wallet-carry-reach" style={{"fontFamily": "var(--font-display)", "fontSize": "0.95rem", "fontWeight": "800", "color": "var(--accent-green)"}}>
-                            34+ States Recognized
+                            See the Reciprocity Hub
                           </div>
                         </div>
 
@@ -5650,7 +5648,7 @@ document.addEventListener('submit', handleDelegatedSubmit);
                             90-DAY RENEWAL WATCH
                           </span>
                           <div id="wallet-days-left" style={{"fontFamily": "var(--font-display)", "fontSize": "0.95rem", "fontWeight": "800", "color": "var(--accent-cyan)"}}>
-                            Active (90+ Days)
+                            Add an expiration date
                           </div>
                         </div>
 
@@ -5905,6 +5903,9 @@ document.addEventListener('submit', handleDelegatedSubmit);
               {/* Help, share and weekly-tip cards (filled in by src/portal/engage.ts) */}
               <section id="push-client" className="eg" aria-label="Reminders" hidden></section>
               <section id="eg-client" className="eg" aria-label="Help and more" hidden></section>
+              {/* Chat with me (src/portal/portalChat.ts) and the Range Journal come after the main content, so the portal opens on the greeting and next step. */}
+              <div className="portal-chat-host" data-portal-chat="client" hidden></div>
+              <div data-range-journal-launch="client"></div>
               {/* ================= STATUTORY DISCLAIMER & CITATIONS ================= */}
               <div style={{"background": "rgba(0,0,0,0.4)", "border": "1px solid rgba(255,255,255,0.06)", "borderRadius": "12px", "padding": "18px 20px", "marginTop": "40px", "fontSize": "0.8rem", "color": "var(--text-muted)", "lineHeight": "1.5"}}>
                 <strong style={{"color": "#cbd5e1"}}>

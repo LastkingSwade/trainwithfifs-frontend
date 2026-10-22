@@ -161,3 +161,16 @@
 
 /* Dates a member types in are labelled as self-reported: they are not checked against any agency record. */
 .vault-self { display: inline-block; margin-left: 8px; font-size: 0.78rem; font-weight: 700; color: #9fb8cc; }
+
+/* The Wear & Carry card: a PDF copy opens from a button; the caption says it is the client's own, self-reported copy. */
+.wallet-open-pdf { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; margin-top: 8px; padding: 8px 12px; border-radius: 12px; cursor: pointer; font: inherit; font-weight: 800; font-size: 0.82rem; color: #111; background: linear-gradient(135deg, #ffb703, #fb8500); border: 0; }
+.wallet-open-pdf:disabled { opacity: 0.6; cursor: default; }
+.wallet-open-pdf:focus-visible { outline: 3px solid #00e5ff; outline-offset: 2px; }
+.wallet-self-note { margin-top: 6px; font-size: 0.74rem; color: #9fb8cc; text-align: center; }
+
+/* Permit card on phones: values wrap inside their column instead of running off the card. */
+.wallet-permit-fields { min-width: 0; }
+.wallet-permit-fields > div { min-width: 0; }
+.wallet-permit-fields > div > div, .wallet-permit-fields span { overflow-wrap: anywhere; }
+@media (max-width: 420px) { .wallet-permit-fields { grid-template-columns: 1fr !important; } }
+@media (max-width: 420px) { .wallet-permit-body { grid-template-columns: 1fr !important; } }
