@@ -1,3 +1,4 @@
+import { badgesFor, progressText } from './badges';
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -104,6 +105,18 @@ export default function RangeJournalPanel() {
               </form>
             </section>
 
+            <section className="rj-card rj-badges" aria-labelledby="rj-badge-t">
+              <h3 id="rj-badge-t"><span aria-hidden="true">🏅 </span>Your badges</h3>
+              <p className="rj-note">Badges come from your own journal. Nothing is shared.</p>
+              <ul className="rj-badge-list">
+                {badgesFor({ sessions: t.sessions, rounds: t.rounds, goalsDone: goals.filter((g) => !!g.doneAt).length }).map((b) => (
+                  <li key={b.id} className={b.earned ? 'earned' : 'locked'}>
+                    <span className="rj-badge-ico" aria-hidden="true">{b.emoji}</span>
+                    <span><b>{b.title}</b><small>{progressText(b)}</small></span>
+                  </li>
+                ))}
+              </ul>
+            </section>
             <section className="rj-card" aria-labelledby="rj-goal-t">
               <h3 id="rj-goal-t">Goals</h3>
               <form onSubmit={addGoal} className="rj-goalform">
