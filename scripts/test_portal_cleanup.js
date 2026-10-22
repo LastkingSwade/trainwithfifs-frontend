@@ -27,14 +27,14 @@ test('Student: Sign Out and Change Password share one row', () => {
   assert(/logoutStudent\(\)/.test(row[1]) && /openChangePasswordModal\('student'\)/.test(row[1]), 'both buttons inside');
   assert(/\.fi-acct-row \{ display: flex; flex-wrap: wrap; align-items: center/.test(read('src/portal/dashboard.css')), 'row css');
 });
-test('Client: the slide-through bar (with its Switch to Student Portal button) is gone, and every place it led to still has a hub card', () => {
+test('Client: the slide-through bar (with its Switch to Student Portal button) is gone, and every place it led to still has a hub card (the Vault is the bottom-bar tab now, so it has no card here)', () => {
   assert(!/fi-portal-subnav/.test(client) && !/Switch to Student Portal/.test(client), 'bar removed');
-  for (const fn of ['toggleReciprocityHubModal', 'toggleMultiPermitModal', 'openVehicleTravelModal', 'openFlyingWithFirearmModal', 'openPermitRenewalModal', 'openClientProfileModal', 'openFutureServicesModal', 'openClientFaqModal', 'openWallet']) assert(new RegExp('fi-feature-card[^>]*onClick=\\{\\(\\) => \\{ if \\(typeof window[^}]*' + fn).test(client), fn + ' card');
+  for (const fn of ['toggleReciprocityHubModal', 'toggleMultiPermitModal', 'openVehicleTravelModal', 'openFlyingWithFirearmModal', 'openPermitRenewalModal', 'openClientProfileModal', 'openFutureServicesModal', 'openClientFaqModal']) assert(new RegExp('fi-feature-card[^>]*onClick=\\{\\(\\) => \\{ if \\(typeof window[^}]*' + fn).test(client), fn + ' card');
 });
-test('Client: hub order is Document Vault first, then the Reciprocity Hub, then the multi-permit guide and the rest', () => {
+test('Client: hub order is the Range Journal first, then the Reciprocity Hub, then the multi-permit guide and the rest; there is no Document Vault card (the Vault is on the bottom tab bar)', () => {
   const t = client.slice(client.indexOf('fi-hub-cards-grid')); const at = (x) => t.indexOf(x);
-  assert(at('CARD 1: DOCUMENT VAULT') > 0 && at('CARD 1: DOCUMENT VAULT') < at('CARD 2: 50-STATE') && at('CARD 2: 50-STATE') < at('CARD 3: MULTI-PERMIT'), 'order');
-  assert(/id="fi-vault-launch"/.test(t) && /openWallet/.test(t), 'vault card opens the vault');
+  assert(at('data-range-journal-launch="client"') > 0 && at('data-range-journal-launch="client"') < at('CARD 2: 50-STATE') && at('CARD 2: 50-STATE') < at('CARD 3: MULTI-PERMIT'), 'order');
+  assert(!/id="fi-vault-launch"/.test(client) && !/Open My Document Vault/.test(client) && !/CARD 1: DOCUMENT VAULT/.test(client), 'no duplicate Vault card');
 });
 test('Client: the renewal countdown sits right under the permit card, and the vault is no longer drawn there', () => {
   const card = client.indexOf('client-ccw-wallet-card'), host = client.indexOf('id="fi-client-extras"'), grid = client.indexOf('fi-hub-cards-grid');

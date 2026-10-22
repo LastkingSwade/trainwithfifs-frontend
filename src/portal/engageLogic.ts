@@ -65,7 +65,7 @@ export const TIPS: readonly string[] = [
   'Electronic earmuffs let you hear range commands while still protecting your hearing.',
   'Ask questions. There is no wrong question in a firearms class, and a good instructor wants to hear them.',
   'Explaining the four safety rules to a friend is the best way to lock them in for yourself.',
-  'Keep a photo of your permit card in your private Document Vault so it is never far away.',
+  'Keep a photo of your permit card in your private Vault so it is never far away.',
   'Permit renewals can take the State Police up to 90 days to process, so start early and keep your reminders on.',
   'Slow is smooth. A smooth, steady trigger press matters more than speed.',
   'Focus on the front sight, not the target. A sharp front sight makes better shots.',

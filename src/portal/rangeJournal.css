@@ -70,8 +70,10 @@
 .rj-badge-list small { display: block; color: #9fb8cc; font-size: 0.85rem; }
 .rj-badge-ico { font-size: 1.6rem; flex: none; }
 
+/* The card sits in a grid cell of the portal's card list, so its layout follows the width of its own cell (a container query), not the screen: stacked in a narrow cell, in a row in a wide one. */
+[data-range-journal-launch] { container-type: inline-size; }
 /* The Range Journal card on the dashboards: a large, colourful feature card (it used to be a small plain box). Amber and cyan edge, big icon, big amber button. 56px button, visible focus, nothing moves. */
-:root:root .pcard.rj-launch { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 14px 16px; margin: 22px 0; padding: 24px 20px; border-radius: 20px; border: 2px solid rgba(255, 183, 3, 0.75); color: #d3e9f8;
+:root:root .pcard.rj-launch { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 14px 16px; margin: 0; height: 100%; box-sizing: border-box; padding: 24px 20px; border-radius: 20px; border: 2px solid rgba(255, 183, 3, 0.75); color: #d3e9f8;
   background: radial-gradient(520px 220px at 0% 0%, rgba(255, 183, 3, 0.16), transparent 62%), radial-gradient(520px 240px at 100% 100%, rgba(0, 229, 255, 0.16), transparent 62%), linear-gradient(180deg, #0d141d 0%, #080c12 100%);
   box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.35), 0 14px 38px rgba(0, 0, 0, 0.55); }
 :root:root .pcard.rj-launch .rj-launch-ico { font-size: 3rem; line-height: 1; }
@@ -79,7 +81,7 @@
 :root:root .pcard.rj-launch .rj-launch-text p { margin: 0; font-size: 1rem; line-height: 1.5; color: #d3e9f8; }
 :root:root .pcard.rj-launch .rj-launch-btn { grid-column: 1 / -1; width: 100%; min-height: 56px; padding: 0 22px; border: 0; border-radius: 14px; cursor: pointer; font: inherit; font-size: 1.1rem; font-weight: 800; letter-spacing: 0.02em; color: #111 !important; background: linear-gradient(135deg, #ffb703, #fb8500); }
 :root:root .pcard.rj-launch .rj-launch-btn:focus-visible { outline: 3px solid #00e5ff; outline-offset: 3px; }
-@media (min-width: 700px) { :root:root .pcard.rj-launch { grid-template-columns: auto 1fr auto; padding: 26px 28px; } :root:root .pcard.rj-launch .rj-launch-btn { grid-column: auto; width: auto; } }
+@container (min-width: 640px) { :root:root .pcard.rj-launch { grid-template-columns: auto 1fr auto; padding: 26px 28px; } :root:root .pcard.rj-launch .rj-launch-btn { grid-column: auto; width: auto; } }
 
 /* Shot timer inside the Range Journal. Big readout, big buttons (all at least 48px), clear red/green/amber states, visible focus, and nothing moves (the GO cue is an instant colour change plus the words, so reduced motion needs no special case). */
 .rj-timer .rj-note { margin-bottom: 12px; }
@@ -117,4 +119,4 @@
 :root:root .pcard.rj-launch .rj-launch-actions { grid-column: 1 / -1; display: grid; gap: 10px; }
 :root:root .pcard.rj-launch .rj-launch-timer { width: 100%; min-height: 52px; padding: 0 22px; border-radius: 14px; cursor: pointer; font: inherit; font-size: 1.05rem; font-weight: 800; color: #e8faff !important; background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.6); }
 :root:root .pcard.rj-launch .rj-launch-timer:focus-visible { outline: 3px solid #00e5ff; outline-offset: 3px; }
-@media (min-width: 700px) { :root:root .pcard.rj-launch .rj-launch-actions { grid-column: auto; } }
+@container (min-width: 640px) { :root:root .pcard.rj-launch .rj-launch-actions { grid-column: auto; } }
