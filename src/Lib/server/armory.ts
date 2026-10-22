@@ -12,7 +12,7 @@ export const MAINT_KINDS = { cleaning: 'Cleaning', inspection: 'Inspection', rep
 export type ItemType = keyof typeof TYPES; export type MaintKind = keyof typeof MAINT_KINDS;
 export type AResult<T = {}> = ({ ok: true } & T) | { ok: false; status: number; message: string };
 export interface Maintenance { id: string; on: string; kind: MaintKind; note: string }
-export interface ItemData { nickname: string; type: ItemType; make: string; model: string; caliber: string; serial: string; purchasedOn: string; price: number | null; notes: string; maintenance: Maintenance[] }
+export interface ItemData { nickname: string; type: ItemType; make: string; model: string; caliber: string; serial: string; purchasedOn: string; price: number | null; notes: string; maintenance: Maintenance[]; serviceEveryMonths: number | null }
 export interface Item extends ItemData { id: string; createdAt: string; updatedAt: string; unreadable?: boolean }
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -57,6 +57,8 @@ export function cleanItem(input: any, now: Date = new Date()): { ok: true; data:
   const make = field(input?.make, 60, 'The make'); if (!make.ok) return make; const model = field(input?.model, 60, 'The model'); if (!model.ok) return model;
   const cal = field(input?.caliber, 30, 'The caliber'); if (!cal.ok) return cal; const serial = field(input?.serial, 40, 'The serial number'); if (!serial.ok) return serial;
   const notes = field(input?.notes, 1000, 'Notes'); if (!notes.ok) return notes;
+  const rawEvery = input?.serviceEveryMonths; let serviceEveryMonths: number | null = null;
+  if (rawEvery !== '' && rawEvery !== null && rawEvery !== undefined) { const n = Number(rawEvery); if (!Number.isInteger(n) || n < 1 || n > 60) return { ok: false, message: 'The service interval must be a whole number of months from 1 to 60.' }; serviceEveryMonths = n; }
   const pon = clean(input?.purchasedOn); if (pon && (!validDay(pon) || pon < '1900-01-01' || pon > new Date(now.getTime() + 86400000).toISOString().slice(0, 10))) return { ok: false, message: 'The purchase date is not valid.' };
   let price: number | null = null; const praw = input?.price; if (praw !== '' && praw !== null && praw !== undefined) { const n = Number(String(praw).replace(/[$,\s]/g, '')); if (!Number.isFinite(n) || n < 0 || n > 1000000) return { ok: false, message: 'The price must be an amount from $0 to $1,000,000.' }; price = Math.round(n * 100) / 100; }
   const mIn = Array.isArray(input?.maintenance) ? input.maintenance : []; if (mIn.length > MAX_MAINTENANCE) return { ok: false, message: `A maintenance log can hold up to ${MAX_MAINTENANCE} entries.` };
@@ -67,7 +69,7 @@ export function cleanItem(input: any, now: Date = new Date()): { ok: true; data:
     const note = field(m?.note, 200, 'A maintenance note'); if (!note.ok) return note;
     maintenance.push({ id: UUID.test(String(m?.id ?? '')) ? String(m.id) : crypto.randomUUID(), on, kind: kind as MaintKind, note: note.value });
   }
-  const data: ItemData = { nickname: nick.value, type: type as ItemType, make: make.value, model: model.value, caliber: cal.value, serial: serial.value, purchasedOn: pon, price, notes: notes.value, maintenance };
+  const data: ItemData = { nickname: nick.value, type: type as ItemType, make: make.value, model: model.value, caliber: cal.value, serial: serial.value, purchasedOn: pon, price, notes: notes.value, maintenance, serviceEveryMonths };
   if (JSON.stringify(data).length > MAX_JSON) return { ok: false, message: 'That item is too long to store. Shorten the notes or the maintenance log.' };
   return { ok: true, data };
 }

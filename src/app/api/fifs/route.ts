@@ -3293,7 +3293,7 @@ export async function POST(req: NextRequest) {
        supabase = getPrivilegedClient(); const uid = String(user.id);
        if (action !== 'armoryList' && !allowPublicSubmit(req, 'armory', 40)) return NextResponse.json({ success: false, error: 'You are saving very quickly. Please wait a minute and try again.' }, { status: 429 });
        const res: any = action === 'armoryList' ? await armoryList(supabase, uid)
-         : action === 'armorySave' ? await armorySave(supabase, uid, { id: payload.id, nickname: payload.nickname, type: payload.type, make: payload.make, model: payload.model, caliber: payload.caliber, serial: payload.serial, purchasedOn: payload.purchasedOn, price: payload.price, notes: payload.notes, maintenance: payload.maintenance })
+         : action === 'armorySave' ? await armorySave(supabase, uid, { id: payload.id, nickname: payload.nickname, type: payload.type, make: payload.make, model: payload.model, caliber: payload.caliber, serial: payload.serial, purchasedOn: payload.purchasedOn, price: payload.price, notes: payload.notes, maintenance: payload.maintenance, serviceEveryMonths: payload.serviceEveryMonths })
          : action === 'armoryDelete' ? await armoryDelete(supabase, uid, payload.id)
          : await armoryDeleteAll(supabase, uid);
        const noStore = { 'Cache-Control': 'no-store' };   // decrypted records are never cached by the browser or the network
