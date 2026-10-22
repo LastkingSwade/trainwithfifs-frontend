@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Geist, Geist_Mono, Rajdhani } from "next/font/google";
+import { Cormorant_Garamond, Geist, Geist_Mono, Rajdhani } from "next/font/google";
+import "../noir/noir.css";
 import "./globals.css";
 import "../delight/delight.css";
 import BootIntro from "../boot/BootIntro";
@@ -36,6 +37,8 @@ import { STARTUP_IMAGES } from "../pwa/splash";
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap" });
 const rajdhani = Rajdhani({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-rajdhani", display: "swap" });
+// NOIR display font: used only when the NOIR flag is on (see src/noir/noir.css). Loaded at build time, not from a third-party script.
+const noirDisplay = Cormorant_Garamond({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-noir-display", display: "swap" });
 
 export const metadata: Metadata = {
   title: "Train With FIFS | Maryland Firearms Training & Concealed Carry Courses",
@@ -62,7 +65,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geist.variable} ${geistMono.variable} ${rajdhani.variable}`}>
+    <html lang="en" data-noir={process.env.NEXT_PUBLIC_NOIR === "on" ? "on" : "off"} className={`${geist.variable} ${geistMono.variable} ${rajdhani.variable} ${noirDisplay.variable}`}>
       <head>
         {/* A plain inline script (not next/script, which waits for the app bundle): it must run before the first paint. */}
         <script dangerouslySetInnerHTML={{ __html: BOOT_GATE_SCRIPT }} />
