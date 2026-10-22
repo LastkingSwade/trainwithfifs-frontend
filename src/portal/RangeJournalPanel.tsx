@@ -1,5 +1,5 @@
-import { badgesFor, progressText } from './badges';
 'use client';
+import { badgesFor, progressText } from './badges';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import './rangeJournal.css';
