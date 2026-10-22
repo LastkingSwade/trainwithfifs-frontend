@@ -124,17 +124,8 @@ function fifsSignOutSupabase() {
     window.setCardTier = setCardTier;
 
 
-    function toggleCardTier(courseKey, evt) {
-      if (evt) {
-        if (evt.stopPropagation) evt.stopPropagation();
-        if (evt.stopImmediatePropagation) evt.stopImmediatePropagation();
-        if (evt.preventDefault) evt.preventDefault();
-      }
-      var card = document.getElementById('card-course-' + courseKey);
-      var isVip = card && card.classList.contains('vip-mode-active');
-      setCardTier(courseKey, isVip ? 'base' : 'vip', evt);
-    }
-    window.toggleCardTier = toggleCardTier;
+    /* toggleCardTier: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.toggleCardTier = toggleCardTier;
     window.triggerTopNavGunReload = triggerTopNavGunReload;
     window.triggerGunRefreshAnimation = triggerTopNavGunReload;
 
@@ -269,16 +260,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       });
     }
     window.callFifsBackend = callFifsBackend;
-    function escapeHtml(str) {
-      if (str === null || str === undefined) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-    window.escapeHtml = escapeHtml;
+    /* escapeHtml: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.escapeHtml = escapeHtml;
     window.logAnalyticsEvent = logAnalyticsEvent;
     // ==========================================================================
     // AUTHORITATIVE CORE NAVIGATION ENGINE (DEFINED IN <HEAD> FOR INSTANT TAP/CLICK)
@@ -299,78 +282,18 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     window.currentActiveView = currentActiveView;
     var contextualHistoryStack = [];
     window.contextualHistoryStack = contextualHistoryStack;
-    function closeAllOverlays() {
-      var overlayIds = [
-        'twoWayChatModal', 'contactInstructorModal', 'courseBookingModal',
-        'vehicleTravelModal', 'flyingWithFirearmModal', 'portalConflictModal',
-        'adminInviteModal', 'adminEditStudentModal', 'adminEditClientModal',
-        'fiPortalSelectionModal', 'goalSynopsisModal', 'stepDetailModal',
-        'expectationModal', 'reciprocityHubModal', 'stateModalOverlay',
-        'collectorInfoModal', 'stateDossierModal', 'alumniAccessGateModal',
-        'clientProfileModal'
-      ];
-      overlayIds.forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) {
-          el.classList.remove('active');
-          el.classList.remove('open');
-          el.style.setProperty('display', 'none', 'important');
-          el.style.setProperty('opacity', '0', 'important');
-          el.style.setProperty('pointer-events', 'none', 'important');
-        }
-      });
-      if (document.body) {
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-      }
-    }
-    window.closeAllOverlays = closeAllOverlays;
+    /* closeAllOverlays: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.closeAllOverlays = closeAllOverlays;
     window.rawSwitchTab = rawSwitchTab;
-    function switchTab(tab) {
-      if (currentActiveView !== tab) {
-        contextualHistoryStack.push(currentActiveView);
-        if (contextualHistoryStack.length > 25) contextualHistoryStack.shift();
-      }
-      currentActiveView = tab;
-      window.currentActiveView = tab;
-      rawSwitchTab(tab);
-      }
-    window.switchTab = switchTab;
+    /* switchTab: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.switchTab = switchTab;
     window.openAndSwitch = openAndSwitch;
     window.returnToHome = returnToHome;
-    function navigateBack() {
-      try {
-        closeAllOverlays();
-        if (contextualHistoryStack.length > 0) {
-          var prev = contextualHistoryStack.pop();
-          if (prev === 'home') {
-            returnToHome();
-          } else {
-            switchTab(prev);
-          }
-        } else {
-          returnToHome();
-        }
-      } catch (err) {
-        returnToHome();
-      }
-    }
-    window.navigateBack = navigateBack;
+    /* navigateBack: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.navigateBack = navigateBack;
     window.openPortalSelectionModal = openPortalSelectionModal;
-    function closePortalSelectionModal() {
-      var modal = document.getElementById('fiPortalSelectionModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.style.setProperty('display', 'none', 'important');
-        modal.style.setProperty('opacity', '0', 'important');
-        modal.style.setProperty('pointer-events', 'none', 'important');
-      }
-      if (document.body) {
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-      }
-    }
-    window.closePortalSelectionModal = closePortalSelectionModal;
+    /* closePortalSelectionModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.closePortalSelectionModal = closePortalSelectionModal;
     function openContactWidgetModal() {
       try {
         var modal = document.getElementById('contactInstructorModal');
@@ -391,20 +314,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
       }
     window.openContactWidgetModal = openContactWidgetModal;
-    function closeContactWidgetModal() {
-      var modal = document.getElementById('contactInstructorModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.style.setProperty('display', 'none', 'important');
-        modal.style.setProperty('opacity', '0', 'important');
-        modal.style.setProperty('pointer-events', 'none', 'important');
-      }
-      if (document.body) {
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-      }
-    }
-    window.closeContactWidgetModal = closeContactWidgetModal;
+    /* closeContactWidgetModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.closeContactWidgetModal = closeContactWidgetModal;
     // ==========================================================================
     // AUTHORITATIVE DATA ARCHITECTURE IN <HEAD>
     // ==========================================================================
@@ -770,106 +681,25 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
     window.FORM_COURSE_PRICING = FORM_COURSE_PRICING;
     var DISCORD_WEBHOOK_URL = "";
     window.DISCORD_WEBHOOK_URL = DISCORD_WEBHOOK_URL;
-    function sendClientDiscordAlert(title, description, fields, colorInt) {
-      try {
-        if (!DISCORD_WEBHOOK_URL) return;
-        var payload = {
-          username: "FIFS Command Center",
-          avatar_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w256",
-          embeds: [{
-            title: title || "FIFS Operational Notification",
-            description: description || "",
-            color: colorInt || 0x00E5FF,
-            fields: fields || [],
-            footer: {
-              text: "Future Initiative Firearm Services • trainwithfifs.com",
-              icon_url: "https://drive.google.com/thumbnail?id=1EnAqEURi1XIRNdNTooFGY_pvs38ZcBEQ&sz=w128"
-            },
-            timestamp: new Date().toISOString()
-          }]
-        };
-        fetch(DISCORD_WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        }).catch(function(err) {
-          console.log("Discord alert delivery notice:", err);
-        });
-      } catch (e) {
-        console.log("Discord notification catch:", e);
-      }
-    }
-    window.sendClientDiscordAlert = sendClientDiscordAlert;
+    /* sendClientDiscordAlert: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.sendClientDiscordAlert = sendClientDiscordAlert;
     window.isLiveChatActiveNow = isLiveChatActiveNow;
-    function showStatus(elem, text, type) {
-      if (!elem) return;
-      elem.textContent = text;
-      elem.className = 'status-msg ' + type;
-      elem.style.display = 'block';
-    }
-    window.showStatus = showStatus;
+    /* showStatus: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.showStatus = showStatus;
     window.openGoalSynopsis = openGoalSynopsis;
-    function closeGoalSynopsis() {
-      var modal = document.getElementById('goalSynopsisModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.style.setProperty('display', 'none', 'important');
-        modal.style.setProperty('opacity', '0', 'important');
-        modal.style.setProperty('pointer-events', 'none', 'important');
-      }
-      if (document.body) {
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-      }
-    }
-    window.closeGoalSynopsis = closeGoalSynopsis;
+    /* closeGoalSynopsis: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.closeGoalSynopsis = closeGoalSynopsis;
     window.openStepDetailModal = openStepDetailModal;
-    function closeStepDetailModal() {
-      var modal = document.getElementById('stepDetailModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.style.setProperty('display', 'none', 'important');
-        modal.style.setProperty('opacity', '0', 'important');
-        modal.style.setProperty('pointer-events', 'none', 'important');
-      }
-      if (document.body) {
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-      }
-    }
-    window.closeStepDetailModal = closeStepDetailModal;
+    /* closeStepDetailModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.closeStepDetailModal = closeStepDetailModal;
     window.openExpectationModal = openExpectationModal;
-    function closeExpectationModal() {
-      var modal = document.getElementById('expectationModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.style.setProperty('display', 'none', 'important');
-        modal.style.setProperty('opacity', '0', 'important');
-        modal.style.setProperty('pointer-events', 'none', 'important');
-      }
-      if (document.body) {
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-      }
-    }
-    window.closeExpectationModal = closeExpectationModal;
+    /* closeExpectationModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.closeExpectationModal = closeExpectationModal;
     // ==========================================================================
     // SYNCHRONIZED COURSE SELECTION, FORM TIER TOGGLE & DYNAMIC CALENDAR ENGINE
     // ==========================================================================
-    function getMatchedCourseKey(selectedVal) {
-      var v = (selectedVal || '').toLowerCase();
-      if (v.includes('alumni') || v.includes('clinic')) return "FIFS Graduate Alumni Marksmanship Clinic";
-      if (v.includes('multi-state') || v.includes('mastery')) return "Mid-Atlantic Multi-State Mastery";
-      if (v.includes('combo')) return "Maryland CCW & HQL Combo";
-      if (v.includes('renewal') || v.includes('recertification') || v.includes('8-hour') || v.includes('8 hour')) return "Maryland Wear & Carry (8-Hour Renewal)";
-      if (v.includes('wear & carry') || v.includes('ccw')) return "Maryland Wear & Carry (CCW)";
-      if (v.includes('hql')) return "Maryland HQL (Purchase License)";
-      if (v.includes('1-on-1') || v.includes('coaching') || v.includes('one-on-one')) return "Personal 1-on-1 Coaching";
-      if (v.includes('cleaning')) return "Gun Cleaning & Maintenance";
-      if (v.includes('children') || v.includes('youth')) return "Children's Safety Class";
-      return "Maryland CCW & HQL Combo";
-    }
-    window.getMatchedCourseKey = getMatchedCourseKey;
+    /* getMatchedCourseKey: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.getMatchedCourseKey = getMatchedCourseKey;
         function updateFormPriceDisplay() {
       var selectElem = document.getElementById('courseSelection');
       if (!selectElem) return;
@@ -1298,18 +1128,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       }
     }
     window.renderBookingCalendar = renderBookingCalendar;
-    function changeBookingCalendarMonth(delta) {
-      calCurrentMonth += delta;
-      if (calCurrentMonth > 11) {
-        calCurrentMonth = 0;
-        calCurrentYear++;
-      } else if (calCurrentMonth < 0) {
-        calCurrentMonth = 11;
-        calCurrentYear--;
-      }
-      renderBookingCalendar();
-    }
-    window.changeBookingCalendarMonth = changeBookingCalendarMonth;
+    /* changeBookingCalendarMonth: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.changeBookingCalendarMonth = changeBookingCalendarMonth;
     // ==========================================================================
     // FIFS 16-HOUR DUAL-DATE SELECTION & CALENDAR LOGIC
     // ==========================================================================
@@ -1422,104 +1242,17 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       { text: "Outstanding class environment. Coach Wade takes the time to make sure everyone understands the legal pillars and feels safe on the range.", author: "HQL Student" }
     ];
     window.OFFICIAL_GOOGLE_REVIEWS = OFFICIAL_GOOGLE_REVIEWS;
-    function mountGoogleReviewsTicker() {
-      var track = document.getElementById('reviewsTrack');
-      if (!track) return;
-      try {
-        var stored = JSON.parse(_fifsMemStorage.getItem('fifs_dynamic_reviews') || '[]');
-        var allReviews = stored.concat(OFFICIAL_GOOGLE_REVIEWS);
-        var shuffled = [...allReviews].sort(() => Math.random() - 0.5);
-        var loopList = shuffled.concat(shuffled);
-        track.innerHTML = loopList.map(r => `
-          <div class="review-item-pill">
-            <span class="gold-stars-cluster">★★★★★</span>
-            <span class="review-quote-text">"${r.text}"</span>
-            <span class="gold-stars-cluster">★★★★★</span>
-            <span class="review-author-tag">• ${r.author}</span>
-          </div>
-        `).join('');
-      } catch(e) {}
-    }
-    window.mountGoogleReviewsTicker = mountGoogleReviewsTicker;
+    /* mountGoogleReviewsTicker: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.mountGoogleReviewsTicker = mountGoogleReviewsTicker;
     // ==========================================================================
     // DUAL-SESSION LOCKOUT CONTROLLER (STRICT ACCESS INTEGRITY)
     // ==========================================================================
-    function checkPortalSessionConflict(targetPortal) {
-      var studentSessionStr = fifsGetStudentSession();
-      var clientSessionStr = fifsGetClientSession();
-      if (targetPortal === 'client' || targetPortal === 'fi-portal') {
-        if (studentSessionStr) {
-          try {
-            var student = JSON.parse(studentSessionStr);
-            showPortalConflictModal('student_to_client', student.fullName || 'Student', student.studentId || 'FIFS-ID');
-            return true;
-          } catch (e) {}
-        }
-      } else if (targetPortal === 'student' || targetPortal === 'portal') {
-        if (clientSessionStr) {
-          try {
-            var client = JSON.parse(clientSessionStr);
-            showPortalConflictModal('client_to_student', client.fullName || 'Client', client.clientId || 'FI-CLIENT');
-            return true;
-          } catch (e) {}
-        }
-      }
-      return false;
-    }
-    window.checkPortalSessionConflict = checkPortalSessionConflict;
-    function showPortalConflictModal(direction, activeName, activeId) {
-      var modal = document.getElementById('portalConflictModal');
-      var msg = document.getElementById('conflictModalMessage');
-      var btnSwitch = document.getElementById('btn-conflict-switch');
-      if (!modal || !msg || !btnSwitch) return;
-      if (direction === 'student_to_client') {
-        msg.innerHTML = `
-          You are currently authenticated in the <strong style="color: var(--accent-cyan);">Student Training Portal</strong> as <strong>${escapeHtml(activeName ? activeName + ' (' + activeId + ')' : activeId)}</strong>.<br><br>
-          To maintain strict record isolation and prevent state licensing document mismatches, simultaneous portal sessions are restricted.<br><br>
-          To access the <strong style="color: var(--accent-amber);">Future Initiative Client &amp; Permit Portal</strong>, please sign out of your student session first.
-        `;
-        btnSwitch.textContent = "🔑 Sign Out of Student Portal & Switch to Client Portal →";
-        btnSwitch.onclick = function() {
-          logoutStudent();
-          closePortalConflictModal();
-          openAndSwitch('fi-portal');
-        };
-      } else {
-        msg.innerHTML = `
-          You are currently authenticated in the <strong style="color: var(--accent-amber);">Client &amp; Permit Portal</strong> as <strong>${escapeHtml(activeName ? activeName + ' (' + activeId + ')' : activeId)}</strong>.<br><br>
-          To maintain strict record isolation and prevent state licensing document mismatches, simultaneous portal sessions are restricted.<br><br>
-          To access the <strong style="color: var(--accent-cyan);">Student Training Portal</strong>, please sign out of your client session first.
-        `;
-        btnSwitch.textContent = "🔑 Sign Out of Client Portal & Switch to Student Portal →";
-        btnSwitch.onclick = function() {
-          logoutClient();
-          closePortalConflictModal();
-          openAndSwitch('portal');
-        };
-      }
-      modal.classList.add('active');
-      modal.style.setProperty('display', 'flex', 'important');
-      modal.style.setProperty('opacity', '1', 'important');
-      modal.style.setProperty('visibility', 'visible', 'important');
-      modal.style.setProperty('pointer-events', 'auto', 'important');
-      document.body.classList.add('modal-open');
-      document.body.style.overflow = 'hidden';
-    }
-    window.showPortalConflictModal = showPortalConflictModal;
-    function closePortalConflictModal() {
-      var modal = document.getElementById('portalConflictModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.style.setProperty('display', 'none', 'important');
-        modal.style.setProperty('opacity', '0', 'important');
-        modal.style.setProperty('pointer-events', 'none', 'important');
-      }
-      if (document.body) {
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-      }
-    }
-    window.closePortalConflictModal = closePortalConflictModal;
+    /* checkPortalSessionConflict: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.checkPortalSessionConflict = checkPortalSessionConflict;
+    /* showPortalConflictModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.showPortalConflictModal = showPortalConflictModal;
+    /* closePortalConflictModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.closePortalConflictModal = closePortalConflictModal;
     function purgeAllSessionCookies() {
       try {
         var cookies = document.cookie.split(";");
@@ -1533,35 +1266,8 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
       } catch(e) {}
     }
     window.purgeAllSessionCookies = purgeAllSessionCookies;
-    function logoutStudent() {
-      try {
-        fifsRemoveStudentSession();
-        fifsRemoveStudentSession();
-        fifsSignOutSupabase();
-        purgeAllSessionCookies();
-        var dash = document.getElementById('student-active-dashboard');
-        var login = document.getElementById('student-login-box');
-        var input = document.getElementById('studentAuthInput');
-        var statusDiv = document.getElementById('student-login-status');
-        if (dash) {
-          dash.classList.add('hidden');
-          dash.style.setProperty('display', 'none', 'important');
-        }
-        if (login) {
-          login.classList.remove('hidden');
-          login.style.setProperty('display', 'block', 'important');
-        }
-        if (input) input.value = '';
-        var passEl = document.getElementById('studentAuthPassword'); if (passEl) passEl.value = '';
-        if (statusDiv) statusDiv.style.display = 'none';
-        var userTag = document.getElementById('portal-user-tag');
-        if (userTag) userTag.textContent = "Public Training Portal";
-        returnToHome();
-      } catch(err) {
-        returnToHome();
-      }
-    }
-    window.logoutStudent = logoutStudent;
+    /* logoutStudent: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.logoutStudent = logoutStudent;
     function logoutClient() {
       try {
         fifsRemoveClientSession();
@@ -1691,59 +1397,12 @@ if (typeof window !== 'undefined') { window._fifsMemStorage = _fifsMemStorage; }
         });
     }
     window.verifyAdminAccess = verifyAdminAccess;
-    function getStepNumberFromStatus(statusStr) {
-      var s = (statusStr || '').toUpperCase();
-      if (s.includes('STEP_8') || s.includes('LICENSED') || (s.includes('COMPLETED') && !s.includes('PREP'))) return 8;
-      if (s.includes('STEP_7') || s.includes('MSP') || s.includes('PORTAL')) return 7;
-      if (s.includes('STEP_6') || s.includes('CERTIF') || s.includes('QUALIF')) return 6;
-      if (s.includes('STEP_5') || s.includes('LIVE_FIRE') || s.includes('RANGE')) return 5;
-      if (s.includes('STEP_4') || s.includes('CLASSROOM')) return 4;
-      if (s.includes('STEP_3') || s.includes('PREP')) return 3;
-      if (s.includes('STEP_2') || s.includes('CONFIRM')) return 2;
-      return 1;
-    }
-    window.getStepNumberFromStatus = getStepNumberFromStatus;
-    function formatStepLabel(stepNum) {
-      var labels = {
-        1: "1. Registration ✔",
-        2: "2. Confirmation ✔",
-        3: "3. Preparation ⚡",
-        4: "4. Classroom Instruction",
-        5: "5. Live-Fire Range",
-        6: "6. Certification Issued",
-        7: "7. MSP Portal Submitted",
-        8: "8. Licensed & Active 🛡️"
-      };
-      return labels[stepNum] || "Step " + stepNum;
-    }
-    window.formatStepLabel = formatStepLabel;
-        function adminSignOut() {
-      try {
-        delete window.__fifsStaffSession;
-        if (window.supabaseClient && window.supabaseClient.auth && typeof window.supabaseClient.auth.signOut === 'function') {
-          window.supabaseClient.auth.signOut().catch(function() {});
-        }
-        var emailInput = document.getElementById('adminStaffEmail');
-        if (emailInput) emailInput.value = '';
-        var passInput = document.getElementById('adminStaffPassword');
-        if (passInput) passInput.value = '';
-        var authBox = document.getElementById('admin-auth-box');
-        if (authBox) {
-          authBox.classList.remove('hidden');
-          authBox.style.setProperty('display', 'block', 'important');
-        }
-        var dashBox = document.getElementById('admin-command-dashboard');
-        if (dashBox) {
-          dashBox.classList.add('hidden');
-          dashBox.style.setProperty('display', 'none', 'important');
-        }
-        returnToHome();
-      } catch(e) {
-        console.error("Signout error:", e);
-        returnToHome();
-      }
-    }
-    window.adminSignOut = adminSignOut;
+    /* getStepNumberFromStatus: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.getStepNumberFromStatus = getStepNumberFromStatus;
+    /* formatStepLabel: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.formatStepLabel = formatStepLabel;
+        /* adminSignOut: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+            window.adminSignOut = adminSignOut;
     // ==========================================================================
     // CLIENT ALERT & ANIMATED ADMIN ACTION CONTROLLERS
     // ==========================================================================
@@ -2383,33 +2042,10 @@ window.openAdminSubpanelModal = openAdminSubpanelModal;
     window.closeAdminSubpanelModal = closeAdminSubpanelModal;
     window.switchAdminTab = switchAdminTab;
 // Duplicate refreshAdminRoster removed
-    function openAdminInviteModal() {
-      var modal = document.getElementById('adminInviteModal');
-      if (modal) {
-        modal.classList.add('active');
-        modal.style.setProperty('display', 'flex', 'important');
-        modal.style.setProperty('opacity', '1', 'important');
-        modal.style.setProperty('visibility', 'visible', 'important');
-        modal.style.setProperty('pointer-events', 'auto', 'important');
-        document.body.classList.add('modal-open');
-        document.body.style.overflow = 'hidden';
-      }
-    }
-    window.openAdminInviteModal = openAdminInviteModal;
-    function closeAdminInviteModal() {
-      var modal = document.getElementById('adminInviteModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.style.setProperty('display', 'none', 'important');
-        modal.style.setProperty('opacity', '0', 'important');
-        modal.style.setProperty('pointer-events', 'none', 'important');
-      }
-      if (document.body) {
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-      }
-    }
-    window.closeAdminInviteModal = closeAdminInviteModal;
+    /* openAdminInviteModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.openAdminInviteModal = openAdminInviteModal;
+    /* closeAdminInviteModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.closeAdminInviteModal = closeAdminInviteModal;
 function loadDemoStudent() {
       console.warn("Demo student mode has been permanently removed.");
       var statusDiv = document.getElementById('student-login-status');
@@ -2418,28 +2054,10 @@ function loadDemoStudent() {
       }
     }
     window.loadDemoStudent = loadDemoStudent;
-    function loadDemoClient() {
-      console.warn("Demo client mode has been permanently removed.");
-      var statusDiv = document.getElementById('client-login-status');
-      if (statusDiv) {
-        showStatus(statusDiv, 'Demo access disabled. Please sign in with registered client credentials.', 'error');
-      }
-    }
-    window.loadDemoClient = loadDemoClient;
-    function closeAdminEditStudentModal() {
-      var modal = document.getElementById('adminEditStudentModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.style.setProperty('display', 'none', 'important');
-        modal.style.setProperty('opacity', '0', 'important');
-        modal.style.setProperty('pointer-events', 'none', 'important');
-      }
-      if (document.body) {
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-      }
-    }
-    window.closeAdminEditStudentModal = closeAdminEditStudentModal;
+    /* loadDemoClient: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.loadDemoClient = loadDemoClient;
+    /* closeAdminEditStudentModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.closeAdminEditStudentModal = closeAdminEditStudentModal;
     function deleteStudentFromAdmin(studentId) {
       if (!confirm('Are you sure you want to remove student ' + studentId + ' from the administrative roster?')) return;
       var pin = getStaffSessionToken();
@@ -2457,20 +2075,8 @@ function loadDemoStudent() {
     }
     window.deleteStudentFromAdmin = deleteStudentFromAdmin;
     window.openAdminEditClientModal = openAdminEditClientModal;
-    function closeAdminEditClientModal() {
-    var modal = document.getElementById('adminEditClientModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.style.setProperty('display', 'none', 'important');
-        modal.style.setProperty('opacity', '0', 'important');
-        modal.style.setProperty('pointer-events', 'none', 'important');
-      }
-      if (document.body) {
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-      }
-    }
-    window.closeAdminEditClientModal = closeAdminEditClientModal;
+    /* closeAdminEditClientModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.closeAdminEditClientModal = closeAdminEditClientModal;
     function deleteClientFromAdmin(clientId) {
       if (!confirm('Are you sure you want to remove client ' + clientId + ' from the client portal registry?')) return;
       var pin = getStaffSessionToken();
@@ -2486,39 +2092,10 @@ function loadDemoStudent() {
       renderAdminClientTerminal({ clients: adminCachedClients });
     }
     window.deleteClientFromAdmin = deleteClientFromAdmin;
-    function openCourseBookingModal() {
-      var modal = document.getElementById('courseBookingModal');
-      if (modal) {
-        modal.classList.add('active');
-        modal.style.setProperty('display', 'flex', 'important');
-        modal.style.setProperty('opacity', '1', 'important');
-        modal.style.setProperty('visibility', 'visible', 'important');
-        modal.style.setProperty('pointer-events', 'auto', 'important');
-        document.body.classList.add('modal-open');
-        document.body.style.overflow = 'hidden';
-      }
-      if (typeof updateFormPriceDisplay === 'function') {
-        updateFormPriceDisplay();
-      }
-      if (typeof renderBookingCalendar === 'function') {
-        renderBookingCalendar();
-      }
-    }
-    window.openCourseBookingModal = openCourseBookingModal;
-    function closeCourseBookingModal() {
-      var modal = document.getElementById('courseBookingModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.style.setProperty('display', 'none', 'important');
-        modal.style.setProperty('opacity', '0', 'important');
-        modal.style.setProperty('pointer-events', 'none', 'important');
-      }
-      if (document.body) {
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-      }
-    }
-    window.closeCourseBookingModal = closeCourseBookingModal;
+    /* openCourseBookingModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.openCourseBookingModal = openCourseBookingModal;
+    /* closeCourseBookingModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.closeCourseBookingModal = closeCourseBookingModal;
         var COURSE_TIER_CONFIG = {
       mastery: {
         basePrice: "$424.99",
@@ -2579,13 +2156,8 @@ function loadDemoStudent() {
     window.COURSE_TIER_CONFIG = COURSE_TIER_CONFIG;
     window.courseTierMap = courseTierMap;
     window.setCardTier = setCardTier;
-    function toggleCardTier(courseKey, evt) {
-      if (evt && evt.stopPropagation) evt.stopPropagation();
-      var card = document.getElementById('card-course-' + courseKey);
-      var isVip = card && card.classList.contains('vip-mode-active');
-      setCardTier(courseKey, isVip ? 'base' : 'vip', evt);
-    }
-    window.toggleCardTier = toggleCardTier;
+    /* toggleCardTier: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.toggleCardTier = toggleCardTier;
     function selectCourse(courseValue) {
       if (!courseValue) return;
 
@@ -2827,28 +2399,8 @@ function loadDemoStudent() {
 
 
     window.lookupStudentAccount = lookupStudentAccount;
-    function lookupClientAccount() {
-      var input = document.getElementById('clientAuthInput');
-      var statusDiv = document.getElementById('client-login-status');
-      var query = input ? input.value.trim() : '';
-      if (!query) {
-        showStatus(statusDiv, 'Enter the email address linked to your account.', 'error');
-        return;
-      }
-      showStatus(statusDiv, 'Verifying Client Portal credentials...', 'success');
-      callFifsBackend('getClientPortalData', { email: query.includes('@') ? query : '', clientId: query.includes('@') ? '' : query }, function(res) {
-        if (res && res.status === 'success') {
-          if (statusDiv) statusDiv.style.display = 'none';
-          fifsSetClientSession(res.client);
-          renderClientDashboard(res.client);
-        } else {
-          showStatus(statusDiv, res.message || 'Client record not found.', 'error');
-        }
-      }, function(err) {
-        showStatus(statusDiv, 'Client Portal lookup error.', 'error');
-      });
-    }
-    window.lookupClientAccount = lookupClientAccount;
+    /* lookupClientAccount: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.lookupClientAccount = lookupClientAccount;
 
 
 // --- NEXT SCRIPT BLOCK ---
@@ -6322,20 +5874,8 @@ function getStepNumberFromStatus(statusStr) {
         linkElem.textContent = isRenewal ? "Open 8-Hour Renewal Guide ↗" : "Open 16-Hour Course Guide ↗";
       }
     }
-        function toggleReciprocityHubModal(show) {
-      var modal = document.getElementById('reciprocityHubModal');
-      if (modal) {
-        modal.style.setProperty('display', show ? 'block' : 'none', 'important');
-        document.body.style.overflow = show ? 'hidden' : '';
-        if (show) {
-          if (typeof initReciprocityEngine === 'function') {
-            initReciprocityEngine();
-          }
-          modal.scrollTop = 0;
-        }
-      }
-    }
-    window.toggleReciprocityHubModal = toggleReciprocityHubModal;
+        /* toggleReciprocityHubModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+            window.toggleReciprocityHubModal = toggleReciprocityHubModal;
     function openCollectorModal() {
       var modal = document.getElementById('collectorInfoModal');
       if (modal) modal.classList.add('active');
@@ -6537,22 +6077,11 @@ function getStepNumberFromStatus(statusStr) {
       return "Maryland CCW & HQL Combo";
     }
     window.setCardTier = setCardTier;
-    function toggleCardTier(courseKey, evt) {
-      if (evt && evt.stopPropagation) evt.stopPropagation();
-      var card = document.getElementById('card-course-' + courseKey);
-      var isVip = card && card.classList.contains('vip-mode-active');
-      setCardTier(courseKey, isVip ? 'base' : 'vip', evt);
-    }
-    window.toggleCardTier = toggleCardTier;
+    /* toggleCardTier: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.toggleCardTier = toggleCardTier;
     window.openPortalSelectionModal = openPortalSelectionModal;
-    function closePortalSelectionModal() {
-      var modal = document.getElementById('fiPortalSelectionModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.style.display = 'none';
-      }
-    }
-    window.closePortalSelectionModal = closePortalSelectionModal;
+    /* closePortalSelectionModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.closePortalSelectionModal = closePortalSelectionModal;
     // ==========================================================================
     // SCHEDULE SYNC (STRUCTURED DATE PICKER)
     // ==========================================================================
@@ -6583,14 +6112,8 @@ function getStepNumberFromStatus(statusStr) {
     }
     window.syncBookingSchedule = syncBookingSchedule;
     window.openPortalSelectionModal = openPortalSelectionModal;
-    function closePortalSelectionModal() {
-      var modal = document.getElementById('fiPortalSelectionModal');
-      if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-      }
-    }
-    window.closePortalSelectionModal = closePortalSelectionModal;
+    /* closePortalSelectionModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.closePortalSelectionModal = closePortalSelectionModal;
     function fiSelectPortal(choice) {
       if (typeof checkPortalSessionConflict === 'function') {
         if (choice === 'student' && checkPortalSessionConflict('portal')) {
@@ -7682,10 +7205,8 @@ function getStepNumberFromStatus(statusStr) {
     }
     window.openStateModal = openStateModal;
     window.populateStateModal = openStateModal;
-    function closeStateModal() {
-      document.getElementById('stateModalOverlay').classList.remove('open');
-    }
-    function handleModalOverlayClick(e) {
+    /* closeStateModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        function handleModalOverlayClick(e) {
       if (e.target.id === 'stateModalOverlay') closeStateModal();
     }
     function toggleAccordion(btn) {
@@ -7983,33 +7504,10 @@ function getStepNumberFromStatus(statusStr) {
     };
     window.closeStepDetailModal = function() { hideOverlay('stepDetailModal'); };
     // Reciprocity Hub Modal Controller
-    function toggleReciprocityHubModal(show) {
-      var modal = document.getElementById('reciprocityHubModal');
-      if (!modal) return;
-      if (show) {
-        modal.classList.add('active');
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-        if (typeof initReciprocityEngine === 'function') {
-          initReciprocityEngine();
-        }
-        modal.scrollTop = 0;
-      } else {
-        modal.classList.remove('active');
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-      }
-    }
-    window.toggleReciprocityHubModal = toggleReciprocityHubModal;
+    /* toggleReciprocityHubModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
+        window.toggleReciprocityHubModal = toggleReciprocityHubModal;
     // Removed stub
-function closeStateModal() {
-      var modal = document.getElementById('stateModalOverlay');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.classList.remove('open');
-        modal.style.display = 'none';
-      }
-    }
+/* closeStateModal: an earlier copy was removed here. A later declaration of the same name in this file is the one that has always run. */
     window.closeStateModal = closeStateModal;
     function openPortalSelectionModal() {
       var modal = document.getElementById('fiPortalSelectionModal');

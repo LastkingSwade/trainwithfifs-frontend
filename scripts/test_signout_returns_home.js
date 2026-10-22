@@ -30,8 +30,8 @@ function runIt(fnSrc, name, ids) {
 }
 
 (async () => {
-  await test('the student sign-out: every copy in the script clears the saved login AND returns to the home page (the live copy used to leave the person on the student sign-in screen)', () => {
-    const all = defs('logoutStudent'); assert(all.length >= 2, 'copies found: ' + all.length);
+  await test('the student sign-out: every copy in the script (now just the one live copy) clears the saved login AND returns to the home page (the live copy used to leave the person on the student sign-in screen)', () => {
+    const all = defs('logoutStudent'); assert(all.length >= 1, 'copies found: ' + all.length);
     for (const [k, d] of all.entries()) { assert(/fifsSignOutSupabase\(\)/.test(d), `copy ${k + 1} must clear the saved login`); assert(/returnToHome\(\)/.test(d), `copy ${k + 1} must return to the home page`); }
   });
   await test('the client sign-out: every copy (the in-portal button and the header menu use them) clears the saved login and returns to the home page', () => {

@@ -534,7 +534,7 @@ async function main() {
   const HOSTILE = '<img src=x onerror=alert(1)// "\'&>';
   await test('Every escapeHtml in the public script escapes < > & " and \'', async () => {
     const defs = allFunctionSources('escapeHtml').concat(allFunctionSources('escapeChatHtml'));
-    assert(defs.length >= 3, 'expected escape helpers, found ' + defs.length);
+    assert(defs.length >= 2, 'expected escape helpers (the live escapeHtml and escapeChatHtml), found ' + defs.length);
     for (const src of defs) {
       const fn = new Function(src + '; return ' + src.match(/function (\w+)/)[1] + ';')();
       const out = fn(HOSTILE);

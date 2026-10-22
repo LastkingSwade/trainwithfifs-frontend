@@ -32,10 +32,13 @@ function functionAt(src, startIdx) {
   if (end < 0) throw new Error('could not find the end of the function at ' + startIdx);
   return src.slice(lineStart, end + closing.length);
 }
+const tsParser = require('typescript'); const parsedCache = new Map();
+/** The exact text of a top-level `function name(` declaration, found with a real parser (not by guessing from indentation). `which` picks the first or last when a name is declared more than once. */
 function findFunction(src, signature, which = 'first') {
-  const idx = which === 'last' ? src.lastIndexOf(signature) : src.indexOf(signature);
-  if (idx < 0) throw new Error('missing function: ' + signature);
-  return functionAt(src, idx);
+  const m = /function\s+([A-Za-z0-9_$]+)\s*\(/.exec(signature); if (!m) throw new Error('bad signature: ' + signature);
+  let sf = parsedCache.get(src); if (!sf) { sf = tsParser.createSourceFile('x.js', src, tsParser.ScriptTarget.ES2022, true, tsParser.ScriptKind.JS); parsedCache.set(src, sf); }
+  const hits = sf.statements.filter((st) => tsParser.isFunctionDeclaration(st) && st.name && st.name.text === m[1]); if (!hits.length) throw new Error('missing function: ' + signature);
+  const st = which === 'last' ? hits[hits.length - 1] : hits[0]; return src.slice(st.getStart(), st.end);
 }
 
 // ---- Fake browser -----------------------------------------------------------------------------------------
@@ -84,14 +87,14 @@ async function main() {
   const hostileStudent = { studentId: HOSTILE.breakout, fullName: HOSTILE.script, name: HOSTILE.tag, email: HOSTILE.svg, phone: HOSTILE.iframe, course: HOSTILE.tag, assignedDate: HOSTILE.script, status: 'STEP_1', profileDocUrl: 'javascript:alert(1)' };
   const hostileClient = { clientId: HOSTILE.breakout, fullName: HOSTILE.tag, email: HOSTILE.svg, phone: HOSTILE.script, permitState: HOSTILE.iframe, expirationDate: '2099-01-01', status: 'ACTIVE' };
 
-  console.log('\n[SECTION A: Script rosters (both copies of each render function)]');
+  console.log('\n[SECTION A: Script rosters (the one live copy of each render function)]');
   const rowFn = () => findFunction(SCRIPT, 'function fifsRosterRowHtml(s) {');
   await test('There is exactly one student roster renderer and one row builder', async () => {
     assert((SCRIPT.match(/function renderAdminTerminal\(/g) || []).length === 1, 'duplicate renderAdminTerminal');
     assert((SCRIPT.match(/function fifsRosterRowHtml\(/g) || []).length === 1, 'expected one row builder');
   });
-  for (const which of ['first', 'last']) {
-    await test(`Student roster (${which} copy): hostile text is escaped and attributes cannot be broken out of`, async () => {
+  for (const which of ['last']) {
+    await test(`Student roster (live copy): hostile text is escaped and attributes cannot be broken out of`, async () => {
       const src = rowFn() + '\n' + findFunction(SCRIPT, 'function renderAdminTerminal(data) {', 'last') + '\n' + findFunction(SCRIPT, 'function renderAdminClientTerminal(data) {', which);
       const html = runRoster(src, `renderAdminTerminal({ students: [${JSON.stringify(hostileStudent)}], clients: [${JSON.stringify(hostileClient)}] });`);
       assert(html.length > 200, 'the roster rendered nothing');
@@ -100,7 +103,7 @@ async function main() {
       assert(!html.includes(HOSTILE.quote), 'an unescaped quote reached an attribute or handler');
       assert(html.includes('&lt;script&gt;alert(1)&lt;/script&gt;') || html.includes('&lt;img src=x onerror=alert(1)&gt;'), 'expected the hostile text to appear escaped');
     });
-    await test(`Client roster (${which} copy): every text field is escaped, including IDs`, async () => {
+    await test(`Client roster (live copy): every text field is escaped, including IDs`, async () => {
       const src = findFunction(SCRIPT, 'function renderAdminClientTerminal(data) {', which);
       const html = runRoster(src, `renderAdminClientTerminal({ clients: [${JSON.stringify(hostileClient)}] });`);
       assert(html.length > 100, 'the client roster rendered nothing');
@@ -108,7 +111,7 @@ async function main() {
       assert(!html.includes('" onmouseover="alert(1)'), 'a client ID broke out of an attribute');
       // Every copy must escape the ID and permit state it renders; the first copy also renders name and phone.
       assert(html.includes('&quot;') && html.includes('&lt;iframe src=javascript:alert(1)&gt;'), 'expected the escaped client ID and permit state');
-      if (which === 'first') assert(html.includes('&lt;img src=x onerror=alert(1)&gt;') && html.includes('&lt;script&gt;alert(1)&lt;/script&gt;'), 'expected escaped client name and phone');
+      assert(html.includes('&lt;img src=x onerror=alert(1)&gt;') && html.includes('&lt;script&gt;alert(1)&lt;/script&gt;'), 'expected escaped client name and phone');
     });
   }
 
@@ -252,8 +255,8 @@ async function main() {
     assert(sandbox.__n === 1 && /Bravo Client/.test(html) && !/Alpha Client/.test(html), 'the new list replaces the old: ' + html.slice(0, 160));
   });
 
-  // ---- portal conflict message: both copies in the script (the later one is the live one) ----
-  const conflictCopies = [['earlier copy', findFunction(SCRIPT, 'function showPortalConflictModal(', 'first')], ['live copy', findFunction(SCRIPT, 'function showPortalConflictModal(', 'last')]];
+  // ---- portal conflict message: the one live copy in the script ----
+  const conflictCopies = [['live copy', findFunction(SCRIPT, 'function showPortalConflictModal(', 'last')]];
   function runConflict(src, direction, name, id) {
     const el = (extra = {}) => ({ innerHTML: '', textContent: '', style: { setProperty() {} }, classList: { add() {}, remove() {} }, ...extra });
     const els = { portalConflictModal: el(), conflictModalMessage: el(), 'btn-conflict-switch': el() };
@@ -262,7 +265,7 @@ async function main() {
     vm.runInContext(findFunction(SCRIPT, 'function escapeHtml(str) {') + '\n' + src + `\nshowPortalConflictModal(${JSON.stringify(direction)}, ${JSON.stringify(name)}, ${JSON.stringify(id)});`, sandbox);
     return els.conflictModalMessage.innerHTML;
   }
-  assert(SCRIPT.split('function showPortalConflictModal(').length - 1 === 2, 'the script is expected to declare showPortalConflictModal twice; update this test if one is removed');
+  assert(SCRIPT.split('function showPortalConflictModal(').length - 1 === 1, 'showPortalConflictModal must be declared exactly once (a second copy would never run; see test_no_duplicate_functions.js)');
   for (const [label, src] of conflictCopies) {
     await test(`Portal conflict message (${label}): shows the name and ID in bold, closes its tags, and leaks no placeholder`, async () => {
       for (const direction of ['student_to_client', 'client_to_student']) {
