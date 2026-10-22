@@ -31,7 +31,7 @@ const eq = (a, b, m) => assert(JSON.stringify(a) === JSON.stringify(b), `${m || 
   });
   await test('every Hub item opens something: a function the page really defines, a chat scroll, or a call link, and a call link is a real phone number', () => {
     const script = read('public/scripts/TrainWithFIFS_scripts.js') + read('src/app/page.tsx') + read('src/portal/AiGuidePanel.tsx');
-    for (const it of T.HUB_ITEMS) { assert(it.call || it.scrollTo || it.href, it.key + ' does nothing'); if (it.call) assert(new RegExp('window( as any\\))?\\.' + it.call + '\\s*=|function ' + it.call + '\\b').test(script), it.call + ' is not defined by the page'); if (it.href) assert(/^tel:\+1\d{10}$/.test(it.href), 'phone link'); if (it.label) assert(it.label.length > 3 && it.hint.length > 3, 'labels'); }
+    for (const it of T.HUB_ITEMS) { assert(it.call || it.scrollTo || it.href, it.key + ' does nothing'); if (it.call) assert(new RegExp('window( as any\\))?\\.' + it.call + '\\s*=|function ' + it.call + '\\b').test(script), it.call + ' is not defined by the page'); if (it.href && it.href.startsWith('tel:')) assert(/^tel:\+1\d{10}$/.test(it.href), 'phone link'); else if (it.href) assert(it.href.startsWith('/') && !it.href.startsWith('//'), 'internal page link'); if (it.label) assert(it.label.length > 3 && it.hint.length > 3, 'labels'); }
     eq(new Set(T.HUB_ITEMS.map((i) => i.key)).size, T.HUB_ITEMS.length, 'no duplicate keys');
   });
   await test('Armory is honest: a clear "coming soon" sheet with a way back, never a dead button and never a promise of serial-number storage', () => {
