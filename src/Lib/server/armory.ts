@@ -5,6 +5,7 @@
 // in a notification, or given to analytics or the AI guide. Someone holding BOTH the server secret and the database could decrypt. If the secret is lost, the records cannot be recovered.
 import crypto from 'crypto';
 import { memberRole } from './portal-chat';
+import { gcmSeal, gcmOpen } from './gcm';
 
 export const KEY_VERSION = 1, MAX_ITEMS = 50, MAX_MAINTENANCE = 100, MAX_JSON = 12000;
 export const TYPES = { handgun: 'Handgun', rifle: 'Rifle', shotgun: 'Shotgun', other: 'Other equipment' } as const;
@@ -35,14 +36,11 @@ const aad = (userId: string, itemId: string, version: number) => Buffer.from(`ar
 
 /** Layout of the stored text: base64 of  12-byte nonce | 16-byte tag | ciphertext. */
 export function encryptItem(userId: string, itemId: string, data: ItemData, version = KEY_VERSION): string {
-  const iv = crypto.randomBytes(12); const c = crypto.createCipheriv('aes-256-gcm', memberKey(userId, version), iv); c.setAAD(aad(userId, itemId, version));
-  const body = Buffer.concat([c.update(JSON.stringify(data), 'utf8'), c.final()]);
-  return Buffer.concat([iv, c.getAuthTag(), body]).toString('base64');
+  return gcmSeal(memberKey(userId, version), aad(userId, itemId, version), Buffer.from(JSON.stringify(data), 'utf8')).toString('base64');
 }
 export function decryptItem(userId: string, itemId: string, payload: string, version = KEY_VERSION): ItemData {
   const raw = Buffer.from(payload, 'base64'); if (raw.length < 29) throw new Error('bad armory record');
-  const d = crypto.createDecipheriv('aes-256-gcm', memberKey(userId, version), raw.subarray(0, 12)); d.setAAD(aad(userId, itemId, version)); d.setAuthTag(raw.subarray(12, 28));
-  return JSON.parse(Buffer.concat([d.update(raw.subarray(28)), d.final()]).toString('utf8'));
+  return JSON.parse(gcmOpen(memberKey(userId, version), aad(userId, itemId, version), raw, false).toString('utf8'));
 }
 
 // --- what a member may type ---

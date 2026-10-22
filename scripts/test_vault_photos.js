@@ -42,7 +42,7 @@ const MB = 1024 * 1024;
     assert(/photos are shrunk automatically/.test(w) && /Everything is encrypted/.test(w), 'the on-screen note matches'); assert(/No firearm serial numbers, gun photos or storage details/.test(w), 'the never-upload notice is kept');
   });
   await test('encryption is unchanged and still happens before storage: AES-256-GCM on the server with the owner and document bound in, file type from the bytes, only PDF/PNG/JPG/WEBP, same limits', () => {
-    const s = read('src/Lib/server/wallet.ts'); assert(/aes-256-gcm/.test(s) && /setAAD\(Buffer\.from\(`\$\{owner\}:\$\{docId\}`\)\)/.test(s), 'AES-GCM with owner bound in'); const up = s.indexOf('.upload(path, encryptBytes(bytes, userId, docId)'); assert(up > 0, 'encrypted bytes are what is stored');
+    const s = read('src/Lib/server/wallet.ts'); const g = read('src/Lib/server/gcm.ts'); assert(/aes-256-gcm/.test(g) && /setAAD\(aad\)/.test(g) && (s.match(/gcm(Seal|Open)\(k, Buffer\.from\(`\$\{owner\}:\$\{docId\}`\)/g) || []).length === 2, 'AES-GCM (shared routine) with owner and document bound in, both ways'); const up = s.indexOf('.upload(path, encryptBytes(bytes, userId, docId)'); assert(up > 0, 'encrypted bytes are what is stored');
     assert(/export const MAX_BYTES = 3 \* 1024 \* 1024/.test(s) && /export const MAX_DOCS = 20/.test(s), 'limits unchanged'); assert(/const mime = sniffMime\(bytes\)/.test(s) && /Only PDF, PNG, JPG or WEBP files can be stored/.test(s), 'type decided from the bytes');
     assert(/application\/octet-stream/.test(s), 'stored as opaque encrypted data');
   });

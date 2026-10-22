@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { gcmSeal, gcmOpen } from './gcm';
 
 // Document wallet: a private place for a signed-in person's OWN documents (permit card, class certificate, HQL approval, other ID).
 //  - Opt-in: nothing can be stored until the person accepts the notice.
@@ -24,15 +25,12 @@ export const walletEnabled = (): boolean => key() !== null;
 /** Layout: 1 byte version, 12 byte nonce, 16 byte tag, ciphertext. The owner and document ids are bound in, so a file cannot be swapped between people. */
 export function encryptBytes(plain: Buffer, owner: string, docId: string): Buffer {
   const k = key(); if (!k) throw new Error('wallet key missing');
-  const iv = crypto.randomBytes(12); const c = crypto.createCipheriv('aes-256-gcm', k, iv); c.setAAD(Buffer.from(`${owner}:${docId}`));
-  const body = Buffer.concat([c.update(plain), c.final()]);
-  return Buffer.concat([Buffer.from([1]), iv, c.getAuthTag(), body]);
+  return gcmSeal(k, Buffer.from(`${owner}:${docId}`), plain, 1);
 }
 export function decryptBytes(blob: Buffer, owner: string, docId: string): Buffer {
   const k = key(); if (!k) throw new Error('wallet key missing');
   if (blob.length < 29 || blob[0] !== 1) throw new Error('bad wallet file');
-  const d = crypto.createDecipheriv('aes-256-gcm', k, blob.subarray(1, 13)); d.setAAD(Buffer.from(`${owner}:${docId}`)); d.setAuthTag(blob.subarray(13, 29));
-  return Buffer.concat([d.update(blob.subarray(29)), d.final()]);
+  return gcmOpen(k, Buffer.from(`${owner}:${docId}`), blob, true);
 }
 
 /** The file type is decided from the file's own first bytes, never from what the browser says. */
@@ -51,7 +49,7 @@ export async function walletStatus(supabase: any, userId: string): Promise<Walle
   if (!walletEnabled()) return { ok: true, enabled: false, consented: false, docs: [], maxBytes: MAX_BYTES, kinds: WALLET_KINDS };
   try {
     const c = await supabase.from('wallet_consent').select('accepted_at, notice_version').eq('user_id', userId).maybeSingle();
-    if (c.error) return { ok: false, status: 503, message: 'The document wallet is not set up yet.' };
+    if (c.error) return { ok: false, status: 503, message: 'The Vault is not set up yet.' };
     const consented = !!c.data && Number(c.data.notice_version) >= NOTICE_VERSION;
     let docs: WalletDoc[] = [];
     if (consented) {
@@ -60,11 +58,11 @@ export async function walletStatus(supabase: any, userId: string): Promise<Walle
       docs = d.data.map((r: any) => ({ id: String(r.id), kind: r.kind, kindLabel: (WALLET_KINDS as any)[r.kind] || 'Document', mime: String(r.mime), sizeBytes: Number(r.size_bytes) || 0, expiresOn: r.expires_on || null, createdAt: String(r.created_at || '') }));
     }
     return { ok: true, enabled: true, consented, docs, maxBytes: MAX_BYTES, kinds: WALLET_KINDS };
-  } catch (err: any) { console.warn('[Wallet] status unavailable:', err?.message); return { ok: false, status: 503, message: 'The document wallet is not available right now.' }; }
+  } catch (err: any) { console.warn('[Wallet] status unavailable:', err?.message); return { ok: false, status: 503, message: 'The Vault is not available right now.' }; }
 }
 
 export async function walletConsent(supabase: any, userId: string): Promise<WalletResult> {
-  if (!walletEnabled()) return { ok: false, status: 503, message: 'The document wallet is not available yet.' };
+  if (!walletEnabled()) return { ok: false, status: 503, message: 'The Vault is not available yet.' };
   try {
     const { error } = await supabase.from('wallet_consent').upsert({ user_id: userId, accepted_at: new Date().toISOString(), notice_version: NOTICE_VERSION }, { onConflict: 'user_id' });
     return error ? { ok: false, status: 503, message: 'Could not save your choice.' } : { ok: true };
@@ -72,7 +70,7 @@ export async function walletConsent(supabase: any, userId: string): Promise<Wall
 }
 
 export async function walletUpload(supabase: any, userId: string, input: { kind?: unknown; dataBase64?: unknown; expiresOn?: unknown }): Promise<WalletResult<{ id: string }>> {
-  if (!walletEnabled()) return { ok: false, status: 503, message: 'The document wallet is not available yet.' };
+  if (!walletEnabled()) return { ok: false, status: 503, message: 'The Vault is not available yet.' };
   const kind = String(input.kind ?? '');
   if (!(kind in WALLET_KINDS)) return { ok: false, status: 400, message: 'Choose what kind of document this is.' };
   const exp = input.expiresOn ? String(input.expiresOn) : null;
@@ -86,7 +84,7 @@ export async function walletUpload(supabase: any, userId: string, input: { kind?
   try {
     const st = await walletStatus(supabase, userId);
     if (!st.ok) return st;
-    if (!st.consented) return { ok: false, status: 403, message: 'Please accept the document wallet notice first.' };
+    if (!st.consented) return { ok: false, status: 403, message: 'Please accept the Vault notice first.' };
     if (st.docs.length >= MAX_DOCS) return { ok: false, status: 409, message: `You can keep up to ${MAX_DOCS} documents. Delete one first.` };
     const docId = crypto.randomUUID(); const path = `${userId}/${docId}.${EXT[mime]}`;
     const up = await supabase.storage.from(WALLET_BUCKET).upload(path, encryptBytes(bytes, userId, docId), { contentType: 'application/octet-stream', upsert: false });
@@ -98,7 +96,7 @@ export async function walletUpload(supabase: any, userId: string, input: { kind?
 }
 
 export async function walletOpen(supabase: any, userId: string, id: unknown): Promise<WalletResult<{ dataBase64: string; mime: string; fileName: string }>> {
-  if (!walletEnabled()) return { ok: false, status: 503, message: 'The document wallet is not available yet.' };
+  if (!walletEnabled()) return { ok: false, status: 503, message: 'The Vault is not available yet.' };
   if (!UUID.test(String(id ?? ''))) return { ok: false, status: 400, message: 'Choose a document.' };
   try {
     // Scoped to the caller: another person's id behaves exactly like a missing one.
@@ -115,7 +113,7 @@ export async function walletOpen(supabase: any, userId: string, id: unknown): Pr
 
 /** Change (or clear) the expiry date of one of THIS person's documents, for example after a renewal. Only the date changes; the stored file is untouched. */
 export async function walletSetExpiry(supabase: any, userId: string, id: unknown, expiresOn: unknown): Promise<WalletResult> {
-  if (!walletEnabled()) return { ok: false, status: 503, message: 'The document wallet is not available yet.' };
+  if (!walletEnabled()) return { ok: false, status: 503, message: 'The Vault is not available yet.' };
   const docId = String(id ?? ''); if (!UUID.test(docId)) return { ok: false, status: 400, message: 'That document could not be found.' };
   const raw = expiresOn === null || expiresOn === undefined || expiresOn === '' ? null : String(expiresOn);
   if (raw !== null) { const t = Date.parse(raw + 'T12:00:00Z'); if (!DAY.test(raw) || Number.isNaN(t) || raw < '1990-01-01' || raw > '2100-12-31') return { ok: false, status: 400, message: 'The expiration date is not valid.' }; }

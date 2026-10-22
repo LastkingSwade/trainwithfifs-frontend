@@ -7,6 +7,7 @@
 import crypto from 'crypto';
 import { armoryEnabled, memberKey, armoryOwnsItem, KEY_VERSION } from './armory';
 import { memberRole } from './portal-chat';
+import { gcmSeal, gcmOpen } from './gcm';
 
 export const PHOTO_BUCKET = 'armory';
 export const MAX_PER_ITEM = 4, MAX_PER_MEMBER = 25;
@@ -23,13 +24,11 @@ const FAIL = 'That could not be done right now. Nothing was changed.';
 // ---- encryption (layout: 1 byte version, 12 byte nonce, 16 byte tag, ciphertext) ----
 const aad = (kind: 'full' | 'thumb', uid: string, itemId: string, photoId: string, v: number) => Buffer.from(`armory-photo:${kind}:${uid}:${itemId}:${photoId}:${v}`);
 export function sealPhoto(kind: 'full' | 'thumb', uid: string, itemId: string, photoId: string, plain: Buffer, v = KEY_VERSION): Buffer {
-  const iv = crypto.randomBytes(12); const c = crypto.createCipheriv('aes-256-gcm', memberKey(uid, v), iv); c.setAAD(aad(kind, uid, itemId, photoId, v));
-  const body = Buffer.concat([c.update(plain), c.final()]); return Buffer.concat([Buffer.from([v]), iv, c.getAuthTag(), body]);
+  return gcmSeal(memberKey(uid, v), aad(kind, uid, itemId, photoId, v), plain, v);
 }
 export function openPhoto(kind: 'full' | 'thumb', uid: string, itemId: string, photoId: string, blob: Buffer): Buffer {
   if (blob.length < 29) throw new Error('bad photo'); const v = blob[0]; if (v < 1 || v > 99) throw new Error('bad photo');
-  const d = crypto.createDecipheriv('aes-256-gcm', memberKey(uid, v), blob.subarray(1, 13)); d.setAAD(aad(kind, uid, itemId, photoId, v)); d.setAuthTag(blob.subarray(13, 29));
-  return Buffer.concat([d.update(blob.subarray(29)), d.final()]);
+  return gcmOpen(memberKey(uid, v), aad(kind, uid, itemId, photoId, v), blob, true);
 }
 
 // ---- the file must be a plain JPEG with no location, camera or text details ----
