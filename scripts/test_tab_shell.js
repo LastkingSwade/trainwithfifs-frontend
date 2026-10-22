@@ -13,8 +13,8 @@ const eq = (a, b, m) => assert(JSON.stringify(a) === JSON.stringify(b), `${m || 
 
 (async () => {
   console.log('\n[The five tabs]');
-  await test('there are exactly five tabs, in this order, each with an emoji and a plain label', () => {
-    eq(T.TABS.map((t) => t.key), ['home', 'wallet', 'armory', 'range', 'hub']); eq(T.TABS.map((t) => t.label), ['Home', 'Vault', 'Armory', 'Range', 'Hub']); assert(T.TABS.every((t) => t.emoji.length >= 1 && /\S/.test(t.emoji)), 'emoji');
+  await test('there are exactly six tabs, in this order, each with an emoji and a plain label', () => {
+    eq(T.TABS.map((t) => t.key), ['home', 'wallet', 'armory', 'range', 'reciprocity', 'hub']); eq(T.TABS.map((t) => t.label), ['Home', 'Vault', 'Armory', 'Range', 'States', 'Hub']); assert(T.TABS.every((t) => t.emoji.length >= 1 && /\S/.test(t.emoji)), 'emoji');
   });
   await test('tabs show only for a signed-in student or client: a student dashboard, a client dashboard, or nothing', () => {
     eq(T.roleFrom(true, false), 'student'); eq(T.roleFrom(false, true), 'client'); eq(T.roleFrom(false, false), null, 'signed out: no tabs'); eq(T.roleFrom(true, true), 'student');
@@ -50,7 +50,7 @@ const eq = (a, b, m) => assert(JSON.stringify(a) === JSON.stringify(b), `${m || 
   });
   await test('phones get a bottom bar and larger screens a left rail under the header; every tab is 56px+ tall, 44px+ wide, with a visible focus ring, safe-area padding and no animation', () => {
     const c = read('src/shell/tabShell.css').replace(/\/\*[\s\S]*?\*\//g, '');
-    assert(/@media \(max-width: 899px\)/.test(c) && /grid-template-columns: repeat\(5, 1fr\)/.test(c) && /env\(safe-area-inset-bottom/.test(c), 'phone bar'); assert(/@media \(min-width: 900px\)/.test(c) && /top: var\(--fts-rail-top/.test(c) && /width: 84px/.test(c), 'desktop rail under the header');
+    assert(/@media \(max-width: 899px\)/.test(c) && /grid-template-columns: repeat\(6, 1fr\)/.test(c) && /env\(safe-area-inset-bottom/.test(c), 'phone bar'); assert(/@media \(min-width: 900px\)/.test(c) && /top: var\(--fts-rail-top/.test(c) && /width: 84px/.test(c), 'desktop rail under the header');
     assert(/\.fts-tab \{[^}]*min-width: 44px; min-height: 56px/.test(c) && /\.fts-item \{[^}]*min-height: 56px/.test(c) && /\.fts-close \{ min-width: 48px; min-height: 48px/.test(c), 'sizes'); assert(/:focus-visible[^{]*\{ outline: 3px solid #00e5ff/.test(c), 'focus'); assert(!/animation|transition|@keyframes/.test(c), 'no motion');
     assert(/#ffb703/.test(c) && /#00e5ff/.test(c), 'company colours');
   });

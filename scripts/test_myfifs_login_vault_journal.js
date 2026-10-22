@@ -14,8 +14,8 @@ const eq = (a, b, m) => assert(JSON.stringify(a) === JSON.stringify(b), `${m || 
 const code = (p) => read(p).replace(/\/\/.*$/gm, '');
 
 (async () => {
-  await test('the tab bar still has exactly five tabs in the same order, and the second one now says Vault (its key and what it opens are unchanged)', () => {
-    eq(T.TABS.map((t) => t.key), ['home', 'wallet', 'armory', 'range', 'hub']); eq(T.TABS.map((t) => t.label), ['Home', 'Vault', 'Armory', 'Range', 'Hub']); assert(!/Wallet/.test(JSON.stringify(T.TABS)), 'no Wallet label left on the tabs');
+  await test('the tab bar has exactly six tabs in order (the new States tab sits between Range and Hub), and the second one now says Vault (its key and what it opens are unchanged)', () => {
+    eq(T.TABS.map((t) => t.key), ['home', 'wallet', 'armory', 'range', 'reciprocity', 'hub']); eq(T.TABS.map((t) => t.label), ['Home', 'Vault', 'Armory', 'Range', 'States', 'Hub']); assert(!/Wallet/.test(JSON.stringify(T.TABS)), 'no Wallet label left on the tabs');
     assert(/key === 'wallet'\) \{[^}]*w\.openWallet\?\.\(\)/.test(read('src/shell/tabShell.ts')), 'the Vault tab still opens the same screen'); assert(!/Wallet/.test(T.ARMORY_TEXT.body), 'tab copy says Vault');
   });
   await test('signed out, My FIFS opens its own sign-in window; with a saved student or client login it still goes to that portal', () => {

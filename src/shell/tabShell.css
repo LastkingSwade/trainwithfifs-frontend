@@ -1,4 +1,4 @@
-/* FIFS ONE tabs. Company colours: dark navy, cyan hairlines, amber for the current tab. Every tab is at least 56px tall and 44px wide, text is high contrast, focus is always visible,
+/* FIFS ONE tabs (six). Company colours: dark navy, cyan hairlines, amber for the current tab. Every tab is at least 56px tall and 44px wide, text is high contrast, focus is always visible,
    and nothing moves (no animation, so reduced motion needs no special case). Phones: a bar along the bottom. 900px and wider: a rail down the left, under the site header. */
 .fts-nav[hidden] { display: none; }
 .fts-nav { position: fixed; z-index: 99985; display: grid; background: #080c12; border: 0 solid rgba(0, 229, 255, 0.45); font-family: var(--font-body, system-ui, sans-serif); }
@@ -11,14 +11,14 @@
 
 /* Phone and small tablet: bottom bar */
 @media (max-width: 899px) {
-  .fts-nav { left: 0; right: 0; bottom: 0; grid-template-columns: repeat(5, 1fr); border-top-width: 1px; padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .fts-nav { left: 0; right: 0; bottom: 0; grid-template-columns: repeat(6, 1fr); border-top-width: 1px; padding-bottom: env(safe-area-inset-bottom, 0px); }
   body.fifs-tabs-on { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
   /* the floating chat button and the text-size / back-to-top buttons ride above the bar */
   body.fifs-tabs-on #floatingCommWrapper, body.fifs-tabs-on .fifs-float { transform: translateY(calc(-62px - env(safe-area-inset-bottom, 0px))); }
 }
 /* Larger screens: rail on the left, below the header */
 @media (min-width: 900px) {
-  .fts-nav { top: var(--fts-rail-top, 72px); bottom: 0; left: 0; width: 84px; grid-template-rows: repeat(5, 76px); align-content: start; border-right-width: 1px; padding-top: 8px; }
+  .fts-nav { top: var(--fts-rail-top, 72px); bottom: 0; left: 0; width: 84px; grid-template-rows: repeat(6, 76px); align-content: start; border-right-width: 1px; padding-top: 8px; }
   .fts-tab { min-height: 72px; }
   body.fifs-tabs-on { padding-left: 84px; }
   body.fifs-tabs-on .fifs-float { transform: translateX(84px); }
