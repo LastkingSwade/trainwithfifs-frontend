@@ -9,6 +9,7 @@ import { sendInvoice, payInfo, invoiceCheckout } from '@/Lib/server/sent-invoice
 import { waiverStatus, saveWaiver, listWaivers, getWaiver, remindToSignWaiver } from '@/Lib/server/waivers';
 import { logStaffAccess, outcomeOf, listAccessLog } from '@/Lib/server/access-log';
 import { createPortalForGuestInvoice } from '@/Lib/server/guest-portal';
+import { loginOptions as passkeyLoginOptions, loginVerify as passkeyLoginVerify, passkeyList, passkeyRemove, registerOptions as passkeyRegisterOptions, registerVerify as passkeyRegisterVerify, rpFromSite } from '@/Lib/server/passkeys';
 import { photoAdd, photoList, photoOpen, photoDelete, photoPaths, removePhotoFiles, purgeArmory } from '@/Lib/server/armory-photos';
 import { memberThread, memberSend, staffMembers, staffThread, staffSend } from '@/Lib/server/portal-chat';
 import { journalList, addSession, deleteSession, addGoal, setGoalDone, deleteGoal, deleteAll } from '@/Lib/server/range-journal';
@@ -3444,6 +3445,34 @@ export async function POST(req: NextRequest) {
        const r: any = await remindToSignWaiver(sbRemind, payload?.studentId);
        await logStaffAccess(sbRemind, { staffId: user?.id, staffLabel: user?.email, action: 'waiver_remind', studentId: payload?.studentId, outcome: outcomeOf(r) });
        return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
+     }
+
+     // Passkeys: sign in with Face ID, Touch ID or a fingerprint. The two sign-in steps are public (nobody is signed in yet) and rate-limited; every other step needs a verified login, and a person
+     // only ever reaches their OWN passkeys (the person is the verified login, never anything from the request). Nothing here logs keys, challenges or tokens.
+     case 'passkeyLoginOptions':
+     case 'passkeyLoginVerify': {
+       const noStore = { 'Cache-Control': 'no-store' };
+       if (!allowPublicSubmit(req, 'passkeyLogin', 40)) return NextResponse.json({ success: false, error: 'Too many attempts. Please wait a few minutes, or use your password.' }, { status: 429, headers: noStore });
+       let rp; try { rp = rpFromSite(resolveSiteUrl()); } catch { return NextResponse.json({ success: false, error: 'Face ID and fingerprint sign-in is not available right now. Please use your password.' }, { status: 503, headers: noStore }); }
+       const sb = getPrivilegedClient();
+       const r: any = action === 'passkeyLoginOptions' ? await passkeyLoginOptions(sb, rp) : await passkeyLoginVerify(sb, sb.auth.admin as any, { challengeId: payload?.challengeId, response: payload?.response }, rp);
+       return r.ok ? NextResponse.json({ success: true, ...(action === 'passkeyLoginOptions' ? { options: r.options, challengeId: r.challengeId } : { tokenHash: r.tokenHash }) }, { headers: noStore }) : NextResponse.json({ success: false, error: r.message }, { status: r.status, headers: noStore });
+     }
+     case 'passkeyRegisterOptions':
+     case 'passkeyRegisterVerify':
+     case 'passkeyList':
+     case 'passkeyRemove': {
+       const noStore = { 'Cache-Control': 'no-store' };
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !user?.id) return NextResponse.json({ success: false, error: 'Please sign in first.' }, { status: 401, headers: noStore });
+       if (action !== 'passkeyList' && !allowPublicSubmit(req, 'passkeyManage', 30)) return NextResponse.json({ success: false, error: 'Too many attempts. Please wait a few minutes.' }, { status: 429, headers: noStore });
+       let rp; try { rp = rpFromSite(resolveSiteUrl()); } catch { return NextResponse.json({ success: false, error: 'Face ID and fingerprint sign-in is not available right now.' }, { status: 503, headers: noStore }); }
+       const sb = getPrivilegedClient(); const token = (req.headers.get('authorization') || '').slice(7).trim(); const me = { id: String(user.id), email: user.email };
+       const r: any = action === 'passkeyList' ? await passkeyList(sb, me.id)
+         : action === 'passkeyRemove' ? await passkeyRemove(sb, me.id, payload?.id)
+         : action === 'passkeyRegisterOptions' ? await passkeyRegisterOptions(sb, me, token, rp)
+         : await passkeyRegisterVerify(sb, me, { challengeId: payload?.challengeId, response: payload?.response, deviceName: payload?.deviceName }, rp);
+       return r.ok ? NextResponse.json({ success: true, ...(r.options ? { options: r.options, challengeId: r.challengeId } : {}), ...(r.passkeys ? { passkeys: r.passkeys } : {}) }, { headers: noStore }) : NextResponse.json({ success: false, error: r.message }, { status: r.status, headers: noStore });
      }
 
      // Staff: create the Student Portal for a paying guest whose payment was recorded by hand. STAFF ONLY: the role is checked before the database is touched.
