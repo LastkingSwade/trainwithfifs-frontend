@@ -7,7 +7,7 @@ export interface PaymentSummary { collected: number; outstanding: number; paidIn
 export type PaymentResult = { ok: true; rows: PaymentRow[]; summary: PaymentSummary; truncated: boolean } | { ok: false; status: number; message: string };
 
 const money = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0; };
-export const PAYMENT_FILTERS = ['all', 'PAID', 'DEPOSIT_PAID', 'PENDING', 'ABANDONED', 'CANCELLED'] as const;
+export const PAYMENT_FILTERS = ['all', 'PAID', 'DEPOSIT_PAID', 'PENDING', 'ISSUED', 'ABANDONED', 'CANCELLED'] as const;
 const LIMIT = 500;
 
 export function summarize(rows: Array<{ status: string; paid: number; balance: number }>): PaymentSummary {
@@ -16,7 +16,7 @@ export function summarize(rows: Array<{ status: string; paid: number; balance: n
     s.collected += r.paid;
     if (r.status === 'PAID') s.paidInFull += 1;
     else if (r.status === 'DEPOSIT_PAID') { s.deposits += 1; s.outstanding += r.balance; }
-    else if (r.status === 'PENDING') s.pending += 1;
+    else if (r.status === 'PENDING' || r.status === 'ISSUED') s.pending += 1;
     else s.other += 1;
   }
   s.collected = money(s.collected); s.outstanding = money(s.outstanding);

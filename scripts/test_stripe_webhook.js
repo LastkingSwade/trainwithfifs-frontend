@@ -9,9 +9,9 @@ const sourcePath = path.join(__dirname, '../src/app/api/stripe/webhook/route.ts'
 const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
 
-function makeHarness({ event, invoices, students = [], failUpdateTable = null, failEmail = false, failAccess = false }) {
+function makeHarness({ event, invoices, students = [], payments = [], failUpdateTable = null, failEmail = false, failAccess = false }) {
   let eventToReturn = event;
-  const tables = { invoices: structuredClone(invoices), students: structuredClone(students) };
+  const tables = { invoices: structuredClone(invoices), students: structuredClone(students), invoice_payments: structuredClone(payments) };
   const alerts = [];
   const podCalls = [];
   const dayCalls = [];
@@ -42,6 +42,7 @@ function makeHarness({ event, invoices, students = [], failUpdateTable = null, f
     query.update = (values) => { query.operation = 'update'; query.values = values; return query; };
     query.eq = (column, value) => { query.filters.push((row) => row[column] === value); return query; };
     query.neq = (column, value) => { query.filters.push((row) => row[column] !== value); return query; };
+    query.is = (column, value) => { query.filters.push((row) => (value === null ? row[column] == null : row[column] === value)); return query; };
     query.in = (column, values) => { query.filters.push((row) => values.includes(row[column])); return query; };
     query.maybeSingle = async () => {
       const result = await execute(query);
@@ -264,5 +265,21 @@ function sessionEvent(type, overrides = {}) {
     assert.equal(normal.tables.invoices[0].status, 'DEPOSIT_PAID', 'without the balance flag nothing changes'); assert.equal(normal.tables.invoices[0].balance_due, '175.00');
   }
 
-  console.log('Stripe webhook regression tests passed (13 cases).');
+  {
+    // A payment recorded BY HAND (Zelle, cash...) plus a card payment that then arrives = paid twice: staff are alerted (the invoice is never changed). Ordinary duplicates stay silent.
+    const paidByHand = (extra = {}) => invoiceRow({ status: 'PAID', amount_paid: '250.00', balance_due: '0.00', ...extra });
+    const ledger = (amount, extra = {}) => ({ invoice_number: 'INV-1', amount, voided_at: null, ...extra });
+    const twice = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [paidByHand()], payments: [ledger('250.00')] });
+    assert.equal((await twice.post()).status, 200, 'Stripe is still answered normally');
+    assert.ok(twice.alerts.some((t) => /Paid by card AND recorded by hand/.test(t)), 'paid by hand and by card alerts staff');
+    assert.equal(twice.tables.invoices[0].status, 'PAID'); assert.equal(twice.tables.invoices[0].amount_paid, '250.00', 'the invoice is never changed by the second payment');
+    // A deposit paid online, the balance recorded by hand, then Stripe repeats the deposit event: together they equal the total, so no alert.
+    const dup = makeHarness({ event: sessionEvent('checkout.session.completed', { amount_total: 7500, metadata: { invoiceId: 'INV-1', isDepositPayment: 'true' } }), invoices: [paidByHand()], payments: [ledger('175.00')] });
+    assert.equal((await dup.post()).status, 200); assert.equal(dup.alerts.length, 0, 'an ordinary repeated delivery stays silent');
+    // No hand-recorded payment, a voided one, or a ledger that cannot be read: silent, and Stripe is still answered.
+    const none = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [paidByHand()] }); assert.equal((await none.post()).status, 200); assert.equal(none.alerts.length, 0);
+    const voided = makeHarness({ event: sessionEvent('checkout.session.completed'), invoices: [paidByHand()], payments: [ledger('250.00', { voided_at: '2026-10-30T00:00:00Z' })] }); assert.equal((await voided.post()).status, 200); assert.equal(voided.alerts.length, 0, 'a voided payment does not count');
+  }
+
+  console.log('Stripe webhook regression tests passed (14 cases).');
 })().catch((err) => { console.error(err); process.exitCode = 1; });

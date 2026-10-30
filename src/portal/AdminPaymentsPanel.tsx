@@ -6,8 +6,8 @@ import { getPref, setPref } from './prefs';
 
 interface Row { invoiceNumber: string; email: string; course: string; status: string; total: number; paid: number; balance: number; date: string; delivery: string }
 interface Summary { collected: number; outstanding: number; paidInFull: number; deposits: number; pending: number; other: number }
-const FILTERS: Array<[string, string]> = [['all', 'All'], ['PAID', 'Paid in full'], ['DEPOSIT_PAID', 'Deposit paid'], ['PENDING', 'Not paid yet'], ['ABANDONED', 'Abandoned'], ['CANCELLED', 'Cancelled']];
-const LABEL: Record<string, string> = { PAID: 'Paid in full', DEPOSIT_PAID: 'Deposit paid', PENDING: 'Not paid yet', ABANDONED: 'Abandoned', CANCELLED: 'Cancelled' };
+const FILTERS: Array<[string, string]> = [['all', 'All'], ['PAID', 'Paid in full'], ['DEPOSIT_PAID', 'Deposit paid'], ['PENDING', 'Not paid yet'], ['ISSUED', 'Invoice issued'], ['ABANDONED', 'Abandoned'], ['CANCELLED', 'Cancelled']];
+const LABEL: Record<string, string> = { PAID: 'Paid in full', DEPOSIT_PAID: 'Deposit paid', PENDING: 'Not paid yet', ISSUED: 'Invoice issued (not paid yet)', ABANDONED: 'Abandoned', CANCELLED: 'Cancelled' };
 const usd = (n: number) => '$' + n.toFixed(2);
 const day = (iso: string) => (iso ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '');
 interface Ledger { id: string; amount: number; methodLabel: string; receivedOn: string; note: string; recordedBy: string; voided: boolean; voidReason: string }
@@ -27,7 +27,7 @@ export default function AdminPaymentsPanel() {
   const [picked, setPicked] = useState<string[]>([]);
   const [confirming, setConfirming] = useState(false);
   const [typed, setTyped] = useState('');
-  // Recording a payment received in person (cash, check...) on a booking whose deposit was paid online.
+  // Recording a payment received outside the website (cash, check, Zelle...) on a booking with a balance left (deposit paid online, or an invoice nobody paid online).
   const [detail, setDetail] = useState<Row | null>(null);
   const [ledger, setLedger] = useState<Ledger[]>([]);
   const [setupNeeded, setSetupNeeded] = useState(false);
@@ -53,6 +53,8 @@ export default function AdminPaymentsPanel() {
   if (!open) return null;
 
   const isPaid = (r: Row) => r.status === 'PAID' || r.status === 'DEPOSIT_PAID';
+  // A payment received outside the website can be recorded on a booking with a balance left: deposit paid online, or an invoice nobody has paid online (emailed or older invoice, paid by Zelle, cash...).
+  const canRecord = (r: Row) => r.balance > 0 && (r.status === 'DEPOSIT_PAID' || r.status === 'PENDING' || r.status === 'ISSUED');
   const chosen = rows.filter((r) => picked.includes(r.invoiceNumber));
   const paidChosen = chosen.filter(isPaid).length;
   const toggle = (n: string) => { setConfirming(false); setTyped(''); setPicked((p) => (p.includes(n) ? p.filter((x) => x !== n) : p.length >= 50 ? p : [...p, n])); };
@@ -166,7 +168,7 @@ export default function AdminPaymentsPanel() {
                 ))}
               </ul>
             )}
-            {detail.status === 'DEPOSIT_PAID' && detail.balance > 0 && !setupNeeded ? (
+            {canRecord(detail) && !setupNeeded ? (
               <form className="row" onSubmit={(e) => { e.preventDefault(); savePayment(); }} aria-label="Record a payment received in person">
                 <label>Amount received $<input inputMode="decimal" aria-label="Amount received" style={{ width: 110 }} value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
                 <label>How paid <select aria-label="How it was paid" value={method} onChange={(e) => setMethod(e.target.value)}>{METHOD_OPTIONS.map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
@@ -174,7 +176,7 @@ export default function AdminPaymentsPanel() {
                 <input aria-label="Note (optional, staff only)" placeholder="Note (optional, only staff see it)" maxLength={200} style={{ flex: 1, minWidth: 200 }} value={note} onChange={(e) => setNote(e.target.value)} />
                 <button type="submit" className="primary" disabled={saving}>{saving ? 'Saving…' : 'Record payment'}</button>
               </form>
-            ) : (!setupNeeded && <p className="hint">{detail.status === 'PAID' ? 'This booking is paid in full.' : 'Only a booking with a confirmed online deposit and a balance can take a payment here.'}</p>)}
+            ) : (!setupNeeded && <p className="hint">{detail.status === 'PAID' ? 'This booking is paid in full.' : 'A payment cannot be recorded on this booking in its current state.'}</p>)}
             {formMsg && <div className="msg" role={formMsg.bad ? 'alert' : 'status'} style={{ color: formMsg.bad ? '#ffb4b4' : undefined }}>{formMsg.text}</div>}
           </section>
         )}
@@ -188,7 +190,7 @@ export default function AdminPaymentsPanel() {
                   <td style={{ padding: '6px 8px' }}>{day(r.date)}</td><td style={{ padding: '6px 8px' }}>{r.invoiceNumber}</td><td style={{ padding: '6px 8px' }}>{r.email}</td>
                   <td style={{ padding: '6px 8px' }}>{r.course}{r.delivery === 'Live online' ? ' 💻' : ''}</td><td style={{ padding: '6px 8px' }}>{LABEL[r.status] || r.status}</td>
                   <td style={{ padding: '6px 8px' }}>{usd(r.total)}</td><td style={{ padding: '6px 8px' }}>{usd(r.paid)}</td><td style={{ padding: '6px 8px' }}>{usd(r.balance)}</td>
-                  <td style={{ padding: '6px 8px' }}>{isPaid(r) && <button type="button" onClick={() => openDetail(r)} aria-label={(r.status === 'DEPOSIT_PAID' && r.balance > 0 ? 'Record payment for ' : 'Payment history for ') + r.invoiceNumber}>{r.status === 'DEPOSIT_PAID' && r.balance > 0 ? 'Record payment' : 'History'}</button>}</td>
+                  <td style={{ padding: '6px 8px' }}>{(isPaid(r) || canRecord(r)) && <button type="button" onClick={() => openDetail(r)} aria-label={(canRecord(r) ? 'Record payment for ' : 'Payment history for ') + r.invoiceNumber}>{canRecord(r) ? 'Record payment' : 'History'}</button>}</td>
                 </tr>
               ))}
               {!rows.length && loading && [0, 1, 2, 3].map((i) => <tr key={'s' + i} aria-hidden="true"><td colSpan={10} style={{ padding: '10px 8px' }}><div className="fifs-skel" /></td></tr>)}
