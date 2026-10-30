@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import '../online/online.css';
 import { getPref, setPref } from './prefs';
 
-interface Row { invoiceNumber: string; email: string; course: string; status: string; total: number; paid: number; balance: number; date: string; delivery: string }
+interface Row { guest?: boolean; invoiceNumber: string; email: string; course: string; status: string; total: number; paid: number; balance: number; date: string; delivery: string }
 interface Summary { collected: number; outstanding: number; paidInFull: number; deposits: number; pending: number; other: number }
 const FILTERS: Array<[string, string]> = [['all', 'All'], ['PAID', 'Paid in full'], ['DEPOSIT_PAID', 'Deposit paid'], ['PENDING', 'Not paid yet'], ['ISSUED', 'Invoice issued'], ['ABANDONED', 'Abandoned'], ['CANCELLED', 'Cancelled']];
 const LABEL: Record<string, string> = { PAID: 'Paid in full', DEPOSIT_PAID: 'Deposit paid', PENDING: 'Not paid yet', ISSUED: 'Invoice issued (not paid yet)', ABANDONED: 'Abandoned', CANCELLED: 'Cancelled' };
@@ -32,6 +32,8 @@ export default function AdminPaymentsPanel() {
   const [ledger, setLedger] = useState<Ledger[]>([]);
   const [setupNeeded, setSetupNeeded] = useState(false);
   const [amount, setAmount] = useState('');
+  // After a payment recorded by hand for a guest (someone with no student record yet): create their Student Portal.
+  const [gpName, setGpName] = useState(''); const [gpPhone, setGpPhone] = useState(''); const [gpBusy, setGpBusy] = useState(false); const [gpMsg, setGpMsg] = useState<{ text: string; bad: boolean } | null>(null);
   const [method, setMethod] = useState('cash');
   const [receivedOn, setReceivedOn] = useState('');
   const [note, setNote] = useState('');
@@ -73,7 +75,7 @@ export default function AdminPaymentsPanel() {
     const fn = (window as any).callFifsBackend;
     try { const d = await fn('adminInvoicePayments', { invoiceNumber: invoice }); setLedger(d.payments || []); setSetupNeeded(!!d.setupNeeded); } catch { setLedger([]); }
   };
-  const openDetail = (r: Row) => { setDetail(r); setAmount(r.balance > 0 ? r.balance.toFixed(2) : ''); setMethod('cash'); setReceivedOn(todayET()); setNote(''); setFormMsg(null); setVoidFor(''); setVoidReason(''); setLedger([]); setSetupNeeded(false); loadLedger(r.invoiceNumber); };
+  const openDetail = (r: Row) => { setDetail(r); setAmount(r.balance > 0 ? r.balance.toFixed(2) : ''); setMethod('cash'); setReceivedOn(todayET()); setNote(''); setFormMsg(null); setGpName(''); setGpPhone(''); setGpMsg(null); setVoidFor(''); setVoidReason(''); setLedger([]); setSetupNeeded(false); loadLedger(r.invoiceNumber); };
   const afterChange = async (r: Row, d: any, text: string) => {
     setFormMsg({ text, bad: false });
     const next = { ...r, status: d.status || r.status, paid: Number(d.paid ?? r.paid), balance: Number(d.balance ?? r.balance) };
@@ -85,6 +87,12 @@ export default function AdminPaymentsPanel() {
     try { const d = await (window as any).callFifsBackend('adminRecordPayment', { invoiceNumber: detail.invoiceNumber, amount, method, receivedOn, note }); await afterChange(detail, d, `Recorded ${usd(Number(d.amount))}. ${d.status === 'PAID' ? 'This booking is now paid in full.' : 'The balance is now ' + usd(Number(d.balance)) + '.'} The student's receipt is updated.`); setNote(''); }
     catch (e: any) { setFormMsg({ text: e?.message || 'Could not record the payment.', bad: true }); }
     setSaving(false);
+  };
+  const createPortal = async () => {
+    if (!detail || gpBusy) return; setGpBusy(true); setGpMsg(null);
+    try { const d = await (window as any).callFifsBackend('adminCreateStudentPortal', { invoiceNumber: detail.invoiceNumber, fullName: gpName, phone: gpPhone }); setGpMsg({ text: d.message || 'Portal created.', bad: false }); setDetail({ ...detail, guest: false }); await load(filter, search); (window as any).refreshAdminRoster?.(); }
+    catch (e: any) { setGpMsg({ text: e?.message || 'Could not create the portal.', bad: true }); }
+    setGpBusy(false);
   };
   const voidPayment = async (id: string) => {
     if (!detail || saving) return; setSaving(true); setFormMsg(null);
@@ -177,6 +185,15 @@ export default function AdminPaymentsPanel() {
                 <button type="submit" className="primary" disabled={saving}>{saving ? 'Saving…' : 'Record payment'}</button>
               </form>
             ) : (!setupNeeded && <p className="hint">{detail.status === 'PAID' ? 'This booking is paid in full.' : 'A payment cannot be recorded on this booking in its current state.'}</p>)}
+            {detail.guest && isPaid(detail) && (
+              <form className="row" onSubmit={(e) => { e.preventDefault(); createPortal(); }} aria-label="Create the student portal for this booking">
+                <span className="hint" style={{ flexBasis: '100%' }}>🎓 This person booked from an emailed invoice, so they have no student record or portal yet. Create it now: they are marked Confirmed, this invoice moves onto them, and they are emailed a link to set their own password.</span>
+                <label>Full name <input aria-label="Student full name" style={{ minWidth: 200 }} maxLength={100} value={gpName} onChange={(e) => setGpName(e.target.value)} /></label>
+                <label>Phone (optional) <input inputMode="tel" aria-label="Student phone (optional)" style={{ width: 160 }} maxLength={30} value={gpPhone} onChange={(e) => setGpPhone(e.target.value)} /></label>
+                <button type="submit" className="primary" disabled={gpBusy || gpName.trim().length < 2}>{gpBusy ? 'Creating…' : 'Create student portal'}</button>
+              </form>
+            )}
+            {gpMsg && <div className="msg" role={gpMsg.bad ? 'alert' : 'status'} style={{ color: gpMsg.bad ? '#ffb4b4' : undefined }}>{gpMsg.text}</div>}
             {formMsg && <div className="msg" role={formMsg.bad ? 'alert' : 'status'} style={{ color: formMsg.bad ? '#ffb4b4' : undefined }}>{formMsg.text}</div>}
           </section>
         )}
