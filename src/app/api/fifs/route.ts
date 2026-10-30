@@ -8,6 +8,7 @@ import { studentInvoices } from '@/Lib/server/student-invoices';
 import { sendInvoice, payInfo, invoiceCheckout } from '@/Lib/server/sent-invoices';
 import { waiverStatus, saveWaiver, listWaivers, getWaiver, remindToSignWaiver } from '@/Lib/server/waivers';
 import { logStaffAccess, outcomeOf, listAccessLog } from '@/Lib/server/access-log';
+import { createPortalForGuestInvoice } from '@/Lib/server/guest-portal';
 import { photoAdd, photoList, photoOpen, photoDelete, photoPaths, removePhotoFiles, purgeArmory } from '@/Lib/server/armory-photos';
 import { memberThread, memberSend, staffMembers, staffThread, staffSend } from '@/Lib/server/portal-chat';
 import { journalList, addSession, deleteSession, addGoal, setGoalDone, deleteGoal, deleteAll } from '@/Lib/server/range-journal';
@@ -3443,6 +3444,15 @@ export async function POST(req: NextRequest) {
        const r: any = await remindToSignWaiver(sbRemind, payload?.studentId);
        await logStaffAccess(sbRemind, { staffId: user?.id, staffLabel: user?.email, action: 'waiver_remind', studentId: payload?.studentId, outcome: outcomeOf(r) });
        return r.ok ? NextResponse.json({ success: true, ...r }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
+     }
+
+     // Staff: create the Student Portal for a paying guest whose payment was recorded by hand. STAFF ONLY: the role is checked before the database is touched.
+     case 'adminCreateStudentPortal': {
+       const { user, error: authErr } = await getAuthenticatedUser(req);
+       if (authErr || !isStaffOrAdmin(user)) return NextResponse.json({ success: false, status: 'error', error: 'Unauthorized: Staff or administrator authentication required.' }, { status: 401 });
+       if (!allowPublicSubmit(req, 'guestPortal', 20)) return NextResponse.json({ success: false, error: 'Too many attempts. Please wait a few minutes.' }, { status: 429 });
+       const r: any = await createPortalForGuestInvoice(getPrivilegedClient(), { invoiceNumber: payload?.invoiceNumber, fullName: payload?.fullName, phone: payload?.phone }, String(user?.email || user?.id || 'staff'));
+       return r.ok ? NextResponse.json({ success: true, message: r.message }) : NextResponse.json({ success: false, error: r.message }, { status: r.status });
      }
 
      // Staff access log (who opened waivers or sent reminders, and when). ADMINISTRATOR ONLY, read only: the role is checked on the server before the database is touched.

@@ -2,7 +2,7 @@ import { cleanCourse } from '@/group/groupCopy';
 
 // Staff-only payments view. Read only. The route checks the staff role BEFORE calling this. Returns the fields staff need to follow
 // the money; Stripe ids and card details are never selected.
-export interface PaymentRow { invoiceNumber: string; email: string; course: string; status: string; total: number; paid: number; balance: number; date: string; delivery: string }
+export interface PaymentRow { guest: boolean; invoiceNumber: string; email: string; course: string; status: string; total: number; paid: number; balance: number; date: string; delivery: string }
 export interface PaymentSummary { collected: number; outstanding: number; paidInFull: number; deposits: number; pending: number; other: number }
 export type PaymentResult = { ok: true; rows: PaymentRow[]; summary: PaymentSummary; truncated: boolean } | { ok: false; status: number; message: string };
 
@@ -29,13 +29,13 @@ export async function adminPayments(supabase: any, filter: unknown, search: unkn
   try {
     // The delivery column exists only after the online-classroom database script; fall back without it so this view never depends on that script.
     const run = (cols: string) => { let query = supabase.from('invoices').select(cols).order('created_at', { ascending: false }).limit(LIMIT + 1); if (f !== 'all') query = query.eq('status', f); return query; };
-    const base = 'invoice_number, email, course, status, total_amount, amount_paid, balance_due, created_at';
+    const base = 'invoice_number, student_id, email, course, status, total_amount, amount_paid, balance_due, created_at';
     let { data, error } = await run(base + ', delivery');
     if (error) ({ data, error } = await run(base));
     if (error || !Array.isArray(data)) return { ok: false, status: 503, message: 'Could not load payments right now.' };
     const truncated = data.length > LIMIT;
     let rows: PaymentRow[] = data.slice(0, LIMIT).map((r: any) => ({
-      invoiceNumber: String(r.invoice_number), email: String(r.email || ''), course: cleanCourse(r.course), status: String(r.status || ''),
+      guest: String(r.student_id || '') === 'GUEST-CHECKOUT', invoiceNumber: String(r.invoice_number), email: String(r.email || ''), course: cleanCourse(r.course), status: String(r.status || ''),
       total: money(r.total_amount), paid: money(r.amount_paid), balance: money(r.balance_due), date: String(r.created_at || ''), delivery: r.delivery === 'live_online' ? 'Live online' : 'In person',
     }));
     if (q) rows = rows.filter((r) => `${r.invoiceNumber} ${r.email} ${r.course}`.toLowerCase().includes(q));
