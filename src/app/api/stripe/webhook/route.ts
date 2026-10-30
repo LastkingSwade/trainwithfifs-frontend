@@ -101,6 +101,17 @@ async function handleBalancePayment(supabase: any, session: Stripe.Checkout.Sess
   ], 0x10b981);
 }
 
+// A payment recorded by staff on the invoice (see src/Lib/server/manual-payments.ts) plus this card payment add up to more than the invoice total: tell staff so they can refund the card.
+async function alertIfAlsoPaidByHand(supabase: any, invoice: any, session: Stripe.Checkout.Session, paidCents: number, fields: Array<{ name: string; value: string; inline: boolean }>) {
+  try {
+    const r = await supabase.from('invoice_payments').select('amount').eq('invoice_number', String(invoice.invoice_number)).is('voided_at', null);
+    if (r.error || !Array.isArray(r.data) || r.data.length === 0) return;
+    const handCents = r.data.reduce((sum: number, x: any) => sum + toCents(x.amount), 0), totalCents = toCents(invoice.total_amount);
+    if (!Number.isFinite(handCents) || !Number.isFinite(totalCents) || handCents + paidCents <= totalCents + 1) return;
+    await sendDiscordAlert('⚠️ Paid by card AND recorded by hand: refund needed?', `Invoice **${invoice.invoice_number}** was already paid (a payment was recorded by hand) when this card payment arrived, so together they are more than the invoice total. Check Stripe and refund the card payment if the student paid twice.`, [...fields, { name: 'Recorded by hand', value: `$${(handCents / 100).toFixed(2)}`, inline: true }, { name: 'Invoice total', value: `$${(totalCents / 100).toFixed(2)}`, inline: true }], 0xEF4444);
+  } catch { /* an alert problem must never change how Stripe is answered */ }
+}
+
 async function handlePaidSession(supabase: any, session: Stripe.Checkout.Session) {
   if (session.payment_status !== 'paid') {
     // Delayed payment methods report success later via checkout.session.async_payment_succeeded.
@@ -137,7 +148,9 @@ async function handlePaidSession(supabase: any, session: Stripe.Checkout.Session
   const invoiceNumber = String(invoice.invoice_number);
 
   if (PAID_STATUSES.includes(String(invoice.status))) {
-    // Duplicate delivery of an event that was already applied.
+    // Duplicate delivery of an event that was already applied. One exception worth a staff alert: the invoice was marked paid BY HAND (cash, Zelle...) and a card payment then also
+    // arrived, so the student has paid more than the invoice total. Best effort: it never changes the invoice or the answer to Stripe.
+    await alertIfAlsoPaidByHand(supabase, invoice, session, paidCents, reconcileFields);
     return;
   }
 

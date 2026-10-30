@@ -1,6 +1,6 @@
 /**
  * TrainWithFIFS - payments received in person (cash, check...) recorded by staff (offline; the database is an in-memory fake)
- * A payment can never exceed the balance; only a deposit-paid invoice can take one; the invoice and the ledger always agree (a failure puts everything back);
+ * A payment can never exceed the balance; a deposit-paid invoice, or an invoice nobody paid online (Not paid yet / Issued) can take one, never an abandoned or cancelled one; the invoice and the ledger always agree (a failure puts everything back);
  * a mistake is voided, not deleted; students see method, amount and date only; only staff can do any of it.
  */
 const fs = require('fs'); const path = require('path'); const Module = require('module');
@@ -63,8 +63,8 @@ const inv = (db) => db.t.invoices[0];
     }
     const db = makeDb(); const big = await rec(db, { amount: '175.01' }); assert(/more than the balance of \$175\.00/.test(big.message), big.message);
   });
-  await test('Only a deposit-paid invoice can take a payment (not unpaid, abandoned or already paid in full); unknown invoice; inconsistent amounts', async () => {
-    for (const [status, re] of [['PENDING', /has not been paid online/], ['ABANDONED', /has not been paid online/], ['CANCELLED', /has not been paid online/], ['PAID', /already paid in full/]]) { const db = makeDb(); inv(db).status = status; const r = await rec(db); assert(!r.ok && r.status === 409 && re.test(r.message), status + ' ' + r.message); eq(inv(db).amount_paid, '75.00'); eq(db.t.invoice_payments.length, 0); }
+  await test('Abandoned, cancelled and already-paid invoices are refused (and a not-yet-paid one that already shows money received); unknown invoice; inconsistent amounts', async () => {
+    for (const [status, re] of [['PENDING', /not marked paid but already shows money/], ['ISSUED', /not marked paid but already shows money/], ['ABANDONED', /abandoned or cancelled/], ['CANCELLED', /abandoned or cancelled/], ['PAID', /already paid in full/], ['SOMETHING_ELSE', /cannot be recorded/]]) { const db = makeDb(); inv(db).status = status; const r = await rec(db); assert(!r.ok && r.status === 409 && re.test(r.message), status + ' ' + r.message); eq(inv(db).amount_paid, '75.00'); eq(db.t.invoice_payments.length, 0); }
     const none = makeDb(); eq((await rec(none, { invoiceNumber: 'INV-NOPE-0000' })).status, 404);
     for (const [paid, bal] of [['75.00', '100.00'], ['abc', '175.00'], ['75.00', '0.00'], ['75.00', '-1']]) { const db = makeDb(); Object.assign(inv(db), { amount_paid: paid, balance_due: bal }); const r = await rec(db); assert(!r.ok && r.status === 409, paid + '/' + bal); eq(db.t.invoice_payments.length, 0); }
   });
@@ -98,6 +98,40 @@ const inv = (db) => db.t.invoices[0];
   await test('If the payment records are unavailable the student\'s receipt still shows the right totals (just without the extra lines)', async () => {
     const db = makeDb(); const mine = await si.studentInvoices({ from: (t) => { const q = { f: [] }; q.select = () => q; q.eq = (c, v) => { q.f.push((r) => r[c] === v); return q; }; q.in = () => { if (t === 'invoice_payments') q.err = true; return q; }; q.is = () => q; q.order = () => q; q.limit = () => q; q.then = (res) => res(q.err ? { data: null, error: { message: 'x' } } : { data: (db.t[t] || []).filter((r) => q.f.every((f) => f(r))), error: null }); return q; } }, 'FIFS-1001');
     eq(mine.length, 1); eq(mine[0].balance, 175); eq(mine[0].inPerson, []);
+  });
+  const unpaid = (status, extra = {}) => { const db = makeDb(); Object.assign(inv(db), { status, total_amount: '530.00', amount_paid: '0.00', balance_due: '530.00', ...extra }); return db; };
+  await test('An invoice nobody paid online (emailed, status Not paid yet) can take a Zelle payment: paying it all makes it Paid in full, in the ledger with Zelle, who and when', async () => {
+    const db = unpaid('PENDING', { stripe_session_id: 'cs_open' }); const r = await rec(db, { amount: '530', method: 'zelle', receivedOn: '2026-10-29', note: 'Josh Zelle' });
+    eq(r.ok, true); eq(r.status, 'PAID'); eq(r.paid, 530); eq(r.balance, 0); eq(inv(db).status, 'PAID'); eq(inv(db).amount_paid, '530.00'); eq(inv(db).balance_due, '0.00');
+    const l = db.t.invoice_payments[0]; eq(l.method, 'zelle'); eq(l.amount, '530.00'); eq(l.received_on, '2026-10-29'); eq(l.recorded_by, 'kai@trainwithfifs.com');
+    assert(alerts.some((a) => /Payment recorded in person/.test(a.title) && /Zelle/.test(a.desc)), 'staff note');
+  });
+  await test('An older ISSUED invoice (made before online checkout) takes a payment the same way, in parts or all at once', async () => {
+    const db = unpaid('ISSUED', { invoice_number: 'INV-FIFS-1001', total_amount: '249.99', balance_due: '249.99' }); const one = await mp.recordManualPayment(db, { invoiceNumber: 'INV-FIFS-1001', amount: '100', method: 'zelle', receivedOn: '', note: '' }, 'kai');
+    eq(one.ok, true); eq(one.status, 'DEPOSIT_PAID'); eq(one.balance, 149.99); const two = await mp.recordManualPayment(db, { invoiceNumber: 'INV-FIFS-1001', amount: '149.99', method: 'zelle', receivedOn: '', note: '' }, 'kai');
+    eq(two.ok, true); eq(two.status, 'PAID'); eq(inv(db).amount_paid, '249.99'); eq(inv(db).balance_due, '0.00'); eq(db.t.invoice_payments.length, 2);
+  });
+  await test('On a not-yet-paid invoice a payment can never be more than the total, and the other rules (real amount, method, date) still apply; nothing changes when refused', async () => {
+    for (const status of ['PENDING', 'ISSUED']) for (const o of [{ amount: '530.01' }, { amount: '0' }, { amount: 'abc' }, { method: 'bitcoin' }, { receivedOn: '2099-01-01' }]) { const db = unpaid(status); const r = await rec(db, o); assert(!r.ok, status + JSON.stringify(o)); eq(inv(db).status, status); eq(inv(db).amount_paid, '0.00'); eq(db.t.invoice_payments.length, 0); }
+  });
+  await test('If the invoice changes while staff type (a card payment lands first), nothing is written; if the ledger cannot be written, the invoice goes back to exactly its first state', async () => {
+    const race = unpaid('PENDING'); race.beforeInvoiceUpdate = (t) => { Object.assign(t.invoices[0], { status: 'DEPOSIT_PAID', amount_paid: '159.00', balance_due: '371.00' }); };
+    const r1 = await rec(race, { amount: '530' }); assert(!r1.ok && r1.status === 409, 'race refused'); eq(inv(race).amount_paid, '159.00'); eq(race.t.invoice_payments.length, 0);
+    const expired = unpaid('PENDING'); expired.beforeInvoiceUpdate = (t) => { t.invoices[0].status = 'ABANDONED'; }; const r2 = await rec(expired, { amount: '530' }); assert(!r2.ok && r2.status === 409, 'expired while typing is refused'); eq(inv(expired).status, 'ABANDONED'); eq(inv(expired).amount_paid, '0.00'); eq(expired.t.invoice_payments.length, 0);
+    for (const st of ['PENDING', 'ISSUED']) { const db = unpaid(st); db.ledgerFail = true; const r = await rec(db, { amount: '530' }); assert(!r.ok && r.status === 503, 'ledger failure'); eq(inv(db).status, st); eq(inv(db).amount_paid, '0.00'); eq(inv(db).balance_due, '530.00'); }
+  });
+  await test('Voiding the only payment puts the invoice back to waiting for payment (Not paid yet with an online link, Invoice issued without one); voiding one of two leaves Deposit paid', async () => {
+    for (const [extra, back] of [[{ stripe_session_id: 'cs_x' }, 'PENDING'], [{}, 'ISSUED']]) {
+      const db = unpaid(back, extra); await rec(db, { amount: '530', method: 'zelle' }); eq(inv(db).status, 'PAID'); const id = db.t.invoice_payments[0].id;
+      const v = await mp.voidManualPayment(db, id, 'typed the wrong invoice', 'kai'); eq(v.ok, true); eq(v.status, back); eq(inv(db).status, back); eq(inv(db).amount_paid, '0.00'); eq(inv(db).balance_due, '530.00'); eq(db.t.invoice_payments[0].voided_at != null, true);
+    }
+    const two = unpaid('ISSUED'); await rec(two, { amount: '200' }); await rec(two, { amount: '330' }); const v = await mp.voidManualPayment(two, two.t.invoice_payments[1].id, 'wrong amount', 'kai'); eq(v.status, 'DEPOSIT_PAID'); eq(inv(two).amount_paid, '200.00');
+  });
+  await test('The Payments screen offers Record payment on Not paid yet and Invoice issued bookings that still owe money, shows the Invoice issued label and filter, and counts them as unpaid', () => {
+    const ui = read('src/portal/AdminPaymentsPanel.tsx'); assert(/const canRecord = \(r: Row\) => r\.balance > 0 && \(r\.status === 'DEPOSIT_PAID' \|\| r\.status === 'PENDING' \|\| r\.status === 'ISSUED'\)/.test(ui), 'rule');
+    assert(/\(isPaid\(r\) \|\| canRecord\(r\)\) && <button/.test(ui) && /canRecord\(detail\) && !setupNeeded/.test(ui), 'button and form'); assert(/ISSUED: 'Invoice issued \(not paid yet\)'/.test(ui) && /\['ISSUED', 'Invoice issued'\]/.test(ui), 'label and filter');
+    assert(!/status === 'ABANDONED'[^;]*canRecord|canRecord[^;]*ABANDONED|canRecord[^;]*CANCELLED/.test(ui), 'never abandoned or cancelled');
+    const ap = require(path.join(ROOT, 'src/Lib/server/admin-payments.ts')); eq(ap.PAYMENT_FILTERS.includes('ISSUED'), true); const sm = ap.summarize([{ status: 'ISSUED', paid: 0, balance: 249.99 }, { status: 'PENDING', paid: 0, balance: 530 }]); eq(sm.pending, 2); eq(sm.other, 0);
   });
   await test('Wiring: the three actions are staff-only on the server before any database access; the screen offers Record payment / History / Void with a reason; the student receipt shows in-person payments', () => {
     const api = read('src/app/api/fifs/route.ts'); const at = api.indexOf("case 'adminInvoicePayments'"); assert(at > 0, 'cases'); const body = api.slice(at, at + 1400);
